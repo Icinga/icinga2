@@ -13,6 +13,7 @@ String Configuration::ApiBindPort{"5665"};
 bool Configuration::AttachDebugger{false};
 String Configuration::CacheDir;
 int Configuration::Concurrency{static_cast<int>(std::thread::hardware_concurrency())};
+bool Configuration::ConcurrencyWasModified{false};
 String Configuration::ConfigDir;
 String Configuration::DataDir;
 String Configuration::EventEngine;
@@ -101,6 +102,7 @@ int Configuration::GetConcurrency() const
 void Configuration::SetConcurrency(int val, bool suppress_events, const Value& cookie)
 {
 	HandleUserWrite("Concurrency", &Configuration::Concurrency, val, m_ReadOnly);
+	Configuration::ConcurrencyWasModified = true;
 }
 
 String Configuration::GetConfigDir() const
