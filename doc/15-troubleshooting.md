@@ -666,12 +666,6 @@ C:\Program Files\ICINGA2\sbin\icinga2.exe console --eval "dirname(msi_get_compon
 If this command does not return anything, NSClient++ is not properly installed.
 Verify that inside the `Programs and Features` (`appwiz.cpl`) control panel.
 
-You can run the bundled NSClient++ installer from the Icinga 2 Windows package.
-The msi package is located in `C:\Program Files\ICINGA2\sbin`.
-
-The bundled NSClient++ version has properly been tested with Icinga 2. Keep that
-in mind when using a different package.
-
 
 ### Check Thresholds Not Applied <a id="check-thresholds-not-applied"></a>
 
