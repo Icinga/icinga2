@@ -91,7 +91,7 @@ TODO
 
 * disk: don't pass -m (disk_megabytes) by default. #9642
 * disk: pass -X fuse.portal (disk_exclude_type) by default. #9459
-* http: support multiple -k (http_header). #8574
+* http: support multiple -k (http_header) as array. #8574
 * icmp: double defaults for -w (icmp_wpl) and -c (icmp_cpl). #9041
 * logfiles: pass --winwarncrit (logfiles_winwarncrit) without argument. #9056
 * nwc_health: pass SNMPv3-only args only when using SNMPv3. #9095
