@@ -42,6 +42,8 @@ Thanks to all contributors:
 * Remove StatusDataWriter (which has been deprecated for 5 major versions). #9715
 * Consider a checkable unreachable once one Dependency fails.
   Previously all of them had to fail. (Consult the upgrading docs.) #8218
+* `icinga2 daemon -C`: to reduce config load speed, write file needed
+  by `icinga2 object list` only if `--dump-objects` is given. #9586
 * Default email notification scripts: link to Icinga DB Web, not the monitoring module. #9742
 * API: for security reasons hide TicketSalt in /v1/variables. #7863
 
