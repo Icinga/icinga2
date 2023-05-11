@@ -55,41 +55,37 @@ TODO
 
 #### New Command Arguments
 
-* disk: add -P (disk_inode_perfdata) #9494
-* esxi_hardware:
-  * add --format (esxi_hardware_format) #9435
-  * add --pretty (esxi_hardware_pretty) #9435
-* http: add --verify-host (http_verify_host) #8005
-* icingacli-businessprocess:
-  * add --ack-is-ok (icingacli_businessprocess_ackisok) #9103
-  * add --blame (icingacli_businessprocess_blame) #9103
-  * add --colors (icingacli_businessprocess_colors) #9103
-  * add --downtime-is-ok (icingacli_businessprocess_downtimeisok) #9103
-  * add --root-cause (icingacli_businessprocess_rootcause) #9103
-* mem: add -a (mem_available) #9385
-* mongodb:
-  * add --disable_retry_writes (mongodb_disableretrywrites) #9539
-  * add --ssl-ca-cert-file (mongodb_ssl_ca_cert_file) #9610
-* mysql: add --extra-opts (pgsql_extra_opts) #9197
-* nrpe:
-  * add -3 (nrpe_version_3) #9296
-  * add -D (nrpe_no_logging) #9016
-  * add -P (nrpe_payload_size) #9032
-* pgsql: add --extra-opts (pgsql_extra_opts) #9197
-* postgres:
-  * add $PGCONTROLDATA (postgres_pgcontroldata) #8929
-  * add --datadir (postgres_datadir) #8924
-  * add --language (postgres_language) #8924
-  * add --perflimit (postgres_perflimit) #8924
-* ssl_cert:
-  * add --ignore-host-cn (ssl_cert_ignore_host_cn) #9512
-  * add --ignore-ocsp-errors (ssl_cert_ignore_ocsp_errors) #9512
-  * add --ignore-ocsp-timeout (ssl_cert_ignore_ocsp_timeout) #9512
-  * add --ignore-tls-renegotiation (ssl_cert_ignore_tls_renegotiation) #9042
-  * add --proxy (ssl_cert_proxy) #8927
-* tcp: add --sni (tcp_sni) #9347
-* vmware-esx-dc-runtime-tools and vmware-esx-soap-vm-runtime-tools:
-  add --no_vm_tools_ok (vmware_novmtools) #9611
+| Command                          | Argument                   | Custom Variable                        | PR    |
+|----------------------------------|----------------------------|----------------------------------------|-------|
+| disk                             | -P                         | disk_inode_perfdata                    | #9494 |
+| esxi_hardware                    | --format                   | esxi_hardware_format                   | #9435 |
+| esxi_hardware                    | --pretty                   | esxi_hardware_pretty                   | #9435 |
+| http                             | --verify-host              | http_verify_host                       | #8005 |
+| icingacli-businessprocess        | --ack-is-ok                | icingacli_businessprocess_ackisok      | #9103 |
+| icingacli-businessprocess        | --blame                    | icingacli_businessprocess_blame        | #9103 |
+| icingacli-businessprocess        | --colors                   | icingacli_businessprocess_colors       | #9103 |
+| icingacli-businessprocess        | --downtime-is-ok           | icingacli_businessprocess_downtimeisok | #9103 |
+| icingacli-businessprocess        | --root-cause               | icingacli_businessprocess_rootcause    | #9103 |
+| mem                              | -a                         | mem_available                          | #9385 |
+| mongodb                          | --disable_retry_writes     | mongodb_disableretrywrites             | #9539 |
+| mongodb                          | --ssl-ca-cert-file         | mongodb_ssl_ca_cert_file               | #9610 |
+| mysql                            | --extra-opts               | mysql_extra_opts                       | #9197 |
+| nrpe                             | -3                         | nrpe_version_3                         | #9296 |
+| nrpe                             | -D                         | nrpe_no_logging                        | #9016 |
+| nrpe                             | -P                         | nrpe_payload_size                      | #9032 |
+| pgsql                            | --extra-opts               | pgsql_extra_opts                       | #9197 |
+| postgres                         | $PGCONTROLDATA (env. var.) | postgres_pgcontroldata                 | #8929 |
+| postgres                         | --datadir                  | postgres_datadir                       | #8924 |
+| postgres                         | --language                 | postgres_language                      | #8924 |
+| postgres                         | --perflimit                | postgres_perflimit                     | #8924 |
+| ssl_cert                         | --ignore-host-cn           | ssl_cert_ignore_host_cn                | #9512 |
+| ssl_cert                         | --ignore-ocsp-errors       | ssl_cert_ignore_ocsp_errors            | #9512 |
+| ssl_cert                         | --ignore-ocsp-timeout      | ssl_cert_ignore_ocsp_timeout           | #9512 |
+| ssl_cert                         | --ignore-tls-renegotiation | ssl_cert_ignore_tls_renegotiation      | #9042 |
+| ssl_cert                         | --proxy                    | ssl_cert_proxy                         | #8927 |
+| tcp                              | --sni                      | tcp_sni                                | #9347 |
+| vmware-esx-dc-runtime-tools      | --no_vm_tools_ok           | vmware_novmtools                       | #9611 |
+| vmware-esx-soap-vm-runtime-tools | --no_vm_tools_ok           | vmware_novmtools                       | #9611 |
 
 #### Command Argument Changes
 
