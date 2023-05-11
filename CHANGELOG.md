@@ -42,7 +42,7 @@ Thanks to all contributors:
 * Remove StatusDataWriter (which has been deprecated for 5 major versions). #9715
 * Consider a checkable unreachable once one Dependency fails.
   Previously all of them had to fail. (Consult the upgrading docs.) #8218
-* `icinga2 daemon -C`: to reduce config load speed, write file needed
+* `icinga2 daemon -C`: to reduce config load time, write file needed
   by `icinga2 object list` only if `--dump-objects` is given. #9586
 * Default email notification scripts: link to Icinga DB Web, not the monitoring module. #9742
 * API: for security reasons hide TicketSalt in /v1/variables. #7863
@@ -50,7 +50,7 @@ Thanks to all contributors:
 #### Icinga 2 Config DSL
 
 * Disallow global variable modification after config commit start (i.e.
-  inside `object/apply T "x" { ... }`) to reduce config load speed. #9740
+  inside `object/apply T "x" { ... }`) to reduce config load time. #9740
 * Forbid Dependency cycles at config load time. #8389
 * Allow only strings in the arrays Host#groups,
   Service#groups and User#groups. (Needed by the IDO.) #9057
@@ -73,7 +73,9 @@ Both new installations and upgrades are affected.
 
 ### Enhancements
 
-TODO
+* Significantly reduce config load time of large setups.
+  #8118 #9524 #9555 #9557 #9572 #9577 #9608 #9627 #9657
+* TODO
 
 ### Bugfixes
 
