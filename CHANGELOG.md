@@ -47,27 +47,25 @@ TODO
 
 ### ITL
 
+#### Check Commands
+
 * cluster-zone: don't complain about not connected
-  other local zone members if there aren't any #8595
-* disk:
-  * don't pass -m (disk_megabytes) by default #9642
-  * add -P (disk_inode_perfdata) #9494
-  * pass -X fuse.portal (disk_exclude_type) by default #9459
+  other local zone members if there aren't any. #8595
+* Add linux_netdev check command. #9045
+
+#### New Command Arguments
+
+* disk: add -P (disk_inode_perfdata) #9494
 * esxi_hardware:
   * add --format (esxi_hardware_format) #9435
   * add --pretty (esxi_hardware_pretty) #9435
-* http:
-  * support multiple -k (http_header) #8574
-  * add --verify-host (http_verify_host) #8005
+* http: add --verify-host (http_verify_host) #8005
 * icingacli-businessprocess:
   * add --ack-is-ok (icingacli_businessprocess_ackisok) #9103
   * add --blame (icingacli_businessprocess_blame) #9103
   * add --colors (icingacli_businessprocess_colors) #9103
   * add --downtime-is-ok (icingacli_businessprocess_downtimeisok) #9103
   * add --root-cause (icingacli_businessprocess_rootcause) #9103
-* icmp: double defaults for -w (icmp_wpl) and -c (icmp_cpl) #9041
-* add linux_netdev check command #9045
-* logfiles: pass --winwarncrit (logfiles_winwarncrit) without argument #9056
 * mem: add -a (mem_available) #9385
 * mongodb:
   * add --disable_retry_writes (mongodb_disableretrywrites) #9539
@@ -77,7 +75,6 @@ TODO
   * add -3 (nrpe_version_3) #9296
   * add -D (nrpe_no_logging) #9016
   * add -P (nrpe_payload_size) #9032
-* nwc_health: pass SNMPv3-only args only when using SNMPv3 #9095
 * pgsql: add --extra-opts (pgsql_extra_opts) #9197
 * postgres:
   * add $PGCONTROLDATA (postgres_pgcontroldata) #8929
@@ -92,8 +89,18 @@ TODO
   * add --proxy (ssl_cert_proxy) #8927
 * tcp: add --sni (tcp_sni) #9347
 * vmware-esx-dc-runtime-tools and vmware-esx-soap-vm-runtime-tools:
-  * add --no_vm_tools_ok (vmware_novmtools) #9611
-  * rename --open-vm-tools to --open_vm_tools_ok (vmware_openvmtools) #9611
+  add --no_vm_tools_ok (vmware_novmtools) #9611
+
+#### Command Argument Changes
+
+* disk: don't pass -m (disk_megabytes) by default. #9642
+* disk: pass -X fuse.portal (disk_exclude_type) by default. #9459
+* http: support multiple -k (http_header). #8574
+* icmp: double defaults for -w (icmp_wpl) and -c (icmp_cpl). #9041
+* logfiles: pass --winwarncrit (logfiles_winwarncrit) without argument. #9056
+* nwc_health: pass SNMPv3-only args only when using SNMPv3. #9095
+* vmware-esx-dc-runtime-tools and vmware-esx-soap-vm-runtime-tools:
+  rename --open-vm-tools to --open_vm_tools_ok (vmware_openvmtools). #9611
 
 ## 2.13.7 (2023-02-16)
 
