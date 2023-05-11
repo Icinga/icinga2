@@ -79,12 +79,9 @@ Both new installations and upgrades are affected.
 
 ### Bugfixes
 
-* Documentation: several fixes and improvements. #8954 #9737 #9741
-* TODO
+TODO
 
 ### ITL
-
-#### Check Commands
 
 * cluster-zone: don't complain about not connected
   other local zone members if there aren't any. #8595
@@ -134,6 +131,16 @@ Both new installations and upgrades are affected.
 | tcp                              | --sni                      | tcp\_sni                                 | #9347 |
 | vmware-esx-dc-runtime-tools      | --no\_vm\_tools\_ok        | vmware\_novmtools                        | #9611 |
 | vmware-esx-soap-vm-runtime-tools | --no\_vm\_tools\_ok        | vmware\_novmtools                        | #9611 |
+
+### Miscellaneous
+
+* Require GCC 7+ for building to enable C++17. #9485
+* Require CMake v2.8.12+ for building.
+  (Compatibility with older ones will be removed from a future version.) #9706
+* Update Boost shipped on Windows to v1.82. #9761
+* Update vendored https://github.com/nlohmann/json to v3.9.1. #9675
+* Update vendored https://github.com/nemtrif/utfcpp to v3.2.3. #9683
+* Documentation: several fixes and improvements. #8954 #9737 #9741
 
 ## 2.13.7 (2023-02-16)
 
