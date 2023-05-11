@@ -36,6 +36,39 @@ Thanks to all contributors:
 [stevie-sy](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3Astevie-sy),
 [Tqnsls](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3ATqnsls)
 
+### Breaking Changes
+
+* Remove CheckResultReader (which has been deprecated for 5 major versions). #9714
+* Remove StatusDataWriter (which has been deprecated for 5 major versions). #9715
+* Consider a checkable unreachable once one Dependency fails.
+  Previously all of them had to fail. (Consult the upgrading docs.) #8218
+* Default email notification scripts: link to Icinga DB Web, not the monitoring module. #9742
+* API: for security reasons hide TicketSalt in /v1/variables. #7863
+
+#### Icinga 2 Config DSL
+
+* Disallow global variable modification after config commit start (i.e.
+  inside `object/apply T "x" { ... }`) to reduce config load speed. #9740
+* Forbid Dependency cycles at config load time. #8389
+* Allow only strings in the arrays Host#groups,
+  Service#groups and User#groups. (Needed by the IDO.) #9057
+* Disallow empty object names. (They worked only partially anyway.) #9409
+
+#### Windows Agent only
+
+The official MSIs don't include the following features anymore.
+They aren't needed on Windows and only waste build time, bandwidth and disk space.
+Both new installations and upgrades are affected.
+
+* ElasticsearchWriter #9704
+* GelfWriter #9704
+* GraphiteWriter #9704
+* InfluxdbWriter and Influxdb2Writer #9704
+* OpenTsdbWriter #9704
+* PerfdataWriter. #9704
+* NSClient++ installer #9703
+* Icinga 2 markdown documentation #9705
+
 ### Enhancements
 
 TODO
