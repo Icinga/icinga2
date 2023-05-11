@@ -447,6 +447,10 @@ static int Main()
 
 	Configuration::SetReadOnly(true);
 
+	if (!Configuration::ConcurrencyWasModified) {
+		Configuration::Concurrency = std::thread::hardware_concurrency();
+	}
+
 	/* Ensure that all defined constants work in the way we expect them. */
 	HandleLegacyDefines();
 
