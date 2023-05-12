@@ -98,6 +98,7 @@ On the other hand MSIs are now 75% smaller than before.
 * Allow agent to update executions delegated to it via /v1/actions/execute-command. #8627
 * SELinux: allow Icinga plugins to write to syslog when being run under sudo. #9688
 * `icinga2 node wizard`: avoid unnecessary chown(2) which may fail and abort the wizard. #8744
+* Replay log: fix memory leak. #9641
 * Send downtime expiration notifications immediately, not after up to a minute. #9726
 * Correct several HTTP response status codes. #7958 #9354 #9445
 * Correct Boolean field types previously reported by /v1/types as Number. #9514
@@ -161,6 +162,9 @@ On the other hand MSIs are now 75% smaller than before.
 * Require GCC 7+ for building to enable C++17. #9133 #9485 #9489
 * Require CMake v2.8.12+ for building.
   (Compatibility with older ones will be removed from a future version.) #9706
+* Repair config reload on OpenBSD by using waitpid(2), not a SIGCHLD handler. #9518
+* Ignore SIGHUP in main process to allow rcctl(8) sending it to all processes. #9622
+* Fix crash in debug build on macOS when API and debug log are enabled. #9497
 * Update Boost shipped on Windows to v1.82. #9761
 * Update vendored https://github.com/nlohmann/json to v3.9.1. #9675
 * Update vendored https://github.com/nemtrif/utfcpp to v3.2.3. #9683
