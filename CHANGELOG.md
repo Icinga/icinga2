@@ -71,6 +71,8 @@ Both new installations and upgrades are affected.
 * NSClient++ installer #9703
 * Icinga 2 markdown documentation #9705
 
+On the other hand MSIs are now 75% smaller than before.
+
 ### Enhancements
 
 * Significantly reduce config load time of large setups.
