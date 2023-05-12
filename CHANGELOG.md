@@ -76,7 +76,7 @@ On the other hand MSIs are now 75% smaller than before.
 ### Enhancements
 
 * Significantly reduce config load time of large setups.
-  #8118 #9524 #9555 #9557 #9572 #9577 #9608 #9627 #9648 #9657 #9662
+  #8118 #9524 #9555 #9557 #9572 #9577 #9603 #9608 #9627 #9648 #9657 #9662
 * Built-in check command ifw-api, communicates directly with the Icinga for
   Windows REST API. (Doesn't spawn a PowerShell process for that.) #9062
 * JournaldLogger which logs to systemd journal. #9000
@@ -98,7 +98,6 @@ On the other hand MSIs are now 75% smaller than before.
 * Allow agent to update executions delegated to it via /v1/actions/execute-command. #8627
 * SELinux: allow Icinga plugins to write to syslog when being run under sudo. #9688
 * `icinga2 node wizard`: avoid unnecessary chown(2) which may fail and abort the wizard. #8744
-* Replay log: fix memory leak. #9641
 * Send downtime expiration notifications immediately, not after up to a minute. #9726
 * Correct several HTTP response status codes. #7958 #9354 #9445
 * Correct Boolean field types previously reported by /v1/types as Number. #9514
@@ -169,6 +168,8 @@ On the other hand MSIs are now 75% smaller than before.
 * Update vendored https://github.com/nlohmann/json to v3.9.1. #9675
 * Update vendored https://github.com/nemtrif/utfcpp to v3.2.3. #9683
 * Documentation: several fixes and improvements. #8954 #9737 #9741
+* Several code quality improvements. #8815 #9106 #9250
+  #9508 #9517 #9537 #9594 #9605 #9606 #9641 #9658 #9702 #9717 #9738
 
 ## 2.13.7 (2023-02-16)
 
