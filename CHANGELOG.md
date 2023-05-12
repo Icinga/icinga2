@@ -43,8 +43,8 @@ Thanks to all contributors:
 * Consider a checkable unreachable once one Dependency fails.
   Previously all of them had to fail. (Consult the upgrading docs.) #8218
 * `icinga2 daemon -C`: to reduce config load time, write file needed
-  by `icinga2 object list` only if `--dump-objects` is given. #9586
-* Default email notification scripts: link to Icinga DB Web, not the monitoring module. #9742
+  by `icinga2 object list` only if `--dump-objects` is given. #9586 #9591
+* Default email notification scripts: link to Icinga DB Web, not the monitoring module. #9742 #9757
 * API: for security reasons hide TicketSalt in /v1/variables. #7863
 
 #### Icinga 2 Config DSL
@@ -76,7 +76,7 @@ On the other hand MSIs are now 75% smaller than before.
 ### Enhancements
 
 * Significantly reduce config load time of large setups.
-  #8118 #9524 #9555 #9557 #9572 #9577 #9608 #9627 #9657
+  #8118 #9524 #9555 #9557 #9572 #9577 #9608 #9627 #9648 #9657 #9662
 * Built-in check command ifw-api, communicates directly with the Icinga for
   Windows REST API. (Doesn't spawn a PowerShell process for that.) #9062
 * JournaldLogger which logs to systemd journal. #9000
@@ -158,7 +158,7 @@ On the other hand MSIs are now 75% smaller than before.
 
 ### Miscellaneous
 
-* Require GCC 7+ for building to enable C++17. #9485
+* Require GCC 7+ for building to enable C++17. #9133 #9485 #9489
 * Require CMake v2.8.12+ for building.
   (Compatibility with older ones will be removed from a future version.) #9706
 * Update Boost shipped on Windows to v1.82. #9761
