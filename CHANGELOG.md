@@ -77,7 +77,14 @@ On the other hand MSIs are now 75% smaller than before.
 
 * Significantly reduce config load time of large setups.
   #8118 #9524 #9555 #9557 #9572 #9577 #9608 #9627 #9657
-* TODO
+* Built-in check command ifw-api, communicates directly with the Icinga for
+  Windows REST API. (Doesn't spawn a PowerShell process for that.) #9062
+* JournaldLogger which logs to systemd journal. #9000
+* Support `$env.ENV_VAR_NAME$` macros. #8302
+* Default mail notification scripts: also print `$host.notes$` and `$service.notes$`. #9713
+* Forget that attribute was modified via API if it's
+  changed back to its original state via API. #8036
+* Influxdb(2)Writer: write more precise timestamps (nanoseconds). #9599
 
 ### Bugfixes
 
