@@ -88,13 +88,28 @@ On the other hand MSIs are now 75% smaller than before.
 
 ### Bugfixes
 
-TODO
+* Cluster: don't stuck in timed out connection attempt. #9711 #9725
+* Fix lost acknowledgements after cluster re-connect. #9718
+* `icinga2 daemon`: fix -DConfiguration.Concurrency= flag
+  which now allows to reduce thread amount. #9643
+* Disallow breaking inter-object relationships by changing
+  relationship attributes at runtime, e.g. Service#host_name. #9407
+* Fix parsing of perfdata across multiple lines in plugin output. #8969
+* Allow agent to update executions delegated to it via /v1/actions/execute-command. #8627
+* SELinux: allow Icinga plugins to write to syslog when being run under sudo. #9688
+* `icinga2 node wizard`: avoid unnecessary chown(2) which may fail and abort the wizard. #8744
+* Send downtime expiration notifications immediately, not after up to a minute. #9726
+* Correct several HTTP response status codes. #7958 #9354 #9445
+* Correct Boolean field types previously reported by /v1/types as Number. #9514
+* Correct several log messages. #8895 #8965 #9663
+* Windows: don't override console text background color implicitly. #8900
 
 ### ITL
 
+* Add linux\_netdev check command. #9045
+* icinga: fix last reload failure time. #8428
 * cluster-zone: don't complain about not connected
   other local zone members if there aren't any. #8595
-* Add linux\_netdev check command. #9045
 
 #### Command Argument Changes
 
