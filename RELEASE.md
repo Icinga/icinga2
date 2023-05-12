@@ -72,6 +72,9 @@ aptly:dependencies# wget https://slproweb.com/download/Win64OpenSSL-1_1_1k.exe
 aptly:dependencies# wget https://slproweb.com/download/Win32OpenSSL-1_1_1k.exe
 ```
 
+Finally clean up everything in that directory not used anymore
+by master or support branches to save disk space.
+
 #### Ensure Compatibility
 
 Preferably on a fresh Windows VM (not to accidentally build Icinga
@@ -107,6 +110,9 @@ hardcoded in the repos and files listed above (Boost, OpenSSL).
 There may be new build versions of other dependencies (VS, MSVC).
 Our GitHub actions (tests) use the latest ones automatically,
 but the GitLab runner (release packages) doesn't.
+
+Finally manually uninstall all Boost and OpenSSL versions
+not used anymore by master or support branches to save disk space.
 
 
 ## Version <a id="version"></a>
