@@ -12,8 +12,6 @@ follow the instructions for v2.7 too.
 
 TODO:
 
-* `icinga2 daemon -C`: to reduce config load time, write file needed
-  by `icinga2 object list` only if `--dump-objects` is given. #9586 #9591
 * Default email notification scripts: link to Icinga DB Web, not the monitoring module. #9742 #9757
 
 ### Dependencies and Redundancy Groups <a id="upgrading-to-2-14-dependencies"></a>
