@@ -13,7 +13,7 @@ Released closed milestones can be found on [GitHub](https://github.com/Icinga/ic
 
 ### Notes
 
-Upgrading docs: https://icinga.com/TODO
+Upgrading docs: https://icinga.com/docs/icinga2/snapshot/doc/16-upgrading-icinga-2/#upgrading-to-v214
 
 Thanks to all contributors:
 [atj](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3Aatj),

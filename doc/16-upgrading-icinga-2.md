@@ -8,6 +8,16 @@ Specific version upgrades are described below. Please note that version
 updates are incremental. An upgrade from v2.6 to v2.8 requires to
 follow the instructions for v2.7 too.
 
+## Upgrading to v2.14 <a id="upgrading-to-2-14"></a>
+
+TODO:
+
+* Consider a checkable unreachable once one Dependency fails.
+  Previously all of them had to fail. (Consult the upgrading docs.) #8218
+* `icinga2 daemon -C`: to reduce config load time, write file needed
+  by `icinga2 object list` only if `--dump-objects` is given. #9586 #9591
+* Default email notification scripts: link to Icinga DB Web, not the monitoring module. #9742 #9757
+
 ## Upgrading to v2.13 <a id="upgrading-to-2-13"></a>
 
 ### DB IDO Schema Update <a id="upgrading-to-2-13-db-ido"></a>
