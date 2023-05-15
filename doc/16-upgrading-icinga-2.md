@@ -12,11 +12,27 @@ follow the instructions for v2.7 too.
 
 TODO:
 
-* Consider a checkable unreachable once one Dependency fails.
-  Previously all of them had to fail. (Consult the upgrading docs.) #8218
 * `icinga2 daemon -C`: to reduce config load time, write file needed
   by `icinga2 object list` only if `--dump-objects` is given. #9586 #9591
 * Default email notification scripts: link to Icinga DB Web, not the monitoring module. #9742 #9757
+
+### Dependencies and Redundancy Groups <a id="upgrading-to-2-14-dependencies"></a>
+
+Before Icinga v2.12 all dependecies were cumulative.
+I.e. the parent was considered reachable only if no dependency was violated.
+In v2.12 and v2.13, all dependecies were redundant.
+I.e. the parent was considered unreachable only if no dependency was fulfilled.
+v2.14 restores the pre-v2.12 behavior and allows to override it.
+
+To stick to the behavior of v2.12 and v2.13, you could put this configuration in a global zone:
+
+```
+template Dependency default {
+    redundancy_group = "make all dependecies redundant"
+}
+```
+
+But in a real world you'll likely want to [fine-tune this](03-monitoring-basics.md#dependencies-redundancy-groups).
 
 ## Upgrading to v2.13 <a id="upgrading-to-2-13"></a>
 
