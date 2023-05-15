@@ -10,10 +10,6 @@ follow the instructions for v2.7 too.
 
 ## Upgrading to v2.14 <a id="upgrading-to-2-14"></a>
 
-TODO:
-
-* Default email notification scripts: link to Icinga DB Web, not the monitoring module. #9742 #9757
-
 ### Dependencies and Redundancy Groups <a id="upgrading-to-2-14-dependencies"></a>
 
 Before Icinga v2.12 all dependecies were cumulative.
@@ -31,6 +27,20 @@ template Dependency default {
 ```
 
 But in a real world you'll likely want to [fine-tune this](03-monitoring-basics.md#dependencies-redundancy-groups).
+
+### Email Notification Scripts <a id="upgrading-to-2-14-email-notification"></a>
+
+The email notification scripts shipped with Icinga 2 (/etc/icinga2/scripts)
+now link to Icinga DB Web, not the monitoring module.
+Both new and existing installations are affected unless you've altered the scripts.
+
+In the latter case package managers won't upgrade those "config" files in-place,
+but just put files with similar names into the same directory.
+This allows you to patch them by yourself based on diff(1).
+
+On the other hand, if you want to stick to the monitoring module for now,
+add any comments to the notification scripts before upgrading.
+This way package managers won't touch those files.
 
 ## Upgrading to v2.13 <a id="upgrading-to-2-13"></a>
 
