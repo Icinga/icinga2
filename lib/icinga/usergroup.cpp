@@ -125,4 +125,3 @@ bool UserGroup::ResolveGroupMembership(const User::Ptr& user, bool add, int rsta
 
 	return true;
 }
-

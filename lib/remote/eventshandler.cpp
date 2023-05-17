@@ -134,4 +134,3 @@ bool EventsHandler::HandleRequest(
 		}
 	}
 }
-

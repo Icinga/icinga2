@@ -42,4 +42,3 @@ Object::Ptr Object::GetPrototype()
 
 	return prototype;
 }
-

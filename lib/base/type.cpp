@@ -214,4 +214,3 @@ ObjectFactory TypeType::GetFactory() const
 {
 	return nullptr;
 }
-

@@ -360,4 +360,3 @@ bool Url::ValidateToken(const String& token, const String& symbols)
 
 	return true;
 }
-

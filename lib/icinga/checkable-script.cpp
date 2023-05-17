@@ -25,4 +25,3 @@ Object::Ptr Checkable::GetPrototype()
 
 	return prototype;
 }
-

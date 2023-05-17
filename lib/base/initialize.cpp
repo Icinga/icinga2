@@ -10,4 +10,3 @@ bool icinga::InitializeOnceHelper(const std::function<void()>& func, InitializeP
 	Loader::AddDeferredInitializer(func, priority);
 	return true;
 }
-

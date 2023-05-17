@@ -120,4 +120,3 @@ bool DeleteObjectHandler::HandleRequest(
 
 	return true;
 }
-
