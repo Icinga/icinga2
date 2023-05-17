@@ -1922,10 +1922,9 @@ into the [PluginDir](04-configuration.md#constants-conf) directory. The followin
 The plugin path and all command arguments are made a list of
 double-quoted string arguments for proper shell escaping.
 
-Call the `check_disk` plugin with the `--help` parameter to see
+Call the `check_mysql` plugin with the `--help` parameter to see
 all available options. Our example defines warning (`-w`) and
-critical (`-c`) thresholds for the disk usage. Without any
-partition defined (`-p`) it will check all local partitions.
+critical (`-c`) thresholds.
 
 ```
 icinga@icinga2 $ /usr/lib64/nagios/plugins/check_mysql --help
