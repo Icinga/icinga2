@@ -27,6 +27,7 @@ Required parameters:
 Optional parameters:
   -4 HOSTADDRESS (\$address\$)
   -6 HOSTADDRESS6 (\$address6\$)
+  -X HOSTNOTES (\$host.notes\$)
   -b NOTIFICATIONAUTHORNAME (\$notification.author\$)
   -c NOTIFICATIONCOMMENT (\$notification.comment\$)
   -i ICINGAWEB2URL (\$notification_icingaweb2url\$, Default: unset)
@@ -63,7 +64,7 @@ urlencode() {
 }
 
 ## Main
-while getopts 4:6::b:c:d:f:hi:l:n:o:r:s:t:v: opt
+while getopts 4:6::b:c:d:f:hi:l:n:o:r:s:t:v:X: opt
 do
   case "$opt" in
     4) HOSTADDRESS=$OPTARG ;;
@@ -77,6 +78,7 @@ do
     l) HOSTNAME=$OPTARG ;; # required
     n) HOSTDISPLAYNAME=$OPTARG ;; # required
     o) HOSTOUTPUT=$OPTARG ;; # required
+    X) HOSTNOTES=$OPTARG ;;
     r) USEREMAIL=$OPTARG ;; # required
     s) HOSTSTATE=$OPTARG ;; # required
     t) NOTIFICATIONTYPE=$OPTARG ;; # required
@@ -127,6 +129,12 @@ fi
 if [ -n "$HOSTADDRESS6" ] ; then
   NOTIFICATION_MESSAGE="$NOTIFICATION_MESSAGE
 IPv6:	 $HOSTADDRESS6"
+fi
+
+## Check whether host notes was specified.
+if [ -n "$HOSTNOTES" ] ; then
+        NOTIFICATION_MESSAGE="$NOTIFICATION_MESSAGE
+Host notes: $HOSTNOTES"
 fi
 
 ## Check whether author and comment was specified.
