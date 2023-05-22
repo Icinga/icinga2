@@ -1,5 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/atomic.hpp"
 #include "base/console.hpp"
 #include "base/initialize.hpp"
 #include <iostream>
@@ -121,25 +122,36 @@ void Console::PrintVT100ColorCode(std::ostream& fp, int color)
 		fp << "\33[1m";
 }
 #else /* _WIN32 */
+static Atomic<WORD> l_StdoutInitTextAttrs (-1), l_StderrInitTextAttrs (-1);
+
 void Console::SetWindowsConsoleColor(std::ostream& fp, int color)
 {
 	CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
 	HANDLE hConsole;
+	Atomic<WORD>* initConsoleTextAttrs;
 
-	if (&fp == &std::cout)
+	if (&fp == &std::cout) {
 		hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-	else if (&fp == &std::cerr)
+		initConsoleTextAttrs = &l_StdoutInitTextAttrs;
+	} else if (&fp == &std::cerr) {
 		hConsole = GetStdHandle(STD_ERROR_HANDLE);
-	else
+		initConsoleTextAttrs = &l_StderrInitTextAttrs;
+	} else {
 		return;
+	}
 
 	if (!GetConsoleScreenBufferInfo(hConsole, &consoleInfo))
 		return;
 
+	{
+		WORD uninitialised = -1;
+		(void)initConsoleTextAttrs->compare_exchange_strong(uninitialised, consoleInfo.wAttributes);
+	}
+
 	WORD attrs = 0;
 
 	if (color == Console_Normal) {
-		attrs = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+		attrs = initConsoleTextAttrs->load();
 	} else {
 		switch (color & 0xff) {
 			case Console_ForegroundBlack:
