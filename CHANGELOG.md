@@ -102,7 +102,6 @@ On the other hand MSIs are now 75% smaller than before.
 * Correct several HTTP response status codes. #7958 #9354 #9445
 * Correct Boolean field types previously reported by /v1/types as Number. #9514
 * Correct several log messages. #8895 #8965 #9663
-* Windows: don't override console text background color implicitly. #8900
 
 ### ITL
 
