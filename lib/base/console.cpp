@@ -143,6 +143,9 @@ void Console::SetWindowsConsoleColor(std::ostream& fp, int color)
 	if (!GetConsoleScreenBufferInfo(hConsole, &consoleInfo))
 		return;
 
+	// On CONSOLE_SCREEN_BUFFER_INFO#wAttributes, FOREGROUND_* and BACKGROUND_* read
+	// https://learn.microsoft.com/en-us/windows/console/console-screen-buffers#character-attributes
+
 	{
 		WORD uninitialised = -1;
 		(void)initConsoleTextAttrs->compare_exchange_strong(uninitialised, consoleInfo.wAttributes);
