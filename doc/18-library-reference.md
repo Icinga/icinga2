@@ -446,7 +446,8 @@ Signature:
 function parse_performance_data(pd)
 ```
 
-Parses a performance data string and returns an array describing the values.
+Parses a single performance data value from a string and returns a
+[PerfdataValue](08-advanced-topics.md#advanced-value-types-perfdatavalue) object.
 
 Example:
 
