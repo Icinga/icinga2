@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2022 Icinga GmbH | GPLv2+ */
 
-#ifndef ATOMIC_FILE_H
-#define ATOMIC_FILE_H
+#pragma once
 
 #include "base/string.hpp"
 #include <boost/iostreams/device/file_descriptor.hpp>
@@ -37,5 +36,3 @@ private:
 };
 
 }
-
-#endif /* ATOMIC_FILE_H */

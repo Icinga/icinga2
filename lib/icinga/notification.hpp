@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef NOTIFICATION_H
-#define NOTIFICATION_H
+#pragma once
 
 #include "icinga/i2-icinga.hpp"
 #include "icinga/notification-ti.hpp"
@@ -129,5 +128,3 @@ int ServiceStateToFilter(ServiceState state);
 int HostStateToFilter(HostState state);
 
 }
-
-#endif /* NOTIFICATION_H */

@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef OBJECTUTILS_H
-#define OBJECTUTILS_H
+#pragma once
 
 #include "base/i2-base.hpp"
 #include "base/string.hpp"
@@ -25,5 +24,3 @@ private:
 };
 
 }
-
-#endif /* OBJECTUTILS_H */

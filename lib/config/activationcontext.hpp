@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef ACTIVATIONCONTEXT_H
-#define ACTIVATIONCONTEXT_H
+#pragma once
 
 #include "config/i2-config.hpp"
 #include "base/object.hpp"
@@ -42,5 +41,3 @@ private:
 };
 
 }
-
-#endif /* ACTIVATIONCONTEXT_H */

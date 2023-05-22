@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef LOADER_H
-#define LOADER_H
+#pragma once
 
 #include "base/i2-base.hpp"
 #include "base/initialize.hpp"
@@ -57,5 +56,3 @@ private:
 };
 
 }
-
-#endif /* LOADER_H */

@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef FUNCTION_H
-#define FUNCTION_H
+#pragma once
 
 #include "base/i2-base.hpp"
 #include "base/function-ti.hpp"
@@ -85,5 +84,3 @@ private:
 	}, InitializePriority::RegisterFunctions)
 
 }
-
-#endif /* FUNCTION_H */

@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2020 Icinga GmbH | GPLv2+ */
 
-#ifndef PKIVERIFYCOMMAND_H
-#define PKIVERIFYCOMMAND_H
+#pragma once
 
 #include "cli/clicommand.hpp"
 
@@ -28,5 +27,3 @@ public:
 };
 
 }
-
-#endif /* PKIVERIFYCOMMAND_H */

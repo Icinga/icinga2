@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef PGSQLINTERFACE_H
-#define PGSQLINTERFACE_H
+#pragma once
 
 #include "pgsql_shim/pgsql_shim_export.h"
 #include <memory>
@@ -57,5 +56,3 @@ extern "C"
 }
 
 typedef icinga::PgsqlInterface *(*create_pgsql_shim_ptr)();
-
-#endif /* PGSQLINTERFACE_H */

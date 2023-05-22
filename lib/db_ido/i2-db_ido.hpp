@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef I2DB_IDO_H
-#define I2DB_IDO_H
+#pragma once
 
 /**
  * @defgroup db_ido IDO library
@@ -10,5 +9,3 @@
  */
 
 #include "base/i2-base.hpp"
-
-#endif /* I2DB_IDO_H */

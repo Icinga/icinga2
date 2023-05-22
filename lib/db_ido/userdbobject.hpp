@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef USERDBOBJECT_H
-#define USERDBOBJECT_H
+#pragma once
 
 #include "db_ido/dbobject.hpp"
 #include "base/configobject.hpp"
@@ -31,5 +30,3 @@ protected:
 };
 
 }
-
-#endif /* USERDBOBJECT_H */

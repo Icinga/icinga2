@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef NODESETUPCOMMAND_H
-#define NODESETUPCOMMAND_H
+#pragma once
 
 #include "cli/clicommand.hpp"
 
@@ -32,5 +31,3 @@ private:
 };
 
 }
-
-#endif /* NODESETUPCOMMAND_H */

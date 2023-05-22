@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef ENDPOINT_H
-#define ENDPOINT_H
+#pragma once
 
 #include "remote/i2-remote.hpp"
 #include "remote/endpoint-ti.hpp"
@@ -64,5 +63,3 @@ private:
 };
 
 }
-
-#endif /* ENDPOINT_H */

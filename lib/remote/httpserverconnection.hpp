@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef HTTPSERVERCONNECTION_H
-#define HTTPSERVERCONNECTION_H
+#pragma once
 
 #include "remote/apiuser.hpp"
 #include "base/string.hpp"
@@ -50,5 +49,3 @@ private:
 };
 
 }
-
-#endif /* HTTPSERVERCONNECTION_H */

@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef LEGACYTIMEPERIOD_H
-#define LEGACYTIMEPERIOD_H
+#pragma once
 
 #include "icinga/i2-icinga.hpp"
 #include "icinga/timeperiod.hpp"
@@ -41,5 +40,3 @@ private:
 };
 
 }
-
-#endif /* LEGACYTIMEPERIOD_H */

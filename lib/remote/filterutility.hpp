@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef FILTERUTILITY_H
-#define FILTERUTILITY_H
+#pragma once
 
 #include "remote/i2-remote.hpp"
 #include "remote/apiuser.hpp"
@@ -60,5 +59,3 @@ public:
 };
 
 }
-
-#endif /* FILTERUTILITY_H */

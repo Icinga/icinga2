@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef ICINGADB_H
-#define ICINGADB_H
+#pragma once
 
 #include "icingadb/icingadb-ti.hpp"
 #include "icingadb/redisconnection.hpp"
@@ -237,5 +236,3 @@ private:
 	static std::unordered_set<Type*> m_IndexedTypes;
 };
 }
-
-#endif /* ICINGADB_H */

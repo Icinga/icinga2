@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef CONTACTGROUPSTABLE_H
-#define CONTACTGROUPSTABLE_H
+#pragma once
 
 #include "livestatus/table.hpp"
 
@@ -35,5 +34,3 @@ protected:
 };
 
 }
-
-#endif /* CONTACTGROUPSTABLE_H */

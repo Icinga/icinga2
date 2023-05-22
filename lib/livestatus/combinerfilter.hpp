@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef COMBINERFILTER_H
-#define COMBINERFILTER_H
+#pragma once
 
 #include "livestatus/filter.hpp"
 
@@ -27,5 +26,3 @@ protected:
 };
 
 }
-
-#endif /* COMBINERFILTER_H */

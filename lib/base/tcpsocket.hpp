@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef TCPSOCKET_H
-#define TCPSOCKET_H
+#pragma once
 
 #include "base/i2-base.hpp"
 #include "base/io-engine.hpp"
@@ -98,5 +97,3 @@ void Connect(Socket& socket, const String& node, const String& service, boost::a
 }
 
 }
-
-#endif /* TCPSOCKET_H */

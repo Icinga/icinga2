@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef OBJECTRULE_H
-#define OBJECTRULE_H
+#pragma once
 
 #include "config/i2-config.hpp"
 #include "config/expression.hpp"
@@ -29,5 +28,3 @@ private:
 };
 
 }
-
-#endif /* OBJECTRULE_H */

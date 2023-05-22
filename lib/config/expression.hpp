@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef EXPRESSION_H
-#define EXPRESSION_H
+#pragma once
 
 #include "config/i2-config.hpp"
 #include "base/debuginfo.hpp"
@@ -977,5 +976,3 @@ private:
 };
 
 }
-
-#endif /* EXPRESSION_H */

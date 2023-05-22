@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef HOSTGROUP_H
-#define HOSTGROUP_H
+#pragma once
 
 #include "icinga/i2-icinga.hpp"
 #include "icinga/hostgroup-ti.hpp"
@@ -39,5 +38,3 @@ private:
 };
 
 }
-
-#endif /* HOSTGROUP_H */

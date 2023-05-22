@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef LOGGER_H
-#define LOGGER_H
+#pragma once
 
 #include "base/atomic.hpp"
 #include "base/i2-base.hpp"
@@ -145,5 +144,3 @@ extern template Log& Log::operator<<(const long&);
 extern template Log& Log::operator<<(const double&);
 
 }
-
-#endif /* LOGGER_H */

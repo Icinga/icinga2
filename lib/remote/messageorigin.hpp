@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef MESSAGEORIGIN_H
-#define MESSAGEORIGIN_H
+#pragma once
 
 #include "remote/zone.hpp"
 #include "remote/jsonrpcconnection.hpp"
@@ -24,5 +23,3 @@ public:
 };
 
 }
-
-#endif /* MESSAGEORIGIN_H */

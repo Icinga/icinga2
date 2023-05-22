@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef SERIALIZER_H
-#define SERIALIZER_H
+#pragma once
 
 #include "base/i2-base.hpp"
 #include "base/type.hpp"
@@ -30,5 +29,3 @@ Value Deserialize(const Value& value, bool safe_mode = false, int attributeTypes
 Value Deserialize(const Object::Ptr& object, const Value& value, bool safe_mode = false, int attributeTypes = FAState);
 
 }
-
-#endif /* SERIALIZER_H */

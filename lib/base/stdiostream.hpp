@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef STDIOSTREAM_H
-#define STDIOSTREAM_H
+#pragma once
 
 #include "base/i2-base.hpp"
 #include "base/stream.hpp"
@@ -32,5 +31,3 @@ private:
 };
 
 }
-
-#endif /* STDIOSTREAM_H */

@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2019 Icinga GmbH | GPLv2+ */
 
-#ifndef ATOMIC_H
-#define ATOMIC_H
+#pragma once
 
 #include <atomic>
 #include <mutex>
@@ -87,5 +86,3 @@ using AtomicOrLocked =
 #endif /* defined(__GNUC__) && __GNUC__ < 5 */
 
 }
-
-#endif /* ATOMIC_H */

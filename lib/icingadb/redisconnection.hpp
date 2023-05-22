@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef REDISCONNECTION_H
-#define REDISCONNECTION_H
+#pragma once
 
 #include "base/array.hpp"
 #include "base/atomic.hpp"

@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef DEBUG_H
-#define DEBUG_H
+#pragma once
 
 #include "i2-base.hpp"
 
@@ -45,5 +44,3 @@ inline int icinga_assert_fail(const char *expr, const char *file, int line)
 #ifdef _MSC_VER
 #	pragma warning( pop )
 #endif /* _MSC_VER */
-
-#endif /* DEBUG_H */

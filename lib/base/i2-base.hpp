@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef I2BASE_H
-#define I2BASE_H
+#pragma once
 
 /**
  * @mainpage Icinga Documentation
@@ -75,5 +74,3 @@
 #define BOOST_BIND_NO_PLACEHOLDERS
 
 #include <functional>
-
-#endif /* I2BASE_H */

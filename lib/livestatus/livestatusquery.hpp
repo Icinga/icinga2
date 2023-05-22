@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef LIVESTATUSQUERY_H
-#define LIVESTATUSQUERY_H
+#pragma once
 
 #include "livestatus/filter.hpp"
 #include "livestatus/aggregator.hpp"
@@ -86,5 +85,3 @@ private:
 };
 
 }
-
-#endif /* LIVESTATUSQUERY_H */

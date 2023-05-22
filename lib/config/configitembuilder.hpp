@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef CONFIGITEMBUILDER_H
-#define CONFIGITEMBUILDER_H
+#pragma once
 
 #include "config/expression.hpp"
 #include "config/configitem.hpp"

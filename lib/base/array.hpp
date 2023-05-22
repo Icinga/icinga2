@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef ARRAY_H
-#define ARRAY_H
+#pragma once
 
 #include "base/i2-base.hpp"
 #include "base/objectlock.hpp"
@@ -113,5 +112,3 @@ Array::Iterator end(const Array::Ptr& x);
 }
 
 extern template class std::vector<icinga::Value>;
-
-#endif /* ARRAY_H */

@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef LIVESTATUSLISTENER_H
-#define LIVESTATUSLISTENER_H
+#pragma once
 
 #include "livestatus/i2-livestatus.hpp"
 #include "livestatus/livestatuslistener-ti.hpp"
@@ -43,5 +42,3 @@ private:
 };
 
 }
-
-#endif /* LIVESTATUSLISTENER_H */

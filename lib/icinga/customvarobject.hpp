@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef CUSTOMVAROBJECT_H
-#define CUSTOMVAROBJECT_H
+#pragma once
 
 #include "icinga/i2-icinga.hpp"
 #include "icinga/customvarobject-ti.hpp"
@@ -27,5 +26,3 @@ public:
 int FilterArrayToInt(const Array::Ptr& typeFilters, const std::map<String, int>& filterMap, int defaultValue);
 
 }
-
-#endif /* CUSTOMVAROBJECT_H */

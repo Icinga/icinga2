@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef DICTIONARY_H
-#define DICTIONARY_H
+#pragma once
 
 #include "base/i2-base.hpp"
 #include "base/object.hpp"
@@ -86,5 +85,3 @@ Dictionary::Iterator end(const Dictionary::Ptr& x);
 }
 
 extern template class std::map<icinga::String, icinga::Value>;
-
-#endif /* DICTIONARY_H */

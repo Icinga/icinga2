@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef APIFUNCTION_H
-#define APIFUNCTION_H
+#pragma once
 
 #include "remote/i2-remote.hpp"
 #include "remote/messageorigin.hpp"
@@ -55,5 +54,3 @@ public:
 	})
 
 }
-
-#endif /* APIFUNCTION_H */

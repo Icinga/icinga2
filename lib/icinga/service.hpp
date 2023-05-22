@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef SERVICE_H
-#define SERVICE_H
+#pragma once
 
 #include "icinga/i2-icinga.hpp"
 #include "icinga/service-ti.hpp"
@@ -61,5 +60,3 @@ private:
 std::pair<Host::Ptr, Service::Ptr> GetHostService(const Checkable::Ptr& checkable);
 
 }
-
-#endif /* SERVICE_H */

@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef ICINGAAPPLICATION_H
-#define ICINGAAPPLICATION_H
+#pragma once
 
 #include "icinga/i2-icinga.hpp"
 #include "icinga/icingaapplication-ti.hpp"
@@ -48,5 +47,3 @@ private:
 };
 
 }
-
-#endif /* ICINGAAPPLICATION_H */

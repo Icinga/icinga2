@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef OBJECTLISTCOMMAND_H
-#define OBJECTLISTCOMMAND_H
+#pragma once
 
 #include "base/dictionary.hpp"
 #include "base/array.hpp"
@@ -32,5 +31,3 @@ private:
 };
 
 }
-
-#endif /* OBJECTLISTCOMMAND_H */

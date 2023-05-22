@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef FILELOGGER_H
-#define FILELOGGER_H
+#pragma once
 
 #include "base/i2-base.hpp"
 #include "base/filelogger-ti.hpp"
@@ -29,5 +28,3 @@ private:
 };
 
 }
-
-#endif /* FILELOGGER_H */

@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef CONFIGCOMPILERCONTEXT_H
-#define CONFIGCOMPILERCONTEXT_H
+#pragma once
 
 #include "config/i2-config.hpp"
 #include "base/atomic-file.hpp"
@@ -38,5 +37,3 @@ private:
 };
 
 }
-
-#endif /* CONFIGCOMPILERCONTEXT_H */

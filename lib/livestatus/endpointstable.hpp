@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef ENDPOINTSTABLE_H
-#define ENDPOINTSTABLE_H
+#pragma once
 
 #include "livestatus/table.hpp"
 
@@ -37,5 +36,3 @@ protected:
 };
 
 }
-
-#endif /* ENDPOINTSTABLE_H */

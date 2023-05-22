@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef INFLUXDBWRITER_H
-#define INFLUXDBWRITER_H
+#pragma once
 
 #include "perfdata/influxdbwriter-ti.hpp"
 
@@ -27,5 +26,3 @@ protected:
 };
 
 }
-
-#endif /* INFLUXDBWRITER_H */

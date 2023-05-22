@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef COMMENT_H
-#define COMMENT_H
+#pragma once
 
 #include "icinga/i2-icinga.hpp"
 #include "icinga/comment-ti.hpp"
@@ -55,5 +54,3 @@ private:
 };
 
 }
-
-#endif /* COMMENT_H */

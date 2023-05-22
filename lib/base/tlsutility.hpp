@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef TLSUTILITY_H
-#define TLSUTILITY_H
+#pragma once
 
 #include "base/i2-base.hpp"
 #include "base/debuginfo.hpp"
@@ -81,5 +80,3 @@ struct errinfo_openssl_error_;
 typedef boost::error_info<struct errinfo_openssl_error_, unsigned long> errinfo_openssl_error;
 
 }
-
-#endif /* TLSUTILITY_H */

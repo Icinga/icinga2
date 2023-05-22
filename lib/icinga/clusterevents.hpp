@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef CLUSTEREVENTS_H
-#define CLUSTEREVENTS_H
+#pragma once
 
 #include "icinga/checkable.hpp"
 #include "icinga/host.hpp"
@@ -92,5 +91,3 @@ private:
 };
 
 }
-
-#endif /* CLUSTEREVENTS_H */

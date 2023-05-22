@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef STATUSTABLE_H
-#define STATUSTABLE_H
+#pragma once
 
 #include "livestatus/table.hpp"
 
@@ -57,5 +56,3 @@ protected:
 };
 
 }
-
-#endif /* STATUSTABLE_H */

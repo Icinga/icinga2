@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef MYSQLINTERFACE_H
-#define MYSQLINTERFACE_H
+#pragma once
 
 #include "mysql_shim/mysql_shim_export.h"
 #include <memory>
@@ -61,5 +60,3 @@ extern "C"
 }
 
 typedef icinga::MysqlInterface *(*create_mysql_shim_ptr)();
-
-#endif /* MYSQLINTERFACE_H */

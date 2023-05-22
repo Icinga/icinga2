@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef COMPATLOGGER_H
-#define COMPATLOGGER_H
+#pragma once
 
 #include "compat/compatlogger-ti.hpp"
 #include "icinga/service.hpp"
@@ -56,5 +55,3 @@ private:
 };
 
 }
-
-#endif /* COMPATLOGGER_H */

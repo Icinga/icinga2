@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2021 Icinga GmbH | GPLv2+ */
 
-#ifndef INFLUXDBCOMMONWRITER_H
-#define INFLUXDBCOMMONWRITER_H
+#pragma once
 
 #include "perfdata/influxdbcommonwriter-ti.hpp"
 #include "icinga/service.hpp"
@@ -97,5 +96,3 @@ void InfluxdbCommonWriter::StatsFunc(const Dictionary::Ptr& status, const Array:
 }
 
 }
-
-#endif /* INFLUXDBCOMMONWRITER_H */

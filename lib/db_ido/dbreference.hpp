@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef DBREFERENCE_H
-#define DBREFERENCE_H
+#pragma once
 
 #include "db_ido/i2-db_ido.hpp"
 
@@ -26,5 +25,3 @@ private:
 };
 
 }
-
-#endif /* DBREFERENCE_H */

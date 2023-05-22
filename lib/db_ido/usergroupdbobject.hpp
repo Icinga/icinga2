@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef USERGROUPDBOBJECT_H
-#define USERGROUPDBOBJECT_H
+#pragma once
 
 #include "db_ido/dbobject.hpp"
 #include "icinga/usergroup.hpp"
@@ -27,5 +26,3 @@ public:
 };
 
 }
-
-#endif /* USERGROUPDBOBJECT_H */

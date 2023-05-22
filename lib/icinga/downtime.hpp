@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef DOWNTIME_H
-#define DOWNTIME_H
+#pragma once
 
 #include "icinga/i2-icinga.hpp"
 #include "icinga/downtime-ti.hpp"
@@ -95,5 +94,3 @@ private:
 };
 
 }
-
-#endif /* DOWNTIME_H */

@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2022 Icinga GmbH | GPLv2+ */
 
-#ifndef BULKER_H
-#define BULKER_H
+#pragma once
 
 #include <boost/config.hpp>
 #include <chrono>
@@ -115,5 +114,3 @@ typename Bulker<T>::SizeType Bulker<T>::Size()
 }
 
 }
-
-#endif /* BULKER_H */

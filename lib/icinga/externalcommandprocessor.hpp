@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef EXTERNALCOMMANDPROCESSOR_H
-#define EXTERNALCOMMANDPROCESSOR_H
+#pragma once
 
 #include "icinga/i2-icinga.hpp"
 #include "icinga/command.hpp"
@@ -165,5 +164,3 @@ private:
 };
 
 }
-
-#endif /* EXTERNALCOMMANDPROCESSOR_H */

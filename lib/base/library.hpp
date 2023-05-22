@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef LIBRARY_H
-#define LIBRARY_H
+#pragma once
 
 #include "base/i2-base.hpp"
 #include "base/string.hpp"
@@ -37,5 +36,3 @@ private:
 };
 
 }
-
-#endif /* LIBRARY_H */

@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef HOSTDBOBJECT_H
-#define HOSTDBOBJECT_H
+#pragma once
 
 #include "db_ido/dbobject.hpp"
 #include "base/configobject.hpp"
@@ -34,5 +33,3 @@ private:
 };
 
 }
-
-#endif /* HOSTDBOBJECT_H */

@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef HTTPUTILITY_H
-#define HTTPUTILITY_H
+#pragma once
 
 #include "remote/url.hpp"
 #include "base/dictionary.hpp"
@@ -29,5 +28,3 @@ public:
 };
 
 }
-
-#endif /* HTTPUTILITY_H */

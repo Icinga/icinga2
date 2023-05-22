@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef APIEVENTS_H
-#define APIEVENTS_H
+#pragma once
 
 #include "remote/eventqueue.hpp"
 #include "icinga/checkable.hpp"
@@ -47,5 +46,3 @@ public:
 };
 
 }
-
-#endif /* APIEVENTS_H */

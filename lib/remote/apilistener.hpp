@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef APILISTENER_H
-#define APILISTENER_H
+#pragma once
 
 #include "remote/apilistener-ti.hpp"
 #include "remote/jsonrpcconnection.hpp"
@@ -259,5 +258,3 @@ private:
 };
 
 }
-
-#endif /* APILISTENER_H */

@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef DEPENDENCY_H
-#define DEPENDENCY_H
+#pragma once
 
 #include "icinga/i2-icinga.hpp"
 #include "icinga/dependency-ti.hpp"
@@ -58,5 +57,3 @@ private:
 };
 
 }
-
-#endif /* DEPENDENCY_H */

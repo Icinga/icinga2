@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef CONFIGOBJECTUTILITY_H
-#define CONFIGOBJECTUTILITY_H
+#pragma once
 
 #include "remote/i2-remote.hpp"
 #include "base/array.hpp"
@@ -43,5 +42,3 @@ private:
 };
 
 }
-
-#endif /* CONFIGOBJECTUTILITY_H */

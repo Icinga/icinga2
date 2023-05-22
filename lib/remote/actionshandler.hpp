@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef ACTIONSHANDLER_H
-#define ACTIONSHANDLER_H
+#pragma once
 
 #include "remote/httphandler.hpp"
 
@@ -28,5 +27,3 @@ public:
 };
 
 }
-
-#endif /* ACTIONSHANDLER_H */

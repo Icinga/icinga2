@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef DBCONNECTION_H
-#define DBCONNECTION_H
+#pragma once
 
 #include "db_ido/i2-db_ido.hpp"
 #include "db_ido/dbconnection-ti.hpp"
@@ -134,5 +133,3 @@ struct errinfo_database_query_;
 typedef boost::error_info<struct errinfo_database_query_, std::string> errinfo_database_query;
 
 }
-
-#endif /* DBCONNECTION_H */

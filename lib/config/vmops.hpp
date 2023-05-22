@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef VMOPS_H
-#define VMOPS_H
+#pragma once
 
 #include "config/i2-config.hpp"
 #include "config/expression.hpp"
@@ -270,5 +269,3 @@ private:
 };
 
 }
-
-#endif /* VMOPS_H */

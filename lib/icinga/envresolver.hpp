@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2020 Icinga GmbH | GPLv2+ */
 
-#ifndef ENVRESOLVER_H
-#define ENVRESOLVER_H
+#pragma once
 
 #include "base/object.hpp"
 #include "base/string.hpp"
@@ -26,5 +25,3 @@ public:
 };
 
 }
-
-#endif /* ENVRESOLVER_H */

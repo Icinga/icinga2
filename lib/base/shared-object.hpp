@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2019 Icinga GmbH | GPLv2+ */
 
-#ifndef SHARED_OBJECT_H
-#define SHARED_OBJECT_H
+#pragma once
 
 #include "base/atomic.hpp"
 #include "base/object.hpp"
@@ -69,5 +68,3 @@ inline void intrusive_ptr_release(SharedObject *object)
 }
 
 }
-
-#endif /* SHARED_OBJECT_H */

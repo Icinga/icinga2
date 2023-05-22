@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2021 Icinga GmbH | GPLv2+ */
 
-#ifndef WINDOWSEVENTLOGLOGGER_H
-#define WINDOWSEVENTLOGLOGGER_H
+#pragma once
 
 #ifdef _WIN32
 #include "base/i2-base.hpp"
@@ -33,5 +32,3 @@ protected:
 
 }
 #endif /* _WIN32 */
-
-#endif /* WINDOWSEVENTLOGLOGGER_H */

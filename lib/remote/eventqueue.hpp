@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef EVENTQUEUE_H
-#define EVENTQUEUE_H
+#pragma once
 
 #include "remote/httphandler.hpp"
 #include "base/object.hpp"
@@ -173,5 +172,3 @@ private:
 };
 
 }
-
-#endif /* EVENTQUEUE_H */

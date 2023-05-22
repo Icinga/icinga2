@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef CONSOLECOMMAND_H
-#define CONSOLECOMMAND_H
+#pragma once
 
 #include "cli/clicommand.hpp"
 #include "base/exception.hpp"
@@ -57,5 +56,3 @@ private:
 };
 
 }
-
-#endif /* CONSOLECOMMAND_H */

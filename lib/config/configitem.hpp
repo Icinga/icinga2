@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef CONFIGITEM_H
-#define CONFIGITEM_H
+#pragma once
 
 #include "config/i2-config.hpp"
 #include "config/expression.hpp"
@@ -102,5 +101,3 @@ private:
 };
 
 }
-
-#endif /* CONFIGITEM_H */

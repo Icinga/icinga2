@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef GRAPHITEWRITER_H
-#define GRAPHITEWRITER_H
+#pragma once
 
 #include "perfdata/graphitewriter-ti.hpp"
 #include "icinga/service.hpp"
@@ -65,5 +64,3 @@ private:
 };
 
 }
-
-#endif /* GRAPHITEWRITER_H */

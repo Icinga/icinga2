@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef TYPE_H
-#define TYPE_H
+#pragma once
 
 #include "base/i2-base.hpp"
 #include "base/string.hpp"
@@ -144,5 +143,3 @@ class TypeImpl
 	Type::Ptr type::TypeInstance
 
 }
-
-#endif /* TYPE_H */

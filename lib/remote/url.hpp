@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef URL_H
-#define URL_H
+#pragma once
 
 #include "remote/i2-remote.hpp"
 #include "base/object.hpp"
@@ -75,4 +74,3 @@ private:
 };
 
 }
-#endif /* URL_H */

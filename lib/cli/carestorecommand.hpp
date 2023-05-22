@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef CARESTORECOMMAND_H
-#define CARESTORECOMMAND_H
+#pragma once
 
 #include "cli/clicommand.hpp"
 
@@ -26,5 +25,3 @@ public:
 };
 
 }
-
-#endif /* CASTORECOMMAND_H */

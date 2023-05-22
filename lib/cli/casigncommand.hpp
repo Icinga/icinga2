@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef CASIGNCOMMAND_H
-#define CASIGNCOMMAND_H
+#pragma once
 
 #include "cli/clicommand.hpp"
 
@@ -26,5 +25,3 @@ public:
 };
 
 }
-
-#endif /* CASIGNCOMMAND_H */

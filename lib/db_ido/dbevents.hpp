@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef DBEVENTS_H
-#define DBEVENTS_H
+#pragma once
 
 #include "db_ido/dbobject.hpp"
 #include "base/configobject.hpp"
@@ -124,5 +123,3 @@ private:
 };
 
 }
-
-#endif /* DBEVENTS_H */

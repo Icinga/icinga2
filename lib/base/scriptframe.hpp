@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef SCRIPTFRAME_H
-#define SCRIPTFRAME_H
+#pragma once
 
 #include "base/i2-base.hpp"
 #include "base/dictionary.hpp"
@@ -38,5 +37,3 @@ private:
 };
 
 }
-
-#endif /* SCRIPTFRAME_H */

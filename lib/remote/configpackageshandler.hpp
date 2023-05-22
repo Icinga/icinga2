@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef CONFIGMODULESHANDLER_H
-#define CONFIGMODULESHANDLER_H
+#pragma once
 
 #include "remote/httphandler.hpp"
 
@@ -50,5 +49,3 @@ private:
 };
 
 }
-
-#endif /* CONFIGMODULESHANDLER_H */

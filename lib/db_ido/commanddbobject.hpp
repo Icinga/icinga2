@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef COMMANDDBOBJECT_H
-#define COMMANDDBOBJECT_H
+#pragma once
 
 #include "db_ido/dbobject.hpp"
 #include "base/configobject.hpp"
@@ -26,5 +25,3 @@ public:
 };
 
 }
-
-#endif /* COMMANDDBOBJECT_H */

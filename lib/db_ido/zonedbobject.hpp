@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef ZONEDBOBJECT_H
-#define ZONEDBOBJECT_H
+#pragma once
 
 #include "db_ido/dbobject.hpp"
 #include "base/configobject.hpp"
@@ -27,5 +26,3 @@ public:
 };
 
 }
-
-#endif /* ZONEDBOBJECT_H */

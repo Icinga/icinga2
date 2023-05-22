@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef ATTRIBUTEFILTER_H
-#define ATTRIBUTEFILTER_H
+#pragma once
 
 #include "livestatus/filter.hpp"
 
@@ -29,5 +28,3 @@ protected:
 };
 
 }
-
-#endif /* FILTER_H */

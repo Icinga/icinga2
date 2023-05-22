@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef THREADPOOL_H
-#define THREADPOOL_H
+#pragma once
 
 #include "base/atomic.hpp"
 #include "base/exception.hpp"
@@ -94,5 +93,3 @@ private:
 };
 
 }
-
-#endif /* THREADPOOL_H */

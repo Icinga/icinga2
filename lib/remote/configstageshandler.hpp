@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef CONFIGSTAGESHANDLER_H
-#define CONFIGSTAGESHANDLER_H
+#pragma once
 
 #include "remote/httphandler.hpp"
 #include <atomic>
@@ -52,5 +51,3 @@ private:
 };
 
 }
-
-#endif /* CONFIGSTAGESHANDLER_H */

@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef CONSOLEHANDLER_H
-#define CONSOLEHANDLER_H
+#pragma once
 
 #include "remote/httphandler.hpp"
 #include "base/scriptframe.hpp"
@@ -46,5 +45,3 @@ private:
 };
 
 }
-
-#endif /* CONSOLEHANDLER_H */

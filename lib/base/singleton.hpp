@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef SINGLETON_H
-#define SINGLETON_H
+#pragma once
 
 #include "base/i2-base.hpp"
 
@@ -25,5 +24,3 @@ public:
 };
 
 }
-
-#endif /* SINGLETON_H */

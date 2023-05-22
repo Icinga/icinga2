@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef APISETUPCOMMAND_H
-#define APISETUPCOMMAND_H
+#pragma once
 
 #include "cli/clicommand.hpp"
 
@@ -27,5 +26,3 @@ public:
 };
 
 }
-
-#endif /* APISETUPCOMMAND_H */

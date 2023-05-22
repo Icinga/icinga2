@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef MACRORESOLVER_H
-#define MACRORESOLVER_H
+#pragma once
 
 #include "icinga/i2-icinga.hpp"
 #include "icinga/checkresult.hpp"
@@ -27,5 +26,3 @@ public:
 };
 
 }
-
-#endif /* MACRORESOLVER_H */

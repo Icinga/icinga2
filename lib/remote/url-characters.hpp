@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef URL_CHARACTERS_H
-#define URL_CHARACTERS_H
+#pragma once
 
 #define ALPHA "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 #define NUMERIC "0123456789"
@@ -25,5 +24,3 @@
 #define ACQUERY_ENCODE PCHAR_ENCODE "/?"
 #define ACFRAGMENT PCHAR "/?"
 #define ACFRAGMENT_ENCODE PCHAR_ENCODE "/?"
-
-#endif /* URL_CHARACTERS_H */

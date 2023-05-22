@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef NODEWIZARDCOMMAND_H
-#define NODEWIZARDCOMMAND_H
+#pragma once
 
 #include "cli/clicommand.hpp"
 
@@ -32,5 +31,3 @@ private:
 };
 
 }
-
-#endif /* NODEWIZARDCOMMAND_H */

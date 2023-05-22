@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef PLUGINEVENTTASK_H
-#define PLUGINEVENTTASK_H
+#pragma once
 
 #include "methods/i2-methods.hpp"
 #include "icinga/service.hpp"
@@ -29,5 +28,3 @@ private:
 };
 
 }
-
-#endif /* PLUGINEVENTTASK_H */

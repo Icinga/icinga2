@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef DUMMYCHECKTASK_H
-#define DUMMYCHECKTASK_H
+#pragma once
 
 #include "methods/i2-methods.hpp"
 #include "icinga/service.hpp"
@@ -26,5 +25,3 @@ private:
 };
 
 }
-
-#endif /* DUMMYCHECKTASK_H */

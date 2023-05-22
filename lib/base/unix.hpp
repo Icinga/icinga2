@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef UNIX_H
-#define UNIX_H
+#pragma once
 
 #include <limits.h>
 #include <unistd.h>
@@ -46,4 +45,3 @@ typedef int SOCKET;
 #ifndef MAXPATHLEN
 #	define MAXPATHLEN PATH_MAX
 #endif /* MAXPATHLEN */
-#endif /* UNIX_H */

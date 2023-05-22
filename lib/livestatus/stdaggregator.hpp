@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef STDAGGREGATOR_H
-#define STDAGGREGATOR_H
+#pragma once
 
 #include "livestatus/table.hpp"
 #include "livestatus/aggregator.hpp"
@@ -39,5 +38,3 @@ private:
 };
 
 }
-
-#endif /* STDAGGREGATOR_H */

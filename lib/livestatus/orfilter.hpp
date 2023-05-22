@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef ORFILTER_H
-#define ORFILTER_H
+#pragma once
 
 #include "livestatus/combinerfilter.hpp"
 
@@ -22,5 +21,3 @@ public:
 };
 
 }
-
-#endif /* ORFILTER_H */

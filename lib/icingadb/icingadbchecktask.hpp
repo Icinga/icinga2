@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2022 Icinga GmbH | GPLv2+ */
 
-#ifndef ICINGADBCHECKTASK_H
-#define ICINGADBCHECKTASK_H
+#pragma once
 
 #include "icingadb/icingadb.hpp"
 #include "icinga/checkable.hpp"
@@ -25,5 +24,3 @@ private:
 };
 
 }
-
-#endif /* ICINGADBCHECKTASK_H */

@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef REGISTRY_H
-#define REGISTRY_H
+#pragma once
 
 #include "base/i2-base.hpp"
 #include "base/string.hpp"
@@ -117,5 +116,3 @@ private:
 };
 
 }
-
-#endif /* REGISTRY_H */

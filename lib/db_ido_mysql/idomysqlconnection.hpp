@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef IDOMYSQLCONNECTION_H
-#define IDOMYSQLCONNECTION_H
+#pragma once
 
 #include "db_ido_mysql/idomysqlconnection-ti.hpp"
 #include "mysql_shim/mysqlinterface.hpp"
@@ -110,5 +109,3 @@ private:
 };
 
 }
-
-#endif /* IDOMYSQLCONNECTION_H */

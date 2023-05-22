@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef GELFWRITER_H
-#define GELFWRITER_H
+#pragma once
 
 #include "perfdata/gelfwriter-ti.hpp"
 #include "icinga/service.hpp"
@@ -66,5 +65,3 @@ private:
 };
 
 }
-
-#endif /* GELFWRITER_H */

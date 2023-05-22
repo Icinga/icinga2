@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2021 Icinga GmbH | GPLv2+ */
 
-#ifndef INFLUXDB2WRITER_H
-#define INFLUXDB2WRITER_H
+#pragma once
 
 #include "perfdata/influxdb2writer-ti.hpp"
 #include <boost/beast/http/message.hpp>
@@ -29,5 +28,3 @@ protected:
 };
 
 }
-
-#endif /* INFLUXDB2WRITER_H */

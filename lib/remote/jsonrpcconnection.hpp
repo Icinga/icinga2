@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef JSONRPCCONNECTION_H
-#define JSONRPCCONNECTION_H
+#pragma once
 
 #include "remote/i2-remote.hpp"
 #include "remote/endpoint.hpp"
@@ -96,5 +95,3 @@ private:
 };
 
 }
-
-#endif /* JSONRPCCONNECTION_H */

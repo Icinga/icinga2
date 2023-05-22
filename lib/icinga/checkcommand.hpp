@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef CHECKCOMMAND_H
-#define CHECKCOMMAND_H
+#pragma once
 
 #include "icinga/checkcommand-ti.hpp"
 #include "icinga/checkable.hpp"
@@ -28,5 +27,3 @@ public:
 };
 
 }
-
-#endif /* CHECKCOMMAND_H */

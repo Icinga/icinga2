@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef CHECKABLE_H
-#define CHECKABLE_H
+#pragma once
 
 #include "base/atomic.hpp"
 #include "base/timer.hpp"
@@ -258,7 +257,5 @@ private:
 };
 
 }
-
-#endif /* CHECKABLE_H */
 
 #include "icinga/dependency.hpp"

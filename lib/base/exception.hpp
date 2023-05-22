@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef EXCEPTION_H
-#define EXCEPTION_H
+#pragma once
 
 #include "base/i2-base.hpp"
 #include "base/string.hpp"
@@ -162,5 +161,3 @@ private:
 };
 
 }
-
-#endif /* EXCEPTION_H */

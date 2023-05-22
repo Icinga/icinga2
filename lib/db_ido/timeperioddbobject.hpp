@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef TIMEPERIODDBOBJECT_H
-#define TIMEPERIODDBOBJECT_H
+#pragma once
 
 #include "db_ido/dbobject.hpp"
 #include "base/configobject.hpp"
@@ -29,5 +28,3 @@ protected:
 };
 
 }
-
-#endif /* TIMEPERIODDBOBJECT_H */

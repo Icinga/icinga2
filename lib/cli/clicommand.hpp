@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef CLICOMMAND_H
-#define CLICOMMAND_H
+#pragma once
 
 #include "cli/i2-cli.hpp"
 #include "base/value.hpp"
@@ -75,5 +74,3 @@ private:
 	})
 
 }
-
-#endif /* CLICOMMAND_H */

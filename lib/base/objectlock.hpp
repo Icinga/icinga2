@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef OBJECTLOCK_H
-#define OBJECTLOCK_H
+#pragma once
 
 #include "base/object.hpp"
 
@@ -31,5 +30,3 @@ private:
 };
 
 }
-
-#endif /* OBJECTLOCK_H */

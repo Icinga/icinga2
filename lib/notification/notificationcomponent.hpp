@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef NOTIFICATIONCOMPONENT_H
-#define NOTIFICATIONCOMPONENT_H
+#pragma once
 
 #include "notification/notificationcomponent-ti.hpp"
 #include "icinga/service.hpp"
@@ -34,5 +33,3 @@ private:
 };
 
 }
-
-#endif /* NOTIFICATIONCOMPONENT_H */

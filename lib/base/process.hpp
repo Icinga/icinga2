@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef PROCESS_H
-#define PROCESS_H
+#pragma once
 
 #include "base/i2-base.hpp"
 #include "base/dictionary.hpp"
@@ -113,5 +112,3 @@ private:
 };
 
 }
-
-#endif /* PROCESS_H */

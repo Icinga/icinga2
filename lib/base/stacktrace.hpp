@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2020 Icinga GmbH | GPLv2+ */
 
-#ifndef STACKTRACE_H
-#define STACKTRACE_H
+#pragma once
 
 #include <boost/stacktrace.hpp>
 
@@ -27,5 +26,3 @@ private:
 std::ostream& operator<<(std::ostream& os, const StackTraceFormatter &f);
 
 }
-
-#endif /* STACKTRACE_H */

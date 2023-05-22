@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef SYSLOGLOGGER_H
-#define SYSLOGLOGGER_H
+#pragma once
 
 #ifndef _WIN32
 #include "base/i2-base.hpp"
@@ -52,5 +51,3 @@ protected:
 
 }
 #endif /* _WIN32 */
-
-#endif /* SYSLOGLOGGER_H */

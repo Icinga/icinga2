@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2021 Icinga GmbH | GPLv2+ */
 
-#ifndef JOURNALDLOGGER_H
-#define JOURNALDLOGGER_H
+#pragma once
 
 #include "base/i2-base.hpp"
 #if !defined(_WIN32) && defined(HAVE_SYSTEMD)
@@ -40,5 +39,3 @@ protected:
 
 }
 #endif /* !_WIN32 && HAVE_SYSTEMD */
-
-#endif /* JOURNALDLOGGER_H */

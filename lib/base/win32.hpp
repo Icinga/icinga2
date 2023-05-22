@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef WIN32_H
-#define WIN32_H
+#pragma once
 
 #define WIN32_LEAN_AND_MEAN
 #ifndef _WIN32_WINNT
@@ -31,5 +30,3 @@ typedef SSIZE_T ssize_t;
 typedef DWORD pid_t;
 #define strcasecmp stricmp
 #endif /* _MSC_VER */
-
-#endif /* WIN32_H */

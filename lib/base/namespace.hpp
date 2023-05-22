@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef NAMESPACE_H
-#define NAMESPACE_H
+#pragma once
 
 #include "base/i2-base.hpp"
 #include "base/object.hpp"
@@ -101,5 +100,3 @@ Namespace::Iterator end(const Namespace::Ptr& x);
 }
 
 extern template class std::map<icinga::String, std::shared_ptr<icinga::NamespaceValue> >;
-
-#endif /* NAMESPACE_H */

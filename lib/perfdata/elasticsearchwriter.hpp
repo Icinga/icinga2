@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef ELASTICSEARCHWRITER_H
-#define ELASTICSEARCHWRITER_H
+#pragma once
 
 #include "perfdata/elasticsearchwriter-ti.hpp"
 #include "icinga/service.hpp"
@@ -61,5 +60,3 @@ private:
 };
 
 }
-
-#endif /* ELASTICSEARCHWRITER_H */

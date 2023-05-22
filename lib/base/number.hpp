@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef NUMBER_H
-#define NUMBER_H
+#pragma once
 
 #include "base/i2-base.hpp"
 #include "base/object.hpp"
@@ -23,5 +22,3 @@ private:
 };
 
 }
-
-#endif /* NUMBER_H */

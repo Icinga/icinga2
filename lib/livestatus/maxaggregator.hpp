@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef MAXAGGREGATOR_H
-#define MAXAGGREGATOR_H
+#pragma once
 
 #include "livestatus/table.hpp"
 #include "livestatus/aggregator.hpp"
@@ -37,5 +36,3 @@ private:
 };
 
 }
-
-#endif /* MAXAGGREGATOR_H */

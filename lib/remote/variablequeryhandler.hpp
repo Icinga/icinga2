@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef VARIABLEQUERYHANDLER_H
-#define VARIABLEQUERYHANDLER_H
+#pragma once
 
 #include "remote/httphandler.hpp"
 
@@ -26,5 +25,3 @@ public:
 };
 
 }
-
-#endif /* VARIABLEQUERYHANDLER_H */

@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef USER_H
-#define USER_H
+#pragma once
 
 #include "icinga/i2-icinga.hpp"
 #include "icinga/user-ti.hpp"
@@ -40,5 +39,3 @@ private:
 };
 
 }
-
-#endif /* USER_H */

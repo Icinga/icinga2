@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef CONSOLE_H
-#define CONSOLE_H
+#pragma once
 
 #include "base/i2-base.hpp"
 #include <iosfwd>
@@ -87,5 +86,3 @@ private:
 };
 
 }
-
-#endif /* CONSOLE_H */

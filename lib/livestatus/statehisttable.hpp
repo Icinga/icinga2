@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef STATEHISTTABLE_H
-#define STATEHISTTABLE_H
+#pragma once
 
 #include "icinga/service.hpp"
 #include "livestatus/historytable.hpp"
@@ -71,5 +70,3 @@ private:
 };
 
 }
-
-#endif /* STATEHISTTABLE_H */

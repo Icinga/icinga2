@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef DBVALUE_H
-#define DBVALUE_H
+#pragma once
 
 #include "db_ido/i2-db_ido.hpp"
 #include "base/object.hpp"
@@ -48,5 +47,3 @@ private:
 };
 
 }
-
-#endif /* DBVALUE_H */

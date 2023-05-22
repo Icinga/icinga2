@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2019 Icinga GmbH | GPLv2+ */
 
-#ifndef SHARED_H
-#define SHARED_H
+#pragma once
 
 #include "base/atomic.hpp"
 #include <boost/smart_ptr/intrusive_ptr.hpp>
@@ -97,5 +96,3 @@ private:
 };
 
 }
-
-#endif /* SHARED_H */

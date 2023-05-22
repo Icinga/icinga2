@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#ifndef CONFIGFRAGMENT_H
-#define CONFIGFRAGMENT_H
+#pragma once
 
 #include "config/configcompiler.hpp"
 #include "base/initialize.hpp"
@@ -22,5 +21,3 @@
 			icinga::Application::Exit(1); \
 		} \
 	}, icinga::InitializePriority::EvaluateConfigFragments)
-
-#endif /* CONFIGFRAGMENT_H */
