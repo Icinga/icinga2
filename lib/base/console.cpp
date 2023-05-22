@@ -178,6 +178,8 @@ void Console::SetWindowsConsoleColor(std::ostream& fp, int color)
 			case Console_ForegroundWhite:
 				attrs |= FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
 				break;
+			default:
+				attrs |= consoleInfo.wAttributes & (FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
 		}
 
 		switch (color & 0xff00) {
@@ -205,10 +207,16 @@ void Console::SetWindowsConsoleColor(std::ostream& fp, int color)
 			case Console_BackgroundWhite:
 				attrs |= BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE;
 				break;
+			default:
+				attrs |= consoleInfo.wAttributes & (BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE);
 		}
 
 		if (color & Console_Bold)
 			attrs |= FOREGROUND_INTENSITY;
+		else
+			attrs |= consoleInfo.wAttributes & FOREGROUND_INTENSITY;
+
+		attrs |= consoleInfo.wAttributes & BACKGROUND_INTENSITY;
 	}
 
 	SetConsoleTextAttribute(hConsole, attrs);
