@@ -138,65 +138,66 @@ void Console::SetWindowsConsoleColor(std::ostream& fp, int color)
 
 	WORD attrs = 0;
 
-	if (color == Console_Normal)
+	if (color == Console_Normal) {
 		attrs = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+	} else {
+		switch (color & 0xff) {
+			case Console_ForegroundBlack:
+				attrs |= 0;
+				break;
+			case Console_ForegroundRed:
+				attrs |= FOREGROUND_RED;
+				break;
+			case Console_ForegroundGreen:
+				attrs |= FOREGROUND_GREEN;
+				break;
+			case Console_ForegroundYellow:
+				attrs |= FOREGROUND_RED | FOREGROUND_GREEN;
+				break;
+			case Console_ForegroundBlue:
+				attrs |= FOREGROUND_BLUE;
+				break;
+			case Console_ForegroundMagenta:
+				attrs |= FOREGROUND_RED | FOREGROUND_BLUE;
+				break;
+			case Console_ForegroundCyan:
+				attrs |= FOREGROUND_GREEN | FOREGROUND_BLUE;
+				break;
+			case Console_ForegroundWhite:
+				attrs |= FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+				break;
+		}
 
-	switch (color & 0xff) {
-		case Console_ForegroundBlack:
-			attrs |= 0;
-			break;
-		case Console_ForegroundRed:
-			attrs |= FOREGROUND_RED;
-			break;
-		case Console_ForegroundGreen:
-			attrs |= FOREGROUND_GREEN;
-			break;
-		case Console_ForegroundYellow:
-			attrs |= FOREGROUND_RED | FOREGROUND_GREEN;
-			break;
-		case Console_ForegroundBlue:
-			attrs |= FOREGROUND_BLUE;
-			break;
-		case Console_ForegroundMagenta:
-			attrs |= FOREGROUND_RED | FOREGROUND_BLUE;
-			break;
-		case Console_ForegroundCyan:
-			attrs |= FOREGROUND_GREEN | FOREGROUND_BLUE;
-			break;
-		case Console_ForegroundWhite:
-			attrs |= FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
-			break;
+		switch (color & 0xff00) {
+			case Console_BackgroundBlack:
+				attrs |= 0;
+				break;
+			case Console_BackgroundRed:
+				attrs |= BACKGROUND_RED;
+				break;
+			case Console_BackgroundGreen:
+				attrs |= BACKGROUND_GREEN;
+				break;
+			case Console_BackgroundYellow:
+				attrs |= BACKGROUND_RED | BACKGROUND_GREEN;
+				break;
+			case Console_BackgroundBlue:
+				attrs |= BACKGROUND_BLUE;
+				break;
+			case Console_BackgroundMagenta:
+				attrs |= BACKGROUND_RED | BACKGROUND_BLUE;
+				break;
+			case Console_BackgroundCyan:
+				attrs |= BACKGROUND_GREEN | BACKGROUND_BLUE;
+				break;
+			case Console_BackgroundWhite:
+				attrs |= BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE;
+				break;
+		}
+
+		if (color & Console_Bold)
+			attrs |= FOREGROUND_INTENSITY;
 	}
-
-	switch (color & 0xff00) {
-		case Console_BackgroundBlack:
-			attrs |= 0;
-			break;
-		case Console_BackgroundRed:
-			attrs |= BACKGROUND_RED;
-			break;
-		case Console_BackgroundGreen:
-			attrs |= BACKGROUND_GREEN;
-			break;
-		case Console_BackgroundYellow:
-			attrs |= BACKGROUND_RED | BACKGROUND_GREEN;
-			break;
-		case Console_BackgroundBlue:
-			attrs |= BACKGROUND_BLUE;
-			break;
-		case Console_BackgroundMagenta:
-			attrs |= BACKGROUND_RED | BACKGROUND_BLUE;
-			break;
-		case Console_BackgroundCyan:
-			attrs |= BACKGROUND_GREEN | BACKGROUND_BLUE;
-			break;
-		case Console_BackgroundWhite:
-			attrs |= BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE;
-			break;
-	}
-
-	if (color & Console_Bold)
-		attrs |= FOREGROUND_INTENSITY;
 
 	SetConsoleTextAttribute(hConsole, attrs);
 }
