@@ -96,7 +96,7 @@ On the other hand MSIs are now 75% smaller than before.
   relationship attributes at runtime, e.g. Service#host_name. #9407
 * Fix parsing of perfdata across multiple lines in plugin output. #8969
 * Allow agent to update executions delegated to it via /v1/actions/execute-command. #8627
-* SELinux: allow Icinga plugins to write to syslog when being run under sudo. #9688
+* SELinux: allow Icinga and its plugins to write to syslog. #9688
 * `icinga2 node wizard`: avoid unnecessary chown(2) which may fail and abort the wizard. #8744
 * Send downtime expiration notifications immediately, not after up to a minute. #9726
 * Correct several HTTP response status codes. #7958 #9354 #9445
