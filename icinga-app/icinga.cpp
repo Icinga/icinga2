@@ -451,6 +451,8 @@ static int Main()
 		Configuration::Concurrency = std::thread::hardware_concurrency();
 	}
 
+	Application::GetTP().Restart();
+
 	/* Ensure that all defined constants work in the way we expect them. */
 	HandleLegacyDefines();
 

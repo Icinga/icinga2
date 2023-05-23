@@ -20,8 +20,13 @@ void ThreadPool::Start()
 	boost::unique_lock<decltype(m_Mutex)> lock (m_Mutex);
 
 	if (!m_Pool) {
-		m_Pool = decltype(m_Pool)(new boost::asio::thread_pool(Configuration::Concurrency * 2u));
+		InitializePool();
 	}
+}
+
+void ThreadPool::InitializePool()
+{
+	m_Pool = decltype(m_Pool)(new boost::asio::thread_pool(Configuration::Concurrency * 2u));
 }
 
 void ThreadPool::Stop()
@@ -32,4 +37,15 @@ void ThreadPool::Stop()
 		m_Pool->join();
 		m_Pool = nullptr;
 	}
+}
+
+void ThreadPool::Restart()
+{
+	boost::unique_lock<decltype(m_Mutex)> lock (m_Mutex);
+
+	if (m_Pool) {
+		m_Pool->join();
+	}
+
+	InitializePool();
 }

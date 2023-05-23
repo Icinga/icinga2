@@ -42,6 +42,7 @@ public:
 
 	void Start();
 	void Stop();
+	void Restart();
 
 	/**
 	 * Appends a work item to the work queue. Work items will be processed in FIFO order.
@@ -91,6 +92,8 @@ private:
 	boost::shared_mutex m_Mutex;
 	std::unique_ptr<boost::asio::thread_pool> m_Pool;
 	Atomic<uint_fast64_t> m_Pending;
+
+	void InitializePool();
 };
 
 }
