@@ -1,5 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/configuration.hpp"
 #include "base/exception.hpp"
 #include "base/io-engine.hpp"
 #include "base/lazy-init.hpp"
@@ -84,10 +85,10 @@ boost::asio::io_context& IoEngine::GetIoContext()
 	return m_IoContext;
 }
 
-IoEngine::IoEngine() : m_IoContext(), m_KeepAlive(boost::asio::make_work_guard(m_IoContext)), m_Threads(decltype(m_Threads)::size_type(std::thread::hardware_concurrency() * 2u)), m_AlreadyExpiredTimer(m_IoContext)
+IoEngine::IoEngine() : m_IoContext(), m_KeepAlive(boost::asio::make_work_guard(m_IoContext)), m_Threads(decltype(m_Threads)::size_type(Configuration::Concurrency * 2u)), m_AlreadyExpiredTimer(m_IoContext)
 {
 	m_AlreadyExpiredTimer.expires_at(boost::posix_time::neg_infin);
-	m_CpuBoundSemaphore.store(std::thread::hardware_concurrency() * 3u / 2u);
+	m_CpuBoundSemaphore.store(Configuration::Concurrency * 3u / 2u);
 
 	for (auto& thread : m_Threads) {
 		thread = std::thread(&IoEngine::RunEventLoop, this);

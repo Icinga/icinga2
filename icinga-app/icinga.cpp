@@ -439,6 +439,12 @@ static int Main()
 
 	Configuration::SetReadOnly(true);
 
+	if (!Configuration::ConcurrencyWasModified) {
+		Configuration::Concurrency = std::thread::hardware_concurrency();
+	}
+
+	Application::GetTP().Restart();
+
 	/* Ensure that all defined constants work in the way we expect them. */
 	HandleLegacyDefines();
 

@@ -118,6 +118,7 @@ public:
 	static bool AttachDebugger;
 	static String CacheDir;
 	static int Concurrency;
+	static bool ConcurrencyWasModified;
 	static String ConfigDir;
 	static String DataDir;
 	static String EventEngine;
