@@ -1182,6 +1182,7 @@ to represent its internal state. The following types are exposed via the [API](1
   check\_source             | String                | Name of the node executing the check.
   scheduling\_source        | String                | Name of the node scheduling the check.
   state                     | Number                | The current state (0 = OK, 1 = WARNING, 2 = CRITICAL, 3 = UNKNOWN).
+  previous\_hard\_state     | Number                | The previous hard state, i.e. the predecessor of a checkable's last\_hard\_state (0-3 as in current state).
   command                   | Value                 | Array of command with shell-escaped arguments or command line string.
   execution\_start          | Timestamp             | Check execution start time (as a UNIX timestamp).
   execution\_end            | Timestamp             | Check execution end time (as a UNIX timestamp).
