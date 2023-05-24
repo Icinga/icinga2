@@ -1176,6 +1176,12 @@ void ClassCompiler::CodeGenValidator(const std::string& name, const std::string&
 					<< "\t\t\t" << "Convert::ToDouble(value);" << std::endl
 					<< "\t\t\t" << "return;" << std::endl
 					<< "\t\t" << "} catch (...) { }" << std::endl;
+			} else if (rule.Type == "Boolean") {
+				// Not a try-convert-catch like in Number because everything can be bool-casted.
+				// Not an empty-or-scalar like in String because this would duplicate that.
+				// Only requiring specifically the boolean datatype makes a difference to Number or String.
+				m_Impl << "\t\t" << "if (value.IsBoolean())" << std::endl
+					<< "\t\t\t" << "return;" << std::endl;
 			}
 		}
 
