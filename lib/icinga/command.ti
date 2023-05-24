@@ -35,9 +35,9 @@ validator Command {
 			String value;
 			Function value;
 			String description;
-			Number "required";
-			Number skip_key;
-			Number repeat_key;
+			Boolean "required";
+			Boolean skip_key;
+			Boolean repeat_key;
 			String set_if;
 			Function set_if;
 			Number order;
