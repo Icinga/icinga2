@@ -1019,6 +1019,15 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 					}
 				}
 
+				for (const char *attr : {"repeat_key", "required", "skip_key"}) {
+					Value value;
+
+					// Boolify if set.
+					if (values->Get(attr, &value)) {
+						values->Set(attr, value.ToBool());
+					}
+				}
+
 				{
 					Value order;
 
