@@ -174,8 +174,17 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value, bool 
 							original_attributes->Set(key, Empty);
 					}
 				}
-			} else if (!original_attributes->Contains(attr))
-				original_attributes->Set(attr, oldValue);
+			} else {
+				Value originalAttribute;
+
+				if (original_attributes->Get(attr, &originalAttribute)) {
+					if (JsonEncode(value) == JsonEncode(originalAttribute)) {
+						original_attributes->Remove(attr);
+					}
+				} else {
+					original_attributes->Set(attr, oldValue);
+				}
+			}
 		}
 
 		dict->Set(key, value);
@@ -183,7 +192,14 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value, bool 
 		newValue = value;
 
 		if (field.Attributes & FAConfig) {
-			if (!original_attributes->Contains(attr)) {
+			Value originalAttribute;
+
+			if (original_attributes->Get(attr, &originalAttribute)) {
+				if (JsonEncode(value) == JsonEncode(originalAttribute)) {
+					updated_original_attributes = true;
+					original_attributes->Remove(attr);
+				}
+			} else {
 				updated_original_attributes = true;
 				original_attributes->Set(attr, oldValue);
 			}
