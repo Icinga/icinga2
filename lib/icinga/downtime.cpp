@@ -583,6 +583,14 @@ void Downtime::ValidateEndTime(const Lazy<Timestamp>& lvalue, const ValidationUt
 		BOOST_THROW_EXCEPTION(ValidationError(this, { "end_time" }, "End time must be greater than 0."));
 }
 
+void Downtime::ValidateDuration(const Lazy<Timestamp>& lvalue, const ValidationUtils& utils)
+{
+	ObjectImpl<Downtime>::ValidateDuration(lvalue, utils);
+
+	if (lvalue() < 0)
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "duration" }, "Duration must be positive."));
+}
+
 DowntimeChildOptions Downtime::ChildOptionsFromValue(const Value& options)
 {
 	if (options == "DowntimeNoChildren")
