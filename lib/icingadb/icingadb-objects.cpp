@@ -30,6 +30,7 @@
 #include "icinga/timeperiod.hpp"
 #include "icinga/pluginutility.hpp"
 #include "remote/zone.hpp"
+#include <algorithm>
 #include <chrono>
 #include <cstdint>
 #include <iterator>
@@ -1422,20 +1423,23 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 		attributes->Set("entry_time", TimestampToMilliseconds(downtime->GetEntryTime()));
 		attributes->Set("scheduled_start_time", TimestampToMilliseconds(downtime->GetStartTime()));
 		attributes->Set("scheduled_end_time", TimestampToMilliseconds(downtime->GetEndTime()));
-		attributes->Set("scheduled_duration", TimestampToMilliseconds(downtime->GetEndTime() - downtime->GetStartTime()));
-		attributes->Set("flexible_duration", TimestampToMilliseconds(downtime->GetDuration()));
+		attributes->Set("scheduled_duration", TimestampToMilliseconds(std::max(0.0, downtime->GetEndTime() - downtime->GetStartTime())));
+		attributes->Set("flexible_duration", TimestampToMilliseconds(std::max(0.0, downtime->GetDuration())));
 		attributes->Set("is_flexible", !downtime->GetFixed());
 		attributes->Set("is_in_effect", downtime->IsInEffect());
 		if (downtime->IsInEffect()) {
 			attributes->Set("start_time", TimestampToMilliseconds(downtime->GetTriggerTime()));
-			attributes->Set("end_time", TimestampToMilliseconds(downtime->GetFixed() ? downtime->GetEndTime() : (downtime->GetTriggerTime() + downtime->GetDuration())));
+
+			attributes->Set("end_time", TimestampToMilliseconds(
+				downtime->GetFixed() ? downtime->GetEndTime() : (downtime->GetTriggerTime() + std::max(0.0, downtime->GetDuration()))
+			));
 		}
 
 		auto duration = downtime->GetDuration();
 		if (downtime->GetFixed()) {
 			duration = downtime->GetEndTime() - downtime->GetStartTime();
 		}
-		attributes->Set("duration", TimestampToMilliseconds(duration));
+		attributes->Set("duration", TimestampToMilliseconds(std::max(0.0, duration)));
 
 		Host::Ptr host;
 		Service::Ptr service;
@@ -1825,7 +1829,7 @@ void IcingaDB::SendStartedDowntime(const Downtime::Ptr& downtime)
 		"author", Utility::ValidateUTF8(downtime->GetAuthor()),
 		"comment", Utility::ValidateUTF8(downtime->GetComment()),
 		"is_flexible", Convert::ToString((unsigned short)!downtime->GetFixed()),
-		"flexible_duration", Convert::ToString(TimestampToMilliseconds(downtime->GetDuration())),
+		"flexible_duration", Convert::ToString(TimestampToMilliseconds(std::max(0.0, downtime->GetDuration()))),
 		"scheduled_start_time", Convert::ToString(TimestampToMilliseconds(downtime->GetStartTime())),
 		"scheduled_end_time", Convert::ToString(TimestampToMilliseconds(downtime->GetEndTime())),
 		"has_been_cancelled", Convert::ToString((unsigned short)downtime->GetWasCancelled()),
@@ -1858,7 +1862,7 @@ void IcingaDB::SendStartedDowntime(const Downtime::Ptr& downtime)
 		xAdd.emplace_back("start_time");
 		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(downtime->GetTriggerTime())));
 		xAdd.emplace_back("end_time");
-		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(downtime->GetTriggerTime() + downtime->GetDuration())));
+		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(downtime->GetTriggerTime() + std::max(0.0, downtime->GetDuration()))));
 	}
 
 	auto endpoint (Endpoint::GetLocalEndpoint());
@@ -1915,7 +1919,7 @@ void IcingaDB::SendRemovedDowntime(const Downtime::Ptr& downtime)
 		"cancelled_by", Utility::ValidateUTF8(downtime->GetRemovedBy()),
 		"comment", Utility::ValidateUTF8(downtime->GetComment()),
 		"is_flexible", Convert::ToString((unsigned short)!downtime->GetFixed()),
-		"flexible_duration", Convert::ToString(TimestampToMilliseconds(downtime->GetDuration())),
+		"flexible_duration", Convert::ToString(TimestampToMilliseconds(std::max(0.0, downtime->GetDuration()))),
 		"scheduled_start_time", Convert::ToString(TimestampToMilliseconds(downtime->GetStartTime())),
 		"scheduled_end_time", Convert::ToString(TimestampToMilliseconds(downtime->GetEndTime())),
 		"has_been_cancelled", Convert::ToString((unsigned short)downtime->GetWasCancelled()),
@@ -1949,7 +1953,7 @@ void IcingaDB::SendRemovedDowntime(const Downtime::Ptr& downtime)
 		xAdd.emplace_back("start_time");
 		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(downtime->GetTriggerTime())));
 		xAdd.emplace_back("end_time");
-		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(downtime->GetTriggerTime() + downtime->GetDuration())));
+		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(downtime->GetTriggerTime() + std::max(0.0, downtime->GetDuration()))));
 	}
 
 	auto endpoint (Endpoint::GetLocalEndpoint());
