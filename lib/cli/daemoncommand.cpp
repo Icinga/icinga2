@@ -813,6 +813,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 					break;
 				case -2:
 					Log(LogCritical, "Application", "Found error in config: reloading aborted");
+					Application::SetLastReloadFailed(Utility::GetTime());
 					break;
 				default:
 					Log(LogInformation, "Application")
@@ -820,6 +821,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 
 					NotifyStatus("Shutting down old instance...");
 
+					Application::SetLastReloadFailed(0);
 					(void)kill(currentWorker, SIGTERM);
 
 					{
