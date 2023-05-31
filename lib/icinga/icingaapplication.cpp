@@ -220,13 +220,6 @@ bool IcingaApplication::ResolveMacro(const String& macro, const CheckResult::Ptr
 		return true;
 	}
 
-	Dictionary::Ptr vars = GetVars();
-
-	if (vars && vars->Contains(macro)) {
-		*result = vars->Get(macro);
-		return true;
-	}
-
 	if (macro.Contains("num_services")) {
 		ServiceStatistics ss = CIB::CalculateServiceStats();
 

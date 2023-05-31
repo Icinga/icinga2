@@ -111,16 +111,23 @@ bool MacroProcessor::ResolveMacro(const String& macro, const ResolverList& resol
 				if (!resolver.ResolveShortMacros)
 					continue;
 
+				Dictionary::Ptr vars;
 				CustomVarObject::Ptr dobj = dynamic_pointer_cast<CustomVarObject>(resolver.Obj);
 
 				if (dobj) {
-					Dictionary::Ptr vars = dobj->GetVars();
+					vars = dobj->GetVars();
+				} else {
+					auto app (dynamic_pointer_cast<IcingaApplication>(resolver.Obj));
 
-					if (vars && vars->Contains(macro)) {
-						*result = vars->Get(macro);
-						*recursive_macro = true;
-						return true;
+					if (app) {
+						vars = app->GetVars();
 					}
+				}
+
+				if (vars && vars->Contains(macro)) {
+					*result = vars->Get(macro);
+					*recursive_macro = true;
+					return true;
 				}
 			}
 
