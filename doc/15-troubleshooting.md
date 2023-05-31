@@ -317,6 +317,116 @@ not `assign where match("MySQL*", host.name) && host.vars.production`.
 For all test hosts `host.vars.production` will be false and terminate
 the `&&` rather than also evaluating `match("MySQL*", host.name)`.
 
+### Try reducing concurrency (threads amount)
+
+Yes, reducing and not increasing. By default Icinga 2 already starts at least
+as many threads as there are CPU cores according to the OS. The attached test
+(done under laboratory conditions, but with a real-world config) proves that
+Icinga performance doesn't necessarily benefit from more cores. TL;DR:
+
+Start with benchmarking your Icinga 2 config (`/etc/icinga2` and `/var/lib/icinga2`)
+with `time icinga2 daemon -C` on a machine as similar as possible to the node in
+question. The results will be most accurate on the node itself, but with the
+Icinga service shut down. Ideally (in a setup large enough for reading this
+section) you have two masters (HA) and can shut down one of them for a short while.
+
+Icinga accepts the argument `-DConfiguration.Concurrency=` with the number (of
+threads) immediately after the "=". Start with one and finish with the CPU core
+amount (`grep processor /proc/cpuinfo |wc -l`). Write down the times. I.e.:
+
+* `time icinga2 daemon -C -DConfiguration.Concurrency=1`
+* `time icinga2 daemon -C -DConfiguration.Concurrency=2`
+* `time icinga2 daemon -C -DConfiguration.Concurrency=3`
+* ...
+
+If significantly less threads than CPU cores significantly reduce the time
+(reported as "real") Icinga 2 needs to load its configuration, pick the amount
+with the best time and persist it in your init daemon. In case of systemd locate
+a file named "icinga2.service" and copy the `ExecStart=` line. Next, run
+`systemctl edit icinga2.service`. This will open an editor. Add `[Service]` (if
+not already present) and the copied `ExecStart=` line. Append
+`-DConfiguration.Concurrency=` and the chosen number so that the result looks
+like this:
+
+```
+[Service]
+ExecStart=/usr/sbin/icinga2 daemon --close-stdio -e ${ICINGA2_ERROR_LOG} -DConfiguration.Concurrency=42
+```
+
+Save the file and close the editor. Restart Icinga.
+Finally verify whether your changes took effect and enjoy the speed.
+
+#### Proof of concept
+
+* Processor: "Intel(R) Xeon(R) CPU E5-2680 v4 @ 2.40GHz"
+* Cores according to OS: 56
+* RAM: 256 GB
+* Swap: none
+* Virtualization: Podman
+* Icinga: v2.14.0
+
+##### Icinga config summary
+
+* 1 IcingaApplication
+* 3 EventCommands
+* 4 NotificationCommands
+* 12 ApiUsers
+* 30 TimePeriods
+* 195 Endpoints
+* 210 Zones
+* 306 Comments
+* 515 CheckCommands
+* 801 ServiceGroups
+* 1014 Users
+* 3034 ScheduledDowntimes
+* 10178 Downtimes
+* 17430 HostGroups
+* 31818 Hosts
+* 413498 Notifications
+* 467267 Services
+* 945349 Dependencies
+
+##### Load times per CPU core amount
+
+| cores  | real            | user          | sys        |
+|--------|-----------------|---------------|------------|
+|    1   |   66m 47.591s   |   66m  0.850s |    29.082s |
+|    2   |   42m 39.226s   |   83m 34.634s |    30.897s |
+|    3   |   31m 48.358s   |   92m 45.146s |    31.162s |
+|    4   |   25m 26.221s   |   98m  8.855s |    34.287s |
+|    5   |   22m 44.364s   |  109m 23.652s |    34.124s |
+|    6   |   20m  0.940s   |  114m 40.431s |    34.613s |
+|    7   |   17m 42.129s   |  117m 11.454s |    37.155s |
+|    8   |   17m 38.198s   |  134m  9.414s |    40.269s |
+|    9   |   15m 35.652s   |  132m  1.350s |    42.643s |
+|   10   |   15m 59.286s   |  150m 33.993s |    45.992s |
+|   11   |   15m  6.199s   |  154m 55.166s |    51.829s |
+| **12** | **14m 37.471s** |  163m 37.349s |    52.275s |
+|   13   |   14m 55.730s   |  181m 56.687s |    55.604s |
+|   14   |   14m 41.773s   |  192m 20.429s | 1m  1.058s |
+|   15   |   16m 45.454s   |  227m  9.307s | 1m 26.433s |
+|   16   |   18m 54.293s   |  262m  7.049s | 1m 54.269s |
+|   18   |   19m 52.243s   |  307m  7.523s | 1m 56.141s |
+|   20   |   23m 35.380s   |  402m 31.079s | 1m 55.427s |
+|   22   |   20m 15.026s   |  387m 51.808s | 2m  4.653s |
+|   24   |   22m 36.980s   |  486m 54.101s | 2m 10.438s |
+|   26   |   21m 54.430s   |  528m  5.407s | 2m 22.634s |
+|   28   |   20m 19.415s   |  533m 55.555s | 2m  7.993s |
+|   30   |   21m 53.774s   |  587m 37.316s | 2m 11.540s |
+|   32   |   22m  7.719s   |  623m 34.625s | 2m 42.180s |
+|   34   |   23m 45.441s   |  704m  4.030s | 2m 50.742s |
+|   36   |   20m 48.421s   |  630m 36.555s | 3m  7.024s |
+|   38   |   21m  9.224s   |  685m  7.178s | 3m  0.537s |
+|   40   |   21m 28.499s   |  732m 51.902s | 3m 17.753s |
+|   42   |   19m 51.727s   |  710m 46.234s | 3m 24.119s |
+|   44   |   20m 22.202s   |  769m 10.835s | 3m 57.447s |
+|   46   |   19m 50.953s   |  785m 26.111s | 4m  6.060s |
+|   48   |   20m 37.102s   |  866m 51.964s | 4m 40.257s |
+|   50   |   19m 22.074s   |  853m 50.898s | 5m 10.134s |
+|   52   |   19m  1.322s   |  889m 16.710s | 5m 13.173s |
+|   54   |   19m 46.334s   |  972m 53.526s | 5m 40.161s |
+|   56   |   19m 46.713s   | 1030m  4.762s | 6m  2.662s |
+
 ## Configuration Troubleshooting <a id="troubleshooting-configuration"></a>
 
 ### List Configuration Objects <a id="troubleshooting-list-configuration-objects"></a>
