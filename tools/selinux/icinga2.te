@@ -110,6 +110,7 @@ manage_dirs_pattern(icinga2_t, icinga2_log_t, icinga2_log_t)
 manage_files_pattern(icinga2_t, icinga2_log_t, icinga2_log_t)
 manage_lnk_files_pattern(icinga2_t, icinga2_log_t, icinga2_log_t)
 logging_log_filetrans(icinga2_t, icinga2_log_t, { dir file lnk_file })
+logging_send_syslog_msg(icinga2_t)
 
 manage_dirs_pattern(icinga2_t, icinga2_var_lib_t, icinga2_var_lib_t)
 manage_files_pattern(icinga2_t, icinga2_var_lib_t, icinga2_var_lib_t)
