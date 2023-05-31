@@ -902,6 +902,15 @@ Instead, choose a plugin and configure its parameters and thresholds. The follow
 
 ### Windows Monitoring <a id="service-monitoring-windows"></a>
 
+!!! important
+
+    [Icinga for Windows](https://icinga.com/docs/icinga-for-windows/latest/doc/000-Introduction/)
+    is the recommended way to monitor Windows via Icinga 2.
+    Even if the plugins it ships out-of-the-box don't already cover your needs, you can
+    [create your own](https://icinga.com/docs/icinga-for-windows/latest/doc/900-Developer-Guide/11-Custom-Plugins/).
+
+Other (legacy) solutions include:
+
 * [check_wmi_plus](https://edcint.co.nz/checkwmiplus/)
 * [NSClient++](https://www.nsclient.org) (in combination with the Icinga 2 client and either [check_nscp_api](10-icinga-template-library.md#nscp-check-api) or [nscp-local](10-icinga-template-library.md#nscp-plugin-check-commands) check commands)
 * [Icinga 2 Windows Plugins](10-icinga-template-library.md#windows-plugins) (disk, load, memory, network, performance counters, ping, procs, service, swap, updates, uptime, users

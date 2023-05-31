@@ -755,6 +755,12 @@ the [configuration modes](06-distributed-monitoring.md#distributed-monitoring-co
 
 ### Agent Setup on Windows <a id="distributed-monitoring-setup-agent-windows"></a>
 
+!!! important
+
+    [Icinga for Windows](https://icinga.com/docs/icinga-for-windows/latest/doc/000-Introduction/)
+    is the recommended way to install, setup and update Icinga 2 on Windows.
+    This section describes the classic installation and configuration procedure.
+
 The supported Windows agent versions are listed [here](https://icinga.com/subscription/support-details/).
 
 Requirements:
