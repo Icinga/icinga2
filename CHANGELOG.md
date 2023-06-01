@@ -168,8 +168,7 @@ On the other hand MSIs are now 75% smaller than before.
 * Update Boost shipped on Windows to v1.82. #9761
 * Update vendored https://github.com/nlohmann/json to v3.9.1. #9675
 * Update vendored https://github.com/nemtrif/utfcpp to v3.2.3. #9683
-* Documentation: several fixes and improvements.
-  #8954 #9737 #9741 #9763 #9767 #9769 #9777
+* Documentation: several fixes and improvements.  #8954 #9741 #9763 #9767 #9769 #9777
 * Several code quality improvements. #8815 #9106 #9250
   #9508 #9517 #9537 #9594 #9605 #9606 #9641 #9658 #9702 #9717 #9738
 
