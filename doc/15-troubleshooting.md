@@ -317,7 +317,7 @@ not `assign where match("MySQL*", host.name) && host.vars.production`.
 For all test hosts `host.vars.production` will be false and terminate
 the `&&` rather than also evaluating `match("MySQL*", host.name)`.
 
-### Try reducing concurrency (threads amount)
+### Try reducing concurrency (threads)
 
 Yes, reducing and not increasing. By default, Icinga 2 already starts as many
 threads as there are CPU cores according to the OS (unaware of SMT aka
@@ -334,8 +334,8 @@ the node in question. The results will be most accurate during normal operation,
 i.e. while Icinga is running, but not reloading (e.g. due to config deployments).
 
 Icinga accepts the argument `-DConfiguration.Concurrency=` with the number (of
-threads) immediately after the "=". Start with one and finish with the CPU core
-amount. Write down the times. I.e.:
+threads) immediately after the "=". Start with one and finish with the number of
+CPU cores. Write down the times. I.e.:
 
 * `time icinga2 daemon -C -DConfiguration.Concurrency=1`
 * `time icinga2 daemon -C -DConfiguration.Concurrency=2`
@@ -343,7 +343,7 @@ amount. Write down the times. I.e.:
 * ...
 
 If significantly less threads than CPU cores significantly reduce the time
-(reported as "real") Icinga 2 needs to load its configuration, pick the amount
+(reported as "real") Icinga 2 needs to load its configuration, pick the number
 with the best time and persist it in your init daemon. In case of systemd locate
 a file named "icinga2.service" and copy the `ExecStart=` line. Next, run
 `systemctl edit icinga2.service`. This will open an editor. Add `[Service]` (if
@@ -393,7 +393,7 @@ Finally verify whether your changes took effect and enjoy the speed.
 * 467267 Services
 * 945349 Dependencies
 
-##### Load times per CPU core amount
+##### Load times
 
 !!! warning
 
