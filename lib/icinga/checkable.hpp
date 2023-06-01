@@ -208,6 +208,7 @@ public:
 	bool NotificationReasonApplies(NotificationType type);
 	bool NotificationReasonSuppressed(NotificationType type);
 	bool IsLikelyToBeCheckedSoon();
+	double GetIntervalShuffleFactor();
 
 	void FireSuppressedNotifications();
 
