@@ -335,7 +335,7 @@ i.e. while Icinga is running, but not reloading (e.g. due to config deployments)
 
 Icinga accepts the argument `-DConfiguration.Concurrency=` with the number (of
 threads) immediately after the "=". Start with one and finish with the CPU core
-amount (`grep processor /proc/cpuinfo |wc -l`). Write down the times. I.e.:
+amount. Write down the times. I.e.:
 
 * `time icinga2 daemon -C -DConfiguration.Concurrency=1`
 * `time icinga2 daemon -C -DConfiguration.Concurrency=2`
