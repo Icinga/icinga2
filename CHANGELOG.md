@@ -9,7 +9,7 @@ Released closed milestones can be found on [GitHub](https://github.com/Icinga/ic
 
 ## 2.14.0 (TODO)
 
-[Issues and PRs](https://github.com/Icinga/icinga2/issues?utf8=%E2%9C%93&q=is%3Aclosed+milestone%3A2.14.0)
+[Issues and PRs](https://github.com/Icinga/icinga2/issues?q=is%3Aclosed+milestone%3A2.14.0)
 
 ### Notes
 
