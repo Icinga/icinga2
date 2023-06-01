@@ -319,10 +319,15 @@ the `&&` rather than also evaluating `match("MySQL*", host.name)`.
 
 ### Try reducing concurrency (threads amount)
 
-Yes, reducing and not increasing. By default Icinga 2 already starts at least
-as many threads as there are CPU cores according to the OS. The attached test
-(done under laboratory conditions, but with a real-world config) proves that
-Icinga performance doesn't necessarily benefit from more cores. TL;DR:
+Yes, reducing and not increasing. By default, Icinga 2 already starts as many
+threads as there are CPU cores according to the OS (unaware of SMT aka
+HyperThreading). So there's no point in increasing as Icinga would not gain
+additional CPU time.
+
+But more threads also require more synchronization between them. This may
+outweigh the CPU time gained by starting X threads instead of just one. (In case
+of more than 12 cores/threads, see proof of concept below.) So reducing may
+indeed help or at least save CPU time and power at no cost.
 
 Start with benchmarking your Icinga 2 config (`/etc/icinga2` and `/var/lib/icinga2`)
 with `time icinga2 daemon -C` on a machine as similar as possible to the node in
@@ -367,6 +372,10 @@ Finally verify whether your changes took effect and enjoy the speed.
 
 ##### Icinga config summary
 
+!!! info
+
+	This is a real-world config.
+
 * 1 IcingaApplication
 * 3 EventCommands
 * 4 NotificationCommands
@@ -387,6 +396,10 @@ Finally verify whether your changes took effect and enjoy the speed.
 * 945349 Dependencies
 
 ##### Load times per CPU core amount
+
+!!! warning
+
+	Measured under laboratory conditions.
 
 | cores  | real            | user          | sys        |
 |--------|-----------------|---------------|------------|
