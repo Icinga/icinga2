@@ -276,7 +276,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			if (jumptable[hash].size() > 1)
 				collisions++;
 		}
-	} while (collisions >= 5 && hlen < 8);
+	} while (collisions && hlen < 100);
 
 	if (!klass.Fields.empty()) {
 		m_Impl << "\tswitch (static_cast<int>(Utility::SDBM(name, " << hlen << "))) {" << std::endl;
