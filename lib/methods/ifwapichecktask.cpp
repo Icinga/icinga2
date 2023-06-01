@@ -253,7 +253,6 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 
 	String psCommand = resolveMacros("$ifw_api_command$");
 	Dictionary::Ptr arguments = resolveMacros("$ifw_api_arguments$");
-	Array::Ptr ignoreArguments = resolveMacros("$ifw_api_ignore_arguments$");
 	String psHost = resolveMacros("$ifw_api_host$");
 	String psPort = resolveMacros("$ifw_api_port$");
 	String expectedSan = resolveMacros("$ifw_api_expected_san$");
@@ -267,15 +266,10 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	Dictionary::Ptr params = new Dictionary();
 
 	if (arguments) {
-		auto ignore (ignoreArguments->ToSet<String>());
 		ObjectLock oLock (arguments);
 		Array::Ptr emptyCmd = new Array();
 
 		for (auto& kv : arguments) {
-			if (ignore.find(kv.first) != ignore.end()) {
-				continue;
-			}
-
 			Dictionary::Ptr argSpec;
 
 			if (kv.second.IsObjectType<Dictionary>()) {
