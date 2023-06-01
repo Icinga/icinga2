@@ -13,7 +13,7 @@ Released closed milestones can be found on [GitHub](https://github.com/Icinga/ic
 
 ### Notes
 
-Upgrading docs: https://icinga.com/docs/icinga2/snapshot/doc/16-upgrading-icinga-2/#upgrading-to-v214
+Upgrading docs: https://icinga.com/docs/icinga2/snapshot/doc/16-upgrading-icinga-2/#upgrading-to-2-14
 
 Thanks to all contributors:
 [atj](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3Aatj),
@@ -38,12 +38,12 @@ Thanks to all contributors:
 
 ### Breaking Changes
 
-* Remove CheckResultReader (which has been deprecated for 5 major versions). #9714
-* Remove StatusDataWriter (which has been deprecated for 5 major versions). #9715
+* Remove CheckResultReader (which has been deprecated since v2.9). #9714
+* Remove StatusDataWriter (which has been deprecated since v2.9). #9715
 * Consider a checkable unreachable once one Dependency fails.
   Previously all of them had to fail. (Consult the upgrading docs.) #8218
-* `icinga2 daemon -C`: to reduce config load time, write file needed
-  by `icinga2 object list` only if `--dump-objects` is given. #9586 #9591
+* `icinga2 daemon`: to reduce config load time, write file needed by
+  `icinga2 object list` only if `--dump-objects` is given. #9586 #9591
 * Default email notification scripts: link to Icinga DB Web, not the monitoring module. #9742 #9757
 * API: for security reasons hide TicketSalt in /v1/variables. #7863
 
@@ -59,19 +59,26 @@ Thanks to all contributors:
 #### Windows Agent only
 
 The official MSIs don't include the following features anymore.
-They aren't needed on Windows and only waste build time, bandwidth and disk space.
-Both new installations and upgrades are affected.
+They weren't intended, tested or needed on Windows and only waste build time,
+bandwidth and disk space. Both new installations and upgrades are affected.
 
 * ElasticsearchWriter #9704
 * GelfWriter #9704
 * GraphiteWriter #9704
 * InfluxdbWriter and Influxdb2Writer #9704
 * OpenTsdbWriter #9704
-* PerfdataWriter. #9704
+* PerfdataWriter #9704
 * NSClient++ installer #9703
 * Icinga 2 markdown documentation #9705
 
 On the other hand MSIs are now 75% smaller than before.
+
+!!! note
+
+    Just the **installer** of NSClient++ we shipped disappears from existing
+    Icinga installations (`%ProgramFiles%/Icinga2/sbin`). Existing installations
+    of NSClient++ are not affected and for new ones an installer may be obtained
+    and run manually.
 
 ### Enhancements
 
@@ -91,7 +98,7 @@ On the other hand MSIs are now 75% smaller than before.
 * Cluster: don't stuck in timed out connection attempt. #9711 #9725
 * Fix lost acknowledgements after cluster re-connect. #9718
 * `icinga2 daemon`: fix -DConfiguration.Concurrency= flag
-  which now allows to reduce thread amount. #9643
+  which now allows to override the number of threads. #9643
 * Icinga DB feature: normalize several Redis data not to crash the Go daemon. #9772 #9775
 * Disallow breaking inter-object relationships by changing
   relationship attributes at runtime, e.g. Service#host_name. #9407

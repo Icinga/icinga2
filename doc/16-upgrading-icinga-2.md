@@ -21,8 +21,8 @@ v2.14 restores the pre-v2.12 behavior and allows to override it.
 To stick to the behavior of v2.12 and v2.13, you could put this configuration in a global zone:
 
 ```
-template Dependency default {
-    redundancy_group = "make all dependecies redundant"
+template Dependency default /* affects all dependecies */ {
+    redundancy_group = "same group name for all => all in one group"
 }
 ```
 
