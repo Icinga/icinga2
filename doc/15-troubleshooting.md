@@ -329,11 +329,9 @@ outweigh the CPU time gained by starting X threads instead of just one. (In case
 of more than 12 cores/threads, see proof of concept below.) So reducing may
 indeed help or at least save CPU time and power at no cost.
 
-Start with benchmarking your Icinga 2 config (`/etc/icinga2` and `/var/lib/icinga2`)
-with `time icinga2 daemon -C` on a machine as similar as possible to the node in
-question. The results will be most accurate on the node itself, but with the
-Icinga service shut down. Ideally (in a setup large enough for reading this
-section) you have two masters (HA) and can shut down one of them for a short while.
+Start with benchmarking your Icinga 2 config with `time icinga2 daemon -C` on
+the node in question. The results will be most accurate during normal operation,
+i.e. while Icinga is running, but not reloading (e.g. due to config deployments).
 
 Icinga accepts the argument `-DConfiguration.Concurrency=` with the number (of
 threads) immediately after the "=". Start with one and finish with the CPU core
