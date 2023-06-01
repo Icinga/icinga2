@@ -232,9 +232,6 @@ without additional configuration elsewhere:
   check command being run and not any of the templates it imports, i.e. it
   becomes e.g. "Invoke-IcingaCheckCPU", not "PowerShell Base" or even "ifw-api"
 * `$command.arguments$` is resolved at runtime just like `$command.name$`
-* `$command.arguments$` includes arguments needed by the vanilla
-  PowerShell Base, but unsuitable for the IfW API, so
-  ifw\_api\_ignore_arguments lists them not to pass them
 * `ifw-api` connects to localhost (if ifw\_api\_host is null), but expects
   the peer to identify itself via TLS with the NodeName of the endpoint
   actually running the command (if ifw\_api\_expected\_san is null)
