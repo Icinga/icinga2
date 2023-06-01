@@ -52,8 +52,8 @@ Thanks to all contributors:
 * Disallow global variable modification after config commit start (i.e.
   inside `object/apply T "x" { ... }`) to reduce config load time. #9740
 * Forbid Dependency cycles at config load time. #8389
-* Allow only strings in the arrays Host#groups,
-  Service#groups and User#groups. (Needed by the IDO.) #9057
+* Allow only strings in the arrays Host#groups, Service#groups and
+  User#groups. Needed for consistency, especially by the IDO. #9057
 * Disallow empty object names. (They worked only partially anyway.) #9409
 
 #### Windows Agent only
@@ -170,7 +170,8 @@ On the other hand MSIs are now 75% smaller than before.
 * Require CMake v2.8.12+ for building.
   (Compatibility with older ones will be removed from a future version.) #9706
 * Repair config reload on OpenBSD by using waitpid(2), not a SIGCHLD handler. #9518
-* Ignore SIGHUP in main process to allow rcctl(8) sending it to all processes. #9622
+* Ignore SIGHUP in main process to allow `/etc/rc.d/icinga2 reload`
+  sending it to all Icinga 2 processes on OpenBSD. #9622
 * Fix crash in debug build on macOS when API and debug log are enabled. #9497
 * Update Boost shipped on Windows to v1.82. #9761
 * Update vendored https://github.com/nlohmann/json to v3.9.1. #9675
