@@ -92,9 +92,11 @@ On the other hand MSIs are now 75% smaller than before.
 * Fix lost acknowledgements after cluster re-connect. #9718
 * `icinga2 daemon`: fix -DConfiguration.Concurrency= flag
   which now allows to reduce thread amount. #9643
+* Icinga DB feature: normalize several Redis data not to crash the Go daemon. #9772 #9775
 * Disallow breaking inter-object relationships by changing
   relationship attributes at runtime, e.g. Service#host_name. #9407
 * Fix parsing of perfdata across multiple lines in plugin output. #8969
+* Resolve macros inside custom vars of IcingaApplication. #9779
 * Allow agent to update executions delegated to it via /v1/actions/execute-command. #8627
 * SELinux: allow Icinga and its plugins to write to syslog. #9688
 * `icinga2 node wizard`: avoid unnecessary chown(2) which may fail and abort the wizard. #8744
@@ -166,7 +168,8 @@ On the other hand MSIs are now 75% smaller than before.
 * Update Boost shipped on Windows to v1.82. #9761
 * Update vendored https://github.com/nlohmann/json to v3.9.1. #9675
 * Update vendored https://github.com/nemtrif/utfcpp to v3.2.3. #9683
-* Documentation: several fixes and improvements. #8954 #9737 #9741 #9763
+* Documentation: several fixes and improvements.
+  #8954 #9737 #9741 #9763 #9767 #9769 #9777
 * Several code quality improvements. #8815 #9106 #9250
   #9508 #9517 #9537 #9594 #9605 #9606 #9641 #9658 #9702 #9717 #9738
 
