@@ -321,7 +321,7 @@ the `&&` rather than also evaluating `match("MySQL*", host.name)`.
 
 Yes, reducing and not increasing. By default, Icinga 2 already starts as many
 threads as there are CPU cores according to the OS (unaware of SMT aka
-HyperThreading). So there's no point in increasing as Icinga would not gain
+Hyper-Threading). So there's no point in increasing as Icinga would not gain
 additional CPU time.
 
 But more threads also require more synchronization between them. This may
@@ -344,10 +344,10 @@ CPU cores. Write down the times. I.e.:
 
 If significantly less threads than CPU cores significantly reduce the time
 (reported as "real") Icinga 2 needs to load its configuration, pick the number
-with the best time and persist it in your init daemon. In case of systemd locate
-a file named "icinga2.service" and copy the `ExecStart=` line. Next, run
-`systemctl edit icinga2.service`. This will open an editor. Add `[Service]` (if
-not already present) and the copied `ExecStart=` line. Append
+with the best time and persist it in your init daemon. In case of systemd copy
+the `ExecStart=` line from output of `systemctl cat icinga2.service` first.
+Next, run `systemctl edit icinga2.service`. This will open an editor. Add
+`[Service]` (if not already present) and the copied `ExecStart=` line. Append
 `-DConfiguration.Concurrency=` and the chosen number so that the result looks
 like this:
 
@@ -363,9 +363,9 @@ Finally verify whether your changes took effect and enjoy the speed.
 
 * Processor: "Intel(R) Xeon(R) CPU E5-2680 v4 @ 2.40GHz"
 * Cores according to OS: 56
+* Hyper-Threading: on
 * RAM: 256 GB
 * Swap: none
-* Virtualization: Podman
 * Icinga: v2.14.0
 
 ##### Icinga config summary
@@ -383,15 +383,15 @@ Finally verify whether your changes took effect and enjoy the speed.
 * 210 Zones
 * 306 Comments
 * 515 CheckCommands
-* 801 ServiceGroups
+* 801 ServiceGroups, mostly with `assign where`
 * 1014 Users
-* 3034 ScheduledDowntimes
+* 3034 ScheduledDowntimes, apply rules only
 * 10178 Downtimes
-* 17430 HostGroups
+* 17430 HostGroups, mostly with `assign where`
 * 31818 Hosts
-* 413498 Notifications
-* 467267 Services
-* 945349 Dependencies
+* 413498 Notifications, mostly individual objects
+* 467267 Services, mostly individual objects
+* 945349 Dependencies, apply rules only
 
 ##### Load times
 
