@@ -319,27 +319,31 @@ the `&&` rather than also evaluating `match("MySQL*", host.name)`.
 
 ### Try reducing concurrency (threads)
 
+!!! note
+
+	This section applies rather to systems with more than eight CPU cores.
+	In case of less consider upgrading your hardware instead.
+
 Yes, reducing and not increasing. By default, Icinga 2 already starts as many
 threads as there are CPU cores according to the OS (unaware of SMT aka
 Hyper-Threading). So there's no point in increasing as Icinga would not gain
 additional CPU time.
 
 But more threads also require more synchronization between them. This may
-outweigh the CPU time gained by starting X threads instead of just one. (In case
-of more than 12 cores/threads, see proof of concept below.) So reducing may
-indeed help or at least save CPU time and power at no cost.
+outweigh the CPU time gained by starting X threads instead of just one. So
+reducing may indeed help or at least save CPU time and power at no cost.
 
 Start with benchmarking your Icinga 2 config with `time icinga2 daemon -C` on
 the node in question. The results will be most accurate during normal operation,
 i.e. while Icinga is running, but not reloading (e.g. due to config deployments).
 
 Icinga accepts the argument `-DConfiguration.Concurrency=` with the number (of
-threads) immediately after the "=". Start with one and finish with the number of
+threads) immediately after the "=". Start with 8 and finish with the number of
 CPU cores. Write down the times. I.e.:
 
-* `time icinga2 daemon -C -DConfiguration.Concurrency=1`
-* `time icinga2 daemon -C -DConfiguration.Concurrency=2`
-* `time icinga2 daemon -C -DConfiguration.Concurrency=3`
+* `time icinga2 daemon -C -DConfiguration.Concurrency=8`
+* `time icinga2 daemon -C -DConfiguration.Concurrency=10`
+* `time icinga2 daemon -C -DConfiguration.Concurrency=12`
 * ...
 
 If significantly less threads than CPU cores significantly reduce the time
@@ -358,69 +362,6 @@ ExecStart=/usr/sbin/icinga2 daemon --close-stdio -e ${ICINGA2_ERROR_LOG} -DConfi
 
 Save the file and close the editor. Restart Icinga.
 Finally verify whether your changes took effect and enjoy the speed.
-
-#### Proof of concept
-
-* Processor: "Intel(R) Xeon(R) CPU E5-2680 v4 @ 2.40GHz"
-* Cores according to OS: 56
-* Hyper-Threading: on
-* RAM: 256 GB
-* Swap: none
-* Icinga: v2.14.0
-
-##### Icinga config summary
-
-!!! info
-
-	This is a real-world config.
-
-* 1 IcingaApplication
-* 3 EventCommands
-* 4 NotificationCommands
-* 12 ApiUsers
-* 30 TimePeriods
-* 195 Endpoints
-* 210 Zones
-* 306 Comments
-* 515 CheckCommands
-* 801 ServiceGroups, mostly with `assign where`
-* 1014 Users
-* 3034 ScheduledDowntimes, apply rules only
-* 10178 Downtimes
-* 17430 HostGroups, mostly with `assign where`
-* 31818 Hosts
-* 413498 Notifications, mostly individual objects
-* 467267 Services, mostly individual objects
-* 945349 Dependencies, apply rules only
-
-##### Load times
-
-!!! warning
-
-	Measured under laboratory conditions.
-
-| cores  | real        | user  | sys    |
-|--------|-------------|-------|--------|
-|    2   |   42m 39s   |   83m |    30s |
-|    4   |   25m 26s   |   98m |    34s |
-|    6   |   20m  0s   |  114m |    34s |
-|    8   |   17m 38s   |  134m |    40s |
-|   10   |   15m 59s   |  150m |    45s |
-|   11   |   15m  6s   |  154m |    51s |
-| **12** | **14m 37s** |  163m |    52s |
-|   13   |   14m 55s   |  181m |    55s |
-|   14   |   14m 41s   |  192m | 1m  1s |
-|   16   |   18m 54s   |  262m | 1m 54s |
-|   20   |   23m 35s   |  402m | 1m 55s |
-|   24   |   22m 36s   |  486m | 2m 10s |
-|   28   |   20m 19s   |  533m | 2m  7s |
-|   32   |   22m  7s   |  623m | 2m 42s |
-|   36   |   20m 48s   |  630m | 3m  7s |
-|   40   |   21m 28s   |  732m | 3m 17s |
-|   44   |   20m 22s   |  769m | 3m 57s |
-|   48   |   20m 37s   |  866m | 4m 40s |
-|   52   |   19m  1s   |  889m | 5m 13s |
-|   56   |   19m 46s   | 1030m | 6m  2s |
 
 ## Configuration Troubleshooting <a id="troubleshooting-configuration"></a>
 
