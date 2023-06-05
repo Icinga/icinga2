@@ -330,8 +330,8 @@ Hyper-Threading). So there's no point in increasing as Icinga would not gain
 additional CPU time.
 
 But more threads also require more synchronization between them. This may
-outweigh the CPU time gained by starting X threads instead of just one. So
-reducing may indeed help or at least save CPU time and power at no cost.
+outweigh the CPU time gain and even worsen the performance. So reducing may
+indeed help or at least save CPU time and power at no cost.
 
 Start with benchmarking your Icinga 2 config with `time icinga2 daemon -C` on
 the node in question. The results will be most accurate during normal operation,
