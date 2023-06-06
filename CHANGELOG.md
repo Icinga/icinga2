@@ -68,17 +68,14 @@ bandwidth and disk space. Both new installations and upgrades are affected.
 * InfluxdbWriter and Influxdb2Writer #9704
 * OpenTsdbWriter #9704
 * PerfdataWriter #9704
-* NSClient++ installer #9703
-* Icinga 2 markdown documentation #9705
+
+We also don't ship the following files anymore.
+(You can still obtain them manually.)
+
+* `NSCP.msi` (NSClient++ installer) #9703
+* [doc/](doc) (Icinga 2 markdown documentation) #9705
 
 On the other hand MSIs are now 75% smaller than before.
-
-!!! note
-
-    Just the **installer** of NSClient++ we shipped disappears from existing
-    Icinga installations (`%ProgramFiles%/Icinga2/sbin`). Existing installations
-    of NSClient++ are not affected and for new ones an installer may be obtained
-    and run manually.
 
 ### Enhancements
 
