@@ -909,7 +909,7 @@ parameter should be provided.
 > There are attributes which can only be set for [PUT requests](12-icinga2-api.md#icinga2-api-config-objects-create) such as `groups`
 > or `zone`. A complete list of `no_user_modify` attributes can be fetched from the [types](12-icinga2-api.md#icinga2-api-types) URL endpoint.
 
-If attributes are of the [Dictionary](17-language-reference.md#dictionary) type, use the indexer format:
+If attributes are of the [Dictionary](17-language-reference.md#dictionary) type, use the indexer format if possible:
 
 ```
 "attrs": { "vars.os": "Linux" }
