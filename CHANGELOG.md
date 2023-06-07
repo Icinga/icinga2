@@ -174,7 +174,7 @@ Add linux\_netdev check command. #9045
 
 * Require GCC 7+ for building to enable C++17. #9133 #9485 #9489
 * Require CMake v2.8.12+ for building.
-  (Compatibility with older ones will be removed from a future version.) #9706
+  (Compatibility with older ones will be removed from a future CMake version.) #9706
 * Repair config reload on OpenBSD by using waitpid(2), not a SIGCHLD handler. #9518
 * Ignore SIGHUP in main process to allow `/etc/rc.d/icinga2 reload`
   sending it to all Icinga 2 processes on OpenBSD. #9622
