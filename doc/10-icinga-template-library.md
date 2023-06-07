@@ -225,6 +225,13 @@ ifw\_api\_crl           | null (Icinga PKI)     | Path to TLS CRL to check peer 
 ifw\_api\_username      | null (none)           | Basic auth username.
 ifw\_api\_password      | null (none)           | Basic auth password.
 
+!!! warning
+
+    Due to how Icinga 2 resolves macros and serializes the resolved values for
+    sending to a command endpoint (if any), ifw\_api\_arguments must not directly
+    contain functions in case `ifw-api` is used with command endpoints! Only
+    macro strings referring to custom variables which are set to functions work.
+
 The above defaults allow enabling `ifw-api` globally by importing it into _PowerShell Base_
 without additional configuration elsewhere:
 
