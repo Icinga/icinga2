@@ -18,15 +18,8 @@ In v2.12 and v2.13, all dependecies were redundant.
 I.e. the parent was considered unreachable only if no dependency was fulfilled.
 v2.14 restores the pre-v2.12 behavior and allows to override it.
 
-To stick to the behavior of v2.12 and v2.13, you could put this configuration in a global zone:
-
-```
-template Dependency default /* affects all dependecies */ {
-    redundancy_group = "same group name for all => all in one group"
-}
-```
-
-But in a real world you'll likely want to [fine-tune this](03-monitoring-basics.md#dependencies-redundancy-groups).
+In a real world you'll likely want to [fine-tune this](03-monitoring-basics.md#dependencies-redundancy-groups),
+but it's also possible to simply [stick to the behavior of v2.12 and v2.13](03-monitoring-basics.md#dependencies-redundancy-groups-all-redundant).
 
 ### Email Notification Scripts <a id="upgrading-to-2-14-email-notification"></a>
 
