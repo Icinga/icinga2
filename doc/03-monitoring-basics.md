@@ -3182,6 +3182,25 @@ I.e. all dependecies are regarded as essential for the parent by default.
 Specifying the `redundancy_group` attribute for two dependecies of a child object with the equal value
 causes them to be regarded as redundant (only inside that redundancy group).
 
+#### Emulate v2.12/v2.13 behavior <a id="dependencies-redundancy-groups-all-redundant"></a>
+
+In order to stick to the behavior of v2.12 and v2.13, you have to just put
+all dependecies into one redundancy group. I.e. on all Dependency objects set
+`redundancy_group` to the same string of your choice (except the empty string which
+is the default). The easiest way is to put such configuration in a global zone:
+
+```
+template Dependency /* name not needed */ default {
+    redundancy_group = "same string of your choice"
+}
+```
+
+The above template is a default template (see `default` keyword), i.e. it
+automatically affects all Dependency objects on every instance where it's synced
+to. (Because of this it doesn't need a name.) You can still override
+`redundancy_group` per object as you wish. E.g. with the empty string to isolate
+a particular Dependency from all others.
+
 <!-- Keep this for compatibility -->
 <a id="dependencies-apply-custom-attríbutes"></a>
 
