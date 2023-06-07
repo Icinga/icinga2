@@ -211,19 +211,19 @@ From using a custom CA to controlling the IfW API directly from a Linux satellit
 
 Optional custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
-| Name                    | Default               | Description                                                                                           |
-|-------------------------|-----------------------|-------------------------------------------------------------------------------------------------------|
-| ifw\_api\_command       | `$command.name$`      | Command to run.                                                                                       |
-| ifw\_api\_arguments     | `$command.arguments$` | Arguments for the command as in [CheckCommand](09-object-types.md#objecttype-checkcommand)#arguments. |
-| ifw\_api\_host          | null (localhost)      | IfW API host.                                                                                         |
-| ifw\_api\_port          | 5668                  | IfW API port.                                                                                         |
-| ifw\_api\_expected\_san | `$ifw_api_host$`      | Peer TLS certificate SAN (and SNI). null means agent NodeName.                                        |
-| ifw\_api\_cert          | null (Icinga PKI)     | TLS client certificate path.                                                                          |
-| ifw\_api\_key           | null (Icinga PKI)     | TLS client private key path.                                                                          |
-| ifw\_api\_ca            | null (Icinga PKI)     | Peer TLS CA certificate path.                                                                         |
-| ifw\_api\_crl           | null (Icinga PKI)     | Path to TLS CRL to check peer against.                                                                |
-| ifw\_api\_username      | null (none)           | Basic auth username.                                                                                  |
-| ifw\_api\_password      | null (none)           | Basic auth password.                                                                                  |
+| Name                    | Default           | Description                                                                                                 |
+|-------------------------|-------------------|-------------------------------------------------------------------------------------------------------------|
+| ifw\_api\_command       | `$command.name$`  | Command to run.                                                                                             |
+| ifw\_api\_arguments     | {} (none)         | Arguments for the command, similar to [CheckCommand](09-object-types.md#objecttype-checkcommand)#arguments. |
+| ifw\_api\_host          | null (localhost)  | IfW API host.                                                                                               |
+| ifw\_api\_port          | 5668              | IfW API port.                                                                                               |
+| ifw\_api\_expected\_san | `$ifw_api_host$`  | Peer TLS certificate SAN (and SNI). null means agent NodeName.                                              |
+| ifw\_api\_cert          | null (Icinga PKI) | TLS client certificate path.                                                                                |
+| ifw\_api\_key           | null (Icinga PKI) | TLS client private key path.                                                                                |
+| ifw\_api\_ca            | null (Icinga PKI) | Peer TLS CA certificate path.                                                                               |
+| ifw\_api\_crl           | null (Icinga PKI) | Path to TLS CRL to check peer against.                                                                      |
+| ifw\_api\_username      | null (none)       | Basic auth username.                                                                                        |
+| ifw\_api\_password      | null (none)       | Basic auth password.                                                                                        |
 
 !!! warning
 
@@ -238,7 +238,7 @@ without additional configuration elsewhere:
 * `$command.name$` is resolved at runtime to the name of the specific
   check command being run and not any of the templates it imports, i.e. it
   becomes e.g. "Invoke-IcingaCheckCPU", not "PowerShell Base" or even "ifw-api"
-* `$command.arguments$` is resolved at runtime just like `$command.name$`
+* Our PowerShell framework provides ifw\_api\_arguments for all of its commands.
 * `ifw-api` connects to localhost (if ifw\_api\_host is null), but expects
   the peer to identify itself via TLS with the NodeName of the endpoint
   actually running the command (if ifw\_api\_expected\_san is null)
