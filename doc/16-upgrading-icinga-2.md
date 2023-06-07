@@ -13,9 +13,9 @@ follow the instructions for v2.7 too.
 ### Dependencies and Redundancy Groups <a id="upgrading-to-2-14-dependencies"></a>
 
 Before Icinga v2.12 all dependecies were cumulative.
-I.e. the parent was considered reachable only if no dependency was violated.
+I.e. the child was considered reachable only if no dependency was violated.
 In v2.12 and v2.13, all dependecies were redundant.
-I.e. the parent was considered unreachable only if no dependency was fulfilled.
+I.e. the child was considered unreachable only if no dependency was fulfilled.
 v2.14 restores the pre-v2.12 behavior and allows to override it.
 
 In a real world you'll likely want to [fine-tune this](03-monitoring-basics.md#dependencies-redundancy-groups),
