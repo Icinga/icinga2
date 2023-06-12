@@ -1232,9 +1232,16 @@ void IcingaDB::AddObjectDataToRuntimeUpdates(std::vector<Dictionary::Ptr>& runti
 // for IcingaDB.
 bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& attributes, Dictionary::Ptr& checksums)
 {
+	auto originalAttrs (object->GetOriginalAttributes());
+
+	if (originalAttrs) {
+		originalAttrs = originalAttrs->ShallowClone();
+	}
+
 	attributes->Set("name_checksum", SHA1(object->GetName()));
 	attributes->Set("environment_id", m_EnvironmentId);
 	attributes->Set("name", object->GetName());
+	attributes->Set("original_attributes", originalAttrs);
 
 	Zone::Ptr ObjectsZone;
 	Type::Ptr type = object->GetReflectionType();
