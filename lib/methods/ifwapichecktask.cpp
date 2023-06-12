@@ -30,7 +30,7 @@ using namespace icinga;
 REGISTER_FUNCTION_NONCONST(Internal, IfwApiCheck, &IfwApiCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
 
 static void ReportIfwCheckResult(
-	const Checkable::Ptr& checkable, const Array::Ptr& cmdLine, const CheckResult::Ptr& cr,
+	const Checkable::Ptr& checkable, const Value& cmdLine, const CheckResult::Ptr& cr,
 	const String& output, double start, double end, int exitcode = 3, const Array::Ptr& perfdata = nullptr
 )
 {
@@ -57,7 +57,7 @@ static void ReportIfwCheckResult(
 }
 
 static void ReportIfwCheckResult(
-	boost::asio::yield_context yc, const Checkable::Ptr& checkable, const Array::Ptr& cmdLine,
+	boost::asio::yield_context yc, const Checkable::Ptr& checkable, const Value& cmdLine,
 	const CheckResult::Ptr& cr, const String& output, double start
 )
 {
@@ -280,6 +280,23 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 
 			// See default branch of below switch
 			argSpec->Set("repeat_key", false);
+
+			{
+				ObjectLock oLock (argSpec);
+
+				for (auto& kv : argSpec) {
+					if (kv.second.IsObjectType<Function>()) {
+						auto now (Utility::GetTime());
+
+						ReportIfwCheckResult(
+							checkable, command->GetName(), cr,
+							"$ifw_api_arguments$ may not directly contain functions.", now, now
+						);
+
+						return;
+					}
+				}
+			}
 
 			/* MacroProcessor::ResolveArguments() converts
 			 *
