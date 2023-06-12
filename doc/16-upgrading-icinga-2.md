@@ -16,10 +16,10 @@ Before Icinga v2.12 all dependencies were cumulative.
 I.e. the child was considered reachable only if no dependency was violated.
 In v2.12 and v2.13, all dependencies were redundant.
 I.e. the child was considered unreachable only if no dependency was fulfilled.
-v2.14 restores the pre-v2.12 behavior and allows to override it.
 
-In a real world you'll likely want to [fine-tune this](03-monitoring-basics.md#dependencies-redundancy-groups),
-but it's also possible to simply [stick to the behavior of v2.12 and v2.13](03-monitoring-basics.md#dependencies-redundancy-groups-all-redundant).
+v2.14 restores the pre-v2.12 behavior, but allows to override it.
+I.e. you can still make any number of your dependencies redundant, as you wish.
+For details read the docs' [redundancy groups section](03-monitoring-basics.md#dependencies-redundancy-groups).
 
 ### Email Notification Scripts <a id="upgrading-to-2-14-email-notification"></a>
 
