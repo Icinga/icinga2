@@ -202,10 +202,31 @@ any process, but communicates directly with the IfW API.
 
 Ideally you run the Icinga Director and have imported our PowerShell check commands from
 [their basket](https://icinga.com/docs/icinga-for-windows/latest/doc/200-Icinga-Integration/01-Director-Baskets/).
-In this case adding `ifw-api` to the imports
-of the _PowerShell Base_ check command is enough to enable `ifw-api` globally.
+In this case adding `ifw-api` to the imports of the _PowerShell Base_
+check command is enough to enable `ifw-api` globally.
 
-But the `ifw-api` command may be also used like e.g. [check_by_ssh](#plugin-check-command-by-ssh).
+!!! warning
+
+    Do the latter only if your **entire** Icinga cluster runs v2.14+! Otherwise,
+    this will break all older nodes which load the modified _PowerShell Base_
+    from a global zone while the imported `ifw-api` is missing.
+
+For a cluster which may contain older Icinga instances there's a workaround:
+Put the following command in a global zone and import it instead of `ifw-api`:
+
+```
+object CheckCommand "ifw-api-if-exists" {
+    try {
+        import "ifw-api"
+    } except {
+    }
+}
+```
+
+In any case re-running the Kickstart Wizard is required
+for the Director to recognise these new check commands.
+
+The `ifw-api` command may be also used like e.g. [check_by_ssh](#plugin-check-command-by-ssh).
 Its custom variables provide high flexibility.
 From using a custom CA to controlling the IfW API directly from a Linux satellite.
 
@@ -232,8 +253,8 @@ Optional custom variables passed as [command parameters](03-monitoring-basics.md
     contain functions for the case `ifw-api` is used with command endpoints. Only
     macro strings referring to custom variables which are set to functions work.
 
-The above defaults allow enabling `ifw-api` globally by importing it into _PowerShell Base_
-without additional configuration elsewhere:
+The above defaults allow enabling `ifw-api(-if-exists)` globally by importing
+it into _PowerShell Base_ without additional configuration elsewhere:
 
 * `$command.name$` is resolved at runtime to the name of the specific
   check command being run and not any of the templates it imports, i.e. it
