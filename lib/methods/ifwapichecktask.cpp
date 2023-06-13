@@ -4,6 +4,7 @@
 #	include <stdlib.h>
 #endif /* _WIN32 */
 #include "methods/ifwapichecktask.hpp"
+#include "methods/pluginchecktask.hpp"
 #include "icinga/icingaapplication.hpp"
 #include "icinga/pluginutility.hpp"
 #include "base/base64.hpp"
@@ -227,6 +228,22 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 
 	REQUIRE_NOT_NULL(checkable);
 	REQUIRE_NOT_NULL(cr);
+
+	// We're going to just resolve macros for the actual check execution happening elsewhere
+	if (resolvedMacros && !useResolvedMacros) {
+		auto commandEndpoint (checkable->GetCommandEndpoint());
+
+		// There's indeed a command endpoint, obviously for the actual check execution
+		if (commandEndpoint) {
+			// But it doesn't have this function, yet ("ifw-api-check-command")
+			if (!(commandEndpoint->GetCapabilities() & (uint_fast64_t)ApiCapabilities::IfwApiCheckCommand)) {
+				// Assume "ifw-api-check-command" has been imported into a check command which can also work
+				// based on "plugin-check-command", delegate respectively and hope for the best
+				PluginCheckTask::ScriptFunc(checkable, cr, resolvedMacros, useResolvedMacros);
+				return;
+			}
+		}
+	}
 
 	CheckCommand::Ptr command = CheckCommand::ExecuteOverride ? CheckCommand::ExecuteOverride : checkable->GetCheckCommand();
 	auto lcr (checkable->GetLastCheckResult());

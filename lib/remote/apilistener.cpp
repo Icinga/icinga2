@@ -605,7 +605,9 @@ static const auto l_AppVersionInt (([]() -> unsigned long {
 		+ boost::lexical_cast<unsigned long>(match[3].str());
 })());
 
-static const auto l_MyCapabilities (ApiCapabilities::ExecuteArbitraryCommand);
+static const auto l_MyCapabilities (
+	(uint_fast64_t)ApiCapabilities::ExecuteArbitraryCommand | (uint_fast64_t)ApiCapabilities::IfwApiCheckCommand
+);
 
 /**
  * Processes a new client connection.
