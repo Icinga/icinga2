@@ -302,12 +302,12 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 				ObjectLock oLock (argSpec);
 
 				for (auto& kv : argSpec) {
-					if (kv.second.IsObjectType<Function>()) {
+					if (kv.second.GetType() == ValueObject) {
 						auto now (Utility::GetTime());
 
 						ReportIfwCheckResult(
 							checkable, command->GetName(), cr,
-							"$ifw_api_arguments$ may not directly contain functions.", now, now
+							"$ifw_api_arguments$ may not directly contain objects (especially functions).", now, now
 						);
 
 						return;
