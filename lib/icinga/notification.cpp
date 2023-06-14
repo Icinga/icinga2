@@ -440,6 +440,22 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 			}
 		}
 
+		if (type == NotificationProblem && !reminder && !checkable->GetVolatile()) {
+			auto [host, service] = GetHostService(checkable);
+			uint_fast8_t state = service ? service->GetState() : host->GetState();
+
+			if (state == (uint_fast8_t)GetLastNotifiedStatePerUser()->Get(userName)) {
+				auto stateStr (service ? NotificationServiceStateToString(service->GetState()) : NotificationHostStateToString(host->GetState()));
+
+				Log(LogNotice, "Notification")
+					<< "Notification object '" << notificationName << "': We already notified user '" << userName << "' for a " << stateStr
+					<< " problem. Likely after that another state change notification was filtered out by config. Not sending duplicate '"
+					<< stateStr << "' notification.";
+
+				continue;
+			}
+		}
+
 		Log(LogInformation, "Notification")
 			<< "Sending " << (reminder ? "reminder " : "") << "'" << NotificationTypeToString(type) << "' notification '"
 			<< notificationName << "' for user '" << userName << "'";

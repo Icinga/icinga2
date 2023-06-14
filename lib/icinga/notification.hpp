@@ -107,7 +107,6 @@ public:
 	static const std::map<String, int>& GetStateFilterMap();
 	static const std::map<String, int>& GetTypeFilterMap();
 
-protected:
 	void OnConfigLoaded() override;
 	void OnAllConfigLoaded() override;
 	void Start(bool runtimeCreated) override;
