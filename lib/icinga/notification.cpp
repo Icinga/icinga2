@@ -23,6 +23,7 @@ std::map<String, int> Notification::m_StateFilterMap;
 std::map<String, int> Notification::m_TypeFilterMap;
 
 boost::signals2::signal<void (const Notification::Ptr&, const MessageOrigin::Ptr&)> Notification::OnNextNotificationChanged;
+boost::signals2::signal<void (const Notification::Ptr&, const String&, uint_fast8_t, const MessageOrigin::Ptr&)> Notification::OnLastNotifiedStatePerUserUpdated;
 
 String NotificationNameComposer::MakeName(const String& shortName, const Object::Ptr& context) const
 {
@@ -456,7 +457,12 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 			case NotificationProblem:
 			case NotificationRecovery: {
 				auto [host, service] = GetHostService(checkable);
-				GetLastNotifiedStatePerUser()->Set(userName, service ? service->GetState() : host->GetState());
+				uint_fast8_t state = service ? service->GetState() : host->GetState();
+
+				if (state != (uint_fast8_t)GetLastNotifiedStatePerUser()->Get(userName)) {
+					GetLastNotifiedStatePerUser()->Set(userName, state);
+					OnLastNotifiedStatePerUserUpdated(this, userName, state, nullptr);
+				}
 			}
 			default:
 				;
