@@ -512,15 +512,15 @@ set(CMAKE_INSTALL_UCRT_LIBRARIES TRUE)
 include(InstallRequiredSystemLibraries)
 
 if(WIN32)
-  if (OPENSSL_VERSION_MINOR GREATER_EQUAL 1)
-    if (CMAKE_VS_PLATFORM_NAME STREQUAL "x64")
-      list (APPEND ICINGA2_OPENSSL_DLLS ${OPENSSL_INCLUDE_DIR}/../bin/libcrypto-1_1-x64.dll ${OPENSSL_INCLUDE_DIR}/../bin/libssl-1_1-x64.dll)
-    else()
-      list (APPEND ICINGA2_OPENSSL_DLLS ${OPENSSL_INCLUDE_DIR}/../bin/libcrypto-1_1.dll ${OPENSSL_INCLUDE_DIR}/../bin/libssl-1_1.dll)
-    endif()
+  if (CMAKE_VS_PLATFORM_NAME STREQUAL "x64")
+    set(ICINGA2_OPENSSL_DLL_ARCH "-x64")
   else()
-      list (APPEND ICINGA2_OPENSSL_DLLS ${OPENSSL_INCLUDE_DIR}/../bin/libeay32.dll ${OPENSSL_INCLUDE_DIR}/../bin/ssleay32.dll)
+    set(ICINGA2_OPENSSL_DLL_ARCH "")
   endif()
+
+  foreach(ICINGA2_OPENSSL_LIB crypto ssl)
+    list(APPEND ICINGA2_OPENSSL_DLLS ${OPENSSL_INCLUDE_DIR}/../bin/lib${ICINGA2_OPENSSL_LIB}-3${ICINGA2_OPENSSL_DLL_ARCH}.dll)
+  endforeach()
 
   install(
     PROGRAMS ${ICINGA2_OPENSSL_DLLS}
