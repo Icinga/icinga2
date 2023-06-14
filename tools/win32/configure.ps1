@@ -30,7 +30,7 @@ if (-not (Test-Path env:CMAKE_GENERATOR_PLATFORM)) {
   }
 }
 if (-not (Test-Path env:OPENSSL_ROOT_DIR)) {
-  $env:OPENSSL_ROOT_DIR = "c:\local\OpenSSL_1_1_1k-Win${env:BITS}"
+  $env:OPENSSL_ROOT_DIR = "c:\local\OpenSSL_3_0_15-Win${env:BITS}"
 }
 if (-not (Test-Path env:BOOST_ROOT)) {
   $env:BOOST_ROOT = "c:\local\boost_1_71_0-Win${env:BITS}"
