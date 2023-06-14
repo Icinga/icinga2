@@ -452,6 +452,16 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 		/* collect all notified users */
 		allNotifiedUsers.insert(user);
 
+		switch (type) {
+			case NotificationProblem:
+			case NotificationRecovery: {
+				auto [host, service] = GetHostService(checkable);
+				GetLastNotifiedStatePerUser()->Set(userName, service ? service->GetState() : host->GetState());
+			}
+			default:
+				;
+		}
+
 		/* store all notified users for later recovery checks */
 		if (type == NotificationProblem && !notifiedProblemUsers->Contains(userName))
 			notifiedProblemUsers->Add(userName);
