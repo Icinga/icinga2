@@ -1,10 +1,73 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "icinga/host.hpp"
 #include "icinga/notification.hpp"
+#include "icinga/notificationcommand.hpp"
+#include "icinga/service.hpp"
+#include "icinga/user.hpp"
 #include <BoostTestTargetConfig.h>
 #include <iostream>
 
 using namespace icinga;
+
+struct DuplicateDueToFilterHelper
+{
+	Host::Ptr h = new Host();
+	Service::Ptr s = new Service();
+	User::Ptr u = new User();
+	NotificationCommand::Ptr nc = new NotificationCommand();
+	Notification::Ptr n = new Notification();
+	unsigned int called = 0;
+
+	DuplicateDueToFilterHelper(int typeFilter, int stateFilter)
+	{
+		h->SetName("example.com", true);
+		h->Register();
+
+		s->SetShortName("disk", true);
+		h->AddService(s);
+
+		u->SetName("jdoe", true);
+		u->SetTypeFilter(~0);
+		u->SetStateFilter(~0);
+		u->Register();
+
+		nc->SetName("mail", true);
+		nc->SetExecute(new Function("", [this]() { ++called; }), true);
+		nc->Register();
+
+		n->SetFieldByName("host_name", "example.com", false, DebugInfo());
+		n->SetFieldByName("service_name", "disk", false, DebugInfo());
+		n->SetFieldByName("command", "mail", false, DebugInfo());
+		n->SetUsersRaw(new Array({"jdoe"}), true);
+		n->SetTypeFilter(typeFilter);
+		n->SetStateFilter(stateFilter);
+		n->OnAllConfigLoaded(); // link Service
+	}
+
+	~DuplicateDueToFilterHelper()
+	{
+		h->Unregister();
+		u->Unregister();
+		nc->Unregister();
+	}
+
+	void SendStateNotification(ServiceState state, bool isSent)
+	{
+		auto calledBefore (called);
+
+		s->SetStateRaw(state, true);
+		Application::GetTP().Start();
+
+		n->BeginExecuteNotification(
+			state == ServiceOK ? NotificationRecovery : NotificationProblem,
+			nullptr, false, false, "", ""
+		);
+
+		Application::GetTP().Stop();
+		BOOST_CHECK_EQUAL(called > calledBefore, isSent);
+	}
+};
 
 BOOST_AUTO_TEST_SUITE(icinga_notification)
 
@@ -102,4 +165,33 @@ BOOST_AUTO_TEST_CASE(type_filter)
 	std::cout << "#4 Notification type: " << ftype << " against " << notification->GetTypeFilter() << " must fail." << std::endl;
 	BOOST_CHECK(!(notification->GetTypeFilter() & ftype));
 }
+
+BOOST_AUTO_TEST_CASE(no_filter_problem_no_duplicate)
+{
+	DuplicateDueToFilterHelper helper (~0, ~0);
+
+	helper.SendStateNotification(ServiceCritical, true);
+	helper.SendStateNotification(ServiceWarning, true);
+	helper.SendStateNotification(ServiceCritical, true);
+}
+
+BOOST_AUTO_TEST_CASE(filter_problem_no_duplicate)
+{
+	DuplicateDueToFilterHelper helper (~0, ~StateFilterWarning);
+
+	helper.SendStateNotification(ServiceCritical, true);
+	helper.SendStateNotification(ServiceWarning, false);
+	helper.SendStateNotification(ServiceCritical, false);
+}
+
+BOOST_AUTO_TEST_CASE(volatile_filter_problem_duplicate)
+{
+	DuplicateDueToFilterHelper helper (~0, ~StateFilterWarning);
+
+	helper.s->SetVolatile(true, true);
+	helper.SendStateNotification(ServiceCritical, true);
+	helper.SendStateNotification(ServiceWarning, false);
+	helper.SendStateNotification(ServiceCritical, true);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
