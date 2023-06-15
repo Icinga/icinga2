@@ -1272,10 +1272,11 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 
 	if (type == Host::TypeInstance || type == Service::TypeInstance) {
 		Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);
+		auto checkTimeout (checkable->GetCheckTimeout());
 
 		attributes->Set("checkcommand_name", checkable->GetCheckCommand()->GetName());
 		attributes->Set("max_check_attempts", checkable->GetMaxCheckAttempts());
-		attributes->Set("check_timeout", checkable->GetCheckTimeout());
+		attributes->Set("check_timeout", checkTimeout.IsEmpty() ? checkable->GetCheckCommand()->GetTimeout() : (double)checkTimeout);
 		attributes->Set("check_interval", checkable->GetCheckInterval());
 		attributes->Set("check_retry_interval", checkable->GetRetryInterval());
 		attributes->Set("active_checks_enabled", checkable->GetEnableActiveChecks());
