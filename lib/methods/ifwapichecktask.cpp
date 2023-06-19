@@ -400,7 +400,7 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 
 	Array::Ptr cmdLine = new Array({
 		"curl", "--silent", "--show-error", curlTlsMinVersion, "--fail",
-		"--resolve", expectedSan + ":" + psPort + ":" + psHost,
+		"--connect-to", expectedSan + ":" + psPort + ":" + psHost + ":" + psPort,
 		"--ciphers", DEFAULT_TLS_CIPHERS,
 		"--cert", cert,
 		"--key", key,
