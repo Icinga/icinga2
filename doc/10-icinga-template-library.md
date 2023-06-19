@@ -208,8 +208,8 @@ check command is enough to enable `ifw-api` globally.
 !!! warning
 
     Do the latter only if your **entire** Icinga cluster runs v2.14+! Otherwise,
-    this will break all older nodes which load the modified _PowerShell Base_
-    from a global zone while the imported `ifw-api` is missing.
+    all older nodes which load the modified _PowerShell Base_ (e.g. from a global
+    zone) will reject all new configuration as the imported `ifw-api` is missing.
 
 For a cluster which may contain older Icinga instances there's a workaround:
 Put the following command in a global zone and import it instead of `ifw-api`:
