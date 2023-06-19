@@ -187,9 +187,6 @@ Name            | Description
 ----------------|--------------
 sleep\_time     | **Optional.** The duration of the sleep in seconds. Defaults to 1s.
 
-<!-- keep this anchor for URL link history only -->
-<a id="plugin-check-commands"></a>
-
 ### ifw-api <a id="itl-ifw-api"></a>
 
 Built-in check command for executing arbitrary PowerShell check commands via the
@@ -265,6 +262,9 @@ it into _PowerShell Base_ without additional configuration elsewhere:
   actually running the command (if ifw\_api\_expected\_san is null)
 * The actual values of ifw\_api\_cert, ifw\_api\_key, ifw\_api\_ca and ifw\_api\_crl
   are also resolved on the command endpoint if null
+
+<!-- keep this anchor for URL link history only -->
+<a id="plugin-check-commands"></a>
 
 ## Plugin Check Commands for Monitoring Plugins <a id="plugin-check-commands-monitoring-plugins"></a>
 
