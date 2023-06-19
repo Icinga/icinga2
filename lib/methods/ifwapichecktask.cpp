@@ -399,7 +399,7 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	static auto curlTlsMinVersion ((String("--") + DEFAULT_TLS_PROTOCOLMIN).ToLower());
 
 	Array::Ptr cmdLine = new Array({
-		"curl", "--silent", "--show-error", curlTlsMinVersion, "--fail",
+		"curl", "--verbose", curlTlsMinVersion, "--fail",
 		"--connect-to", expectedSan + ":" + psPort + ":" + psHost + ":" + psPort,
 		"--ciphers", DEFAULT_TLS_CIPHERS,
 		"--cert", cert,
