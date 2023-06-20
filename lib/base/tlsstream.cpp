@@ -33,6 +33,11 @@ std::shared_ptr<X509> UnbufferedAsioTlsStream::GetPeerCertificate()
 	return std::shared_ptr<X509>(SSL_get_peer_certificate(native_handle()), X509_free);
 }
 
+STACK_OF(X509) *UnbufferedAsioTlsStream::GetPeerCertificateChain()
+{
+	return SSL_get_peer_cert_chain(native_handle());
+}
+
 void UnbufferedAsioTlsStream::BeforeHandshake(handshake_type type)
 {
 	namespace ssl = boost::asio::ssl;

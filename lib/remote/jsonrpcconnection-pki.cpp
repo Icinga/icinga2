@@ -29,6 +29,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 	String certText = params->Get("cert_request");
 
 	std::shared_ptr<X509> cert;
+	STACK_OF(X509) *chain;
 
 	Dictionary::Ptr result = new Dictionary();
 
@@ -36,8 +37,10 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 	if (certText.IsEmpty()) {
 		auto stream (origin->FromClient->GetStream());
 		cert = stream->next_layer().GetPeerCertificate();
+		chain = stream->next_layer().GetPeerCertificateChain();
 	} else {
 		cert = StringToCertificate(certText);
+		chain = nullptr;
 	}
 
 	if (!cert) {
@@ -61,7 +64,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 		logmsg << "Received certificate request for CN '" << cn << "'";
 
 		try {
-			signedByCA = VerifyCertificate(cacert, cert, listener->GetCrlPath());
+			signedByCA = VerifyCertificate(cacert, cert, listener->GetCrlPath(), chain);
 			if (!signedByCA) {
 				logmsg << " not";
 			}
