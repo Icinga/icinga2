@@ -1057,7 +1057,7 @@ String BinaryToHex(const unsigned char* data, size_t length) {
 	return output;
 }
 
-bool VerifyCertificate(const std::shared_ptr<X509> &caCertificate, const std::shared_ptr<X509> &certificate, const String& crlFile)
+bool VerifyCertificate(const std::shared_ptr<X509> &caCertificate, const std::shared_ptr<X509> &certificate, const String& crlFile, STACK_OF(X509) *chain)
 {
 	return VerifyCertificate(caCertificate.get(), certificate.get(), crlFile);
 }
