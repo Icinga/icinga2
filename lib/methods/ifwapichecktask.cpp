@@ -387,14 +387,19 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	uri->SetPath({ "v1", "checker" });
 	uri->SetQuery({{ "command", psCommand }});
 
+	static auto userAgent ("Icinga/" + Application::GetAppVersion());
 	auto relative (uri->Format());
 	auto body (JsonEncode(params));
 	auto req (Shared<request<string_body>>::Make());
 
 	req->method(verb::post);
 	req->target(relative);
+	req->set(field::accept, "application/json");
 	req->set(field::content_type, "application/json");
+	req->set(field::host, expectedSan + ":" + psPort);
+	req->set(field::user_agent, userAgent);
 	req->body() = body;
+	req->content_length(req->body().size());
 
 	static auto curlTlsMinVersion ((String("--") + DEFAULT_TLS_PROTOCOLMIN).ToLower());
 
@@ -407,6 +412,8 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 		"--cacert", ca,
 		"--request", "POST",
 		"--url", "https://" + expectedSan + ":" + psPort + relative,
+		"--user-agent", userAgent,
+		"--header", "Accept: application/json",
 		"--header", "Content-Type: application/json",
 		"--data-raw", body
 	});
