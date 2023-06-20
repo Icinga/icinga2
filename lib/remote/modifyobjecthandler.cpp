@@ -64,7 +64,7 @@ bool ModifyObjectHandler::HandleRequest(
 
 	Value attrsVal = params->Get("attrs");
 
-	if (attrsVal.GetReflectionType() != Dictionary::TypeInstance) {
+	if (attrsVal.GetReflectionType() != Dictionary::TypeInstance && attrsVal.GetType() != ValueEmpty) {
 		HttpUtility::SendJsonError(response, params, 400,
 			"Invalid type for 'attrs' attribute specified. Dictionary type is required."
 			"Or is this a POST query and you missed adding a 'X-HTTP-Method-Override: GET' header?");
@@ -72,6 +72,23 @@ bool ModifyObjectHandler::HandleRequest(
 	}
 
 	Dictionary::Ptr attrs = attrsVal;
+
+	Value restoreAttrsVal = params->Get("restore_attrs");
+
+	if (restoreAttrsVal.GetReflectionType() != Array::TypeInstance && restoreAttrsVal.GetType() != ValueEmpty) {
+		HttpUtility::SendJsonError(response, params, 400,
+			"Invalid type for 'restore_attrs' attribute specified. Array type is required.");
+		return true;
+	}
+
+	Array::Ptr restoreAttrs = restoreAttrsVal;
+
+	if (!(attrs || restoreAttrs)) {
+		HttpUtility::SendJsonError(response, params, 400,
+			"Missing both 'attrs' and 'restore_attrs'. "
+			"Or is this a POST query and you missed adding a 'X-HTTP-Method-Override: GET' header?");
+		return true;
+	}
 
 	bool verbose = false;
 
@@ -96,6 +113,26 @@ bool ModifyObjectHandler::HandleRequest(
 		String key;
 
 		try {
+			if (restoreAttrs) {
+				ObjectLock oLock (restoreAttrs);
+
+				for (auto& attr : restoreAttrs) {
+					key = attr;
+					obj->RestoreAttribute(key);
+				}
+			}
+		} catch (const std::exception& ex) {
+			result1->Set("code", 500);
+			result1->Set("status", "Attribute '" + key + "' could not be restored: " + DiagnosticInformation(ex, false));
+
+			if (verbose)
+				result1->Set("diagnostic_information", DiagnosticInformation(ex));
+
+			results.push_back(std::move(result1));
+			continue;
+		}
+
+		try {
 			if (attrs) {
 				ObjectLock olock(attrs);
 				for (const Dictionary::Pair& kv : attrs) {
@@ -103,16 +140,19 @@ bool ModifyObjectHandler::HandleRequest(
 					obj->ModifyAttribute(kv.first, kv.second);
 				}
 			}
-
-			result1->Set("code", 200);
-			result1->Set("status", "Attributes updated.");
 		} catch (const std::exception& ex) {
 			result1->Set("code", 500);
 			result1->Set("status", "Attribute '" + key + "' could not be set: " + DiagnosticInformation(ex, false));
 
 			if (verbose)
 				result1->Set("diagnostic_information", DiagnosticInformation(ex));
+
+			results.push_back(std::move(result1));
+			continue;
 		}
+
+		result1->Set("code", 200);
+		result1->Set("status", "Attributes updated.");
 
 		results.push_back(std::move(result1));
 	}

@@ -890,9 +890,17 @@ curl -k -s -S -i -u root:icinga -H 'Accept: application/json' \
 Existing objects must be modified by sending a `POST` request. The following
 parameters need to be passed inside the JSON body:
 
-  Parameters | Type       | Description
-  -----------|------------|---------------------------
-  attrs      | Dictionary | **Required.** Set specific object attributes for this [object type](09-object-types.md#object-types).
+| Parameters     | Type       | Description                                                                                                                |
+|----------------|------------|----------------------------------------------------------------------------------------------------------------------------|
+| attrs          | Dictionary | **Optional.** Set specific object attributes for this [object type](09-object-types.md#object-types).                      |
+| restore\_attrs | Array      | **Optional.** Discard modifications of specific object attributes for this [object type](09-object-types.md#object-types). |
+
+One of the above is required.
+
+!!! info
+
+    If a particular attribute is given in both sets,
+    it's first restored and then set to the desired new value.
 
 In addition to these parameters a [filter](12-icinga2-api.md#icinga2-api-filters)
 parameter should be provided.
@@ -935,6 +943,34 @@ curl -k -s -S -i -u root:icinga -H 'Accept: application/json' \
     ]
 }
 ```
+
+To undo such modifications to specific object attributes,
+list the latter in the `restore_attrs` parameter. E.g.:
+
+```bash
+curl -k -s -S -i -u root:icinga -H 'Accept: application/json' \
+ -X POST 'https://localhost:5665/v1/objects/hosts/example.localdomain' \
+ -d '{ "restore_attrs": [ "address", "vars.os" ] }, "pretty": true }'
+```
+
+```json
+{
+    "results": [
+        {
+            "code": 200.0,
+            "name": "example.localdomain",
+            "status": "Attributes updated.",
+            "type": "Host"
+        }
+    ]
+}
+```
+
+Giving `attrs` with the original value would have almost the same effect.
+But in this case Icinga would still store that value as a modified attribute,
+overriding DSL/Director config (changes). In contrast, `restore_attrs` tells
+Icinga to actually forget particular modified attributes, so that changes to
+them via Director or plain config are effective again.
 
 ### Deleting Objects <a id="icinga2-api-config-objects-delete"></a>
 
