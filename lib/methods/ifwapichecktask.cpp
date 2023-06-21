@@ -234,14 +234,17 @@ static void DoIfwNetIo(
 		return;
 	}
 
+	auto perfdataVal (result->Get("perfdata"));
 	Array::Ptr perfdata;
 
 	try {
-		perfdata = result->Get("perfdata");
-	} catch (const std::exception& ex) {
+		perfdata = perfdataVal;
+	} catch (const std::exception&) {
 		ReportIfwCheckResult(
 			checkable, cmdLine, cr,
-			"Got bad perfdata from IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what(), start, end
+			"Got bad perfdata " + JsonEncode(perfdataVal) + " from IfW API on host '"
+				+ psHost + "' port '" + psPort + "', expected an array",
+			start, end
 		);
 		return;
 	}
