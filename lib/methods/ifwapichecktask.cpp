@@ -5,6 +5,7 @@
 #endif /* _WIN32 */
 #include "methods/ifwapichecktask.hpp"
 #include "methods/pluginchecktask.hpp"
+#include "icinga/checkresult-ti.hpp"
 #include "icinga/icingaapplication.hpp"
 #include "icinga/pluginutility.hpp"
 #include "base/base64.hpp"
@@ -25,6 +26,7 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <exception>
+#include <set>
 
 using namespace icinga;
 
@@ -208,9 +210,9 @@ static void DoIfwNetIo(
 
 	Dictionary::Ptr result = jsonBranch;
 
-	Value exitval;
+	Value exitcode;
 
-	if (!result->Get("exitcode", &exitval)) {
+	if (!result->Get("exitcode", &exitcode)) {
 		ReportIfwCheckResult(
 			checkable, cmdLine, cr,
 			"Missing ." + psCommand + ".exitcode in JSON object from IfW API on host '" + psHost + "' port '" + psPort + "'",
@@ -219,14 +221,15 @@ static void DoIfwNetIo(
 		return;
 	}
 
-	double exitcode;
+	static const std::set<double> exitcodes {ServiceOK, ServiceWarning, ServiceCritical, ServiceUnknown};
+	static const auto exitcodeList (Array::FromSet(exitcodes)->Join(", "));
 
-	try {
-		exitcode = exitval;
-	} catch (const std::exception& ex) {
+	if (!exitcode.IsNumber() || exitcodes.find(exitcode) == exitcodes.end()) {
 		ReportIfwCheckResult(
 			checkable, cmdLine, cr,
-			"Got bad exitcode from IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what(), start, end
+			"Got bad exitcode " + JsonEncode(exitcode) + " from IfW API on host '" + psHost + "' port '" + psPort
+				+ "', expected one of: " + exitcodeList,
+			start, end
 		);
 		return;
 	}
