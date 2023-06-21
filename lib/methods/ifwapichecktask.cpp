@@ -70,6 +70,17 @@ static void ReportIfwCheckResult(
 	});
 }
 
+static const char* GetUnderstandableError(const std::exception& ex)
+{
+	auto se (dynamic_cast<const boost::system::system_error*>(&ex));
+
+	if (se && se->code() == boost::asio::error::operation_aborted) {
+		return "Timeout exceeded";
+	}
+
+	return ex.what();
+}
+
 static void DoIfwNetIo(
 	boost::asio::yield_context yc, const Checkable::Ptr& checkable, const Array::Ptr& cmdLine,
 	const CheckResult::Ptr& cr, const String& psCommand, const String& psHost, const String& san, const String& psPort,
@@ -88,7 +99,8 @@ static void DoIfwNetIo(
 	} catch (const std::exception& ex) {
 		ReportIfwCheckResult(
 			yc, checkable, cmdLine, cr,
-			"Can't connect to IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what(), start
+			"Can't connect to IfW API on host '" + psHost + "' port '" + psPort + "': "
+				+ GetUnderstandableError(ex), start
 		);
 		return;
 	}
@@ -101,7 +113,7 @@ static void DoIfwNetIo(
 		ReportIfwCheckResult(
 			yc, checkable, cmdLine, cr,
 			"TLS handshake with IfW API on host '" + psHost + "' (SNI: '" + san
-				+ "') port '" + psPort + "' failed: " + ex.what(), start
+				+ "') port '" + psPort + "' failed: " + GetUnderstandableError(ex), start
 		);
 		return;
 	}
@@ -130,7 +142,8 @@ static void DoIfwNetIo(
 	} catch (const std::exception& ex) {
 		ReportIfwCheckResult(
 			yc, checkable, cmdLine, cr,
-			"Can't send HTTP request to IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what(), start
+			"Can't send HTTP request to IfW API on host '" + psHost + "' port '" + psPort + "': "
+				+ GetUnderstandableError(ex), start
 		);
 		return;
 	}
@@ -140,7 +153,8 @@ static void DoIfwNetIo(
 	} catch (const std::exception& ex) {
 		ReportIfwCheckResult(
 			yc, checkable, cmdLine, cr,
-			"Can't read HTTP response from IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what(), start
+			"Can't read HTTP response from IfW API on host '" + psHost + "' port '" + psPort + "': "
+				+ GetUnderstandableError(ex), start
 		);
 		return;
 	}
