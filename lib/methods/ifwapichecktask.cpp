@@ -413,7 +413,7 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	uri->SetPath({ "v1", "checker" });
 	uri->SetQuery({{ "command", psCommand }});
 
-	static auto userAgent ("Icinga/" + Application::GetAppVersion());
+	static const auto userAgent ("Icinga/" + Application::GetAppVersion());
 	auto relative (uri->Format());
 	auto body (JsonEncode(params));
 	auto req (Shared<request<string_body>>::Make());
@@ -427,7 +427,7 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	req->body() = body;
 	req->content_length(req->body().size());
 
-	static auto curlTlsMinVersion ((String("--") + DEFAULT_TLS_PROTOCOLMIN).ToLower());
+	static const auto curlTlsMinVersion ((String("--") + DEFAULT_TLS_PROTOCOLMIN).ToLower());
 
 	Array::Ptr cmdLine = new Array({
 		"curl", "--verbose", curlTlsMinVersion, "--fail",
