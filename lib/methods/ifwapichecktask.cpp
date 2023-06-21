@@ -206,10 +206,22 @@ static void DoIfwNetIo(
 	}
 
 	Dictionary::Ptr result = jsonBranch;
+
+	Value exitval;
+
+	if (!result->Get("exitcode", &exitval)) {
+		ReportIfwCheckResult(
+			checkable, cmdLine, cr,
+			"Missing ." + psCommand + ".exitcode in JSON object from IfW API on host '"
+				+ psHost + "' port '" + psPort + "'", start, end
+		);
+		return;
+	}
+
 	double exitcode;
 
 	try {
-		exitcode = result->Get("exitcode");
+		exitcode = exitval;
 	} catch (const std::exception& ex) {
 		ReportIfwCheckResult(
 			checkable, cmdLine, cr,
