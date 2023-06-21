@@ -99,8 +99,8 @@ static void DoIfwNetIo(
 	} catch (const std::exception& ex) {
 		ReportIfwCheckResult(
 			yc, checkable, cmdLine, cr,
-			"Can't connect to IfW API on host '" + psHost + "' port '" + psPort + "': "
-				+ GetUnderstandableError(ex), start
+			"Can't connect to IfW API on host '" + psHost + "' port '" + psPort + "': " + GetUnderstandableError(ex),
+			start
 		);
 		return;
 	}
@@ -113,7 +113,8 @@ static void DoIfwNetIo(
 		ReportIfwCheckResult(
 			yc, checkable, cmdLine, cr,
 			"TLS handshake with IfW API on host '" + psHost + "' (SNI: '" + san
-				+ "') port '" + psPort + "' failed: " + GetUnderstandableError(ex), start
+				+ "') port '" + psPort + "' failed: " + GetUnderstandableError(ex),
+			start
 		);
 		return;
 	}
@@ -142,8 +143,8 @@ static void DoIfwNetIo(
 	} catch (const std::exception& ex) {
 		ReportIfwCheckResult(
 			yc, checkable, cmdLine, cr,
-			"Can't send HTTP request to IfW API on host '" + psHost + "' port '" + psPort + "': "
-				+ GetUnderstandableError(ex), start
+			"Can't send HTTP request to IfW API on host '" + psHost + "' port '" + psPort + "': " + GetUnderstandableError(ex),
+			start
 		);
 		return;
 	}
@@ -153,8 +154,8 @@ static void DoIfwNetIo(
 	} catch (const std::exception& ex) {
 		ReportIfwCheckResult(
 			yc, checkable, cmdLine, cr,
-			"Can't read HTTP response from IfW API on host '" + psHost + "' port '" + psPort + "': "
-				+ GetUnderstandableError(ex), start
+			"Can't read HTTP response from IfW API on host '" + psHost + "' port '" + psPort + "': " + GetUnderstandableError(ex),
+			start
 		);
 		return;
 	}
@@ -212,8 +213,8 @@ static void DoIfwNetIo(
 	if (!result->Get("exitcode", &exitval)) {
 		ReportIfwCheckResult(
 			checkable, cmdLine, cr,
-			"Missing ." + psCommand + ".exitcode in JSON object from IfW API on host '"
-				+ psHost + "' port '" + psPort + "'", start, end
+			"Missing ." + psCommand + ".exitcode in JSON object from IfW API on host '" + psHost + "' port '" + psPort + "'",
+			start, end
 		);
 		return;
 	}
