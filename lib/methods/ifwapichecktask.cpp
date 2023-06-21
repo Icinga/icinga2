@@ -249,6 +249,22 @@ static void DoIfwNetIo(
 		return;
 	}
 
+	if (perfdata) {
+		ObjectLock oLock (perfdata);
+
+		for (auto& pv : perfdata) {
+			if (!pv.IsString()) {
+				ReportIfwCheckResult(
+					checkable, cmdLine, cr,
+					"Got bad perfdata value " + JsonEncode(perfdata) + " from IfW API on host '"
+						+ psHost + "' port '" + psPort + "', expected an array of strings",
+					start, end
+				);
+				return;
+			}
+		}
+	}
+
 	ReportIfwCheckResult(checkable, cmdLine, cr, result->Get("checkresult"), start, end, exitcode, perfdata);
 }
 
