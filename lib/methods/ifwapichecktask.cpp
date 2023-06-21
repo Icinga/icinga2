@@ -185,7 +185,9 @@ static void DoIfwNetIo(
 	if (!jsonRoot.IsObjectType<Dictionary>()) {
 		ReportIfwCheckResult(
 			checkable, cmdLine, cr,
-			"Got JSON, but not an object, from IfW API on host '" + psHost + "' port '" + psPort + "'", start, end
+			"Got JSON, but not an object, from IfW API on host '"
+				+ psHost + "' port '" + psPort + "': " + JsonEncode(jsonRoot),
+			start, end
 		);
 		return;
 	}
@@ -195,7 +197,9 @@ static void DoIfwNetIo(
 	if (!Dictionary::Ptr(jsonRoot)->Get(psCommand, &jsonBranch)) {
 		ReportIfwCheckResult(
 			checkable, cmdLine, cr,
-			"Missing ." + psCommand + " in JSON object from IfW API on host '" + psHost + "' port '" + psPort + "'", start, end
+			"Missing ." + psCommand + " in JSON object from IfW API on host '"
+				+ psHost + "' port '" + psPort + "': " + JsonEncode(jsonRoot),
+			start, end
 		);
 		return;
 	}
@@ -203,7 +207,9 @@ static void DoIfwNetIo(
 	if (!jsonBranch.IsObjectType<Dictionary>()) {
 		ReportIfwCheckResult(
 			checkable, cmdLine, cr,
-			"." + psCommand + " is not an object in JSON from IfW API on host '" + psHost + "' port '" + psPort + "'", start, end
+			"." + psCommand + " in JSON from IfW API on host '"
+				+ psHost + "' port '" + psPort + "' is not an object: " + JsonEncode(jsonBranch),
+			start, end
 		);
 		return;
 	}
@@ -215,7 +221,8 @@ static void DoIfwNetIo(
 	if (!result->Get("exitcode", &exitcode)) {
 		ReportIfwCheckResult(
 			checkable, cmdLine, cr,
-			"Missing ." + psCommand + ".exitcode in JSON object from IfW API on host '" + psHost + "' port '" + psPort + "'",
+			"Missing ." + psCommand + ".exitcode in JSON object from IfW API on host '"
+				+ psHost + "' port '" + psPort + "': " + JsonEncode(result),
 			start, end
 		);
 		return;
