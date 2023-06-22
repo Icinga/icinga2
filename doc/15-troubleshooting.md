@@ -317,6 +317,52 @@ not `assign where match("MySQL*", host.name) && host.vars.production`.
 For all test hosts `host.vars.production` will be false and terminate
 the `&&` rather than also evaluating `match("MySQL*", host.name)`.
 
+### Try reducing concurrency (threads)
+
+!!! note
+
+	This section applies rather to systems with more than eight CPU cores.
+	In case of less consider upgrading your hardware instead.
+
+Yes, reducing and not increasing. By default, Icinga 2 already starts as many
+threads as there are CPU cores according to the OS (unaware of SMT aka
+Hyper-Threading). So there's no point in increasing as Icinga would not gain
+additional CPU time.
+
+But more threads also require more synchronization between them. This may
+outweigh the CPU time gain and even worsen the performance. So reducing may
+indeed help or at least save CPU time and power at no cost.
+
+Start with benchmarking your Icinga 2 config with `time icinga2 daemon -C` on
+the node in question. The results will be most accurate during normal operation,
+i.e. while Icinga is running, but not reloading (e.g. due to config deployments).
+
+Icinga accepts the argument `-DConfiguration.Concurrency=` with the number (of
+threads) immediately after the "=". Start with 8 and finish with the number of
+CPU cores. Write down the times. I.e.:
+
+* `time icinga2 daemon -C -DConfiguration.Concurrency=8`
+* `time icinga2 daemon -C -DConfiguration.Concurrency=10`
+* `time icinga2 daemon -C -DConfiguration.Concurrency=12`
+* ...
+
+If significantly less threads than CPU cores significantly reduce the time
+(reported as "real") Icinga 2 needs to load its configuration, pick the number
+with the best time and persist it in your init daemon. In case of systemd copy
+the `ExecStart=` line from output of `systemctl cat icinga2.service` first.
+Next, run `systemctl edit icinga2.service`. This will open an editor. Add
+`[Service]` (if not already present) and the copied `ExecStart=` line. Append
+`-DConfiguration.Concurrency=` and the chosen number so that the result looks
+like this:
+
+```
+[Service]
+ExecStart=/usr/sbin/icinga2 daemon --close-stdio -e ${ICINGA2_ERROR_LOG} -DConfiguration.Concurrency=42
+```
+
+Save the file and close the editor. Restart Icinga.
+Finally verify whether your changes took effect and enjoy the speed.
+
 ## Configuration Troubleshooting <a id="troubleshooting-configuration"></a>
 
 ### List Configuration Objects <a id="troubleshooting-list-configuration-objects"></a>
@@ -665,12 +711,6 @@ C:\Program Files\ICINGA2\sbin\icinga2.exe console --eval "dirname(msi_get_compon
 
 If this command does not return anything, NSClient++ is not properly installed.
 Verify that inside the `Programs and Features` (`appwiz.cpl`) control panel.
-
-You can run the bundled NSClient++ installer from the Icinga 2 Windows package.
-The msi package is located in `C:\Program Files\ICINGA2\sbin`.
-
-The bundled NSClient++ version has properly been tested with Icinga 2. Keep that
-in mind when using a different package.
 
 
 ### Check Thresholds Not Applied <a id="check-thresholds-not-applied"></a>

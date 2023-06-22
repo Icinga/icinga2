@@ -10,13 +10,14 @@
 #include "base/timer.hpp"
 #include <boost/thread/once.hpp>
 #include <cmath>
+#include <utility>
 
 using namespace icinga;
 
 static int l_NextDowntimeID = 1;
 static std::mutex l_DowntimeMutex;
 static std::map<int, String> l_LegacyDowntimesCache;
-static Timer::Ptr l_DowntimesExpireTimer;
+static Timer::Ptr l_DowntimesOrphanedTimer;
 static Timer::Ptr l_DowntimesStartTimer;
 
 boost::signals2::signal<void (const Downtime::Ptr&)> Downtime::OnDowntimeAdded;
@@ -93,15 +94,15 @@ void Downtime::Start(bool runtimeCreated)
 	static boost::once_flag once = BOOST_ONCE_INIT;
 
 	boost::call_once(once, [this]() {
-		l_DowntimesStartTimer = new Timer();
+		l_DowntimesStartTimer = Timer::Create();
 		l_DowntimesStartTimer->SetInterval(5);
 		l_DowntimesStartTimer->OnTimerExpired.connect([](const Timer * const&){ DowntimesStartTimerHandler(); });
 		l_DowntimesStartTimer->Start();
 
-		l_DowntimesExpireTimer = new Timer();
-		l_DowntimesExpireTimer->SetInterval(60);
-		l_DowntimesExpireTimer->OnTimerExpired.connect([](const Timer * const&) { DowntimesExpireTimerHandler(); });
-		l_DowntimesExpireTimer->Start();
+		l_DowntimesOrphanedTimer = Timer::Create();
+		l_DowntimesOrphanedTimer->SetInterval(60);
+		l_DowntimesOrphanedTimer->OnTimerExpired.connect([](const Timer * const&) { DowntimesOrphanedTimerHandler(); });
+		l_DowntimesOrphanedTimer->Start();
 	});
 
 	{
@@ -132,7 +133,8 @@ void Downtime::Start(bool runtimeCreated)
 		Log(LogNotice, "Downtime")
 			<< "Checkable '" << checkable->GetName() << "' already in a NOT-OK state."
 			<< " Triggering downtime now.";
-		TriggerDowntime(checkable->GetLastStateChange());
+
+		TriggerDowntime(std::fmax(std::fmax(GetStartTime(), GetEntryTime()), checkable->GetLastStateChange()));
 	}
 
 	if (GetFixed() && CanBeTriggered()) {
@@ -157,6 +159,21 @@ void Downtime::Stop(bool runtimeRemoved)
 		OnDowntimeRemoved(this);
 
 	ObjectImpl<Downtime>::Stop(runtimeRemoved);
+}
+
+void Downtime::Pause()
+{
+	if (m_CleanupTimer) {
+		m_CleanupTimer->Stop();
+	}
+
+	ObjectImpl<Downtime>::Pause();
+}
+
+void Downtime::Resume()
+{
+	ObjectImpl<Downtime>::Resume();
+	SetupCleanupTimer();
 }
 
 Checkable::Ptr Downtime::GetCheckable() const
@@ -427,6 +444,28 @@ bool Downtime::CanBeTriggered()
 	return true;
 }
 
+void Downtime::SetupCleanupTimer()
+{
+	if (!m_CleanupTimer) {
+		m_CleanupTimer = Timer::Create();
+
+		auto name (GetName());
+
+		m_CleanupTimer->OnTimerExpired.connect([name=std::move(name)](const Timer * const&) {
+			auto downtime (Downtime::GetByName(name));
+
+			if (downtime && downtime->IsExpired()) {
+				RemoveDowntime(name, false, false, true);
+			}
+		});
+	}
+
+	auto triggerTime (GetTriggerTime());
+
+	m_CleanupTimer->Reschedule((GetFixed() || triggerTime <= 0 ? GetEndTime() : triggerTime + GetDuration()) + 0.1);
+	m_CleanupTimer->Start();
+}
+
 void Downtime::TriggerDowntime(double triggerTime)
 {
 	if (!CanBeTriggered())
@@ -439,6 +478,11 @@ void Downtime::TriggerDowntime(double triggerTime)
 
 	if (GetTriggerTime() == 0) {
 		SetTriggerTime(triggerTime);
+	}
+
+	{
+		ObjectLock olock (this);
+		SetupCleanupTimer();
 	}
 
 	Array::Ptr triggers = GetTriggers();
@@ -497,11 +541,11 @@ void Downtime::DowntimesStartTimerHandler()
 	}
 }
 
-void Downtime::DowntimesExpireTimerHandler()
+void Downtime::DowntimesOrphanedTimerHandler()
 {
 	for (const Downtime::Ptr& downtime : ConfigType::GetObjectsByType<Downtime>()) {
 		/* Only remove downtimes which are activated after daemon start. */
-		if (downtime->IsActive() && (downtime->IsExpired() || !downtime->HasValidConfigOwner()))
+		if (downtime->IsActive() && !downtime->HasValidConfigOwner())
 			RemoveDowntime(downtime->GetName(), false, false, true);
 	}
 }

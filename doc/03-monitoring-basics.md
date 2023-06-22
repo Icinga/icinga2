@@ -1922,10 +1922,9 @@ into the [PluginDir](04-configuration.md#constants-conf) directory. The followin
 The plugin path and all command arguments are made a list of
 double-quoted string arguments for proper shell escaping.
 
-Call the `check_disk` plugin with the `--help` parameter to see
+Call the `check_mysql` plugin with the `--help` parameter to see
 all available options. Our example defines warning (`-w`) and
-critical (`-c`) thresholds for the disk usage. Without any
-partition defined (`-p`) it will check all local partitions.
+critical (`-c`) thresholds.
 
 ```
 icinga@icinga2 $ /usr/lib64/nagios/plugins/check_mysql --help
@@ -2616,251 +2615,6 @@ information.
   `notification_icingaweb2url`      | **Optional.** Define URL to your Icinga Web 2 (e.g. `"https://www.example.com/icingaweb2"`)
   `notification_logtosyslog`        | **Optional.** Set `true` to log notification events to syslog; useful for debugging. Defaults to `false`.
 
-
-## Dependencies <a id="dependencies"></a>
-
-Icinga 2 uses host and service [Dependency](09-object-types.md#objecttype-dependency) objects
-for determining their network reachability.
-
-A service can depend on a host, and vice versa. A service has an implicit
-dependency (parent) to its host. A host to host dependency acts implicitly
-as host parent relation.
-When dependencies are calculated, not only the immediate parent is taken into
-account but all parents are inherited.
-
-The `parent_host_name` and `parent_service_name` attributes are mandatory for
-service dependencies, `parent_host_name` is required for host dependencies.
-[Apply rules](03-monitoring-basics.md#using-apply) will allow you to
-[determine these attributes](03-monitoring-basics.md#dependencies-apply-custom-variables) in a more
-dynamic fashion if required.
-
-```
-parent_host_name = "core-router"
-parent_service_name = "uplink-port"
-```
-
-Notifications are suppressed by default if a host or service becomes unreachable.
-You can control that option by defining the `disable_notifications` attribute.
-
-```
-disable_notifications = false
-```
-
-If the dependency should be triggered in the parent object's soft state, you
-need to set `ignore_soft_states` to `false`.
-
-The dependency state filter must be defined based on the parent object being
-either a host (`Up`, `Down`) or a service (`OK`, `Warning`, `Critical`, `Unknown`).
-
-The following example will make the dependency fail and trigger it if the parent
-object is **not** in one of these states:
-
-```
-states = [ OK, Critical, Unknown ]
-```
-
-> **In other words**
->
-> If the parent service object changes into the `Warning` state, this
-> dependency will fail and render all child objects (hosts or services) unreachable.
-
-You can determine the child's reachability by querying the `last_reachable` attribute
-via the [REST API](12-icinga2-api.md#icinga2-api).
-
-> **Note**
->
-> Reachability calculation depends on fresh and processed check results. If dependencies
-> disable checks for child objects, this won't work reliably.
-
-### Implicit Dependencies for Services on Host <a id="dependencies-implicit-host-service"></a>
-
-Icinga 2 automatically adds an implicit dependency for services on their host. That way
-service notifications are suppressed when a host is `DOWN` or `UNREACHABLE`. This dependency
-does not overwrite other dependencies and implicitly sets `disable_notifications = true` and
-`states = [ Up ]` for all service objects.
-
-Service checks are still executed. If you want to prevent them from happening, you can
-apply the following dependency to all services setting their host as `parent_host_name`
-and disabling the checks. `assign where true` matches on all `Service` objects.
-
-```
-apply Dependency "disable-host-service-checks" to Service {
-  disable_checks = true
-  assign where true
-}
-```
-
-### Dependencies for Network Reachability <a id="dependencies-network-reachability"></a>
-
-A common scenario is the Icinga 2 server behind a router. Checking internet
-access by pinging the Google DNS server `google-dns` is a common method, but
-will fail in case the `dsl-router` host is down. Therefore the example below
-defines a host dependency which acts implicitly as parent relation too.
-
-Furthermore the host may be reachable but ping probes are dropped by the
-router's firewall. In case the `dsl-router`'s `ping4` service check fails, all
-further checks for the `ping4` service on host `google-dns` service should
-be suppressed. This is achieved by setting the `disable_checks` attribute to `true`.
-
-```
-object Host "dsl-router" {
-  import "generic-host"
-  address = "192.168.1.1"
-}
-
-object Host "google-dns" {
-  import "generic-host"
-  address = "8.8.8.8"
-}
-
-apply Service "ping4" {
-  import "generic-service"
-
-  check_command = "ping4"
-
-  assign where host.address
-}
-
-apply Dependency "internet" to Host {
-  parent_host_name = "dsl-router"
-  disable_checks = true
-  disable_notifications = true
-
-  assign where host.name != "dsl-router"
-}
-
-apply Dependency "internet" to Service {
-  parent_host_name = "dsl-router"
-  parent_service_name = "ping4"
-  disable_checks = true
-
-  assign where host.name != "dsl-router"
-}
-```
-
-<!-- Keep this for compatibility -->
-<a id="dependencies-apply-custom-attríbutes"></a>
-
-### Apply Dependencies based on Custom Variables <a id="dependencies-apply-custom-variables"></a>
-
-You can use [apply rules](03-monitoring-basics.md#using-apply) to set parent or
-child attributes, e.g. `parent_host_name` to other objects'
-attributes.
-
-A common example are virtual machines hosted on a master. The object
-name of that master is auto-generated from your CMDB or VMWare inventory
-into the host's custom variables (or a generic template for your
-cloud).
-
-Define your master host object:
-
-```
-/* your master */
-object Host "master.example.com" {
-  import "generic-host"
-}
-```
-
-Add a generic template defining all common host attributes:
-
-```
-/* generic template for your virtual machines */
-template Host "generic-vm" {
-  import "generic-host"
-}
-```
-
-Add a template for all hosts on your example.com cloud setting
-custom variable `vm_parent` to `master.example.com`:
-
-```
-template Host "generic-vm-example.com" {
-  import "generic-vm"
-  vars.vm_parent = "master.example.com"
-}
-```
-
-Define your guest hosts:
-
-```
-object Host "www.example1.com" {
-  import "generic-vm-master.example.com"
-}
-
-object Host "www.example2.com" {
-  import "generic-vm-master.example.com"
-}
-```
-
-Apply the host dependency to all child hosts importing the
-`generic-vm` template and set the `parent_host_name`
-to the previously defined custom variable `host.vars.vm_parent`.
-
-```
-apply Dependency "vm-host-to-parent-master" to Host {
-  parent_host_name = host.vars.vm_parent
-  assign where "generic-vm" in host.templates
-}
-```
-
-You can extend this example, and make your services depend on the
-`master.example.com` host too. Their local scope allows you to use
-`host.vars.vm_parent` similar to the example above.
-
-```
-apply Dependency "vm-service-to-parent-master" to Service {
-  parent_host_name = host.vars.vm_parent
-  assign where "generic-vm" in host.templates
-}
-```
-
-That way you don't need to wait for your guest hosts becoming
-unreachable when the master host goes down. Instead the services
-will detect their reachability immediately when executing checks.
-
-> **Note**
->
-> This method with setting locally scoped variables only works in
-> apply rules, but not in object definitions.
-
-
-### Dependencies for Agent Checks <a id="dependencies-agent-checks"></a>
-
-Another good example are agent based checks. You would define a health check
-for the agent daemon responding to your requests, and make all other services
-querying that daemon depend on that health check.
-
-```
-apply Service "agent-health" {
-  check_command = "cluster-zone"
-
-  display_name = "cluster-health-" + host.name
-
-  /* This follows the convention that the agent zone name is the FQDN which is the same as the host object name. */
-  vars.cluster_zone = host.name
-
-  assign where host.vars.agent_endpoint
-}
-```
-
-Now, make all other agent based checks dependent on the OK state of the `agent-health`
-service.
-
-```
-apply Dependency "agent-health-check" to Service {
-  parent_service_name = "agent-health"
-
-  states = [ OK ] // Fail if the parent service state switches to NOT-OK
-  disable_notifications = true
-
-  assign where host.vars.agent_endpoint // Automatically assigns all agent endpoint checks as child services on the matched host
-  ignore where service.name == "agent-health" // Avoid a self reference from child to parent
-}
-
-```
-
-This is described in detail in [this chapter](06-distributed-monitoring.md#distributed-monitoring-health-checks).
-
 ### Event Commands <a id="event-commands"></a>
 
 Unlike notifications, event commands for hosts/services are called on every
@@ -3283,3 +3037,269 @@ executed command line.
 ```
 [root@icinga2-agent1.localdomain /]# tail -f /var/log/icinga2/debug.log | grep by_ssh
 ```
+
+
+## Dependencies <a id="dependencies"></a>
+
+Icinga 2 uses host and service [Dependency](09-object-types.md#objecttype-dependency) objects
+for determining their network reachability.
+
+A service can depend on a host, and vice versa. A service has an implicit
+dependency (parent) to its host. A host to host dependency acts implicitly
+as host parent relation.
+When dependencies are calculated, not only the immediate parent is taken into
+account but all parents are inherited.
+
+The `parent_host_name` and `parent_service_name` attributes are mandatory for
+service dependencies, `parent_host_name` is required for host dependencies.
+[Apply rules](03-monitoring-basics.md#using-apply) will allow you to
+[determine these attributes](03-monitoring-basics.md#dependencies-apply-custom-variables) in a more
+dynamic fashion if required.
+
+```
+parent_host_name = "core-router"
+parent_service_name = "uplink-port"
+```
+
+Notifications are suppressed by default if a host or service becomes unreachable.
+You can control that option by defining the `disable_notifications` attribute.
+
+```
+disable_notifications = false
+```
+
+If the dependency should be triggered in the parent object's soft state, you
+need to set `ignore_soft_states` to `false`.
+
+The dependency state filter must be defined based on the parent object being
+either a host (`Up`, `Down`) or a service (`OK`, `Warning`, `Critical`, `Unknown`).
+
+The following example will make the dependency fail and trigger it if the parent
+object is **not** in one of these states:
+
+```
+states = [ OK, Critical, Unknown ]
+```
+
+> **In other words**
+>
+> If the parent service object changes into the `Warning` state, this
+> dependency will fail and render all child objects (hosts or services) unreachable.
+
+You can determine the child's reachability by querying the `last_reachable` attribute
+via the [REST API](12-icinga2-api.md#icinga2-api).
+
+> **Note**
+>
+> Reachability calculation depends on fresh and processed check results. If dependencies
+> disable checks for child objects, this won't work reliably.
+
+### Implicit Dependencies for Services on Host <a id="dependencies-implicit-host-service"></a>
+
+Icinga 2 automatically adds an implicit dependency for services on their host. That way
+service notifications are suppressed when a host is `DOWN` or `UNREACHABLE`. This dependency
+does not overwrite other dependencies and implicitly sets `disable_notifications = true` and
+`states = [ Up ]` for all service objects.
+
+Service checks are still executed. If you want to prevent them from happening, you can
+apply the following dependency to all services setting their host as `parent_host_name`
+and disabling the checks. `assign where true` matches on all `Service` objects.
+
+```
+apply Dependency "disable-host-service-checks" to Service {
+  disable_checks = true
+  assign where true
+}
+```
+
+### Dependencies for Network Reachability <a id="dependencies-network-reachability"></a>
+
+A common scenario is the Icinga 2 server behind a router. Checking internet
+access by pinging the Google DNS server `google-dns` is a common method, but
+will fail in case the `dsl-router` host is down. Therefore the example below
+defines a host dependency which acts implicitly as parent relation too.
+
+Furthermore the host may be reachable but ping probes are dropped by the
+router's firewall. In case the `dsl-router`'s `ping4` service check fails, all
+further checks for the `ping4` service on host `google-dns` service should
+be suppressed. This is achieved by setting the `disable_checks` attribute to `true`.
+
+```
+object Host "dsl-router" {
+  import "generic-host"
+  address = "192.168.1.1"
+}
+
+object Host "google-dns" {
+  import "generic-host"
+  address = "8.8.8.8"
+}
+
+apply Service "ping4" {
+  import "generic-service"
+
+  check_command = "ping4"
+
+  assign where host.address
+}
+
+apply Dependency "internet" to Host {
+  parent_host_name = "dsl-router"
+  disable_checks = true
+  disable_notifications = true
+
+  assign where host.name != "dsl-router"
+}
+
+apply Dependency "internet" to Service {
+  parent_host_name = "dsl-router"
+  parent_service_name = "ping4"
+  disable_checks = true
+
+  assign where host.name != "dsl-router"
+}
+```
+
+### Redundancy Groups <a id="dependencies-redundancy-groups"></a>
+
+Sometimes you want dependencies to accumulate,
+i.e. to consider the parent reachable only if no dependency is violated.
+Sometimes you want them to be regarded as redundant,
+i.e. to consider the parent unreachable only if no dependency is fulfilled.
+Think of a host connected to both a network and a storage switch vs. a host connected to redundant routers.
+
+Sometimes you even want a mixture of both.
+Think of a service like SSH depeding on both LDAP and DNS to function,
+while operating redundant LDAP servers as well as redundant DNS resolvers.
+
+Before v2.12, Icinga regarded all dependecies as cumulative.
+In v2.12 and v2.13, Icinga regarded all dependencies redundant.
+The latter led to unrelated services being inadvertantly regarded to be redundant to each other.
+
+v2.14 restored the former behavior and allowed to override it.
+I.e. all dependecies are regarded as essential for the parent by default.
+Specifying the `redundancy_group` attribute for two dependecies of a child object with the equal value
+causes them to be regarded as redundant (only inside that redundancy group).
+
+<!-- Keep this for compatibility -->
+<a id="dependencies-apply-custom-attríbutes"></a>
+
+### Apply Dependencies based on Custom Variables <a id="dependencies-apply-custom-variables"></a>
+
+You can use [apply rules](03-monitoring-basics.md#using-apply) to set parent or
+child attributes, e.g. `parent_host_name` to other objects'
+attributes.
+
+A common example are virtual machines hosted on a master. The object
+name of that master is auto-generated from your CMDB or VMWare inventory
+into the host's custom variables (or a generic template for your
+cloud).
+
+Define your master host object:
+
+```
+/* your master */
+object Host "master.example.com" {
+  import "generic-host"
+}
+```
+
+Add a generic template defining all common host attributes:
+
+```
+/* generic template for your virtual machines */
+template Host "generic-vm" {
+  import "generic-host"
+}
+```
+
+Add a template for all hosts on your example.com cloud setting
+custom variable `vm_parent` to `master.example.com`:
+
+```
+template Host "generic-vm-example.com" {
+  import "generic-vm"
+  vars.vm_parent = "master.example.com"
+}
+```
+
+Define your guest hosts:
+
+```
+object Host "www.example1.com" {
+  import "generic-vm-master.example.com"
+}
+
+object Host "www.example2.com" {
+  import "generic-vm-master.example.com"
+}
+```
+
+Apply the host dependency to all child hosts importing the
+`generic-vm` template and set the `parent_host_name`
+to the previously defined custom variable `host.vars.vm_parent`.
+
+```
+apply Dependency "vm-host-to-parent-master" to Host {
+  parent_host_name = host.vars.vm_parent
+  assign where "generic-vm" in host.templates
+}
+```
+
+You can extend this example, and make your services depend on the
+`master.example.com` host too. Their local scope allows you to use
+`host.vars.vm_parent` similar to the example above.
+
+```
+apply Dependency "vm-service-to-parent-master" to Service {
+  parent_host_name = host.vars.vm_parent
+  assign where "generic-vm" in host.templates
+}
+```
+
+That way you don't need to wait for your guest hosts becoming
+unreachable when the master host goes down. Instead the services
+will detect their reachability immediately when executing checks.
+
+> **Note**
+>
+> This method with setting locally scoped variables only works in
+> apply rules, but not in object definitions.
+
+
+### Dependencies for Agent Checks <a id="dependencies-agent-checks"></a>
+
+Another good example are agent based checks. You would define a health check
+for the agent daemon responding to your requests, and make all other services
+querying that daemon depend on that health check.
+
+```
+apply Service "agent-health" {
+  check_command = "cluster-zone"
+
+  display_name = "cluster-health-" + host.name
+
+  /* This follows the convention that the agent zone name is the FQDN which is the same as the host object name. */
+  vars.cluster_zone = host.name
+
+  assign where host.vars.agent_endpoint
+}
+```
+
+Now, make all other agent based checks dependent on the OK state of the `agent-health`
+service.
+
+```
+apply Dependency "agent-health-check" to Service {
+  parent_service_name = "agent-health"
+
+  states = [ OK ] // Fail if the parent service state switches to NOT-OK
+  disable_notifications = true
+
+  assign where host.vars.agent_endpoint // Automatically assigns all agent endpoint checks as child services on the matched host
+  ignore where service.name == "agent-health" // Avoid a self reference from child to parent
+}
+
+```
+
+This is described in detail in [this chapter](06-distributed-monitoring.md#distributed-monitoring-health-checks).

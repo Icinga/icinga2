@@ -1,10 +1,17 @@
 # Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+
 
-cmake_minimum_required(VERSION 2.8.8)
+cmake_minimum_required(VERSION 2.8.12)
 set(BOOST_MIN_VERSION "1.66.0")
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+
+if("${CMAKE_VERSION}" VERSION_LESS "3.8") # SLES 12.5
+  if(NOT MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+  endif()
+else()
+  set(CMAKE_CXX_STANDARD 17)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+  set(CMAKE_CXX_EXTENSIONS OFF)
+endif()
 
 project(icinga2)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
@@ -16,21 +23,21 @@ if(NOT CMAKE_BUILD_TYPE)
     FORCE)
 endif()
 
-option(ICINGA2_WITH_MYSQL "Build the MySQL IDO module" ON)
-option(ICINGA2_WITH_PGSQL "Build the PostgreSQL IDO module" ON)
-option(ICINGA2_WITH_CHECKER "Build the checker module" ON)
-option(ICINGA2_WITH_COMPAT "Build the compat module" ON)
-option(ICINGA2_WITH_LIVESTATUS "Build the Livestatus module" ON)
-option(ICINGA2_WITH_NOTIFICATION "Build the notification module" ON)
-option(ICINGA2_WITH_PERFDATA "Build the perfdata module" ON)
-option(ICINGA2_WITH_TESTS "Run unit tests" ON)
-
-# IcingaDB only is supported on modern Linux/Unix master systems
-if(NOT WIN32)
-  option(ICINGA2_WITH_ICINGADB "Build the IcingaDB module" ON)
+if(WIN32)
+  set(ICINGA2_MASTER OFF)
 else()
-  option(ICINGA2_WITH_ICINGADB "Build the IcingaDB module" OFF)
+  set(ICINGA2_MASTER ON)
 endif()
+
+option(ICINGA2_WITH_MYSQL "Build the MySQL IDO module" ${ICINGA2_MASTER})
+option(ICINGA2_WITH_PGSQL "Build the PostgreSQL IDO module" ${ICINGA2_MASTER})
+option(ICINGA2_WITH_CHECKER "Build the checker module" ON)
+option(ICINGA2_WITH_COMPAT "Build the compat module" ${ICINGA2_MASTER})
+option(ICINGA2_WITH_LIVESTATUS "Build the Livestatus module" ${ICINGA2_MASTER})
+option(ICINGA2_WITH_NOTIFICATION "Build the notification module" ON)
+option(ICINGA2_WITH_PERFDATA "Build the perfdata module" ${ICINGA2_MASTER})
+option(ICINGA2_WITH_TESTS "Run unit tests" ON)
+option(ICINGA2_WITH_ICINGADB "Build the IcingaDB module" ${ICINGA2_MASTER})
 
 option (USE_SYSTEMD
  "Configure icinga as native systemd service instead of a SysV initscript" OFF)
@@ -386,8 +393,8 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     OUTPUT_VARIABLE _ICINGA2_COMPILER_VERSION
   )
 
-  if("${CMAKE_CXX_COMPILER_VERSION}" VERSION_LESS "6.3.0")
-    message(FATAL_ERROR "Your version of GCC (${CMAKE_CXX_COMPILER_VERSION}) is too old for building Icinga 2 (GCC >= 6.3.0 is required).")
+  if("${CMAKE_CXX_COMPILER_VERSION}" VERSION_LESS "7.0.0")
+    message(FATAL_ERROR "Your version of GCC (${CMAKE_CXX_COMPILER_VERSION}) is too old for building Icinga 2 (GCC >= 7.0.0 is required).")
   endif()
 endif()
 
@@ -468,10 +475,13 @@ add_subdirectory(lib)
 add_subdirectory(icinga-app)
 add_subdirectory(etc)
 add_subdirectory(itl)
-add_subdirectory(doc)
 add_subdirectory(agent)
 add_subdirectory(plugins)
 add_subdirectory(choco)
+
+if(NOT WIN32)
+  add_subdirectory(doc)
+endif()
 
 if(MSVC)
   add_subdirectory(icinga-installer)
@@ -502,25 +512,6 @@ set(CMAKE_INSTALL_UCRT_LIBRARIES TRUE)
 include(InstallRequiredSystemLibraries)
 
 if(WIN32)
-  if(CMAKE_VS_PLATFORM_NAME STREQUAL "x64")
-    set(NSCP_URL "https://github.com/mickem/nscp/releases/download/0.5.2.39/NSCP-0.5.2.39-x64.msi")
-    set(NSCP_SHA256 "dfe93c293f30586b02510d8b7884e4e177b93a5fead8b5dc6de8103532e6e159")
-  else()
-    set(NSCP_URL "https://github.com/mickem/nscp/releases/download/0.5.2.39/NSCP-0.5.2.39-Win32.msi")
-    set(NSCP_SHA256 "ca6a67fb01c1468f2b510fd2f9eb0750887db3fb49a0302732c1421c85c6627c")
-  endif()
-
-  set(NSCP_SHA256SUM "")
-  if (EXISTS ${CMAKE_CURRENT_BINARY_DIR}/NSCP.msi)
-    file(SHA256 ${CMAKE_CURRENT_BINARY_DIR}/NSCP.msi NSCP_SHA256SUM)
-  endif()
-
-  if (NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/NSCP.msi OR NOT ${NSCP_SHA256SUM} STREQUAL ${NSCP_SHA256})
-    file(DOWNLOAD ${NSCP_URL} ${CMAKE_CURRENT_BINARY_DIR}/NSCP.msi SHOW_PROGRESS)
-  endif()
-
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/NSCP.msi DESTINATION ${CMAKE_INSTALL_SBINDIR})
-
   if (OPENSSL_VERSION_MINOR GREATER_EQUAL 1)
     if (CMAKE_VS_PLATFORM_NAME STREQUAL "x64")
       list (APPEND ICINGA2_OPENSSL_DLLS ${OPENSSL_INCLUDE_DIR}/../bin/libcrypto-1_1-x64.dll ${OPENSSL_INCLUDE_DIR}/../bin/libssl-1_1-x64.dll)

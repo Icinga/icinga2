@@ -1157,25 +1157,6 @@ VACUUM
 >
 > Don't use `VACUUM FULL` as this has a severe impact on performance.
 
-### Status Data Files <a id="status-data"></a>
-
-> **Note**
->
-> This feature is DEPRECATED and may be removed in future releases.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
-
-Icinga 1.x writes object configuration data and status data in a cyclic
-interval to its `objects.cache` and `status.dat` files. Icinga 2 provides
-the `StatusDataWriter` object which dumps all configuration objects and
-status updates in a regular interval.
-
-```bash
-icinga2 feature enable statusdata
-```
-
-If you are not using any web interface or addon which uses these files,
-you can safely disable this feature.
-
 ### Compat Log Files <a id="compat-logging"></a>
 
 > **Note**
@@ -1246,32 +1227,6 @@ A list of currently supported external commands can be found [here](24-appendix.
 Detailed information on the commands and their required parameters can be found
 on the [Icinga 1.x documentation](https://docs.icinga.com/latest/en/extcommands2.html).
 
-
-### Check Result Files <a id="check-result-files"></a>
-
-> **Note**
->
-> This feature is DEPRECATED and may be removed in future releases.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
-
-Icinga 1.x writes its check result files to a temporary spool directory
-where they are processed in a regular interval.
-While this is extremely inefficient in performance regards it has been
-rendered useful for passing passive check results directly into Icinga 1.x
-skipping the external command pipe.
-
-Several clustered/distributed environments and check-aggregation addons
-use that method. In order to support step-by-step migration of these
-environments, Icinga 2 supports the `CheckResultReader` object.
-
-There is no feature configuration available, but it must be defined
-on-demand in your Icinga 2 objects configuration.
-
-```
-object CheckResultReader "reader" {
-  spool_dir = "/data/check-results"
-}
-```
 
 ### Livestatus <a id="setting-up-livestatus"></a>
 

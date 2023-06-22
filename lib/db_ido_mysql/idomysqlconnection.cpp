@@ -85,12 +85,12 @@ void IdoMysqlConnection::Resume()
 	/* Immediately try to connect on Resume() without timer. */
 	m_QueryQueue.Enqueue([this]() { Reconnect(); }, PriorityImmediate);
 
-	m_TxTimer = new Timer();
+	m_TxTimer = Timer::Create();
 	m_TxTimer->SetInterval(1);
 	m_TxTimer->OnTimerExpired.connect([this](const Timer * const&) { NewTransaction(); });
 	m_TxTimer->Start();
 
-	m_ReconnectTimer = new Timer();
+	m_ReconnectTimer = Timer::Create();
 	m_ReconnectTimer->SetInterval(10);
 	m_ReconnectTimer->OnTimerExpired.connect([this](const Timer * const&){ ReconnectTimerHandler(); });
 	m_ReconnectTimer->Start();
@@ -108,7 +108,8 @@ void IdoMysqlConnection::Pause()
 
 	DbConnection::Pause();
 
-	m_ReconnectTimer.reset();
+	m_ReconnectTimer->Stop(true);
+	m_TxTimer->Stop(true);
 
 #ifdef I2_DEBUG /* I2_DEBUG */
 	Log(LogDebug, "IdoMysqlConnection")

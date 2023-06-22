@@ -33,10 +33,10 @@ if (-not (Test-Path env:OPENSSL_ROOT_DIR)) {
   $env:OPENSSL_ROOT_DIR = "c:\local\OpenSSL_1_1_1t-Win${env:BITS}"
 }
 if (-not (Test-Path env:BOOST_ROOT)) {
-  $env:BOOST_ROOT = "c:\local\boost_1_81_0-Win${env:BITS}"
+  $env:BOOST_ROOT = "c:\local\boost_1_82_0-Win${env:BITS}"
 }
 if (-not (Test-Path env:BOOST_LIBRARYDIR)) {
-  $env:BOOST_LIBRARYDIR = "c:\local\boost_1_81_0-Win${env:BITS}\lib${env:BITS}-msvc-14.2"
+  $env:BOOST_LIBRARYDIR = "c:\local\boost_1_82_0-Win${env:BITS}\lib${env:BITS}-msvc-14.2"
 }
 if (-not (Test-Path env:FLEX_BINARY)) {
   $env:FLEX_BINARY = 'C:\ProgramData\chocolatey\bin\win_flex.exe'
@@ -59,8 +59,6 @@ if (Test-Path CMakeCache.txt) {
 & cmake.exe "$sourcePath" `
   -DCMAKE_BUILD_TYPE="$env:CMAKE_BUILD_TYPE" `
   -G "$env:CMAKE_GENERATOR" -A "$env:CMAKE_GENERATOR_PLATFORM" -DCPACK_GENERATOR=WIX `
-  -DICINGA2_WITH_MYSQL=OFF -DICINGA2_WITH_PGSQL=OFF `
-  -DICINGA2_WITH_LIVESTATUS=OFF -DICINGA2_WITH_COMPAT=OFF `
   -DOPENSSL_ROOT_DIR="$env:OPENSSL_ROOT_DIR" `
   -DBOOST_LIBRARYDIR="$env:BOOST_LIBRARYDIR" `
   -DBOOST_INCLUDEDIR="$env:BOOST_ROOT" `

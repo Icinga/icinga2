@@ -47,8 +47,7 @@ Key benefits:
 Follow the setup and configuration instructions [here](06-distributed-monitoring.md#distributed-monitoring-setup-agent-satellite).
 
 On Windows hosts, the Icinga agent can query a local NSClient++ service
-for additional checks in case there are no plugins available. The NSCP
-installer is bundled with Icinga and can be installed with the setup wizard.
+for additional checks in case there are no plugins available.
 
 ![Icinga 2 Windows Setup](images/distributed-monitoring/icinga2_windows_setup_wizard_01.png)
 

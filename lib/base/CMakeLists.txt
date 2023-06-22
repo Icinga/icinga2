@@ -65,6 +65,7 @@ set(base_SOURCES
   scriptutils.cpp scriptutils.hpp
   serializer.cpp serializer.hpp
   shared.hpp
+  shared-memory.hpp
   shared-object.hpp
   singleton.hpp
   socket.cpp socket.hpp

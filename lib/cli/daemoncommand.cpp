@@ -3,6 +3,7 @@
 #include "cli/daemoncommand.hpp"
 #include "cli/daemonutility.hpp"
 #include "remote/apilistener.hpp"
+#include "remote/configobjectslock.hpp"
 #include "remote/configobjectutility.hpp"
 #include "config/configcompiler.hpp"
 #include "config/configcompilercontext.hpp"
@@ -801,6 +802,10 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 			sd_notify(0, "RELOADING=1");
 #endif /* HAVE_SYSTEMD */
 
+			// The old process is still active, yet.
+			// Its config changes would not be visible to the new one after config load.
+			ConfigObjectsExclusiveLock lock;
+
 			pid_t nextWorker = StartUnixWorker(configs);
 
 			switch (nextWorker) {
@@ -808,6 +813,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 					break;
 				case -2:
 					Log(LogCritical, "Application", "Found error in config: reloading aborted");
+					Application::SetLastReloadFailed(Utility::GetTime());
 					break;
 				default:
 					Log(LogInformation, "Application")
@@ -815,6 +821,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 
 					NotifyStatus("Shutting down old instance...");
 
+					Application::SetLastReloadFailed(0);
 					(void)kill(currentWorker, SIGTERM);
 
 					{

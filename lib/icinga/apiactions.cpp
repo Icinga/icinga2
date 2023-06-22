@@ -12,6 +12,7 @@
 #include "icinga/clusterevents.hpp"
 #include "remote/apiaction.hpp"
 #include "remote/apilistener.hpp"
+#include "remote/configobjectslock.hpp"
 #include "remote/filterutility.hpp"
 #include "remote/pkiutility.hpp"
 #include "remote/httputility.hpp"
@@ -254,6 +255,12 @@ Dictionary::Ptr ApiActions::AcknowledgeProblem(const ConfigObject::Ptr& object,
 		return ApiActions::CreateResult(409, (service ? "Service " : "Host ") + checkable->GetName() + " is already acknowledged.");
 	}
 
+	ConfigObjectsSharedLock lock (std::try_to_lock);
+
+	if (!lock) {
+		return ApiActions::CreateResult(503, "Icinga is reloading.");
+	}
+
 	Comment::AddComment(checkable, CommentAcknowledgement, HttpUtility::GetLastParameter(params, "author"),
 		HttpUtility::GetLastParameter(params, "comment"), persistent, timestamp, sticky == AcknowledgementSticky);
 	checkable->AcknowledgeProblem(HttpUtility::GetLastParameter(params, "author"),
@@ -272,10 +279,16 @@ Dictionary::Ptr ApiActions::RemoveAcknowledgement(const ConfigObject::Ptr& objec
 			"Cannot remove acknowledgement for non-existent checkable object "
 			+ object->GetName() + ".");
 
+	ConfigObjectsSharedLock lock (std::try_to_lock);
+
+	if (!lock) {
+		return ApiActions::CreateResult(503, "Icinga is reloading.");
+	}
+
 	String removedBy (HttpUtility::GetLastParameter(params, "author"));
 
 	checkable->ClearAcknowledgement(removedBy);
-	checkable->RemoveCommentsByType(CommentAcknowledgement, removedBy);
+	checkable->RemoveAckComments(removedBy);
 
 	return ApiActions::CreateResult(200, "Successfully removed acknowledgement for object '" + checkable->GetName() + "'.");
 }
@@ -297,6 +310,12 @@ Dictionary::Ptr ApiActions::AddComment(const ConfigObject::Ptr& object,
 		timestamp = HttpUtility::GetLastParameter(params, "expiry");
 	}
 
+	ConfigObjectsSharedLock lock (std::try_to_lock);
+
+	if (!lock) {
+		return ApiActions::CreateResult(503, "Icinga is reloading.");
+	}
+
 	String commentName = Comment::AddComment(checkable, CommentUser,
 		HttpUtility::GetLastParameter(params, "author"),
 		HttpUtility::GetLastParameter(params, "comment"), false, timestamp);
@@ -316,6 +335,12 @@ Dictionary::Ptr ApiActions::AddComment(const ConfigObject::Ptr& object,
 Dictionary::Ptr ApiActions::RemoveComment(const ConfigObject::Ptr& object,
 	const Dictionary::Ptr& params)
 {
+	ConfigObjectsSharedLock lock (std::try_to_lock);
+
+	if (!lock) {
+		return ApiActions::CreateResult(503, "Icinga is reloading.");
+	}
+
 	auto author (HttpUtility::GetLastParameter(params, "author"));
 	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
 
@@ -386,6 +411,12 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 		} catch (const std::exception&) {
 			return ApiActions::CreateResult(400, "Option 'child_options' provided an invalid value.");
 		}
+	}
+
+	ConfigObjectsSharedLock lock (std::try_to_lock);
+
+	if (!lock) {
+		return ApiActions::CreateResult(503, "Icinga is reloading.");
 	}
 
 	Downtime::Ptr downtime = Downtime::AddDowntime(checkable, author, comment, startTime, endTime,
@@ -500,6 +531,12 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 Dictionary::Ptr ApiActions::RemoveDowntime(const ConfigObject::Ptr& object,
 	const Dictionary::Ptr& params)
 {
+	ConfigObjectsSharedLock lock (std::try_to_lock);
+
+	if (!lock) {
+		return ApiActions::CreateResult(503, "Icinga is reloading.");
+	}
+
 	auto author (HttpUtility::GetLastParameter(params, "author"));
 	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
 
@@ -682,6 +719,21 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object, cons
 	if (!endpointPtr)
 		return ApiActions::CreateResult(404, "Can't find a valid endpoint for '" + resolved_endpoint + "'.");
 
+	/* Return an error when
+	 * the endpoint is different from the command endpoint of the checkable
+	 * and the endpoint zone can't access the checkable.
+	 * The endpoints are checked to allow for the case where command_endpoint is specified in the checkable
+	 * but checkable is not actually present in the agent.
+	 */
+    Zone::Ptr endpointZone = endpointPtr->GetZone();
+    Endpoint::Ptr commandEndpoint = checkable->GetCommandEndpoint();
+    if (endpointPtr != commandEndpoint && !endpointZone->CanAccessObject(checkable)) {
+        return ApiActions::CreateResult(
+            409,
+            "Zone '" + endpointZone->GetName() + "' cannot access checkable '" + checkable->GetName() + "'."
+        );
+    }
+
 	/* Get command */
 	String command;
 
@@ -807,6 +859,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object, cons
 	Dictionary::Ptr pending_execution = new Dictionary();
 	pending_execution->Set("pending", true);
 	pending_execution->Set("deadline", deadline);
+	pending_execution->Set("endpoint", resolved_endpoint);
 	Dictionary::Ptr executions = checkable->GetExecutions();
 
 	if (!executions)

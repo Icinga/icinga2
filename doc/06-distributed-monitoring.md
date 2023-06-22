@@ -755,6 +755,12 @@ the [configuration modes](06-distributed-monitoring.md#distributed-monitoring-co
 
 ### Agent Setup on Windows <a id="distributed-monitoring-setup-agent-windows"></a>
 
+!!! important
+
+    [Icinga for Windows](https://icinga.com/docs/icinga-for-windows/latest/doc/000-Introduction/)
+    is the recommended way to install, setup and update Icinga 2 on Windows.
+    This section describes the classic installation and configuration procedure.
+
 The supported Windows agent versions are listed [here](https://icinga.com/subscription/support-details/).
 
 Requirements:
@@ -769,9 +775,6 @@ The preferred flavor is `x86_64` for modern Windows systems.
 
 The Windows package provides native [monitoring plugin binaries](06-distributed-monitoring.md#distributed-monitoring-windows-plugins)
 to get you started more easily.
-The installer package also includes the [NSClient++](https://www.nsclient.org/) package
-to allow using its built-in plugins. You can find more details in
-[this chapter](06-distributed-monitoring.md#distributed-monitoring-windows-nscp).
 
 > **Note**
 >
@@ -830,7 +833,6 @@ Optionally enable the following settings:
   Accept commands from master/satellite instance(s)       | **Optional.** Whether this node accepts command execution messages from the master node (required for [command endpoint mode](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)). For [security reasons](06-distributed-monitoring.md#distributed-monitoring-security) this is disabled by default.
   Accept config updates from master/satellite instance(s) | **Optional.** Whether this node accepts configuration sync from the master node (required for [config sync mode](06-distributed-monitoring.md#distributed-monitoring-top-down-config-sync)). For [security reasons](06-distributed-monitoring.md#distributed-monitoring-security) this is disabled by default.
   Run Icinga 2 service as this user                       | **Optional.** Specify a different Windows user. This defaults to `NT AUTHORITY\Network Service` and is required for more privileged service checks.
-  Install/Update bundled NSClient++                       | **Optional.** The Windows installer bundles the NSClient++ installer for additional [plugin checks](06-distributed-monitoring.md#distributed-monitoring-windows-nscp).
   Disable including local 'conf.d' directory              | **Optional.** Allows to disable the `include_recursive "conf.d"` directive except for the `api-users.conf` file in the `icinga2.conf` file. Defaults to `true`.
 
 ![Icinga 2 Windows Setup](images/distributed-monitoring/icinga2_windows_setup_wizard_03.png)
@@ -838,44 +840,6 @@ Optionally enable the following settings:
 Verify the certificate from the master/satellite instance where this node should connect to.
 
 ![Icinga 2 Windows Setup](images/distributed-monitoring/icinga2_windows_setup_wizard_04.png)
-
-
-#### Bundled NSClient++ Setup <a id="distributed-monitoring-setup-agent-windows-nsclient"></a>
-
-If you have chosen to install/update the NSClient++ package, the Icinga 2 setup wizard asks
-you to do so.
-
-![Icinga 2 Windows Setup NSClient++](images/distributed-monitoring/icinga2_windows_setup_wizard_05_nsclient_01.png)
-
-Choose the `Generic` setup.
-
-![Icinga 2 Windows Setup NSClient++](images/distributed-monitoring/icinga2_windows_setup_wizard_05_nsclient_02.png)
-
-Choose the `Custom` setup type.
-
-![Icinga 2 Windows Setup NSClient++](images/distributed-monitoring/icinga2_windows_setup_wizard_05_nsclient_03.png)
-
-NSClient++ does not install a sample configuration by default. Change this as shown in the screenshot.
-
-![Icinga 2 Windows Setup NSClient++](images/distributed-monitoring/icinga2_windows_setup_wizard_05_nsclient_04.png)
-
-Generate a secure password and enable the web server module. **Note**: The webserver module is
-available starting with NSClient++ 0.5.0. Icinga 2 v2.6+ is required which includes this version.
-
-![Icinga 2 Windows Setup NSClient++](images/distributed-monitoring/icinga2_windows_setup_wizard_05_nsclient_05.png)
-
-Finish the installation.
-
-![Icinga 2 Windows Setup NSClient++](images/distributed-monitoring/icinga2_windows_setup_wizard_05_nsclient_06.png)
-
-Open a web browser and navigate to `https://localhost:8443`. Enter the password you've configured
-during the setup. In case you lost it, look into the `C:\Program Files\NSClient++\nsclient.ini`
-configuration file.
-
-![Icinga 2 Windows Setup NSClient++](images/distributed-monitoring/icinga2_windows_setup_wizard_05_nsclient_07.png)
-
-The NSClient++ REST API can be used to query metrics. [check_nscp_api](06-distributed-monitoring.md#distributed-monitoring-windows-nscp-check-api)
-uses this transport method.
 
 
 #### Finish Windows Agent Setup <a id="distributed-monitoring-setup-agent-windows-finish"></a>
@@ -942,7 +906,6 @@ C:\> Restart-Service icinga2
 
 C:\> Get-Service icinga2
 ```
-
 
 Now that you've successfully installed a Windows agent, please proceed to
 the [detailed configuration modes](06-distributed-monitoring.md#distributed-monitoring-configuration-modes).
@@ -2790,9 +2753,8 @@ CPU utilization, please use the HTTP API instead of the CLI sample call.
 
 #### NSCLient++ with check_nscp_api <a id="distributed-monitoring-windows-nscp-check-api"></a>
 
-The [Windows setup](06-distributed-monitoring.md#distributed-monitoring-setup-agent-windows) already allows
-you to install the NSClient++ package. In addition to the Windows plugins you can
-use the [nscp_api command](10-icinga-template-library.md#nscp-check-api) provided by the Icinga Template Library (ITL).
+In addition to the Windows plugins you can use the
+[nscp_api command](10-icinga-template-library.md#nscp-check-api) provided by the Icinga Template Library (ITL).
 
 The initial setup for the NSClient++ API and the required arguments
 is the described in the ITL chapter for the [nscp_api](10-icinga-template-library.md#nscp-check-api) CheckCommand.
@@ -2902,9 +2864,8 @@ apply Service "nscp-api-" for (svc in host.vars.services) {
 
 #### NSCLient++ with nscp-local <a id="distributed-monitoring-windows-nscp-check-local"></a>
 
-The [Windows setup](06-distributed-monitoring.md#distributed-monitoring-setup-agent-windows) allows
-you to install the bundled NSClient++ package. In addition to the Windows plugins you can
-use the [nscp-local commands](10-icinga-template-library.md#nscp-plugin-check-commands)
+In addition to the Windows plugins you can use the
+[nscp-local commands](10-icinga-template-library.md#nscp-plugin-check-commands)
 provided by the Icinga Template Library (ITL).
 
 Add the following `include` statement on all your nodes (master, satellite, agent):

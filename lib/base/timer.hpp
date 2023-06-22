@@ -4,8 +4,8 @@
 #define TIMER_H
 
 #include "base/i2-base.hpp"
-#include "base/object.hpp"
 #include <boost/signals2.hpp>
+#include <memory>
 
 namespace icinga {
 
@@ -16,12 +16,14 @@ class TimerHolder;
  *
  * @ingroup base
  */
-class Timer final : public Object
+class Timer final
 {
 public:
-	DECLARE_PTR_TYPEDEFS(Timer);
+	typedef std::shared_ptr<Timer> Ptr;
 
-	~Timer() override;
+	static Ptr Create();
+
+	~Timer();
 
 	static void Initialize();
 	static void Uninitialize();
@@ -46,9 +48,12 @@ private:
 	double m_Next{0}; /**< When the next event should happen. */
 	bool m_Started{false}; /**< Whether the timer is enabled. */
 	bool m_Running{false}; /**< Whether the timer proc is currently running. */
+	std::weak_ptr<Timer> m_Self;
 
+	Timer() = default;
 	void Call();
 	void InternalReschedule(bool completed, double next = -1);
+	void InternalRescheduleUnlocked(bool completed, double next = -1);
 
 	static void TimerThreadProc();
 

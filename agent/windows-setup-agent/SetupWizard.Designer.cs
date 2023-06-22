@@ -49,7 +49,6 @@
 			this.chkDisableConf = new System.Windows.Forms.CheckBox();
 			this.txtUser = new System.Windows.Forms.TextBox();
 			this.chkRunServiceAsThisUser = new System.Windows.Forms.CheckBox();
-			this.chkInstallNSCP = new System.Windows.Forms.CheckBox();
 			this.chkAcceptConfig = new System.Windows.Forms.CheckBox();
 			this.chkAcceptCommands = new System.Windows.Forms.CheckBox();
 			this.txtTicket = new System.Windows.Forms.TextBox();
@@ -281,7 +280,6 @@
 			this.groupBox3.Controls.Add(this.chkDisableConf);
 			this.groupBox3.Controls.Add(this.txtUser);
 			this.groupBox3.Controls.Add(this.chkRunServiceAsThisUser);
-			this.groupBox3.Controls.Add(this.chkInstallNSCP);
 			this.groupBox3.Controls.Add(this.chkAcceptConfig);
 			this.groupBox3.Controls.Add(this.chkAcceptCommands);
 			this.groupBox3.Location = new System.Drawing.Point(308, 326);
@@ -322,16 +320,6 @@
 			this.chkRunServiceAsThisUser.Text = "Run Icinga 2 service as this user:";
 			this.chkRunServiceAsThisUser.UseVisualStyleBackColor = true;
 			this.chkRunServiceAsThisUser.CheckedChanged += new System.EventHandler(this.chkRunServiceAsThisUser_CheckedChanged);
-			// 
-			// chkInstallNSCP
-			// 
-			this.chkInstallNSCP.AutoSize = true;
-			this.chkInstallNSCP.Location = new System.Drawing.Point(9, 114);
-			this.chkInstallNSCP.Name = "chkInstallNSCP";
-			this.chkInstallNSCP.Size = new System.Drawing.Size(190, 17);
-			this.chkInstallNSCP.TabIndex = 6;
-			this.chkInstallNSCP.Text = "Install/Update bundled NSClient++";
-			this.chkInstallNSCP.UseVisualStyleBackColor = true;
 			// 
 			// chkAcceptConfig
 			// 
@@ -813,7 +801,6 @@
 		private System.Windows.Forms.GroupBox groupBox3;
 		private System.Windows.Forms.CheckBox chkAcceptConfig;
 		private System.Windows.Forms.CheckBox chkAcceptCommands;
-		private System.Windows.Forms.CheckBox chkInstallNSCP;
 		private System.Windows.Forms.TextBox txtUser;
 		private System.Windows.Forms.CheckBox chkRunServiceAsThisUser;
 		private System.Windows.Forms.Button btnEditEndpoint;

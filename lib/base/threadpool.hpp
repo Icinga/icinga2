@@ -4,6 +4,7 @@
 #define THREADPOOL_H
 
 #include "base/atomic.hpp"
+#include "base/configuration.hpp"
 #include "base/exception.hpp"
 #include "base/logger.hpp"
 #include <cstddef>
@@ -36,11 +37,12 @@ class ThreadPool
 public:
 	typedef std::function<void ()> WorkFunction;
 
-	ThreadPool(size_t threads = std::thread::hardware_concurrency() * 2u);
+	ThreadPool();
 	~ThreadPool();
 
 	void Start();
 	void Stop();
+	void Restart();
 
 	/**
 	 * Appends a work item to the work queue. Work items will be processed in FIFO order.
@@ -89,8 +91,9 @@ public:
 private:
 	boost::shared_mutex m_Mutex;
 	std::unique_ptr<boost::asio::thread_pool> m_Pool;
-	size_t m_Threads;
 	Atomic<uint_fast64_t> m_Pending;
+
+	void InitializePool();
 };
 
 }

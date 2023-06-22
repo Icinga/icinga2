@@ -9,7 +9,7 @@ CMAKE_OPTS=''
 case "$DISTRO" in
   amazonlinux:*)
     amazon-linux-extras install -y epel
-    yum install -y bison ccache cmake gcc-c++ flex ninja-build \
+    yum install -y bison ccache cmake3 gcc-c++ flex ninja-build \
       {libedit,mariadb,ncurses,openssl,postgresql,systemd}-devel
 
     yum install -y bzip2 tar wget
@@ -22,6 +22,7 @@ case "$DISTRO" in
       ./b2
     )
 
+    ln -vs /usr/bin/cmake3 /usr/local/bin/cmake
     ln -vs /usr/bin/ninja-build /usr/local/bin/ninja
     CMAKE_OPTS='-DBOOST_INCLUDEDIR=/boost_1_69_0 -DBOOST_LIBRARYDIR=/boost_1_69_0/stage/lib'
     export LD_LIBRARY_PATH=/boost_1_69_0/stage/lib
@@ -29,9 +30,10 @@ case "$DISTRO" in
 
   centos:*)
     yum install -y centos-release-scl epel-release
-    yum install -y bison ccache cmake devtoolset-11-gcc-c++ flex ninja-build \
+    yum install -y bison ccache cmake3 devtoolset-11-gcc-c++ flex ninja-build \
       {boost169,libedit,mariadb,ncurses,openssl,postgresql,systemd}-devel
 
+    ln -vs /usr/bin/cmake3 /usr/local/bin/cmake
     ln -vs /usr/bin/ccache /usr/lib64/ccache/g++
     CMAKE_OPTS='-DBOOST_INCLUDEDIR=/usr/include/boost169 -DBOOST_LIBRARYDIR=/usr/lib64/boost169'
     ;;

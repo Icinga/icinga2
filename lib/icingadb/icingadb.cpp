@@ -115,7 +115,7 @@ void IcingaDB::Start(bool runtimeCreated)
 	});
 	m_Rcon->Start();
 
-	m_StatsTimer = new Timer();
+	m_StatsTimer = Timer::Create();
 	m_StatsTimer->SetInterval(1);
 	m_StatsTimer->OnTimerExpired.connect([this](const Timer * const&) { PublishStatsTimerHandler(); });
 	m_StatsTimer->Start();
@@ -194,6 +194,8 @@ void IcingaDB::Stop(bool runtimeRemoved)
 			<< "Flushing takes more than one minute (while we're about to shut down). Giving up and discarding "
 			<< m_HistoryBulker.Size() << " queued history queries.";
 	}
+
+	m_StatsTimer->Stop(true);
 
 	Log(LogInformation, "IcingaDB")
 		<< "'" << GetName() << "' stopped.";

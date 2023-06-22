@@ -91,7 +91,7 @@ void InfluxdbCommonWriter::Resume()
 	m_WorkQueue.SetExceptionCallback([this](boost::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
 
 	/* Setup timer for periodically flushing m_DataBuffer */
-	m_FlushTimer = new Timer();
+	m_FlushTimer = Timer::Create();
 	m_FlushTimer->SetInterval(GetFlushInterval());
 	m_FlushTimer->OnTimerExpired.connect([this](const Timer * const&) { FlushTimeout(); });
 	m_FlushTimer->Start();
@@ -113,6 +113,7 @@ void InfluxdbCommonWriter::Pause()
 	Log(LogDebug, GetReflectionType()->GetName())
 		<< "Processing pending tasks and flushing data buffers.";
 
+	m_FlushTimer->Stop(true);
 	m_WorkQueue.Enqueue([this]() { FlushWQ(); }, PriorityLow);
 
 	/* Wait for the flush to complete, implicitly waits for all WQ tasks enqueued prior to pausing. */

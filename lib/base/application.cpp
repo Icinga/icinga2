@@ -62,7 +62,12 @@ int Application::m_ArgC;
 char **Application::m_ArgV;
 double Application::m_StartTime;
 bool Application::m_ScriptDebuggerEnabled = false;
-double Application::m_LastReloadFailed;
+
+#ifdef _WIN32
+double Application::m_LastReloadFailed = 0;
+#else /* _WIN32 */
+SharedMemory<Application::AtomicTs> Application::m_LastReloadFailed (0);
+#endif /* _WIN32 */
 
 #ifdef _WIN32
 static LPTOP_LEVEL_EXCEPTION_FILTER l_DefaultUnhandledExceptionFilter = nullptr;
@@ -112,11 +117,7 @@ void Application::Exit(int rc)
 	}
 
 	UninitializeBase();
-#ifdef I2_DEBUG
-	exit(rc);
-#else /* I2_DEBUG */
 	_exit(rc); // Yay, our static destructors are pretty much beyond repair at this point.
-#endif /* I2_DEBUG */
 }
 
 void Application::InitializeBase()
@@ -1212,12 +1213,20 @@ void Application::SetScriptDebuggerEnabled(bool enabled)
 
 double Application::GetLastReloadFailed()
 {
+#ifdef _WIN32
 	return m_LastReloadFailed;
+#else /* _WIN32 */
+	return m_LastReloadFailed.Get().load();
+#endif /* _WIN32 */
 }
 
 void Application::SetLastReloadFailed(double ts)
 {
+#ifdef _WIN32
 	m_LastReloadFailed = ts;
+#else /* _WIN32 */
+	m_LastReloadFailed.Get().store(ts);
+#endif /* _WIN32 */
 }
 
 void Application::ValidateName(const Lazy<String>& lvalue, const ValidationUtils& utils)

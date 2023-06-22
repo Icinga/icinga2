@@ -72,6 +72,9 @@ protected:
 	void Start(bool runtimeCreated) override;
 	void Stop(bool runtimeRemoved) override;
 
+	void Pause() override;
+	void Resume() override;
+
 	void ValidateStartTime(const Lazy<Timestamp>& lvalue, const ValidationUtils& utils) override;
 	void ValidateEndTime(const Lazy<Timestamp>& lvalue, const ValidationUtils& utils) override;
 
@@ -81,10 +84,14 @@ private:
 	std::set<Downtime::Ptr> m_Children;
 	mutable std::mutex m_ChildrenMutex;
 
+	Timer::Ptr m_CleanupTimer;
+
 	bool CanBeTriggered();
 
+	void SetupCleanupTimer();
+
 	static void DowntimesStartTimerHandler();
-	static void DowntimesExpireTimerHandler();
+	static void DowntimesOrphanedTimerHandler();
 };
 
 }

@@ -140,6 +140,7 @@ Array::Ptr PluginUtility::SplitPerfdata(const String& perfdata)
 			break;
 
 		String label = perfdata.SubStr(begin, eqp - begin);
+		boost::algorithm::trim_left(label);
 
 		if (label.GetLength() > 2 && label[0] == '\'' && label[label.GetLength() - 1] == '\'')
 			label = label.SubStr(1, label.GetLength() - 2);

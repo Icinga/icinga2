@@ -54,7 +54,7 @@ void ClusterEvents::EnqueueCheck(const MessageOrigin::Ptr& origin, const Diction
 	static boost::once_flag once = BOOST_ONCE_INIT;
 
 	boost::call_once(once, []() {
-		m_LogTimer = new Timer();
+		m_LogTimer = Timer::Create();
 		m_LogTimer->SetInterval(10);
 		m_LogTimer->OnTimerExpired.connect([](const Timer * const&) { LogRemoteCheckQueueInformation(); });
 		m_LogTimer->Start();

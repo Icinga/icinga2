@@ -58,7 +58,7 @@ void Namespace::Set(const String& field, const Value& value, bool isConst, const
 	auto nsVal = m_Data.find(field);
 
 	if (nsVal == m_Data.end()) {
-		m_Data[field] = NamespaceValue{value, isConst};
+		m_Data[field] = NamespaceValue{value, isConst || m_ConstValues};
 	} else {
 		if (nsVal->second.Const) {
 			BOOST_THROW_EXCEPTION(ScriptError("Constant must not be modified.", debugInfo));

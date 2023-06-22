@@ -1,6 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "remote/deleteobjecthandler.hpp"
+#include "remote/configobjectslock.hpp"
 #include "remote/configobjectutility.hpp"
 #include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
@@ -65,6 +66,13 @@ bool DeleteObjectHandler::HandleRequest(
 
 	bool cascade = HttpUtility::GetLastParameter(params, "cascade");
 	bool verbose = HttpUtility::GetLastParameter(params, "verbose");
+
+	ConfigObjectsSharedLock lock (std::try_to_lock);
+
+	if (!lock) {
+		HttpUtility::SendJsonError(response, params, 503, "Icinga is reloading");
+		return true;
+	}
 
 	ArrayData results;
 

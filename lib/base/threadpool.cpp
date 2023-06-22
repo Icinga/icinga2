@@ -5,8 +5,7 @@
 
 using namespace icinga;
 
-ThreadPool::ThreadPool(size_t threads)
-	: m_Threads(threads), m_Pending(0)
+ThreadPool::ThreadPool() : m_Pending(0)
 {
 	Start();
 }
@@ -21,8 +20,13 @@ void ThreadPool::Start()
 	boost::unique_lock<decltype(m_Mutex)> lock (m_Mutex);
 
 	if (!m_Pool) {
-		m_Pool = decltype(m_Pool)(new boost::asio::thread_pool(m_Threads));
+		InitializePool();
 	}
+}
+
+void ThreadPool::InitializePool()
+{
+	m_Pool = decltype(m_Pool)(new boost::asio::thread_pool(Configuration::Concurrency * 2u));
 }
 
 void ThreadPool::Stop()
@@ -33,4 +37,15 @@ void ThreadPool::Stop()
 		m_Pool->join();
 		m_Pool = nullptr;
 	}
+}
+
+void ThreadPool::Restart()
+{
+	boost::unique_lock<decltype(m_Mutex)> lock (m_Mutex);
+
+	if (m_Pool) {
+		m_Pool->join();
+	}
+
+	InitializePool();
 }

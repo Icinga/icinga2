@@ -232,7 +232,7 @@ static void TypeInfoTimerHandler()
 }
 
 INITIALIZE_ONCE([]() {
-	l_ObjectCountTimer = new Timer();
+	l_ObjectCountTimer = Timer::Create();
 	l_ObjectCountTimer->SetInterval(10);
 	l_ObjectCountTimer->OnTimerExpired.connect([](const Timer * const&) { TypeInfoTimerHandler(); });
 	l_ObjectCountTimer->Start();

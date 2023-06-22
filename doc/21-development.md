@@ -477,18 +477,18 @@ File Type: EXECUTABLE IMAGE
 
   Image has the following dependencies:
 
-    boost_coroutine-vc142-mt-gd-x64-1_81.dll
-    boost_date_time-vc142-mt-gd-x64-1_81.dll
-    boost_filesystem-vc142-mt-gd-x64-1_81.dll
-    boost_thread-vc142-mt-gd-x64-1_81.dll
-    boost_regex-vc142-mt-gd-x64-1_81.dll
+    boost_coroutine-vc142-mt-gd-x64-1_82.dll
+    boost_date_time-vc142-mt-gd-x64-1_82.dll
+    boost_filesystem-vc142-mt-gd-x64-1_82.dll
+    boost_thread-vc142-mt-gd-x64-1_82.dll
+    boost_regex-vc142-mt-gd-x64-1_82.dll
     libssl-1_1-x64.dll
     libcrypto-1_1-x64.dll
     WS2_32.dll
     dbghelp.dll
     SHLWAPI.dll
     msi.dll
-    boost_unit_test_framework-vc142-mt-gd-x64-1_81.dll
+    boost_unit_test_framework-vc142-mt-gd-x64-1_82.dll
     KERNEL32.dll
     SHELL32.dll
     ADVAPI32.dll
@@ -697,7 +697,7 @@ Read more about it in the [Technical Concepts](19-technical-concepts.md#technica
 
 #### Get to know the code <a id="development-develop-get-to-know-the-code"></a>
 
-First off, you really need to know C++ and portions of C++14 and the boost libraries.
+First off, you really need to know C++ and portions of C++17 and the boost libraries.
 Best is to start with a book or online tutorial to get into the basics.
 Icinga developers gained their knowledge through studies, training and self-teaching
 code by trying it out and asking senior developers for guidance.
@@ -1138,7 +1138,7 @@ for formatting, splitting strings, joining arrays into strings, etc.
 Use the existing libraries and header-only includes
 for this specific version.
 
-Note: Prefer C++14 features where possible, e.g. std::atomic and lambda functions.
+Note: Prefer C++17 features where possible, e.g. std::atomic and lambda functions.
 
 General:
 
@@ -1185,7 +1185,7 @@ If you consider an external library or code to be included with Icinga, the foll
 requirements must be fulfilled:
 
 - License is compatible with GPLv2+. Boost license, MIT works, Apache is not.
-- C++14 is supported
+- C++17 is supported
 - Header only implementations are preferred, external libraries require packages on every distribution.
 - No additional frameworks, Boost is the only allowed.
 - The code is proven to be robust and the GitHub repository is alive, or has 1k+ stars. Good libraries also provide a user list, if e.g. Ceph is using it, this is a good candidate.
@@ -1763,10 +1763,9 @@ mkdir build
 cd .\build\
 
 & "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" `
-  -DBoost_INCLUDE_DIR=C:\local\boost_1_81_0-Win64 `
+  -DICINGA2_UNITY_BUILD=OFF -DBoost_INCLUDE_DIR=C:\local\boost_1_82_0-Win64 `
   -DBISON_EXECUTABLE=C:\ProgramData\chocolatey\lib\winflexbison3\tools\win_bison.exe `
-  -DFLEX_EXECUTABLE=C:\ProgramData\chocolatey\lib\winflexbison3\tools\win_flex.exe `
-  -DICINGA2_WITH_MYSQL=OFF -DICINGA2_WITH_PGSQL=OFF -DICINGA2_UNITY_BUILD=OFF ..
+  -DFLEX_EXECUTABLE=C:\ProgramData\chocolatey\lib\winflexbison3\tools\win_flex.exe ..
 
 & "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" .\icinga2.sln
 ```
@@ -1936,16 +1935,16 @@ Download the [boost-binaries](https://sourceforge.net/projects/boost/files/boost
 - 64 for 64 bit builds
 
 ```
-https://sourceforge.net/projects/boost/files/boost-binaries/1.81.0/boost_1_81_0-msvc-14.2-64.exe/download
+https://sourceforge.net/projects/boost/files/boost-binaries/1.82.0/boost_1_82_0-msvc-14.2-64.exe/download
 ```
 
-Run the installer and leave the default installation path in `C:\local\boost_1_81_0`.
+Run the installer and leave the default installation path in `C:\local\boost_1_82_0`.
 
 
 ##### Source & Compile
 
 In order to use the boost development header and library files you need to [download](https://www.boost.org/users/download/)
-Boost and then extract it to e.g. `C:\local\boost_1_81_0`.
+Boost and then extract it to e.g. `C:\local\boost_1_82_0`.
 
 > **Note**
 >
@@ -1953,12 +1952,12 @@ Boost and then extract it to e.g. `C:\local\boost_1_81_0`.
 > the archive contains more than 70k files.
 
 In order to integrate Boost into Visual Studio, open the `Developer Command Prompt` from the start menu,
-and navigate to `C:\local\boost_1_81_0`.
+and navigate to `C:\local\boost_1_82_0`.
 
 Execute `bootstrap.bat` first.
 
 ```
-cd C:\local\boost_1_81_0
+cd C:\local\boost_1_82_0
 bootstrap.bat
 ```
 
@@ -2041,12 +2040,10 @@ You need to specify the previously installed component paths.
 
 Variable              | Value                                                                | Description
 ----------------------|----------------------------------------------------------------------|-------------------------------------------------------
-`BOOST_ROOT`          | `C:\local\boost_1_81_0`                                                    | Root path where you've extracted and compiled Boost.
-`BOOST_LIBRARYDIR`    | Binary: `C:\local\boost_1_81_0\lib64-msvc-14.2`, Source: `C:\local\boost_1_81_0\stage` | Path to the static compiled Boost libraries, directory must contain `lib`.
+`BOOST_ROOT`          | `C:\local\boost_1_82_0`                                                    | Root path where you've extracted and compiled Boost.
+`BOOST_LIBRARYDIR`    | Binary: `C:\local\boost_1_82_0\lib64-msvc-14.2`, Source: `C:\local\boost_1_82_0\stage` | Path to the static compiled Boost libraries, directory must contain `lib`.
 `BISON_EXECUTABLE`    | `C:\ProgramData\chocolatey\lib\winflexbison\tools\win_bison.exe`     | Path to the Bison executable.
 `FLEX_EXECUTABLE`     | `C:\ProgramData\chocolatey\lib\winflexbison\tools\win_flex.exe`      | Path to the Flex executable.
-`ICINGA2_WITH_MYSQL`  | OFF                                                                  | Requires extra setup for MySQL if set to `ON`. Not supported for client setups.
-`ICINGA2_WITH_PGSQL`  | OFF                                                                  | Requires extra setup for PgSQL if set to `ON`. Not supported for client setups.
 `ICINGA2_UNITY_BUILD` | OFF                                                                  | Disable unity builds for development environments.
 
 Tip: If you have previously opened a terminal, run `refreshenv` to re-read updated PATH variables.
@@ -2079,8 +2076,8 @@ $env:ICINGA2_INSTALLPATH = 'C:\Program Files\Icinga2-debug'
 $env:ICINGA2_BUILDPATH='debug'
 $env:CMAKE_BUILD_TYPE='Debug'
 $env:OPENSSL_ROOT_DIR='C:\OpenSSL-Win64'
-$env:BOOST_ROOT='C:\local\boost_1_81_0'
-$env:BOOST_LIBRARYDIR='C:\local\boost_1_81_0\lib64-msvc-14.2'
+$env:BOOST_ROOT='C:\local\boost_1_82_0'
+$env:BOOST_LIBRARYDIR='C:\local\boost_1_82_0\lib64-msvc-14.2'
 ```
 
 #### Icinga 2 in Visual Studio
@@ -2172,8 +2169,8 @@ Icinga application using a dist tarball (including notes for distributions):
 
 * cmake >= 2.6
 * GNU make (make) or ninja-build
-* C++ compiler which supports C++14
-    * RHEL/Fedora/SUSE: gcc-c++ >= 6.3 (extra Developer Tools on RHEL7 see below)
+* C++ compiler which supports C++17
+    * RHEL/Fedora/SUSE: gcc-c++ >= 7 (extra Developer Tools on RHEL7 see below)
     * Debian/Ubuntu: build-essential
     * Alpine: build-base
     * you can also use clang++
@@ -2445,7 +2442,7 @@ The following packages are required to build the SELinux policy module:
 ##### RHEL/CentOS 7
 
 The RedHat Developer Toolset is required for building Icinga 2 beforehand.
-This contains a C++ compiler which supports C++14 features.
+This contains a C++ compiler which supports C++17 features.
 
 ```bash
 yum install centos-release-scl

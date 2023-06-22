@@ -201,6 +201,7 @@ Configuration Attributes:
   parent\_service\_name     | Object name           | **Optional.** The parent service. If omitted, this dependency object is treated as host dependency.
   child\_host\_name         | Object name           | **Required.** The child host.
   child\_service\_name      | Object name           | **Optional.** The child service. If omitted, this dependency object is treated as host dependency.
+  redundancy\_group         | String                | **Optional.** Puts the dependency into a group of [mutually redundant ones](03-monitoring-basics.md#dependencies-redundancy-groups).
   disable\_checks           | Boolean               | **Optional.** Whether to disable checks (i.e., don't schedule active checks and drop passive results) when this dependency fails. Defaults to false.
   disable\_notifications    | Boolean               | **Optional.** Whether to disable notifications when this dependency fails. Defaults to true.
   ignore\_soft\_states      | Boolean               | **Optional.** Whether to ignore soft states for the reachability calculation. Defaults to true.
@@ -1153,30 +1154,6 @@ use [MaxConcurrentChecks](17-language-reference.md#icinga-constants-global-confi
 This also applies to an agent as command endpoint where the checker
 feature is disabled.
 
-### CheckResultReader <a id="objecttype-checkresultreader"></a>
-
-Reads Icinga 1.x check result files from a directory. This functionality is provided
-to help existing Icinga 1.x users and might be useful for migration scenarios.
-
-> **Note**
->
-> This feature is DEPRECATED and may be removed in future releases.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
-
-Example:
-
-```
-object CheckResultReader "reader" {
-  spool_dir = "/data/check-results"
-}
-```
-
-Configuration Attributes:
-
-  Name                      | Type                  | Description
-  --------------------------|-----------------------|----------------------------------
-  spool\_dir                | String                | **Optional.** The directory which contains the check result files. Defaults to DataDir + "/spool/checkresults/".
-
 ### CompatLogger <a id="objecttype-compatlogger"></a>
 
 Writes log files in a format that's compatible with Icinga 1.x.
@@ -1914,34 +1891,6 @@ Configuration Attributes:
 When rotating the performance data file the current UNIX timestamp is appended to the path specified
 in `host_perfdata_path` and `service_perfdata_path` to generate a unique filename.
 
-
-### StatusDataWriter <a id="objecttype-statusdatawriter"></a>
-
-Periodically writes status and configuration data files which are used by third-party tools.
-This configuration object is available as [statusdata feature](14-features.md#status-data).
-
-> **Note**
->
-> This feature is DEPRECATED and may be removed in future releases.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
-
-Example:
-
-```
-object StatusDataWriter "status" {
-    status_path = "/var/cache/icinga2/status.dat"
-    objects_path = "/var/cache/icinga2/objects.cache"
-    update_interval = 30s
-}
-```
-
-Configuration Attributes:
-
-  Name                      | Type                  | Description
-  --------------------------|-----------------------|----------------------------------
-  status\_path              | String                | **Optional.** Path to the `status.dat` file. Defaults to CacheDir + "/status.dat".
-  objects\_path             | String                | **Optional.** Path to the `objects.cache` file. Defaults to CacheDir + "/objects.cache".
-  update\_interval          | Duration              | **Optional.** The interval in which the status files are updated. Defaults to `15s`.
 
 ### SyslogLogger <a id="objecttype-sysloglogger"></a>
 
