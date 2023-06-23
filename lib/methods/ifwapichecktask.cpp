@@ -277,6 +277,7 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 {
 	namespace asio = boost::asio;
 	namespace http = boost::beast::http;
+	using http::field;
 
 	REQUIRE_NOT_NULL(checkable);
 	REQUIRE_NOT_NULL(cr);
@@ -446,10 +447,10 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 
 	req->method(http::verb::post);
 	req->target(relative);
-	req->set(http::field::accept, "application/json");
-	req->set(http::field::content_type, "application/json");
-	req->set(http::field::host, expectedSan + ":" + psPort);
-	req->set(http::field::user_agent, userAgent);
+	req->set(field::accept, "application/json");
+	req->set(field::content_type, "application/json");
+	req->set(field::host, expectedSan + ":" + psPort);
+	req->set(field::user_agent, userAgent);
 	req->body() = body;
 	req->content_length(req->body().size());
 
@@ -478,7 +479,7 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	if (!username.IsEmpty() && !password.IsEmpty()) {
 		auto authn (username + ":" + password);
 
-		req->set(http::field::authorization, "Basic " + Base64::Encode(authn));
+		req->set(field::authorization, "Basic " + Base64::Encode(authn));
 		cmdLine->Add("--user");
 		cmdLine->Add(authn);
 	}
