@@ -90,12 +90,10 @@ static void DoIfwNetIo(
 	AsioTlsStream& conn, boost::beast::http::request<boost::beast::http::string_body>& req, double start
 )
 {
-	using namespace boost::asio;
-	using namespace boost::beast;
-	using namespace boost::beast::http;
+	namespace http = boost::beast::http;
 
-	flat_buffer buf;
-	response<string_body> resp;
+	boost::beast::flat_buffer buf;
+	http::response<http::string_body> resp;
 
 	try {
 		Connect(conn.lowest_layer(), psHost, psPort, yc);
@@ -141,7 +139,7 @@ static void DoIfwNetIo(
 	}
 
 	try {
-		async_write(conn, req, yc);
+		http::async_write(conn, req, yc);
 		conn.async_flush(yc);
 	} catch (const std::exception& ex) {
 		ReportIfwCheckResult(
@@ -153,7 +151,7 @@ static void DoIfwNetIo(
 	}
 
 	try {
-		async_read(conn, buf, resp, yc);
+		http::async_read(conn, buf, resp, yc);
 	} catch (const std::exception& ex) {
 		ReportIfwCheckResult(
 			yc, checkable, cmdLine, cr,
