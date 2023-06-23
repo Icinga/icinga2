@@ -68,9 +68,7 @@ static void ReportIfwCheckResult(
 	double end = Utility::GetTime();
 	CpuBoundWork cbw (yc);
 
-	Utility::QueueAsyncCallback([checkable, cmdLine, cr, output, start, end]() {
-		ReportIfwCheckResult(checkable, cmdLine, cr, output, start, end);
-	});
+	ReportIfwCheckResult(checkable, cmdLine, cr, output, start, end);
 }
 
 static const char* GetUnderstandableError(const std::exception& ex)
