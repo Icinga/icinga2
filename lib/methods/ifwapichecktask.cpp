@@ -277,9 +277,8 @@ static void DoIfwNetIo(
 void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
 	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
-	using namespace boost::asio;
-	using namespace boost::beast;
-	using namespace boost::beast::http;
+	namespace asio = boost::asio;
+	namespace http = boost::beast::http;
 
 	REQUIRE_NOT_NULL(checkable);
 	REQUIRE_NOT_NULL(cr);
@@ -445,14 +444,14 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	static const auto userAgent ("Icinga/" + Application::GetAppVersion());
 	auto relative (uri->Format());
 	auto body (JsonEncode(params));
-	auto req (Shared<request<string_body>>::Make());
+	auto req (Shared<http::request<http::string_body>>::Make());
 
-	req->method(verb::post);
+	req->method(http::verb::post);
 	req->target(relative);
-	req->set(field::accept, "application/json");
-	req->set(field::content_type, "application/json");
-	req->set(field::host, expectedSan + ":" + psPort);
-	req->set(field::user_agent, userAgent);
+	req->set(http::field::accept, "application/json");
+	req->set(http::field::content_type, "application/json");
+	req->set(http::field::host, expectedSan + ":" + psPort);
+	req->set(http::field::user_agent, userAgent);
 	req->body() = body;
 	req->content_length(req->body().size());
 
@@ -481,14 +480,14 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	if (!username.IsEmpty() && !password.IsEmpty()) {
 		auto authn (username + ":" + password);
 
-		req->set(field::authorization, "Basic " + Base64::Encode(authn));
+		req->set(http::field::authorization, "Basic " + Base64::Encode(authn));
 		cmdLine->Add("--user");
 		cmdLine->Add(authn);
 	}
 
 	auto& io (IoEngine::Get().GetIoContext());
-	auto strand (Shared<boost::asio::io_context::strand>::Make(io));
-	Shared<boost::asio::ssl::context>::Ptr ctx;
+	auto strand (Shared<asio::io_context::strand>::Make(io));
+	Shared<asio::ssl::context>::Ptr ctx;
 	double start = Utility::GetTime();
 
 	try {
@@ -502,7 +501,7 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 
 	IoEngine::SpawnCoroutine(
 		*strand,
-		[strand, checkable, cmdLine, cr, psCommand, psHost, expectedSan, psPort, conn, req, start, checkTimeout](boost::asio::yield_context yc) {
+		[strand, checkable, cmdLine, cr, psCommand, psHost, expectedSan, psPort, conn, req, start, checkTimeout](asio::yield_context yc) {
 			Timeout::Ptr timeout = new Timeout(strand->context(), *strand, boost::posix_time::microseconds(int64_t(checkTimeout * 1e6)),
 				[&conn, &checkable](boost::asio::yield_context yc) {
 					Log(LogNotice, "IfwApiCheckTask")
