@@ -225,12 +225,12 @@ apply Service "db-size-" for (db_name => config in host.vars.databases) {
   check_command = "mysql_health"
 
   if (config.mysql_health_username) {
-    vars.mysql_healt_username = config.mysql_health_username
+    vars.mysql_health_username = config.mysql_health_username
   } else {
     vars.mysql_health_username = "root"
   }
   if (config.mysql_health_password) {
-    vars.mysql_healt_password = config.mysql_health_password
+    vars.mysql_health_password = config.mysql_health_password
   } else {
     vars.mysql_health_password = "icingar0xx"
   }
