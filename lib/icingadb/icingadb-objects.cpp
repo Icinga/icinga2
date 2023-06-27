@@ -1388,11 +1388,11 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 			auto begin (notification->GetTimes()->Get("begin"));
 			auto end (notification->GetTimes()->Get("end"));
 
-			if (begin != Empty) {
+			if (begin != Empty && (double)begin >= 0) {
 				attributes->Set("times_begin", std::round((double)begin));
 			}
 
-			if (end != Empty) {
+			if (end != Empty && (double)end >= 0) {
 				attributes->Set("times_end", std::round((double)end));
 			}
 		}
