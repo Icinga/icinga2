@@ -32,6 +32,7 @@
 #include "remote/zone.hpp"
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <cstdint>
 #include <iterator>
 #include <map>
@@ -1388,7 +1389,7 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 			attributes->Set("times_end",notification->GetTimes()->Get("end"));
 		}
 
-		attributes->Set("notification_interval", notification->GetInterval());
+		attributes->Set("notification_interval", std::max(0.0, std::round(notification->GetInterval())));
 		attributes->Set("states", notification->GetStates());
 		attributes->Set("types", notification->GetTypes());
 
