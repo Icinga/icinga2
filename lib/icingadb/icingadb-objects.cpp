@@ -1383,8 +1383,16 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 			attributes->Set("timeperiod_id", GetObjectIdentifier(timeperiod));
 
 		if (notification->GetTimes()) {
-			attributes->Set("times_begin", notification->GetTimes()->Get("begin"));
-			attributes->Set("times_end",notification->GetTimes()->Get("end"));
+			auto begin (notification->GetTimes()->Get("begin"));
+			auto end (notification->GetTimes()->Get("end"));
+
+			if (begin != Empty) {
+				attributes->Set("times_begin", std::round((double)begin));
+			}
+
+			if (end != Empty) {
+				attributes->Set("times_end", std::round((double)end));
+			}
 		}
 
 		attributes->Set("notification_interval", notification->GetInterval());
