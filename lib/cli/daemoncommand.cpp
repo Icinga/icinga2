@@ -827,7 +827,8 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 					{
 						double start = Utility::GetTime();
 
-						while (waitpid(currentWorker, nullptr, 0) == -1 && errno == EINTR) {
+						while (waitpid(currentWorker, nullptr, WNOHANG) == -1 && (errno == ECHILD || errno == EINTR)) {
+							Utility::Sleep(0.2);
 	#ifdef HAVE_SYSTEMD
 							NotifyWatchdog();
 	#endif /* HAVE_SYSTEMD */
