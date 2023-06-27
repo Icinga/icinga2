@@ -822,7 +822,6 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 					NotifyStatus("Shutting down old instance...");
 
 					Application::SetLastReloadFailed(0);
-					(void)kill(currentWorker, SIGTERM);
 
 					{
 						double start = Utility::GetTime();
