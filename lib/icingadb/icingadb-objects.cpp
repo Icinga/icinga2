@@ -1516,7 +1516,7 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 		Command::Ptr command = static_pointer_cast<Command>(object);
 
 		attributes->Set("command", JsonEncode(command->GetCommandLine()));
-		attributes->Set("timeout", command->GetTimeout());
+		attributes->Set("timeout", std::max(0, command->GetTimeout()));
 
 		return true;
 	}
