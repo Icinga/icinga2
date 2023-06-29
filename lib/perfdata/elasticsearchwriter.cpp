@@ -118,8 +118,6 @@ void ElasticsearchWriter::Pause()
 	m_HandleNotifications.disconnect();
 
 	m_FlushTimer->Stop(true);
-
-	Flush();
 	m_WorkQueue.Join();
 	Flush();
 
