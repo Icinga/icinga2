@@ -104,6 +104,14 @@ static void InitSslContext(const Shared<boost::asio::ssl::context>::Ptr& context
 #	endif /* SSL_CTX_set_ecdh_auto */
 #endif /* OPENSSL_VERSION_NUMBER < 0x10100000L */
 
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+	// The built-in DH parameters have to be enabled explicitly to allow the use of ciphers that use a DHE key exchange.
+	// SSL_CTX_set_dh_auto is only documented in OpenSSL starting from version 3.0.0 but was already added in 1.1.0.
+	// https://github.com/openssl/openssl/commit/09599b52d4e295c380512ba39958a11994d63401
+	// https://github.com/openssl/openssl/commit/0437309fdf544492e272943e892523653df2f189
+	SSL_CTX_set_dh_auto(sslContext, 1);
+#endif /* OPENSSL_VERSION_NUMBER >= 0x10100000L */
+
 	if (!pubkey.IsEmpty()) {
 		if (!SSL_CTX_use_certificate_chain_file(sslContext, pubkey.CStr())) {
 			ERR_error_string_n(ERR_peek_error(), errbuf, sizeof errbuf);
