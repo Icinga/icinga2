@@ -117,7 +117,6 @@ void ElasticsearchWriter::Pause()
 	m_HandleStateChanges.disconnect();
 	m_HandleNotifications.disconnect();
 
-	Flush();
 	m_WorkQueue.Join();
 	Flush();
 
