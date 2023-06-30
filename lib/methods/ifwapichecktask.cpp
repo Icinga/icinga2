@@ -48,6 +48,19 @@ static void ReportIfwCheckResult(
 
 		Checkable::ExecuteCommandProcessFinishedHandler(cmdLine, pr);
 	} else {
+		if (perfdata) {
+			Array::Ptr splittedPerfdata = new Array();
+
+			{
+				ObjectLock oLock (perfdata);
+				for (String pv : perfdata) {
+					PluginUtility::SplitPerfdata(pv)->CopyTo(splittedPerfdata);
+				}
+			}
+
+			perfdata = splittedPerfdata;
+		}
+
 		cr->SetOutput(output);
 		cr->SetPerformanceData(perfdata);
 		cr->SetState((ServiceState)exitcode);
@@ -68,9 +81,7 @@ static void ReportIfwCheckResult(
 	double end = Utility::GetTime();
 	CpuBoundWork cbw (yc);
 
-	Utility::QueueAsyncCallback([checkable, cmdLine, cr, output, start, end]() {
-		ReportIfwCheckResult(checkable, cmdLine, cr, output, start, end);
-	});
+	ReportIfwCheckResult(checkable, cmdLine, cr, output, start, end);
 }
 
 static const char* GetUnderstandableError(const std::exception& ex)
@@ -90,12 +101,10 @@ static void DoIfwNetIo(
 	AsioTlsStream& conn, boost::beast::http::request<boost::beast::http::string_body>& req, double start
 )
 {
-	using namespace boost::asio;
-	using namespace boost::beast;
-	using namespace boost::beast::http;
+	namespace http = boost::beast::http;
 
-	flat_buffer buf;
-	response<string_body> resp;
+	boost::beast::flat_buffer buf;
+	http::response<http::string_body> resp;
 
 	try {
 		Connect(conn.lowest_layer(), psHost, psPort, yc);
@@ -141,7 +150,7 @@ static void DoIfwNetIo(
 	}
 
 	try {
-		async_write(conn, req, yc);
+		http::async_write(conn, req, yc);
 		conn.async_flush(yc);
 	} catch (const std::exception& ex) {
 		ReportIfwCheckResult(
@@ -153,7 +162,7 @@ static void DoIfwNetIo(
 	}
 
 	try {
-		async_read(conn, buf, resp, yc);
+		http::async_read(conn, buf, resp, yc);
 	} catch (const std::exception& ex) {
 		ReportIfwCheckResult(
 			yc, checkable, cmdLine, cr,
@@ -279,9 +288,9 @@ static void DoIfwNetIo(
 void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
 	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
-	using namespace boost::asio;
-	using namespace boost::beast;
-	using namespace boost::beast::http;
+	namespace asio = boost::asio;
+	namespace http = boost::beast::http;
+	using http::field;
 
 	REQUIRE_NOT_NULL(checkable);
 	REQUIRE_NOT_NULL(cr);
@@ -447,9 +456,9 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	static const auto userAgent ("Icinga/" + Application::GetAppVersion());
 	auto relative (uri->Format());
 	auto body (JsonEncode(params));
-	auto req (Shared<request<string_body>>::Make());
+	auto req (Shared<http::request<http::string_body>>::Make());
 
-	req->method(verb::post);
+	req->method(http::verb::post);
 	req->target(relative);
 	req->set(field::accept, "application/json");
 	req->set(field::content_type, "application/json");
@@ -489,8 +498,8 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	}
 
 	auto& io (IoEngine::Get().GetIoContext());
-	auto strand (Shared<boost::asio::io_context::strand>::Make(io));
-	Shared<boost::asio::ssl::context>::Ptr ctx;
+	auto strand (Shared<asio::io_context::strand>::Make(io));
+	Shared<asio::ssl::context>::Ptr ctx;
 	double start = Utility::GetTime();
 
 	try {
@@ -504,7 +513,7 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 
 	IoEngine::SpawnCoroutine(
 		*strand,
-		[strand, checkable, cmdLine, cr, psCommand, psHost, expectedSan, psPort, conn, req, start, checkTimeout](boost::asio::yield_context yc) {
+		[strand, checkable, cmdLine, cr, psCommand, psHost, expectedSan, psPort, conn, req, start, checkTimeout](asio::yield_context yc) {
 			Timeout::Ptr timeout = new Timeout(strand->context(), *strand, boost::posix_time::microseconds(int64_t(checkTimeout * 1e6)),
 				[&conn, &checkable](boost::asio::yield_context yc) {
 					Log(LogNotice, "IfwApiCheckTask")
