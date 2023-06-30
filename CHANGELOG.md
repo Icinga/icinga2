@@ -101,7 +101,7 @@ On the other hand MSIs are now 75% smaller than before.
 
 #### Cluster
 
-* Don't stuck in timed out connection attempt. #9711 #9725
+* Don't hang in timed out connection attempt. #9711 #9725
 * Fix lost acknowledgements after re-connect. #9718
 * cluster-zone check: don't complain about not connected
   other local zone members if there aren't any. #8595
