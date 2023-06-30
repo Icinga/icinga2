@@ -119,7 +119,11 @@ void ElasticsearchWriter::Pause()
 
 	m_FlushTimer->Stop(true);
 	m_WorkQueue.Join();
-	Flush();
+
+	{
+		std::unique_lock<std::mutex> lock (m_DataBufferMutex);
+		Flush();
+	}
 
 	Log(LogInformation, "ElasticsearchWriter")
 		<< "'" << GetName() << "' paused.";
