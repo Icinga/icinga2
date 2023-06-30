@@ -48,6 +48,19 @@ static void ReportIfwCheckResult(
 
 		Checkable::ExecuteCommandProcessFinishedHandler(cmdLine, pr);
 	} else {
+		if (perfdata) {
+			Array::Ptr splittedPerfdata = new Array();
+
+			{
+				ObjectLock oLock (perfdata);
+				for (String pv : perfdata) {
+					PluginUtility::SplitPerfdata(pv)->CopyTo(splittedPerfdata);
+				}
+			}
+
+			perfdata = splittedPerfdata;
+		}
+
 		cr->SetOutput(output);
 		cr->SetPerformanceData(perfdata);
 		cr->SetState((ServiceState)exitcode);
