@@ -44,7 +44,8 @@ Thanks to all contributors:
   Previously all of them had to fail. (Consult the upgrading docs.) #8218
 * `icinga2 daemon`: to reduce config load time, write file needed by
   `icinga2 object list` only if `--dump-objects` is given. #9586 #9591
-* Default email notification scripts: link to Icinga DB Web, not the monitoring module. #9742 #9757
+* Default email notification scripts: link to Icinga DB Web,
+  not the monitoring module. (Consult the upgrading docs.) #9742 #9757
 * API: for security reasons hide TicketSalt in /v1/variables. #7863
 
 #### Icinga 2 Config DSL
