@@ -82,6 +82,8 @@ On the other hand MSIs are now 75% smaller than before.
 
 * Significantly reduce config load time of large setups.
   #8118 #9524 #9555 #9557 #9572 #9577 #9603 #9608 #9627 #9648 #9657 #9662
+* Introduce redundancy groups allowing dependencies to
+  represent (not) redundant hosts/services more accurately. #8218
 * Built-in check command ifw-api, communicates directly with the Icinga for
   Windows REST API. (Doesn't spawn a PowerShell process for that.) #9062
 * JournaldLogger which logs to systemd journal. #9000
