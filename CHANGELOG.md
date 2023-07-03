@@ -89,6 +89,7 @@ On the other hand MSIs are now 75% smaller than before.
 * JournaldLogger which logs to systemd journal. #9000
 * Support `$env.ENV_VAR_NAME$` macros. #8302
 * Default mail notification scripts: also print `$host.notes$` and `$service.notes$`. #9713
+* Enable built-in OpenSSL DH parameters to allow DHE TLS ciphers. #9811
 * Influxdb(2)Writer: write more precise timestamps (nanoseconds). #9599
 
 ### Bugfixes
