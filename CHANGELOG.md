@@ -187,6 +187,7 @@ Add linux\_netdev check command. #9045
   sending it to all Icinga 2 processes on OpenBSD. #9622
 * Fix crash in debug build on macOS when API and debug log are enabled. #9497
 * Update Boost shipped on Windows to v1.82. #9761
+* Update OpenSSL shipped on Windows to v3.0.9. #9787
 * Update vendored https://github.com/nlohmann/json to v3.9.1. #9675
 * Update vendored https://github.com/nemtrif/utfcpp to v3.2.3. #9683
 * Documentation: several fixes and improvements.  #8954 #9741 #9763 #9767 #9769 #9777
