@@ -95,7 +95,8 @@ On the other hand MSIs are now 75% smaller than before.
 
 ### Bugfixes
 
-* Icinga DB feature: normalize several Redis data not to crash the Go daemon. #9772 #9775
+* Icinga DB feature: normalize several Redis data not to crash the Go daemon.
+  #9772 #9775 #9792 #9793 #9794 #9805
 * Fix parsing of perfdata across multiple lines in plugin output. #8969
 * icinga check: fix last reload failure time. #8428
 * Resolve macros inside custom vars of IcingaApplication. #9779
