@@ -87,6 +87,7 @@ On the other hand MSIs are now 75% smaller than before.
 * Built-in check command ifw-api, communicates directly with the Icinga for
   Windows REST API. (Doesn't spawn a PowerShell process for that.) #9062
 * JournaldLogger which logs to systemd journal. #9000
+* API: POST /v1/objects/TYPE/NAME: allow array of modified attributes to discard. #9783
 * Support `$env.ENV_VAR_NAME$` macros. #8302
 * Default mail notification scripts: also print `$host.notes$` and `$service.notes$`. #9713
 * Enable built-in OpenSSL DH parameters to allow DHE TLS ciphers. #9811
