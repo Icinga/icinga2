@@ -100,6 +100,7 @@ On the other hand MSIs are now 75% smaller than before.
 * icinga check: fix last reload failure time. #8428
 * Resolve macros inside custom vars of IcingaApplication. #9779
 * SELinux: allow Icinga and its plugins to write to syslog. #9688
+* ElasticsearchWriter: fix data buffer flush race condition during stop. #9810
 * Send downtime expiration notifications immediately, not after up to a minute. #9726
 
 #### Cluster
