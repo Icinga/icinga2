@@ -40,6 +40,7 @@ Thanks to all contributors:
 
 * Remove CheckResultReader (which has been deprecated since v2.9). #9714
 * Remove StatusDataWriter (which has been deprecated since v2.9). #9715
+* ElasticsearchWriter: drop support for Elasticsearch < v7. #9812
 * Consider a checkable unreachable once one Dependency fails.
   Previously all of them had to fail. (Consult the upgrading docs.) #8218
 * `icinga2 daemon`: to reduce config load time, write file needed by
@@ -89,6 +90,7 @@ On the other hand MSIs are now 75% smaller than before.
 * JournaldLogger which logs to systemd journal. #9000
 * API: POST /v1/objects: allow to discard some previously modified attributes,
   i.e. to restore the config files' values. #9783
+* ElasticsearchWriter: support Elasticsearch v8. #9812
 * Support `$env.ENV_VAR_NAME$` macros. #8302
 * Default mail notification scripts: also print `$host.notes$` and `$service.notes$`. #9713
 * Enable built-in OpenSSL DH parameters to allow DHE TLS ciphers. #9811
