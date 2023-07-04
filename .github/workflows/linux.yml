@@ -30,6 +30,7 @@ jobs:
           - fedora:38
           - opensuse/leap:15.3 # SLES 15.3
           - opensuse/leap:15.4 # and SLES 15.4
+          - opensuse/leap:15.5 # and SLES 15.5
           - rockylinux:8 # RHEL 8
           - rockylinux:9 # RHEL 9
           - ubuntu:20.04
