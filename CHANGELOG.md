@@ -43,6 +43,7 @@ Thanks to all contributors:
 * ElasticsearchWriter: drop support for Elasticsearch < v7. #9812
 * Consider a checkable unreachable once one Dependency fails.
   Previously all of them had to fail. (Consult the upgrading docs.) #8218
+* API: reject config modifications during reload with HTTP status 503. #9445
 * `icinga2 daemon`: to reduce config load time, write file needed by
   `icinga2 object list` only if `--dump-objects` is given. #9586 #9591
 * Default email notification scripts: link to Icinga DB Web,
@@ -121,7 +122,7 @@ On the other hand MSIs are now 75% smaller than before.
 
 * Disallow breaking inter-object relationships by changing
   relationship attributes at runtime, e.g. Service#host_name. #9407
-* Correct several HTTP response status codes. #7958 #9354 #9445
+* Correct several HTTP response status codes. #7958 #9354
 * Correct Boolean field types previously reported by /v1/types as Number. #9514
 
 #### CLI
