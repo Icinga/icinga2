@@ -93,6 +93,7 @@ On the other hand MSIs are now 75% smaller than before.
   i.e. to restore the config files' values. #9783
 * ElasticsearchWriter: support Elasticsearch v8. #9812
 * Support `$env.ENV_VAR_NAME$` macros. #8302
+* Speed up Icinga DB config dump. #9524
 * Default mail notification scripts: also print `$host.notes$` and `$service.notes$`. #9713
 * Enable built-in OpenSSL DH parameters to allow DHE TLS ciphers. #9811
 * Clean up global default TLS cipher list to improve security. #9809
