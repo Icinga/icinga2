@@ -465,11 +465,6 @@ void ElasticsearchWriter::SendRequest(const String& body)
 	 */
 	path.emplace_back(GetIndex() + "-" + Utility::FormatDateTime("%Y.%m.%d", Utility::GetTime()));
 
-	/* ES 6 removes multiple _type mappings: https://www.elastic.co/guide/en/elasticsearch/reference/6.x/removal-of-types.html
-	 * Best practice is to statically define 'doc', as ES 5.X does not allow types starting with '_'.
-	 */
-	path.emplace_back("doc");
-
 	/* Use the bulk message format. */
 	path.emplace_back("_bulk");
 
