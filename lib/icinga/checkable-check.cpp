@@ -319,7 +319,7 @@ void Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrig
 	olock.Unlock();
 
 	if (remove_acknowledgement_comments)
-		RemoveCommentsByType(CommentAcknowledgement);
+		RemoveAckComments(String(), cr->GetExecutionEnd());
 
 	Dictionary::Ptr vars_after = new Dictionary({
 		{ "state", new_state },
