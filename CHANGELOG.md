@@ -7,7 +7,7 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
-## 2.14.0 (TODO)
+## 2.14.0 (2023-07-12)
 
 [Issues and PRs](https://github.com/Icinga/icinga2/issues?q=is%3Aclosed+milestone%3A2.14.0)
 
