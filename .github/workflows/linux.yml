@@ -5,6 +5,7 @@ on:
     branches:
       - master
       - 'support/*'
+  pull_request: {}
 
 concurrency:
   group: linux-${{ github.ref }}
