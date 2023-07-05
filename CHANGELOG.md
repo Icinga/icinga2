@@ -7,6 +7,30 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.13.8 (2023-07-12)
+
+Version 2.13.8 is a maintenance release that fixes some bugs,
+especially Icinga DB crashes, and updates several bundled libraries.
+
+### Bugfixes
+
+* Icinga DB feature: normalize several Redis data not to crash the Go daemon. #9814
+* Don't hang in timed out connection attempt. #9815
+* Trigger flexible downtimes not in the past if checkable is already down. #9817
+* ElasticsearchWriter: fix data buffer flush race condition during stop. #9818
+* SELinux: allow Icinga and its plugins to write to syslog. #9819
+* Fix lost acknowledgements after re-connect. #9820
+* Fix parsing of perfdata across multiple lines in plugin output. #9821
+* cluster-zone check: don't complain about not connected
+  other local zone members if there aren't any. #9822
+
+### Updates
+
+* Update Boost shipped on Windows to v1.82. #9816
+* Update OpenSSL shipped on Windows to v3.0.9. #9816
+* Update vendored https://github.com/nlohmann/json to v3.9.1. #9816
+* Update vendored https://github.com/nemtrif/utfcpp to v3.2.3. #9816
+
 ## 2.13.7 (2023-02-16)
 
 This security release updates Boost and OpenSSL libraries bundled on Windows
