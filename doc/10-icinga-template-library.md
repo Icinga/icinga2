@@ -187,6 +187,56 @@ Name            | Description
 ----------------|--------------
 sleep\_time     | **Optional.** The duration of the sleep in seconds. Defaults to 1s.
 
+### ifw-api <a id="itl-ifw-api"></a>
+
+Built-in check command for executing arbitrary PowerShell check commands via the
+[Icinga for Windows REST API](https://icinga.com/docs/icinga-for-windows/latest/doc/110-Installation/30-API-Check-Forwarder/).
+Consult that documentation for why and how to optimally use the `ifw-api`
+command as an addon for existing Icinga clusters with Icinga for Windows.
+
+In short, that feature lets the PowerShell processes spawned by Icinga just
+talk to the pre-loaded IfW API instead of loading all PowerShell check commands
+by itself on every check. In contrast, the `ifw-api` command doesn't even spawn
+any process, but communicates directly with the IfW API.
+
+It may be also used like e.g. [check_by_ssh](#plugin-check-command-by-ssh).
+Its custom variables provide high flexibility.
+From using a custom CA to controlling the IfW API directly from a Linux satellite.
+
+Optional custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+| Name                    | Default           | Description                                                                                                 |
+|-------------------------|-------------------|-------------------------------------------------------------------------------------------------------------|
+| ifw\_api\_command       | `$command.name$`  | Command to run.                                                                                             |
+| ifw\_api\_arguments     | {} (none)         | Arguments for the command, similar to [CheckCommand](09-object-types.md#objecttype-checkcommand)#arguments. |
+| ifw\_api\_host          | null (localhost)  | IfW API host.                                                                                               |
+| ifw\_api\_port          | 5668              | IfW API port.                                                                                               |
+| ifw\_api\_expected\_san | `$ifw_api_host$`  | Peer TLS certificate SAN (and SNI). null means agent NodeName.                                              |
+| ifw\_api\_cert          | null (Icinga PKI) | TLS client certificate path.                                                                                |
+| ifw\_api\_key           | null (Icinga PKI) | TLS client private key path.                                                                                |
+| ifw\_api\_ca            | null (Icinga PKI) | Peer TLS CA certificate path.                                                                               |
+| ifw\_api\_crl           | null (Icinga PKI) | Path to TLS CRL to check peer against.                                                                      |
+| ifw\_api\_username      | null (none)       | Basic auth username.                                                                                        |
+| ifw\_api\_password      | null (none)       | Basic auth password.                                                                                        |
+
+!!! info
+
+    Due to how Icinga 2 resolves macros and serializes the resolved values for
+    sending to a command endpoint (if any), ifw\_api\_arguments may not directly
+    contain functions for the case `ifw-api` is used with command endpoints. Only
+    macro strings referring to custom variables which are set to functions work.
+
+#### Remarks
+
+* `$command.name$` is resolved at runtime to the name of the specific
+  check command being run and not any of the templates it imports, i.e. it
+  becomes e.g. "Invoke-IcingaCheckCPU" if "ifw-api" is imported there
+* `ifw-api` connects to localhost (if ifw\_api\_host is null), but expects
+  the peer to identify itself via TLS with the NodeName of the endpoint
+  actually running the command (if ifw\_api\_expected\_san is null)
+* The actual values of ifw\_api\_cert, ifw\_api\_key, ifw\_api\_ca and ifw\_api\_crl
+  are also resolved to the Icinga PKI on the command endpoint if null
+
 <!-- keep this anchor for URL link history only -->
 <a id="plugin-check-commands"></a>
 
