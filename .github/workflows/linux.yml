@@ -22,6 +22,7 @@ jobs:
       matrix:
         distro:
           - amazonlinux:2
+          - amazonlinux:2023
           - centos:7 # and RHEL 7
           - debian:10
           - debian:11 # and Raspbian 11

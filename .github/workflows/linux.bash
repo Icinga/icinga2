@@ -7,7 +7,7 @@ export CTEST_OUTPUT_ON_FAILURE=1
 CMAKE_OPTS=''
 
 case "$DISTRO" in
-  amazonlinux:*)
+  amazonlinux:2)
     amazon-linux-extras install -y epel
     yum install -y bison ccache cmake3 gcc-c++ flex ninja-build \
       {libedit,mariadb,ncurses,openssl,postgresql,systemd}-devel
@@ -26,6 +26,11 @@ case "$DISTRO" in
     ln -vs /usr/bin/ninja-build /usr/local/bin/ninja
     CMAKE_OPTS='-DBOOST_INCLUDEDIR=/boost_1_69_0 -DBOOST_LIBRARYDIR=/boost_1_69_0/stage/lib'
     export LD_LIBRARY_PATH=/boost_1_69_0/stage/lib
+    ;;
+
+  amazonlinux:20*)
+    dnf install -y bison cmake flex gcc-c++ ninja-build \
+      {boost,libedit,mariadb1\*,ncurses,openssl,postgresql,systemd}-devel
     ;;
 
   centos:*)
@@ -83,9 +88,7 @@ cmake \
   -DICINGA2_GROUP=$(id -gn) \
   $CMAKE_OPTS ..
 
-ccache -z
 ninja
-ccache -s
 
 ninja test
 ninja install
