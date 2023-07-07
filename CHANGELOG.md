@@ -150,37 +150,37 @@ Add linux\_netdev check command. #9045
 
 #### New Command Arguments
 
-| Command                          | Argument                   | Custom Variable                          | PR    |
-|----------------------------------|----------------------------|------------------------------------------|-------|
-| disk                             | -P                         | disk\_inode\_perfdata                    | #9494 |
-| esxi\_hardware                   | --format                   | esxi\_hardware\_format                   | #9435 |
-| esxi\_hardware                   | --pretty                   | esxi\_hardware\_pretty                   | #9435 |
-| http                             | --verify-host              | http\_verify\_host                       | #8005 |
-| icingacli-businessprocess        | --ack-is-ok                | icingacli\_businessprocess\_ackisok      | #9103 |
-| icingacli-businessprocess        | --blame                    | icingacli\_businessprocess\_blame        | #9103 |
-| icingacli-businessprocess        | --colors                   | icingacli\_businessprocess\_colors       | #9103 |
-| icingacli-businessprocess        | --downtime-is-ok           | icingacli\_businessprocess\_downtimeisok | #9103 |
-| icingacli-businessprocess        | --root-cause               | icingacli\_businessprocess\_rootcause    | #9103 |
-| mem                              | -a                         | mem\_available                           | #9385 |
-| mongodb                          | --disable\_retry\_writes   | mongodb\_disableretrywrites              | #9539 |
-| mongodb                          | --ssl-ca-cert-file         | mongodb\_ssl\_ca\_cert\_file             | #9610 |
-| mysql                            | --extra-opts               | mysql\_extra\_opts                       | #9197 |
-| nrpe                             | -3                         | nrpe\_version\_3                         | #9296 |
-| nrpe                             | -D                         | nrpe\_no\_logging                        | #9016 |
-| nrpe                             | -P                         | nrpe\_payload\_size                      | #9032 |
-| pgsql                            | --extra-opts               | pgsql\_extra\_opts                       | #9197 |
-| postgres                         | $PGCONTROLDATA (env. var.) | postgres\_pgcontroldata                  | #8929 |
-| postgres                         | --datadir                  | postgres\_datadir                        | #8924 |
-| postgres                         | --language                 | postgres\_language                       | #8924 |
-| postgres                         | --perflimit                | postgres\_perflimit                      | #8924 |
-| ssl\_cert                        | --ignore-host-cn           | ssl\_cert\_ignore\_host\_cn              | #9512 |
-| ssl\_cert                        | --ignore-ocsp-errors       | ssl\_cert\_ignore\_ocsp\_errors          | #9512 |
-| ssl\_cert                        | --ignore-ocsp-timeout      | ssl\_cert\_ignore\_ocsp\_timeout         | #9512 |
-| ssl\_cert                        | --ignore-tls-renegotiation | ssl\_cert\_ignore\_tls\_renegotiation    | #9042 |
-| ssl\_cert                        | --proxy                    | ssl\_cert\_proxy                         | #8927 |
-| tcp                              | --sni                      | tcp\_sni                                 | #9347 |
-| vmware-esx-dc-runtime-tools      | --no\_vm\_tools\_ok        | vmware\_novmtools                        | #9611 |
-| vmware-esx-soap-vm-runtime-tools | --no\_vm\_tools\_ok        | vmware\_novmtools                        | #9611 |
+| Command                            | Argument                     | Custom Variable                          | PR    |
+|------------------------------------|------------------------------|------------------------------------------|-------|
+| `disk`                             | `-P`                         | `disk_inode_perfdata`                    | #9494 |
+| `esxi_hardware`                    | `--format`                   | `esxi_hardware_format`                   | #9435 |
+| `esxi_hardware`                    | `--pretty`                   | `esxi_hardware_pretty`                   | #9435 |
+| `http`                             | `--verify-host`              | `http_verify_host`                       | #8005 |
+| `icingacli-businessprocess`        | `--ack-is-ok`                | `icingacli_businessprocess_ackisok`      | #9103 |
+| `icingacli-businessprocess`        | `--blame`                    | `icingacli_businessprocess_blame`        | #9103 |
+| `icingacli-businessprocess`        | `--colors`                   | `icingacli_businessprocess_colors`       | #9103 |
+| `icingacli-businessprocess`        | `--downtime-is-ok`           | `icingacli_businessprocess_downtimeisok` | #9103 |
+| `icingacli-businessprocess`        | `--root-cause`               | `icingacli_businessprocess_rootcause`    | #9103 |
+| `mem`                              | `-a`                         | `mem_available`                          | #9385 |
+| `mongodb`                          | `--disable_retry_writes`     | `mongodb_disableretrywrites`             | #9539 |
+| `mongodb`                          | `--ssl-ca-cert-file`         | `mongodb_ssl_ca_cert_file`               | #9610 |
+| `mysql`                            | `--extra-opts`               | `mysql_extra_opts`                       | #9197 |
+| `nrpe`                             | `-3`                         | `nrpe_version_3`                         | #9296 |
+| `nrpe`                             | `-D`                         | `nrpe_no_logging`                        | #9016 |
+| `nrpe`                             | `-P`                         | `nrpe_payload_size`                      | #9032 |
+| `pgsql`                            | `--extra-opts`               | `pgsql_extra_opts`                       | #9197 |
+| `postgres`                         | `$PGCONTROLDATA` (env. var.) | `postgres_pgcontroldata`                 | #8929 |
+| `postgres`                         | `--datadir`                  | `postgres_datadir`                       | #8924 |
+| `postgres`                         | `--language`                 | `postgres_language`                      | #8924 |
+| `postgres`                         | `--perflimit`                | `postgres_perflimit`                     | #8924 |
+| `ssl_cert`                         | `--ignore-host-cn`           | `ssl_cert_ignore_host_cn`                | #9512 |
+| `ssl_cert`                         | `--ignore-ocsp-errors`       | `ssl_cert_ignore_ocsp_errors`            | #9512 |
+| `ssl_cert`                         | `--ignore-ocsp-timeout`      | `ssl_cert_ignore_ocsp_timeout`           | #9512 |
+| `ssl_cert`                         | `--ignore-tls-renegotiation` | `ssl_cert_ignore_tls_renegotiation`      | #9042 |
+| `ssl_cert`                         | `--proxy`                    | `ssl_cert_proxy`                         | #8927 |
+| `tcp`                              | `--sni`                      | `tcp_sni`                                | #9347 |
+| `vmware-esx-dc-runtime-tools`      | `--no_vm_tools_ok`           | `vmware_novmtools`                       | #9611 |
+| `vmware-esx-soap-vm-runtime-tools` | `--no_vm_tools_ok`           | `vmware_novmtools`                       | #9611 |
 
 ### Miscellaneous
 
