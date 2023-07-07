@@ -122,7 +122,7 @@ On the other hand MSIs are now 75% smaller than before.
 #### API
 
 * Disallow breaking inter-object relationships by changing
-  relationship attributes at runtime, e.g. Service#host_name. #9407
+  relationship attributes at runtime, e.g. Service#host\_name. #9407
 * Correct several HTTP response status codes. #7958 #9354
 * Correct Boolean field types previously reported by /v1/types as Number. #9514
 
