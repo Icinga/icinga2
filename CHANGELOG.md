@@ -122,7 +122,7 @@ On the other hand MSIs are now 75% smaller than before.
 #### API
 
 * Disallow breaking inter-object relationships by changing
-  relationship attributes at runtime, e.g. Service#host\_name. #9407
+  relationship attributes at runtime, e.g. `Service#host_name`. #9407
 * Correct several HTTP response status codes. #7958 #9354
 * Correct Boolean field types previously reported by /v1/types as Number. #9514
 
@@ -135,18 +135,18 @@ On the other hand MSIs are now 75% smaller than before.
 
 ### ITL
 
-Add linux\_netdev check command. #9045
+Add `linux_netdev` check command. #9045
 
 #### Command Argument Changes
 
-* disk: don't pass -m (disk\_megabytes) by default. #9642
-* disk: pass -X fuse.portal (disk\_exclude\_type) by default. #9459
-* http: support multiple -k (http\_header) as array. #8574
-* icmp: double defaults for -w (icmp\_wpl) and -c (icmp\_cpl). #9041
-* logfiles: pass --winwarncrit (logfiles\_winwarncrit) without argument. #9056
-* nwc\_health: pass SNMPv3-only args only when using SNMPv3. #9095
-* vmware-esx-dc-runtime-tools and vmware-esx-soap-vm-runtime-tools:
-  rename --open-vm-tools to --open\_vm\_tools\_ok (vmware\_openvmtools). #9611
+* `disk`: don't pass -m (`disk_megabytes`) by default. #9642
+* `disk`: pass -X fuse.portal (`disk_exclude_type`) by default. #9459
+* `http`: support multiple -k (`http_header`) as array. #8574
+* `icmp`: double defaults for -w (`icmp_wpl`) and -c (`icmp_cpl`). #9041
+* `logfiles`: pass --winwarncrit (`logfiles_winwarncrit`) without argument. #9056
+* `nwc_health`: pass SNMPv3-only args only when using SNMPv3. #9095
+* `vmware-esx-dc-runtime-tools` and `vmware-esx-soap-vm-runtime-tools`:
+  rename `--open-vm-tools` to `--open_vm_tools_ok` (`vmware_openvmtools`). #9611
 
 #### New Command Arguments
 
