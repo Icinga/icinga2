@@ -482,8 +482,8 @@ File Type: EXECUTABLE IMAGE
     boost_filesystem-vc142-mt-gd-x64-1_82.dll
     boost_thread-vc142-mt-gd-x64-1_82.dll
     boost_regex-vc142-mt-gd-x64-1_82.dll
-    libssl-1_1-x64.dll
-    libcrypto-1_1-x64.dll
+    libssl-3_0-x64.dll
+    libcrypto-3_0-x64.dll
     WS2_32.dll
     dbghelp.dll
     SHLWAPI.dll
