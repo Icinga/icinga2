@@ -7,6 +7,198 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.14.0 (2023-07-12)
+
+[Issues and PRs](https://github.com/Icinga/icinga2/issues?q=is%3Aclosed+milestone%3A2.14.0)
+
+### Notes
+
+Upgrading docs: https://icinga.com/docs/icinga2/snapshot/doc/16-upgrading-icinga-2/#upgrading-to-2-14
+
+Thanks to all contributors:
+[atj](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3Aatj),
+[atwebm](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3Aatwebm),
+[cspeterson](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3Acspeterson),
+[cycloon](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3Acycloon),
+[DamianoChini](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3ADamianoChini),
+[efuss](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3Aefuss),
+[fabieins](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3Afabieins),
+[haxtibal](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3Ahaxtibal),
+[jaapmarcus](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3Ajaapmarcus),
+[log1-c](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3Alog1-c),
+[lrupp](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3Alrupp),
+[maggu](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3Amaggu),
+[mcodato](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3Amcodato),
+[Napsty](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3ANapsty),
+[orbison](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3Aorbison),
+[peteeckel](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3Apeteeckel),
+[slalomsk8er](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3Aslalomsk8er),
+[stevie-sy](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3Astevie-sy),
+[Tqnsls](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.14.0+author%3ATqnsls)
+
+### Breaking Changes
+
+* Remove CheckResultReader (which has been deprecated since v2.9). #9714
+* Remove StatusDataWriter (which has been deprecated since v2.9). #9715
+* ElasticsearchWriter: drop support for Elasticsearch < v7. #9812
+* Consider a checkable unreachable once one Dependency fails.
+  Previously all of them had to fail. (Consult the upgrading docs.) #8218
+* API: reject config modifications during reload with HTTP status 503. #9445
+* `icinga2 daemon`: to reduce config load time, write file needed by
+  `icinga2 object list` only if `--dump-objects` is given. #9586 #9591
+* Default email notification scripts: link to Icinga DB Web,
+  not the monitoring module. (Consult the upgrading docs.) #9742 #9757
+* API: for security reasons hide TicketSalt in /v1/variables. #7863
+
+#### Icinga 2 Config DSL
+
+* Disallow global variable modification after config commit start (i.e.
+  inside `object/apply T "x" { ... }`) to reduce config load time. #9740
+* Forbid Dependency cycles at config load time. #8389
+* Allow only strings in the arrays Host#groups, Service#groups and
+  User#groups. Needed for consistency, especially by the IDO. #9057
+* Disallow empty object names. (They worked only partially anyway.) #9409
+
+#### Windows Agent only
+
+The official MSIs don't include the following features anymore.
+They weren't intended, tested or needed on Windows and only waste build time,
+bandwidth and disk space. Both new installations and upgrades are affected.
+
+* ElasticsearchWriter #9704
+* GelfWriter #9704
+* GraphiteWriter #9704
+* InfluxdbWriter and Influxdb2Writer #9704
+* OpenTsdbWriter #9704
+* PerfdataWriter #9704
+
+We also don't ship the following files anymore.
+(You can still obtain them manually.)
+
+* `NSCP.msi` (NSClient++ installer) #9703
+* [doc/](doc) (Icinga 2 markdown documentation) #9705
+
+On the other hand MSIs are now 75% smaller than before.
+
+### Enhancements
+
+* Significantly reduce config load time of large setups.
+  #8118 #9555 #9557 #9572 #9577 #9603 #9608 #9627 #9648 #9657 #9662
+* Allow to connect dependencies via redundancy groups. Only parents within
+  one group are assumed to provide redundancy for each other. #8218
+* Built-in check command ifw-api, communicates directly with the Icinga for
+  Windows REST API. (Doesn't spawn a PowerShell process for that.) #9062
+* JournaldLogger which logs to systemd journal. #9000
+* API: POST /v1/objects: allow to discard some previously modified attributes,
+  i.e. to restore the config files' values. #9783
+* ElasticsearchWriter: support Elasticsearch v8. #9812
+* Support `$env.ENV_VAR_NAME$` macros. #8302
+* Speed up Icinga DB config dump. #9524
+* Default mail notification scripts: also print `$host.notes$` and `$service.notes$`. #9713
+* Enable built-in OpenSSL DH parameters to allow DHE TLS ciphers. #9811
+* Clean up global default TLS cipher list to improve security. #9809
+* Influxdb(2)Writer: write more precise timestamps (nanoseconds). #9599
+
+### Bugfixes
+
+* Icinga DB feature: normalize several Redis data not to crash the Go daemon.
+  #9772 #9775 #9792 #9793 #9794 #9805
+* Fix parsing of perfdata across multiple lines in plugin output. #8969
+* icinga check: fix last reload failure time. #8429 #9827
+* Resolve macros inside custom vars of IcingaApplication. #9779
+* SELinux: allow Icinga and its plugins to write to syslog. #9688
+* ElasticsearchWriter: fix data buffer flush race condition during stop. #9810
+* Trigger flexible downtimes not in the past if checkable is already down. #9726
+* Send downtime expiration notifications immediately, not after up to a minute. #9726
+
+#### Cluster
+
+* Don't hang in timed out connection attempt. #9711 #9725
+* Fix lost acknowledgements after re-connect. #9718
+* cluster-zone check: don't complain about not connected
+  other local zone members if there aren't any. #8595
+* Allow agent to update executions delegated to it via /v1/actions/execute-command. #8627
+
+#### API
+
+* Disallow breaking inter-object relationships by changing
+  relationship attributes at runtime, e.g. `Service#host_name`. #9407
+* Correct several HTTP response status codes. #7958 #9354
+* Correct Boolean field types previously reported by /v1/types as Number. #9514
+
+#### CLI
+
+* `icinga2 daemon`: fix -DConfiguration.Concurrency= flag
+  which now allows to override the number of threads. #9643
+* `icinga2 node wizard`: avoid unnecessary chown(2) which may fail and abort the wizard. #8744
+* Correct several log messages. #8895 #8965 #9663
+
+### ITL
+
+Add `linux_netdev` check command. #9045
+
+#### Command Argument Changes
+
+* `disk`: don't pass -m (`disk_megabytes`) by default. #9642
+* `disk`: pass -X fuse.portal (`disk_exclude_type`) by default. #9459
+* `http`: support multiple -k (`http_header`) as array. #8574
+* `icmp`: double defaults for -w (`icmp_wpl`) and -c (`icmp_cpl`). #9041
+* `logfiles`: pass --winwarncrit (`logfiles_winwarncrit`) without argument. #9056
+* `nwc_health`: pass SNMPv3-only args only when using SNMPv3. #9095
+* `vmware-esx-dc-runtime-tools` and `vmware-esx-soap-vm-runtime-tools`:
+  rename `--open-vm-tools` to `--open_vm_tools_ok` (`vmware_openvmtools`). #9611
+
+#### New Command Arguments
+
+| Command                            | Argument                     | Custom Variable                          | PR    |
+|------------------------------------|------------------------------|------------------------------------------|-------|
+| `disk`                             | `-P`                         | `disk_inode_perfdata`                    | #9494 |
+| `esxi_hardware`                    | `--format`                   | `esxi_hardware_format`                   | #9435 |
+| `esxi_hardware`                    | `--pretty`                   | `esxi_hardware_pretty`                   | #9435 |
+| `http`                             | `--verify-host`              | `http_verify_host`                       | #8005 |
+| `icingacli-businessprocess`        | `--ack-is-ok`                | `icingacli_businessprocess_ackisok`      | #9103 |
+| `icingacli-businessprocess`        | `--blame`                    | `icingacli_businessprocess_blame`        | #9103 |
+| `icingacli-businessprocess`        | `--colors`                   | `icingacli_businessprocess_colors`       | #9103 |
+| `icingacli-businessprocess`        | `--downtime-is-ok`           | `icingacli_businessprocess_downtimeisok` | #9103 |
+| `icingacli-businessprocess`        | `--root-cause`               | `icingacli_businessprocess_rootcause`    | #9103 |
+| `mem`                              | `-a`                         | `mem_available`                          | #9385 |
+| `mongodb`                          | `--disable_retry_writes`     | `mongodb_disableretrywrites`             | #9539 |
+| `mongodb`                          | `--ssl-ca-cert-file`         | `mongodb_ssl_ca_cert_file`               | #9610 |
+| `mysql`                            | `--extra-opts`               | `mysql_extra_opts`                       | #9197 |
+| `nrpe`                             | `-3`                         | `nrpe_version_3`                         | #9296 |
+| `nrpe`                             | `-D`                         | `nrpe_no_logging`                        | #9016 |
+| `nrpe`                             | `-P`                         | `nrpe_payload_size`                      | #9032 |
+| `pgsql`                            | `--extra-opts`               | `pgsql_extra_opts`                       | #9197 |
+| `postgres`                         | `$PGCONTROLDATA` (env. var.) | `postgres_pgcontroldata`                 | #8929 |
+| `postgres`                         | `--datadir`                  | `postgres_datadir`                       | #8924 |
+| `postgres`                         | `--language`                 | `postgres_language`                      | #8924 |
+| `postgres`                         | `--perflimit`                | `postgres_perflimit`                     | #8924 |
+| `ssl_cert`                         | `--ignore-host-cn`           | `ssl_cert_ignore_host_cn`                | #9512 |
+| `ssl_cert`                         | `--ignore-ocsp-errors`       | `ssl_cert_ignore_ocsp_errors`            | #9512 |
+| `ssl_cert`                         | `--ignore-ocsp-timeout`      | `ssl_cert_ignore_ocsp_timeout`           | #9512 |
+| `ssl_cert`                         | `--ignore-tls-renegotiation` | `ssl_cert_ignore_tls_renegotiation`      | #9042 |
+| `ssl_cert`                         | `--proxy`                    | `ssl_cert_proxy`                         | #8927 |
+| `tcp`                              | `--sni`                      | `tcp_sni`                                | #9347 |
+| `vmware-esx-dc-runtime-tools`      | `--no_vm_tools_ok`           | `vmware_novmtools`                       | #9611 |
+| `vmware-esx-soap-vm-runtime-tools` | `--no_vm_tools_ok`           | `vmware_novmtools`                       | #9611 |
+
+### Miscellaneous
+
+* Require GCC 7+ for building to enable C++17. #9133 #9485 #9489
+* Require CMake v2.8.12+ for building.
+  (Compatibility with older ones will be removed from a future CMake version.) #9706
+* Repair config reload on OpenBSD by using waitpid(2), not a SIGCHLD handler. #9518
+* Ignore SIGHUP in main process to allow `/etc/rc.d/icinga2 reload`
+  sending it to all Icinga 2 processes on OpenBSD. #9622
+* Fix crash in debug build on macOS when API and debug log are enabled. #9497
+* Update Boost shipped on Windows to v1.82. #9761
+* Update OpenSSL shipped on Windows to v3.0.9. #9787
+* Update vendored https://github.com/nlohmann/json to v3.9.1. #9675
+* Update vendored https://github.com/nemtrif/utfcpp to v3.2.3. #9683
+* Documentation: several fixes and improvements.  #8954 #9741 #9763 #9767 #9769 #9777
+* Several code quality improvements. #8815 #9106 #9250
+  #9508 #9517 #9537 #9594 #9605 #9606 #9641 #9658 #9702 #9717 #9738
+
 ## 2.13.7 (2023-02-16)
 
 This security release updates Boost and OpenSSL libraries bundled on Windows
