@@ -12,6 +12,7 @@ assignees: ''
 - [ ] Check that the `.mailmap` and `AUTHORS` files are up to date
 - [ ] Update `ICINGA2_VERSION`
 - [ ] Update bundled Windows dependencies
+- [ ] Harden global TLS defaults (consult https://ssl-config.mozilla.org)
 - [ ] Update `CHANGELOG.md`
 - [ ] Create and push a signed tag for the version
 - [ ] Build and release DEB and RPM packages
