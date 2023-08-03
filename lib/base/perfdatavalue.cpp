@@ -363,20 +363,21 @@ String PerfdataValue::Format() const
 
 	result << unit;
 
+	result << ";";
 	if (!GetWarn().IsEmpty()) {
-		result << ";" << Convert::ToString(GetWarn());
-
-		if (!GetCrit().IsEmpty()) {
-			result << ";" << Convert::ToString(GetCrit());
-
-			if (!GetMin().IsEmpty()) {
-				result << ";" << Convert::ToString(GetMin());
-
-				if (!GetMax().IsEmpty()) {
-					result << ";" << Convert::ToString(GetMax());
-				}
-			}
-		}
+		result << Convert::ToString(GetWarn());
+	}
+	result << ";";
+	if (!GetCrit().IsEmpty()) {
+		result << Convert::ToString(GetCrit());
+	}
+	result << ";";
+	if (!GetMin().IsEmpty()) {
+		result << Convert::ToString(GetMin());
+	}
+	result << ";";
+	if (!GetMax().IsEmpty()) {
+		result << Convert::ToString(GetMax());
 	}
 
 	return result.str();
