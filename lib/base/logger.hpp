@@ -6,6 +6,7 @@
 
 #include "base/atomic.hpp"
 #include "base/i2-base.hpp"
+#include "base/configobject.hpp"
 #include "base/logger-ti.hpp"
 #include <optional>
 #include <set>
@@ -124,7 +125,7 @@ public:
 	Log(const Log& other) = delete;
 	Log& operator=(const Log& rhs) = delete;
 
-	Log(LogSeverity severity, String facility, const String& message = String());
+	Log(LogSeverity severity, String facility, const ConfigObject::Ptr& involved, const String& message = String());
 	~Log();
 
 	template<typename T>
@@ -140,6 +141,8 @@ public:
 private:
 	LogSeverity m_Severity;
 	String m_Facility;
+	ConfigObject::Ptr m_Involved;
+
 	/**
 	 * Stream for incrementally generating the log message. If the message will be discarded as it's level currently
 	 * isn't logged, it will be empty as the stream doesn't need to be initialized in this case.
