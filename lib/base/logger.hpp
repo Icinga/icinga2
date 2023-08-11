@@ -123,7 +123,7 @@ public:
 	Log(const Log& other) = delete;
 	Log& operator=(const Log& rhs) = delete;
 
-	Log(LogSeverity severity, String facility, const ConfigObject::Ptr& involved, const String& message = String());
+	Log(LogSeverity severity, String facility, const String& message = String());
 	~Log();
 
 	template<typename T>

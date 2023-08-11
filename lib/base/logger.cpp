@@ -345,9 +345,8 @@ void Logger::UpdateCheckObjectFilterCache()
 	m_ObjectFilterCache.swap(allObjects);
 }
 
-Log::Log(LogSeverity severity, String facility, const ConfigObject::Ptr& involved, const String& message)
-	: m_Severity(severity), m_Facility(std::move(facility)),
-	  m_Involved(involved), m_IsNoOp(severity < Logger::GetMinLogSeverity())
+Log::Log(LogSeverity severity, String facility, const String& message)
+	: m_Severity(severity), m_Facility(std::move(facility)), m_IsNoOp(severity < Logger::GetMinLogSeverity())
 {
 	if (!m_IsNoOp && !message.IsEmpty()) {
 		m_Buffer << message;
