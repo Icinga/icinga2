@@ -62,6 +62,19 @@ void Logger::Start(bool runtimeCreated)
 	UpdateMinLogSeverity();
 }
 
+void Logger::SetObjectFilter(const Dictionary::Ptr& value, bool suppress_events, const Value& cookie)
+{
+	ObjectImpl<Logger>::SetObjectFilter(value, suppress_events, cookie);
+	CheckObjectFilter();
+}
+
+void Logger::OnAllConfigLoaded()
+{
+	ObjectImpl<Logger>::OnAllConfigLoaded();
+	m_CalledOnAllConfigLoaded.store(true);
+	CheckObjectFilter();
+}
+
 void Logger::Stop(bool runtimeRemoved)
 {
 	{
@@ -282,6 +295,38 @@ void Logger::UpdateMinLogSeverity()
 #endif /* _WIN32 */
 
 	m_MinLogSeverity.store(result);
+}
+
+void Logger::CheckObjectFilter()
+{
+	if (!m_CalledOnAllConfigLoaded.load()) {
+		return;
+	}
+
+	auto filter (GetObjectFilter());
+
+	if (!filter) {
+		return;
+	}
+
+	ObjectLock lock (filter);
+
+	for (auto& kv : filter) {
+		auto type (Type::GetByName(kv.first));
+		auto ctype (dynamic_cast<ConfigType*>(type.get()));
+		Array::Ptr objects = kv.second;
+
+		if (ctype && objects) {
+			ObjectLock lock (objects);
+
+			for (String object : objects) {
+				if (!ctype->GetObject(object)) {
+					Log(LogWarning, GetReflectionType()->GetName())
+						<< "Missing " << kv.first << " '" << object << "' in object filter of '" << GetName() << "'.";
+				}
+			}
+		}
+	}
 }
 
 Log::Log(LogSeverity severity, String facility, const String& message)
