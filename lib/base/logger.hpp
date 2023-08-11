@@ -8,6 +8,7 @@
 #include "base/logger-ti.hpp"
 #include <set>
 #include <sstream>
+#include <vector>
 
 namespace icinga
 {
@@ -99,7 +100,7 @@ protected:
 private:
 	static void UpdateMinLogSeverity();
 
-	void CheckObjectFilter();
+	void UpdateCheckObjectFilterCache();
 
 	static std::mutex m_Mutex;
 	static std::set<Logger::Ptr> m_Loggers;
@@ -111,6 +112,7 @@ private:
 	static Atomic<LogSeverity> m_MinLogSeverity;
 
 	Atomic<bool> m_CalledOnAllConfigLoaded {false};
+	std::vector<ConfigObject*> m_ObjectFilterCache;
 };
 
 class Log
