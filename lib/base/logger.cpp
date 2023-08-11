@@ -348,18 +348,14 @@ void Logger::UpdateCheckObjectFilterCache()
 }
 
 Log::Log(LogSeverity severity, String facility, const String& message)
-	: Log(severity, std::move(facility))
-{
-	*this << message;
-}
-
-Log::Log(LogSeverity severity, String facility)
 {
 	// Only fully initialize the object if it's actually going to be logged.
 	if (severity >= Logger::GetMinLogSeverity()) {
 		m_Severity = severity;
 		m_Facility = std::move(facility);
 		m_Buffer.emplace();
+
+		*this << message;
 	}
 }
 
