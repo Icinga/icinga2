@@ -65,14 +65,14 @@ void Logger::Start(bool runtimeCreated)
 void Logger::SetObjectFilter(const Dictionary::Ptr& value, bool suppress_events, const Value& cookie)
 {
 	ObjectImpl<Logger>::SetObjectFilter(value, suppress_events, cookie);
-	CheckObjectFilter();
+	UpdateCheckObjectFilterCache();
 }
 
 void Logger::OnAllConfigLoaded()
 {
 	ObjectImpl<Logger>::OnAllConfigLoaded();
 	m_CalledOnAllConfigLoaded.store(true);
-	CheckObjectFilter();
+	UpdateCheckObjectFilterCache();
 }
 
 void Logger::Stop(bool runtimeRemoved)
@@ -297,7 +297,7 @@ void Logger::UpdateMinLogSeverity()
 	m_MinLogSeverity.store(result);
 }
 
-void Logger::CheckObjectFilter()
+void Logger::UpdateCheckObjectFilterCache()
 {
 	if (!m_CalledOnAllConfigLoaded.load()) {
 		return;
@@ -306,27 +306,43 @@ void Logger::CheckObjectFilter()
 	auto filter (GetObjectFilter());
 
 	if (!filter) {
+		ObjectLock lock (this);
+		m_ObjectFilterCache.clear();
 		return;
 	}
 
-	ObjectLock lock (filter);
+	std::vector<ConfigObject*> allObjects;
 
-	for (auto& kv : filter) {
-		auto type (Type::GetByName(kv.first));
-		auto ctype (dynamic_cast<ConfigType*>(type.get()));
-		Array::Ptr objects = kv.second;
+	{
+		ObjectLock lock (filter);
 
-		if (ctype && objects) {
-			ObjectLock lock (objects);
+		for (auto& kv : filter) {
+			auto type (Type::GetByName(kv.first));
+			auto ctype (dynamic_cast<ConfigType*>(type.get()));
+			Array::Ptr objects = kv.second;
 
-			for (String object : objects) {
-				if (!ctype->GetObject(object)) {
-					Log(LogWarning, GetReflectionType()->GetName())
-						<< "Missing " << kv.first << " '" << object << "' in object filter of '" << GetName() << "'.";
+			if (ctype && objects) {
+				ObjectLock lock (objects);
+
+				for (String name : objects) {
+					auto object (ctype->GetObject(name));
+
+					if (object) {
+						allObjects.emplace_back(object.get());
+					} else {
+						Log(LogWarning, GetReflectionType()->GetName())
+							<< "Missing " << kv.first << " '" << name << "' in name filter of '" << GetName() << "'.";
+					}
 				}
 			}
 		}
 	}
+
+	std::sort(allObjects.begin(), allObjects.end());
+
+	ObjectLock lock (this);
+
+	m_ObjectFilterCache.swap(allObjects);
 }
 
 Log::Log(LogSeverity severity, String facility, const String& message)
