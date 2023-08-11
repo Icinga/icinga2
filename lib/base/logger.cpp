@@ -74,6 +74,47 @@ void Logger::Stop(bool runtimeRemoved)
 	ObjectImpl<Logger>::Stop(runtimeRemoved);
 }
 
+void Logger::ValidateObjectFilter(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)
+{
+	ObjectImpl<Logger>::ValidateObjectFilter(lvalue, utils);
+
+	auto filter (lvalue());
+
+	if (filter) {
+		ObjectLock lock (filter);
+
+		for (auto& kv : filter) {
+			auto type (Type::GetByName(kv.first));
+
+			if (!type) {
+				BOOST_THROW_EXCEPTION(
+					ValidationError(this, {"object_filter"}, "No such type: '" + kv.first + "'")
+				);
+			}
+
+			if (!dynamic_cast<ConfigType*>(type.get())) {
+				BOOST_THROW_EXCEPTION(
+					ValidationError(this, {"object_filter"}, "Not a config object type: '" + kv.first + "'")
+				);
+			}
+
+			Array::Ptr objects = kv.second;
+
+			if (objects) {
+				ObjectLock lock (objects);
+
+				for (auto& object : objects) {
+					if (object.GetType() != ValueString) {
+						BOOST_THROW_EXCEPTION(
+							ValidationError(this, {"object_filter", kv.first}, "Must be an array of strings.")
+						);
+					}
+				}
+			}
+		}
+	}
+}
+
 std::set<Logger::Ptr> Logger::GetLoggers()
 {
 	std::unique_lock<std::mutex> lock(m_Mutex);
