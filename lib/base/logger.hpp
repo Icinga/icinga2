@@ -92,6 +92,7 @@ public:
 protected:
 	void Start(bool runtimeCreated) override;
 	void Stop(bool runtimeRemoved) override;
+	void ValidateObjectFilter(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils) override;
 
 private:
 	static void UpdateMinLogSeverity();
