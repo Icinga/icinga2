@@ -90,6 +90,8 @@ public:
 
 	void SetSeverity(const String& value, bool suppress_events = false, const Value& cookie = Empty) override;
 	void ValidateSeverity(const Lazy<String>& lvalue, const ValidationUtils& utils) override final;
+	void SetObjectFilter(const Dictionary::Ptr& value, bool suppress_events = false, const Value& cookie = Empty) override;
+	void OnAllConfigLoaded() override;
 
 protected:
 	void Start(bool runtimeCreated) override;
@@ -99,6 +101,8 @@ protected:
 private:
 	static void UpdateMinLogSeverity();
 
+	void CheckObjectFilter();
+
 	static std::mutex m_Mutex;
 	static std::set<Logger::Ptr> m_Loggers;
 	static bool m_ConsoleLogEnabled;
@@ -107,6 +111,8 @@ private:
 	static LogSeverity m_ConsoleLogSeverity;
 	static std::mutex m_UpdateMinLogSeverityMutex;
 	static Atomic<LogSeverity> m_MinLogSeverity;
+
+	Atomic<bool> m_CalledOnAllConfigLoaded {false};
 };
 
 class Log
