@@ -346,16 +346,12 @@ void Logger::UpdateCheckObjectFilterCache()
 }
 
 Log::Log(LogSeverity severity, String facility, const String& message)
-	: Log(severity, std::move(facility))
+	: m_Severity(severity), m_Facility(std::move(facility)), m_IsNoOp(severity < Logger::GetMinLogSeverity())
 {
-	if (!m_IsNoOp) {
+	if (!m_IsNoOp && !message.IsEmpty()) {
 		m_Buffer << message;
 	}
 }
-
-Log::Log(LogSeverity severity, String facility)
-	: m_Severity(severity), m_Facility(std::move(facility)), m_IsNoOp(severity < Logger::GetMinLogSeverity())
-{ }
 
 /**
  * Writes the message to the application's log.
