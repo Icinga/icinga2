@@ -5,6 +5,7 @@
 
 #include "base/atomic.hpp"
 #include "base/i2-base.hpp"
+#include "base/configobject.hpp"
 #include "base/logger-ti.hpp"
 #include <set>
 #include <sstream>
@@ -122,7 +123,7 @@ public:
 	Log(const Log& other) = delete;
 	Log& operator=(const Log& rhs) = delete;
 
-	Log(LogSeverity severity, String facility, const String& message = String());
+	Log(LogSeverity severity, String facility, const ConfigObject::Ptr& involved, const String& message = String());
 	~Log();
 
 	template<typename T>
@@ -137,6 +138,7 @@ public:
 private:
 	LogSeverity m_Severity;
 	String m_Facility;
+	ConfigObject::Ptr m_Involved;
 	std::ostringstream m_Buffer;
 	bool m_IsNoOp;
 };
