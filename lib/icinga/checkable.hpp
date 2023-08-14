@@ -104,6 +104,7 @@ public:
 	bool HasBeenChecked() const;
 	virtual bool IsStateOK(ServiceState state) const = 0;
 
+	double GetLastCheckScheduleStart() const;
 	double GetLastCheck() const final;
 
 	virtual void SaveLastState(ServiceState state, double timestamp) = 0;
