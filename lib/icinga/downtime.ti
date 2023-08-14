@@ -25,12 +25,12 @@ class Downtime : ConfigObject < DowntimeNameComposer
 	load_after Host;
 	load_after Service;
 
-	[config, no_user_modify, required, navigation(host)] name(Host) host_name {
+	[config, no_user_modify, required, navigation(host), parent_affecting_logging] name(Host) host_name {
 		navigate {{{
 			return Host::GetByName(GetHostName());
 		}}}
 	};
-	[config, no_user_modify, navigation(service)] String service_name {
+	[config, no_user_modify, navigation(service), parent_affecting_logging] String service_name {
 		track {{{
 			if (!oldValue.IsEmpty()) {
 				Service::Ptr service = Service::GetByNamePair(GetHostName(), oldValue);
