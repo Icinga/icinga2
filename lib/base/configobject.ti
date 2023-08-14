@@ -66,7 +66,7 @@ abstract class ConfigObject : ConfigObjectBase < ConfigType
 				return shortName;
 		}}}
 	};
-	[config, no_user_modify] name(Zone) zone (ZoneName);
+	[config, no_user_modify, parent_affecting_logging] name(Zone) zone (ZoneName);
 	[config, no_user_modify] String package;
 	[config, get_protected, no_user_modify] Array::Ptr templates;
 	[config, no_storage, no_user_modify] Dictionary::Ptr source_location {
