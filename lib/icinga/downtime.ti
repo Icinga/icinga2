@@ -72,7 +72,7 @@ class Downtime : ConfigObject < DowntimeNameComposer
 	[no_storage] bool was_cancelled {
 		get {{{ return GetRemoveTime() > 0; }}}
 	};
-	[config] String config_owner;
+	[config, no_user_modify] String config_owner;
 	[config] String config_owner_hash;
 	[config] String authoritative_zone;
 
