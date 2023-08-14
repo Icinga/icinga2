@@ -19,7 +19,7 @@ class UserGroup : CustomVarObject
 		}}}
 	};
 
-	[config, no_user_modify] array(name(UserGroup)) groups;
+	[config, no_user_modify, parent_affecting_logging] array(name(UserGroup)) groups;
 };
 
 }

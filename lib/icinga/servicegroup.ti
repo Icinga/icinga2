@@ -19,7 +19,7 @@ class ServiceGroup : CustomVarObject
 		}}}
 	};
 
-	[config, no_user_modify] array(name(ServiceGroup)) groups;
+	[config, no_user_modify, parent_affecting_logging] array(name(ServiceGroup)) groups;
 	[config] String notes;
 	[config] String notes_url;
 	[config] String action_url;
