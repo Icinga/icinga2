@@ -37,6 +37,12 @@ void Endpoint::OnAllConfigLoaded()
 	}
 }
 
+void Endpoint::GetParentsAffectingLogging(std::vector<ConfigObject::Ptr>& output) const
+{
+	ObjectImpl<Endpoint>::GetParentsAffectingLogging(output);
+	output.emplace_back(GetZone());
+}
+
 void Endpoint::SetCachedZone(const Zone::Ptr& zone)
 {
 	if (m_Zone)
