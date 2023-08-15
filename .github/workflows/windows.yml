@@ -1,15 +1,7 @@
 name: Windows
 
 on:
-  push:
-    branches:
-      - master
-      - 'support/*'
-  pull_request: {}
-
-concurrency:
-  group: windows-${{ github.ref }}
-  cancel-in-progress: true
+  push: { }
 
 jobs:
   windows:
@@ -17,7 +9,6 @@ jobs:
 
     strategy:
       fail-fast: false
-      max-parallel: 1
       matrix:
         bits: [32, 64]
 

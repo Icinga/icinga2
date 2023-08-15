@@ -82,7 +82,7 @@ cd /icinga2/build
 cmake \
   -GNinja \
   -DCMAKE_BUILD_TYPE=Release \
-  -DICINGA2_UNITY_BUILD=ON \
+  -DICINGA2_UNITY_BUILD=OFF \
   -DUSE_SYSTEMD=ON \
   -DICINGA2_USER=$(id -un) \
   -DICINGA2_GROUP=$(id -gn) \
