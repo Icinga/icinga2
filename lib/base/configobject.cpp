@@ -419,6 +419,18 @@ void ConfigObject::OnAllConfigLoaded()
 
 	if (!zoneName.IsEmpty())
 		m_Zone = ctype->GetObject(zoneName);
+
+	std::vector<Ptr> toDo {this};
+
+	do {
+		auto current (toDo.back());
+
+		toDo.pop_back();
+
+		if (m_AllParentsAffectingLogging.emplace(current.get()).second) {
+			current->GetParentsAffectingLogging(toDo);
+		}
+	} while (!toDo.empty());
 }
 
 void ConfigObject::CreateChildObjects(const Type::Ptr& childType)

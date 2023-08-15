@@ -9,6 +9,7 @@
 #include "base/type.hpp"
 #include "base/dictionary.hpp"
 #include <boost/signals2.hpp>
+#include <set>
 
 namespace icinga
 {
@@ -81,6 +82,7 @@ public:
 
 private:
 	ConfigObject::Ptr m_Zone;
+	std::set<ConfigObject*> m_AllParentsAffectingLogging;
 
 	static void RestoreObject(const String& message, int attributeTypes);
 };
