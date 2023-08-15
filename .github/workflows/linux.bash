@@ -82,6 +82,7 @@ cd /icinga2/build
 cmake \
   -GNinja \
   -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_CXX_FLAGS='-Werror=suggest-override' \
   -DICINGA2_UNITY_BUILD=ON \
   -DUSE_SYSTEMD=ON \
   -DICINGA2_USER=$(id -un) \
