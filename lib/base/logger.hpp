@@ -93,6 +93,11 @@ public:
 	void SetObjectFilter(const Dictionary::Ptr& value, bool suppress_events = false, const Value& cookie = Empty) override;
 	void OnAllConfigLoaded() override;
 
+	inline const std::vector<ConfigObject*>& GetObjectFilterCache() const
+	{
+		return m_ObjectFilterCache;
+	}
+
 protected:
 	void Start(bool runtimeCreated) override;
 	void Stop(bool runtimeRemoved) override;
