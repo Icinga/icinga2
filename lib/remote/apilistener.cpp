@@ -1146,7 +1146,7 @@ void ApiListener::RelayMessage(const MessageOrigin::Ptr& origin,
 	if (!IsActive())
 		return;
 
-	m_RelayQueue.Enqueue([this, origin, secobj, message, log]() { SyncRelayMessage(origin, secobj, message, log); }, PriorityNormal, true);
+	SyncRelayMessage(origin, secobj, message, log);
 }
 
 void ApiListener::PersistMessage(const Dictionary::Ptr& message, const ConfigObject::Ptr& secobj)
