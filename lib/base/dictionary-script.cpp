@@ -116,4 +116,3 @@ Object::Ptr Dictionary::GetPrototype()
 
 	return prototype;
 }
-

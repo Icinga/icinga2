@@ -23,4 +23,3 @@ Object::Ptr Boolean::GetPrototype()
 
 	return prototype;
 }
-

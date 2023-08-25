@@ -593,4 +593,3 @@ void InfluxdbCommonWriter::ValidateServiceTemplate(const Lazy<Dictionary::Ptr>& 
 		}
 	}
 }
-

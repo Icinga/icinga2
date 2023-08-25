@@ -1065,4 +1065,3 @@ ExpressionResult TryExceptExpression::DoEvaluate(ScriptFrame& frame, DebugHint *
 
 	return Empty;
 }
-

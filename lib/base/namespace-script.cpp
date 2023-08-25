@@ -81,4 +81,3 @@ Object::Ptr Namespace::GetPrototype()
 
 	return prototype;
 }
-

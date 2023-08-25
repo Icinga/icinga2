@@ -58,4 +58,3 @@ ActivationContext::Ptr ActivationScope::GetContext() const
 {
 	return m_Context;
 }
-

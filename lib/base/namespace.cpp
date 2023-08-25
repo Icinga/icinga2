@@ -186,4 +186,3 @@ Namespace::Iterator icinga::end(const Namespace::Ptr& x)
 {
 	return x->End();
 }
-

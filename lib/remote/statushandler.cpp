@@ -117,4 +117,3 @@ bool StatusHandler::HandleRequest(
 
 	return true;
 }
-

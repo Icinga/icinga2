@@ -126,4 +126,3 @@ void HttpHandler::ProcessRequest(
 		return;
 	}
 }
-

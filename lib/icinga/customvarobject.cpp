@@ -46,4 +46,3 @@ int icinga::FilterArrayToInt(const Array::Ptr& typeFilters, const std::map<Strin
 
 	return resultTypeFilter;
 }
-
