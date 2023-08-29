@@ -21,4 +21,20 @@ public:
 	~DefragAllocator();
 };
 
+/**
+ * TODO
+ *
+ * @ingroup base
+ */
+class DefaultAllocator
+{
+public:
+	DefaultAllocator();
+	DefaultAllocator(const DefaultAllocator&) = delete;
+	DefaultAllocator(DefaultAllocator&&) = delete;
+	DefaultAllocator& operator=(const DefaultAllocator&) = delete;
+	DefaultAllocator& operator=(DefaultAllocator&&) = delete;
+	~DefaultAllocator();
+};
+
 }

@@ -23,6 +23,7 @@ struct DAPage
 
 static thread_local struct {
 	unsigned int InUse = 0;
+	unsigned int Paused = 0;
 	DAPage* TopPage = nullptr;
 } l_DefragAllocator;
 
@@ -31,7 +32,7 @@ extern "C" void* malloc(size_t bytes)
 	static const auto libcMalloc = (void*(*)(size_t))dlsym(RTLD_NEXT, "malloc");
 	static const size_t pageSize = std::max(128L * 1024L, sysconf(_SC_PAGESIZE));
 
-	if (BOOST_LIKELY(!l_DefragAllocator.InUse)) {
+	if (BOOST_LIKELY(!l_DefragAllocator.InUse || l_DefragAllocator.Paused)) {
 		return libcMalloc(bytes);
 	}
 
@@ -75,7 +76,7 @@ extern "C" void free(void* memory)
 {
 	static const auto libcFree = (void(*)(void*))dlsym(RTLD_NEXT, "free");
 
-	if (BOOST_LIKELY(!l_DefragAllocator.InUse)) {
+	if (BOOST_LIKELY(!l_DefragAllocator.InUse || l_DefragAllocator.Paused)) {
 		libcFree(memory);
 	}
 }
@@ -95,6 +96,16 @@ DefragAllocator::~DefragAllocator()
 			l_DefragAllocator.TopPage = next;
 		}
 	}
+}
+
+DefaultAllocator::DefaultAllocator()
+{
+	++l_DefragAllocator.Paused;
+}
+
+DefaultAllocator::~DefaultAllocator()
+{
+	--l_DefragAllocator.Paused;
 }
 
 #endif /* _WIN32 */
