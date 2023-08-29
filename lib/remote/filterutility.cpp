@@ -113,18 +113,16 @@ bool FilterUtility::EvaluateFilter(ScriptFrame& frame, Expression *filter,
 			frameNS->Set(field.Name, joinedObj);
 	}
 
+	DefragAllocator da;
+
 	return Convert::ToBool(filter->Evaluate(frame));
 }
 
 static void FilteredAddTarget(ScriptFrame& permissionFrame, Expression *permissionFilter,
 	ScriptFrame& frame, Expression *ufilter, std::vector<Value>& result, const String& variableName, const Object::Ptr& target)
 {
-	DefragAllocator da;
-
 	if (FilterUtility::EvaluateFilter(permissionFrame, permissionFilter, target, variableName)) {
 		if (FilterUtility::EvaluateFilter(frame, ufilter, target, variableName)) {
-			DefaultAllocator da;
-
 			result.emplace_back(std::move(target));
 		}
 	}
