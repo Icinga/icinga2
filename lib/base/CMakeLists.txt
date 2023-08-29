@@ -14,7 +14,7 @@ mkclass_target(sysloglogger.ti sysloglogger-ti.cpp sysloglogger-ti.hpp)
 
 set(base_SOURCES
   i2-base.hpp
-  allocator.cpp
+  allocator.cpp allocator.hpp
   application.cpp application.hpp application-ti.hpp application-version.cpp application-environment.cpp
   array.cpp array.hpp array-script.cpp
   atomic.hpp
