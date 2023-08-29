@@ -4,6 +4,7 @@
 #include "remote/httputility.hpp"
 #include "config/configcompiler.hpp"
 #include "config/expression.hpp"
+#include "base/allocator.hpp"
 #include "base/namespace.hpp"
 #include "base/json.hpp"
 #include "base/configtype.hpp"
@@ -118,8 +119,12 @@ bool FilterUtility::EvaluateFilter(ScriptFrame& frame, Expression *filter,
 static void FilteredAddTarget(ScriptFrame& permissionFrame, Expression *permissionFilter,
 	ScriptFrame& frame, Expression *ufilter, std::vector<Value>& result, const String& variableName, const Object::Ptr& target)
 {
+	DefragAllocator da;
+
 	if (FilterUtility::EvaluateFilter(permissionFrame, permissionFilter, target, variableName)) {
 		if (FilterUtility::EvaluateFilter(frame, ufilter, target, variableName)) {
+			DefaultAllocator da;
+
 			result.emplace_back(std::move(target));
 		}
 	}
