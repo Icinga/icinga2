@@ -42,6 +42,7 @@ public:
 
 	Value Get(const String& key) const;
 	bool Get(const String& key, Value *result) const;
+	const Value * GetRef(const String& key) const;
 	void Set(const String& key, Value value, bool overrideFrozen = false);
 	bool Contains(const String& key) const;
 
