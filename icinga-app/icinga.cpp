@@ -280,9 +280,6 @@ static int Main()
 #endif /* RLIMIT_STACK */
 	}
 
-	if (!autocomplete)
-		Application::SetResourceLimits();
-
 	LogSeverity logLevel = Logger::GetConsoleLogSeverity();
 	Logger::SetConsoleLogSeverity(LogWarning);
 
