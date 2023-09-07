@@ -114,18 +114,17 @@ void GelfWriter::Pause()
 
 	m_ReconnectTimer->Stop(true);
 
-	try {
-		ReconnectInternal();
-	} catch (const std::exception&) {
-		Log(LogInformation, "GelfWriter")
-			<< "'" << GetName() << "' paused. Unable to connect, not flushing buffers. Data may be lost on reload.";
+	m_WorkQueue.Enqueue([this]() {
+		try {
+			ReconnectInternal();
+		} catch (const std::exception&) {
+			Log(LogInformation, "GelfWriter")
+				<< "Unable to connect, not flushing buffers. Data may be lost.";
+		}
+	}, PriorityImmediate);
 
-		ObjectImpl<GelfWriter>::Pause();
-		return;
-	}
-
+	m_WorkQueue.Enqueue([this]() { DisconnectInternal(); }, PriorityLow);
 	m_WorkQueue.Join();
-	DisconnectInternal();
 
 	Log(LogInformation, "GelfWriter")
 		<< "'" << GetName() << "' paused.";
@@ -512,8 +511,6 @@ void GelfWriter::SendLogMessage(const Checkable::Ptr& checkable, const String& g
 	msgbuf << '\0';
 
 	String log = msgbuf.str();
-
-	ObjectLock olock(this);
 
 	if (!GetConnected())
 		return;
