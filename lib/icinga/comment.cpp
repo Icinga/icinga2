@@ -65,7 +65,7 @@ void Comment::OnAllConfigLoaded()
 
 	Host::Ptr host = Host::GetByName(GetHostName());
 
-	if (GetServiceName().IsEmpty())
+	if (GetServiceName().IsEmpty() || ! host)
 		m_Checkable = host;
 	else
 		m_Checkable = host->GetServiceByShortName(GetServiceName());
