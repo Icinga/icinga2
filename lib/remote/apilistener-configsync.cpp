@@ -459,8 +459,7 @@ void ApiListener::SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient
 			bool unresolved_dep = false;
 
 			/* skip this type (for now) if there are unresolved load dependencies */
-			for (const String& loadDep : type->GetLoadDependencies()) {
-				Type::Ptr pLoadDep = Type::GetByName(loadDep);
+			for (auto pLoadDep : type->GetLoadDependencies()) {
 				if (types.find(pLoadDep) != types.end() && completed_types.find(pLoadDep) == completed_types.end()) {
 					unresolved_dep = true;
 					break;
