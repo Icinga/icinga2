@@ -464,7 +464,7 @@ void ConfigObject::DumpObjects(const String& filename, int attributeTypes)
 		<< "Dumping program state to file '" << filename << "'";
 
 	try {
-		Utility::Glob(filename + ".tmp.*", &Utility::Remove, GlobFile);
+		Utility::Glob(filename + ".tmp.*", &Utility::RemoveIfOld, GlobFile);
 	} catch (const std::exception& ex) {
 		Log(LogWarning, "ConfigObject") << DiagnosticInformation(ex);
 	}
