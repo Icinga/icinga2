@@ -84,7 +84,7 @@ public:
 protected:
 	DbObject(intrusive_ptr<DbType> type, String name1, String name2);
 
-	virtual void OnConfigUpdateHeavy();
+	virtual void OnConfigUpdateHeavy(std::vector<DbQuery>& queries);
 	virtual void OnConfigUpdateLight();
 	virtual void OnStatusUpdate();
 
