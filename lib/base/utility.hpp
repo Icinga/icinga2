@@ -150,6 +150,8 @@ public:
 	static void IncrementTime(double);
 #endif /* I2_DEBUG */
 
+	static String RealPath(const String& path);
+
 	/**
 	 * TruncateUsingHash truncates a given string to an allowed maximum length while avoiding collisions in the output
 	 * using a hash function (SHA1).
