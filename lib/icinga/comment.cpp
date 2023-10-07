@@ -169,7 +169,7 @@ String Comment::AddComment(const Checkable::Ptr& checkable, CommentType entryTyp
 
 	if (!ConfigObjectUtility::CreateObject(Comment::TypeInstance, fullName, config, errors, nullptr)) {
 		ObjectLock olock(errors);
-		for (const String& error : errors) {
+		for (String error : errors) {
 			Log(LogCritical, "Comment", error);
 		}
 
@@ -206,7 +206,7 @@ void Comment::RemoveComment(const String& id, bool removedManually, const String
 
 	if (!ConfigObjectUtility::DeleteObject(comment, false, errors, nullptr)) {
 		ObjectLock olock(errors);
-		for (const String& error : errors) {
+		for (String error : errors) {
 			Log(LogCritical, "Comment", error);
 		}
 

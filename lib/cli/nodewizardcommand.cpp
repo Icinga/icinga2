@@ -242,7 +242,7 @@ wizard_endpoint_loop_start:
 	/* Extract parent node information. */
 	String parentHost, parentPort;
 
-	for (const String& endpoint : endpoints) {
+	for (String endpoint : endpoints) {
 		std::vector<String> tokens = endpoint.Split(",");
 
 		if (tokens.size() > 1)

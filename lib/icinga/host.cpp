@@ -38,7 +38,7 @@ void Host::OnAllConfigLoaded()
 
 		ObjectLock olock(groups);
 
-		for (const String& name : groups) {
+		for (String name : groups) {
 			HostGroup::Ptr hg = HostGroup::GetByName(name);
 
 			if (hg)
@@ -71,7 +71,7 @@ void Host::Stop(bool runtimeRemoved)
 	if (groups) {
 		ObjectLock olock(groups);
 
-		for (const String& name : groups) {
+		for (String name : groups) {
 			HostGroup::Ptr hg = HostGroup::GetByName(name);
 
 			if (hg)

@@ -319,7 +319,7 @@ Downtime::Ptr Downtime::AddDowntime(const Checkable::Ptr& checkable, const Strin
 
 	if (!ConfigObjectUtility::CreateObject(Downtime::TypeInstance, fullName, config, errors, nullptr)) {
 		ObjectLock olock(errors);
-		for (const String& error : errors) {
+		for (String error : errors) {
 			Log(LogCritical, "Downtime", error);
 		}
 
@@ -378,7 +378,7 @@ void Downtime::RemoveDowntime(const String& id, bool includeChildren, bool cance
 
 	if (!ConfigObjectUtility::DeleteObject(downtime, false, errors, nullptr)) {
 		ObjectLock olock(errors);
-		for (const String& error : errors) {
+		for (String error : errors) {
 			Log(LogCritical, "Downtime", error);
 		}
 
@@ -489,7 +489,7 @@ void Downtime::TriggerDowntime(double triggerTime)
 
 	{
 		ObjectLock olock(triggers);
-		for (const String& triggerName : triggers) {
+		for (String triggerName : triggers) {
 			Downtime::Ptr downtime = Downtime::GetByName(triggerName);
 
 			if (!downtime)

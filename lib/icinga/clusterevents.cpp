@@ -1244,7 +1244,7 @@ Value ClusterEvents::NotificationSentToAllUsersAPIHandler(const MessageOrigin::P
 
 	{
 		ObjectLock olock(ausers);
-		for (const String& auser : ausers) {
+		for (String auser : ausers) {
 			User::Ptr user = User::GetByName(auser);
 
 			if (!user)
