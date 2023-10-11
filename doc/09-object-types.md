@@ -1046,8 +1046,8 @@ Configuration Attributes:
 
   Name                      | Type                  | Description
   --------------------------|-----------------------|----------------------------------
-  host\_name                | Object name           | **Required.** The name of the host this comment belongs to.
-  service\_name             | Object name           | **Optional.** The short name of the service this comment belongs to. If omitted, this comment object is treated as host comment.
+  host\_name                | Object name           | **Required.** The name of the host this downtime belongs to.
+  service\_name             | Object name           | **Optional.** The short name of the service this downtime belongs to. If omitted, this downtime object is treated as host downtime.
   author                    | String                | **Required.** The author's name.
   comment                   | String                | **Required.** The comment text.
   start\_time               | Timestamp             | **Required.** The start time as UNIX timestamp.
