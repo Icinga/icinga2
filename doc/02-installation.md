@@ -564,7 +564,7 @@ The `icingadb-redis` package automatically installs the necessary systemd unit f
 Please run the following command to enable and start its service:
 
 ```bash
-systemctl enable --now icingadb-redis
+systemctl enable --now icingadb-redis-server
 ```
 
 #### Enable Remote Redis Connections <a id="enable-remote-redis-connections"></a>
