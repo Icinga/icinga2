@@ -1850,7 +1850,7 @@ Example for all object events:
   --------------|---------------|--------------------------
   type 	        | String        | Event type `DowntimeAdded`.
   timestamp     | Timestamp     | Unix timestamp when the event happened.
-  downtime      | Dictionary    | Serialized [Comment](09-object-types.md#objecttype-downtime) object.
+  downtime      | Dictionary    | Serialized [Downtime](09-object-types.md#objecttype-downtime) object.
 
 #### <a id="icinga2-api-event-streams-type-downtimeremoved"></a> Event Stream Type: DowntimeRemoved
 
@@ -1858,7 +1858,7 @@ Example for all object events:
   --------------|---------------|--------------------------
   type 	        | String        | Event type `DowntimeRemoved`.
   timestamp     | Timestamp     | Unix timestamp when the event happened.
-  downtime      | Dictionary    | Serialized [Comment](09-object-types.md#objecttype-downtime) object.
+  downtime      | Dictionary    | Serialized [Downtime](09-object-types.md#objecttype-downtime) object.
 
 
 #### <a id="icinga2-api-event-streams-type-downtimestarted"></a> Event Stream Type: DowntimeStarted
@@ -1867,7 +1867,7 @@ Example for all object events:
   --------------|---------------|--------------------------
   type 	        | String        | Event type `DowntimeStarted`.
   timestamp     | Timestamp     | Unix timestamp when the event happened.
-  downtime      | Dictionary    | Serialized [Comment](09-object-types.md#objecttype-downtime) object.
+  downtime      | Dictionary    | Serialized [Downtime](09-object-types.md#objecttype-downtime) object.
 
 
 #### <a id="icinga2-api-event-streams-type-downtimetriggered"></a> Event Stream Type: DowntimeTriggered
@@ -1876,7 +1876,7 @@ Example for all object events:
   --------------|---------------|--------------------------
   type 	        | String        | Event type `DowntimeTriggered`.
   timestamp     | Timestamp     | Unix timestamp when the event happened.
-  downtime      | Dictionary    | Serialized [Comment](09-object-types.md#objecttype-downtime) object.
+  downtime      | Dictionary    | Serialized [Downtime](09-object-types.md#objecttype-downtime) object.
 
 
 ### Event Stream Filter <a id="icinga2-api-event-streams-filter"></a>
