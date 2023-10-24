@@ -1012,16 +1012,7 @@ int GetCertificateVersion(const std::shared_ptr<X509>& cert)
 
 String GetSignatureAlgorithm(const std::shared_ptr<X509>& cert)
 {
-	int alg;
 	int sign_alg;
-	X509_PUBKEY *key;
-	X509_ALGOR *algor;
-
-	key = X509_get_X509_PUBKEY(cert.get());
-
-	X509_PUBKEY_get0_param(nullptr, nullptr, 0, &algor, key); //TODO: Error handling
-
-	alg = OBJ_obj2nid (algor->algorithm);
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
 	sign_alg = OBJ_obj2nid((cert.get())->sig_alg->algorithm);
