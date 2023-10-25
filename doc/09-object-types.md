@@ -34,6 +34,7 @@ the [Icinga 2 API](12-icinga2-api.md#icinga2-api-config-objects).
   templates                 | Array                 | Templates imported on object compilation.
   package                   | String                | [Configuration package name](12-icinga2-api.md#icinga2-api-config-management) this object belongs to. Local configuration is set to `_etc`, runtime created objects use `_api`.
   source\_location          | Dictionary            | Location information where the configuration files are stored.
+  name                      | String                | Object name. Might be used in [apply rules](03-monitoring-basics.md#using-apply).
 
 ## Monitoring Objects <a id="object-types-monitoring"></a>
 
@@ -731,7 +732,6 @@ Configuration Attributes:
   event\_command            | Object name           | **Optional.** The name of an event command that should be executed every time the service's state changes or the service is in a `SOFT` state.
   volatile                  | Boolean               | **Optional.** Treat all state changes as HARD changes. See [here](08-advanced-topics.md#volatile-services-hosts) for details. Defaults to `false`.
   zone                      | Object name           | **Optional.** The zone this object is a member of. Please read the [distributed monitoring](06-distributed-monitoring.md#distributed-monitoring) chapter for details.
-  name                      | String                | **Required.** The service name. Must be unique on a per-host basis. For advanced usage in [apply rules](03-monitoring-basics.md#using-apply) only.
   command\_endpoint         | Object name           | **Optional.** The endpoint where commands are executed on.
   notes                     | String                | **Optional.** Notes for the service.
   notes\_url                | String                | **Optional.** URL for notes for the service (for example, in notification commands).
