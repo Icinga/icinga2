@@ -11,6 +11,8 @@
 #include <boost/asio/ssl/context.hpp>
 #include <openssl/opensslv.h>
 #include <openssl/crypto.h>
+#include <openssl/ssl.h>
+#include <openssl/ssl3.h>
 #include <fstream>
 
 namespace icinga
@@ -90,6 +92,16 @@ static void InitSslContext(const Shared<boost::asio::ssl::context>::Ptr& context
 	long flags = SSL_CTX_get_options(sslContext);
 
 	flags |= SSL_OP_CIPHER_SERVER_PREFERENCE;
+
+#if OPENSSL_VERSION_NUMBER < 0x10101000L
+	SSL_CTX_set_info_callback(sslContext, [](const SSL* ssl, int where, int) {
+		if (where & SSL_CB_HANDSHAKE_DONE) {
+			ssl->s3->flags |= SSL3_FLAGS_NO_RENEGOTIATE_CIPHERS;
+		}
+	});
+#else /* OPENSSL_VERSION_NUMBER < 0x10101000L */
+	flags |= SSL_OP_NO_RENEGOTIATION;
+#endif /* OPENSSL_VERSION_NUMBER < 0x10101000L */
 
 	SSL_CTX_set_options(sslContext, flags);
 
