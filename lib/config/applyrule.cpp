@@ -1,5 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "config/activationcontext.hpp"
 #include "config/applyrule.hpp"
 #include "base/logger.hpp"
 #include <set>
@@ -61,6 +62,8 @@ void ApplyRule::AddRule(const String& sourceType, const String& targetType, cons
 	const Expression::Ptr& expression, const Expression::Ptr& filter, const String& package, const String& fkvar,
 	const String& fvvar, const Expression::Ptr& fterm, bool ignoreOnError, const DebugInfo& di, const Dictionary::Ptr& scope)
 {
+	ActivationContext::AssertOnContext();
+
 	auto actualTargetType (&targetType);
 
 	if (*actualTargetType == "") {
