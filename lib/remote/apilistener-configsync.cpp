@@ -440,7 +440,7 @@ void ApiListener::SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient
 
 	Zone::Ptr azone = endpoint->GetZone();
 
-	Log(LogInformation, "ApiListener")
+	Log(LogNotice, "ApiListener")
 		<< "Syncing runtime objects to endpoint '" << endpoint->GetName() << "'.";
 
 	for (const Type::Ptr& type : Type::GetAllTypes()) {
@@ -459,6 +459,6 @@ void ApiListener::SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient
 		}
 	}
 
-	Log(LogInformation, "ApiListener")
+	Log(LogNotice, "ApiListener")
 		<< "Finished syncing runtime objects to endpoint '" << endpoint->GetName() << "'.";
 }

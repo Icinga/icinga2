@@ -545,8 +545,10 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 		String host = endpoint->GetHost();
 		String port = endpoint->GetPort();
 
-		Log(LogInformation, "ApiListener")
+		Log(endpoint->GetLoggedConnectionAttempt() ? LogNotice : LogInformation, "ApiListener")
 			<< "Reconnecting to endpoint '" << endpoint->GetName() << "' via host '" << host << "' and port '" << port << "'";
+
+		endpoint->SetLoggedConnectionAttempt(true);
 
 		try {
 			boost::shared_lock<decltype(m_SSLContextMutex)> lock (m_SSLContextMutex);
@@ -556,7 +558,7 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 
 			Timeout::Ptr timeout(new Timeout(strand->context(), *strand, boost::posix_time::microseconds(int64_t(GetConnectTimeout() * 1e6)),
 				[sslConn, endpoint, host, port](asio::yield_context yc) {
-					Log(LogCritical, "ApiListener")
+					Log(LogNotice, "ApiListener")
 						<< "Timeout while reconnecting to endpoint '" << endpoint->GetName() << "' via host '" << host
 						<< "' and port '" << port << "', cancelling attempt";
 
@@ -576,8 +578,13 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 		} catch (const std::exception& ex) {
 			endpoint->SetConnecting(false);
 
-			Log(LogCritical, "ApiListener")
-				<< "Cannot connect to host '" << host << "' on port '" << port << "': " << ex.what();
+			auto reason (ex.what());
+			auto lastReason (endpoint->GetLastLoggedConnectionFailure());
+
+			Log(lastReason != "" && reason == lastReason ? LogNotice : LogCritical, "ApiListener")
+				<< "Cannot connect to host '" << host << "' on port '" << port << "': " << reason;
+
+			endpoint->SetLastLoggedConnectionFailure(reason);
 		}
 	});
 }
@@ -733,7 +740,10 @@ void ApiListener::NewClientHandlerInternal(
 
 		if (!verify_ok) {
 			log << " (certificate validation failed: " << verifyError << ")";
-		} else if (!endpoint) {
+		} else if (endpoint) {
+			endpoint->SetLoggedConnectionAttempt(false);
+			endpoint->SetLastLoggedConnectionFailure("");
+		} else {
 			log << " (no Endpoint object found for identity)";
 		}
 	} else {
@@ -878,19 +888,19 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 		 * before the logs are replayed.
 		 */
 
-		Log(LogInformation, "ApiListener")
+		Log(LogNotice, "ApiListener")
 			<< "Sending config updates for endpoint '" << endpoint->GetName() << "' in zone '" << eZone->GetName() << "'.";
 
 		/* sync zone file config */
 		SendConfigUpdate(aclient);
 
-		Log(LogInformation, "ApiListener")
+		Log(LogNotice, "ApiListener")
 			<< "Finished sending config file updates for endpoint '" << endpoint->GetName() << "' in zone '" << eZone->GetName() << "'.";
 
 		/* sync runtime config */
 		SendRuntimeConfigObjects(aclient);
 
-		Log(LogInformation, "ApiListener")
+		Log(LogNotice, "ApiListener")
 			<< "Finished sending runtime config updates for endpoint '" << endpoint->GetName() << "' in zone '" << eZone->GetName() << "'.";
 
 		if (!needSync) {
@@ -899,7 +909,7 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 			return;
 		}
 
-		Log(LogInformation, "ApiListener")
+		Log(LogNotice, "ApiListener")
 			<< "Sending replay log for endpoint '" << endpoint->GetName() << "' in zone '" << eZone->GetName() << "'.";
 
 		ReplayLog(aclient);
@@ -907,7 +917,7 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 		if (eZone == Zone::GetLocalZone())
 			UpdateObjectAuthority();
 
-		Log(LogInformation, "ApiListener")
+		Log(LogNotice, "ApiListener")
 			<< "Finished sending replay log for endpoint '" << endpoint->GetName() << "' in zone '" << eZone->GetName() << "'.";
 	} catch (const std::exception& ex) {
 		{
@@ -922,7 +932,7 @@ void ApiListener::SyncClient(const JsonRpcConnection::Ptr& aclient, const Endpoi
 			<< "Error while syncing endpoint '" << endpoint->GetName() << "': " << DiagnosticInformation(ex);
 	}
 
-	Log(LogInformation, "ApiListener")
+	Log(LogNotice, "ApiListener")
 		<< "Finished syncing endpoint '" << endpoint->GetName() << "' in zone '" << eZone->GetName() << "'.";
 }
 

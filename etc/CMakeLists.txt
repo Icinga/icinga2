@@ -55,7 +55,12 @@ endif()
 
 if(NOT WIN32)
   install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${ICINGA2_FULL_CONFIGDIR}/features-enabled\")")
-  install(CODE "execute_process(COMMAND \"${CMAKE_COMMAND}\" -E create_symlink ../features-available/mainlog.conf \"\$ENV{DESTDIR}${ICINGA2_FULL_CONFIGDIR}/features-enabled/mainlog.conf\")")
+
+  if(HAVE_SYSTEMD)
+    install(CODE "execute_process(COMMAND \"${CMAKE_COMMAND}\" -E create_symlink ../features-available/journald.conf \"\$ENV{DESTDIR}${ICINGA2_FULL_CONFIGDIR}/features-enabled/journald.conf\")")
+  else()
+    install(CODE "execute_process(COMMAND \"${CMAKE_COMMAND}\" -E create_symlink ../features-available/mainlog.conf \"\$ENV{DESTDIR}${ICINGA2_FULL_CONFIGDIR}/features-enabled/mainlog.conf\")")
+  endif()
 
   install(FILES bash_completion.d/icinga2 DESTINATION ${BASHCOMPLETION_DIR})
 else()

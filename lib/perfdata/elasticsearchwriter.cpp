@@ -160,6 +160,7 @@ void ElasticsearchWriter::AddCheckResult(const Dictionary::Ptr& fields, const Ch
 	CheckCommand::Ptr checkCommand = checkable->GetCheckCommand();
 
 	if (perfdata) {
+		bool hasInvalidPerfdata = false;
 		ObjectLock olock(perfdata);
 		for (const Value& val : perfdata) {
 			PerfdataValue::Ptr pdv;
@@ -170,10 +171,13 @@ void ElasticsearchWriter::AddCheckResult(const Dictionary::Ptr& fields, const Ch
 				try {
 					pdv = PerfdataValue::Parse(val);
 				} catch (const std::exception&) {
-					Log(LogWarning, "ElasticsearchWriter")
+					Log(checkable->GetLoggedInvalidPerfdata() ? LogNotice : LogWarning, "ElasticsearchWriter")
 						<< "Ignoring invalid perfdata for checkable '"
 						<< checkable->GetName() << "' and command '"
 						<< checkCommand->GetName() << "' with value: " << val;
+
+					checkable->SetLoggedInvalidPerfdata(true);
+					hasInvalidPerfdata = true;
 					continue;
 				}
 			}
@@ -199,6 +203,10 @@ void ElasticsearchWriter::AddCheckResult(const Dictionary::Ptr& fields, const Ch
 
 			if (!pdv->GetUnit().IsEmpty())
 				fields->Set(perfdataPrefix + ".unit", pdv->GetUnit());
+		}
+
+		if (!hasInvalidPerfdata && perfdata->GetLength()) {
+			checkable->SetLoggedInvalidPerfdata(false);
 		}
 	}
 }

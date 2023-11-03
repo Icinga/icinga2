@@ -325,6 +325,7 @@ void GelfWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable, con
 		Array::Ptr perfdata = cr->GetPerformanceData();
 
 		if (perfdata) {
+			bool hasInvalidPerfdata = false;
 			ObjectLock olock(perfdata);
 			for (const Value& val : perfdata) {
 				PerfdataValue::Ptr pdv;
@@ -335,10 +336,13 @@ void GelfWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable, con
 					try {
 						pdv = PerfdataValue::Parse(val);
 					} catch (const std::exception&) {
-						Log(LogWarning, "GelfWriter")
+						Log(checkable->GetLoggedInvalidPerfdata() ? LogNotice : LogWarning, "GelfWriter")
 							<< "Ignoring invalid perfdata for checkable '"
 							<< checkable->GetName() << "' and command '"
 							<< checkCommand->GetName() << "' with value: " << val;
+
+						checkable->SetLoggedInvalidPerfdata(true);
+						hasInvalidPerfdata = true;
 						continue;
 					}
 				}
@@ -362,6 +366,10 @@ void GelfWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable, con
 
 				if (!pdv->GetUnit().IsEmpty())
 					fields->Set("_" + escaped_key + "_unit", pdv->GetUnit());
+			}
+
+			if (!hasInvalidPerfdata && perfdata->GetLength()) {
+				checkable->SetLoggedInvalidPerfdata(false);
 			}
 		}
 	}

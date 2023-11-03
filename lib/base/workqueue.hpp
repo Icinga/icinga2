@@ -6,7 +6,6 @@
 #include "base/i2-base.hpp"
 #include "base/timer.hpp"
 #include "base/ringbuffer.hpp"
-#include "base/logger.hpp"
 #include <boost/thread/thread.hpp>
 #include <boost/exception_ptr.hpp>
 #include <condition_variable>
@@ -53,7 +52,7 @@ class WorkQueue
 public:
 	typedef std::function<void (boost::exception_ptr)> ExceptionCallback;
 
-	WorkQueue(size_t maxItems = 0, int threadCount = 1, LogSeverity statsLogLevel = LogInformation);
+	WorkQueue(size_t maxItems = 0, int threadCount = 1);
 	~WorkQueue();
 
 	void SetName(const String& name);
@@ -137,7 +136,6 @@ private:
 	std::vector<boost::exception_ptr> m_Exceptions;
 	Timer::Ptr m_StatusTimer;
 	double m_StatusTimerTimeout;
-	LogSeverity m_StatsLogLevel;
 
 	RingBuffer m_TaskStats;
 	size_t m_PendingTasks{0};

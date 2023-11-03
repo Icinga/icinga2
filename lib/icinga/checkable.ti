@@ -73,6 +73,8 @@ abstract class Checkable : CustomVarObject
 		default {{{ return true; }}}
 	};
 
+	[no_user_view, no_user_modify] bool logged_invalid_perfdata;
+
 	[config] array(String) flapping_ignore_states;
 	[no_user_view, no_user_modify] int flapping_ignore_states_filter_real (FlappingIgnoreStatesFilter);
 

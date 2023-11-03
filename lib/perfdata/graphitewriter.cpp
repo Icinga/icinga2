@@ -348,6 +348,7 @@ void GraphiteWriter::SendPerfdata(const Checkable::Ptr& checkable, const String&
 
 	CheckCommand::Ptr checkCommand = checkable->GetCheckCommand();
 
+	bool hasInvalidPerfdata = false;
 	ObjectLock olock(perfdata);
 	for (const Value& val : perfdata) {
 		PerfdataValue::Ptr pdv;
@@ -358,10 +359,13 @@ void GraphiteWriter::SendPerfdata(const Checkable::Ptr& checkable, const String&
 			try {
 				pdv = PerfdataValue::Parse(val);
 			} catch (const std::exception&) {
-				Log(LogWarning, "GraphiteWriter")
+				Log(checkable->GetLoggedInvalidPerfdata() ? LogNotice : LogWarning, "GraphiteWriter")
 					<< "Ignoring invalid perfdata for checkable '"
 					<< checkable->GetName() << "' and command '"
 					<< checkCommand->GetName() << "' with value: " << val;
+
+				checkable->SetLoggedInvalidPerfdata(true);
+				hasInvalidPerfdata = true;
 				continue;
 			}
 		}
@@ -380,6 +384,10 @@ void GraphiteWriter::SendPerfdata(const Checkable::Ptr& checkable, const String&
 			if (!pdv->GetMax().IsEmpty())
 				SendMetric(checkable, prefix, escapedKey + ".max", pdv->GetMax(), ts);
 		}
+	}
+
+	if (!hasInvalidPerfdata && perfdata->GetLength()) {
+		checkable->SetLoggedInvalidPerfdata(false);
 	}
 }
 

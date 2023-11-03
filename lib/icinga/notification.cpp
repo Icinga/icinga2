@@ -439,7 +439,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 			}
 		}
 
-		Log(LogInformation, "Notification")
+		Log(LogNotice, "Notification")
 			<< "Sending " << (reminder ? "reminder " : "") << "'" << NotificationTypeToString(type) << "' notification '"
 			<< notificationName << "' for user '" << userName << "'";
 
@@ -562,7 +562,7 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 		/* required by compatlogger */
 		Service::OnNotificationSentToUser(this, GetCheckable(), user, type, cr, author, text, commandName, nullptr);
 
-		Log(LogInformation, "Notification")
+		Log(LogNotice, "Notification")
 			<< "Completed sending '" << NotificationTypeToString(type)
 			<< "' notification '" << notificationName
 			<< "' for checkable '" << checkableName

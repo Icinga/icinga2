@@ -96,7 +96,7 @@ protected:
 	void IncreasePendingQueries(int count);
 	void DecreasePendingQueries(int count);
 
-	WorkQueue m_QueryQueue{10000000, 1, LogNotice};
+	WorkQueue m_QueryQueue{10000000};
 
 private:
 	bool m_IDCacheValid{false};
