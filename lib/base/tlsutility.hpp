@@ -58,7 +58,7 @@ String GetIcingaCADir();
 String CertificateToString(const std::shared_ptr<X509>& cert);
 
 std::shared_ptr<X509> StringToCertificate(const String& cert);
-std::shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject);
+std::shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject, bool ca = false);
 std::shared_ptr<X509> CreateCertIcingaCA(const std::shared_ptr<X509>& cert);
 bool IsCertUptodate(const std::shared_ptr<X509>& cert);
 bool IsCaUptodate(X509* cert);

@@ -706,7 +706,7 @@ String GetIcingaCADir()
 	return Configuration::DataDir + "/ca";
 }
 
-std::shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject)
+std::shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject, bool ca)
 {
 	char errbuf[256];
 
@@ -743,7 +743,7 @@ std::shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject)
 	EVP_PKEY *privkey = EVP_PKEY_new();
 	EVP_PKEY_assign_RSA(privkey, rsa);
 
-	return CreateCert(pubkey, subject, X509_get_subject_name(cacert.get()), privkey, false);
+	return CreateCert(pubkey, subject, X509_get_subject_name(cacert.get()), privkey, ca);
 }
 
 std::shared_ptr<X509> CreateCertIcingaCA(const std::shared_ptr<X509>& cert)
