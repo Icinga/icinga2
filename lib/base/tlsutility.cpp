@@ -760,7 +760,7 @@ std::shared_ptr<X509> CreateCertIcingaCA(const std::shared_ptr<X509>& cert)
 	return CreateCertIcingaCA(pkey.get(), X509_get_subject_name(cert.get()));
 }
 
-bool IsCertUptodate(const std::shared_ptr<X509>& cert)
+bool IsCertUptodate(X509* cert)
 {
 	time_t now;
 	time(&now);
@@ -771,7 +771,7 @@ bool IsCertUptodate(const std::shared_ptr<X509>& cert)
 	time_t forceRenewalEnd = 1483228800; /* January 1st, 2017 */
 	time_t renewalStart = now + RENEW_THRESHOLD;
 
-	return X509_cmp_time(X509_get_notBefore(cert.get()), &forceRenewalEnd) != -1 && X509_cmp_time(X509_get_notAfter(cert.get()), &renewalStart) != -1;
+	return X509_cmp_time(X509_get_notBefore(cert), &forceRenewalEnd) != -1 && X509_cmp_time(X509_get_notAfter(cert), &renewalStart) != -1;
 }
 
 String CertificateToString(const std::shared_ptr<X509>& cert)
