@@ -181,12 +181,12 @@ void ApiListener::OnConfigLoaded()
 	UpdateSSLContext();
 }
 
-std::shared_ptr<X509> ApiListener::RenewCert(const std::shared_ptr<X509>& cert)
+std::shared_ptr<X509> ApiListener::RenewCert(const std::shared_ptr<X509>& cert, bool ca)
 {
 	std::shared_ptr<EVP_PKEY> pubkey (X509_get_pubkey(cert.get()), EVP_PKEY_free);
 	auto subject (X509_get_subject_name(cert.get()));
 	auto cacert (GetX509Certificate(GetDefaultCaPath()));
-	auto newcert (CreateCertIcingaCA(pubkey.get(), subject));
+	auto newcert (CreateCertIcingaCA(pubkey.get(), subject, ca));
 
 	/* verify that the new cert matches the CA we're using for the ApiListener;
 	 * this ensures that the CA we have in /var/lib/icinga2/ca matches the one
