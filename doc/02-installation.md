@@ -200,7 +200,7 @@ zypper ar https://download.opensuse.org/repositories/server:/monitoring/15.3/ser
 <!-- {% endif %} -->
 
 <!-- {% if amazon_linux %} -->
-### Amazon Linux 2 Repository <a id="amazon-linux-2-repository"></a>
+### Amazon Linux Repository <a id="amazon-linux-2-repository"></a>
 
 !!! info
 
@@ -214,12 +214,14 @@ rpm --import https://packages.icinga.com/icinga.key
 wget https://packages.icinga.com/subscription/amazon/ICINGA-release.repo -O /etc/yum.repos.d/ICINGA-release.repo
 ```
 
-The packages for Amazon Linux 2 depend on other packages which are distributed
+The packages for **Amazon Linux 2** depend on other packages which are distributed
 as part of the [EPEL repository](https://fedoraproject.org/wiki/EPEL).
 
 ```bash
 yum install epel-release
 ```
+
+The packages for newer versions of Amazon Linux don't require additional repositories.
 <!-- {% endif %} -->
 
 <!-- {% if windows %} -->
@@ -307,7 +309,7 @@ zypper install icinga2
 
 <!-- {% if amazon_linux %} -->
 <!-- {% if not icingaDocs %} -->
-#### Amazon Linux 2
+#### Amazon Linux
 <!-- {% endif %} -->
 ```bash
 yum install icinga2
@@ -418,15 +420,17 @@ zypper install --recommends monitoring-plugins-all
 
 <!-- {% if amazon_linux %} -->
 <!-- {% if not icingaDocs %} -->
-#### Amazon Linux 2
+#### Amazon Linux
 <!-- {% endif %} -->
-The packages for Amazon Linux 2 depend on other packages which are distributed as part of the EPEL repository.
+The packages for **Amazon Linux 2** depend on other packages which are distributed as part of the EPEL repository.
 
 ```bash
 amazon-linux-extras install epel
 
 yum install nagios-plugins-all
 ```
+
+Unfortunately newer versions of Amazon Linux don't provide those plugins, yet.
 <!-- {% endif %} -->
 
 ## Set up Icinga 2 API <a id="set-up-icinga2-api"></a>
@@ -505,7 +509,7 @@ Use your distribution's package manager to install the `icingadb-redis` package 
 
 <!-- {% if amazon_linux %} -->
 <!-- {% if not icingaDocs %} -->
-##### Amazon Linux 2
+##### Amazon Linux
 <!-- {% endif %} -->
 ```bash
 yum install icingadb-redis
