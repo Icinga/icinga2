@@ -14,6 +14,7 @@
 #include <boost/thread/once.hpp>
 #include <boost/regex.hpp>
 #include <fstream>
+#include <openssl/asn1.h>
 #include <openssl/ssl.h>
 #include <openssl/x509.h>
 
@@ -31,11 +32,11 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 	std::shared_ptr<X509> cert;
 
 	Dictionary::Ptr result = new Dictionary();
+	auto& tlsConn (origin->FromClient->GetStream()->next_layer());
 
 	/* Use the presented client certificate if not provided. */
 	if (certText.IsEmpty()) {
-		auto stream (origin->FromClient->GetStream());
-		cert = stream->next_layer().GetPeerCertificate();
+		cert = tlsConn.GetPeerCertificate();
 	} else {
 		cert = StringToCertificate(certText);
 	}
@@ -77,13 +78,54 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 		}
 	}
 
-	if (signedByCA) {
-		if (IsCertUptodate(cert)) {
+	std::shared_ptr<X509> parsedRequestorCA;
+	X509* requestorCA = nullptr;
 
+	if (signedByCA) {
+		bool uptodate = IsCertUptodate(cert);
+
+		if (uptodate) {
+			// Even if the leaf is up-to-date, the root may expire soon.
+			// In a regular setup where Icinga manages the PKI, there is only one CA.
+			// Icinga includes it in handshakes, let's see whether the peer needs a fresh one...
+
+			if (cn == origin->FromClient->GetIdentity()) {
+				auto chain (SSL_get_peer_cert_chain(tlsConn.native_handle()));
+
+				if (chain) {
+					auto len (sk_X509_num(chain));
+
+					for (int i = 0; i < len; ++i) {
+						auto link (sk_X509_value(chain, i));
+
+						if (!X509_NAME_cmp(X509_get_subject_name(link), X509_get_issuer_name(link))) {
+							requestorCA = link;
+						}
+					}
+				}
+			} else {
+				Value requestorCaStr;
+
+				if (params->Get("requestor_ca", &requestorCaStr)) {
+					parsedRequestorCA = StringToCertificate(requestorCaStr);
+					requestorCA = parsedRequestorCA.get();
+				}
+			}
+
+			if (requestorCA && !IsCaUptodate(requestorCA)) {
+				int days;
+
+				if (ASN1_TIME_diff(&days, nullptr, X509_get_notAfter(requestorCA), X509_get_notAfter(cacert.get())) && days > 0) {
+					uptodate = false;
+				}
+			}
+		}
+
+		if (uptodate) {
 			Log(LogInformation, "JsonRpcConnection")
-				<< "The certificate for CN '" << cn << "' is valid and uptodate. Skipping automated renewal.";
+				<< "The certificates for CN '" << cn << "' and its root CA are valid and uptodate. Skipping automated renewal.";
 			result->Set("status_code", 1);
-			result->Set("error", "The certificate for CN '" + cn + "' is valid and uptodate. Skipping automated renewal.");
+			result->Set("error", "The certificates for CN '" + cn + "' and its root CA are valid and uptodate. Skipping automated renewal.");
 			return result;
 		}
 	}
@@ -230,6 +272,10 @@ delayed_request:
 		{ "ticket", params->Get("ticket") }
 	});
 
+	if (requestorCA) {
+		request->Set("requestor_ca", CertificateToString(requestorCA));
+	}
+
 	Utility::SaveJsonFile(requestPath, 0600, request);
 
 	JsonRpcConnection::SendCertificateRequest(nullptr, origin, requestPath);
@@ -291,8 +337,7 @@ void JsonRpcConnection::SendCertificateRequest(const JsonRpcConnection::Ptr& acl
 		if (request->Contains("cert_response"))
 			return;
 
-		params->Set("cert_request", request->Get("cert_request"));
-		params->Set("ticket", request->Get("ticket"));
+		request->CopyTo(params);
 	}
 
 	/* Send the request to a) the connected client
