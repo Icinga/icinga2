@@ -62,8 +62,26 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification,
 		callback = [checkable](const Value& commandline, const ProcessResult& pr) { ProcessFinishedHandler(checkable, commandline, pr); };
 	}
 
+	Array::Ptr safeToTruncate = new Array();
+
+	auto hostCr (host->GetLastCheckResult());
+
+	if (hostCr) {
+		safeToTruncate->Add(hostCr->GetOutput());
+	}
+
+	if (service) {
+		auto cr (service->GetLastCheckResult());
+
+		if (cr) {
+			safeToTruncate->Add(cr->GetOutput());
+		}
+	}
+
+	safeToTruncate->Add(comment);
+
 	PluginUtility::ExecuteCommand(commandObj, checkable, cr, resolvers,
-		resolvedMacros, useResolvedMacros, timeout, callback);
+		resolvedMacros, useResolvedMacros, timeout, callback, safeToTruncate);
 }
 
 void PluginNotificationTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, const Value& commandLine, const ProcessResult& pr)

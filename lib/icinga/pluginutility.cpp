@@ -16,7 +16,8 @@ using namespace icinga;
 void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkable::Ptr& checkable,
 	const CheckResult::Ptr& cr, const MacroProcessor::ResolverList& macroResolvers,
 	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros, int timeout,
-	const std::function<void(const Value& commandLine, const ProcessResult&)>& callback)
+	const std::function<void(const Value& commandLine, const ProcessResult&)>& callback,
+	const Array::Ptr& safeToTruncate)
 {
 	Value raw_command = commandObj->GetCommandLine();
 	Dictionary::Ptr raw_arguments = commandObj->GetArguments();
@@ -74,7 +75,7 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 	if (resolvedMacros && !useResolvedMacros)
 		return;
 
-	Process::Ptr process = new Process(Process::PrepareCommand(command), envMacros);
+	Process::Ptr process = new Process(Process::PrepareCommand(command), envMacros, safeToTruncate);
 
 	process->SetTimeout(timeout);
 	process->SetAdjustPriority(true);
