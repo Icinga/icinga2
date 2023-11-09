@@ -105,6 +105,10 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 						uptodate = IsCertUptodate(root);
 					}
 				}
+			} else {
+				// A satellite wants us to renew an agent certificate + CA despite it seems up-to-date.
+				// So just do it. There may be good reasons for it we don't know, e.g. see the if-then branch above.
+				uptodate = false;
 			}
 		}
 
