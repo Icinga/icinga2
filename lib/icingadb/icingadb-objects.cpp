@@ -1570,6 +1570,9 @@ IcingaDB::CreateConfigUpdate(const ConfigObject::Ptr& object, const String typeN
 
 void IcingaDB::SendConfigDelete(const ConfigObject::Ptr& object)
 {
+	if (!m_Rcon || !m_Rcon->IsConnected())
+		return;
+
 	Type::Ptr type = object->GetReflectionType();
 	String typeName = type->GetName().ToLower();
 	String objectKey = GetObjectIdentifier(object);
