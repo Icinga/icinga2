@@ -8,7 +8,7 @@ on:
   pull_request: {}
 
 concurrency:
-  group: windows-${{ github.ref }}
+  group: windows-${{ github.event_name == 'push' && github.sha || github.ref }}
   cancel-in-progress: true
 
 jobs:

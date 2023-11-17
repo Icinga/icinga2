@@ -8,7 +8,7 @@ on:
   pull_request: {}
 
 concurrency:
-  group: rpm-${{ github.ref }}
+  group: rpm-${{ github.event_name == 'push' && github.sha || github.ref }}
   cancel-in-progress: true
 
 jobs:
