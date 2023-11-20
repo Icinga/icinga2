@@ -20,6 +20,7 @@ assignees: ''
 - [ ] Create release on GitHub
 - [ ] Update public docs
 - [ ] Announce release
+- [ ] Cherry-pick update of `ICINGA2_VERSION` and `CHANGELOG.md` into master
 
 ## Update Bundled Windows Dependencies
 
