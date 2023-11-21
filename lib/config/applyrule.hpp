@@ -108,12 +108,13 @@ private:
 	static RuleMap m_Rules;
 
 	static bool AddTargetedRule(const ApplyRule::Ptr& rule, const String& targetType, PerSourceType& rules);
-	static bool GetTargetHosts(Expression* assignFilter, std::vector<const String *>& hosts);
-	static bool GetTargetServices(Expression* assignFilter, std::vector<std::pair<const String *, const String *>>& services);
-	static std::pair<const String *, const String *> GetTargetService(Expression* assignFilter);
-	static const String * GetComparedName(Expression* assignFilter, const char * lcType);
-	static bool IsNameIndexer(Expression* exp, const char * lcType);
-	static const String * GetLiteralStringValue(Expression* exp);
+	static bool GetTargetHosts(Expression* assignFilter, std::vector<const String *>& hosts, const Dictionary::Ptr& constants = nullptr);
+	static bool GetTargetServices(Expression* assignFilter, std::vector<std::pair<const String *, const String *>>& services, const Dictionary::Ptr& constants = nullptr);
+	static std::pair<const String *, const String *> GetTargetService(Expression* assignFilter, const Dictionary::Ptr& constants);
+	static const String * GetComparedName(Expression* assignFilter, const char * lcType, const Dictionary::Ptr& constants);
+	static bool IsNameIndexer(Expression* exp, const char * lcType, const Dictionary::Ptr& constants);
+	static const String * GetConstString(Expression* exp, const Dictionary::Ptr& constants);
+	static const Value * GetConst(Expression* exp, const Dictionary::Ptr& constants);
 
 	ApplyRule(String name, Expression::Ptr expression,
 		Expression::Ptr filter, String package, String fkvar, String fvvar, Expression::Ptr fterm,
