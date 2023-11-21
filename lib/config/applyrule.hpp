@@ -82,6 +82,8 @@ public:
 	static const std::vector<ApplyRule::Ptr>& GetRules(const Type::Ptr& sourceType, const Type::Ptr& targetType);
 	static const std::set<ApplyRule::Ptr>& GetTargetedHostRules(const Type::Ptr& sourceType, const String& host);
 	static const std::set<ApplyRule::Ptr>& GetTargetedServiceRules(const Type::Ptr& sourceType, const String& host, const String& service);
+	static bool GetTargetHosts(Expression* assignFilter, std::vector<const String *>& hosts, const Dictionary::Ptr& constants = nullptr);
+	static bool GetTargetServices(Expression* assignFilter, std::vector<std::pair<const String *, const String *>>& services, const Dictionary::Ptr& constants = nullptr);
 
 	static void RegisterType(const String& sourceType, const std::vector<String>& targetTypes);
 	static bool IsValidSourceType(const String& sourceType);
@@ -108,8 +110,6 @@ private:
 	static RuleMap m_Rules;
 
 	static bool AddTargetedRule(const ApplyRule::Ptr& rule, const String& targetType, PerSourceType& rules);
-	static bool GetTargetHosts(Expression* assignFilter, std::vector<const String *>& hosts, const Dictionary::Ptr& constants = nullptr);
-	static bool GetTargetServices(Expression* assignFilter, std::vector<std::pair<const String *, const String *>>& services, const Dictionary::Ptr& constants = nullptr);
 	static std::pair<const String *, const String *> GetTargetService(Expression* assignFilter, const Dictionary::Ptr& constants);
 	static const String * GetComparedName(Expression* assignFilter, const char * lcType, const Dictionary::Ptr& constants);
 	static bool IsNameIndexer(Expression* exp, const char * lcType, const Dictionary::Ptr& constants);
