@@ -11,12 +11,15 @@
 #include "base/utility.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/json.hpp"
+#include <cstddef>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/thread/once.hpp>
 #include <thread>
 #include <iostream>
+#include <utility>
 
 #ifndef _WIN32
+#	include <errno.h>
 #	include <execvpe.h>
 #	include <poll.h>
 #	include <string.h>
@@ -48,9 +51,9 @@ static pid_t l_ProcessControlPID;
 static boost::once_flag l_ProcessOnceFlag = BOOST_ONCE_INIT;
 static boost::once_flag l_SpawnHelperOnceFlag = BOOST_ONCE_INIT;
 
-Process::Process(Process::Arguments arguments, Dictionary::Ptr extraEnvironment)
+Process::Process(Process::Arguments arguments, Dictionary::Ptr extraEnvironment, Array::Ptr safeToTruncate)
 	: m_Arguments(std::move(arguments)), m_ExtraEnvironment(std::move(extraEnvironment)),
-	  m_Timeout(600)
+	  m_SafeToTruncate(std::move(safeToTruncate)), m_Timeout(600)
 #ifdef _WIN32
 	, m_ReadPending(false), m_ReadFailed(false), m_Overlapped()
 #else /* _WIN32 */
@@ -84,6 +87,7 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 
 	Array::Ptr arguments = request->Get("arguments");
 	Dictionary::Ptr extraEnvironment = request->Get("extraEnvironment");
+	Array::Ptr safeToTruncate = request->Get("safeToTruncate");
 	bool adjustPriority = request->Get("adjustPriority");
 
 	// build argv
@@ -131,10 +135,38 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 		}
 	}
 
-	envp[j] = strdup("LC_NUMERIC=C");
-	envp[j + 1] = nullptr;
+	envp[j++] = strdup("LC_NUMERIC=C");
+	envp[j] = nullptr;
 
 	extraEnvironment.reset();
+
+	std::vector<std::pair<const char*, size_t>> safeToTruncateStrings;
+	std::vector<char*> safeToTruncateArgs;
+
+	if (safeToTruncate) {
+		// Lock here recursively, not in the fork(2)ed child
+		ObjectLock lock (safeToTruncate);
+
+		safeToTruncateStrings.reserve(safeToTruncate->GetLength());
+
+		for (auto& v : safeToTruncate) {
+			if (v.GetType() == ValueString) {
+				auto s (v.Get<String>().CStr());
+				auto len (strlen(s)); // exec(3) uses C strings, so we do
+
+				// The shorter the string, the more false positives are possible.
+				// E.g. "-" could appear literally everywhere, but it won't exceed any limit.
+				if (len >= 1024u) {
+					safeToTruncateStrings.emplace_back(s, len);
+				}
+			}
+		}
+	}
+
+	if (!safeToTruncateStrings.empty()) {
+		// malloc(3) here, not in the fork(2)ed child
+		safeToTruncateArgs.reserve(arguments->GetLength() + j);
+	}
 
 	pid_t pid = fork();
 
@@ -174,16 +206,65 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 		sigemptyset(&mask);
 		sigprocmask(SIG_SETMASK, &mask, nullptr);
 
-		if (icinga2_execvpe(argv[0], argv, envp) < 0) {
-			char errmsg[512];
-			strcpy(errmsg, "execvpe(");
-			strncat(errmsg, argv[0], sizeof(errmsg) - strlen(errmsg) - 1);
-			strncat(errmsg, ") failed", sizeof(errmsg) - strlen(errmsg) - 1);
-			errmsg[sizeof(errmsg) - 1] = '\0';
-			perror(errmsg);
-		}
+		for (;;) {
+			if (icinga2_execvpe(argv[0], argv, envp) < 0) {
+				if (errno == E2BIG && !safeToTruncateStrings.empty()) {
+					if (safeToTruncateArgs.empty()) {
+						// Initialize safeToTruncateArgs
+						for (char** strings : {argv, envp}) {
+							for (auto it (strings); *it; ++it) {
+								auto s (*it);
+								auto len (strlen(s));
 
-		_exit(128);
+								for (auto [suffixCstr, suffixLen] : safeToTruncateStrings) {
+									if (suffixLen <= len) {
+										auto substr (s + len - suffixLen);
+
+										// Allow truncating an arg only if it ends with a safe to truncate string
+										if (!strcmp(substr, suffixCstr)) {
+											// Allow truncating only the safe part of a string,
+											// e.g. "-foo=bar" => "-foo=", but not "-foo=bar" => "-f"
+											safeToTruncateArgs.emplace_back(substr);
+										}
+									}
+								}
+							}
+						}
+					}
+
+					char* longest = nullptr;
+					size_t longestLen = 0;
+
+					for (auto s : safeToTruncateArgs) {
+						if (longest) {
+							auto len (strlen(s));
+
+							if (len > longestLen) {
+								longest = s;
+								longestLen = len;
+							}
+						} else {
+							longest = s;
+							longestLen = strlen(longest);
+						}
+					}
+
+					if (longest) {
+						longest[longestLen * 3u / 4u] = 0;
+						continue; // Re-try
+					}
+				}
+
+				char errmsg[512];
+				strcpy(errmsg, "execvpe(");
+				strncat(errmsg, argv[0], sizeof(errmsg) - strlen(errmsg) - 1);
+				strncat(errmsg, ") failed", sizeof(errmsg) - strlen(errmsg) - 1);
+				errmsg[sizeof(errmsg) - 1] = '\0';
+				perror(errmsg);
+			}
+
+			_exit(128);
+		}
 	}
 
 	(void)close(fds[0]);
@@ -367,12 +448,14 @@ static void StartSpawnProcessHelper()
 	l_ProcessControlPID = pid;
 }
 
-static pid_t ProcessSpawn(const std::vector<String>& arguments, const Dictionary::Ptr& extraEnvironment, bool adjustPriority, int fds[3])
+static pid_t ProcessSpawn(const std::vector<String>& arguments, const Dictionary::Ptr& extraEnvironment,
+						  const Array::Ptr& safeToTruncate, bool adjustPriority, int fds[3])
 {
 	Dictionary::Ptr request = new Dictionary({
 		{ "command", "spawn" },
 		{ "arguments", Array::FromVector(arguments) },
 		{ "extraEnvironment", extraEnvironment },
+		{ "safeToTruncate", safeToTruncate },
 		{ "adjustPriority", adjustPriority }
 	});
 
@@ -980,7 +1063,7 @@ void Process::Run(const std::function<void(const ProcessResult&)>& callback)
 	fds[1] = outfds[1];
 	fds[2] = outfds[1];
 
-	m_Process = ProcessSpawn(m_Arguments, m_ExtraEnvironment, m_AdjustPriority, fds);
+	m_Process = ProcessSpawn(m_Arguments, m_ExtraEnvironment, m_SafeToTruncate, m_AdjustPriority, fds);
 	m_PID = m_Process;
 
 	if (m_PID == -1) {

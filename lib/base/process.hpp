@@ -4,6 +4,7 @@
 #define PROCESS_H
 
 #include "base/i2-base.hpp"
+#include "base/array.hpp"
 #include "base/dictionary.hpp"
 #include <iosfwd>
 #include <deque>
@@ -52,7 +53,7 @@ public:
 
 	static const std::deque<Process::Ptr>::size_type MaxTasksPerThread = 512;
 
-	Process(Arguments arguments, Dictionary::Ptr extraEnvironment = nullptr);
+	Process(Arguments arguments, Dictionary::Ptr extraEnvironment = nullptr, Array::Ptr safeToTruncate = nullptr);
 	~Process() override;
 
 	void SetTimeout(double timeout);
@@ -80,6 +81,7 @@ public:
 private:
 	Arguments m_Arguments;
 	Dictionary::Ptr m_ExtraEnvironment;
+	Array::Ptr m_SafeToTruncate;
 
 	double m_Timeout;
 #ifndef _WIN32
