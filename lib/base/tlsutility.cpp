@@ -771,7 +771,9 @@ bool IsCertUptodate(X509* cert)
 	time_t forceRenewalEnd = 1483228800; /* January 1st, 2017 */
 	time_t renewalStart = now + RENEW_THRESHOLD;
 
-	return X509_cmp_time(X509_get_notBefore(cert), &forceRenewalEnd) != -1 && X509_cmp_time(X509_get_notAfter(cert), &renewalStart) != -1;
+	return (X509_cmp_time(X509_get_notBefore(cert), &forceRenewalEnd) != -1
+		|| !X509_NAME_cmp(X509_get_subject_name(cert), X509_get_issuer_name(cert)))
+		&& X509_cmp_time(X509_get_notAfter(cert), &renewalStart) != -1;
 }
 
 String CertificateToString(const std::shared_ptr<X509>& cert)
