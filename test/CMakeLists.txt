@@ -113,6 +113,7 @@ set(base_test_SOURCES
   config-ops.cpp
   icinga-checkresult.cpp
   icinga-dependencies.cpp
+  icinga-downtime.cpp
   icinga-legacytimeperiod.cpp
   icinga-macros.cpp
   icinga-notification.cpp
