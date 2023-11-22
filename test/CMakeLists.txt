@@ -14,6 +14,7 @@ set(base_test_SOURCES
   base-netstring.cpp
   base-object.cpp
   base-object-packer.cpp
+  base-process.cpp
   base-serialize.cpp
   base-shellescape.cpp
   base-stacktrace.cpp
@@ -87,6 +88,7 @@ add_boost_test(base
     base_netstring/netstring
     base_object/construct
     base_object/getself
+    base_process/e2big
     base_serialize/scalar
     base_serialize/array
     base_serialize/dictionary
