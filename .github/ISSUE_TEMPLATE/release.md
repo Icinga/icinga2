@@ -9,7 +9,6 @@ assignees: ''
 
 # Release Workflow
 
-- [ ] Check that the `.mailmap` and `AUTHORS` files are up to date
 - [ ] Update `ICINGA2_VERSION`
 - [ ] Update bundled Windows dependencies
 - [ ] Harden global TLS defaults (consult https://ssl-config.mozilla.org)

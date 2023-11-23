@@ -111,6 +111,12 @@ refs #1234
 You can add multiple commits during your journey to finish your patch.
 Don't worry, you can squash those changes into a single commit later on.
 
+Ensure your name and email address in the commit metadata are correct.
+In your first contribution (PR) also add them to [AUTHORS](./AUTHORS).
+If those metadata changed since your last successful contribution,
+you should update [AUTHORS](./AUTHORS) and [.mailmap](./.mailmap).
+For the latter see [gitmailmap(5)](https://git-scm.com/docs/gitmailmap).
+
 ## <a id="contributing-pull-requests"></a> Pull Requests
 
 Once you've commited your changes, please update your local master
