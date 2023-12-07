@@ -21,7 +21,7 @@ static EVP_PKEY* GenKeypair()
 	auto rsa (RSA_new());
 	auto key (EVP_PKEY_new());
 
-	BN_set_word(e, RSA_F4);
+	BN_set_word(e, RSA_3);
 	BOOST_REQUIRE(RSA_generate_key_ex(rsa, 512, e, nullptr));
 	EVP_PKEY_assign_RSA(key, rsa);
 
