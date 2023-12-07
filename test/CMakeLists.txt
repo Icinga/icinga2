@@ -109,6 +109,12 @@ add_boost_test(base
     base_timer/invoke
     base_timer/scope
     base_tlsutility/sha1
+    base_tlsutility/iscertuptodate_leaf_ok
+    base_tlsutility/iscertuptodate_leaf_expiring
+    base_tlsutility/iscertuptodate_leaf_old
+    base_tlsutility/iscertuptodate_root_ok
+    base_tlsutility/iscertuptodate_root_expiring
+    base_tlsutility/iscertuptodate_root_old
     base_type/gettype
     base_type/assign
     base_type/byname

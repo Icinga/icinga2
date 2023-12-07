@@ -2,10 +2,50 @@
 
 #include "base/tlsutility.hpp"
 #include <BoostTestTargetConfig.h>
+#include <functional>
+#include <openssl/asn1.h>
+#include <openssl/bn.h>
+#include <openssl/evp.h>
+#include <openssl/obj_mac.h>
+#include <openssl/rsa.h>
+#include <openssl/x509.h>
 #include <utility>
 #include <vector>
 
 using namespace icinga;
+
+static EVP_PKEY* GenKeypair()
+{
+	InitializeOpenSSL();
+
+	auto e (BN_new());
+	auto rsa (RSA_new());
+	auto key (EVP_PKEY_new());
+
+	BN_set_word(e, RSA_F4);
+	BOOST_REQUIRE(RSA_generate_key_ex(rsa, 4096, e, nullptr));
+	EVP_PKEY_assign_RSA(key, rsa);
+
+	return key;
+}
+
+static X509* MakeCert(char* issuer, EVP_PKEY* signer, char* subject, EVP_PKEY* pubkey, std::function<void(ASN1_TIME*, ASN1_TIME*)> setTimes)
+{
+	auto cert (X509_new());
+
+	X509_set_version(cert, 0x2);
+	BN_to_ASN1_INTEGER(BN_new(), X509_get_serialNumber(cert));
+	X509_NAME_add_entry_by_NID(X509_get_issuer_name(cert), NID_commonName, MBSTRING_ASC, (unsigned char*)issuer, -1, -1, 0);
+	setTimes(X509_get_notBefore(cert), X509_get_notAfter(cert));
+	X509_NAME_add_entry_by_NID(X509_get_subject_name(cert), NID_commonName, MBSTRING_ASC, (unsigned char*)subject, -1, -1, 0);
+	X509_set_pubkey(cert, pubkey);
+	BOOST_REQUIRE(X509_sign(cert, signer, EVP_sha256()));
+
+	return cert;
+}
+
+static const long l_2016 = 1480000000; // Thu Nov 24 16:06:40 CET 2016
+static const long l_2017 = 1490000000; // Mon Mar 20 09:53:20 CET 2017
 
 BOOST_AUTO_TEST_SUITE(base_tlsutility)
 
@@ -33,6 +73,66 @@ BOOST_AUTO_TEST_CASE(sha1)
 		auto output = SHA1(input);
 		BOOST_CHECK_MESSAGE(output == expected, "SHA1('" << input << "') should be " << expected << ", got " << output);
 	}
+}
+
+BOOST_AUTO_TEST_CASE(iscertuptodate_leaf_ok)
+{
+	BOOST_CHECK(IsCertUptodate(MakeCert("Icinga CA", GenKeypair(), "example.com", GenKeypair(), [](ASN1_TIME* notBefore, ASN1_TIME* notAfter) {
+		time_t epoch = 0;
+		X509_time_adj(notBefore, l_2017, &epoch);
+		X509_gmtime_adj(notAfter, RENEW_THRESHOLD + 30);
+	})));
+}
+
+BOOST_AUTO_TEST_CASE(iscertuptodate_leaf_expiring)
+{
+	BOOST_CHECK(!IsCertUptodate(MakeCert("Icinga CA", GenKeypair(), "example.com", GenKeypair(), [](ASN1_TIME* notBefore, ASN1_TIME* notAfter) {
+		time_t epoch = 0;
+		X509_time_adj(notBefore, l_2017, &epoch);
+		X509_gmtime_adj(notAfter, RENEW_THRESHOLD - 30);
+	})));
+}
+
+BOOST_AUTO_TEST_CASE(iscertuptodate_leaf_old)
+{
+	BOOST_CHECK(!IsCertUptodate(MakeCert("Icinga CA", GenKeypair(), "example.com", GenKeypair(), [](ASN1_TIME* notBefore, ASN1_TIME* notAfter) {
+		time_t epoch = 0;
+		X509_time_adj(notBefore, l_2016, &epoch);
+		X509_gmtime_adj(notAfter, RENEW_THRESHOLD + 30);
+	})));
+}
+
+BOOST_AUTO_TEST_CASE(iscertuptodate_root_ok)
+{
+	auto key (GenKeypair());
+
+	BOOST_CHECK(IsCertUptodate(MakeCert("Icinga CA", key, "Icinga CA", key, [](ASN1_TIME* notBefore, ASN1_TIME* notAfter) {
+		time_t epoch = 0;
+		X509_time_adj(notBefore, l_2017, &epoch);
+		X509_gmtime_adj(notAfter, LEAF_VALID_FOR + 30);
+	})));
+}
+
+BOOST_AUTO_TEST_CASE(iscertuptodate_root_expiring)
+{
+	auto key (GenKeypair());
+
+	BOOST_CHECK(!IsCertUptodate(MakeCert("Icinga CA", key, "Icinga CA", key, [](ASN1_TIME* notBefore, ASN1_TIME* notAfter) {
+		time_t epoch = 0;
+		X509_time_adj(notBefore, l_2017, &epoch);
+		X509_gmtime_adj(notAfter, LEAF_VALID_FOR - 30);
+	})));
+}
+
+BOOST_AUTO_TEST_CASE(iscertuptodate_root_old)
+{
+	auto key (GenKeypair());
+
+	BOOST_CHECK(IsCertUptodate(MakeCert("Icinga CA", key, "Icinga CA", key, [](ASN1_TIME* notBefore, ASN1_TIME* notAfter) {
+		time_t epoch = 0;
+		X509_time_adj(notBefore, l_2016, &epoch);
+		X509_gmtime_adj(notAfter, LEAF_VALID_FOR + 30);
+	})));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
