@@ -8,6 +8,7 @@
 #include "base/utility.hpp"
 #include "base/application.hpp"
 #include "base/exception.hpp"
+#include <algorithm>
 #include <boost/asio/ssl/context.hpp>
 #include <openssl/opensslv.h>
 #include <openssl/crypto.h>
@@ -765,14 +766,15 @@ bool IsCertUptodate(X509* cert)
 	time_t now;
 	time(&now);
 
+	bool isRootCa = !X509_NAME_cmp(X509_get_subject_name(cert), X509_get_issuer_name(cert));
+
 	/* auto-renew all certificates which were created before 2017 to force an update of the CA,
 	 * because Icinga versions older than 2.4 sometimes create certificates with an invalid
 	 * serial number. */
 	time_t forceRenewalEnd = 1483228800; /* January 1st, 2017 */
-	time_t renewalStart = now + RENEW_THRESHOLD;
+	time_t renewalStart = now + (isRootCa ? std::max(RENEW_THRESHOLD, LEAF_VALID_FOR) : RENEW_THRESHOLD);
 
-	return (X509_cmp_time(X509_get_notBefore(cert), &forceRenewalEnd) != -1
-		|| !X509_NAME_cmp(X509_get_subject_name(cert), X509_get_issuer_name(cert)))
+	return (isRootCa || X509_cmp_time(X509_get_notBefore(cert), &forceRenewalEnd) != -1)
 		&& X509_cmp_time(X509_get_notAfter(cert), &renewalStart) != -1;
 }
 
