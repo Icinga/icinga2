@@ -1,15 +1,8 @@
 name: Linux
 
 on:
-  push:
-    branches:
-      - master
-      - 'support/*'
+  push: {}
   pull_request: {}
-
-concurrency:
-  group: linux-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   linux:
@@ -21,25 +14,7 @@ jobs:
       max-parallel: 2
       matrix:
         distro:
-          - amazonlinux:2
-          - amazonlinux:2023
           - centos:7 # and RHEL 7
-          - debian:10
-          - debian:11 # and Raspbian 11
-          - debian:12 # and Raspbian 12
-          - fedora:36
-          - fedora:37
-          - fedora:38
-          - fedora:39
-          - opensuse/leap:15.3 # SLES 15.3
-          - opensuse/leap:15.4 # and SLES 15.4
-          - opensuse/leap:15.5 # and SLES 15.5
-          - rockylinux:8 # RHEL 8
-          - rockylinux:9 # RHEL 9
-          - ubuntu:20.04
-          - ubuntu:22.04
-          - ubuntu:23.04
-          - ubuntu:23.10
 
     steps:
       - name: Checkout HEAD
