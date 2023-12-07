@@ -38,7 +38,7 @@ static X509* MakeCert(char* issuer, EVP_PKEY* signer, char* subject, EVP_PKEY* p
 	setTimes(X509_get_notBefore(cert), X509_get_notAfter(cert));
 	X509_NAME_add_entry_by_NID(X509_get_subject_name(cert), NID_commonName, MBSTRING_ASC, (unsigned char*)subject, -1, -1, 0);
 	X509_set_pubkey(cert, pubkey);
-	BOOST_REQUIRE(X509_sign(cert, signer, EVP_sha1()));
+	BOOST_REQUIRE(X509_sign(cert, signer, EVP_md5()));
 
 	return cert;
 }
