@@ -2,7 +2,6 @@
 
 #include "base/tlsutility.hpp"
 #include <BoostTestTargetConfig.h>
-#include <functional>
 #include <openssl/asn1.h>
 #include <openssl/bn.h>
 #include <openssl/evp.h>
@@ -29,7 +28,7 @@ static EVP_PKEY* GenKeypair()
 	return key;
 }
 
-static X509* MakeCert(char* issuer, EVP_PKEY* signer, char* subject, EVP_PKEY* pubkey, std::function<void(ASN1_TIME*, ASN1_TIME*)> setTimes)
+static X509* MakeCert(char* issuer, EVP_PKEY* signer, char* subject, EVP_PKEY* pubkey, void(*setTimes)(ASN1_TIME*, ASN1_TIME*))
 {
 	auto cert (X509_new());
 
