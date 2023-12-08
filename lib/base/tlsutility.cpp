@@ -787,10 +787,10 @@ bool IsCaUptodate(X509* cert)
 	return !CertExpiresWithin(cert, LEAF_VALID_FOR);
 }
 
-String CertificateToString(const std::shared_ptr<X509>& cert)
+String CertificateToString(X509* cert)
 {
 	BIO *mem = BIO_new(BIO_s_mem());
-	PEM_write_bio_X509(mem, cert.get());
+	PEM_write_bio_X509(mem, cert);
 
 	char *data;
 	long len = BIO_get_mem_data(mem, &data);
