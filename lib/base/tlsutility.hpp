@@ -55,7 +55,12 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile =
 std::shared_ptr<X509> CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NAME *issuer, EVP_PKEY *cakey, bool ca);
 
 String GetIcingaCADir();
-String CertificateToString(const std::shared_ptr<X509>& cert);
+String CertificateToString(X509* cert);
+
+inline String CertificateToString(const std::shared_ptr<X509>& cert)
+{
+	return CertificateToString(cert.get());
+}
 
 std::shared_ptr<X509> StringToCertificate(const String& cert);
 std::shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject, bool ca = false);
