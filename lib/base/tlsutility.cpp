@@ -684,10 +684,10 @@ bool IsCertUptodate(const std::shared_ptr<X509>& cert)
 	return X509_cmp_time(X509_get_notBefore(cert.get()), &forceRenewalEnd) != -1 && X509_cmp_time(X509_get_notAfter(cert.get()), &renewalStart) != -1;
 }
 
-String CertificateToString(const std::shared_ptr<X509>& cert)
+String CertificateToString(X509* cert)
 {
 	BIO *mem = BIO_new(BIO_s_mem());
-	PEM_write_bio_X509(mem, cert.get());
+	PEM_write_bio_X509(mem, cert);
 
 	char *data;
 	long len = BIO_get_mem_data(mem, &data);
