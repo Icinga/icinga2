@@ -194,4 +194,22 @@ BOOST_AUTO_TEST_CASE(volatile_filter_problem_duplicate)
 	helper.SendStateNotification(ServiceCritical, true);
 }
 
+BOOST_AUTO_TEST_CASE(no_recovery_filter_no_duplicate)
+{
+	DuplicateDueToFilterHelper helper (~0, ~0);
+
+	helper.SendStateNotification(ServiceCritical, true);
+	helper.SendStateNotification(ServiceOK, true);
+	helper.SendStateNotification(ServiceCritical, true);
+}
+
+BOOST_AUTO_TEST_CASE(recovery_filter_duplicate)
+{
+	DuplicateDueToFilterHelper helper (~NotificationRecovery, ~0);
+
+	helper.SendStateNotification(ServiceCritical, true);
+	helper.SendStateNotification(ServiceOK, false);
+	helper.SendStateNotification(ServiceCritical, true);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

@@ -1550,6 +1550,40 @@ Message updates will be dropped when:
 * Notification does not exist.
 * Origin endpoint is not within the local zone.
 
+#### event::ClearLastNotifiedStatePerUser <a id="technical-concepts-json-rpc-messages-event-clearlastnotifiedstateperuser"></a>
+
+> Location: `clusterevents.cpp`
+
+##### Message Body
+
+Key       | Value
+----------|---------
+jsonrpc   | 2.0
+method    | event::ClearLastNotifiedStatePerUser
+params    | Dictionary
+
+##### Params
+
+Key          | Type   | Description
+-------------|--------|------------------
+notification | String | Notification name
+
+Used to sync the state of a notification object within the same HA zone.
+
+##### Functions
+
+Event Sender: `Notification::OnLastNotifiedStatePerUserCleared`
+Event Receiver: `LastNotifiedStatePerUserClearedAPIHandler`
+
+##### Permissions
+
+The receiver will not process messages from not configured endpoints.
+
+Message updates will be dropped when:
+
+* Notification does not exist.
+* Origin endpoint is not within the local zone.
+
 #### event::SetForceNextCheck <a id="technical-concepts-json-rpc-messages-event-setforcenextcheck"></a>
 
 > Location: `clusterevents.cpp`
