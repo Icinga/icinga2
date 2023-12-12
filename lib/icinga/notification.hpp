@@ -94,6 +94,7 @@ public:
 
 	static boost::signals2::signal<void (const Notification::Ptr&, const MessageOrigin::Ptr&)> OnNextNotificationChanged;
 	static boost::signals2::signal<void (const Notification::Ptr&, const String&, uint_fast8_t, const MessageOrigin::Ptr&)> OnLastNotifiedStatePerUserUpdated;
+	static boost::signals2::signal<void (const Notification::Ptr&, const MessageOrigin::Ptr&)> OnLastNotifiedStatePerUserCleared;
 
 	void Validate(int types, const ValidationUtils& utils) override;
 

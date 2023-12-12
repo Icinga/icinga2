@@ -44,6 +44,9 @@ public:
 	static void LastNotifiedStatePerUserUpdatedHandler(const Notification::Ptr& notification, const String& user, uint_fast8_t state, const MessageOrigin::Ptr& origin);
 	static Value LastNotifiedStatePerUserUpdatedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 
+	static void LastNotifiedStatePerUserClearedHandler(const Notification::Ptr& notification, const MessageOrigin::Ptr& origin);
+	static Value LastNotifiedStatePerUserClearedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
+
 	static void ForceNextCheckChangedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin);
 	static Value ForceNextCheckChangedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
 
