@@ -1514,6 +1514,76 @@ Message updates will be dropped when:
 * Notification does not exist.
 * Origin endpoint's zone is not allowed to access this checkable.
 
+#### event::UpdateLastNotifiedStatePerUser <a id="technical-concepts-json-rpc-messages-event-updatelastnotifiedstateperuser"></a>
+
+> Location: `clusterevents.cpp`
+
+##### Message Body
+
+Key       | Value
+----------|---------
+jsonrpc   | 2.0
+method    | event::UpdateLastNotifiedStatePerUser
+params    | Dictionary
+
+##### Params
+
+Key          | Type   | Description
+-------------|--------|------------------
+notification | String | Notification name
+user         | String | User name
+state        | Number | Checkable state the user just got a problem notification for
+
+Used to sync the state of a notification object within the same HA zone.
+
+##### Functions
+
+Event Sender: `Notification::OnLastNotifiedStatePerUserUpdated`
+Event Receiver: `LastNotifiedStatePerUserUpdatedAPIHandler`
+
+##### Permissions
+
+The receiver will not process messages from not configured endpoints.
+
+Message updates will be dropped when:
+
+* Notification does not exist.
+* Origin endpoint is not within the local zone.
+
+#### event::ClearLastNotifiedStatePerUser <a id="technical-concepts-json-rpc-messages-event-clearlastnotifiedstateperuser"></a>
+
+> Location: `clusterevents.cpp`
+
+##### Message Body
+
+Key       | Value
+----------|---------
+jsonrpc   | 2.0
+method    | event::ClearLastNotifiedStatePerUser
+params    | Dictionary
+
+##### Params
+
+Key          | Type   | Description
+-------------|--------|------------------
+notification | String | Notification name
+
+Used to sync the state of a notification object within the same HA zone.
+
+##### Functions
+
+Event Sender: `Notification::OnLastNotifiedStatePerUserCleared`
+Event Receiver: `LastNotifiedStatePerUserClearedAPIHandler`
+
+##### Permissions
+
+The receiver will not process messages from not configured endpoints.
+
+Message updates will be dropped when:
+
+* Notification does not exist.
+* Origin endpoint is not within the local zone.
+
 #### event::SetForceNextCheck <a id="technical-concepts-json-rpc-messages-event-setforcenextcheck"></a>
 
 > Location: `clusterevents.cpp`
