@@ -13,6 +13,7 @@
 #include "remote/endpoint.hpp"
 #include "remote/messageorigin.hpp"
 #include "base/array.hpp"
+#include <cstdint>
 
 namespace icinga
 {
@@ -92,6 +93,8 @@ public:
 	static String NotificationHostStateToString(HostState state);
 
 	static boost::signals2::signal<void (const Notification::Ptr&, const MessageOrigin::Ptr&)> OnNextNotificationChanged;
+	static boost::signals2::signal<void (const Notification::Ptr&, const String&, uint_fast8_t, const MessageOrigin::Ptr&)> OnLastNotifiedStatePerUserUpdated;
+	static boost::signals2::signal<void (const Notification::Ptr&, const MessageOrigin::Ptr&)> OnLastNotifiedStatePerUserCleared;
 
 	void Validate(int types, const ValidationUtils& utils) override;
 
@@ -105,7 +108,6 @@ public:
 	static const std::map<String, int>& GetStateFilterMap();
 	static const std::map<String, int>& GetTypeFilterMap();
 
-protected:
 	void OnConfigLoaded() override;
 	void OnAllConfigLoaded() override;
 	void Start(bool runtimeCreated) override;

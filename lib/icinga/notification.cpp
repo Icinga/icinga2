@@ -23,6 +23,8 @@ std::map<String, int> Notification::m_StateFilterMap;
 std::map<String, int> Notification::m_TypeFilterMap;
 
 boost::signals2::signal<void (const Notification::Ptr&, const MessageOrigin::Ptr&)> Notification::OnNextNotificationChanged;
+boost::signals2::signal<void (const Notification::Ptr&, const String&, uint_fast8_t, const MessageOrigin::Ptr&)> Notification::OnLastNotifiedStatePerUserUpdated;
+boost::signals2::signal<void (const Notification::Ptr&, const MessageOrigin::Ptr&)> Notification::OnLastNotifiedStatePerUserCleared;
 
 String NotificationNameComposer::MakeName(const String& shortName, const Object::Ptr& context) const
 {
@@ -230,6 +232,13 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 		<< "Attempting to send " << (reminder ? "reminder " : "")
 		<< "notifications of type '" << notificationTypeName
 		<< "' for notification object '" << notificationName << "'.";
+
+	if (type == NotificationRecovery) {
+		auto states (GetLastNotifiedStatePerUser());
+
+		states->Clear();
+		OnLastNotifiedStatePerUserCleared(this, nullptr);
+	}
 
 	Checkable::Ptr checkable = GetCheckable();
 
@@ -439,6 +448,22 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 			}
 		}
 
+		if (type == NotificationProblem && !reminder && !checkable->GetVolatile()) {
+			auto [host, service] = GetHostService(checkable);
+			uint_fast8_t state = service ? service->GetState() : host->GetState();
+
+			if (state == (uint_fast8_t)GetLastNotifiedStatePerUser()->Get(userName)) {
+				auto stateStr (service ? NotificationServiceStateToString(service->GetState()) : NotificationHostStateToString(host->GetState()));
+
+				Log(LogNotice, "Notification")
+					<< "Notification object '" << notificationName << "': We already notified user '" << userName << "' for a " << stateStr
+					<< " problem. Likely after that another state change notification was filtered out by config. Not sending duplicate '"
+					<< stateStr << "' notification.";
+
+				continue;
+			}
+		}
+
 		Log(LogInformation, "Notification")
 			<< "Sending " << (reminder ? "reminder " : "") << "'" << NotificationTypeToString(type) << "' notification '"
 			<< notificationName << "' for user '" << userName << "'";
@@ -451,6 +476,16 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 
 		/* collect all notified users */
 		allNotifiedUsers.insert(user);
+
+		if (type == NotificationProblem) {
+			auto [host, service] = GetHostService(checkable);
+			uint_fast8_t state = service ? service->GetState() : host->GetState();
+
+			if (state != (uint_fast8_t)GetLastNotifiedStatePerUser()->Get(userName)) {
+				GetLastNotifiedStatePerUser()->Set(userName, state);
+				OnLastNotifiedStatePerUserUpdated(this, userName, state, nullptr);
+			}
+		}
 
 		/* store all notified users for later recovery checks */
 		if (type == NotificationProblem && !notifiedProblemUsers->Contains(userName))

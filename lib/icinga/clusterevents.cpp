@@ -29,6 +29,8 @@ REGISTER_APIFUNCTION(SetStateBeforeSuppression, event, &ClusterEvents::StateBefo
 REGISTER_APIFUNCTION(SetSuppressedNotifications, event, &ClusterEvents::SuppressedNotificationsChangedAPIHandler);
 REGISTER_APIFUNCTION(SetSuppressedNotificationTypes, event, &ClusterEvents::SuppressedNotificationTypesChangedAPIHandler);
 REGISTER_APIFUNCTION(SetNextNotification, event, &ClusterEvents::NextNotificationChangedAPIHandler);
+REGISTER_APIFUNCTION(UpdateLastNotifiedStatePerUser, event, &ClusterEvents::LastNotifiedStatePerUserUpdatedAPIHandler);
+REGISTER_APIFUNCTION(ClearLastNotifiedStatePerUser, event, &ClusterEvents::LastNotifiedStatePerUserClearedAPIHandler);
 REGISTER_APIFUNCTION(SetForceNextCheck, event, &ClusterEvents::ForceNextCheckChangedAPIHandler);
 REGISTER_APIFUNCTION(SetForceNextNotification, event, &ClusterEvents::ForceNextNotificationChangedAPIHandler);
 REGISTER_APIFUNCTION(SetAcknowledgement, event, &ClusterEvents::AcknowledgementSetAPIHandler);
@@ -50,6 +52,8 @@ void ClusterEvents::StaticInitialize()
 	Checkable::OnSuppressedNotificationsChanged.connect(&ClusterEvents::SuppressedNotificationsChangedHandler);
 	Notification::OnSuppressedNotificationsChanged.connect(&ClusterEvents::SuppressedNotificationTypesChangedHandler);
 	Notification::OnNextNotificationChanged.connect(&ClusterEvents::NextNotificationChangedHandler);
+	Notification::OnLastNotifiedStatePerUserUpdated.connect(&ClusterEvents::LastNotifiedStatePerUserUpdatedHandler);
+	Notification::OnLastNotifiedStatePerUserCleared.connect(&ClusterEvents::LastNotifiedStatePerUserClearedHandler);
 	Checkable::OnForceNextCheckChanged.connect(&ClusterEvents::ForceNextCheckChangedHandler);
 	Checkable::OnForceNextNotificationChanged.connect(&ClusterEvents::ForceNextNotificationChangedHandler);
 	Checkable::OnNotificationsRequested.connect(&ClusterEvents::SendNotificationsHandler);
@@ -525,6 +529,115 @@ Value ClusterEvents::NextNotificationChangedAPIHandler(const MessageOrigin::Ptr&
 		return Empty;
 
 	notification->SetNextNotification(nextNotification, false, origin);
+
+	return Empty;
+}
+
+void ClusterEvents::LastNotifiedStatePerUserUpdatedHandler(const Notification::Ptr& notification, const String& user, uint_fast8_t state, const MessageOrigin::Ptr& origin)
+{
+	auto listener (ApiListener::GetInstance());
+
+	if (!listener) {
+		return;
+	}
+
+	Dictionary::Ptr params = new Dictionary();
+	params->Set("notification", notification->GetName());
+	params->Set("user", user);
+	params->Set("state", state);
+
+	Dictionary::Ptr message = new Dictionary();
+	message->Set("jsonrpc", "2.0");
+	message->Set("method", "event::UpdateLastNotifiedStatePerUser");
+	message->Set("params", params);
+
+	listener->RelayMessage(origin, notification, message, true);
+}
+
+Value ClusterEvents::LastNotifiedStatePerUserUpdatedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
+{
+	auto endpoint (origin->FromClient->GetEndpoint());
+
+	if (!endpoint) {
+		Log(LogNotice, "ClusterEvents")
+			<< "Discarding 'last notified state of user updated' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
+
+		return Empty;
+	}
+
+	if (origin->FromZone && origin->FromZone != Zone::GetLocalZone()) {
+		Log(LogNotice, "ClusterEvents")
+			<< "Discarding 'last notified state of user updated' message from '"
+			<< origin->FromClient->GetIdentity() << "': Unauthorized access.";
+
+		return Empty;
+	}
+
+	auto notification (Notification::GetByName(params->Get("notification")));
+
+	if (!notification) {
+		return Empty;
+	}
+
+	auto state (params->Get("state"));
+
+	if (!state.IsNumber()) {
+		return Empty;
+	}
+
+	notification->GetLastNotifiedStatePerUser()->Set(params->Get("user"), state);
+	Notification::OnLastNotifiedStatePerUserUpdated(notification, params->Get("user"), state, origin);
+
+	return Empty;
+}
+
+void ClusterEvents::LastNotifiedStatePerUserClearedHandler(const Notification::Ptr& notification, const MessageOrigin::Ptr& origin)
+{
+	auto listener (ApiListener::GetInstance());
+
+	if (!listener) {
+		return;
+	}
+
+	Dictionary::Ptr params = new Dictionary();
+	params->Set("notification", notification->GetName());
+
+	Dictionary::Ptr message = new Dictionary();
+	message->Set("jsonrpc", "2.0");
+	message->Set("method", "event::ClearLastNotifiedStatePerUser");
+	message->Set("params", params);
+
+	listener->RelayMessage(origin, notification, message, true);
+}
+
+Value ClusterEvents::LastNotifiedStatePerUserClearedAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
+{
+	auto endpoint (origin->FromClient->GetEndpoint());
+
+	if (!endpoint) {
+		Log(LogNotice, "ClusterEvents")
+			<< "Discarding 'last notified state of user cleared' message from '"
+			<< origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
+
+		return Empty;
+	}
+
+	if (origin->FromZone && origin->FromZone != Zone::GetLocalZone()) {
+		Log(LogNotice, "ClusterEvents")
+			<< "Discarding 'last notified state of user cleared' message from '"
+			<< origin->FromClient->GetIdentity() << "': Unauthorized access.";
+
+		return Empty;
+	}
+
+	auto notification (Notification::GetByName(params->Get("notification")));
+
+	if (!notification) {
+		return Empty;
+	}
+
+	notification->GetLastNotifiedStatePerUser()->Clear();
+	Notification::OnLastNotifiedStatePerUserCleared(notification, origin);
 
 	return Empty;
 }

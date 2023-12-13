@@ -90,6 +90,10 @@ class Notification : CustomVarObject < NotificationNameComposer
 		default {{{ return 0; }}}
 	};
 
+	[state, no_user_view, no_user_modify] Dictionary::Ptr last_notified_state_per_user {
+		default {{{ return new Dictionary(); }}}
+	};
+
 	[config, navigation] name(Endpoint) command_endpoint (CommandEndpointRaw) {
 		navigate {{{
 			return Endpoint::GetByName(GetCommandEndpointRaw());

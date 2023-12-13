@@ -138,6 +138,11 @@ add_boost_test(base
     icinga_notification/strings
     icinga_notification/state_filter
     icinga_notification/type_filter
+    icinga_notification/no_filter_problem_no_duplicate
+    icinga_notification/filter_problem_no_duplicate
+    icinga_notification/volatile_filter_problem_duplicate
+    icinga_notification/no_recovery_filter_no_duplicate
+    icinga_notification/recovery_filter_duplicate
     icinga_macros/simple
     icinga_legacytimeperiod/simple
     icinga_legacytimeperiod/advanced
