@@ -24,6 +24,7 @@ set(base_test_SOURCES
   base-type.cpp
   base-utility.cpp
   base-value.cpp
+  config-apply.cpp
   config-ops.cpp
   icinga-checkresult.cpp
   icinga-dependencies.cpp
@@ -123,6 +124,38 @@ add_boost_test(base
     base_value/scalar
     base_value/convert
     base_value/format
+    config_apply/gettargethosts_literal
+    config_apply/gettargethosts_const
+    config_apply/gettargethosts_swapped
+    config_apply/gettargethosts_two
+    config_apply/gettargethosts_three
+    config_apply/gettargethosts_mixed
+    config_apply/gettargethosts_redundant
+    config_apply/gettargethosts_badconst
+    config_apply/gettargethosts_notliteral
+    config_apply/gettargethosts_wrongop
+    config_apply/gettargethosts_wrongattr
+    config_apply/gettargethosts_wrongvar
+    config_apply/gettargethosts_noindexer
+    config_apply/gettargetservices_literal
+    config_apply/gettargetservices_const
+    config_apply/gettargetservices_swapped_outer
+    config_apply/gettargetservices_swapped_inner
+    config_apply/gettargetservices_two
+    config_apply/gettargetservices_three
+    config_apply/gettargetservices_mixed
+    config_apply/gettargetservices_redundant
+    config_apply/gettargetservices_badconst
+    config_apply/gettargetservices_notliteral
+    config_apply/gettargetservices_wrongop_outer
+    config_apply/gettargetservices_wrongop_host
+    config_apply/gettargetservices_wrongop_service
+    config_apply/gettargetservices_wrongattr_host
+    config_apply/gettargetservices_wrongattr_service
+    config_apply/gettargetservices_wrongvar_host
+    config_apply/gettargetservices_wrongvar_service
+    config_apply/gettargetservices_noindexer_host
+    config_apply/gettargetservices_noindexer_service
     config_ops/simple
     config_ops/advanced
     icinga_checkresult/host_1attempt
