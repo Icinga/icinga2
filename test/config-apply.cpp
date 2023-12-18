@@ -22,6 +22,15 @@ static Expression* RequireActualExpression(const std::unique_ptr<Expression>& co
 	return sub0;
 }
 
+template<>
+struct boost::test_tools::tt_detail::print_log_value<std::pair<String, String>>
+{
+	inline void operator()(std::ostream& os, const std::pair<String, String>& hs)
+	{
+		os << hs.first << "!" << hs.second;
+	}
+};
+
 static void GetTargetHostsHelper(
 	const String& filter, const Dictionary::Ptr& constants, bool targeted, const std::vector<String>& hosts = {}
 )
@@ -64,7 +73,7 @@ static void GetTargetServicesHelper(
 			actualServiceNames.emplace_back(*s.first, *s.second);
 		}
 
-		BOOST_CHECK(actualServiceNames == services);
+		BOOST_CHECK_EQUAL_COLLECTIONS(actualServiceNames.begin(), actualServiceNames.end(), services.begin(), services.end());
 	}
 }
 
