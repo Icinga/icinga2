@@ -96,16 +96,16 @@ bool ApplyRule::AddTargetedRule(const ApplyRule::Ptr& rule, const String& target
  *
  * @returns Whether the given assign filter is like above.
  */
-bool ApplyRule::GetTargetHosts(Expression* assignFilter, std::vector<const String *>& hosts)
+bool ApplyRule::GetTargetHosts(Expression* assignFilter, std::vector<const String *>& hosts, const Dictionary::Ptr& constants)
 {
 	auto lor (dynamic_cast<LogicalOrExpression*>(assignFilter));
 
 	if (lor) {
-		return GetTargetHosts(lor->GetOperand1().get(), hosts)
-			&& GetTargetHosts(lor->GetOperand2().get(), hosts);
+		return GetTargetHosts(lor->GetOperand1().get(), hosts, constants)
+			&& GetTargetHosts(lor->GetOperand2().get(), hosts, constants);
 	}
 
-	auto name (GetComparedName(assignFilter, "host"));
+	auto name (GetComparedName(assignFilter, "host", constants));
 
 	if (name) {
 		hosts.emplace_back(name);
@@ -124,16 +124,16 @@ bool ApplyRule::GetTargetHosts(Expression* assignFilter, std::vector<const Strin
  *
  * @returns Whether the given assign filter is like above.
  */
-bool ApplyRule::GetTargetServices(Expression* assignFilter, std::vector<std::pair<const String *, const String *>>& services)
+bool ApplyRule::GetTargetServices(Expression* assignFilter, std::vector<std::pair<const String *, const String *>>& services, const Dictionary::Ptr& constants)
 {
 	auto lor (dynamic_cast<LogicalOrExpression*>(assignFilter));
 
 	if (lor) {
-		return GetTargetServices(lor->GetOperand1().get(), services)
-			&& GetTargetServices(lor->GetOperand2().get(), services);
+		return GetTargetServices(lor->GetOperand1().get(), services, constants)
+			&& GetTargetServices(lor->GetOperand2().get(), services, constants);
 	}
 
-	auto service (GetTargetService(assignFilter));
+	auto service (GetTargetService(assignFilter, constants));
 
 	if (service.first) {
 		services.emplace_back(service);
@@ -152,7 +152,7 @@ bool ApplyRule::GetTargetServices(Expression* assignFilter, std::vector<std::pai
  *
  * @returns {host, service} on success and {nullptr, nullptr} on failure.
  */
-std::pair<const String *, const String *> ApplyRule::GetTargetService(Expression* assignFilter)
+std::pair<const String *, const String *> ApplyRule::GetTargetService(Expression* assignFilter, const Dictionary::Ptr& constants)
 {
 	auto land (dynamic_cast<LogicalAndExpression*>(assignFilter));
 
@@ -162,15 +162,15 @@ std::pair<const String *, const String *> ApplyRule::GetTargetService(Expression
 
 	auto op1 (land->GetOperand1().get());
 	auto op2 (land->GetOperand2().get());
-	auto host (GetComparedName(op1, "host"));
+	auto host (GetComparedName(op1, "host", constants));
 
 	if (!host) {
 		std::swap(op1, op2);
-		host = GetComparedName(op1, "host");
+		host = GetComparedName(op1, "host", constants);
 	}
 
 	if (host) {
-		auto service (GetComparedName(op2, "service"));
+		auto service (GetComparedName(op2, "service", constants));
 
 		if (service) {
 			return {host, service};
@@ -189,7 +189,7 @@ std::pair<const String *, const String *> ApplyRule::GetTargetService(Expression
  *
  * @returns The object name on success and nullptr on failure.
  */
-const String * ApplyRule::GetComparedName(Expression* assignFilter, const char * lcType)
+const String * ApplyRule::GetComparedName(Expression* assignFilter, const char * lcType, const Dictionary::Ptr& constants)
 {
 	auto eq (dynamic_cast<EqualExpression*>(assignFilter));
 
@@ -200,12 +200,12 @@ const String * ApplyRule::GetComparedName(Expression* assignFilter, const char *
 	auto op1 (eq->GetOperand1().get());
 	auto op2 (eq->GetOperand2().get());
 
-	if (IsNameIndexer(op1, lcType)) {
-		return GetLiteralStringValue(op2);
+	if (IsNameIndexer(op1, lcType, constants)) {
+		return GetConstString(op2, constants);
 	}
 
-	if (IsNameIndexer(op2, lcType)) {
-		return GetLiteralStringValue(op1);
+	if (IsNameIndexer(op2, lcType, constants)) {
+		return GetConstString(op1, constants);
 	}
 
 	return nullptr;
@@ -214,7 +214,7 @@ const String * ApplyRule::GetComparedName(Expression* assignFilter, const char *
 /**
  * @returns Whether the given expression is like $lcType$.name.
  */
-bool ApplyRule::IsNameIndexer(Expression* exp, const char * lcType)
+bool ApplyRule::IsNameIndexer(Expression* exp, const char * lcType, const Dictionary::Ptr& constants)
 {
 	auto ixr (dynamic_cast<IndexerExpression*>(exp));
 
@@ -228,27 +228,39 @@ bool ApplyRule::IsNameIndexer(Expression* exp, const char * lcType)
 		return false;
 	}
 
-	auto val (GetLiteralStringValue(ixr->GetOperand2().get()));
+	auto val (GetConstString(ixr->GetOperand2().get(), constants));
 
 	return val && *val == "name";
 }
 
 /**
- * @returns If the given expression is a string literal, the string. nullptr on failure.
+ * @returns If the given expression is a constant string, its address. nullptr on failure.
  */
-const String * ApplyRule::GetLiteralStringValue(Expression* exp)
+const String * ApplyRule::GetConstString(Expression* exp, const Dictionary::Ptr& constants)
+{
+	auto cnst (GetConst(exp, constants));
+
+	return cnst && cnst->IsString() ? &cnst->Get<String>() : nullptr;
+}
+
+/**
+ * @returns If the given expression is a constant, its address. nullptr on failure.
+ */
+const Value * ApplyRule::GetConst(Expression* exp, const Dictionary::Ptr& constants)
 {
 	auto lit (dynamic_cast<LiteralExpression*>(exp));
 
-	if (!lit) {
-		return nullptr;
+	if (lit) {
+		return &lit->GetValue();
 	}
 
-	auto& val (lit->GetValue());
+	if (constants) {
+		auto var (dynamic_cast<VariableExpression*>(exp));
 
-	if (!val.IsString()) {
-		return nullptr;
+		if (var) {
+			return constants->GetRef(var->GetVariable());
+		}
 	}
 
-	return &val.Get<String>();
+	return nullptr;
 }
