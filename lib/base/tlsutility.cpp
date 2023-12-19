@@ -714,7 +714,7 @@ String GetIcingaCADir()
 	return Configuration::DataDir + "/ca";
 }
 
-std::shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject)
+std::shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject, bool ca)
 {
 	char errbuf[256];
 
@@ -751,7 +751,7 @@ std::shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject)
 	EVP_PKEY *privkey = EVP_PKEY_new();
 	EVP_PKEY_assign_RSA(privkey, rsa);
 
-	return CreateCert(pubkey, subject, X509_get_subject_name(cacert.get()), privkey, false);
+	return CreateCert(pubkey, subject, X509_get_subject_name(cacert.get()), privkey, ca);
 }
 
 std::shared_ptr<X509> CreateCertIcingaCA(const std::shared_ptr<X509>& cert)
@@ -760,24 +760,37 @@ std::shared_ptr<X509> CreateCertIcingaCA(const std::shared_ptr<X509>& cert)
 	return CreateCertIcingaCA(pkey.get(), X509_get_subject_name(cert.get()));
 }
 
+static inline
+bool CertExpiresWithin(X509* cert, int seconds)
+{
+	time_t renewalStart = time(nullptr) + seconds;
+
+	return X509_cmp_time(X509_get_notAfter(cert), &renewalStart) < 0;
+}
+
 bool IsCertUptodate(const std::shared_ptr<X509>& cert)
 {
-	time_t now;
-	time(&now);
+	if (CertExpiresWithin(cert.get(), RENEW_THRESHOLD)) {
+		return false;
+	}
 
 	/* auto-renew all certificates which were created before 2017 to force an update of the CA,
 	 * because Icinga versions older than 2.4 sometimes create certificates with an invalid
 	 * serial number. */
 	time_t forceRenewalEnd = 1483228800; /* January 1st, 2017 */
-	time_t renewalStart = now + RENEW_THRESHOLD;
 
-	return X509_cmp_time(X509_get_notBefore(cert.get()), &forceRenewalEnd) != -1 && X509_cmp_time(X509_get_notAfter(cert.get()), &renewalStart) != -1;
+	return X509_cmp_time(X509_get_notBefore(cert.get()), &forceRenewalEnd) >= 0;
 }
 
-String CertificateToString(const std::shared_ptr<X509>& cert)
+bool IsCaUptodate(X509* cert)
+{
+	return !CertExpiresWithin(cert, LEAF_VALID_FOR);
+}
+
+String CertificateToString(X509* cert)
 {
 	BIO *mem = BIO_new(BIO_s_mem());
-	PEM_write_bio_X509(mem, cert.get());
+	PEM_write_bio_X509(mem, cert);
 
 	char *data;
 	long len = BIO_get_mem_data(mem, &data);
