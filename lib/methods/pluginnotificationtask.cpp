@@ -12,6 +12,20 @@
 #include "base/process.hpp"
 #include "base/convert.hpp"
 
+#ifdef __linux__
+#	include <linux/binfmts.h>
+#	include <unistd.h>
+
+#	ifndef PAGE_SIZE
+//		MAX_ARG_STRLEN is a multiple of PAGE_SIZE which is missing
+#		define PAGE_SIZE getpagesize()
+#	endif /* PAGE_SIZE */
+
+// Make e.g. the $host.output$ itself even 10% shorter to leave enough room
+// for e.g. --host-output= as in --host-output=$host.output$, but without int overflow
+const static auto l_MaxOutLen = MAX_ARG_STRLEN - MAX_ARG_STRLEN / 10u;
+#endif /* __linux__ */
+
 using namespace icinga;
 
 REGISTER_FUNCTION_NONCONST(Internal, PluginNotification, &PluginNotificationTask::ScriptFunc, "notification:user:cr:itype:author:comment:resolvedMacros:useResolvedMacros");
@@ -33,7 +47,11 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification,
 	Dictionary::Ptr notificationExtra = new Dictionary({
 		{ "type", Notification::NotificationTypeToStringCompat(type) }, //TODO: Change that to our types.
 		{ "author", author },
+#ifdef __linux__
+		{ "comment", comment.SubStr(0, l_MaxOutLen) }
+#else /* __linux__ */
 		{ "comment", comment }
+#endif /* __linux__ */
 	});
 
 	Host::Ptr host;
@@ -48,8 +66,35 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification,
 	resolvers.emplace_back("user", user);
 	resolvers.emplace_back("notification", notificationExtra);
 	resolvers.emplace_back("notification", notification);
-	if (service)
+
+	if (service) {
+#ifdef __linux__
+		auto cr (service->GetLastCheckResult());
+
+		if (cr) {
+			auto output (cr->GetOutput());
+
+			if (output.GetLength() > l_MaxOutLen) {
+				resolvers.emplace_back("service", new Dictionary({{"output", output.SubStr(0, l_MaxOutLen)}}));
+			}
+		}
+#endif /* __linux__ */
+
 		resolvers.emplace_back("service", service);
+	}
+
+#ifdef __linux__
+	auto hcr (host->GetLastCheckResult());
+
+	if (hcr) {
+		auto output (hcr->GetOutput());
+
+		if (output.GetLength() > l_MaxOutLen) {
+			resolvers.emplace_back("host", new Dictionary({{"output", output.SubStr(0, l_MaxOutLen)}}));
+		}
+	}
+#endif /* __linux__ */
+
 	resolvers.emplace_back("host", host);
 	resolvers.emplace_back("command", commandObj);
 
