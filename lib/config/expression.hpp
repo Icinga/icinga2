@@ -622,6 +622,11 @@ public:
 
 	void MakeInline();
 
+	inline const std::vector<std::unique_ptr<Expression>>& GetExpressions() const noexcept
+	{
+		return m_Expressions;
+	}
+
 protected:
 	ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 
