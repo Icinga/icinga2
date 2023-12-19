@@ -31,12 +31,14 @@ set(base_test_SOURCES
   icinga-macros.cpp
   icinga-notification.cpp
   icinga-perfdata.cpp
+  methods-pluginnotificationtask.cpp
   remote-configpackageutility.cpp
   remote-url.cpp
   ${base_OBJS}
   $<TARGET_OBJECTS:config>
   $<TARGET_OBJECTS:remote>
   $<TARGET_OBJECTS:icinga>
+  $<TARGET_OBJECTS:methods>
 )
 
 if(ICINGA2_UNITY_BUILD)
@@ -156,6 +158,7 @@ add_boost_test(base
     icinga_perfdata/multi
     icinga_perfdata/scientificnotation
     icinga_perfdata/parse_edgecases
+    methods_pluginnotificationtask/truncate_long_output
     remote_configpackageutility/ValidateName
     remote_url/id_and_path
     remote_url/parameters
