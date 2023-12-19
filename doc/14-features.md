@@ -843,7 +843,7 @@ yum install icinga2-ido-mysql
 zypper install icinga2-ido-mysql
 ```
 
-###### Amazon Linux 2
+###### Amazon Linux
 
 ```bash
 yum install icinga2-ido-mysql
@@ -942,7 +942,7 @@ yum install icinga2-ido-pgsql
 zypper install icinga2-ido-pgsql
 ```
 
-###### Amazon Linux 2
+###### Amazon Linux
 
 ```bash
 yum install icinga2-ido-pgsql

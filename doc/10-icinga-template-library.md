@@ -215,7 +215,7 @@ Optional custom variables passed as [command parameters](03-monitoring-basics.md
 | ifw\_api\_cert          | null (Icinga PKI) | TLS client certificate path.                                                                                |
 | ifw\_api\_key           | null (Icinga PKI) | TLS client private key path.                                                                                |
 | ifw\_api\_ca            | null (Icinga PKI) | Peer TLS CA certificate path.                                                                               |
-| ifw\_api\_crl           | null (Icinga PKI) | Path to TLS CRL to check peer against.                                                                      |
+| ifw\_api\_crl           | null (none)       | Path to TLS CRL to check peer against.                                                                      |
 | ifw\_api\_username      | null (none)       | Basic auth username.                                                                                        |
 | ifw\_api\_password      | null (none)       | Basic auth password.                                                                                        |
 
