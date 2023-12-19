@@ -90,7 +90,7 @@ public:
 	static String GetCaDir();
 	static String GetCertificateRequestsDir();
 
-	std::shared_ptr<X509> RenewCert(const std::shared_ptr<X509>& cert);
+	std::shared_ptr<X509> RenewCert(const std::shared_ptr<X509>& cert, bool ca = false);
 	void UpdateSSLContext();
 
 	static ApiListener::Ptr GetInstance();
@@ -226,6 +226,7 @@ private:
 	void SyncLocalZoneDirs() const;
 	void SyncLocalZoneDir(const Zone::Ptr& zone) const;
 	void RenewOwnCert();
+	void RenewCA();
 
 	void SendConfigUpdate(const JsonRpcConnection::Ptr& aclient);
 
