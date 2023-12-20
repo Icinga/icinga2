@@ -1,5 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "remote/configobjectslock.hpp"
 #include "remote/consolehandler.hpp"
 #include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
@@ -87,6 +88,13 @@ bool ConsoleHandler::HandleRequest(
 	String command = HttpUtility::GetLastParameter(params, "command");
 
 	bool sandboxed = HttpUtility::GetLastParameter(params, "sandboxed");
+
+	ConfigObjectsSharedLock lock (std::try_to_lock);
+
+	if (!lock) {
+		HttpUtility::SendJsonError(response, params, 503, "Icinga is reloading.");
+		return true;
+	}
 
 	if (methodName == "execute-script")
 		return ExecuteScriptHelper(request, response, params, command, session, sandboxed);
