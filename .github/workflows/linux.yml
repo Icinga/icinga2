@@ -21,6 +21,7 @@ jobs:
       max-parallel: 2
       matrix:
         distro:
+          - alpine:bash # LibreSSL, used on OpenBSD
           - amazonlinux:2
           - amazonlinux:2023
 
@@ -68,7 +69,13 @@ jobs:
           path: ccache
           key: ccache/${{ matrix.distro }}
 
-      - name: Build
+      - name: Build Docker image
+        if: "matrix.distro == 'alpine:bash'"
+        run: >-
+          docker build --file .github/workflows/alpine-bash.Dockerfile
+          --tag alpine:bash `mktemp -d`
+
+      - name: Build Icinga
         run: >-
           docker run --rm -v "$(pwd):/icinga2" -e DISTRO=${{ matrix.distro }}
           --platform ${{ matrix.platform }} ${{ matrix.distro }} /icinga2/.github/workflows/linux.bash
