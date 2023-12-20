@@ -7,6 +7,26 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.13.9 (2023-12-21)
+
+Version 2.13.9 is a hotfix release for masters and satellites that mainly
+prevents permanent disintegration of a whole cluster due to root CA expiry.
+
+### Security
+
+* Automatically renew own root CA and distribute it to all nodes. #9934
+* Update OpenSSL shipped on Windows to v3.0.12. #9945
+* Disable TLS renegotiation (handshake on existing connection). #9945
+
+### Bugfixes
+
+* Icinga DB feature: fix crash due to missing NULL pointer check. #9945
+* Icinga DB feature: fix data written into Redis crashing the Go daemon. #9945
+
+### Updates
+
+* Update Boost shipped on Windows to v1.83. #9945
+
 ## 2.13.8 (2023-07-12)
 
 Version 2.13.8 is a maintenance release that fixes some bugs,
