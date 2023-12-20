@@ -1570,6 +1570,9 @@ IcingaDB::CreateConfigUpdate(const ConfigObject::Ptr& object, const String typeN
 
 void IcingaDB::SendConfigDelete(const ConfigObject::Ptr& object)
 {
+	if (!m_Rcon || !m_Rcon->IsConnected())
+		return;
+
 	Type::Ptr type = object->GetReflectionType();
 	String typeName = type->GetName().ToLower();
 	String objectKey = GetObjectIdentifier(object);
@@ -1853,6 +1856,7 @@ void IcingaDB::SendStartedDowntime(const Downtime::Ptr& downtime)
 		"scheduled_end_time", Convert::ToString(TimestampToMilliseconds(downtime->GetEndTime())),
 		"has_been_cancelled", Convert::ToString((unsigned short)downtime->GetWasCancelled()),
 		"trigger_time", Convert::ToString(TimestampToMilliseconds(downtime->GetTriggerTime())),
+		"cancel_time", Convert::ToString(TimestampToMilliseconds(downtime->GetRemoveTime())),
 		"event_id", CalcEventID("downtime_start", downtime),
 		"event_type", "downtime_start"
 	});

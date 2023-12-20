@@ -477,18 +477,18 @@ File Type: EXECUTABLE IMAGE
 
   Image has the following dependencies:
 
-    boost_coroutine-vc142-mt-gd-x64-1_82.dll
-    boost_date_time-vc142-mt-gd-x64-1_82.dll
-    boost_filesystem-vc142-mt-gd-x64-1_82.dll
-    boost_thread-vc142-mt-gd-x64-1_82.dll
-    boost_regex-vc142-mt-gd-x64-1_82.dll
+    boost_coroutine-vc142-mt-gd-x64-1_83.dll
+    boost_date_time-vc142-mt-gd-x64-1_83.dll
+    boost_filesystem-vc142-mt-gd-x64-1_83.dll
+    boost_thread-vc142-mt-gd-x64-1_83.dll
+    boost_regex-vc142-mt-gd-x64-1_83.dll
     libssl-3_0-x64.dll
     libcrypto-3_0-x64.dll
     WS2_32.dll
     dbghelp.dll
     SHLWAPI.dll
     msi.dll
-    boost_unit_test_framework-vc142-mt-gd-x64-1_82.dll
+    boost_unit_test_framework-vc142-mt-gd-x64-1_83.dll
     KERNEL32.dll
     SHELL32.dll
     ADVAPI32.dll
@@ -1763,7 +1763,7 @@ mkdir build
 cd .\build\
 
 & "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" `
-  -DICINGA2_UNITY_BUILD=OFF -DBoost_INCLUDE_DIR=C:\local\boost_1_82_0-Win64 `
+  -DICINGA2_UNITY_BUILD=OFF -DBoost_INCLUDE_DIR=C:\local\boost_1_83_0-Win64 `
   -DBISON_EXECUTABLE=C:\ProgramData\chocolatey\lib\winflexbison3\tools\win_bison.exe `
   -DFLEX_EXECUTABLE=C:\ProgramData\chocolatey\lib\winflexbison3\tools\win_flex.exe `
   -DICINGA2_WITH_MYSQL=OFF -DICINGA2_WITH_PGSQL=OFF ..
@@ -1936,16 +1936,16 @@ Download the [boost-binaries](https://sourceforge.net/projects/boost/files/boost
 - 64 for 64 bit builds
 
 ```
-https://sourceforge.net/projects/boost/files/boost-binaries/1.82.0/boost_1_82_0-msvc-14.2-64.exe/download
+https://sourceforge.net/projects/boost/files/boost-binaries/1.82.0/boost_1_83_0-msvc-14.2-64.exe/download
 ```
 
-Run the installer and leave the default installation path in `C:\local\boost_1_82_0`.
+Run the installer and leave the default installation path in `C:\local\boost_1_83_0`.
 
 
 ##### Source & Compile
 
 In order to use the boost development header and library files you need to [download](https://www.boost.org/users/download/)
-Boost and then extract it to e.g. `C:\local\boost_1_82_0`.
+Boost and then extract it to e.g. `C:\local\boost_1_83_0`.
 
 > **Note**
 >
@@ -1953,12 +1953,12 @@ Boost and then extract it to e.g. `C:\local\boost_1_82_0`.
 > the archive contains more than 70k files.
 
 In order to integrate Boost into Visual Studio, open the `Developer Command Prompt` from the start menu,
-and navigate to `C:\local\boost_1_82_0`.
+and navigate to `C:\local\boost_1_83_0`.
 
 Execute `bootstrap.bat` first.
 
 ```
-cd C:\local\boost_1_82_0
+cd C:\local\boost_1_83_0
 bootstrap.bat
 ```
 
@@ -2041,8 +2041,8 @@ You need to specify the previously installed component paths.
 
 Variable              | Value                                                                | Description
 ----------------------|----------------------------------------------------------------------|-------------------------------------------------------
-`BOOST_ROOT`          | `C:\local\boost_1_82_0`                                                    | Root path where you've extracted and compiled Boost.
-`BOOST_LIBRARYDIR`    | Binary: `C:\local\boost_1_82_0\lib64-msvc-14.2`, Source: `C:\local\boost_1_82_0\stage` | Path to the static compiled Boost libraries, directory must contain `lib`.
+`BOOST_ROOT`          | `C:\local\boost_1_83_0`                                                    | Root path where you've extracted and compiled Boost.
+`BOOST_LIBRARYDIR`    | Binary: `C:\local\boost_1_83_0\lib64-msvc-14.2`, Source: `C:\local\boost_1_83_0\stage` | Path to the static compiled Boost libraries, directory must contain `lib`.
 `BISON_EXECUTABLE`    | `C:\ProgramData\chocolatey\lib\winflexbison\tools\win_bison.exe`     | Path to the Bison executable.
 `FLEX_EXECUTABLE`     | `C:\ProgramData\chocolatey\lib\winflexbison\tools\win_flex.exe`      | Path to the Flex executable.
 `ICINGA2_WITH_MYSQL`  | OFF                                                                  | Requires extra setup for MySQL if set to `ON`. Not supported for client setups.
@@ -2079,8 +2079,8 @@ $env:ICINGA2_INSTALLPATH = 'C:\Program Files\Icinga2-debug'
 $env:ICINGA2_BUILDPATH='debug'
 $env:CMAKE_BUILD_TYPE='Debug'
 $env:OPENSSL_ROOT_DIR='C:\OpenSSL-Win64'
-$env:BOOST_ROOT='C:\local\boost_1_82_0'
-$env:BOOST_LIBRARYDIR='C:\local\boost_1_82_0\lib64-msvc-14.2'
+$env:BOOST_ROOT='C:\local\boost_1_83_0'
+$env:BOOST_LIBRARYDIR='C:\local\boost_1_83_0\lib64-msvc-14.2'
 ```
 
 #### Icinga 2 in Visual Studio
