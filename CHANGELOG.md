@@ -7,6 +7,32 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.14.1 (2023-12-21)
+
+Version 2.14.1 is a hotfix release for masters and satellites that mainly
+prevents permanent disintegration of a whole cluster due to root CA expiry.
+
+### Security
+
+* Automatically renew own root CA and distribute it to all nodes. #9933
+* Update OpenSSL shipped on Windows to v3.0.12. #9946
+* Disable TLS renegotiation (handshake on existing connection). #9946
+
+### Bugfixes
+
+* Icinga DB feature: fix crash due to missing NULL pointer check. #9946
+* Icinga DB feature: fix data written into Redis crashing the Go daemon. #9946
+* GelfWriter: fix deadlock on stop/reload caused by busy queue. #9947
+* Don't lose notifications due to too long output, truncate it. #9947
+
+### Enhancements
+
+* Discard duplicate problem notifications due to state filtering. #9932
+* Speed up API filters targeting specific hosts/services to O(1). #9944
+* POST /v1/console/\*: return HTTP 503 while Icinga is reloading. #9947
+* Update Boost shipped on Windows to v1.83. #9946
+* Documentation: several fixes and improvements. #9921
+
 ## 2.14.0 (2023-07-12)
 
 [Issues and PRs](https://github.com/Icinga/icinga2/issues?q=is%3Aclosed+milestone%3A2.14.0)
