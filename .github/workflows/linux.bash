@@ -1,12 +1,18 @@
 #!/bin/bash
 set -exo pipefail
 
-export PATH="/usr/lib/ccache:/usr/lib64/ccache:$PATH"
+export PATH="/usr/lib/ccache/bin:/usr/lib/ccache:/usr/lib64/ccache:$PATH"
 export CCACHE_DIR=/icinga2/ccache
 export CTEST_OUTPUT_ON_FAILURE=1
 CMAKE_OPTS=''
 
 case "$DISTRO" in
+  alpine:*)
+    apk add bison {boost,libressl}-dev ccache cmake flex g++ ninja-build tzdata
+    ln -vs /usr/lib/ninja-build/bin/ninja /usr/local/bin/ninja
+    CMAKE_OPTS="-DUSE_SYSTEMD=OFF $(echo -DICINGA2_WITH_{MYSQL,PGSQL,COMPAT,LIVESTATUS,PERFDATA,ICINGADB}=OFF)"
+    ;;
+
   amazonlinux:2)
     amazon-linux-extras install -y epel
     yum install -y bison ccache cmake3 gcc-c++ flex ninja-build \
