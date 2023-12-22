@@ -9,7 +9,7 @@ namespace icinga
 
 abstract class Logger : ConfigObject
 {
-	[config, virtual] String severity {
+	[config, set_virtual] String severity {
 		default {{{ return "information"; }}}
 	};
 };
