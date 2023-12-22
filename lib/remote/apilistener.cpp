@@ -111,7 +111,7 @@ double ApiListener::GetTlsHandshakeTimeout() const
 	return Configuration::TlsHandshakeTimeout;
 }
 
-void ApiListener::SetTlsHandshakeTimeout(double value, bool suppress_events, const Value& cookie)
+void ApiListener::SetTlsHandshakeTimeout(double value, [[maybe_unused]] bool suppress_events, [[maybe_unused]] const Value& cookie)
 {
 	Configuration::TlsHandshakeTimeout = value;
 }
@@ -533,7 +533,7 @@ void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const Sha
 
 			IoEngine::SpawnCoroutine(*strand, [this, strand, sslConn](asio::yield_context yc) {
 				Timeout::Ptr timeout(new Timeout(strand->context(), *strand, boost::posix_time::microseconds(int64_t(GetConnectTimeout() * 1e6)),
-					[sslConn](asio::yield_context yc) {
+					[sslConn](asio::yield_context) {
 						Log(LogWarning, "ApiListener")
 							<< "Timeout while processing incoming connection from "
 							<< sslConn->lowest_layer().remote_endpoint();
@@ -585,7 +585,7 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 			lock.unlock();
 
 			Timeout::Ptr timeout(new Timeout(strand->context(), *strand, boost::posix_time::microseconds(int64_t(GetConnectTimeout() * 1e6)),
-				[sslConn, endpoint, host, port](asio::yield_context yc) {
+				[sslConn, endpoint, host, port](asio::yield_context) {
 					Log(LogCritical, "ApiListener")
 						<< "Timeout while reconnecting to endpoint '" << endpoint->GetName() << "' via host '" << host
 						<< "' and port '" << port << "', cancelling attempt";
@@ -686,7 +686,7 @@ void ApiListener::NewClientHandlerInternal(
 			strand->context(),
 			*strand,
 			boost::posix_time::microseconds(intmax_t(Configuration::TlsHandshakeTimeout * 1000000)),
-			[strand, client](asio::yield_context yc) {
+			[strand, client](asio::yield_context) {
 				boost::system::error_code ec;
 				client->lowest_layer().cancel(ec);
 			}

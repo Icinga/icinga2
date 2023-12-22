@@ -91,7 +91,7 @@ void IcingaDB::Start(bool runtimeCreated)
 			GetEnableTls(), GetInsecureNoverify(), GetCertPath(), GetKeyPath(), GetCaPath(), GetCrlPath(),
 			GetTlsProtocolmin(), GetCipherList(), GetConnectTimeout(), GetDebugInfo(), m_Rcon);
 
-		con->SetConnectedCallback([this, con](boost::asio::yield_context& yc) {
+		con->SetConnectedCallback([this, con](boost::asio::yield_context&) {
 			con->SetConnectedCallback(nullptr);
 
 			size_t pending = --m_PendingRcons;
@@ -106,7 +106,7 @@ void IcingaDB::Start(bool runtimeCreated)
 
 	m_PendingRcons = m_Rcons.size();
 
-	m_Rcon->SetConnectedCallback([this](boost::asio::yield_context& yc) {
+	m_Rcon->SetConnectedCallback([this](boost::asio::yield_context&) {
 		m_Rcon->SetConnectedCallback(nullptr);
 
 		for (auto& kv : m_Rcons) {

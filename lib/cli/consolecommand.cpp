@@ -167,7 +167,7 @@ ImpersonationLevel ConsoleCommand::GetImpersonationLevel() const
 }
 
 void ConsoleCommand::InitParameters(boost::program_options::options_description& visibleDesc,
-	boost::program_options::options_description& hiddenDesc) const
+	[[maybe_unused]] boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
 		("connect,c", po::value<std::string>(), "connect to an Icinga 2 instance")
@@ -215,7 +215,7 @@ char *ConsoleCommand::ConsoleCompleteHelper(const char *word, int state)
  *
  * @returns An exit status.
  */
-int ConsoleCommand::Run(const po::variables_map& vm, const std::vector<std::string>& ap) const
+int ConsoleCommand::Run(const po::variables_map& vm, [[maybe_unused]] const std::vector<std::string>& ap) const
 {
 #ifdef HAVE_EDITLINE
 	rl_completion_entry_function = ConsoleCommand::ConsoleCompleteHelper;

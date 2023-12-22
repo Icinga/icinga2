@@ -97,7 +97,7 @@ IoEngine::IoEngine() : m_IoContext(), m_KeepAlive(boost::asio::make_work_guard(m
 
 IoEngine::~IoEngine()
 {
-	for (auto& thread : m_Threads) {
+	for ([[maybe_unused]] auto& thread : m_Threads) {
 		boost::asio::post(m_IoContext, []() {
 			throw TerminateIoThread();
 		});
