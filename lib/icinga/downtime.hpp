@@ -71,6 +71,7 @@ public:
 protected:
 	void Start(bool runtimeCreated) override;
 	void Stop(bool runtimeRemoved) override;
+	void GetParentsAffectingLogging(std::vector<ConfigObject::Ptr>& output) const override;
 
 	void Pause() override;
 	void Resume() override;
