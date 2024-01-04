@@ -524,7 +524,7 @@ incomplete:
  */
 Shared<AsioTlsStream>::Ptr ConsoleCommand::Connect()
 {
-	Shared<boost::asio::ssl::context>::Ptr sslContext;
+	Shared<TlsContext>::Ptr sslContext;
 
 	try {
 		sslContext = MakeAsioSslContext(Empty, Empty, Empty); //TODO: Add support for cert, key, ca parameters

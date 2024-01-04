@@ -183,7 +183,7 @@ namespace icinga
 		typedef boost::asio::buffered_stream<Tcp::socket> TcpConn;
 		typedef boost::asio::buffered_stream<Unix::socket> UnixConn;
 
-		Shared<boost::asio::ssl::context>::Ptr m_TLSContext;
+		Shared<TlsContext>::Ptr m_TLSContext;
 
 		template<class AsyncReadStream>
 		static Value ReadRESP(AsyncReadStream& stream, boost::asio::yield_context& yc);

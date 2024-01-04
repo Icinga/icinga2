@@ -149,7 +149,7 @@ OptionalTlsStream InfluxdbCommonWriter::Connect()
 	bool ssl = GetSslEnable();
 
 	if (ssl) {
-		Shared<boost::asio::ssl::context>::Ptr sslContext;
+		Shared<TlsContext>::Ptr sslContext;
 
 		try {
 			sslContext = MakeAsioSslContext(GetSslCert(), GetSslKey(), GetSslCaCert());

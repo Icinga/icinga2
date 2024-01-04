@@ -602,7 +602,7 @@ OptionalTlsStream ElasticsearchWriter::Connect()
 	bool tls = GetEnableTls();
 
 	if (tls) {
-		Shared<boost::asio::ssl::context>::Ptr sslContext;
+		Shared<TlsContext>::Ptr sslContext;
 
 		try {
 			sslContext = MakeAsioSslContext(GetCertPath(), GetKeyPath(), GetCaPath());

@@ -59,7 +59,7 @@ private:
 struct UnbufferedAsioTlsStreamParams
 {
 	boost::asio::io_context& IoContext;
-	boost::asio::ssl::context& SslContext;
+	TlsContext& SslContext;
 	const String& Hostname;
 };
 
@@ -108,7 +108,7 @@ class AsioTlsStream : public boost::asio::buffered_stream<UnbufferedAsioTlsStrea
 {
 public:
 	inline
-	AsioTlsStream(boost::asio::io_context& ioContext, boost::asio::ssl::context& sslContext, const String& hostname = String())
+	AsioTlsStream(boost::asio::io_context& ioContext, TlsContext& sslContext, const String& hostname = String())
 		: AsioTlsStream(UnbufferedAsioTlsStreamParams{ioContext, sslContext, hostname})
 	{
 	}

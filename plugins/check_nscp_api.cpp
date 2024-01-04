@@ -176,7 +176,7 @@ static int FormatOutput(const Dictionary::Ptr& result)
  */
 static Shared<AsioTlsStream>::Ptr Connect(const String& host, const String& port)
 {
-	Shared<boost::asio::ssl::context>::Ptr sslContext;
+	Shared<TlsContext>::Ptr sslContext;
 
 	try {
 		sslContext = MakeAsioSslContext(Empty, Empty, Empty); //TODO: Add support for cert, key, ca parameters
