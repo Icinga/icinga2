@@ -1,0 +1,63 @@
+---
+name: coverity
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  coverity-scan:
+    name: Build with coverity and upload to coverity scan
+    runs-on: windows-2022
+    defaults:
+      run:
+        shell: bash
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Install Coverity Build Tool
+      run: |
+        curl -o coverity_tool.zip -d "token=$TOKEN&project=laudrup%2Fboost-wintls" https://scan.coverity.com/download/cxx/win64
+        7z x coverity_tool.zip
+        echo COV_CONFIGURE_PATH="$(find . -name 'cov-configure.exe')" >> $GITHUB_ENV
+        echo COV_BUILD_PATH="$(find . -name 'cov-build.exe')" >> $GITHUB_ENV
+      env:
+        TOKEN: ${{ secrets.COVERITY_SCAN_TOKEN }}
+
+    - name: Install packages
+      run: choco install openssl curl
+
+    - name: Install Boost
+      uses: MarkusJx/install-boost@v2.4.4
+      id: install-boost
+      with:
+        boost_version: 1.83.0
+        toolset: msvc
+        platform_version: 2022
+
+    - name: Configure
+      env:
+        BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
+      run: cmake -B build -DENABLE_DOCUMENTATION=OFF -DENABLE_EXAMPLES=OFF
+
+    - name: Configure Coverity
+      run: ${COV_CONFIGURE_PATH} --msvc
+
+    - name: Build with cov-build
+      run: |
+        ${COV_BUILD_PATH} --dir cov-int cmake --build build/
+        7z a boost-wintls.zip cov-int
+
+    - name: Upload to coverity-scan
+      run: |
+        curl --form token=$TOKEN \
+        --form email=laudrup@stacktrace.dk \
+        --form file=@boost-wintls.zip \
+        --form version=$GITHUB_SHA \
+        --form description=$(git log -1 --pretty=format:"%s") \
+        https://scan.coverity.com/builds?project=laudrup%2Fboost-wintls
+      env:
+        TOKEN: ${{ secrets.COVERITY_SCAN_TOKEN }}
