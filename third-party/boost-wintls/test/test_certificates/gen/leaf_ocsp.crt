@@ -1,0 +1,100 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 2 (0x2)
+        Signature Algorithm: sha1WithRSAEncryption
+        Issuer: C=DK, L=Copenhagen, O=WinTLS, CN=WinTLS Intermediate Certificate Authority
+        Validity
+            Not Before: Aug 17 08:59:48 2022 GMT
+            Not After : Aug 18 08:59:48 2122 GMT
+        Subject: C=DK, L=Copenhagen, O=WinTLS, CN=wintls.test
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                RSA Public-Key: (2048 bit)
+                Modulus:
+                    00:df:7f:eb:a0:1b:78:9f:a1:f7:13:8e:68:40:e0:
+                    50:f9:00:cd:8f:f0:92:a3:fb:33:d2:5a:27:1a:62:
+                    35:7c:82:2f:fb:73:27:e2:e7:2f:f8:d1:f4:89:8e:
+                    f0:a8:9b:47:86:a9:d9:28:50:a8:c4:75:2e:bf:e7:
+                    59:a4:bb:f3:0d:87:7d:a3:cf:8a:e0:53:c2:b7:0c:
+                    0a:c7:36:74:db:0f:77:08:92:42:02:eb:16:52:97:
+                    ee:f3:ec:2c:9b:9d:d3:da:6e:3a:4e:89:d4:f6:27:
+                    48:1f:2a:ab:a1:51:18:a5:e6:94:3d:56:20:1c:35:
+                    91:ca:ec:62:21:f5:c4:1c:6e:6a:f2:1f:32:1d:06:
+                    ea:ae:a8:af:89:02:c5:ec:18:9d:ba:92:96:d8:96:
+                    f6:94:6b:ba:52:cc:55:2e:c5:5e:56:1d:82:fa:33:
+                    34:3e:2e:8e:45:0b:94:4a:bb:25:74:f2:4b:3c:5d:
+                    9b:c4:06:7e:76:f5:f8:7a:b6:ec:db:28:80:71:bf:
+                    29:46:09:1c:22:a8:9d:96:61:a8:62:db:9d:f2:b9:
+                    ea:8b:45:65:ab:37:b2:cd:71:28:7c:69:d2:63:f7:
+                    af:11:f0:a5:80:43:06:ee:5d:31:af:b6:af:86:f4:
+                    c4:a4:e5:8e:45:e2:e1:fb:20:6d:ff:e3:34:55:3e:
+                    c8:23
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Basic Constraints: 
+                CA:FALSE
+            X509v3 Subject Alternative Name: 
+                DNS:wintls.test, DNS:*.wintls.test
+            Authority Information Access: 
+                OCSP - URI:http://localhost:5000
+
+            X509v3 Key Usage: 
+                Digital Signature, Non Repudiation, Key Encipherment
+    Signature Algorithm: sha1WithRSAEncryption
+         aa:8a:0f:88:d8:84:8e:90:fe:88:b5:ed:65:55:00:2d:f2:e0:
+         eb:6d:07:89:70:64:bb:1c:be:29:d4:ad:ff:94:b7:71:08:3d:
+         9e:e8:c3:55:56:67:e1:9d:e0:d2:c7:ef:d8:74:c3:a0:30:f9:
+         fb:9d:f8:10:28:c7:60:77:7a:db:cd:96:ef:02:e2:b9:b4:e1:
+         1b:96:ab:8c:ab:f1:86:1c:3f:07:2b:fc:2b:97:fc:c1:30:a7:
+         cd:63:f3:16:19:9d:b2:71:ee:bd:72:21:d2:0e:59:b3:c4:a4:
+         30:af:c7:9f:f0:d7:14:5e:35:28:d8:3f:d3:ca:68:24:1d:31:
+         ca:84:80:10:50:54:c1:62:84:b6:fa:21:4b:9a:16:1d:f0:a4:
+         75:e9:5a:e4:2c:3d:91:3c:68:42:e6:4f:25:e6:a0:b8:f2:a9:
+         e1:00:59:80:a3:c7:7a:8b:77:0e:4b:7a:38:f1:e3:a3:50:62:
+         73:73:97:4e:a0:52:65:07:de:73:ae:d1:f2:f3:fd:ae:46:3b:
+         d0:39:91:db:2a:66:e5:c3:07:60:7c:26:6a:a7:8c:03:8c:ca:
+         1c:92:2d:63:dc:46:0c:6f:37:6a:77:52:17:d0:6c:b9:c3:d7:
+         24:d1:8c:50:fd:15:c1:f2:9f:76:34:bc:4d:b7:a9:27:17:d5:
+         72:84:3d:fe:fb:4f:a6:b3:80:48:ae:c7:58:d6:dd:b8:7e:d5:
+         9e:21:3e:d3:b7:e0:cc:c8:9d:a7:9b:cb:57:89:c1:c5:2e:73:
+         bf:fa:3d:10:d8:b2:5c:7a:d4:6a:03:24:ae:92:38:95:3e:db:
+         4d:c1:31:69:17:ae:39:23:30:02:e1:bc:17:a9:ac:60:cb:a6:
+         96:92:f3:0a:6c:08:64:9f:3d:ff:05:4c:bb:f9:13:fe:71:f3:
+         19:75:ae:36:fe:5f:d6:6c:60:96:b6:c3:40:1d:ca:87:84:2b:
+         94:87:59:0a:ae:4e:43:bd:10:59:47:49:c5:d0:36:c8:92:dc:
+         79:d2:12:10:cb:8d:fa:d3:c3:22:af:66:eb:d0:c9:f6:41:64:
+         16:b9:a9:7a:f1:49:4e:dc:e9:a5:14:e7:5a:f7:a6:e4:d8:4e:
+         ce:73:24:f7:47:7c:ba:5c:cf:6e:be:ab:d4:3c:33:f0:64:17:
+         b8:a5:3c:8e:8f:43:25:5d:12:60:8f:78:44:24:4f:fb:f5:6c:
+         73:1d:2f:3e:ed:4f:71:84:b4:55:a0:07:1d:c5:84:1b:e7:5b:
+         c6:0c:78:30:c4:d9:20:8d:94:54:4b:e4:4d:b9:09:d8:93:74:
+         6d:70:67:9e:5c:3e:d8:41:8a:df:9c:90:49:61:f1:80:6d:93:
+         85:15:c6:bb:bb:3e:39:de
+-----BEGIN CERTIFICATE-----
+MIIEoTCCAomgAwIBAgIBAjANBgkqhkiG9w0BAQUFADBnMQswCQYDVQQGEwJESzET
+MBEGA1UEBwwKQ29wZW5oYWdlbjEPMA0GA1UECgwGV2luVExTMTIwMAYDVQQDDClX
+aW5UTFMgSW50ZXJtZWRpYXRlIENlcnRpZmljYXRlIEF1dGhvcml0eTAgFw0yMjA4
+MTcwODU5NDhaGA8yMTIyMDgxODA4NTk0OFowSTELMAkGA1UEBhMCREsxEzARBgNV
+BAcMCkNvcGVuaGFnZW4xDzANBgNVBAoMBldpblRMUzEUMBIGA1UEAwwLd2ludGxz
+LnRlc3QwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDff+ugG3ifofcT
+jmhA4FD5AM2P8JKj+zPSWicaYjV8gi/7cyfi5y/40fSJjvCom0eGqdkoUKjEdS6/
+51mku/MNh32jz4rgU8K3DArHNnTbD3cIkkIC6xZSl+7z7CybndPabjpOidT2J0gf
+KquhURil5pQ9ViAcNZHK7GIh9cQcbmryHzIdBuquqK+JAsXsGJ26kpbYlvaUa7pS
+zFUuxV5WHYL6MzQ+Lo5FC5RKuyV08ks8XZvEBn529fh6tuzbKIBxvylGCRwiqJ2W
+Yahi253yueqLRWWrN7LNcSh8adJj968R8KWAQwbuXTGvtq+G9MSk5Y5F4uH7IG3/
+4zRVPsgjAgMBAAGjdDByMAkGA1UdEwQCMAAwJQYDVR0RBB4wHIILd2ludGxzLnRl
+c3SCDSoud2ludGxzLnRlc3QwMQYIKwYBBQUHAQEEJTAjMCEGCCsGAQUFBzABhhVo
+dHRwOi8vbG9jYWxob3N0OjUwMDAwCwYDVR0PBAQDAgXgMA0GCSqGSIb3DQEBBQUA
+A4ICAQCqig+I2ISOkP6Ite1lVQAt8uDrbQeJcGS7HL4p1K3/lLdxCD2e6MNVVmfh
+neDSx+/YdMOgMPn7nfgQKMdgd3rbzZbvAuK5tOEblquMq/GGHD8HK/wrl/zBMKfN
+Y/MWGZ2yce69ciHSDlmzxKQwr8ef8NcUXjUo2D/TymgkHTHKhIAQUFTBYoS2+iFL
+mhYd8KR16VrkLD2RPGhC5k8l5qC48qnhAFmAo8d6i3cOS3o48eOjUGJzc5dOoFJl
+B95zrtHy8/2uRjvQOZHbKmblwwdgfCZqp4wDjMocki1j3EYMbzdqd1IX0Gy5w9ck
+0YxQ/RXB8p92NLxNt6knF9VyhD3++0+ms4BIrsdY1t24ftWeIT7Tt+DMyJ2nm8tX
+icHFLnO/+j0Q2LJcetRqAySukjiVPttNwTFpF645IzAC4bwXqaxgy6aWkvMKbAhk
+nz3/BUy7+RP+cfMZda42/l/WbGCWtsNAHcqHhCuUh1kKrk5DvRBZR0nF0DbIktx5
+0hIQy43608Mir2br0Mn2QWQWual68UlO3OmlFOda96bk2E7OcyT3R3y6XM9uvqvU
+PDPwZBe4pTyOj0MlXRJgj3hEJE/79WxzHS8+7U9xhLRVoAcdxYQb51vGDHgwxNkg
+jZRUS+RNuQnYk3RtcGeeXD7YQYrfnJBJYfGAbZOFFca7uz453g==
+-----END CERTIFICATE-----
