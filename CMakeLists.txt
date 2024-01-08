@@ -202,6 +202,11 @@ include_directories(${JSON_INCLUDE})
 find_package(UTF8CPP)
 include_directories(${UTF8CPP_INCLUDE})
 
+if(WIN32)
+  find_package(BoostWinTLS)
+  include_directories(${BoostWinTLS_INCLUDE})
+endif()
+
 find_package(Editline)
 set(HAVE_EDITLINE "${EDITLINE_FOUND}")
 
