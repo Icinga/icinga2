@@ -14,9 +14,16 @@ In case you are upgrading an existing setup, please ensure to
 follow the [upgrade documentation](16-upgrading-icinga-2.md#upgrading-icinga-2).
 <!-- {% else %} -->
 
+<!-- {% if not windows %} -->
 ## Add Icinga Package Repository <a id="add-icinga-package-repository"></a>
 
-We recommend using our official repositories. Here's how to add it to your system:
+We recommend using our official repositories.
+
+All the following commands should be executed as the root user.
+As pipes and nested commands are used, it is recommended to switch to a root user session, e.g., using `sudo -i`.
+
+Here's how to add it to your system:
+<!-- {% endif %} -->
 
 <!-- {% if debian %} -->
 
