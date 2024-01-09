@@ -22,6 +22,10 @@
 #include <boost/asio/ssl/context.hpp>
 #include <boost/exception/info.hpp>
 
+#ifdef _WIN32
+#	include <boost/wintls/context.hpp>
+#endif /* _WIN32 */
+
 namespace icinga
 {
 
@@ -38,9 +42,15 @@ const auto LEAF_VALID_FOR  = 60 * 60 * 24 * 397;
 const auto RENEW_THRESHOLD = 60 * 60 * 24 * 30;
 const auto RENEW_INTERVAL  = 60 * 60 * 24;
 
+#ifdef _WIN32
+typedef boost::wintls::context TlsContext;
+typedef boost::wintls::method TlsProtocolMin;
+#else /* _WIN32 */
 typedef boost::asio::ssl::context TlsContext;
-
 typedef int TlsProtocolMin;
+
+void SetTlsProtocolminToSSLContext(const Shared<TlsContext>::Ptr& context, const String& tlsProtocolmin);
+#endif /* _WIN32 */
 
 void InitializeOpenSSL();
 
@@ -49,7 +59,6 @@ String GetOpenSSLVersion();
 void AddCRLToSSLContext(const Shared<TlsContext>::Ptr& context, const String& crlPath);
 void AddCRLToSSLContext(X509_STORE *x509_store, const String& crlPath);
 void SetCipherListToSSLContext(const Shared<TlsContext>::Ptr& context, const String& cipherList);
-void SetTlsProtocolminToSSLContext(const Shared<TlsContext>::Ptr& context, const String& tlsProtocolmin);
 TlsProtocolMin ResolveTlsProtocolVersion(const std::string& version);
 
 Shared<TlsContext>::Ptr SetupSslContext(const String& certPath = String(), const String& keyPath = String(), const String& caPath = String(),

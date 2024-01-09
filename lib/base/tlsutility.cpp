@@ -245,14 +245,21 @@ void SetCipherListToSSLContext(const Shared<TlsContext>::Ptr& context, const Str
  * @return The value of the corresponding TLS*_VERSION macro.
  */
 TlsProtocolMin ResolveTlsProtocolVersion(const std::string& version) {
+#ifdef _WIN32
+	if (version == "TLSv1.2") {
+		return TlsProtocolMin((int)TlsProtocolMin::tlsv12 | (int)TlsProtocolMin::tlsv13);
+	} else if (version == "TLSv1.3") {
+		return TlsProtocolMin::tlsv13;
+#else /* _WIN32 */
 	if (version == "TLSv1.2") {
 		return TLS1_2_VERSION;
 	} else if (version == "TLSv1.3") {
-#if OPENSSL_VERSION_NUMBER >= 0x10101000L
+#	if OPENSSL_VERSION_NUMBER >= 0x10101000L
 		return TLS1_3_VERSION;
-#else /* OPENSSL_VERSION_NUMBER >= 0x10101000L */
+#	else /* OPENSSL_VERSION_NUMBER >= 0x10101000L */
 		throw std::runtime_error("'" + version + "' is only supported with OpenSSL 1.1.1 or newer");
-#endif /* OPENSSL_VERSION_NUMBER >= 0x10101000L */
+#	endif /* OPENSSL_VERSION_NUMBER >= 0x10101000L */
+#endif /* _WIN32 */
 	} else {
 		throw std::runtime_error("Unknown TLS protocol version '" + version + "'");
 	}
@@ -265,10 +272,26 @@ Shared<TlsContext>::Ptr SetupSslContext(const String& certPath, const String& ke
 
 	Shared<TlsContext>::Ptr context;
 
+#ifdef _WIN32
+	auto method (TlsProtocolMin::system_default);
+#else /* _WIN32 */
+	auto method (TlsContext::tls);
+#endif /* _WIN32 */
+
 	InitializeOpenSSL();
 
+#ifdef _WIN32
+	if (!protocolmin.IsEmpty()) {
+		try {
+			method = ResolveTlsProtocolVersion(protocolmin);
+		} catch (const std::exception&) {
+			BOOST_THROW_EXCEPTION(ScriptError("Cannot set minimum TLS protocol version to SSL context with tls_protocolmin: '" + protocolmin + "'.", std::move(di)));
+		}
+	}
+#endif /* _WIN32 */
+
 	try {
-		context = Shared<TlsContext>::Make(TlsContext::tls);
+		context = Shared<TlsContext>::Make(method);
 
 		InitSslContext(context, certPath, keyPath, caPath);
 	} catch (const std::exception&) {
@@ -294,6 +317,7 @@ Shared<TlsContext>::Ptr SetupSslContext(const String& certPath, const String& ke
 		}
 	}
 
+#ifndef _WIN32
 	if (!protocolmin.IsEmpty()){
 		try {
 			SetTlsProtocolminToSSLContext(context, protocolmin);
@@ -301,10 +325,12 @@ Shared<TlsContext>::Ptr SetupSslContext(const String& certPath, const String& ke
 			BOOST_THROW_EXCEPTION(ScriptError("Cannot set minimum TLS protocol version to SSL context with tls_protocolmin: '" + protocolmin + "'.", std::move(di)));
 		}
 	}
+#endif /* _WIN32 */
 
 	return context;
 }
 
+#ifndef _WIN32
 /**
  * Set the minimum TLS protocol version to the specified SSL context.
  *
@@ -313,7 +339,7 @@ Shared<TlsContext>::Ptr SetupSslContext(const String& certPath, const String& ke
  */
 void SetTlsProtocolminToSSLContext(const Shared<TlsContext>::Ptr& context, const String& tlsProtocolmin)
 {
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+#	if OPENSSL_VERSION_NUMBER >= 0x10100000L
 	int ret = SSL_CTX_set_min_proto_version(context->native_handle(), ResolveTlsProtocolVersion(tlsProtocolmin));
 
 	if (ret != 1) {
@@ -326,12 +352,13 @@ void SetTlsProtocolminToSSLContext(const Shared<TlsContext>::Ptr& context, const
 			<< boost::errinfo_api_function("SSL_CTX_set_min_proto_version")
 			<< errinfo_openssl_error(ERR_peek_error()));
 	}
-#else /* OPENSSL_VERSION_NUMBER >= 0x10100000L */
+#	else /* OPENSSL_VERSION_NUMBER >= 0x10100000L */
 	// This should never happen. On this OpenSSL version, ResolveTlsProtocolVersion() should either return TLS 1.2
 	// or throw an exception, as that's the only TLS version supported by both Icinga and ancient OpenSSL.
 	VERIFY(ResolveTlsProtocolVersion(tlsProtocolmin) == TLS1_2_VERSION);
-#endif /* OPENSSL_VERSION_NUMBER >= 0x10100000L */
+#	endif /* OPENSSL_VERSION_NUMBER >= 0x10100000L */
 }
+#endif /* _WIN32 */
 
 /**
  * Loads a CRL and appends its certificates to the specified Boost SSL context.
