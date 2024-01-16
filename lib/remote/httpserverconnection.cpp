@@ -543,7 +543,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 
 			logMsg << "Request: " << request.method_string() << ' ' << request.target()
 				<< " (from " << m_PeerAddress
-				<< "), user: " << (authenticatedUser ? authenticatedUser->GetName() : "<unauthenticated>")
+				<< ", user: " << (authenticatedUser ? authenticatedUser->GetName() : "<unauthenticated>")
 				<< ", agent: " << request[http::field::user_agent]; //operator[] - Returns the value for a field, or "" if it does not exist.
 
 			Defer addRespCode ([&response, &logMsg]() {
