@@ -554,6 +554,7 @@ Url::Ptr InfluxdbCommonWriter::AssembleBaseUrl()
 	url->SetScheme(GetSslEnable() ? "https" : "http");
 	url->SetHost(GetHost());
 	url->SetPort(GetPort());
+	url->AddQueryElement("precision", "ns");
 
 	return url;
 }
