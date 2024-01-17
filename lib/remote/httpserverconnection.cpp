@@ -18,6 +18,7 @@
 #include "base/timer.hpp"
 #include "base/tlsstream.hpp"
 #include "base/utility.hpp"
+#include <chrono>
 #include <limits>
 #include <memory>
 #include <stdexcept>
@@ -493,6 +494,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 {
 	namespace beast = boost::beast;
 	namespace http = beast::http;
+	namespace ch = std::chrono;
 
 	try {
 		/* Do not reset the buffer in the state machine.
@@ -518,6 +520,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 			}
 
 			m_Seen = Utility::GetTime();
+			auto start (ch::steady_clock::now());
 
 			auto& request (parser.get());
 
@@ -541,13 +544,14 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 
 			Log logMsg (LogInformation, "HttpServerConnection");
 
-			logMsg << "Request: " << request.method_string() << ' ' << request.target()
+			logMsg << "Request " << request.method_string() << ' ' << request.target()
 				<< " (from " << m_PeerAddress
 				<< "), user: " << (authenticatedUser ? authenticatedUser->GetName() : "<unauthenticated>")
 				<< ", agent: " << request[http::field::user_agent]; //operator[] - Returns the value for a field, or "" if it does not exist.
 
-			Defer addRespCode ([&response, &logMsg]() {
-				logMsg << ", status: " << response.result() << ").";
+			Defer addRespCode ([&response, start, &logMsg]() {
+				logMsg << ", status: " << response.result() << ") took "
+					<< ch::duration_cast<ch::milliseconds>(ch::steady_clock::now() - start).count() << "ms.";
 			});
 
 			if (!HandleAccessControl(*m_Stream, request, response, yc)) {
