@@ -19,6 +19,7 @@
 #ifndef _WIN32
 #	include <execvpe.h>
 #	include <poll.h>
+#	include <signal.h>
 #	include <string.h>
 
 #	ifndef __APPLE__
@@ -169,6 +170,17 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 			(void)x;
 		}
 #endif /* HAVE_NICE */
+
+		{
+			struct sigaction sa;
+			memset(&sa, 0, sizeof(sa));
+
+			sa.sa_handler = SIG_DFL;
+
+			for (int sig = 1; sig <= 31; ++sig) {
+				(void)sigaction(sig, &sa, nullptr);
+			}
+		}
 
 		sigset_t mask;
 		sigemptyset(&mask);
