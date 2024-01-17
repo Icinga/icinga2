@@ -156,9 +156,10 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 	result->Set("ca", CertificateToString(cacert));
 
 	JsonRpcConnection::Ptr client = origin->FromClient;
+	bool requestPathExists = Utility::PathExists(requestPath);
 
 	/* If we already have a signed certificate request, send it to the client. */
-	if (Utility::PathExists(requestPath)) {
+	if (requestPathExists) {
 		Dictionary::Ptr request = Utility::LoadJsonFile(requestPath);
 
 		String certResponse = request->Get("cert_response");
@@ -264,19 +265,21 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 	return result;
 
 delayed_request:
-	/* Send a delayed certificate signing request. */
-	Utility::MkDirP(requestDir, 0700);
+	if (!requestPathExists) {
+		/* Send a delayed certificate signing request. */
+		Utility::MkDirP(requestDir, 0700);
 
-	Dictionary::Ptr request = new Dictionary({
-		{ "cert_request", CertificateToString(cert) },
-		{ "ticket", params->Get("ticket") }
-	});
+		Dictionary::Ptr request = new Dictionary({
+			{ "cert_request", CertificateToString(cert) },
+			{ "ticket", params->Get("ticket") }
+		});
 
-	if (requestorCA) {
-		request->Set("requestor_ca", CertificateToString(requestorCA));
+		if (requestorCA) {
+			request->Set("requestor_ca", CertificateToString(requestorCA));
+		}
+
+		Utility::SaveJsonFile(requestPath, 0600, request);
 	}
-
-	Utility::SaveJsonFile(requestPath, 0600, request);
 
 	JsonRpcConnection::SendCertificateRequest(nullptr, origin, requestPath);
 
