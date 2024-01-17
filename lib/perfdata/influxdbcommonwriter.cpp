@@ -37,7 +37,6 @@
 #include <boost/math/special_functions/fpclassify.hpp>
 #include <boost/regex.hpp>
 #include <boost/scoped_array.hpp>
-#include <iomanip>
 #include <memory>
 #include <string>
 #include <utility>
@@ -399,7 +398,7 @@ void InfluxdbCommonWriter::SendMetric(const Checkable::Ptr& checkable, const Dic
 		}
 	}
 
-	msgbuf << " " << std::fixed << std::setprecision(0) << ts * 1.0e9;
+	msgbuf << " " <<  static_cast<unsigned long>(ts);
 
 	Log(LogDebug, GetReflectionType()->GetName())
 		<< "Checkable '" << checkable->GetName() << "' adds to metric list:'" << msgbuf.str() << "'.";
@@ -554,6 +553,7 @@ Url::Ptr InfluxdbCommonWriter::AssembleBaseUrl()
 	url->SetScheme(GetSslEnable() ? "https" : "http");
 	url->SetHost(GetHost());
 	url->SetPort(GetPort());
+	url->AddQueryElement("precision", "s");
 
 	return url;
 }
