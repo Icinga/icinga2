@@ -950,7 +950,7 @@ list the latter in the `restore_attrs` parameter. E.g.:
 ```bash
 curl -k -s -S -i -u root:icinga -H 'Accept: application/json' \
  -X POST 'https://localhost:5665/v1/objects/hosts/example.localdomain' \
- -d '{ "restore_attrs": [ "address", "vars.os" ] }, "pretty": true }'
+ -d '{ "restore_attrs": [ "address", "vars.os" ], "pretty": true }'
 ```
 
 ```json
