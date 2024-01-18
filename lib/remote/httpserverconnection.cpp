@@ -442,7 +442,9 @@ static inline
 bool ProcessRequest(
 	AsioTlsStream& stream,
 	boost::beast::http::request<boost::beast::http::string_body>& request,
+	Url::Ptr& url,
 	ApiUser::Ptr& authenticatedUser,
+	Dictionary::Ptr& params,
 	boost::beast::http::response<boost::beast::http::string_body>& response,
 	HttpServerConnection& server,
 	bool& hasStartedStreaming,
@@ -454,7 +456,7 @@ bool ProcessRequest(
 	try {
 		CpuBoundWork handlingRequest (yc);
 
-		HttpHandler::ProcessRequest(stream, authenticatedUser, request, response, yc, server);
+		HttpHandler::ProcessRequest(stream, authenticatedUser, request, url, params, response, yc, server);
 	} catch (const std::exception& ex) {
 		if (hasStartedStreaming) {
 			return false;
@@ -542,6 +544,8 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 				authenticatedUser = ApiUser::GetByAuthHeader(std::string(request[http::field::authorization]));
 			}
 
+			Url::Ptr url;
+			Dictionary::Ptr params;
 			Log logMsg (LogInformation, "HttpServerConnection");
 
 			logMsg << "Request " << request.method_string() << ' ' << request.target()
@@ -549,9 +553,46 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 				<< "), user: " << (authenticatedUser ? authenticatedUser->GetName() : "<unauthenticated>")
 				<< ", agent: " << request[http::field::user_agent]; //operator[] - Returns the value for a field, or "" if it does not exist.
 
-			Defer addRespCode ([&response, start, &logMsg]() {
+			Defer completeLogMessage ([&response, start, &authenticatedUser, &url, &params, &logMsg]() {
 				logMsg << ", status: " << response.result() << ") took "
 					<< ch::duration_cast<ch::milliseconds>(ch::steady_clock::now() - start).count() << "ms.";
+
+				if (authenticatedUser && params) {
+					auto filter (HttpUtility::GetLastParameter(params, "filter"));
+
+					if (filter.GetType() != ValueEmpty) {
+						bool urlHasFilter = false;
+
+						if (url) {
+							for (auto& kv : url->GetQuery()) {
+								if (kv.first == "filter") {
+									urlHasFilter = true;
+									break;
+								}
+							}
+						}
+
+						if (!urlHasFilter) {
+							auto type (HttpUtility::GetLastParameter(params, "type"));
+
+							if (type.GetType() == ValueEmpty) {
+								logMsg << " Filter: ";
+							} else {
+								logMsg << ' ' << type << " filter: ";
+							}
+
+							String filterStr = filter;
+							const auto filterLimit (1024u);
+
+							if (filterStr.GetLength() > filterLimit) {
+								filterStr.erase(filterStr.Begin() + filterLimit, filterStr.End());
+								filterStr += "...";
+							}
+
+							logMsg << filterStr;
+						}
+					}
+				}
 			});
 
 			if (!HandleAccessControl(*m_Stream, request, response, yc)) {
@@ -572,7 +613,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 
 			m_Seen = std::numeric_limits<decltype(m_Seen)>::max();
 
-			if (!ProcessRequest(*m_Stream, request, authenticatedUser, response, *this, m_HasStartedStreaming, yc)) {
+			if (!ProcessRequest(*m_Stream, request, url, authenticatedUser, params, response, *this, m_HasStartedStreaming, yc)) {
 				break;
 			}
 
