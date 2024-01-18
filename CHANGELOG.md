@@ -7,6 +7,15 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.14.2 (2024-01-18)
+
+Version 2.14.2 is a hotfix release for master nodes that mainly
+fixes excessive disk usage caused by the InfluxDB writers.
+
+* InfluxDB: truncate timestamps to whole seconds to save disk space. #9969
+* HttpServerConnection: log request processing time as well. #9970
+* Update Boost shipped on Windows to v1.84. #9970
+
 ## 2.14.1 (2023-12-21)
 
 Version 2.14.1 is a hotfix release for masters and satellites that mainly
