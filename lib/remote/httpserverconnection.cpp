@@ -510,13 +510,50 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 				<< ", agent: " << request[http::field::user_agent]; //operator[] - Returns the value for a field, or "" if it does not exist.
 
 			ch::steady_clock::duration cpuBoundWorkTime(0);
-			Defer addRespCode ([&response, start, &logMsg, &cpuBoundWorkTime]() {
+			Defer addRespCode ([&request, &response, start, &logMsg, &cpuBoundWorkTime]() {
 				logMsg << ", status: " << response.result() << ")";
 				if (cpuBoundWorkTime >= ch::seconds(1)) {
 					logMsg << " waited " << ch::duration_cast<ch::milliseconds>(cpuBoundWorkTime).count() << "ms on semaphore and";
 				}
 
 				logMsg << " took total " << ch::duration_cast<ch::milliseconds>(ch::steady_clock::now() - start).count() << "ms.";
+
+				if (request.User() && request.Params()) {
+					auto filter (HttpUtility::GetLastParameter(request.Params(), "filter"));
+
+					if (filter.GetType() != ValueEmpty) {
+						bool urlHasFilter = false;
+
+						if (request.Url()) {
+							for (auto& kv : request.Url()->GetQuery()) {
+								if (kv.first == "filter") {
+									urlHasFilter = true;
+									break;
+								}
+							}
+						}
+
+						if (!urlHasFilter) {
+							auto type (HttpUtility::GetLastParameter(request.Params(), "type"));
+
+							if (type.GetType() == ValueEmpty) {
+								logMsg << " Filter: ";
+							} else {
+								logMsg << ' ' << type << " filter: ";
+							}
+
+							String filterStr = filter;
+							const auto filterLimit (1024u);
+
+							if (filterStr.GetLength() > filterLimit) {
+								filterStr.erase(filterStr.Begin() + filterLimit, filterStr.End());
+								filterStr += "...";
+							}
+
+							logMsg << filterStr;
+						}
+					}
+				}
 			});
 
 			if (!HandleAccessControl(request, response, yc)) {
