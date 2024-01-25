@@ -5,12 +5,9 @@
 #define TCPSOCKET_H
 
 #include "base/i2-base.hpp"
-#include "base/io-engine.hpp"
 #include "base/socket.hpp"
-#include <boost/asio/error.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/spawn.hpp>
-#include <boost/system/system_error.hpp>
 
 namespace icinga
 {
@@ -31,58 +28,21 @@ public:
 	void Connect(const String& node, const String& service);
 };
 
+typedef boost::asio::ip::tcp::socket::lowest_layer_type AsioTcpSocket;
+
 /**
  * TCP Connect based on Boost ASIO.
  *
  * @ingroup base
  */
-template<class Socket>
-void Connect(Socket& socket, const String& node, const String& service, boost::asio::yield_context* yc)
-{
-	using boost::asio::ip::tcp;
+void Connect(AsioTcpSocket& socket, const String& node, const String& service, boost::asio::yield_context* yc);
 
-	tcp::resolver resolver (IoEngine::Get().GetIoContext());
-
-	auto result = yc
-		? resolver.async_resolve(node.GetData(), service.GetData(), *yc)
-		: resolver.resolve(node.GetData(), service.GetData());
-
-	auto current (result.begin());
-
-	for (;;) {
-		try {
-			socket.open(current->endpoint().protocol());
-			socket.set_option(tcp::socket::keep_alive(true));
-
-			if (yc) {
-				socket.async_connect(current->endpoint(), *yc);
-			} else {
-				socket.connect(current->endpoint());
-			}
-
-			break;
-		} catch (const std::exception& ex) {
-			auto se (dynamic_cast<const boost::system::system_error*>(&ex));
-
-			if ((se && se->code() == boost::asio::error::operation_aborted) || ++current == result.end()) {
-				throw;
-			}
-
-			if (socket.is_open()) {
-				socket.close();
-			}
-		}
-	}
-}
-
-template<class Socket>
-inline void Connect(Socket& socket, const String& node, const String& service)
+inline void Connect(AsioTcpSocket& socket, const String& node, const String& service)
 {
 	Connect(socket, node, service, nullptr);
 }
 
-template<class Socket>
-inline void Connect(Socket& socket, const String& node, const String& service, boost::asio::yield_context yc)
+inline void Connect(AsioTcpSocket& socket, const String& node, const String& service, boost::asio::yield_context yc)
 {
 	Connect(socket, node, service, &yc);
 }

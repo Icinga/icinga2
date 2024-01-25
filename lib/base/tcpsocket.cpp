@@ -1,10 +1,13 @@
 // SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "base/io-engine.hpp"
 #include "base/tcpsocket.hpp"
 #include "base/logger.hpp"
 #include "base/utility.hpp"
 #include "base/exception.hpp"
+#include <boost/asio/error.hpp>
+#include <boost/system/system_error.hpp>
 #include <boost/exception/errinfo_api_function.hpp>
 #include <boost/exception/errinfo_errno.hpp>
 #include <iostream>
@@ -208,5 +211,43 @@ void TcpSocket::Connect(const String& node, const String& service)
 			<< boost::errinfo_api_function(func)
 			<< errinfo_win32_error(error));
 #endif /* _WIN32 */
+	}
+}
+
+void icinga::Connect(AsioTcpSocket& socket, const String& node, const String& service, boost::asio::yield_context* yc)
+{
+	using boost::asio::ip::tcp;
+
+	tcp::resolver resolver (IoEngine::Get().GetIoContext());
+
+	auto result = yc
+		? resolver.async_resolve(node.GetData(), service.GetData(), *yc)
+		: resolver.resolve(node.GetData(), service.GetData());
+
+	auto current (result.begin());
+
+	for (;;) {
+		try {
+			socket.open(current->endpoint().protocol());
+			socket.set_option(tcp::socket::keep_alive(true));
+
+			if (yc) {
+				socket.async_connect(current->endpoint(), *yc);
+			} else {
+				socket.connect(current->endpoint());
+			}
+
+			break;
+		} catch (const std::exception& ex) {
+			auto se (dynamic_cast<const boost::system::system_error*>(&ex));
+
+			if (se && se->code() == boost::asio::error::operation_aborted || ++current == result.end()) {
+				throw;
+			}
+
+			if (socket.is_open()) {
+				socket.close();
+			}
+		}
 	}
 }
