@@ -584,19 +584,23 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 
 			lock.unlock();
 
+			DefaultAsioResolver resolver;
+
 			Timeout::Ptr timeout(new Timeout(strand->context(), *strand, boost::posix_time::microseconds(int64_t(GetConnectTimeout() * 1e6)),
-				[sslConn, endpoint, host, port](asio::yield_context yc) {
+				[&resolver, sslConn, endpoint, host, port](asio::yield_context yc) {
 					Log(LogCritical, "ApiListener")
 						<< "Timeout while reconnecting to endpoint '" << endpoint->GetName() << "' via host '" << host
 						<< "' and port '" << port << "', cancelling attempt";
 
 					boost::system::error_code ec;
 					sslConn->lowest_layer().cancel(ec);
+
+					resolver.cancel();
 				}
 			));
 			Defer cancelTimeout([&timeout]() { timeout->Cancel(); });
 
-			Connect(sslConn->lowest_layer(), host, port, yc);
+			Connect(sslConn->lowest_layer(), host, port, resolver, yc);
 
 			NewClientHandler(yc, strand, sslConn, endpoint->GetName(), RoleClient);
 
