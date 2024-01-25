@@ -213,19 +213,20 @@ void TcpSocket::Connect(const String& node, const String& service)
 	}
 }
 
-void icinga::Connect(AsioTcpSocket& socket, const String& node, const String& service, boost::asio::yield_context* yc)
+DefaultAsioResolver::DefaultAsioResolver() : AsioResolver(IoEngine::Get().GetIoContext())
 {
-	using boost::asio::ip::tcp;
+}
 
-	tcp::resolver resolver (IoEngine::Get().GetIoContext());
-	tcp::resolver::query query (node, service);
+void icinga::Connect(AsioTcpSocket& socket, const String& node, const String& service, AsioResolver& resolver, boost::asio::yield_context* yc)
+{
+	AsioResolver::query query (node, service);
 	auto result (yc ? resolver.async_resolve(query, *yc) : resolver.resolve(query));
 	auto current (result.begin());
 
 	for (;;) {
 		try {
 			socket.open(current->endpoint().protocol());
-			socket.set_option(tcp::socket::keep_alive(true));
+			socket.set_option(AsioTcpSocket::keep_alive(true));
 
 			if (yc) {
 				socket.async_connect(current->endpoint(), *yc);
