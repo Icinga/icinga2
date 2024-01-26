@@ -28,22 +28,45 @@ public:
 };
 
 typedef boost::asio::ip::tcp::socket::lowest_layer_type AsioTcpSocket;
+typedef boost::asio::ip::tcp::resolver::results_type AsioDnsResponse;
+
+AsioDnsResponse Resolve(const String& node, const String& service, boost::asio::yield_context* yc);
+
+inline AsioDnsResponse Resolve(const String& node, const String& service)
+{
+	return Resolve(node, service, nullptr);
+}
+
+inline AsioDnsResponse Resolve(const String& node, const String& service, boost::asio::yield_context yc)
+{
+	return Resolve(node, service, &yc);
+}
 
 /**
  * TCP Connect based on Boost ASIO.
  *
  * @ingroup base
  */
-void Connect(AsioTcpSocket& socket, const String& node, const String& service, boost::asio::yield_context* yc);
+void Connect(AsioTcpSocket& socket, const AsioDnsResponse& to, boost::asio::yield_context* yc);
 
 inline void Connect(AsioTcpSocket& socket, const String& node, const String& service)
 {
-	Connect(socket, node, service, nullptr);
+	Connect(socket, Resolve(node, service, nullptr), nullptr);
 }
 
 inline void Connect(AsioTcpSocket& socket, const String& node, const String& service, boost::asio::yield_context yc)
 {
-	Connect(socket, node, service, &yc);
+	Connect(socket, Resolve(node, service, &yc), &yc);
+}
+
+inline void Connect(AsioTcpSocket& socket, const AsioDnsResponse& to)
+{
+	Connect(socket, to, nullptr);
+}
+
+inline void Connect(AsioTcpSocket& socket, const AsioDnsResponse& to, boost::asio::yield_context yc)
+{
+	Connect(socket, to, &yc);
 }
 
 }
