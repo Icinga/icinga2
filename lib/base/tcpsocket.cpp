@@ -214,17 +214,19 @@ void TcpSocket::Connect(const String& node, const String& service)
 	}
 }
 
-void icinga::Connect(AsioTcpSocket& socket, const String& node, const String& service, boost::asio::yield_context* yc)
-{
-	using boost::asio::ip::tcp;
+using boost::asio::ip::tcp;
 
+AsioDnsResponse icinga::Resolve(const String& node, const String& service, boost::asio::yield_context* yc)
+{
 	tcp::resolver resolver (IoEngine::Get().GetIoContext());
 
-	auto result = yc
-		? resolver.async_resolve(node.GetData(), service.GetData(), *yc)
+	return yc ? resolver.async_resolve(node.GetData(), service.GetData(), *yc)
 		: resolver.resolve(node.GetData(), service.GetData());
+}
 
-	auto current (result.begin());
+void icinga::Connect(AsioTcpSocket& socket, const AsioDnsResponse& to, boost::asio::yield_context* yc)
+{
+	auto current (to.begin());
 
 	for (;;) {
 		try {
@@ -241,7 +243,7 @@ void icinga::Connect(AsioTcpSocket& socket, const String& node, const String& se
 		} catch (const std::exception& ex) {
 			auto se (dynamic_cast<const boost::system::system_error*>(&ex));
 
-			if (se && se->code() == boost::asio::error::operation_aborted || ++current == result.end()) {
+			if (se && se->code() == boost::asio::error::operation_aborted || ++current == to.end()) {
 				throw;
 			}
 
