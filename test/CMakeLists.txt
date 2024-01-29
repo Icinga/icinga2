@@ -145,6 +145,7 @@ add_boost_test(base
     icinga_notification/type_filter
     icinga_macros/simple
     icinga_legacytimeperiod/simple
+    icinga_legacytimeperiod/is_in_range
     icinga_legacytimeperiod/advanced
     icinga_legacytimeperiod/dst
     icinga_legacytimeperiod/dst_isinside
