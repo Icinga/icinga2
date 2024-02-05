@@ -194,7 +194,10 @@ bool EnsureValidHeaders(
 		boost::system::error_code ec;
 
 		http::async_write(stream, response, yc[ec]);
-		stream.async_flush(yc[ec]);
+
+		if (!ec) {
+			stream.async_flush(yc[ec]);
+		}
 
 		return false;
 	}
@@ -219,7 +222,10 @@ void HandleExpect100(
 		boost::system::error_code ec;
 
 		http::async_write(stream, response, yc[ec]);
-		stream.async_flush(yc[ec]);
+
+		if (!ec) {
+			stream.async_flush(yc[ec]);
+		}
 	}
 }
 
@@ -265,7 +271,10 @@ bool HandleAccessControl(
 					boost::system::error_code ec;
 
 					http::async_write(stream, response, yc[ec]);
-					stream.async_flush(yc[ec]);
+
+					if (!ec) {
+						stream.async_flush(yc[ec]);
+					}
 
 					return false;
 				}
@@ -296,7 +305,10 @@ bool EnsureAcceptHeader(
 		boost::system::error_code ec;
 
 		http::async_write(stream, response, yc[ec]);
-		stream.async_flush(yc[ec]);
+
+		if (!ec) {
+			stream.async_flush(yc[ec]);
+		}
 
 		return false;
 	}
@@ -337,7 +349,10 @@ bool EnsureAuthenticatedUser(
 		boost::system::error_code ec;
 
 		http::async_write(stream, response, yc[ec]);
-		stream.async_flush(yc[ec]);
+
+		if (!ec) {
+			stream.async_flush(yc[ec]);
+		}
 
 		return false;
 	}
@@ -428,8 +443,13 @@ bool EnsureValidBody(
 
 		response.set(http::field::connection, "close");
 
+		boost::system::error_code ec;
+
 		http::async_write(stream, response, yc[ec]);
-		stream.async_flush(yc[ec]);
+
+		if (!ec) {
+			stream.async_flush(yc[ec]);
+		}
 
 		return false;
 	}
@@ -472,7 +492,10 @@ bool ProcessRequest(
 		boost::system::error_code ec;
 
 		http::async_write(stream, response, yc[ec]);
-		stream.async_flush(yc[ec]);
+
+		if (!ec) {
+			stream.async_flush(yc[ec]);
+		}
 
 		return true;
 	}
@@ -484,7 +507,10 @@ bool ProcessRequest(
 	boost::system::error_code ec;
 
 	http::async_write(stream, response, yc[ec]);
-	stream.async_flush(yc[ec]);
+
+	if (!ec) {
+		stream.async_flush(yc[ec]);
+	}
 
 	return true;
 }
