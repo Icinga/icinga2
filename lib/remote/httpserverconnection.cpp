@@ -191,10 +191,8 @@ bool EnsureValidHeaders(
 
 		response.set(http::field::connection, "close");
 
-		boost::system::error_code ec;
-
-		http::async_write(stream, response, yc[ec]);
-		stream.async_flush(yc[ec]);
+		http::async_write(stream, response, yc);
+		stream.async_flush(yc);
 
 		return false;
 	}
@@ -216,10 +214,8 @@ void HandleExpect100(
 
 		response.result(http::status::continue_);
 
-		boost::system::error_code ec;
-
-		http::async_write(stream, response, yc[ec]);
-		stream.async_flush(yc[ec]);
+		http::async_write(stream, response, yc);
+		stream.async_flush(yc);
 	}
 }
 
@@ -262,10 +258,8 @@ bool HandleAccessControl(
 					response.content_length(response.body().size());
 					response.set(http::field::connection, "close");
 
-					boost::system::error_code ec;
-
-					http::async_write(stream, response, yc[ec]);
-					stream.async_flush(yc[ec]);
+					http::async_write(stream, response, yc);
+					stream.async_flush(yc);
 
 					return false;
 				}
@@ -293,10 +287,8 @@ bool EnsureAcceptHeader(
 		response.content_length(response.body().size());
 		response.set(http::field::connection, "close");
 
-		boost::system::error_code ec;
-
-		http::async_write(stream, response, yc[ec]);
-		stream.async_flush(yc[ec]);
+		http::async_write(stream, response, yc);
+		stream.async_flush(yc);
 
 		return false;
 	}
@@ -334,10 +326,8 @@ bool EnsureAuthenticatedUser(
 			response.content_length(response.body().size());
 		}
 
-		boost::system::error_code ec;
-
-		http::async_write(stream, response, yc[ec]);
-		stream.async_flush(yc[ec]);
+		http::async_write(stream, response, yc);
+		stream.async_flush(yc);
 
 		return false;
 	}
@@ -428,8 +418,8 @@ bool EnsureValidBody(
 
 		response.set(http::field::connection, "close");
 
-		http::async_write(stream, response, yc[ec]);
-		stream.async_flush(yc[ec]);
+		http::async_write(stream, response, yc);
+		stream.async_flush(yc);
 
 		return false;
 	}
@@ -469,10 +459,8 @@ bool ProcessRequest(
 
 		HttpUtility::SendJsonError(response, nullptr, 500, "Unhandled exception" , DiagnosticInformation(ex));
 
-		boost::system::error_code ec;
-
-		http::async_write(stream, response, yc[ec]);
-		stream.async_flush(yc[ec]);
+		http::async_write(stream, response, yc);
+		stream.async_flush(yc);
 
 		return true;
 	}
@@ -481,10 +469,8 @@ bool ProcessRequest(
 		return false;
 	}
 
-	boost::system::error_code ec;
-
-	http::async_write(stream, response, yc[ec]);
-	stream.async_flush(yc[ec]);
+	http::async_write(stream, response, yc);
+	stream.async_flush(yc);
 
 	return true;
 }
@@ -578,8 +564,8 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 		}
 	} catch (const std::exception& ex) {
 		if (!m_ShuttingDown) {
-			Log(LogCritical, "HttpServerConnection")
-				<< "Unhandled exception while processing HTTP request: " << ex.what();
+			Log(LogWarning, "HttpServerConnection")
+				<< "Exception while processing HTTP request from " << m_PeerAddress << ": " << ex.what();
 		}
 	}
 
