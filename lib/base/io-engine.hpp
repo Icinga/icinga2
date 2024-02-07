@@ -35,7 +35,11 @@ public:
 	CpuBoundWork(CpuBoundWork&&) = delete;
 	CpuBoundWork& operator=(const CpuBoundWork&) = delete;
 	CpuBoundWork& operator=(CpuBoundWork&&) = delete;
-	~CpuBoundWork();
+
+	inline ~CpuBoundWork()
+	{
+		Done();
+	}
 
 	void Done();
 
