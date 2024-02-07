@@ -190,12 +190,10 @@ void JsonRpcConnection::Disconnect()
 {
 	namespace asio = boost::asio;
 
-	JsonRpcConnection::Ptr keepAlive (this);
+	if (!m_ShuttingDown.exchange(true)) {
+		JsonRpcConnection::Ptr keepAlive (this);
 
-	IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) {
-		if (!m_ShuttingDown) {
-			m_ShuttingDown = true;
-
+		IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) {
 			Log(LogWarning, "JsonRpcConnection")
 				<< "API client disconnected for identity '" << m_Identity << "'";
 
@@ -243,8 +241,8 @@ void JsonRpcConnection::Disconnect()
 			shutdownTimeout->Cancel();
 
 			m_Stream->lowest_layer().shutdown(m_Stream->lowest_layer().shutdown_both, ec);
-		}
-	});
+		});
+	}
 }
 
 void JsonRpcConnection::MessageHandler(const String& jsonString)
