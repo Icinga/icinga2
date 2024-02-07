@@ -77,9 +77,6 @@ void HttpServerConnection::Disconnect()
 		if (!m_ShuttingDown) {
 			m_ShuttingDown = true;
 
-			Log(LogInformation, "HttpServerConnection")
-				<< "HTTP client disconnected (from " << m_PeerAddress << ")";
-
 			/*
 			 * Do not swallow exceptions in a coroutine.
 			 * https://github.com/Icinga/icinga2/issues/7351
@@ -117,6 +114,9 @@ void HttpServerConnection::Disconnect()
 
 				listener->RemoveHttpClient(this);
 			}
+
+			Log(LogInformation, "HttpServerConnection")
+				<< "HTTP client disconnected (from " << m_PeerAddress << ")";
 		}
 	});
 }
