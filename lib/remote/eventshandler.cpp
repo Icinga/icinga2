@@ -106,7 +106,7 @@ bool EventsHandler::HandleRequest(
 	response.result(http::status::ok);
 	response.set(http::field::content_type, "application/json");
 
-	IoBoundWorkSlot dontLockTheIoThread (yc);
+	handlingRequest.Done();
 
 	http::async_write(stream, response, yc);
 	stream.async_flush(yc);
