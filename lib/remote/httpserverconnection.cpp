@@ -12,7 +12,6 @@
 #include "base/configtype.hpp"
 #include "base/defer.hpp"
 #include "base/exception.hpp"
-#include "base/io-engine.hpp"
 #include "base/logger.hpp"
 #include "base/objectlock.hpp"
 #include "base/timer.hpp"
@@ -118,6 +117,9 @@ void HttpServerConnection::StartStreaming()
 	namespace asio = boost::asio;
 
 	m_HasStartedStreaming = true;
+
+	VERIFY(m_HandlingRequest);
+	m_HandlingRequest->Done();
 
 	HttpServerConnection::Ptr keepAlive (this);
 
@@ -432,6 +434,7 @@ bool ProcessRequest(
 	ApiUser::Ptr& authenticatedUser,
 	boost::beast::http::response<boost::beast::http::string_body>& response,
 	HttpServerConnection& server,
+	CpuBoundWork*& m_HandlingRequest,
 	bool& hasStartedStreaming,
 	std::chrono::steady_clock::duration& cpuBoundWorkTime,
 	boost::asio::yield_context& yc
@@ -444,6 +447,9 @@ bool ProcessRequest(
 		auto start (std::chrono::steady_clock::now());
 		CpuBoundWork handlingRequest (yc);
 		cpuBoundWorkTime = std::chrono::steady_clock::now() - start;
+
+		Defer resetHandlingRequest ([&m_HandlingRequest] { m_HandlingRequest = nullptr; });
+		m_HandlingRequest = &handlingRequest;
 
 		HttpHandler::ProcessRequest(stream, authenticatedUser, request, response, yc, server);
 	} catch (const std::exception& ex) {
@@ -562,7 +568,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 
 			m_Seen = std::numeric_limits<decltype(m_Seen)>::max();
 
-			if (!ProcessRequest(*m_Stream, request, authenticatedUser, response, *this, m_HasStartedStreaming, cpuBoundWorkTime, yc)) {
+			if (!ProcessRequest(*m_Stream, request, authenticatedUser, response, *this, m_HandlingRequest, m_HasStartedStreaming, cpuBoundWorkTime, yc)) {
 				break;
 			}
 
