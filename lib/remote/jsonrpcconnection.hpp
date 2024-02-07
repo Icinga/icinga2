@@ -5,6 +5,7 @@
 
 #include "remote/i2-remote.hpp"
 #include "remote/endpoint.hpp"
+#include "base/atomic.hpp"
 #include "base/io-engine.hpp"
 #include "base/tlsstream.hpp"
 #include "base/timer.hpp"
@@ -77,7 +78,7 @@ private:
 	std::vector<String> m_OutgoingMessagesQueue;
 	AsioConditionVariable m_OutgoingMessagesQueued;
 	AsioConditionVariable m_WriterDone;
-	bool m_ShuttingDown;
+	Atomic<bool> m_ShuttingDown;
 	boost::asio::deadline_timer m_CheckLivenessTimer, m_HeartbeatTimer;
 
 	JsonRpcConnection(const String& identity, bool authenticated, const Shared<AsioTlsStream>::Ptr& stream, ConnectionRole role, boost::asio::io_context& io);
