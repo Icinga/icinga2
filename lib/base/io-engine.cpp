@@ -34,13 +34,6 @@ CpuBoundWork::CpuBoundWork(boost::asio::yield_context yc)
 	}
 }
 
-CpuBoundWork::~CpuBoundWork()
-{
-	if (!m_Done) {
-		IoEngine::Get().m_CpuBoundSemaphore.fetch_add(1);
-	}
-}
-
 void CpuBoundWork::Done()
 {
 	if (!m_Done) {
