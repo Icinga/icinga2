@@ -25,7 +25,8 @@ bool MallocInfoHandler::HandleRequest(
 	boost::beast::http::response<boost::beast::http::string_body>& response,
 	const Dictionary::Ptr& params,
 	boost::asio::yield_context&,
-	HttpServerConnection&
+	HttpServerConnection&,
+	CpuBoundWork&
 )
 {
 	namespace http = boost::beast::http;

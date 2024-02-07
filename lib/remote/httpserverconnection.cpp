@@ -436,7 +436,7 @@ bool ProcessRequest(
 	try {
 		CpuBoundWork handlingRequest (yc);
 
-		HttpHandler::ProcessRequest(stream, authenticatedUser, request, response, yc, server);
+		HttpHandler::ProcessRequest(stream, authenticatedUser, request, response, yc, server, handlingRequest);
 	} catch (const std::exception& ex) {
 		if (hasStartedStreaming) {
 			return false;
