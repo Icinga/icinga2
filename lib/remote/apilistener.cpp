@@ -534,9 +534,19 @@ void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const Sha
 			IoEngine::SpawnCoroutine(*strand, [this, strand, sslConn](asio::yield_context yc) {
 				Timeout::Ptr timeout(new Timeout(strand->context(), *strand, boost::posix_time::microseconds(int64_t(GetConnectTimeout() * 1e6)),
 					[sslConn](asio::yield_context yc) {
-						Log(LogWarning, "ApiListener")
-							<< "Timeout while processing incoming connection from "
-							<< sslConn->lowest_layer().remote_endpoint();
+						{
+							boost::system::error_code ec;
+							auto endpoint (sslConn->lowest_layer().remote_endpoint(ec));
+
+							Log log(LogWarning, "ApiListener");
+							log << "Timeout while processing incoming connection";
+
+							if (ec) {
+								log << ".";
+							} else {
+								log << " from " << endpoint;
+							}
+						}
 
 						boost::system::error_code ec;
 						sslConn->lowest_layer().cancel(ec);
