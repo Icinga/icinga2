@@ -240,8 +240,6 @@ bool HandleAccessControl(
 		auto headerAllowOrigin (listener->GetAccessControlAllowOrigin());
 
 		if (headerAllowOrigin) {
-			CpuBoundWork allowOriginHeader (yc);
-
 			auto allowedOrigins (headerAllowOrigin->ToSet<String>());
 
 			if (!allowedOrigins.empty()) {
@@ -250,8 +248,6 @@ bool HandleAccessControl(
 				if (allowedOrigins.find(std::string(origin)) != allowedOrigins.end()) {
 					response.set(http::field::access_control_allow_origin, origin);
 				}
-
-				allowOriginHeader.Done();
 
 				response.set(http::field::access_control_allow_credentials, "true");
 
@@ -537,8 +533,6 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 			auto authenticatedUser (m_ApiUser);
 
 			if (!authenticatedUser) {
-				CpuBoundWork fetchingAuthenticatedUser (yc);
-
 				authenticatedUser = ApiUser::GetByAuthHeader(std::string(request[http::field::authorization]));
 			}
 
