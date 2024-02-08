@@ -8,6 +8,7 @@
 #include "base/logger-ti.hpp"
 #include <set>
 #include <sstream>
+#include <boost/stacktrace.hpp>
 
 namespace icinga
 {
@@ -106,6 +107,8 @@ private:
 	static Atomic<LogSeverity> m_MinLogSeverity;
 };
 
+class TimeoutLog;
+
 class Log
 {
 public:
@@ -132,6 +135,8 @@ private:
 	String m_Facility;
 	std::ostringstream m_Buffer;
 	bool m_IsNoOp;
+
+	friend class TimeoutLog;
 };
 
 extern template Log& Log::operator<<(const Value&);
@@ -143,6 +148,35 @@ extern template Log& Log::operator<<(const int&);
 extern template Log& Log::operator<<(const unsigned long&);
 extern template Log& Log::operator<<(const long&);
 extern template Log& Log::operator<<(const double&);
+
+// Logs a message only if a timeout has passed. Useful for logging warnings only if operations take unexpectedly long.
+class TimeoutLog : public Log
+{
+public:
+	TimeoutLog(LogSeverity severity, String facility, const String& message)
+	: Log(severity, facility, message),
+	  m_Start(std::chrono::steady_clock::now())
+	{}
+
+	TimeoutLog(LogSeverity severity, String facility)
+	: Log(severity, facility),
+	  m_Start(std::chrono::steady_clock::now())
+	{}
+
+	~TimeoutLog()
+	{
+		auto duration = std::chrono::steady_clock::now() - m_Start;
+		if (duration >= std::chrono::seconds(5)) {
+			*this << " (" << std::chrono::duration_cast<std::chrono::milliseconds>(duration).count() << "ms)\n"
+				<< boost::stacktrace::stacktrace();
+		} else {
+			m_IsNoOp = true;
+		}
+	}
+
+private:
+	std::chrono::steady_clock::time_point m_Start;
+};
 
 }
 

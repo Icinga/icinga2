@@ -348,6 +348,7 @@ bool EnsureValidBody(
 	boost::beast::http::parser<true, boost::beast::http::string_body>& parser,
 	ApiUser::Ptr& authenticatedUser,
 	boost::beast::http::response<boost::beast::http::string_body>& response,
+	HttpServerConnection& server,
 	bool& shuttingDown,
 	boost::asio::yield_context& yc
 )
@@ -360,6 +361,8 @@ bool EnsureValidBody(
 
 		if (permissions) {
 			CpuBoundWork evalPermissions (yc);
+			TimeoutLog logIfSlow (LogWarning, "HttpServerConnection");
+			logIfSlow << "Evaluating permissions for " << server.m_PeerAddress << " took long";
 
 			ObjectLock olock(permissions);
 
@@ -448,6 +451,8 @@ bool ProcessRequest(
 
 	try {
 		CpuBoundWork handlingRequest (yc);
+		TimeoutLog logIfSlow (LogWarning, "HttpServerConnection");
+		logIfSlow << "Handling request from " << server.m_PeerAddress << " took long";
 
 		HttpHandler::ProcessRequest(stream, authenticatedUser, request, response, yc, server);
 	} catch (const std::exception& ex) {
@@ -552,7 +557,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 				break;
 			}
 
-			if (!EnsureValidBody(*m_Stream, buf, parser, authenticatedUser, response, m_ShuttingDown, yc)) {
+			if (!EnsureValidBody(*m_Stream, buf, parser, authenticatedUser, response, *this, m_ShuttingDown, yc)) {
 				break;
 			}
 

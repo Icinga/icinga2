@@ -20,6 +20,8 @@ CpuBoundWork::CpuBoundWork(boost::asio::yield_context yc)
 {
 	auto& ioEngine (IoEngine::Get());
 
+	TimeoutLog logIfSlow (LogWarning, "IoEngine", "Waited long for CPU-bound work slot");
+
 	for (;;) {
 		auto availableSlots (ioEngine.m_CpuBoundSemaphore.fetch_sub(1));
 

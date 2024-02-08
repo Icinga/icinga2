@@ -37,7 +37,9 @@ private:
 	ApiUser::Ptr m_ApiUser;
 	Shared<AsioTlsStream>::Ptr m_Stream;
 	double m_Seen;
+public:
 	String m_PeerAddress;
+private:
 	boost::asio::io_context::strand m_IoStrand;
 	bool m_ShuttingDown;
 	bool m_HasStartedStreaming;
