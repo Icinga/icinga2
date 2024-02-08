@@ -81,6 +81,8 @@ void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 			CpuBoundWork handleMessage (yc);
 
 			MessageHandler(message);
+
+			l_TaskStats.InsertValue(Utility::GetTime(), 1);
 		} catch (const std::exception& ex) {
 			Log(m_ShuttingDown ? LogDebug : LogWarning, "JsonRpcConnection")
 				<< "Error while processing JSON-RPC message for identity '" << m_Identity
@@ -88,10 +90,6 @@ void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 
 			break;
 		}
-
-		CpuBoundWork taskStats (yc);
-
-		l_TaskStats.InsertValue(Utility::GetTime(), 1);
 	}
 
 	Disconnect();
