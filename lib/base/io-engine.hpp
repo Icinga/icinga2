@@ -89,10 +89,7 @@ public:
 		// Rationale: Low cost Windows agent only & https://github.com/Icinga/icinga2/issues/7431
 		return 8 * 1024 * 1024;
 #else /* _WIN32 */
-		// Increase the stack size for Linux/Unix coroutines for many JSON objects on the stack.
-		// This may help mitigate possible stack overflows. https://github.com/Icinga/icinga2/issues/7532
-		return 256 * 1024;
-		//return boost::coroutines::stack_allocator::traits_type::default_size(); // Default 64 KB
+		return boost::coroutines::stack_allocator::traits_type::default_size(); // Default 64 KB
 #endif /* _WIN32 */
 	}
 
