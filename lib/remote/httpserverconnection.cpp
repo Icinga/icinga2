@@ -363,6 +363,7 @@ bool EnsureValidBody(
 			CpuBoundWork evalPermissions (yc);
 			TimeoutLog logIfSlow (LogWarning, "HttpServerConnection");
 			logIfSlow << "Evaluating permissions for " << server.m_PeerAddress << " took long";
+			Utility::Sleep(6);
 
 			ObjectLock olock(permissions);
 
@@ -453,6 +454,7 @@ bool ProcessRequest(
 		CpuBoundWork handlingRequest (yc);
 		TimeoutLog logIfSlow (LogWarning, "HttpServerConnection");
 		logIfSlow << "Handling request from " << server.m_PeerAddress << " took long";
+		Utility::Sleep(6);
 
 		HttpHandler::ProcessRequest(stream, authenticatedUser, request, response, yc, server);
 	} catch (const std::exception& ex) {

@@ -13,6 +13,8 @@
 #include <boost/date_time/posix_time/ptime.hpp>
 #include <boost/system/error_code.hpp>
 
+#include "utility.hpp"
+
 using namespace icinga;
 
 CpuBoundWork::CpuBoundWork(boost::asio::yield_context yc)
@@ -21,6 +23,7 @@ CpuBoundWork::CpuBoundWork(boost::asio::yield_context yc)
 	auto& ioEngine (IoEngine::Get());
 
 	TimeoutLog logIfSlow (LogWarning, "IoEngine", "Waited long for CPU-bound work slot");
+	Utility::Sleep(6);
 
 	for (;;) {
 		auto availableSlots (ioEngine.m_CpuBoundSemaphore.fetch_sub(1));
