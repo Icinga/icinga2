@@ -110,8 +110,6 @@ void HttpServerConnection::Disconnect()
 			auto listener (ApiListener::GetInstance());
 
 			if (listener) {
-				CpuBoundWork removeHttpClient (yc);
-
 				listener->RemoveHttpClient(this);
 			}
 
