@@ -1459,7 +1459,9 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 		return;
 	}
 
-	for (;;) {
+	bool stopReplay = false;
+
+	do {
 		std::unique_lock<std::mutex> lock(m_LogLock);
 
 		CloseLogFile();
@@ -1542,6 +1544,7 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 					Log(LogDebug, "ApiListener")
 						<< "Error while replaying log for endpoint '" << endpoint->GetName() << "': " << DiagnosticInformation(ex);
 
+					stopReplay = true;
 					break;
 				}
 
@@ -1563,6 +1566,10 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 			}
 
 			logStream->Close();
+
+			if (stopReplay) {
+				break;
+			}
 		}
 
 		if (count > 0) {
@@ -1575,16 +1582,14 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 		}
 
 		if (last_sync) {
-			{
-				ObjectLock olock2(endpoint);
-				endpoint->SetSyncing(false);
-			}
-
 			OpenLogFile();
 
 			break;
 		}
-	}
+	} while (!stopReplay);
+
+	ObjectLock olock2 (endpoint);
+	endpoint->SetSyncing(false);
 }
 
 void ApiListener::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
