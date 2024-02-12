@@ -95,7 +95,7 @@ std::shared_ptr<X509> PkiUtility::FetchCert(const String& host, const String& po
 		return std::shared_ptr<X509>();
 	}
 
-	auto stream (Shared<AsioTlsStream>::Make(IoEngine::Get().GetIoContext(), *sslContext, host));
+	auto stream (AsioTlsStream::Make(IoEngine::Get().GetIoContext(), *sslContext, host));
 
 	try {
 		Connect(stream->lowest_layer(), host, port);
@@ -163,7 +163,7 @@ int PkiUtility::RequestCertificate(const String& host, const String& port, const
 		return 1;
 	}
 
-	auto stream (Shared<AsioTlsStream>::Make(IoEngine::Get().GetIoContext(), *sslContext, host));
+	auto stream (AsioTlsStream::Make(IoEngine::Get().GetIoContext(), *sslContext, host));
 
 	try {
 		Connect(stream->lowest_layer(), host, port);
