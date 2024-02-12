@@ -25,7 +25,7 @@ class HttpServerConnection final : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(HttpServerConnection);
 
-	HttpServerConnection(const String& identity, bool authenticated, const Shared<AsioTlsStream>::Ptr& stream);
+	HttpServerConnection(const String& identity, bool authenticated, const AsioTlsStream::Ptr& stream);
 
 	void Start();
 	void StartStreaming();
@@ -34,7 +34,7 @@ public:
 
 private:
 	ApiUser::Ptr m_ApiUser;
-	Shared<AsioTlsStream>::Ptr m_Stream;
+	AsioTlsStream::Ptr m_Stream;
 	double m_Seen;
 	String m_PeerAddress;
 	boost::asio::io_context::strand m_IoStrand;
@@ -42,7 +42,7 @@ private:
 	bool m_HasStartedStreaming;
 	boost::asio::deadline_timer m_CheckLivenessTimer;
 
-	HttpServerConnection(const String& identity, bool authenticated, const Shared<AsioTlsStream>::Ptr& stream, boost::asio::io_context& io);
+	HttpServerConnection(const String& identity, bool authenticated, const AsioTlsStream::Ptr& stream, boost::asio::io_context& io);
 
 	void Disconnect(boost::asio::yield_context yc);
 

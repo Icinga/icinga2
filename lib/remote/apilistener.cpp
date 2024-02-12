@@ -526,7 +526,7 @@ void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const Sha
 			}
 
 			boost::shared_lock<decltype(m_SSLContextMutex)> lock (m_SSLContextMutex);
-			auto sslConn (Shared<AsioTlsStream>::Make(io, *m_SSLContext));
+			auto sslConn (AsioTlsStream::Make(io, *m_SSLContext));
 
 			lock.unlock();
 			sslConn->lowest_layer() = std::move(socket);
@@ -581,7 +581,7 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 
 		try {
 			boost::shared_lock<decltype(m_SSLContextMutex)> lock (m_SSLContextMutex);
-			auto sslConn (Shared<AsioTlsStream>::Make(io, *m_SSLContext, endpoint->GetName()));
+			auto sslConn (AsioTlsStream::Make(io, *m_SSLContext, endpoint->GetName()));
 
 			lock.unlock();
 
@@ -615,7 +615,7 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 
 void ApiListener::NewClientHandler(
 	boost::asio::yield_context yc, const Shared<boost::asio::io_context::strand>::Ptr& strand,
-	const Shared<AsioTlsStream>::Ptr& client, const String& hostname, ConnectionRole role
+	const AsioTlsStream::Ptr& client, const String& hostname, ConnectionRole role
 )
 {
 	try {
@@ -654,7 +654,7 @@ static const auto l_MyCapabilities (
  */
 void ApiListener::NewClientHandlerInternal(
 	boost::asio::yield_context yc, const Shared<boost::asio::io_context::strand>::Ptr& strand,
-	const Shared<AsioTlsStream>::Ptr& client, const String& hostname, ConnectionRole role
+	const AsioTlsStream::Ptr& client, const String& hostname, ConnectionRole role
 )
 {
 	namespace asio = boost::asio;

@@ -315,7 +315,7 @@ void RedisConnection::Connect(asio::yield_context& yc)
 					Log(m_Parent ? LogNotice : LogInformation, "IcingaDB")
 						<< "Trying to connect to Redis server (async, TLS) on host '" << m_Host << ":" << m_Port << "'";
 
-					auto conn (Shared<AsioTlsStream>::Make(m_Strand.context(), *m_TLSContext, m_Host));
+					auto conn (AsioTlsStream::Make(m_Strand.context(), *m_TLSContext, m_Host));
 					auto& tlsConn (conn->next_layer());
 					auto connectTimeout (MakeTimeout(conn));
 					Defer cancelTimeout ([&connectTimeout]() { connectTimeout->Cancel(); });

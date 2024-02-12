@@ -126,7 +126,7 @@ size_t NetString::WriteStringToStream(const Stream::Ptr& stream, const String& s
  * @exception invalid_argument The input stream is invalid.
  * @see https://github.com/PeterScott/netstring-c/blob/master/netstring.c
  */
-String NetString::ReadStringFromStream(const Shared<AsioTlsStream>::Ptr& stream,
+String NetString::ReadStringFromStream(const AsioTlsStream::Ptr& stream,
 	ssize_t maxMessageLength)
 {
 	namespace asio = boost::asio;
@@ -205,7 +205,7 @@ String NetString::ReadStringFromStream(const Shared<AsioTlsStream>::Ptr& stream,
  * @exception invalid_argument The input stream is invalid.
  * @see https://github.com/PeterScott/netstring-c/blob/master/netstring.c
  */
-String NetString::ReadStringFromStream(const Shared<AsioTlsStream>::Ptr& stream,
+String NetString::ReadStringFromStream(const AsioTlsStream::Ptr& stream,
 	boost::asio::yield_context yc, ssize_t maxMessageLength)
 {
 	namespace asio = boost::asio;
@@ -284,7 +284,7 @@ String NetString::ReadStringFromStream(const Shared<AsioTlsStream>::Ptr& stream,
  *
  * @return The amount of bytes written.
  */
-size_t NetString::WriteStringToStream(const Shared<AsioTlsStream>::Ptr& stream, const String& str)
+size_t NetString::WriteStringToStream(const AsioTlsStream::Ptr& stream, const String& str)
 {
 	namespace asio = boost::asio;
 
@@ -307,7 +307,7 @@ size_t NetString::WriteStringToStream(const Shared<AsioTlsStream>::Ptr& stream, 
  *
  * @return The amount of bytes written.
  */
-size_t NetString::WriteStringToStream(const Shared<AsioTlsStream>::Ptr& stream, const String& str, boost::asio::yield_context yc)
+size_t NetString::WriteStringToStream(const AsioTlsStream::Ptr& stream, const String& str, boost::asio::yield_context yc)
 {
 	namespace asio = boost::asio;
 

@@ -174,7 +174,7 @@ static int FormatOutput(const Dictionary::Ptr& result)
  *
  * @returns AsioTlsStream pointer for future HTTP connections.
  */
-static Shared<AsioTlsStream>::Ptr Connect(const String& host, const String& port)
+static AsioTlsStream::Ptr Connect(const String& host, const String& port)
 {
 	Shared<boost::asio::ssl::context>::Ptr sslContext;
 
@@ -186,7 +186,7 @@ static Shared<AsioTlsStream>::Ptr Connect(const String& host, const String& port
 		throw;
 	}
 
-	Shared<AsioTlsStream>::Ptr stream = Shared<AsioTlsStream>::Make(IoEngine::Get().GetIoContext(), *sslContext, host);
+	AsioTlsStream::Ptr stream = AsioTlsStream::Make(IoEngine::Get().GetIoContext(), *sslContext, host);
 
 	try {
 		icinga::Connect(stream->lowest_layer(), host, port);
@@ -338,7 +338,7 @@ static Dictionary::Ptr FetchData(const String& host, const String& port, const S
 	namespace beast = boost::beast;
 	namespace http = beast::http;
 
-	Shared<AsioTlsStream>::Ptr tlsStream;
+	AsioTlsStream::Ptr tlsStream;
 
 	try {
 		tlsStream = Connect(host, port);

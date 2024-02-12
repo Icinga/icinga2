@@ -243,7 +243,7 @@ namespace icinga
 		boost::asio::io_context::strand m_Strand;
 		Shared<TcpConn>::Ptr m_TcpConn;
 		Shared<UnixConn>::Ptr m_UnixConn;
-		Shared<AsioTlsStream>::Ptr m_TlsConn;
+		AsioTlsStream::Ptr m_TlsConn;
 		Atomic<bool> m_Connecting, m_Connected, m_Started;
 
 		struct {

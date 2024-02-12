@@ -43,7 +43,7 @@ class JsonRpcConnection final : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(JsonRpcConnection);
 
-	JsonRpcConnection(const String& identity, bool authenticated, const Shared<AsioTlsStream>::Ptr& stream, ConnectionRole role);
+	JsonRpcConnection(const String& identity, bool authenticated, const AsioTlsStream::Ptr& stream, ConnectionRole role);
 
 	void Start();
 
@@ -51,7 +51,7 @@ public:
 	String GetIdentity() const;
 	bool IsAuthenticated() const;
 	Endpoint::Ptr GetEndpoint() const;
-	Shared<AsioTlsStream>::Ptr GetStream() const;
+	AsioTlsStream::Ptr GetStream() const;
 	ConnectionRole GetRole() const;
 
 	void Disconnect();
@@ -69,7 +69,7 @@ private:
 	String m_Identity;
 	bool m_Authenticated;
 	Endpoint::Ptr m_Endpoint;
-	Shared<AsioTlsStream>::Ptr m_Stream;
+	AsioTlsStream::Ptr m_Stream;
 	ConnectionRole m_Role;
 	double m_Timestamp;
 	double m_Seen;
@@ -81,7 +81,7 @@ private:
 	Atomic<bool> m_ShuttingDown;
 	boost::asio::deadline_timer m_CheckLivenessTimer, m_HeartbeatTimer;
 
-	JsonRpcConnection(const String& identity, bool authenticated, const Shared<AsioTlsStream>::Ptr& stream, ConnectionRole role, boost::asio::io_context& io);
+	JsonRpcConnection(const String& identity, bool authenticated, const AsioTlsStream::Ptr& stream, ConnectionRole role, boost::asio::io_context& io);
 
 	void HandleIncomingMessages(boost::asio::yield_context yc);
 	void WriteOutgoingMessages(boost::asio::yield_context yc);

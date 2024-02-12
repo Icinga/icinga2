@@ -52,7 +52,7 @@ static bool GetDebugJsonRpcCached()
  *
  * @return The amount of bytes sent.
  */
-size_t JsonRpc::SendMessage(const Shared<AsioTlsStream>::Ptr& stream, const Dictionary::Ptr& message)
+size_t JsonRpc::SendMessage(const AsioTlsStream::Ptr& stream, const Dictionary::Ptr& message)
 {
 	String json = JsonEncode(message);
 
@@ -71,7 +71,7 @@ size_t JsonRpc::SendMessage(const Shared<AsioTlsStream>::Ptr& stream, const Dict
  *
  * @return The amount of bytes sent.
  */
-size_t JsonRpc::SendMessage(const Shared<AsioTlsStream>::Ptr& stream, const Dictionary::Ptr& message, boost::asio::yield_context yc)
+size_t JsonRpc::SendMessage(const AsioTlsStream::Ptr& stream, const Dictionary::Ptr& message, boost::asio::yield_context yc)
 {
 	return JsonRpc::SendRawMessage(stream, JsonEncode(message), yc);
 }
@@ -85,7 +85,7 @@ size_t JsonRpc::SendMessage(const Shared<AsioTlsStream>::Ptr& stream, const Dict
   *
   * @return bytes sent
   */
-size_t JsonRpc::SendRawMessage(const Shared<AsioTlsStream>::Ptr& stream, const String& json, boost::asio::yield_context yc)
+size_t JsonRpc::SendRawMessage(const AsioTlsStream::Ptr& stream, const String& json, boost::asio::yield_context yc)
 {
 #ifdef I2_DEBUG
 	if (GetDebugJsonRpcCached())
@@ -104,7 +104,7 @@ size_t JsonRpc::SendRawMessage(const Shared<AsioTlsStream>::Ptr& stream, const S
  * @return A JSON string
  */
 
-String JsonRpc::ReadMessage(const Shared<AsioTlsStream>::Ptr& stream, ssize_t maxMessageLength)
+String JsonRpc::ReadMessage(const AsioTlsStream::Ptr& stream, ssize_t maxMessageLength)
 {
 	String jsonString = NetString::ReadStringFromStream(stream, maxMessageLength);
 
@@ -125,7 +125,7 @@ String JsonRpc::ReadMessage(const Shared<AsioTlsStream>::Ptr& stream, ssize_t ma
  *
  * @return A JSON string
  */
-String JsonRpc::ReadMessage(const Shared<AsioTlsStream>::Ptr& stream, boost::asio::yield_context yc, ssize_t maxMessageLength)
+String JsonRpc::ReadMessage(const AsioTlsStream::Ptr& stream, boost::asio::yield_context yc, ssize_t maxMessageLength)
 {
 	String jsonString = NetString::ReadStringFromStream(stream, yc, maxMessageLength);
 
