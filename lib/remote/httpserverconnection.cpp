@@ -88,23 +88,9 @@ void HttpServerConnection::Disconnect(boost::asio::yield_context yc)
 	Log(LogInformation, "HttpServerConnection")
 		<< "HTTP client disconnected (from " << m_PeerAddress << ")";
 
-	/*
-	 * Do not swallow exceptions in a coroutine.
-	 * https://github.com/Icinga/icinga2/issues/7351
-	 * We must not catch `detail::forced_unwind exception` as
-	 * this is used for unwinding the stack.
-	 *
-	 * Just use the error_code dummy here.
-	 */
-	boost::system::error_code ec;
-
 	m_CheckLivenessTimer.cancel();
 
-	m_Stream->lowest_layer().cancel(ec);
-
-	m_Stream->next_layer().async_shutdown(yc[ec]);
-
-	m_Stream->lowest_layer().shutdown(m_Stream->lowest_layer().shutdown_both, ec);
+	m_Stream->GracefulDisconnect(m_IoStrand, yc);
 
 	auto listener (ApiListener::GetInstance());
 
