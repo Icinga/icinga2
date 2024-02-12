@@ -4,7 +4,7 @@
 #define TLSSTREAM_H
 
 #include "base/i2-base.hpp"
-#include "base/shared.hpp"
+#include "base/shared-object.hpp"
 #include "base/socket.hpp"
 #include "base/stream.hpp"
 #include "base/tlsutility.hpp"
@@ -102,13 +102,20 @@ private:
 	void BeforeHandshake(handshake_type type);
 };
 
-class AsioTlsStream : public boost::asio::buffered_stream<UnbufferedAsioTlsStream>
+class AsioTlsStream : public SharedObject, public boost::asio::buffered_stream<UnbufferedAsioTlsStream>
 {
 public:
+	DECLARE_PTR_TYPEDEFS(AsioTlsStream);
+
 	inline
 	AsioTlsStream(boost::asio::io_context& ioContext, boost::asio::ssl::context& sslContext, const String& hostname = String())
 		: AsioTlsStream(UnbufferedAsioTlsStreamParams{ioContext, sslContext, hostname})
 	{
+	}
+
+	static AsioTlsStream::Ptr Make(boost::asio::io_context& ioContext, boost::asio::ssl::context& sslContext, const String& hostname = String())
+	{
+		return new AsioTlsStream(ioContext, sslContext, hostname);
 	}
 
 private:
@@ -120,7 +127,7 @@ private:
 };
 
 typedef boost::asio::buffered_stream<boost::asio::ip::tcp::socket> AsioTcpStream;
-typedef std::pair<Shared<AsioTlsStream>::Ptr, Shared<AsioTcpStream>::Ptr> OptionalTlsStream;
+typedef std::pair<AsioTlsStream::Ptr, Shared<AsioTcpStream>::Ptr> OptionalTlsStream;
 
 }
 

@@ -30,13 +30,13 @@ REGISTER_APIFUNCTION(SetLogPosition, log, &SetLogPositionHandler);
 static RingBuffer l_TaskStats (15 * 60);
 
 JsonRpcConnection::JsonRpcConnection(const String& identity, bool authenticated,
-	const Shared<AsioTlsStream>::Ptr& stream, ConnectionRole role)
+	const AsioTlsStream::Ptr& stream, ConnectionRole role)
 	: JsonRpcConnection(identity, authenticated, stream, role, IoEngine::Get().GetIoContext())
 {
 }
 
 JsonRpcConnection::JsonRpcConnection(const String& identity, bool authenticated,
-	const Shared<AsioTlsStream>::Ptr& stream, ConnectionRole role, boost::asio::io_context& io)
+	const AsioTlsStream::Ptr& stream, ConnectionRole role, boost::asio::io_context& io)
 	: m_Identity(identity), m_Authenticated(authenticated), m_Stream(stream), m_Role(role),
 	m_Timestamp(Utility::GetTime()), m_Seen(Utility::GetTime()), m_IoStrand(io),
 	m_OutgoingMessagesQueued(io), m_WriterDone(io), m_ShuttingDown(false),
@@ -151,7 +151,7 @@ Endpoint::Ptr JsonRpcConnection::GetEndpoint() const
 	return m_Endpoint;
 }
 
-Shared<AsioTlsStream>::Ptr JsonRpcConnection::GetStream() const
+AsioTlsStream::Ptr JsonRpcConnection::GetStream() const
 {
 	return m_Stream;
 }
