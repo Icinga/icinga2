@@ -111,6 +111,9 @@ public:
 	{
 	}
 
+	void ForceDisconnect();
+	void GracefulDisconnect(boost::asio::io_context::strand& strand, boost::asio::yield_context& yc);
+
 private:
 	inline
 	AsioTlsStream(UnbufferedAsioTlsStreamParams init)
