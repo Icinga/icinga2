@@ -72,6 +72,26 @@ enum class ApiCapabilities : uint_fast64_t
 };
 
 /**
+ * Allows you to easily lock/unlock a specific object of a given type by its name.
+ *
+ * That way, locking an object "this" of type Host does not affect an object "this" of
+ * type "Service" nor an object "other" of type "Host".
+ *
+ * @ingroup remote
+ */
+class ObjectNameMutex
+{
+public:
+	void Lock(const Type::Ptr& ptype, const String& objName);
+	void Unlock(const Type::Ptr& ptype, const String& objName);
+
+private:
+	std::mutex m_Mutex;
+	std::condition_variable m_CV;
+	std::map<Type*, std::set<String>> m_LockedObjectNames;
+};
+
+/**
 * @ingroup remote
 */
 class ApiListener final : public ObjectImpl<ApiListener>
