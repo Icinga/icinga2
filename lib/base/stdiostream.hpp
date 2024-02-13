@@ -18,7 +18,7 @@ public:
 	StdioStream(std::iostream *innerStream, bool ownsStream);
 	~StdioStream() override;
 
-	size_t Read(void *buffer, size_t size, bool allow_partial = false) override;
+	size_t Read(void *buffer, size_t size) override;
 	void Write(const void *buffer, size_t size) override;
 
 	void Close() override;

@@ -25,12 +25,12 @@ BOOST_AUTO_TEST_CASE(io)
 	BOOST_CHECK(fifo->GetAvailableBytes() == 5);
 
 	char buffer1[2];
-	fifo->Read(buffer1, 2, true);
+	fifo->Read(buffer1, 2);
 	BOOST_CHECK(memcmp(buffer1, "he", 2) == 0);
 	BOOST_CHECK(fifo->GetAvailableBytes() == 3);
 
 	char buffer2[5];
-	size_t rc = fifo->Read(buffer2, 5, true);
+	size_t rc = fifo->Read(buffer2, 5);
 	BOOST_CHECK(rc == 3);
 	BOOST_CHECK(memcmp(buffer2, "llo", 3) == 0);
 	BOOST_CHECK(fifo->GetAvailableBytes() == 0);

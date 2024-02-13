@@ -21,7 +21,7 @@ StdioStream::~StdioStream()
 	Close();
 }
 
-size_t StdioStream::Read(void *buffer, size_t size, bool allow_partial)
+size_t StdioStream::Read(void *buffer, size_t size)
 {
 	ObjectLock olock(this);
 
