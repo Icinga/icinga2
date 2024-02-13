@@ -7,6 +7,7 @@
 #include "base/configtype.hpp"
 #include "base/json.hpp"
 #include "base/convert.hpp"
+#include "base/defer.hpp"
 #include "config/vmops.hpp"
 #include <fstream>
 
@@ -103,6 +104,15 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 			<< "Config type '" << objType << "' does not exist.";
 		return Empty;
 	}
+
+	// Wait for the object name to become available for processing and block it immediately.
+	// Doing so guarantees that only one cluster event (create/update/delete) of a given
+	// object is being processed at any given time.
+	listener->m_ObjectConfigChangeLock.Lock(ptype, objName);
+
+	Defer unlockAndNotify([&listener, &ptype, &objName]{
+		listener->m_ObjectConfigChangeLock.Unlock(ptype, objName);
+	});
 
 	ConfigObject::Ptr object = ctype->GetObject(objName);
 
@@ -257,6 +267,15 @@ Value ApiListener::ConfigDeleteObjectAPIHandler(const MessageOrigin::Ptr& origin
 			<< "Config type '" << objType << "' does not exist.";
 		return Empty;
 	}
+
+	// Wait for the object name to become available for processing and block it immediately.
+	// Doing so guarantees that only one cluster event (create/update/delete) of a given
+	// object is being processed at any given time.
+	listener->m_ObjectConfigChangeLock.Lock(ptype, objName);
+
+	Defer unlockAndNotify([&listener, &ptype, &objName]{
+		listener->m_ObjectConfigChangeLock.Unlock(ptype, objName);
+	});
 
 	ConfigObject::Ptr object = ctype->GetObject(objName);
 

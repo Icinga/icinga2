@@ -277,6 +277,9 @@ private:
 	mutable std::mutex m_ActivePackageStagesLock;
 	std::map<String, String> m_ActivePackageStages;
 
+	/* ensures that at most one create/update/delete is being processed per object at each time */
+	mutable ObjectNameMutex m_ObjectConfigChangeLock;
+
 	void UpdateActivePackageStagesCache();
 };
 
