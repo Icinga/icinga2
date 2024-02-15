@@ -28,6 +28,7 @@ set(config_SOURCES
   configitem.cpp configitem.hpp
   configitembuilder.cpp configitembuilder.hpp
   expression.cpp expression.hpp
+  generator-function.cpp generator-function.hpp
   objectrule.cpp objectrule.hpp
   vmops.hpp
   ${FLEX_config_lexer_OUTPUTS} ${BISON_config_parser_OUTPUTS}
