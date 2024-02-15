@@ -444,74 +444,47 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 		<< "Committing " << total << " new items.";
 #endif /* I2_DEBUG */
 
-	std::set<Type::Ptr> types;
-	std::set<Type::Ptr> completed_types;
 	int itemsCount {0};
 
-	for (const Type::Ptr& type : Type::GetAllTypes()) {
-		if (ConfigObject::TypeInstance->IsAssignableFrom(type))
-			types.insert(type);
-	}
+	for (auto& type : Type::GetConfigTypesSortedByLoadDependencies()) {
+		std::atomic<int> committed_items(0);
 
-	while (types.size() != completed_types.size()) {
-		for (const Type::Ptr& type : types) {
-			if (completed_types.find(type) != completed_types.end())
-				continue;
+		{
+			auto items (itemsByType.find(type.get()));
 
-			bool unresolved_dep = false;
-
-			/* skip this type (for now) if there are unresolved load dependencies */
-			for (auto pLoadDep : type->GetLoadDependencies()) {
-				if (types.find(pLoadDep) != types.end() && completed_types.find(pLoadDep) == completed_types.end()) {
-					unresolved_dep = true;
-					break;
+			if (items != itemsByType.end()) {
+				for (const ItemPair& pair: items->second) {
+					newItems.emplace_back(pair.first);
 				}
-			}
 
-			if (unresolved_dep)
-				continue;
+				upq.ParallelFor(items->second, [&committed_items](const ItemPair& ip) {
+					const ConfigItem::Ptr& item = ip.first;
 
-			std::atomic<int> committed_items(0);
-
-			{
-				auto items (itemsByType.find(type.get()));
-
-				if (items != itemsByType.end()) {
-					for (const ItemPair& pair: items->second) {
-						newItems.emplace_back(pair.first);
-					}
-
-					upq.ParallelFor(items->second, [&committed_items](const ItemPair& ip) {
-						const ConfigItem::Ptr& item = ip.first;
-
-						if (!item->Commit(ip.second)) {
-							if (item->IsIgnoreOnError()) {
-								item->Unregister();
-							}
-
-							return;
+					if (!item->Commit(ip.second)) {
+						if (item->IsIgnoreOnError()) {
+							item->Unregister();
 						}
 
-						committed_items++;
-					});
+						return;
+					}
 
-					upq.Join();
-				}
+					committed_items++;
+				});
+
+				upq.Join();
 			}
+		}
 
-			itemsCount += committed_items;
-
-			completed_types.insert(type);
+		itemsCount += committed_items;
 
 #ifdef I2_DEBUG
-			if (committed_items > 0)
-				Log(LogDebug, "configitem")
-					<< "Committed " << committed_items << " items of type '" << type->GetName() << "'.";
+		if (committed_items > 0)
+			Log(LogDebug, "configitem")
+				<< "Committed " << committed_items << " items of type '" << type->GetName() << "'.";
 #endif /* I2_DEBUG */
 
-			if (upq.HasExceptions())
-				return false;
-		}
+		if (upq.HasExceptions())
+			return false;
 	}
 
 #ifdef I2_DEBUG
@@ -519,105 +492,83 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 		<< "Committed " << itemsCount << " items.";
 #endif /* I2_DEBUG */
 
-	completed_types.clear();
+	for (auto& type : Type::GetConfigTypesSortedByLoadDependencies()) {
+		std::atomic<int> notified_items(0);
 
-	while (types.size() != completed_types.size()) {
-		for (const Type::Ptr& type : types) {
-			if (completed_types.find(type) != completed_types.end())
-				continue;
+		{
+			auto items (itemsByType.find(type.get()));
 
-			bool unresolved_dep = false;
+			if (items != itemsByType.end()) {
+				upq.ParallelFor(items->second, [&notified_items](const ItemPair& ip) {
+					const ConfigItem::Ptr& item = ip.first;
 
-			/* skip this type (for now) if there are unresolved load dependencies */
-			for (auto pLoadDep : type->GetLoadDependencies()) {
-				if (types.find(pLoadDep) != types.end() && completed_types.find(pLoadDep) == completed_types.end()) {
-					unresolved_dep = true;
-					break;
-				}
-			}
+					if (!item->m_Object)
+						return;
 
-			if (unresolved_dep)
-				continue;
-
-			std::atomic<int> notified_items(0);
-
-			{
-				auto items (itemsByType.find(type.get()));
-
-				if (items != itemsByType.end()) {
-					upq.ParallelFor(items->second, [&notified_items](const ItemPair& ip) {
-						const ConfigItem::Ptr& item = ip.first;
-
-						if (!item->m_Object)
-							return;
-
-						try {
-							item->m_Object->OnAllConfigLoaded();
-							notified_items++;
-						} catch (const std::exception& ex) {
-							if (!item->m_IgnoreOnError)
-								throw;
-
-							Log(LogNotice, "ConfigObject")
-								<< "Ignoring config object '" << item->m_Name << "' of type '" << item->m_Type->GetName() << "' due to errors: " << DiagnosticInformation(ex);
-
-							item->Unregister();
-
-							{
-								std::unique_lock<std::mutex> lock(item->m_Mutex);
-								item->m_IgnoredItems.push_back(item->m_DebugInfo.Path);
-							}
-						}
-					});
-
-					upq.Join();
-				}
-			}
-
-			completed_types.insert(type);
-
-#ifdef I2_DEBUG
-			if (notified_items > 0)
-				Log(LogDebug, "configitem")
-					<< "Sent OnAllConfigLoaded to " << notified_items << " items of type '" << type->GetName() << "'.";
-#endif /* I2_DEBUG */
-
-			if (upq.HasExceptions())
-				return false;
-
-			notified_items = 0;
-			for (auto loadDep : type->GetLoadDependencies()) {
-				auto items (itemsByType.find(loadDep));
-
-				if (items != itemsByType.end()) {
-					upq.ParallelFor(items->second, [&type, &notified_items](const ItemPair& ip) {
-						const ConfigItem::Ptr& item = ip.first;
-
-						if (!item->m_Object)
-							return;
-
-						ActivationScope ascope(item->m_ActivationContext);
-						item->m_Object->CreateChildObjects(type);
+					try {
+						item->m_Object->OnAllConfigLoaded();
 						notified_items++;
-					});
-				}
-			}
+					} catch (const std::exception& ex) {
+						if (!item->m_IgnoreOnError)
+							throw;
 
-			upq.Join();
+						Log(LogNotice, "ConfigObject")
+							<< "Ignoring config object '" << item->m_Name << "' of type '" << item->m_Type->GetName() << "' due to errors: " << DiagnosticInformation(ex);
+
+						item->Unregister();
+
+						{
+							std::unique_lock<std::mutex> lock(item->m_Mutex);
+							item->m_IgnoredItems.push_back(item->m_DebugInfo.Path);
+						}
+					}
+				});
+
+				upq.Join();
+			}
+		}
 
 #ifdef I2_DEBUG
-			if (notified_items > 0)
-				Log(LogDebug, "configitem")
-					<< "Sent CreateChildObjects to " << notified_items << " items of type '" << type->GetName() << "'.";
+		if (notified_items > 0)
+			Log(LogDebug, "configitem")
+				<< "Sent OnAllConfigLoaded to " << notified_items << " items of type '" << type->GetName() << "'.";
 #endif /* I2_DEBUG */
 
-			if (upq.HasExceptions())
-				return false;
+		if (upq.HasExceptions())
+			return false;
 
-			// Make sure to activate any additionally generated items
-			if (!CommitNewItems(context, upq, newItems))
-				return false;
+		notified_items = 0;
+		for (auto loadDep : type->GetLoadDependencies()) {
+			auto items (itemsByType.find(loadDep));
+
+			if (items != itemsByType.end()) {
+				upq.ParallelFor(items->second, [&type, &notified_items](const ItemPair& ip) {
+					const ConfigItem::Ptr& item = ip.first;
+
+					if (!item->m_Object)
+						return;
+
+					ActivationScope ascope(item->m_ActivationContext);
+					item->m_Object->CreateChildObjects(type);
+					notified_items++;
+				});
+			}
 		}
+
+		upq.Join();
+
+#ifdef I2_DEBUG
+		if (notified_items > 0)
+			Log(LogDebug, "configitem")
+				<< "Sent CreateChildObjects to " << notified_items << " items of type '" << type->GetName() << "'.";
+#endif /* I2_DEBUG */
+
+		if (upq.HasExceptions())
+			return false;
+
+		// Make sure to activate any additionally generated items
+		if (!CommitNewItems(context, upq, newItems))
+			return false;
 	}
 
 	return true;
