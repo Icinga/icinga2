@@ -1,0 +1,48 @@
+---
+name: analyze
+on: [push, pull_request]
+
+jobs:
+  analyze:
+    runs-on: windows-2022
+    name: Run MSVC static code analyzer
+    strategy:
+      fail-fast: false
+      matrix:
+        config: [Release, Debug]
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Install Boost
+      uses: MarkusJx/install-boost@v2.4.4
+      id: install-boost
+      with:
+        boost_version: 1.83.0
+        toolset: msvc
+        platform_version: 2022
+
+    - name: Install packages
+      run: choco install openssl
+
+    - name: Configure
+      env:
+        BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
+      shell: bash
+      run: cmake -B build -T v143 -DENABLE_DOCUMENTATION=OFF -DCMAKE_CONFIGURATION_TYPES=${{ matrix.config }}
+
+    - name: Run MSVC static code analyzer
+      uses: microsoft/msvc-code-analysis-action@v0.1.1
+      id: run-analysis
+      with:
+        cmakeBuildDirectory: build
+        buildConfiguration: ${{ matrix.config }}
+        ruleset: NativeRecommendedRules.ruleset
+
+    - name: Upload SARIF to GitHub
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: ${{ steps.run-analysis.outputs.sarif }}

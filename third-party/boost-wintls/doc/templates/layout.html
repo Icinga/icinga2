@@ -1,0 +1,16 @@
+{% extends '!layout.html' %}
+
+{% block footer %}
+  <footer class="footer">
+    <div class="container">
+      <p class="pull-right">
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> {{ sphinx_version }}.<br/>
+      </p>
+      <p>
+        Revised {{ last_updated }}.<br/>
+        {{ shorttitle }}. &copy; Copyright {{ copyright }}.<br/>
+        Distributed under the <a href="https://www.boost.org/LICENSE_1_0.txt">Boost Software License, Version 1.0.</a><br/>
+      </p>
+    </div>
+  </footer>
+{% endblock %}
