@@ -439,12 +439,6 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 	if (!total)
 		return true;
 
-	// Shuffle all items to evenly distribute them over the threads of the workqueue. This increases perfomance
-	// noticably in environments with lots of objects and available threads.
-	for (auto& kv : itemsByType) {
-		std::shuffle(std::begin(kv.second), std::end(kv.second), std::default_random_engine{});
-	}
-
 #ifdef I2_DEBUG
 	Log(LogDebug, "configitem")
 		<< "Committing " << total << " new items.";
