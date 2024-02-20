@@ -338,7 +338,8 @@ bool EnsureValidBody(
 	ApiUser::Ptr& authenticatedUser,
 	boost::beast::http::response<boost::beast::http::string_body>& response,
 	bool& shuttingDown,
-	boost::asio::yield_context& yc
+	boost::asio::yield_context& yc,
+	boost::asio::io_context::strand& strand
 )
 {
 	namespace http = boost::beast::http;
@@ -428,13 +429,14 @@ bool ProcessRequest(
 	boost::beast::http::response<boost::beast::http::string_body>& response,
 	HttpServerConnection& server,
 	bool& hasStartedStreaming,
-	boost::asio::yield_context& yc
+	boost::asio::yield_context& yc,
+	boost::asio::io_context::strand& strand
 )
 {
 	namespace http = boost::beast::http;
 
 	try {
-		CpuBoundWork handlingRequest (yc);
+		CpuBoundWork handlingRequest (yc, strand);
 
 		HttpHandler::ProcessRequest(stream, authenticatedUser, request, response, yc, server, handlingRequest);
 	} catch (const std::exception& ex) {
@@ -542,13 +544,13 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 				break;
 			}
 
-			if (!EnsureValidBody(*m_Stream, buf, parser, authenticatedUser, response, m_ShuttingDown, yc)) {
+			if (!EnsureValidBody(*m_Stream, buf, parser, authenticatedUser, response, m_ShuttingDown, yc, m_IoStrand)) {
 				break;
 			}
 
 			m_Seen = std::numeric_limits<decltype(m_Seen)>::max();
 
-			if (!ProcessRequest(*m_Stream, request, authenticatedUser, response, *this, m_HasStartedStreaming, yc)) {
+			if (!ProcessRequest(*m_Stream, request, authenticatedUser, response, *this, m_HasStartedStreaming, yc, m_IoStrand)) {
 				break;
 			}
 
