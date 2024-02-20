@@ -423,7 +423,8 @@ bool ProcessRequest(
 	CpuBoundWork*& m_HandlingRequest,
 	bool& hasStartedStreaming,
 	std::chrono::steady_clock::duration& cpuBoundWorkTime,
-	boost::asio::yield_context& yc
+	boost::asio::yield_context& yc,
+	boost::asio::io_context::strand& strand
 )
 {
 	namespace http = boost::beast::http;
@@ -431,7 +432,7 @@ bool ProcessRequest(
 	try {
 		// Cache the elapsed time to acquire a CPU semaphore used to detect extremely heavy workloads.
 		auto start (std::chrono::steady_clock::now());
-		CpuBoundWork handlingRequest (yc);
+		CpuBoundWork handlingRequest (yc, strand);
 		cpuBoundWorkTime = std::chrono::steady_clock::now() - start;
 
 		Defer resetHandlingRequest ([&m_HandlingRequest] { m_HandlingRequest = nullptr; });
@@ -554,7 +555,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 
 			m_Seen = std::numeric_limits<decltype(m_Seen)>::max();
 
-			if (!ProcessRequest(*m_Stream, request, authenticatedUser, response, *this, m_HandlingRequest, m_HasStartedStreaming, cpuBoundWorkTime, yc)) {
+			if (!ProcessRequest(*m_Stream, request, authenticatedUser, response, *this, m_HandlingRequest, m_HasStartedStreaming, cpuBoundWorkTime, yc, m_IoStrand)) {
 				break;
 			}
 
