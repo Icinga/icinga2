@@ -5,6 +5,7 @@ on:
     branches:
       - master
       - 'support/*'
+      - require-boost-1.70
   pull_request: {}
 
 concurrency:
