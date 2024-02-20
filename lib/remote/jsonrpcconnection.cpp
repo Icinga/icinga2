@@ -78,7 +78,7 @@ void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 		m_Seen = Utility::GetTime();
 
 		try {
-			CpuBoundWork handleMessage (yc);
+			CpuBoundWork handleMessage (yc, m_IoStrand);
 
 			MessageHandler(message);
 
