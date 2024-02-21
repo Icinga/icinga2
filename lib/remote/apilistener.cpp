@@ -1021,6 +1021,10 @@ void ApiListener::ApiTimerHandler()
 				maxTs = client->GetTimestamp();
 		}
 
+		Log(LogNotice, "ApiListener")
+			<< "Setting log position for identity '" << endpoint->GetName() << "': "
+			<< Utility::FormatDateTime("%Y/%m/%d %H:%M:%S", ts);
+
 		for (const JsonRpcConnection::Ptr& client : endpoint->GetClients()) {
 			if (client->GetTimestamp() == maxTs) {
 				try {
@@ -1033,10 +1037,6 @@ void ApiListener::ApiTimerHandler()
 				client->Disconnect();
 			}
 		}
-
-		Log(LogNotice, "ApiListener")
-			<< "Setting log position for identity '" << endpoint->GetName() << "': "
-			<< Utility::FormatDateTime("%Y/%m/%d %H:%M:%S", ts);
 	}
 }
 
