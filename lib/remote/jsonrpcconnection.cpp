@@ -166,7 +166,7 @@ ConnectionRole JsonRpcConnection::GetRole() const
 void JsonRpcConnection::SendMessage(const Dictionary::Ptr& message)
 {
 	if (m_ShuttingDown) {
-		return;
+		BOOST_THROW_EXCEPTION(std::runtime_error("Cannot send message to already disconnected API client '" + GetIdentity() + "'!"));
 	}
 
 	Ptr keepAlive (this);
@@ -177,7 +177,7 @@ void JsonRpcConnection::SendMessage(const Dictionary::Ptr& message)
 void JsonRpcConnection::SendRawMessage(const String& message)
 {
 	if (m_ShuttingDown) {
-		return;
+		BOOST_THROW_EXCEPTION(std::runtime_error("Cannot send message to already disconnected API client '" + GetIdentity() + "'!"));
 	}
 
 	Ptr keepAlive (this);
