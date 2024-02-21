@@ -1023,7 +1023,12 @@ void ApiListener::ApiTimerHandler()
 
 		for (const JsonRpcConnection::Ptr& client : endpoint->GetClients()) {
 			if (client->GetTimestamp() == maxTs) {
-				client->SendMessage(lmessage);
+				try {
+					client->SendMessage(lmessage);
+				} catch (const std::runtime_error& ex) {
+					Log(LogInformation, "ApiListener")
+						<< "Error while setting log position for identity '" << endpoint->GetName() << "': " << DiagnosticInformation(ex, false);
+				}
 			} else {
 				client->Disconnect();
 			}
@@ -1195,7 +1200,12 @@ void ApiListener::SyncSendMessage(const Endpoint::Ptr& endpoint, const Dictionar
 			if (client->GetTimestamp() != maxTs)
 				continue;
 
-			client->SendMessage(message);
+			try {
+				client->SendMessage(message);
+			} catch (const std::runtime_error& ex) {
+				Log(LogInformation, "ApiListener")
+					<< "Error while sending message to endpoint '" << endpoint->GetName() << "': " << DiagnosticInformation(ex, false);
+			}
 		}
 	}
 }
