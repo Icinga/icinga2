@@ -207,8 +207,8 @@ void OpenTsdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 				
 				if (!missing_macro.IsEmpty()) {
 					Log(LogDebug, "OpenTsdbWriter")
-						<< "Unable to resolve macro:'" << missing_macro 
-						<< "' for this host or service.";
+						<< "Unable to resolve macro '" << missing_macro 
+						<< "' for checkable '" << checkable->GetName() << "'.";
 					
 					continue;
 				}
@@ -227,8 +227,8 @@ void OpenTsdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 			
 			if (!missing_macro.IsEmpty()) {
 				Log(LogDebug, "OpenTsdbWriter")
-					<< "Unable to resolve macro:'" << missing_macro 
-					<< "' for this host or service.";
+					<< "Unable to resolve macro '" << missing_macro 
+					<< "' for checkable '" << checkable->GetName() << "'.";
 				
 			}
 			else {
