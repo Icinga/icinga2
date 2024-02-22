@@ -285,3 +285,11 @@ std::pair<Host::Ptr, Service::Ptr> icinga::GetHostService(const Checkable::Ptr& 
 	else
 		return std::make_pair(static_pointer_cast<Host>(checkable), nullptr);
 }
+
+Dictionary::Ptr Service::MakeLocalsForApply()
+{
+	return new Dictionary({
+		{ "host", m_Host },
+		{ "service", this }
+	});
+}
