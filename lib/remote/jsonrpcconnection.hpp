@@ -5,10 +5,12 @@
 
 #include "remote/i2-remote.hpp"
 #include "remote/endpoint.hpp"
+#include "base/atomic.hpp"
 #include "base/io-engine.hpp"
 #include "base/tlsstream.hpp"
 #include "base/timer.hpp"
 #include "base/workqueue.hpp"
+#include <cstdint>
 #include <memory>
 #include <vector>
 #include <boost/asio/io_context.hpp>
@@ -43,6 +45,7 @@ public:
 	DECLARE_PTR_TYPEDEFS(JsonRpcConnection);
 
 	JsonRpcConnection(const String& identity, bool authenticated, const Shared<AsioTlsStream>::Ptr& stream, ConnectionRole role);
+	~JsonRpcConnection() override;
 
 	void Start();
 
@@ -64,7 +67,15 @@ public:
 
 	static void SendCertificateRequest(const JsonRpcConnection::Ptr& aclient, const intrusive_ptr<MessageOrigin>& origin, const String& path);
 
+	static inline
+	uintmax_t GetQueuedMessages()
+	{
+		return m_QueuedMessages.load();
+	}
+
 private:
+	static Atomic<uintmax_t> m_QueuedMessages;
+
 	String m_Identity;
 	bool m_Authenticated;
 	Endpoint::Ptr m_Endpoint;
