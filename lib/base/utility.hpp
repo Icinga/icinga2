@@ -144,6 +144,7 @@ public:
 	static String GetFromEnvironment(const String& env);
 
 	static bool ComparePasswords(const String& enteredPassword, const String& actualPassword);
+	static bool CompareBCryptPasswords(const String& enteredPassword, const String& bCryptHash);
 
 #ifdef I2_DEBUG
 	static void SetTime(double);

@@ -149,6 +149,9 @@ link_directories(${icinga2_BINARY_DIR}/third-party/mmatch)
 include_directories(${icinga2_SOURCE_DIR}/third-party/socketpair)
 link_directories(${icinga2_BINARY_DIR}/third-party/socketpair)
 
+include_directories(${icinga2_SOURCE_DIR}/third-party/crypt_blowfish)
+link_directories(${icinga2_BINARY_DIR}/third-party/crypt_blowfish)
+
 set_target_properties (
   base PROPERTIES
   FOLDER Lib
