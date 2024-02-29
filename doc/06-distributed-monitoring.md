@@ -3230,6 +3230,31 @@ information/pki: Writing certificate to file 'icinga2-satellite1.localdomain.crt
 
 Copy and move these certificates to the respective instances e.g. with SSH/SCP.
 
+#### External CA/PKI
+
+Neither the above commands, nor their automatic counterparts in the Icinga
+cluster do anything special during certificate issuance. I.e. Icinga
+isn't the only possible source of the certificates it uses. E.g.
+`openssl req/x509 ...` may be used as well as long as the leaf certificates' CN
+and SAN match the endpoint names. Pretty much everything else is limited only by
+your imagination and the oldest OpenSSL version of two Icinga nodes connected to
+each other. E.g. the following works:
+
+* Custom key sizes, e.g. 2048 bits
+* Custom key types, e.g. ECC
+* Multiple trusted root CAs in `/var/lib/icinga2/certs/ca.crt`
+* Different root CAs per cluster subtree, as long as each node trusts the
+  certificate issuers of all nodes it's directly connected to
+* Any number of intermediate CAs (but see limitations below)
+
+Intermediate CA restrictions:
+
+* Intermediate CAs may not be used directly as root CAs. To trust only specific
+  intermediate CAs, cross-sign them with themselves, so that you get equal
+  certificates except that they're self-signed. Use them as root CAs in Icinga.
+* Each side has to provide its intermediate CAs along with the leaf certificate
+  in `/var/lib/icinga2/certs/NODENAME.crt`, ordered from leaf to root.
+
 ## Automation <a id="distributed-monitoring-automation"></a>
 
 These hints should get you started with your own automation tools (Puppet, Ansible, Chef, Salt, etc.)
