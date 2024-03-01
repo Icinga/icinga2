@@ -5,6 +5,7 @@
 #include "remote/apilistener.hpp"
 #include "config/configcompiler.hpp"
 #include "config/configitem.hpp"
+#include "base/atomic-file.hpp"
 #include "base/configwriter.hpp"
 #include "base/exception.hpp"
 #include "base/dependencygraph.hpp"
@@ -198,11 +199,10 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 		return false;
 	}
 
+	// AtomicFile doesn't create not yet existing directories, so we have to do it by ourselves.
 	Utility::MkDirP(Utility::DirName(path), 0700);
 
-	std::ofstream fp(path.CStr(), std::ofstream::out | std::ostream::trunc);
-	fp << config;
-	fp.close();
+	AtomicFile::Write(path, 0644, config);
 
 	std::unique_ptr<Expression> expr = ConfigCompiler::CompileFile(path, String(), "_api");
 
