@@ -5,6 +5,8 @@
 
 #include "remote/i2-remote.hpp"
 #include "remote/endpoint-ti.hpp"
+#include "remote/replay-log.hpp"
+#include "base/lazy-init.hpp"
 #include "base/ringbuffer.hpp"
 #include <set>
 
@@ -28,6 +30,10 @@ public:
 	static boost::signals2::signal<void(const Endpoint::Ptr&, const intrusive_ptr<JsonRpcConnection>&)> OnConnected;
 	static boost::signals2::signal<void(const Endpoint::Ptr&, const intrusive_ptr<JsonRpcConnection>&)> OnDisconnected;
 
+	inline Endpoint() : m_ReplayLog([this]() { return ReplayLog(GetName()); })
+	{
+	}
+
 	void AddClient(const intrusive_ptr<JsonRpcConnection>& client);
 	void RemoveClient(const intrusive_ptr<JsonRpcConnection>& client);
 	std::set<intrusive_ptr<JsonRpcConnection> > GetClients() const;
@@ -37,6 +43,12 @@ public:
 	bool GetConnected() const override;
 
 	static Endpoint::Ptr GetLocalEndpoint();
+	static void ConfigStaticInitialize();
+
+	inline ReplayLog& GetReplayLog()
+	{
+		return m_ReplayLog.Get();
+	}
 
 	void SetCachedZone(const intrusive_ptr<Zone>& zone);
 
@@ -56,6 +68,7 @@ private:
 	mutable std::mutex m_ClientsLock;
 	std::set<intrusive_ptr<JsonRpcConnection> > m_Clients;
 	intrusive_ptr<Zone> m_Zone;
+	LazyInit<ReplayLog> m_ReplayLog;
 
 	mutable RingBuffer m_MessagesSent{60};
 	mutable RingBuffer m_MessagesReceived{60};
