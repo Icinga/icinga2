@@ -5,7 +5,6 @@
 #include "remote/apilistener.hpp"
 #include "config/configcompiler.hpp"
 #include "config/configitem.hpp"
-#include "base/atomic-file.hpp"
 #include "base/configwriter.hpp"
 #include "base/exception.hpp"
 #include "base/dependencygraph.hpp"
@@ -199,21 +198,13 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 		return false;
 	}
 
-	// AtomicFile doesn't create not yet existing directories, so we have to do it by ourselves.
 	Utility::MkDirP(Utility::DirName(path), 0700);
 
-	// Using AtomicFile guarantees that two different threads simultaneously creating and loading the same
-	// configuration file do not interfere with each other, as the configuration is stored in a unique temp file.
-	// When one thread fails to pass object validation, it only deletes its temporary file and does not affect
-	// the other thread in any way.
-	AtomicFile fp(path, 0644);
+	std::ofstream fp(path.CStr(), std::ofstream::out | std::ostream::trunc);
 	fp << config;
-	// Flush the output buffer to catch any errors ASAP and handle them accordingly!
-	// Note: AtomicFile places these configs in a temp file and will be automatically
-	//       discarded when it is not committed before going out of scope.
-	fp.flush();
+	fp.close();
 
-	std::unique_ptr<Expression> expr = ConfigCompiler::CompileText(path, config, String(), "_api");
+	std::unique_ptr<Expression> expr = ConfigCompiler::CompileFile(path, String(), "_api");
 
 	try {
 		ActivationScope ascope;
@@ -234,7 +225,9 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 		if (!ConfigItem::CommitItems(ascope.GetContext(), upq, newItems, true)) {
 			if (errors) {
 				Log(LogNotice, "ConfigObjectUtility")
-					<< "Failed to commit config item '" << fullName << "'.";
+					<< "Failed to commit config item '" << fullName << "'. Aborting and removing config path '" << path << "'.";
+
+				Utility::Remove(path);
 
 				for (const boost::exception_ptr& ex : upq.GetExceptions()) {
 					errors->Add(DiagnosticInformation(ex, false));
@@ -255,7 +248,9 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 		if (!ConfigItem::ActivateItems(newItems, true, false, false, cookie)) {
 			if (errors) {
 				Log(LogNotice, "ConfigObjectUtility")
-					<< "Failed to activate config object '" << fullName << "'.";
+					<< "Failed to activate config object '" << fullName << "'. Aborting and removing config path '" << path << "'.";
+
+				Utility::Remove(path);
 
 				for (const boost::exception_ptr& ex : upq.GetExceptions()) {
 					errors->Add(DiagnosticInformation(ex, false));
@@ -280,9 +275,6 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 		ConfigObject::Ptr obj = ctype->GetObject(fullName);
 
 		if (obj) {
-			// Object has surpassed the compiling/validation processes, we can safely commit the file!
-			fp.Commit();
-
 			Log(LogInformation, "ConfigObjectUtility")
 				<< "Created and activated object '" << fullName << "' of type '" << type->GetName() << "'.";
 		} else {
@@ -291,6 +283,8 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 		}
 
 	} catch (const std::exception& ex) {
+		Utility::Remove(path);
+
 		if (errors)
 			errors->Add(DiagnosticInformation(ex, false));
 

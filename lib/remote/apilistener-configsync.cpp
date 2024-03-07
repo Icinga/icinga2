@@ -7,7 +7,6 @@
 #include "base/configtype.hpp"
 #include "base/json.hpp"
 #include "base/convert.hpp"
-#include "base/defer.hpp"
 #include "config/vmops.hpp"
 #include <fstream>
 
@@ -104,15 +103,6 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 			<< "Config type '" << objType << "' does not exist.";
 		return Empty;
 	}
-
-	// Wait for the object name to become available for processing and block it immediately.
-	// Doing so guarantees that only one cluster event (create/update/delete) of a given
-	// object is being processed at any given time.
-	listener->m_ObjectConfigChangeLock.Lock(ptype, objName);
-
-	Defer unlockAndNotify([&listener, &ptype, &objName]{
-		listener->m_ObjectConfigChangeLock.Unlock(ptype, objName);
-	});
 
 	ConfigObject::Ptr object = ctype->GetObject(objName);
 
@@ -267,15 +257,6 @@ Value ApiListener::ConfigDeleteObjectAPIHandler(const MessageOrigin::Ptr& origin
 			<< "Config type '" << objType << "' does not exist.";
 		return Empty;
 	}
-
-	// Wait for the object name to become available for processing and block it immediately.
-	// Doing so guarantees that only one cluster event (create/update/delete) of a given
-	// object is being processed at any given time.
-	listener->m_ObjectConfigChangeLock.Lock(ptype, objName);
-
-	Defer unlockAndNotify([&listener, &ptype, &objName]{
-		listener->m_ObjectConfigChangeLock.Unlock(ptype, objName);
-	});
 
 	ConfigObject::Ptr object = ctype->GetObject(objName);
 
@@ -480,38 +461,4 @@ void ApiListener::SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient
 
 	Log(LogInformation, "ApiListener")
 		<< "Finished syncing runtime objects to endpoint '" << endpoint->GetName() << "'.";
-}
-
-/**
- * Locks the specified object name of the given type. If it is already locked, the call blocks until the lock is released.
- *
- * @param Type::Ptr ptype The type of the object you want to lock
- * @param String objName The object name you want to lock
- */
-void ObjectNameMutex::Lock(const Type::Ptr& ptype, const String& objName)
-{
-	std::unique_lock<std::mutex> lock(m_Mutex);
-	m_CV.wait(lock, [this, &ptype, &objName]{
-		auto& locked = m_LockedObjectNames[ptype.get()];
-		return locked.find(objName) == locked.end();
-	});
-
-	// Add object name to the locked list again to block all other threads that try
-	// to process a message affecting the same object.
-	m_LockedObjectNames[ptype.get()].emplace(objName);
-}
-
-/**
- * Unlocks the specified object name of the given type.
- *
- * @param Type::Ptr ptype The type of the object you want to unlock
- * @param String objName The name of the object you want to unlock
- */
-void ObjectNameMutex::Unlock(const Type::Ptr& ptype, const String& objName)
-{
-	{
-		std::unique_lock<std::mutex> lock(m_Mutex);
-		m_LockedObjectNames[ptype.get()].erase(objName);
-	}
-	m_CV.notify_all();
 }
