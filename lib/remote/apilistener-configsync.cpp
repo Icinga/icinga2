@@ -8,6 +8,7 @@
 #include "base/json.hpp"
 #include "base/convert.hpp"
 #include "config/vmops.hpp"
+#include "remote/configobjectslock.hpp"
 #include <fstream>
 
 using namespace icinga;
@@ -103,6 +104,11 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 			<< "Config type '" << objType << "' does not exist.";
 		return Empty;
 	}
+
+	// Wait for the object name to become available for processing and block it immediately.
+	// Doing so guarantees that only one (create/update/delete) cluster event or API request of a
+	// given object is being processed at any given time.
+	ObjectNameLock objectNameLock(ptype, objName);
 
 	ConfigObject::Ptr object = ctype->GetObject(objName);
 
@@ -257,6 +263,11 @@ Value ApiListener::ConfigDeleteObjectAPIHandler(const MessageOrigin::Ptr& origin
 			<< "Config type '" << objType << "' does not exist.";
 		return Empty;
 	}
+
+	// Wait for the object name to become available for processing and block it immediately.
+	// Doing so guarantees that only one (create/update/delete) cluster event or API request of a
+	// given object is being processed at any given time.
+	ObjectNameLock objectNameLock(ptype, objName);
 
 	ConfigObject::Ptr object = ctype->GetObject(objName);
 
