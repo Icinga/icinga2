@@ -254,6 +254,7 @@ Dictionary::Ptr ApiActions::AcknowledgeProblem(const ConfigObject::Ptr& object,
 	if (checkable->IsAcknowledged()) {
 		return ApiActions::CreateResult(409, (service ? "Service " : "Host ") + checkable->GetName() + " is already acknowledged.");
 	}
+	oLock.Unlock();
 
 	ConfigObjectsSharedLock lock (std::try_to_lock);
 
