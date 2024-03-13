@@ -31,6 +31,8 @@ public:
 
 class Comment : ConfigObject < CommentNameComposer
 {
+	activation_priority -10;
+
 	load_after Host;
 	load_after Service;
 
