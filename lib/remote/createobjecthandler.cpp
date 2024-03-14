@@ -124,6 +124,9 @@ bool CreateObjectHandler::HandleRequest(
 		return true;
 	}
 
+	// Lock the object name of the given type to prevent from being created concurrently.
+	ObjectNameLock objectNameLock(type, name);
+
 	if (!ConfigObjectUtility::CreateObject(type, name, config, errors, diagnosticInformation)) {
 		result1->Set("errors", errors);
 		result1->Set("code", 500);
