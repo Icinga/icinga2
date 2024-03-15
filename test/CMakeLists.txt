@@ -28,6 +28,7 @@ set(base_test_SOURCES
   config-ops.cpp
   icinga-checkresult.cpp
   icinga-dependencies.cpp
+  icinga-downtime.cpp
   icinga-legacytimeperiod.cpp
   icinga-macros.cpp
   icinga-notification.cpp
@@ -175,6 +176,13 @@ add_boost_test(base
     icinga_checkresult/service_flapping_notification
     icinga_checkresult/suppressed_notification
     icinga_dependencies/multi_parent
+    icinga_downtime/canbetriggered_fixed
+    icinga_downtime/canbetriggered_flexible
+    icinga_downtime/canbetriggered_inactive
+    icinga_downtime/canbetriggered_removed
+    icinga_downtime/canbetriggered_triggered
+    icinga_downtime/canbetriggered_expired
+    icinga_downtime/canbetriggered_tooearly
     icinga_notification/strings
     icinga_notification/state_filter
     icinga_notification/type_filter
