@@ -176,6 +176,60 @@ C:\> cd C:\ProgramData\icinga2\var\log\icinga2
 C:\ProgramData\icinga2\var\log\icinga2> Get-Content .\debug.log -tail 10 -wait
 ```
 
+### Enable/Disable Debug Output on the fly <a id="troubleshooting-enable-disable-debug-output-api"></a>
+
+Every feature is just an Icinga config object similar to Host and Service, e.g.
+the `debuglog` feature is a [FileLogger](09-object-types.md#objecttype-filelogger).
+Those can also be [managed via API](12-icinga2-api.md#icinga2-api-config-objects)
+at runtime. This is a good alternative to `icinga2 feature enable debuglog`:
+
+* Object creation/deletion via API happens immediately and requires no restart
+* Hence, the debug log is enabled exactly as long as desired
+
+However, in case of [a HA zone](06-distributed-monitoring.md#distributed-monitoring-scenarios-ha-master-agents)
+the feature gets enabled/disabled on both nodes once they're connected.
+
+#### Enable Debug Output on the fly <a id="troubleshooting-enable-debug-output-api"></a>
+
+```bash
+curl -k -s -S -i -u root:icinga -H 'Accept: application/json' \
+ -X PUT 'https://localhost:5665/v1/objects/fileloggers/on-the-fly-debug-file' \
+ -d '{ "attrs": { "severity": "debug", "path": "/var/log/icinga2/on-the-fly-debug.log" }, "pretty": true }'
+```
+
+```json
+{
+    "results": [
+        {
+            "code": 200.0,
+            "status": "Object was created."
+        }
+    ]
+}
+```
+
+#### Disable Debug Output on the fly <a id="troubleshooting-disable-debug-output-api"></a>
+
+This works only for debug loggers enabled on the fly as above!
+
+```bash
+curl -k -s -S -i -u root:icinga -H 'Accept: application/json' \
+ -X DELETE 'https://localhost:5665/v1/objects/fileloggers/on-the-fly-debug-file?pretty=1'
+```
+
+```json
+{
+    "results": [
+        {
+            "code": 200.0,
+            "name": "on-the-fly-debug-file",
+            "status": "Object was deleted.",
+            "type": "FileLogger"
+        }
+    ]
+}
+```
+
 ## Icinga starts/restarts/reloads very slowly
 
 ### Try swapping out the allocator
