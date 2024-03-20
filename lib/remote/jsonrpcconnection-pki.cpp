@@ -30,6 +30,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 	String certText = params->Get("cert_request");
 
 	std::shared_ptr<X509> cert;
+	STACK_OF(X509) *chain;
 
 	Dictionary::Ptr result = new Dictionary();
 	auto& tlsConn (origin->FromClient->GetStream()->next_layer());
@@ -37,8 +38,10 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 	/* Use the presented client certificate if not provided. */
 	if (certText.IsEmpty()) {
 		cert = tlsConn.GetPeerCertificate();
+		chain = tlsConn.GetPeerCertificateChain();
 	} else {
 		cert = StringToCertificate(certText);
+		chain = nullptr;
 	}
 
 	if (!cert) {
@@ -62,7 +65,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 		logmsg << "Received certificate request for CN '" << cn << "'";
 
 		try {
-			signedByCA = VerifyCertificate(cacert, cert, listener->GetCrlPath());
+			signedByCA = VerifyCertificate(cacert, cert, listener->GetCrlPath(), chain);
 			if (!signedByCA) {
 				logmsg << " not";
 			}
