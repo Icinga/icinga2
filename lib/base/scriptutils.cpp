@@ -455,7 +455,7 @@ Array::Ptr ScriptUtils::GetTemplates(const Type::Ptr& type)
 
 	for (const ConfigItem::Ptr& item : ConfigItem::GetItems(type)) {
 		if (item->IsAbstract())
-			result.push_back(GetTargetForTemplate(item));
+			result.emplace_back(GetTargetForTemplate(item));
 	}
 
 	return new Array(std::move(result));

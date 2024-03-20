@@ -158,7 +158,7 @@ void DbObject::SendStatusUpdate()
 	query.Table = GetType()->GetTable() + "status";
 	query.Type = DbQueryInsert | DbQueryUpdate;
 	query.Category = DbCatState;
-	query.Fields = fields;
+	query.Fields = std::move(fields);
 	query.Fields->Set(GetType()->GetIDColumn(), GetObject());
 
 	/* do not override endpoint_object_id for endpoints & zones */

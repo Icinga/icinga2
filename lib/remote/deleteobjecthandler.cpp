@@ -42,7 +42,7 @@ bool DeleteObjectHandler::HandleRequest(
 	}
 
 	QueryDescription qd;
-	qd.Types.insert(type->GetName());
+	qd.Types.emplace(type->GetName());
 	qd.Permission = "objects/delete/" + type->GetName();
 
 	params->Set("type", type->GetName());
