@@ -35,12 +35,12 @@ using namespace icinga;
 
 auto const l_ServerHeader ("Icinga/" + Application::GetAppVersion());
 
-HttpServerConnection::HttpServerConnection(const String& identity, bool authenticated, const Shared<AsioTlsStream>::Ptr& stream)
+HttpServerConnection::HttpServerConnection(const String& identity, bool authenticated, const AsioTlsStream::Ptr& stream)
 	: HttpServerConnection(identity, authenticated, stream, IoEngine::Get().GetIoContext())
 {
 }
 
-HttpServerConnection::HttpServerConnection(const String& identity, bool authenticated, const Shared<AsioTlsStream>::Ptr& stream, boost::asio::io_context& io)
+HttpServerConnection::HttpServerConnection(const String& identity, bool authenticated, const AsioTlsStream::Ptr& stream, boost::asio::io_context& io)
 	: m_Stream(stream), m_Seen(Utility::GetTime()), m_IoStrand(io), m_ShuttingDown(false), m_HasStartedStreaming(false),
 	m_CheckLivenessTimer(io)
 {
@@ -95,9 +95,7 @@ void HttpServerConnection::Disconnect()
 
 			m_Stream->lowest_layer().cancel(ec);
 
-			m_Stream->next_layer().async_shutdown(yc[ec]);
-
-			m_Stream->lowest_layer().shutdown(m_Stream->lowest_layer().shutdown_both, ec);
+			m_Stream->GracefulDisconnect(m_IoStrand, yc);
 
 			auto listener (ApiListener::GetInstance());
 

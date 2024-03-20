@@ -7,6 +7,7 @@
 #include "base/logger.hpp"
 #include "base/configuration.hpp"
 #include "base/convert.hpp"
+#include "base/io-engine.hpp"
 #include <boost/asio/ssl/context.hpp>
 #include <boost/asio/ssl/verify_context.hpp>
 #include <boost/asio/ssl/verify_mode.hpp>
@@ -68,4 +69,28 @@ void UnbufferedAsioTlsStream::BeforeHandshake(handshake_type type)
 		SSL_set_tlsext_host_name(native_handle(), serverName.CStr());
 	}
 #endif /* SSL_CTRL_SET_TLSEXT_HOSTNAME */
+}
+
+void AsioTlsStream::ForceDisconnect()
+{
+	boost::system::error_code ec;
+	lowest_layer().shutdown(lowest_layer_type::shutdown_both, ec);
+}
+
+void AsioTlsStream::GracefulDisconnect(boost::asio::io_context::strand strand, boost::asio::yield_context yc)
+{
+	boost::system::error_code ec;
+
+	lowest_layer().cancel(ec);
+
+	Timeout::Ptr shutdownTimeout(new Timeout(strand.context(), strand, boost::posix_time::seconds(10),
+		[this, keepAlive = AsioTlsStream::Ptr(this)](boost::asio::yield_context yc) {
+			boost::system::error_code ec;
+			lowest_layer().cancel(ec);
+		}
+	));
+	next_layer().async_shutdown(yc[ec]);
+	shutdownTimeout->Cancel();
+
+	ForceDisconnect();
 }
