@@ -121,6 +121,25 @@ add_boost_test(base
     base_type/assign
     base_type/byname
     base_type/instantiate
+    base_type/sortbyloaddependencies0
+    base_type/sortbyloaddependencies1
+    base_type/sortbyloaddependencies2related
+    base_type/sortbyloaddependencies2unrelated
+    base_type/sortbyloaddependencies3related
+    base_type/sortbyloaddependencies3unrelated
+    base_type/sortbyloaddependencies4related
+    base_type/sortbyloaddependencies4unrelated
+    base_type/sortbyloaddependencies5related
+    base_type/sortbyloaddependencies5unrelated
+    base_type/sortbyloaddependencies1_withforeign
+    base_type/sortbyloaddependencies2related_withforeign
+    base_type/sortbyloaddependencies2unrelated_withforeign
+    base_type/sortbyloaddependencies3related_withforeign
+    base_type/sortbyloaddependencies3unrelated_withforeign
+    base_type/sortbyloaddependencies4related_withforeign
+    base_type/sortbyloaddependencies4unrelated_withforeign
+    base_type/sortbyloaddependencies5related_withforeign
+    base_type/sortbyloaddependencies5unrelated_withforeign
     base_utility/parse_version
     base_utility/compare_version
     base_utility/comparepasswords_works

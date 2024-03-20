@@ -82,6 +82,7 @@ public:
 	static void Register(const Type::Ptr& type);
 	static Type::Ptr GetByName(const String& name);
 	static std::vector<Type::Ptr> GetAllTypes();
+	static std::vector<Type::Ptr> SortByLoadDependencies(const std::vector<Type::Ptr>& types);
 
 	void SetField(int id, const Value& value, bool suppress_events = false, const Value& cookie = Empty) override;
 	Value GetField(int id) const override;
