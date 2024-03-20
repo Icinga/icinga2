@@ -213,6 +213,48 @@ BOOST_AUTO_TEST_CASE(simple)
 	BOOST_CHECK_EQUAL(end, expectedEnd);
 }
 
+BOOST_AUTO_TEST_CASE(is_in_range)
+{
+	tm tm_beg = Utility::LocalTime(1706518800); // 2024-01-29 10:00:00
+	tm tm_end = Utility::LocalTime(1706520600); // 2024-01-29 10:30:00
+
+	tm reference = Utility::LocalTime(1706519400); // 2024-01-29 10:10:00
+	reference.tm_sec = 0;
+	reference.tm_isdst = -1;
+
+	// The reference time is only 10 minutes ahead of the start date, which should be covered by this range.
+	BOOST_CHECK_EQUAL(true, LegacyTimePeriod::IsInTimeRange(&tm_beg, &tm_end, 1, &reference));
+
+	reference = Utility::LocalTime(1706518799); // 2024-01-29 09:59:59
+
+	// The reference time is 1 second behind the range start date, which shouldn't be covered by this range.
+	BOOST_CHECK_EQUAL(false, LegacyTimePeriod::IsInTimeRange(&tm_beg, &tm_end, 1, &reference));
+
+	reference = Utility::LocalTime(1706520599); // 2024-01-29 10:29:59
+
+	// The reference time is 1 second behind the specified end time, so this should be in the range.
+	BOOST_CHECK_EQUAL(true, LegacyTimePeriod::IsInTimeRange(&tm_beg, &tm_end, 1, &reference));
+
+	reference = Utility::LocalTime(1706520600); // 2024-01-29 10:30:00
+
+	// The reference time is exactly the same as the specified end time, so this should definitely not be in the range.
+	BOOST_CHECK_EQUAL(false, LegacyTimePeriod::IsInTimeRange(&tm_beg, &tm_end, 1, &reference));
+
+	tm_beg = Utility::LocalTime(1706518800); // 2024-01-29 10:00:00
+	tm_end = Utility::LocalTime(1706720400); // 2024-01-31 18:00:00
+
+	reference = Utility::LocalTime(1706612400); // 2024-01-30 12:00:00
+
+	// Even if the reference time is within the specified range, the stride guarantees that the reference
+	// should be 2(n-th) days ahead of the range start date, which is not the case.
+	BOOST_CHECK_EQUAL(false, LegacyTimePeriod::IsInTimeRange(&tm_beg, &tm_end, 2, &reference));
+
+	reference = Utility::LocalTime(1706698800); // 2024-01-31 12:00:00
+
+	// The reference time is now within the specified range and is also 2(n-th) days ahead of the range start date.
+	BOOST_CHECK_EQUAL(true, LegacyTimePeriod::IsInTimeRange(&tm_beg, &tm_end, 2, &reference));
+}
+
 struct DateTime
 {
 	struct {
