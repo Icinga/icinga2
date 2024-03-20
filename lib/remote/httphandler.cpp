@@ -52,7 +52,8 @@ void HttpHandler::ProcessRequest(
 	boost::beast::http::request<boost::beast::http::string_body>& request,
 	boost::beast::http::response<boost::beast::http::string_body>& response,
 	boost::asio::yield_context& yc,
-	HttpServerConnection& server
+	HttpServerConnection& server,
+	CpuBoundWork& handlingRequest
 )
 {
 	Dictionary::Ptr node = m_UrlTree;
@@ -108,7 +109,7 @@ void HttpHandler::ProcessRequest(
 	 */
 	try {
 		for (const HttpHandler::Ptr& handler : handlers) {
-			if (handler->HandleRequest(stream, user, request, url, response, params, yc, server)) {
+			if (handler->HandleRequest(stream, user, request, url, response, params, yc, server, handlingRequest)) {
 				processed = true;
 				break;
 			}

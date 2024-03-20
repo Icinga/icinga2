@@ -7,6 +7,7 @@
 #include "remote/url.hpp"
 #include "remote/httpserverconnection.hpp"
 #include "remote/apiuser.hpp"
+#include "base/io-engine.hpp"
 #include "base/registry.hpp"
 #include "base/tlsstream.hpp"
 #include <vector>
@@ -34,7 +35,8 @@ public:
 		boost::beast::http::response<boost::beast::http::string_body>& response,
 		const Dictionary::Ptr& params,
 		boost::asio::yield_context& yc,
-		HttpServerConnection& server
+		HttpServerConnection& server,
+		CpuBoundWork& handlingRequest
 	) = 0;
 
 	static void Register(const Url::Ptr& url, const HttpHandler::Ptr& handler);
@@ -44,7 +46,8 @@ public:
 		boost::beast::http::request<boost::beast::http::string_body>& request,
 		boost::beast::http::response<boost::beast::http::string_body>& response,
 		boost::asio::yield_context& yc,
-		HttpServerConnection& server
+		HttpServerConnection& server,
+		CpuBoundWork& handlingRequest
 	);
 
 private:
