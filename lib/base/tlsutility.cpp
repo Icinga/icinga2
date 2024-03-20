@@ -8,7 +8,10 @@
 #include "base/utility.hpp"
 #include "base/application.hpp"
 #include "base/exception.hpp"
+#include <algorithm>
 #include <boost/asio/ssl/context.hpp>
+#include <cstring>
+#include <memory>
 #include <openssl/opensslv.h>
 #include <openssl/crypto.h>
 #include <openssl/ssl.h>
@@ -399,7 +402,7 @@ void AddCRLToSSLContext(X509_STORE *x509_store, const String& crlPath)
 	X509_VERIFY_PARAM_free(param);
 }
 
-static String GetX509NameCN(X509_NAME *name)
+static String GetX509NameCN(X509_NAME* name, const X509_EXTENSIONS* extensions = nullptr)
 {
 	char errbuf[256];
 	char buffer[256];
@@ -407,12 +410,63 @@ static String GetX509NameCN(X509_NAME *name)
 	int rc = X509_NAME_get_text_by_NID(name, NID_commonName, buffer, sizeof(buffer));
 
 	if (rc == -1) {
-		ERR_error_string_n(ERR_peek_error(), errbuf, sizeof errbuf);
+		auto err (ERR_peek_error());
+		auto goodSans (0ul);
+		auto dnsSans (0ul);
+		auto badSans (0ul);
+
+		// Subject CN missing, fall back to the DNS SAN if exactly one given
+		if (extensions) {
+			for (int pos = -1;;) {
+				pos = X509v3_get_ext_by_NID(extensions, NID_subject_alt_name, pos);
+
+				if (pos < 0) {
+					break;
+				}
+
+				// X509V3_EXT_d2i()'s output structure type depends on the input extension type.
+				// E.g. GENERAL_NAMES* for a NID_subject_alt_name extension.
+				// OpenSSL's own x509_vfy.c relies on this. So we do.
+				std::unique_ptr<GENERAL_NAMES, void(*)(GENERAL_NAMES*)> sans (
+					(GENERAL_NAMES*)X509V3_EXT_d2i(sk_X509_EXTENSION_value(extensions, pos)),
+					[](GENERAL_NAMES* gn) { sk_GENERAL_NAME_free(gn); }
+				);
+
+				if (!sans) {
+					// Not even something OpenSSL can decode, so definitely not a valid DNS SAN
+					++badSans;
+					continue;
+				}
+
+				auto len (sk_GENERAL_NAME_num(sans.get()));
+
+				goodSans += len;
+
+				for (decltype(len) i = 0; i < len; ++i) {
+					auto san (sk_GENERAL_NAME_value(sans.get(), i));
+
+					if (san->type == GEN_DNS) {
+						auto dnsSan (san->d.dNSName);
+
+						memset(buffer, 0, sizeof(buffer));
+						memcpy(buffer, dnsSan->data, std::min(sizeof(buffer) - 1u, (size_t)dnsSan->length));
+						++dnsSans;
+					}
+				}
+			}
+
+			if (dnsSans == 1u) {
+				return buffer;
+			}
+		}
+
+		ERR_error_string_n(err, errbuf, sizeof errbuf);
 		Log(LogCritical, "SSL")
-			<< "Error with x509 NAME getting text by NID: " << ERR_peek_error() << ", \"" << errbuf << "\"";
+			<< "Error with x509 NAME getting text by NID: " << err << ", \"" << errbuf << "\" (Also found "
+			<< dnsSans << " DNS SANs, " << goodSans - dnsSans << " others and " << badSans << " malformed ones)";
 		BOOST_THROW_EXCEPTION(openssl_error()
 			<< boost::errinfo_api_function("X509_NAME_get_text_by_NID")
-			<< errinfo_openssl_error(ERR_peek_error()));
+			<< errinfo_openssl_error(err));
 	}
 
 	return buffer;
@@ -426,7 +480,7 @@ static String GetX509NameCN(X509_NAME *name)
  */
 String GetCertificateCN(const std::shared_ptr<X509>& certificate)
 {
-	return GetX509NameCN(X509_get_subject_name(certificate.get()));
+	return GetX509NameCN(X509_get_subject_name(certificate.get()), X509_get0_extensions(certificate.get()));
 }
 
 /**
