@@ -1,5 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include <cstdint>
+
 library icinga;
 
 namespace icinga
@@ -50,7 +52,7 @@ class CheckResult
 	[state] Timestamp execution_end;
 
 	[state] Value command;
-	[state] int exit_status;
+	[state] int_fast64_t exit_status;
 
 	[state, enum] ServiceState "state";
 	[state, enum] ServiceState previous_hard_state;

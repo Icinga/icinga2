@@ -5,6 +5,7 @@
 
 #include "base/i2-base.hpp"
 #include "base/dictionary.hpp"
+#include <cstdint>
 #include <iosfwd>
 #include <deque>
 #include <vector>
@@ -25,7 +26,7 @@ struct ProcessResult
 	pid_t PID;
 	double ExecutionStart;
 	double ExecutionEnd;
-	long ExitStatus;
+	int_fast64_t ExitStatus;
 	String Output;
 };
 
