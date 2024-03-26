@@ -303,7 +303,7 @@ BOOST_AUTO_TEST_CASE(warncritminmax)
 	BOOST_CHECK_EQUAL(pv->Format(), "test=123456B;1000;2000;3000;4000");
 }
 
-BOOST_AUTO_TEST_CASE(ignore_invalid_warn_crit_min_max)
+BOOST_AUTO_TEST_CASE(ignore_warn_crit_ranges)
 {
 	PerfdataValue::Ptr pv = PerfdataValue::Parse("test=123456;1000:2000;0:3000;3000;4000");
 	BOOST_CHECK(pv);
@@ -313,7 +313,16 @@ BOOST_AUTO_TEST_CASE(ignore_invalid_warn_crit_min_max)
 	BOOST_CHECK_EQUAL(pv->GetMin(), 3000);
 	BOOST_CHECK_EQUAL(pv->GetMax(), 4000);
 
-	BOOST_CHECK_EQUAL(pv->Format(), "test=123456");
+	BOOST_CHECK_EQUAL(pv->Format(), "test=123456;;;3000;4000");
+}
+
+BOOST_AUTO_TEST_CASE(empty_warn_crit_min_max)
+{
+	Array::Ptr pd = PluginUtility::SplitPerfdata("testA=5;;7;1;9 testB=5;7;;1;9 testC=5;;;1;9 testD=2m;;;1 testE=5;;7;;");
+	BOOST_CHECK_EQUAL(pd->GetLength(), 5);
+
+	String str = PluginUtility::FormatPerfdata(pd, true);
+	BOOST_CHECK_EQUAL(str, "testA=5;;7;1;9 testB=5;7;;1;9 testC=5;;;1;9 testD=120s;;;60 testE=5;;7");
 }
 
 BOOST_AUTO_TEST_CASE(invalid)
