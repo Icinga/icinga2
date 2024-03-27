@@ -363,20 +363,27 @@ String PerfdataValue::Format() const
 
 	result << unit;
 
+	std::string interm(";");
 	if (!GetWarn().IsEmpty()) {
-		result << ";" << Convert::ToString(GetWarn());
+		result << interm << Convert::ToString(GetWarn());
+		interm.clear();
+	}
 
-		if (!GetCrit().IsEmpty()) {
-			result << ";" << Convert::ToString(GetCrit());
+	interm += ";";
+	if (!GetCrit().IsEmpty()) {
+		result << interm << Convert::ToString(GetCrit());
+		interm.clear();
+	}
 
-			if (!GetMin().IsEmpty()) {
-				result << ";" << Convert::ToString(GetMin());
+	interm += ";";
+	if (!GetMin().IsEmpty()) {
+		result << interm << Convert::ToString(GetMin());
+		interm.clear();
+	}
 
-				if (!GetMax().IsEmpty()) {
-					result << ";" << Convert::ToString(GetMax());
-				}
-			}
-		}
+	interm += ";";
+	if (!GetMax().IsEmpty()) {
+		result << interm << Convert::ToString(GetMax());
 	}
 
 	return result.str();
