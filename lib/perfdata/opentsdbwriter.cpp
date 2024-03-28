@@ -212,6 +212,14 @@ void OpenTsdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 					
 					continue;
 				}
+
+				if (value.IsEmpty()) {
+					Log(LogDebug, "OpenTsdbWriter")
+						<< "Resolved macro '" << pair.second
+						<< "' for checkable '" << checkable->GetName() << "' to '', skipping.";
+
+					continue;
+				}
 				
 				String tagname = Convert::ToString(pair.first);
 				tags[tagname] = EscapeTag(value);
