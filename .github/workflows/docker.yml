@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   docker:
-    concurrency: docker-${{ github.event_name == 'release' && 'release' || github.ref }}
+    concurrency: docker-${{ github.event_name == 'release' && 'release' || github.sha }}
     runs-on: ubuntu-latest
 
     steps:
