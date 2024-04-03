@@ -42,12 +42,18 @@ int PKITicketCommand::Run(const boost::program_options::variables_map& vm, const
 	}
 
 	String salt = VariableUtility::GetVariable("TicketSalt");
+	bool noSaltInVars = salt.IsEmpty();
 
 	if (vm.count("salt"))
 		salt = vm["salt"].as<std::string>();
 
 	if (salt.IsEmpty()) {
-		Log(LogCritical, "cli", "Ticket salt (--salt) must be specified.");
+		Log log (LogCritical, "cli", "Ticket salt (--salt) must be specified.");
+
+		if (noSaltInVars) {
+			log << " (Did you run 'icinga2 node wizard/setup' and 'icinga2 daemon -C' first?)";
+		}
+
 		return 1;
 	}
 
