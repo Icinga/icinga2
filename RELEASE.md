@@ -66,8 +66,8 @@ https://packages.icinga.com/windows/dependencies/ like this:
 localhost:~$ ssh aptly.vm.icinga.com
 aptly:~$ sudo -i
 aptly:~# cd /var/www/html/aptly/public/windows/dependencies
-aptly:dependencies# wget https://master.dl.sourceforge.net/project/boost/boost-binaries/1.76.0/boost_1_76_0-msvc-14.2-64.exe
-aptly:dependencies# wget https://master.dl.sourceforge.net/project/boost/boost-binaries/1.76.0/boost_1_76_0-msvc-14.2-32.exe
+aptly:dependencies# wget https://master.dl.sourceforge.net/project/boost/boost-binaries/1.82.0/boost_1_82_0-msvc-14.3-64.exe
+aptly:dependencies# wget https://master.dl.sourceforge.net/project/boost/boost-binaries/1.82.0/boost_1_82_0-msvc-14.3-32.exe
 aptly:dependencies# wget https://slproweb.com/download/Win64OpenSSL-1_1_1k.exe
 aptly:dependencies# wget https://slproweb.com/download/Win32OpenSSL-1_1_1k.exe
 ```

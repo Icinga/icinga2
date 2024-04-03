@@ -477,18 +477,18 @@ File Type: EXECUTABLE IMAGE
 
   Image has the following dependencies:
 
-    boost_coroutine-vc142-mt-gd-x64-1_82.dll
-    boost_date_time-vc142-mt-gd-x64-1_82.dll
-    boost_filesystem-vc142-mt-gd-x64-1_82.dll
-    boost_thread-vc142-mt-gd-x64-1_82.dll
-    boost_regex-vc142-mt-gd-x64-1_82.dll
+    boost_coroutine-vc143-mt-gd-x64-1_82.dll
+    boost_date_time-vc143-mt-gd-x64-1_82.dll
+    boost_filesystem-vc143-mt-gd-x64-1_82.dll
+    boost_thread-vc143-mt-gd-x64-1_82.dll
+    boost_regex-vc143-mt-gd-x64-1_82.dll
     libssl-1_1-x64.dll
     libcrypto-1_1-x64.dll
     WS2_32.dll
     dbghelp.dll
     SHLWAPI.dll
     msi.dll
-    boost_unit_test_framework-vc142-mt-gd-x64-1_82.dll
+    boost_unit_test_framework-vc143-mt-gd-x64-1_82.dll
     KERNEL32.dll
     SHELL32.dll
     ADVAPI32.dll
@@ -1762,12 +1762,12 @@ cd .\icinga2\
 mkdir build
 cd .\build\
 
-& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" `
+& "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" `
   -DICINGA2_UNITY_BUILD=OFF -DBoost_INCLUDE_DIR=C:\local\boost_1_82_0-Win64 `
   -DBISON_EXECUTABLE=C:\ProgramData\chocolatey\lib\winflexbison3\tools\win_bison.exe `
   -DFLEX_EXECUTABLE=C:\ProgramData\chocolatey\lib\winflexbison3\tools\win_flex.exe ..
 
-& "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" .\icinga2.sln
+& "C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe" .\icinga2.sln
 ```
 
 Building icinga2.sln via Visual Studio itself seems to require a reboot
@@ -1830,7 +1830,7 @@ as community version, free for use for open source projects such as Icinga.
 The installation requires ~9GB disk space. [Download](https://www.visualstudio.com/downloads/)
 the web installer and start the installation.
 
-Note: Only Visual Studio 2019 is covered here. Older versions are not supported.
+Note: Only Visual Studio 2022 is covered here. Older versions are not supported.
 
 You need a free Microsoft account to download and also store your preferences.
 
@@ -1850,11 +1850,11 @@ In addition also choose these individual components on Visual Studio:
     * NuGet package manager
 * Compilers, build tools and runtimes
     * C# and Visual Basic Roslyn compilers
-    * C++ 2019 Redistributable Update
+    * C++ 2022 Redistributable Update
     * C++ CMake tools for Windows
-    * C++/CLI Support for v142 build tools (14.22)
+    * C++/CLI Support for v143 build tools
     * MSBuild
-    * MSVC v142 - VS 2019 C++ x64/x86 build tools (v14.22)
+    * MSVC v143 - VS 2022 C++ x64/x86 build tools
 * Debugging and testing
     * .NET profiling tools
     * C++ profiling tools
@@ -1923,7 +1923,7 @@ Icinga needs the development header and library files from the Boost library.
 
 Visual Studio translates into the following compiler versions:
 
-- `msvc-14.2` = Visual Studio 2019
+- `msvc-14.3` = Visual Studio 2022
 
 ##### Pre-built Binaries
 
@@ -1931,11 +1931,11 @@ Prefer the pre-built package over self-compiling, if the newest version already 
 
 Download the [boost-binaries](https://sourceforge.net/projects/boost/files/boost-binaries/) for
 
-- msvc-14.2 is Visual Studio 2019
+- msvc-14.3 is Visual Studio 2022
 - 64 for 64 bit builds
 
 ```
-https://sourceforge.net/projects/boost/files/boost-binaries/1.82.0/boost_1_82_0-msvc-14.2-64.exe/download
+https://sourceforge.net/projects/boost/files/boost-binaries/1.82.0/boost_1_82_0-msvc-14.3-64.exe/download
 ```
 
 Run the installer and leave the default installation path in `C:\local\boost_1_82_0`.
@@ -1967,7 +1967,7 @@ which isn't treated as exception safe by the VS compiler. Therefore set the
 additional compilation flag according to [this entry](https://lists.boost.org/Archives/boost/2015/08/224570.php).
 
 ```
-b2 --toolset=msvc-14.2 link=static threading=multi runtime-link=static address-model=64 asmflags=\safeseh
+b2 --toolset=msvc-14.3 link=static threading=multi runtime-link=static address-model=64 asmflags=\safeseh
 ```
 
 ![Windows Boost Build in VS Development Console](images/development/windows_boost_build_dev_cmd.png)
@@ -2018,7 +2018,7 @@ when asked.
 
 > **Note**
 >
-> In order to properly detect the Boost libraries and VS 2019, install CMake 3.15.2+.
+> In order to properly detect the Boost libraries and VS 2012, install CMake 3.21+.
 >
 > **Tip**
 >
@@ -2034,14 +2034,14 @@ Build Icinga with specific CMake variables. This generates a new Visual Studio p
 
 Visual Studio translates into the following:
 
-- `msvc-14.2` = Visual Studio 2019
+- `msvc-14.3` = Visual Studio 2022
 
 You need to specify the previously installed component paths.
 
 Variable              | Value                                                                | Description
 ----------------------|----------------------------------------------------------------------|-------------------------------------------------------
 `BOOST_ROOT`          | `C:\local\boost_1_82_0`                                                    | Root path where you've extracted and compiled Boost.
-`BOOST_LIBRARYDIR`    | Binary: `C:\local\boost_1_82_0\lib64-msvc-14.2`, Source: `C:\local\boost_1_82_0\stage` | Path to the static compiled Boost libraries, directory must contain `lib`.
+`BOOST_LIBRARYDIR`    | Binary: `C:\local\boost_1_82_0\lib64-msvc-14.3`, Source: `C:\local\boost_1_82_0\stage` | Path to the static compiled Boost libraries, directory must contain `lib`.
 `BISON_EXECUTABLE`    | `C:\ProgramData\chocolatey\lib\winflexbison\tools\win_bison.exe`     | Path to the Bison executable.
 `FLEX_EXECUTABLE`     | `C:\ProgramData\chocolatey\lib\winflexbison\tools\win_flex.exe`      | Path to the Flex executable.
 `ICINGA2_UNITY_BUILD` | OFF                                                                  | Disable unity builds for development environments.
@@ -2069,7 +2069,7 @@ If you did not follow the above steps with Boost binaries and OpenSSL
 paths, you can still modify the environment variables.
 
 ```
-$env:CMAKE_GENERATOR='Visual Studio 16 2019'
+$env:CMAKE_GENERATOR='Visual Studio 17 2022'
 $env:CMAKE_GENERATOR_PLATFORM='x64'
 
 $env:ICINGA2_INSTALLPATH = 'C:\Program Files\Icinga2-debug'
@@ -2077,7 +2077,7 @@ $env:ICINGA2_BUILDPATH='debug'
 $env:CMAKE_BUILD_TYPE='Debug'
 $env:OPENSSL_ROOT_DIR='C:\OpenSSL-Win64'
 $env:BOOST_ROOT='C:\local\boost_1_82_0'
-$env:BOOST_LIBRARYDIR='C:\local\boost_1_82_0\lib64-msvc-14.2'
+$env:BOOST_LIBRARYDIR='C:\local\boost_1_82_0\lib64-msvc-14.3'
 ```
 
 #### Icinga 2 in Visual Studio
