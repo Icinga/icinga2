@@ -1,11 +1,7 @@
 name: Windows
 
 on:
-  push:
-    branches:
-      - master
-      - 'support/*'
-  pull_request: {}
+  push: {}
 
 concurrency:
   group: windows-${{ github.ref }}
