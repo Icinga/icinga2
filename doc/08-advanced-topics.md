@@ -244,7 +244,7 @@ create a new timeperiod named `workhours` defining a work day from
 
 ```
 object TimePeriod "workhours" {
-  display_name = "Icinga 2 8x5 TimePeriod"
+  display_name = "Icinga 2 9x5 TimePeriod"
   ranges = {
     "monday"    = "09:00-17:00"
     "tuesday"   = "09:00-17:00"
