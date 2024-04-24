@@ -470,16 +470,17 @@ void Downtime::SetRemovalInfo(const String& removedBy, double removeTime, const 
 	OnRemovalInfoChanged(this, removedBy, removeTime, origin);
 }
 
-String Downtime::GetDowntimeIDFromLegacyID(int id)
+Downtime::Ptr Downtime::GetDowntimeFromLegacyID(int id)
 {
 	std::unique_lock<std::mutex> lock(l_DowntimeMutex);
 
 	auto it = l_LegacyDowntimesCache.find(id);
 
-	if (it == l_LegacyDowntimesCache.end())
-		return Empty;
+	if (it == l_LegacyDowntimesCache.end()) {
+		return nullptr;
+	}
 
-	return it->second->GetName();
+	return it->second;
 }
 
 void Downtime::DowntimesStartTimerHandler()
