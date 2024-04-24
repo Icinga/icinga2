@@ -282,7 +282,7 @@ void ScheduledDowntime::CreateNextDowntime()
 
 	Downtime::Ptr downtime = Downtime::AddDowntime(GetCheckable(), GetAuthor(), GetComment(),
 		segment.first, segment.second,
-		GetFixed(), String(), GetDuration(), GetName(), GetName());
+		GetFixed(), nullptr, GetDuration(), GetName(), GetName());
 	String downtimeName = downtime->GetName();
 
 	int childOptions = Downtime::ChildOptionsFromValue(GetChildOptions());
@@ -290,9 +290,9 @@ void ScheduledDowntime::CreateNextDowntime()
 		/* 'DowntimeTriggeredChildren' schedules child downtimes triggered by the parent downtime.
 		 * 'DowntimeNonTriggeredChildren' schedules non-triggered downtimes for all children.
 		 */
-		String triggerName;
+		Downtime::Ptr trigger;
 		if (childOptions == 1)
-			triggerName = downtimeName;
+			trigger = downtime;
 
 		Log(LogNotice, "ScheduledDowntime")
 				<< "Processing child options " << childOptions << " for downtime " << downtimeName;
@@ -302,7 +302,7 @@ void ScheduledDowntime::CreateNextDowntime()
 				<< "Scheduling downtime for child object " << child->GetName();
 
 			Downtime::Ptr childDowntime = Downtime::AddDowntime(child, GetAuthor(), GetComment(),
-				segment.first, segment.second, GetFixed(), triggerName, GetDuration(), GetName(), GetName());
+				segment.first, segment.second, GetFixed(), trigger, GetDuration(), GetName(), GetName());
 
 			Log(LogNotice, "ScheduledDowntime")
 				<< "Add child downtime '" << childDowntime->GetName() << "'.";

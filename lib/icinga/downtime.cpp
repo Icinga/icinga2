@@ -229,16 +229,21 @@ int Downtime::GetNextDowntimeID()
 
 Downtime::Ptr Downtime::AddDowntime(const Checkable::Ptr& checkable, const String& author,
 	const String& comment, double startTime, double endTime, bool fixed,
-	const String& triggeredBy, double duration,
+	const Downtime::Ptr& parentDowntime, double duration,
 	const String& scheduledDowntime, const String& scheduledBy, const String& parent,
 	const String& id, const MessageOrigin::Ptr& origin)
 {
 	String fullName;
+	String triggeredBy;
 
 	if (id.IsEmpty())
 		fullName = checkable->GetName() + "!" + Utility::NewUniqueID();
 	else
 		fullName = id;
+
+	if (parentDowntime) {
+		triggeredBy = parentDowntime->GetName();
+	}
 
 	Dictionary::Ptr attrs = new Dictionary();
 
@@ -310,8 +315,7 @@ Downtime::Ptr Downtime::AddDowntime(const Checkable::Ptr& checkable, const Strin
 		BOOST_THROW_EXCEPTION(std::runtime_error("Could not create downtime."));
 	}
 
-	if (!triggeredBy.IsEmpty()) {
-		Downtime::Ptr parentDowntime = Downtime::GetByName(triggeredBy);
+	if (parentDowntime) {
 		Array::Ptr triggers = parentDowntime->GetTriggers();
 
 		ObjectLock olock(triggers);

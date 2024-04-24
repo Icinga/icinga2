@@ -354,9 +354,16 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 	if (params->Contains("duration"))
 		duration = HttpUtility::GetLastParameter(params, "duration");
 
-	String triggerName;
-	if (params->Contains("trigger_name"))
-		triggerName = HttpUtility::GetLastParameter(params, "trigger_name");
+	Downtime::Ptr trigger;
+	String triggerName = HttpUtility::GetLastParameter(params, "trigger_name");
+
+	if (!triggerName.IsEmpty()) {
+		trigger = Downtime::GetByName(triggerName);
+
+		if (!trigger) {
+			return ApiActions::CreateResult(404, "Won't schedule downtime with non-existent trigger downtime.");
+		}
+	}
 
 	String author = HttpUtility::GetLastParameter(params, "author");
 	String comment = HttpUtility::GetLastParameter(params, "comment");
@@ -377,7 +384,7 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 	}
 
 	Downtime::Ptr downtime = Downtime::AddDowntime(checkable, author, comment, startTime, endTime,
-		fixed, triggerName, duration);
+		fixed, trigger, duration);
 	String downtimeName = downtime->GetName();
 
 	Dictionary::Ptr additional = new Dictionary({
@@ -399,7 +406,7 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 				<< "Creating downtime for service " << hostService->GetName() << " on host " << host->GetName();
 
 			Downtime::Ptr serviceDowntime = Downtime::AddDowntime(hostService, author, comment, startTime, endTime,
-				fixed, triggerName, duration, String(), String(), downtimeName);
+				fixed, trigger, duration, String(), String(), downtimeName);
 			String serviceDowntimeName = serviceDowntime->GetName();
 
 			serviceDowntimes.push_back(new Dictionary({
@@ -416,8 +423,9 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 		/* 'DowntimeTriggeredChildren' schedules child downtimes triggered by the parent downtime.
 		 * 'DowntimeNonTriggeredChildren' schedules non-triggered downtimes for all children.
 		 */
-		if (childOptions == DowntimeTriggeredChildren)
-			triggerName = downtimeName;
+		if (childOptions == DowntimeTriggeredChildren) {
+			trigger = downtime;
+		}
 
 		Log(LogNotice, "ApiActions")
 			<< "Processing child options " << childOptions << " for downtime " << downtimeName;
@@ -443,7 +451,7 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 				<< "Scheduling downtime for child object " << child->GetName();
 
 			Downtime::Ptr childDowntime = Downtime::AddDowntime(child, author, comment, startTime, endTime,
-				fixed, triggerName, duration);
+				fixed, trigger, duration);
 			String childDowntimeName = childDowntime->GetName();
 
 			Log(LogNotice, "ApiActions")
@@ -463,7 +471,7 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 						<< "Creating downtime for service " << childService->GetName() << " on child host " << childHost->GetName();
 
 					Downtime::Ptr serviceDowntime = Downtime::AddDowntime(childService, author, comment, startTime, endTime,
-						fixed, triggerName, duration, String(), String(), childDowntimeName);
+						fixed, trigger, duration, String(), String(), childDowntimeName);
 					String serviceDowntimeName = serviceDowntime->GetName();
 
 					childServiceDowntimes.push_back(new Dictionary({

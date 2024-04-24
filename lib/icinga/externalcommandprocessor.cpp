@@ -967,16 +967,12 @@ void ExternalCommandProcessor::ScheduleSvcDowntime(double, const std::vector<Str
 	if (!service)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot schedule service downtime for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
 
-	String triggeredBy;
+	Downtime::Ptr triggeredBy;
 	int triggeredByLegacy = Convert::ToLong(arguments[5]);
 	int is_fixed = Convert::ToLong(arguments[4]);
 
 	if (triggeredByLegacy != 0) {
-		auto trigger (Downtime::GetDowntimeFromLegacyID(triggeredByLegacy));
-
-		if (trigger) {
-			triggeredBy = trigger->GetName();
-		}
+		triggeredBy = Downtime::GetDowntimeFromLegacyID(triggeredByLegacy);
 	}
 
 	Log(LogNotice, "ExternalCommandProcessor")
@@ -1013,16 +1009,12 @@ void ExternalCommandProcessor::ScheduleHostDowntime(double, const std::vector<St
 	if (!host)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot schedule host downtime for non-existent host '" + arguments[0] + "'"));
 
-	String triggeredBy;
+	Downtime::Ptr triggeredBy;
 	int triggeredByLegacy = Convert::ToLong(arguments[4]);
 	int is_fixed = Convert::ToLong(arguments[3]);
 
 	if (triggeredByLegacy != 0) {
-		auto trigger (Downtime::GetDowntimeFromLegacyID(triggeredByLegacy));
-
-		if (trigger) {
-			triggeredBy = trigger->GetName();
-		}
+		triggeredBy = Downtime::GetDowntimeFromLegacyID(triggeredByLegacy);
 	}
 
 	Log(LogNotice, "ExternalCommandProcessor")
@@ -1040,16 +1032,12 @@ void ExternalCommandProcessor::ScheduleAndPropagateHostDowntime(double, const st
 	if (!host)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot schedule and propagate host downtime for non-existent host '" + arguments[0] + "'"));
 
-	String triggeredBy;
+	Downtime::Ptr triggeredBy;
 	int triggeredByLegacy = Convert::ToLong(arguments[4]);
 	int is_fixed = Convert::ToLong(arguments[3]);
 
 	if (triggeredByLegacy != 0) {
-		auto trigger (Downtime::GetDowntimeFromLegacyID(triggeredByLegacy));
-
-		if (trigger) {
-			triggeredBy = trigger->GetName();
-		}
+		triggeredBy = Downtime::GetDowntimeFromLegacyID(triggeredByLegacy);
 	}
 
 	Log(LogNotice, "ExternalCommandProcessor")
@@ -1082,16 +1070,12 @@ void ExternalCommandProcessor::ScheduleAndPropagateTriggeredHostDowntime(double,
 	if (!host)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot schedule and propagate triggered host downtime for non-existent host '" + arguments[0] + "'"));
 
-	String triggeredBy;
+	Downtime::Ptr triggeredBy;
 	int triggeredByLegacy = Convert::ToLong(arguments[4]);
 	int is_fixed = Convert::ToLong(arguments[3]);
 
 	if (triggeredByLegacy != 0) {
-		auto trigger (Downtime::GetDowntimeFromLegacyID(triggeredByLegacy));
-
-		if (trigger) {
-			triggeredBy = trigger->GetName();
-		}
+		triggeredBy = Downtime::GetDowntimeFromLegacyID(triggeredByLegacy);
 	}
 
 	Log(LogNotice, "ExternalCommandProcessor")
@@ -1113,7 +1097,7 @@ void ExternalCommandProcessor::ScheduleAndPropagateTriggeredHostDowntime(double,
 
 		(void) Downtime::AddDowntime(child, arguments[6], arguments[7],
 			Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
-			Convert::ToBool(is_fixed), parentDowntime->GetName(), Convert::ToDouble(arguments[5]));
+			Convert::ToBool(is_fixed), parentDowntime, Convert::ToDouble(arguments[5]));
 	}
 }
 
@@ -1203,16 +1187,12 @@ void ExternalCommandProcessor::ScheduleHostSvcDowntime(double, const std::vector
 	if (!host)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot schedule host services downtime for non-existent host '" + arguments[0] + "'"));
 
-	String triggeredBy;
+	Downtime::Ptr triggeredBy;
 	int triggeredByLegacy = Convert::ToLong(arguments[4]);
 	int is_fixed = Convert::ToLong(arguments[3]);
 
 	if (triggeredByLegacy != 0) {
-		auto trigger (Downtime::GetDowntimeFromLegacyID(triggeredByLegacy));
-
-		if (trigger) {
-			triggeredBy = trigger->GetName();
-		}
+		triggeredBy = Downtime::GetDowntimeFromLegacyID(triggeredByLegacy);
 	}
 
 	Log(LogNotice, "ExternalCommandProcessor")
@@ -1238,16 +1218,12 @@ void ExternalCommandProcessor::ScheduleHostgroupHostDowntime(double, const std::
 	if (!hg)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot schedule hostgroup host downtime for non-existent hostgroup '" + arguments[0] + "'"));
 
-	String triggeredBy;
+	Downtime::Ptr triggeredBy;
 	int triggeredByLegacy = Convert::ToLong(arguments[4]);
 	int is_fixed = Convert::ToLong(arguments[3]);
 
 	if (triggeredByLegacy != 0) {
-		auto trigger (Downtime::GetDowntimeFromLegacyID(triggeredByLegacy));
-
-		if (trigger) {
-			triggeredBy = trigger->GetName();
-		}
+		triggeredBy = Downtime::GetDowntimeFromLegacyID(triggeredByLegacy);
 	}
 
 	for (const Host::Ptr& host : hg->GetMembers()) {
@@ -1267,16 +1243,12 @@ void ExternalCommandProcessor::ScheduleHostgroupSvcDowntime(double, const std::v
 	if (!hg)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot schedule hostgroup service downtime for non-existent hostgroup '" + arguments[0] + "'"));
 
-	String triggeredBy;
+	Downtime::Ptr triggeredBy;
 	int triggeredByLegacy = Convert::ToLong(arguments[4]);
 	int is_fixed = Convert::ToLong(arguments[3]);
 
 	if (triggeredByLegacy != 0) {
-		auto trigger (Downtime::GetDowntimeFromLegacyID(triggeredByLegacy));
-
-		if (trigger) {
-			triggeredBy = trigger->GetName();
-		}
+		triggeredBy = Downtime::GetDowntimeFromLegacyID(triggeredByLegacy);
 	}
 
 	/* Note: we can't just directly create downtimes for all the services by iterating
@@ -1307,16 +1279,12 @@ void ExternalCommandProcessor::ScheduleServicegroupHostDowntime(double, const st
 	if (!sg)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot schedule servicegroup host downtime for non-existent servicegroup '" + arguments[0] + "'"));
 
-	String triggeredBy;
+	Downtime::Ptr triggeredBy;
 	int triggeredByLegacy = Convert::ToLong(arguments[4]);
 	int is_fixed = Convert::ToLong(arguments[3]);
 
 	if (triggeredByLegacy != 0) {
-		auto trigger (Downtime::GetDowntimeFromLegacyID(triggeredByLegacy));
-
-		if (trigger) {
-			triggeredBy = trigger->GetName();
-		}
+		triggeredBy = Downtime::GetDowntimeFromLegacyID(triggeredByLegacy);
 	}
 
 	/* Note: we can't just directly create downtimes for all the hosts by iterating
@@ -1346,16 +1314,12 @@ void ExternalCommandProcessor::ScheduleServicegroupSvcDowntime(double, const std
 	if (!sg)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot schedule servicegroup service downtime for non-existent servicegroup '" + arguments[0] + "'"));
 
-	String triggeredBy;
+	Downtime::Ptr triggeredBy;
 	int triggeredByLegacy = Convert::ToLong(arguments[4]);
 	int is_fixed = Convert::ToLong(arguments[3]);
 
 	if (triggeredByLegacy != 0) {
-		auto trigger (Downtime::GetDowntimeFromLegacyID(triggeredByLegacy));
-
-		if (trigger) {
-			triggeredBy = trigger->GetName();
-		}
+		triggeredBy = Downtime::GetDowntimeFromLegacyID(triggeredByLegacy);
 	}
 
 	for (const Service::Ptr& service : sg->GetMembers()) {
