@@ -15,7 +15,7 @@ using namespace icinga;
 
 static int l_NextDowntimeID = 1;
 static std::mutex l_DowntimeMutex;
-static std::map<int, String> l_LegacyDowntimesCache;
+static std::map<int, Downtime::Ptr> l_LegacyDowntimesCache;
 static Timer::Ptr l_DowntimesExpireTimer;
 static Timer::Ptr l_DowntimesStartTimer;
 
@@ -108,7 +108,7 @@ void Downtime::Start(bool runtimeCreated)
 		std::unique_lock<std::mutex> lock(l_DowntimeMutex);
 
 		SetLegacyId(l_NextDowntimeID);
-		l_LegacyDowntimesCache[l_NextDowntimeID] = GetName();
+		l_LegacyDowntimesCache[l_NextDowntimeID] = this;
 		l_NextDowntimeID++;
 	}
 
@@ -479,7 +479,7 @@ String Downtime::GetDowntimeIDFromLegacyID(int id)
 	if (it == l_LegacyDowntimesCache.end())
 		return Empty;
 
-	return it->second;
+	return it->second->GetName();
 }
 
 void Downtime::DowntimesStartTimerHandler()
