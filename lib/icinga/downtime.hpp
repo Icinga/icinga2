@@ -64,7 +64,7 @@ public:
 
 	void OnAllConfigLoaded() override;
 
-	static String GetDowntimeIDFromLegacyID(int id);
+	static Downtime::Ptr GetDowntimeFromLegacyID(int id);
 
 	static DowntimeChildOptions ChildOptionsFromValue(const Value& options);
 
