@@ -216,6 +216,8 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 	Namespace::Ptr permissionFrameNS = new Namespace();
 	ScriptFrame permissionFrame(false, permissionFrameNS);
 
+	permissionFrameNS->Set("user", user);
+
 	for (const String& type : qd.Types) {
 		String attr = type;
 		boost::algorithm::to_lower(attr);
