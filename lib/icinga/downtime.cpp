@@ -148,6 +148,12 @@ void Downtime::Start(bool runtimeCreated)
 
 void Downtime::Stop(bool runtimeRemoved)
 {
+	{
+		std::unique_lock<std::mutex> lock (l_DowntimeMutex);
+
+		l_LegacyDowntimesCache.erase(GetLegacyId());
+	}
+
 	GetCheckable()->UnregisterDowntime(this);
 
 	Downtime::Ptr parent = GetByName(GetParent());
