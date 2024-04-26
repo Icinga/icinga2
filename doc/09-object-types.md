@@ -393,7 +393,6 @@ Runtime Attributes:
   last\_check\_result       | CheckResult           | The current [check result](08-advanced-topics.md#advanced-value-types-checkresult).
   last\_state\_change       | Timestamp             | When the last state change occurred (as a UNIX timestamp).
   last\_hard\_state\_change | Timestamp             | When the last hard state change occurred (as a UNIX timestamp).
-  last\_in\_downtime        | Boolean               | Whether the host was in a downtime when the last check occurred.
   acknowledgement           | Number                | The acknowledgement type (0 = NONE, 1 = NORMAL, 2 = STICKY).
   acknowledgement\_expiry   | Timestamp             | When the acknowledgement expires (as a UNIX timestamp; 0 = no expiry).
   downtime\_depth           | Number                | Whether the host has one or more active downtimes.
@@ -758,7 +757,6 @@ Runtime Attributes:
   last\_check\_result           | CheckResult       | The current [check result](08-advanced-topics.md#advanced-value-types-checkresult).
   last\_state\_change           | Timestamp         | When the last state change occurred (as a UNIX timestamp).
   last\_hard\_state\_change     | Timestamp         | When the last hard state change occurred (as a UNIX timestamp).
-  last\_in\_downtime            | Boolean           | Whether the service was in a downtime when the last check occurred.
   acknowledgement               | Number            | The acknowledgement type (0 = NONE, 1 = NORMAL, 2 = STICKY).
   acknowledgement\_expiry       | Timestamp         | When the acknowledgement expires (as a UNIX timestamp; 0 = no expiry).
   acknowledgement\_last\_change | Timestamp         | When the acknowledgement has been set/cleared
