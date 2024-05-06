@@ -16,7 +16,7 @@ using namespace icinga;
 
 static int l_NextDowntimeID = 1;
 static std::mutex l_DowntimeMutex;
-static std::map<int, String> l_LegacyDowntimesCache;
+static std::map<int, Downtime::Ptr> l_LegacyDowntimesCache;
 static Timer::Ptr l_DowntimesOrphanedTimer;
 static Timer::Ptr l_DowntimesStartTimer;
 
@@ -109,7 +109,7 @@ void Downtime::Start(bool runtimeCreated)
 		std::unique_lock<std::mutex> lock(l_DowntimeMutex);
 
 		SetLegacyId(l_NextDowntimeID);
-		l_LegacyDowntimesCache[l_NextDowntimeID] = GetName();
+		l_LegacyDowntimesCache[l_NextDowntimeID] = this;
 		l_NextDowntimeID++;
 	}
 
@@ -148,6 +148,12 @@ void Downtime::Start(bool runtimeCreated)
 
 void Downtime::Stop(bool runtimeRemoved)
 {
+	{
+		std::unique_lock<std::mutex> lock (l_DowntimeMutex);
+
+		l_LegacyDowntimesCache.erase(GetLegacyId());
+	}
+
 	GetCheckable()->UnregisterDowntime(this);
 
 	Downtime::Ptr parent = GetByName(GetParent());
@@ -245,16 +251,21 @@ int Downtime::GetNextDowntimeID()
 
 Downtime::Ptr Downtime::AddDowntime(const Checkable::Ptr& checkable, const String& author,
 	const String& comment, double startTime, double endTime, bool fixed,
-	const String& triggeredBy, double duration,
+	const Downtime::Ptr& parentDowntime, double duration,
 	const String& scheduledDowntime, const String& scheduledBy, const String& parent,
 	const String& id, const MessageOrigin::Ptr& origin)
 {
 	String fullName;
+	String triggeredBy;
 
 	if (id.IsEmpty())
 		fullName = checkable->GetName() + "!" + Utility::NewUniqueID();
 	else
 		fullName = id;
+
+	if (parentDowntime) {
+		triggeredBy = parentDowntime->GetName();
+	}
 
 	Dictionary::Ptr attrs = new Dictionary();
 
@@ -326,8 +337,7 @@ Downtime::Ptr Downtime::AddDowntime(const Checkable::Ptr& checkable, const Strin
 		BOOST_THROW_EXCEPTION(std::runtime_error("Could not create downtime."));
 	}
 
-	if (!triggeredBy.IsEmpty()) {
-		Downtime::Ptr parentDowntime = Downtime::GetByName(triggeredBy);
+	if (parentDowntime) {
 		Array::Ptr triggers = parentDowntime->GetTriggers();
 
 		ObjectLock olock(triggers);
@@ -513,14 +523,15 @@ void Downtime::SetRemovalInfo(const String& removedBy, double removeTime, const 
 	OnRemovalInfoChanged(this, removedBy, removeTime, origin);
 }
 
-String Downtime::GetDowntimeIDFromLegacyID(int id)
+Downtime::Ptr Downtime::GetDowntimeFromLegacyID(int id)
 {
 	std::unique_lock<std::mutex> lock(l_DowntimeMutex);
 
 	auto it = l_LegacyDowntimesCache.find(id);
 
-	if (it == l_LegacyDowntimesCache.end())
-		return Empty;
+	if (it == l_LegacyDowntimesCache.end()) {
+		return nullptr;
+	}
 
 	return it->second;
 }
