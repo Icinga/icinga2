@@ -16,6 +16,7 @@ assignees: ''
 - [ ] Create and push a signed tag for the version
 - [ ] Build and release DEB and RPM packages
 - [ ] Build and release Windows packages
+- [ ] Merge dependency updates in https://github.com/Icinga/docker-icinga2/pulls
 - [ ] Create release on GitHub
 - [ ] Update public docs
 - [ ] Announce release
