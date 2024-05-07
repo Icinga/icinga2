@@ -98,6 +98,12 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 {
 	using Result = Checkable::ProcessingResult;
 
+	std::shared_lock<std::shared_timed_mutex> preventStop (m_ProcessCheckResultMutex, std::try_to_lock);
+
+	if (!preventStop) {
+		return Result::CheckableInactive;
+	}
+
 	{
 		ObjectLock olock(this);
 		m_CheckRunning = false;

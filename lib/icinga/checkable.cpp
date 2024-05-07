@@ -113,6 +113,13 @@ void Checkable::Start(bool runtimeCreated)
 	});
 }
 
+void Checkable::Stop(bool runtimeRemoved)
+{
+	m_ProcessCheckResultMutex.lock();
+
+	ObjectImpl<Checkable>::Stop(runtimeRemoved);
+}
+
 void Checkable::AddGroup(const String& name)
 {
 	std::unique_lock<std::mutex> lock(m_CheckableMutex);

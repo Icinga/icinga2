@@ -18,6 +18,7 @@
 #include <cstdint>
 #include <functional>
 #include <limits>
+#include <shared_mutex>
 
 namespace icinga
 {
@@ -210,11 +211,13 @@ public:
 
 protected:
 	void Start(bool runtimeCreated) override;
+	void Stop(bool runtimeRemoved) override;
 	void OnConfigLoaded() override;
 	void OnAllConfigLoaded() override;
 
 private:
 	mutable std::mutex m_CheckableMutex;
+	mutable std::shared_timed_mutex m_ProcessCheckResultMutex;
 	bool m_CheckRunning{false};
 	long m_SchedulingOffset;
 
