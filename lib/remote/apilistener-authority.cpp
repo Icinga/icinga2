@@ -65,10 +65,13 @@ void ApiListener::UpdateObjectAuthority()
 
 			bool authority;
 
-			if (!my_zone)
+			if (!my_zone) {
 				authority = true;
-			else
-				authority = endpoints[Utility::SDBM(object->GetName()) % endpoints.size()] == my_endpoint;
+			} else {
+				auto name (object->GetName());
+
+				authority = endpoints[Utility::SDBM(name.SubStr(0, name.FindFirstOf('!'))) % endpoints.size()] == my_endpoint;
+			}
 
 #ifdef I2_DEBUG
 // 			//Enable on demand, causes heavy logging on each run.
