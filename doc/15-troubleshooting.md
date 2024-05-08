@@ -176,6 +176,64 @@ C:\> cd C:\ProgramData\icinga2\var\log\icinga2
 C:\ProgramData\icinga2\var\log\icinga2> Get-Content .\debug.log -tail 10 -wait
 ```
 
+### Enable/Disable Debug Output on the fly <a id="troubleshooting-enable-disable-debug-output-api"></a>
+
+The `debuglog` feature can also be created and deleted at runtime without having to restart Icinga 2.
+Technically, this is possible because this feature is a [FileLogger](09-object-types.md#objecttype-filelogger)
+that can be managed through the [API](12-icinga2-api.md#icinga2-api-config-objects).
+
+This is a good alternative to `icinga2 feature enable debuglog` as object
+creation/deletion via API happens immediately and requires no restart.
+
+The above matters in setups large enough for the reload to take a while.
+Especially these produce a lot of debug log output until disabled again.
+
+!!! info
+
+    In case of [an HA zone](06-distributed-monitoring.md#distributed-monitoring-scenarios-ha-master-agents),
+    the following API examples toggle the feature on both nodes.
+
+#### Enable Debug Output on the fly <a id="troubleshooting-enable-debug-output-api"></a>
+
+```bash
+curl -k -s -S -i -u root:icinga -H 'Accept: application/json' \
+ -X PUT 'https://localhost:5665/v1/objects/fileloggers/on-the-fly-debug-file' \
+ -d '{ "attrs": { "severity": "debug", "path": "/var/log/icinga2/on-the-fly-debug.log" }, "pretty": true }'
+```
+
+```json
+{
+    "results": [
+        {
+            "code": 200.0,
+            "status": "Object was created."
+        }
+    ]
+}
+```
+
+#### Disable Debug Output on the fly <a id="troubleshooting-disable-debug-output-api"></a>
+
+This works only for debug loggers enabled on the fly as above!
+
+```bash
+curl -k -s -S -i -u root:icinga -H 'Accept: application/json' \
+ -X DELETE 'https://localhost:5665/v1/objects/fileloggers/on-the-fly-debug-file?pretty=1'
+```
+
+```json
+{
+    "results": [
+        {
+            "code": 200.0,
+            "name": "on-the-fly-debug-file",
+            "status": "Object was deleted.",
+            "type": "FileLogger"
+        }
+    ]
+}
+```
+
 ## Icinga starts/restarts/reloads very slowly
 
 ### Try swapping out the allocator
