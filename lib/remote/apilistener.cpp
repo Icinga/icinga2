@@ -869,6 +869,8 @@ void ApiListener::NewClientHandlerInternal(
 			aclient->Start();
 
 			willBeShutDown = true;
+
+			UpdateObjectAuthority();
 		}
 	} else {
 		Log(LogNotice, "ApiListener", "New HTTP client");
