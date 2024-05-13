@@ -392,7 +392,7 @@ ConfigItem::Ptr ConfigItem::GetByTypeAndName(const Type::Ptr& type, const String
 	return it2->second;
 }
 
-bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems)
+bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems, bool registerEarly)
 {
 	typedef std::pair<ConfigItem::Ptr, bool> ItemPair;
 	std::unordered_map<Type*, std::vector<ItemPair>> itemsByType;
@@ -480,10 +480,10 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 				auto items (itemsByType.find(type.get()));
 
 				if (items != itemsByType.end()) {
-					upq.ParallelFor(items->second, [&committed_items, &newItems, &newItemsMutex](const ItemPair& ip) {
+					upq.ParallelFor(items->second, [&committed_items, &newItems, &newItemsMutex, registerEarly](const ItemPair& ip) {
 						const ConfigItem::Ptr& item = ip.first;
 
-						if (!item->Commit(ip.second)) {
+						if (!item->Commit(ip.second, registerEarly)) {
 							if (item->IsIgnoreOnError()) {
 								item->Unregister();
 							}
@@ -547,7 +547,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 				auto items (itemsByType.find(type.get()));
 
 				if (items != itemsByType.end()) {
-					upq.ParallelFor(items->second, [&notified_items](const ItemPair& ip) {
+					upq.ParallelFor(items->second, [&notified_items, registerEarly](const ItemPair& ip) {
 						const ConfigItem::Ptr& item = ip.first;
 
 						if (!item->m_Object)
@@ -556,6 +556,10 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 						try {
 							item->m_Object->OnAllConfigLoaded();
 							notified_items++;
+
+							if (!registerEarly) {
+								item->m_Object->Register();
+							}
 						} catch (const std::exception& ex) {
 							if (!item->m_IgnoreOnError)
 								throw;
@@ -617,7 +621,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 				return false;
 
 			// Make sure to activate any additionally generated items
-			if (!CommitNewItems(context, upq, newItems))
+			if (!CommitNewItems(context, upq, newItems, registerEarly))
 				return false;
 		}
 	}
@@ -630,7 +634,7 @@ bool ConfigItem::CommitItems(const ActivationContext::Ptr& context, WorkQueue& u
 	if (!silent)
 		Log(LogInformation, "ConfigItem", "Committing config item(s).");
 
-	if (!CommitNewItems(context, upq, newItems)) {
+	if (!CommitNewItems(context, upq, newItems, true)) {
 		upq.ReportExceptions("config");
 
 		for (const ConfigItem::Ptr& item : newItems) {
