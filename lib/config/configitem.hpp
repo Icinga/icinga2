@@ -96,7 +96,7 @@ private:
 	static ConfigItem::Ptr GetObjectUnlocked(const String& type,
 		const String& name);
 
-	ConfigObject::Ptr Commit(bool discard = true);
+	ConfigObject::Ptr Commit(bool discard);
 
 	static bool CommitNewItems(const ActivationContext::Ptr& context, WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems);
 };
