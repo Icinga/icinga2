@@ -222,7 +222,7 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 		 * Disable logging for object creation, but do so ourselves later on.
 		 * Duplicate the error handling for better logging and debugging here.
 		 */
-		if (!ConfigItem::CommitItems(ascope.GetContext(), upq, newItems, true)) {
+		if (!ConfigItem::CommitItems(ascope.GetContext(), upq, newItems, true, false)) {
 			if (errors) {
 				Log(LogNotice, "ConfigObjectUtility")
 					<< "Failed to commit config item '" << fullName << "'. Aborting and removing config path '" << path << "'.";
