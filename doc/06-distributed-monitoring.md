@@ -3183,7 +3183,7 @@ Create a certificate signing request (CSR) for the local instance:
 Sign the CSR with the previously created CA:
 
 ```
-[root@icinga2-master1.localdomain /root]# icinga2 pki sign-csr --csr icinga2-master1.localdomain.csr --cert icinga2-master1.localdomain
+[root@icinga2-master1.localdomain /root]# icinga2 pki sign-csr --csr icinga2-master1.localdomain.csr --cert icinga2-master1.localdomain.crt
 ```
 
 Repeat the steps for all instances in your setup.
