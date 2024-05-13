@@ -891,9 +891,9 @@ bool IdoMysqlConnection::FieldToEscapedString(const String& key, const Value& va
 
 		*result = static_cast<long>(dbrefcol);
 	} else if (DbValue::IsTimestamp(value)) {
-		long ts = rawvalue;
+		double ts = rawvalue;
 		std::ostringstream msgbuf;
-		msgbuf << "FROM_UNIXTIME(" << ts << ")";
+		msgbuf << "FROM_UNIXTIME(" << std::fixed << std::setprecision(0) << ts << ")";
 		*result = Value(msgbuf.str());
 	} else if (DbValue::IsObjectInsertID(value)) {
 		auto id = static_cast<long>(rawvalue);

@@ -700,9 +700,9 @@ bool IdoPgsqlConnection::FieldToEscapedString(const String& key, const Value& va
 
 		*result = static_cast<long>(dbrefcol);
 	} else if (DbValue::IsTimestamp(value)) {
-		long ts = rawvalue;
+		double ts = rawvalue;
 		std::ostringstream msgbuf;
-		msgbuf << "TO_TIMESTAMP(" << ts << ") AT TIME ZONE 'UTC'";
+		msgbuf << "TO_TIMESTAMP(" << std::fixed << std::setprecision(0) << ts << ") AT TIME ZONE 'UTC'";
 		*result = Value(msgbuf.str());
 	} else if (DbValue::IsObjectInsertID(value)) {
 		auto id = static_cast<long>(rawvalue);
