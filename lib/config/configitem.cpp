@@ -161,7 +161,7 @@ public:
  *
  * @returns The ConfigObject that was created/updated.
  */
-ConfigObject::Ptr ConfigItem::Commit(bool discard)
+ConfigObject::Ptr ConfigItem::Commit(bool discard, bool registerObject)
 {
 	Type::Ptr type = GetType();
 
@@ -310,7 +310,9 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 
 	dhint.reset();
 
-	dobj->Register();
+	if (registerObject) {
+		dobj->Register();
+	}
 
 	m_Object = dobj;
 
