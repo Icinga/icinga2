@@ -629,12 +629,12 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 	return true;
 }
 
-bool ConfigItem::CommitItems(const ActivationContext::Ptr& context, WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems, bool silent)
+bool ConfigItem::CommitItems(const ActivationContext::Ptr& context, WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems, bool silent, bool registerEarly)
 {
 	if (!silent)
 		Log(LogInformation, "ConfigItem", "Committing config item(s).");
 
-	if (!CommitNewItems(context, upq, newItems, true)) {
+	if (!CommitNewItems(context, upq, newItems, registerEarly)) {
 		upq.ReportExceptions("config");
 
 		for (const ConfigItem::Ptr& item : newItems) {

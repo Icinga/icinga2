@@ -52,7 +52,7 @@ public:
 	static ConfigItem::Ptr GetByTypeAndName(const Type::Ptr& type,
 		const String& name);
 
-	static bool CommitItems(const ActivationContext::Ptr& context, WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems, bool silent = false);
+	static bool CommitItems(const ActivationContext::Ptr& context, WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems, bool silent = false, bool registerEarly = true);
 	static bool ActivateItems(const std::vector<ConfigItem::Ptr>& newItems, bool runtimeCreated = false,
 		bool mainConfigActivation = false, bool withModAttrs = false, const Value& cookie = Empty);
 
