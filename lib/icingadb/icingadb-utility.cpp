@@ -18,6 +18,7 @@
 #include "icinga/eventcommand.hpp"
 #include "icinga/host.hpp"
 #include <boost/algorithm/string.hpp>
+#include <cmath>
 #include <map>
 #include <utility>
 #include <vector>
@@ -239,7 +240,18 @@ String IcingaDB::GetLowerCaseTypeNameDB(const ConfigObject::Ptr& obj)
 }
 
 long long IcingaDB::TimestampToMilliseconds(double timestamp) {
-	return static_cast<long long>(timestamp * 1000);
+	// In addition to the limits of the Icinga DB MySQL (0 - 2^64) and PostgreSQL (0 - 2^63) schemata,
+	// years not fitting in YYYY may cause problems, see e.g. https://github.com/golang/go/issues/4556.
+	// RFC 3339: "All dates and times are assumed to be (...) somewhere between 0000AD and 9999AD."
+	//
+	// The below upper limit includes a safety buffer to make sure the timestamp is within 9999AD in all time zones:
+	// $ date -ud @253402214400
+	// Fri Dec 31 00:00:00 UTC 9999
+	// $ TZ=Asia/Vladivostok date -d @253402214400
+	// Fri Dec 31 10:00:00 +10 9999
+	// $ TZ=America/Juneau date -d @253402214400
+	// Thu Dec 30 15:00:00 AKST 9999
+	return std::fmin(std::fmax(timestamp, 0.0), 253402214400.0) * 1000.0;
 }
 
 String IcingaDB::IcingaToStreamValue(const Value& value)
