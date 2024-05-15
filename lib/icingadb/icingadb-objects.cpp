@@ -2644,8 +2644,8 @@ Dictionary::Ptr IcingaDB::SerializeState(const Checkable::Ptr& checkable)
 
 		if (!cr->GetCommand().IsEmpty())
 			attrs->Set("check_commandline", FormatCommandLine(cr->GetCommand()));
-		attrs->Set("execution_time", TimestampToMilliseconds(fmax(0.0, cr->CalculateExecutionTime())));
-		attrs->Set("latency", TimestampToMilliseconds(cr->CalculateLatency()));
+		attrs->Set("execution_time", std::min((long long)UINT32_MAX, TimestampToMilliseconds(fmax(0.0, cr->CalculateExecutionTime()))));
+		attrs->Set("latency", std::min((long long)UINT32_MAX, TimestampToMilliseconds(cr->CalculateLatency())));
 		attrs->Set("check_source", cr->GetCheckSource());
 		attrs->Set("scheduling_source", cr->GetSchedulingSource());
 	}
