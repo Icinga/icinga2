@@ -359,7 +359,7 @@ void Downtime::RemoveDowntime(const String& id, bool includeChildren, DowntimeRe
 
 	String config_owner = downtime->GetConfigOwner();
 
-	if (!config_owner.IsEmpty() && removalReason != DowntimeExpired) {
+	if (!config_owner.IsEmpty() && removalReason == DowntimeRemovedByUser) {
 		BOOST_THROW_EXCEPTION(invalid_downtime_removal_error("Cannot remove downtime '" + downtime->GetName() +
 			"'. It is owned by scheduled downtime object '" + config_owner + "'"));
 	}
