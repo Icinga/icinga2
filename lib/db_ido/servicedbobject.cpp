@@ -139,7 +139,7 @@ Dictionary::Ptr ServiceDbObject::GetStatusFields() const
 	return fields;
 }
 
-void ServiceDbObject::OnConfigUpdateHeavy(std::vector<DbQuery>& deferred)
+void ServiceDbObject::OnConfigUpdateHeavy(std::vector<DbQuery>& queries)
 {
 	Service::Ptr service = static_pointer_cast<Service>(GetObject());
 
@@ -153,7 +153,7 @@ void ServiceDbObject::OnConfigUpdateHeavy(std::vector<DbQuery>& deferred)
 	query1.WhereCriteria = new Dictionary({
 		{ "service_object_id", service }
 	});
-	deferred.emplace_back(std::move(query1));
+	queries.emplace_back(std::move(query1));
 
 	if (groups) {
 		ObjectLock olock(groups);
@@ -174,11 +174,9 @@ void ServiceDbObject::OnConfigUpdateHeavy(std::vector<DbQuery>& deferred)
 				{ "servicegroup_id", DbValue::FromObjectInsertID(group) },
 				{ "service_object_id", service }
 			});
-			deferred.emplace_back(std::move(query2));
+			queries.emplace_back(std::move(query2));
 		}
 	}
-
-	std::vector<DbQuery> queries;
 
 	/* service dependencies */
 	DbQuery query2;
@@ -223,11 +221,7 @@ void ServiceDbObject::OnConfigUpdateHeavy(std::vector<DbQuery>& deferred)
 		queries.emplace_back(std::move(query1));
 	}
 
-	DbObject::OnMultipleQueries(queries);
-
 	/* service contacts, contactgroups */
-	queries.clear();
-
 	DbQuery query3;
 	query3.Table = GetType()->GetTable() + "_contacts";
 	query3.Type = DbQueryDelete;
@@ -250,10 +244,6 @@ void ServiceDbObject::OnConfigUpdateHeavy(std::vector<DbQuery>& deferred)
 		});
 		queries.emplace_back(std::move(query_contact));
 	}
-
-	DbObject::OnMultipleQueries(queries);
-
-	queries.clear();
 
 	DbQuery query4;
 	query4.Table = GetType()->GetTable() + "_contactgroups";

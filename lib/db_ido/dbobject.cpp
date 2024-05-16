@@ -140,7 +140,6 @@ void DbObject::SendConfigUpdateHeavy(const Dictionary::Ptr& configFields)
 	m_LastConfigUpdate = Utility::GetTime();
 
 	OnConfigUpdateHeavy(queries);
-	OnMultipleQueries(queries);
 }
 
 void DbObject::SendConfigUpdateLight()

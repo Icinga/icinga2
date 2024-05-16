@@ -59,7 +59,7 @@ Dictionary::Ptr UserDbObject::GetStatusFields() const
 	});
 }
 
-void UserDbObject::OnConfigUpdateHeavy(std::vector<DbQuery>& deferred)
+void UserDbObject::OnConfigUpdateHeavy(std::vector<DbQuery>& queries)
 {
 	User::Ptr user = static_pointer_cast<User>(GetObject());
 
@@ -73,7 +73,7 @@ void UserDbObject::OnConfigUpdateHeavy(std::vector<DbQuery>& deferred)
 	query1.WhereCriteria = new Dictionary({
 		{ "contact_object_id", user }
 	});
-	deferred.emplace_back(std::move(query1));
+	queries.emplace_back(std::move(query1));
 
 	if (groups) {
 		ObjectLock olock(groups);
@@ -94,11 +94,9 @@ void UserDbObject::OnConfigUpdateHeavy(std::vector<DbQuery>& deferred)
 				{ "contactgroup_id", DbValue::FromObjectInsertID(group) },
 				{ "contact_object_id", user }
 			});
-			deferred.emplace_back(std::move(query2));
+			queries.emplace_back(std::move(query2));
 		}
 	}
-
-	std::vector<DbQuery> queries;
 
 	DbQuery query2;
 	query2.Table = "contact_addresses";

@@ -31,7 +31,7 @@ Dictionary::Ptr TimePeriodDbObject::GetStatusFields() const
 	return Empty;
 }
 
-void TimePeriodDbObject::OnConfigUpdateHeavy(std::vector<DbQuery>&)
+void TimePeriodDbObject::OnConfigUpdateHeavy(std::vector<DbQuery>& queries)
 {
 	TimePeriod::Ptr tp = static_pointer_cast<TimePeriod>(GetObject());
 
@@ -42,12 +42,15 @@ void TimePeriodDbObject::OnConfigUpdateHeavy(std::vector<DbQuery>&)
 	query_del1.WhereCriteria = new Dictionary({
 		{ "timeperiod_id", DbValue::FromObjectInsertID(tp) }
 	});
-	OnQuery(query_del1);
+	queries.emplace_back(std::move(query_del1));
 
 	Dictionary::Ptr ranges = tp->GetRanges();
 
-	if (!ranges)
+	if (!ranges) {
+		OnMultipleQueries(queries);
+
 		return;
+	}
 
 	time_t refts = Utility::GetTime();
 	ObjectLock olock(ranges);
@@ -79,7 +82,9 @@ void TimePeriodDbObject::OnConfigUpdateHeavy(std::vector<DbQuery>&)
 				{ "start_sec", begin % 86400 },
 				{ "end_sec", end % 86400 }
 			});
-			OnQuery(query);
+			queries.emplace_back(std::move(query));
 		}
 	}
+
+	OnMultipleQueries(queries);
 }

@@ -142,7 +142,7 @@ Dictionary::Ptr HostDbObject::GetStatusFields() const
 	return fields;
 }
 
-void HostDbObject::OnConfigUpdateHeavy(std::vector<DbQuery>& deferred)
+void HostDbObject::OnConfigUpdateHeavy(std::vector<DbQuery>& queries)
 {
 	Host::Ptr host = static_pointer_cast<Host>(GetObject());
 
@@ -155,7 +155,7 @@ void HostDbObject::OnConfigUpdateHeavy(std::vector<DbQuery>& deferred)
 	query1.Category = DbCatConfig;
 	query1.WhereCriteria = new Dictionary();
 	query1.WhereCriteria->Set("host_object_id", host);
-	deferred.emplace_back(std::move(query1));
+	queries.emplace_back(std::move(query1));
 
 	if (groups) {
 		ObjectLock olock(groups);
@@ -176,11 +176,9 @@ void HostDbObject::OnConfigUpdateHeavy(std::vector<DbQuery>& deferred)
 				{ "hostgroup_id", DbValue::FromObjectInsertID(group) },
 				{ "host_object_id", host }
 			});
-			deferred.emplace_back(std::move(query2));
+			queries.emplace_back(std::move(query2));
 		}
 	}
-
-	std::vector<DbQuery> queries;
 
 	DbQuery query2;
 	query2.Table = GetType()->GetTable() + "_parenthosts";
@@ -214,13 +212,9 @@ void HostDbObject::OnConfigUpdateHeavy(std::vector<DbQuery>& deferred)
 		queries.emplace_back(std::move(query1));
 	}
 
-	DbObject::OnMultipleQueries(queries);
-
 	/* host dependencies */
 	Log(LogDebug, "HostDbObject")
 		<< "host dependencies for '" << host->GetName() << "'";
-
-	queries.clear();
 
 	DbQuery query3;
 	query3.Table = GetType()->GetTable() + "dependencies";
@@ -261,12 +255,8 @@ void HostDbObject::OnConfigUpdateHeavy(std::vector<DbQuery>& deferred)
 		queries.emplace_back(std::move(query2));
 	}
 
-	DbObject::OnMultipleQueries(queries);
-
 	Log(LogDebug, "HostDbObject")
 		<< "host contacts: " << host->GetName();
-
-	queries.clear();
 
 	DbQuery query4;
 	query4.Table = GetType()->GetTable() + "_contacts";
@@ -293,12 +283,8 @@ void HostDbObject::OnConfigUpdateHeavy(std::vector<DbQuery>& deferred)
 		queries.emplace_back(std::move(query_contact));
 	}
 
-	DbObject::OnMultipleQueries(queries);
-
 	Log(LogDebug, "HostDbObject")
 		<< "host contactgroups: " << host->GetName();
-
-	queries.clear();
 
 	DbQuery query5;
 	query5.Table = GetType()->GetTable() + "_contactgroups";
