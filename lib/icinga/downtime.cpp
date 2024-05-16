@@ -359,7 +359,7 @@ Downtime::Ptr Downtime::AddDowntime(const Checkable::Ptr& checkable, const Strin
 	return downtime;
 }
 
-void Downtime::RemoveDowntime(const String& id, bool includeChildren, bool cancelled, bool expired,
+void Downtime::RemoveDowntime(const String& id, bool includeChildren, DowntimeRemovalReason removalReason,
 	const String& removedBy, const MessageOrigin::Ptr& origin)
 {
 	Downtime::Ptr downtime = Downtime::GetByName(id);
@@ -369,18 +369,18 @@ void Downtime::RemoveDowntime(const String& id, bool includeChildren, bool cance
 
 	String config_owner = downtime->GetConfigOwner();
 
-	if (!config_owner.IsEmpty() && !expired) {
+	if (!config_owner.IsEmpty() && removalReason != DowntimeExpired) {
 		BOOST_THROW_EXCEPTION(invalid_downtime_removal_error("Cannot remove downtime '" + downtime->GetName() +
 			"'. It is owned by scheduled downtime object '" + config_owner + "'"));
 	}
 
 	if (includeChildren) {
 		for (const Downtime::Ptr& child : downtime->GetChildren()) {
-			Downtime::RemoveDowntime(child->GetName(), true, true);
+			Downtime::RemoveDowntime(child->GetName(), true, removalReason);
 		}
 	}
 
-	if (cancelled) {
+	if (removalReason != DowntimeExpired) {
 		downtime->SetRemovalInfo(removedBy, Utility::GetTime());
 	}
 
@@ -396,13 +396,19 @@ void Downtime::RemoveDowntime(const String& id, bool includeChildren, bool cance
 	}
 
 	String reason;
-
-	if (expired) {
-		reason = "expired at " + Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", downtime->GetEndTime());
-	} else if (cancelled) {
-		reason = "cancelled by user";
-	} else {
-		reason = "<unknown>";
+	switch (removalReason) {
+		case DowntimeExpired:
+			reason = "expired at " + Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", downtime->GetEndTime());
+			break;
+		case DowntimeRemovedByUser:
+			reason = "cancelled by user";
+			if (!removedBy.IsEmpty()) {
+				reason += " '" + removedBy + "'";
+			}
+			break;
+		case DowntimeRemovedByConfigOwner:
+			reason = "cancelled by '" + config_owner + "' of type 'ScheduledDowntime'";
+			break;
 	}
 
 	Log msg (LogInformation, "Downtime");
@@ -465,7 +471,7 @@ void Downtime::SetupCleanupTimer()
 			auto downtime (Downtime::GetByName(name));
 
 			if (downtime && downtime->IsExpired()) {
-				RemoveDowntime(name, false, false, true);
+				RemoveDowntime(name, false, DowntimeExpired);
 			}
 		});
 	}
@@ -557,7 +563,7 @@ void Downtime::DowntimesOrphanedTimerHandler()
 	for (const Downtime::Ptr& downtime : ConfigType::GetObjectsByType<Downtime>()) {
 		/* Only remove downtimes which are activated after daemon start. */
 		if (downtime->IsActive() && !downtime->HasValidConfigOwner())
-			RemoveDowntime(downtime->GetName(), false, false, true);
+			RemoveDowntime(downtime->GetName(), false, DowntimeRemovedByConfigOwner);
 	}
 }
 
