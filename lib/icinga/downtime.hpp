@@ -18,6 +18,13 @@ enum DowntimeChildOptions
 	DowntimeNonTriggeredChildren
 };
 
+enum DowntimeRemovalReason
+{
+	DowntimeExpired,
+	DowntimeRemovedByUser,
+	DowntimeRemovedByConfigOwner,
+};
+
 /**
  * A downtime.
  *
@@ -52,7 +59,7 @@ public:
 		const String& scheduledBy = String(), const String& parent = String(), const String& id = String(),
 		const MessageOrigin::Ptr& origin = nullptr);
 
-	static void RemoveDowntime(const String& id, bool includeChildren, bool cancelled, bool expired = false,
+	static void RemoveDowntime(const String& id, bool includeChildren, DowntimeRemovalReason removalReason,
 		const String& removedBy = "", const MessageOrigin::Ptr& origin = nullptr);
 
 	void RegisterChild(const Downtime::Ptr& downtime);

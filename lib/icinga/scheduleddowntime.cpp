@@ -323,7 +323,7 @@ void ScheduledDowntime::RemoveObsoleteDowntimes()
 			auto configOwnerHash (downtime->GetConfigOwnerHash());
 
 			if (!configOwnerHash.IsEmpty() && configOwnerHash != downtimeOptionsHash)
-				Downtime::RemoveDowntime(downtime->GetName(), false, true);
+				Downtime::RemoveDowntime(downtime->GetName(), false, DowntimeRemovedByConfigOwner);
 		}
 	}
 }
