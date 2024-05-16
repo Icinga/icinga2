@@ -366,7 +366,7 @@ void Downtime::RemoveDowntime(const String& id, bool includeChildren, DowntimeRe
 
 	if (includeChildren) {
 		for (const Downtime::Ptr& child : downtime->GetChildren()) {
-			Downtime::RemoveDowntime(child->GetName(), true, removalReason);
+			Downtime::RemoveDowntime(child->GetName(), true, removalReason, removedBy);
 		}
 	}
 
