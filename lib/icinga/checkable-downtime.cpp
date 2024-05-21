@@ -9,13 +9,6 @@
 
 using namespace icinga;
 
-void Checkable::RemoveAllDowntimes()
-{
-	for (const Downtime::Ptr& downtime : GetDowntimes()) {
-		Downtime::RemoveDowntime(downtime->GetName(), true, true, true);
-	}
-}
-
 void Checkable::TriggerDowntimes(double triggerTime)
 {
 	for (const Downtime::Ptr& downtime : GetDowntimes()) {
