@@ -146,7 +146,6 @@ public:
 	/* Downtimes */
 	int GetDowntimeDepth() const final;
 
-	void RemoveAllDowntimes();
 	void TriggerDowntimes(double triggerTime);
 	bool IsInDowntime() const;
 	bool IsAcknowledged() const;
