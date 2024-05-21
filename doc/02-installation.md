@@ -102,7 +102,6 @@ apt update
 ### CentOS Repository <a id="centos-repository"></a>
 
 ```bash
-rpm --import https://packages.icinga.com/icinga.key
 wget https://packages.icinga.com/centos/ICINGA-release.repo -O /etc/yum.repos.d/ICINGA-release.repo
 ```
 
@@ -125,7 +124,6 @@ yum install epel-release
     Don't forget to fill in the username and password section with your credentials in the local .repo file.
 
 ```bash
-rpm --import https://packages.icinga.com/icinga.key
 wget https://packages.icinga.com/subscription/rhel/ICINGA-release.repo -O /etc/yum.repos.d/ICINGA-release.repo
 ```
 
@@ -157,7 +155,6 @@ yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.r
 ### Fedora Repository <a id="fedora-repository"></a>
 
 ```bash
-rpm --import https://packages.icinga.com/icinga.key
 dnf install -y 'dnf-command(config-manager)'
 dnf config-manager --add-repo https://packages.icinga.com/fedora/$(. /etc/os-release; echo "$VERSION_ID")/release
 ```
@@ -174,8 +171,6 @@ dnf config-manager --add-repo https://packages.icinga.com/fedora/$(. /etc/os-rel
     Don't forget to fill in the username and password section with your credentials in the local .repo file.
 
 ```bash
-rpm --import https://packages.icinga.com/icinga.key
-
 zypper ar https://packages.icinga.com/subscription/sles/ICINGA-release.repo
 zypper ref
 ```
@@ -193,8 +188,6 @@ SUSEConnect -p PackageHub/$VERSION_ID/x86_64
 ### openSUSE Repository <a id="opensuse-repository"></a>
 
 ```bash
-rpm --import https://packages.icinga.com/icinga.key
-
 zypper ar https://packages.icinga.com/openSUSE/ICINGA-release.repo
 zypper ref
 ```
@@ -217,7 +210,6 @@ zypper ar https://download.opensuse.org/repositories/server:/monitoring/15.3/ser
     Don't forget to fill in the username and password section with your credentials in the local .repo file.
 
 ```bash
-rpm --import https://packages.icinga.com/icinga.key
 wget https://packages.icinga.com/subscription/amazon/ICINGA-release.repo -O /etc/yum.repos.d/ICINGA-release.repo
 ```
 
