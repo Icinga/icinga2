@@ -282,8 +282,6 @@ void ServiceDbObject::OnConfigUpdateHeavy()
 	}
 
 	DbObject::OnMultipleQueries(queries);
-
-	DoCommonConfigUpdate();
 }
 
 void ServiceDbObject::OnConfigUpdateLight()
