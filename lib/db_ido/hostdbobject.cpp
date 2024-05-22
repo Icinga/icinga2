@@ -330,8 +330,6 @@ void HostDbObject::OnConfigUpdateHeavy()
 	}
 
 	DbObject::OnMultipleQueries(queries);
-
-	DoCommonConfigUpdate();
 }
 
 void HostDbObject::OnConfigUpdateLight()
