@@ -119,6 +119,14 @@ void DbObject::SendConfigUpdateHeavy(const Dictionary::Ptr& configFields)
 
 	ASSERT(configFields->Contains("config_hash"));
 
+	Value configHash = configFields->Get("config_hash");
+	// Since all the child tables are relying on the inserted parent ID, we first need to insert/update the
+	// configuration fields of the current object without the actual config_hash value. Having the config hash
+	// set only after all relation queries eliminates some rare race conditions where e.g. host group members
+	// are not written to the database because Icinga 2 / the DBMS was unexpectedly stopped/reloaded shortly
+	// after the config_hash column was updated.
+	configFields->Set("config_hash", Empty);
+
 	ConfigObject::Ptr object = GetObject();
 
 	DbQuery query;
@@ -138,7 +146,22 @@ void DbObject::SendConfigUpdateHeavy(const Dictionary::Ptr& configFields)
 
 	m_LastConfigUpdate = Utility::GetTime();
 
+	// Trigger config heavy udpates of the child classes.
 	OnConfigUpdateHeavy();
+
+	// Now update the config hash attribute of the current object.
+	DbQuery configHashQuery;
+	configHashQuery.Table = GetType()->GetTable() + "s";
+	configHashQuery.Type = DbQueryUpdate;
+	configHashQuery.Category = DbCatConfig;
+	configHashQuery.Fields = new Dictionary({{"config_hash", configHash}});
+	configHashQuery.Object = this;
+	configHashQuery.ConfigUpdate = true;
+	configHashQuery.WhereCriteria = new Dictionary({{GetType()->GetIDColumn(), object}});
+	OnQuery(configHashQuery);
+
+	// Lastly, update some common configs that do not affect the config_hash column.
+	OnConfigUpdateLight();
 }
 
 void DbObject::SendConfigUpdateLight()
