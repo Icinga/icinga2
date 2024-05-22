@@ -425,7 +425,7 @@ disk\_ignore\_eregi\_path | **Optional.** Regular expression to ignore selected 
 disk\_ignore\_ereg\_path  | **Optional.** Regular expression to ignore selected path or partition. Multiple regular expression strings must be defined as array.
 disk\_timeout             | **Optional.** Seconds before connection times out (default: 10).
 disk\_units               | **Optional.** Choose bytes, kB, MB, GB, TB.
-disk\_exclude\_type       | **Optional.** Ignore all filesystems of indicated type. Multiple regular expression strings must be defined as array. Defaults to "none", "tmpfs", "sysfs", "proc", "configfs", "devtmpfs", "devfs", "mtmfs", "tracefs", "cgroup", "fuse.gvfsd-fuse", "fuse.gvfs-fuse-daemon", "fdescfs", "overlay", "nsfs", "squashfs".
+disk\_exclude\_type       | **Optional.** Ignore all filesystems of indicated type. Multiple regular expression strings must be defined as array. Defaults to "none", "tmpfs", "sysfs", "proc", "configfs", "devtmpfs", "devfs", "mtmfs", "tracefs", "cgroup", "fuse.\*" (only Monitoring Plugins support this so far), "fuse.gvfsd-fuse", "fuse.gvfs-fuse-daemon", "fuse.sshfs", "fdescfs", "overlay", "nsfs", "squashfs".
 disk\_include\_type       | **Optional.** Check only filesystems of indicated type. Multiple regular expression strings must be defined as array.
 disk\_inode\_perfdata     | **Optional.** Display inode usage in perfdata
 
