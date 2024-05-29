@@ -1322,6 +1322,7 @@ snmp_invert_search  | **Optional.** Invert search result and return CRITICAL sta
 snmp_units          | **Optional.** Units label(s) for output value (e.g., 'sec.').
 snmp_version        | **Optional.** Version to use. E.g. 1, 2, 2c or 3.
 snmp_miblist        | **Optional.** MIB's to use, comma separated. Defaults to "ALL".
+snmp_multiplier     |**Optional.** Multiplies current value, 0 < n < 1 works as divider, defaults to 1
 snmp_rate_multiplier | **Optional.** Converts rate per second. For example, set to 60 to convert to per minute.
 snmp_rate           | **Optional.** Boolean. Enable rate calculation.
 snmp_getnext        | **Optional.** Boolean. Use SNMP GETNEXT. Defaults to false.
@@ -1357,6 +1358,7 @@ snmpv3_eregi         | **Optional.** Return OK state (for that OID) if case-inse
 snmpv3_invert_search | **Optional.** Invert search result and return CRITICAL if found
 snmpv3_label         | **Optional.** Prefix label for output value.
 snmpv3_units         | **Optional.** Units label(s) for output value (e.g., 'sec.').
+snmp3_multiplier     |**Optional.** Multiplies current value, 0 < n < 1 works as divider, defaults to 1
 snmpv3_rate_multiplier | **Optional.** Converts rate per second. For example, set to 60 to convert to per minute.
 snmpv3_rate          | **Optional.** Boolean. Enable rate calculation.
 snmpv3_timeout       | **Optional.** The command timeout in seconds. Defaults to 10 seconds.
