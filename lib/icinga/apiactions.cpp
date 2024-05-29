@@ -557,7 +557,7 @@ Dictionary::Ptr ApiActions::RemoveDowntime(const ConfigObject::Ptr& object,
 			childCount += downtime->GetChildren().size();
 
 			try {
-				Downtime::RemoveDowntime(downtime->GetName(), true, true, false, author);
+				Downtime::RemoveDowntime(downtime->GetName(), true, DowntimeRemovedByUser, author);
 			} catch (const invalid_downtime_removal_error& error) {
 				Log(LogWarning, "ApiActions") << error.what();
 
@@ -578,7 +578,7 @@ Dictionary::Ptr ApiActions::RemoveDowntime(const ConfigObject::Ptr& object,
 
 	try {
 		String downtimeName = downtime->GetName();
-		Downtime::RemoveDowntime(downtimeName, true, true, false, author);
+		Downtime::RemoveDowntime(downtimeName, true, DowntimeRemovedByUser, author);
 
 		return ApiActions::CreateResult(200, "Successfully removed downtime '" + downtimeName +
 			"' and " + std::to_string(childCount) + " child downtimes.");
