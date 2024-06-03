@@ -622,7 +622,7 @@ ping_wpl        | **Optional.** The packet loss warning threshold in %. Defaults
 ping_crta       | **Optional.** The RTA critical threshold in milliseconds. Defaults to 5000.
 ping_cpl        | **Optional.** The packet loss critical threshold in %. Defaults to 100.
 ping_packets    | **Optional.** The number of packets to send. Defaults to 5.
-ping_timeout    | **Optional.** The plugin timeout in seconds. Defaults to 0 (no timeout).
+ping_timeout    | **Optional.** The plugin timeout in seconds. Defaults to 10.
 
 
 ### hostalive4 <a id="plugin-check-command-hostalive4"></a>
