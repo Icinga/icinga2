@@ -1878,6 +1878,32 @@ Example for all object events:
   timestamp     | Timestamp     | Unix timestamp when the event happened.
   downtime      | Dictionary    | Serialized [Downtime](09-object-types.md#objecttype-downtime) object.
 
+#### <a id="icinga2-api-event-streams-type-objectcreated"></a> Event Stream Type: ObjectCreated
+
+| Name         | Type      | Description                                                    |
+|--------------|-----------|----------------------------------------------------------------|
+| type         | String    | Event type `ObjectCreated`.                                    |
+| timestamp    | Timestamp | Unix timestamp when the event happened.                        |
+| object\_type | String    | Type of the newly created object, such as `Host` or `Service`. |
+| object\_name | String    | The full name of the object.                                   |
+
+#### <a id="icinga2-api-event-streams-type-objectmodified"></a> Event Stream Type: ObjectModified
+
+| Name         | Type      | Description                                               |
+|--------------|-----------|-----------------------------------------------------------|
+| type         | String    | Event type `ObjectModified`.                              |
+| timestamp    | Timestamp | Unix timestamp when the event happened.                   |
+| object\_type | String    | Type of the modified object, such as `Host` or `Service`. |
+| object\_name | String    | The full name of the object.                              |
+
+#### <a id="icinga2-api-event-streams-type-objectdeleted"></a> Event Stream Type: ObjectDeleted
+
+| Name         | Type      | Description                                              |
+|--------------|-----------|----------------------------------------------------------|
+| type         | String    | Event type `ObjectDeleted`.                              |
+| timestamp    | Timestamp | Unix timestamp when the event happened.                  |
+| object\_type | String    | Type of the deleted object, such as `Host` or `Service`. |
+| object\_name | String    | The full name of the object.                             |
 
 ### Event Stream Filter <a id="icinga2-api-event-streams-filter"></a>
 
