@@ -891,9 +891,13 @@ bool IdoMysqlConnection::FieldToEscapedString(const String& key, const Value& va
 
 		*result = static_cast<long>(dbrefcol);
 	} else if (DbValue::IsTimestamp(value)) {
+		// MySQL TIMESTAMP columns have the year-2038 problem, hence the upper limit below.
+		// Also, they don't accept FROM_UNIXTIME(0): ERROR 1292 (22007): Incorrect datetime value: '1970-01-01 00:00:00'
+
 		double ts = rawvalue;
 		std::ostringstream msgbuf;
-		msgbuf << "FROM_UNIXTIME(" << std::fixed << std::setprecision(0) << ts << ")";
+		msgbuf << "FROM_UNIXTIME(" << std::fixed << std::setprecision(0)
+			<< std::fmin(std::fmax(ts, 1.0), 2147483647.0) << ")";
 		*result = Value(msgbuf.str());
 	} else if (DbValue::IsObjectInsertID(value)) {
 		auto id = static_cast<long>(rawvalue);

@@ -15,6 +15,7 @@
 #include "base/context.hpp"
 #include "base/statsfunction.hpp"
 #include "base/defer.hpp"
+#include <cmath>
 #include <utility>
 
 using namespace icinga;
@@ -700,9 +701,49 @@ bool IdoPgsqlConnection::FieldToEscapedString(const String& key, const Value& va
 
 		*result = static_cast<long>(dbrefcol);
 	} else if (DbValue::IsTimestamp(value)) {
+		// In addition to the limits of PostgreSQL itself (4713BC - 294276AD),
+		// years not fitting in YYYY may cause problems, see e.g. https://github.com/golang/go/issues/4556.
+		// RFC 3339: "All dates and times are assumed to be (...) somewhere between 0000AD and 9999AD."
+		// The below limits include safety buffers to make sure the timestamps are within 0-9999 AD in all time zones:
+		//
+		// postgres=# \x
+		// Expanded display is on.
+		// postgres=# SELECT TO_TIMESTAMP(-62135510400) AT TIME ZONE 'UTC' AS utc,
+		// postgres-# TO_TIMESTAMP(-62135510400) AT TIME ZONE 'Asia/Vladivostok' AS east,
+		// postgres-# TO_TIMESTAMP(-62135510400) AT TIME ZONE 'America/Juneau' AS west,
+		// postgres-# TO_TIMESTAMP(-62135510400) AT TIME ZONE 'America/Nuuk' AS north;
+		// -[ RECORD 1 ]--------------
+		// utc   | 0001-01-02 00:00:00
+		// east  | 0001-01-02 08:47:31
+		// west  | 0001-01-02 15:02:19
+		// north | 0001-01-01 20:33:04
+		//
+		// postgres=# SELECT TO_TIMESTAMP(-62135510400-86400) AT TIME ZONE 'UTC' AS utc,
+		// postgres-# TO_TIMESTAMP(-62135510400-86400) AT TIME ZONE 'Asia/Vladivostok' AS east,
+		// postgres-# TO_TIMESTAMP(-62135510400-86400) AT TIME ZONE 'America/Juneau' AS west,
+		// postgres-# TO_TIMESTAMP(-62135510400-86400) AT TIME ZONE 'America/Nuuk' AS north;
+		// -[ RECORD 1 ]-----------------
+		// utc   | 0001-01-01 00:00:00
+		// east  | 0001-01-01 08:47:31
+		// west  | 0001-01-01 15:02:19
+		// north | 0001-12-31 20:33:04 BC
+		//
+		// postgres=# SELECT TO_TIMESTAMP(253402214400) AT TIME ZONE 'UTC' AS utc,
+		// postgres-# TO_TIMESTAMP(253402214400) AT TIME ZONE 'Asia/Vladivostok' AS east,
+		// postgres-# TO_TIMESTAMP(253402214400) AT TIME ZONE 'America/Juneau' AS west,
+		// postgres-# TO_TIMESTAMP(253402214400) AT TIME ZONE 'America/Nuuk' AS north;
+		// -[ RECORD 1 ]-------------
+		// utc   | 9999-12-31 00:00:00
+		// east  | 9999-12-31 10:00:00
+		// west  | 9999-12-30 15:00:00
+		// north | 9999-12-30 22:00:00
+		//
+		// postgres=#
+
 		double ts = rawvalue;
 		std::ostringstream msgbuf;
-		msgbuf << "TO_TIMESTAMP(" << std::fixed << std::setprecision(0) << ts << ") AT TIME ZONE 'UTC'";
+		msgbuf << "TO_TIMESTAMP(" << std::fixed << std::setprecision(0)
+			<< std::fmin(std::fmax(ts, -62135510400.0), 253402214400.0) << ") AT TIME ZONE 'UTC'";
 		*result = Value(msgbuf.str());
 	} else if (DbValue::IsObjectInsertID(value)) {
 		auto id = static_cast<long>(rawvalue);
