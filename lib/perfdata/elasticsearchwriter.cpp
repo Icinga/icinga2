@@ -5,6 +5,7 @@
 #include "remote/url.hpp"
 #include "icinga/compatutility.hpp"
 #include "icinga/service.hpp"
+#include "icinga/macroprocessor.hpp"
 #include "icinga/checkcommand.hpp"
 #include "base/application.hpp"
 #include "base/defer.hpp"
@@ -129,6 +130,36 @@ void ElasticsearchWriter::Pause()
 		<< "'" << GetName() << "' paused.";
 
 	ObjectImpl<ElasticsearchWriter>::Pause();
+}
+
+void ElasticsearchWriter::AddTemplateTags(const Dictionary::Ptr& fields, const Host::Ptr& host, const Service::Ptr& service, const CheckResult::Ptr& cr)
+{
+	MacroProcessor::ResolverList resolvers;
+	Dictionary::Ptr templates;
+
+	if (service) {
+		resolvers.emplace_back("service", service);
+		templates = static_pointer_cast<Dictionary>(GetServiceTagsTemplate()->ShallowClone());
+	} else {
+		templates = static_pointer_cast<Dictionary>(GetHostTagsTemplate()->ShallowClone());
+	}
+	resolvers.emplace_back("host", host);
+
+	if (templates) {
+		Dictionary::Ptr tags = new Dictionary();
+		{
+			ObjectLock olock(templates);
+			for (const Dictionary::Pair& pair : templates) {
+				String missing_macro;
+				Value value = MacroProcessor::ResolveMacros(pair.second, resolvers, cr, &missing_macro);
+
+				if (missing_macro.IsEmpty()) {
+					tags->Set(pair.first, value);
+				}
+			}
+		}
+		fields->Set("tags", tags);
+	}
 }
 
 void ElasticsearchWriter::AddCheckResult(const Dictionary::Ptr& fields, const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
@@ -257,6 +288,8 @@ void ElasticsearchWriter::InternalCheckResultHandler(const Checkable::Ptr& check
 		ts = cr->GetExecutionEnd();
 	}
 
+	AddTemplateTags(fields, host, service, cr);
+
 	Enqueue(checkable, "checkresult", fields, ts);
 }
 
@@ -306,6 +339,8 @@ void ElasticsearchWriter::StateChangeHandlerInternal(const Checkable::Ptr& check
 		AddCheckResult(fields, checkable, cr);
 		ts = cr->GetExecutionEnd();
 	}
+
+	AddTemplateTags(fields, host, service, cr);
 
 	Enqueue(checkable, "statechange", fields, ts);
 }
@@ -376,6 +411,8 @@ void ElasticsearchWriter::NotificationSentToAllUsersHandlerInternal(const Notifi
 		AddCheckResult(fields, checkable, cr);
 		ts = cr->GetExecutionEnd();
 	}
+
+	AddTemplateTags(fields, host, service, cr);
 
 	Enqueue(checkable, "notification", fields, ts);
 }
@@ -682,4 +719,32 @@ String ElasticsearchWriter::FormatTimestamp(double ts)
 	auto milliSeconds = static_cast<int>((ts - static_cast<int>(ts)) * 1000);
 
 	return Utility::FormatDateTime("%Y-%m-%dT%H:%M:%S", ts) + "." + Convert::ToString(milliSeconds) + Utility::FormatDateTime("%z", ts);
+}
+
+void ElasticsearchWriter::ValidateHostTagsTemplate(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)
+{
+	ObjectImpl<ElasticsearchWriter>::ValidateHostTagsTemplate(lvalue, utils);
+
+	Dictionary::Ptr tags = lvalue();
+	if (tags) {
+		ObjectLock olock(tags);
+		for (const Dictionary::Pair& pair : tags) {
+			if (!MacroProcessor::ValidateMacroString(pair.second))
+				BOOST_THROW_EXCEPTION(ValidationError(this, { "host_tags_template", pair.first }, "Closing $ not found in macro format string '" + pair.second));
+		}
+	}
+}
+
+void ElasticsearchWriter::ValidateServiceTagsTemplate(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)
+{
+	ObjectImpl<ElasticsearchWriter>::ValidateServiceTagsTemplate(lvalue, utils);
+
+	Dictionary::Ptr tags = lvalue();
+	if (tags) {
+		ObjectLock olock(tags);
+		for (const Dictionary::Pair& pair : tags) {
+			if (!MacroProcessor::ValidateMacroString(pair.second))
+				BOOST_THROW_EXCEPTION(ValidationError(this, { "service_tags_template", pair.first }, "Closing $ not found in macro format string '" + pair.second));
+		}
+	}
 }
