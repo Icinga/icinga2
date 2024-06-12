@@ -29,6 +29,8 @@ REGISTER_APIFUNCTION(SetLogPosition, log, &SetLogPositionHandler);
 
 static RingBuffer l_TaskStats (15 * 60);
 
+Atomic<uintmax_t> JsonRpcConnection::m_QueuedMessages (0);
+
 JsonRpcConnection::JsonRpcConnection(const String& identity, bool authenticated,
 	const Shared<AsioTlsStream>::Ptr& stream, ConnectionRole role)
 	: JsonRpcConnection(identity, authenticated, stream, role, IoEngine::Get().GetIoContext())
@@ -44,6 +46,11 @@ JsonRpcConnection::JsonRpcConnection(const String& identity, bool authenticated,
 {
 	if (authenticated)
 		m_Endpoint = Endpoint::GetByName(identity);
+}
+
+JsonRpcConnection::~JsonRpcConnection()
+{
+	m_QueuedMessages.fetch_sub(m_OutgoingMessagesQueue.size());
 }
 
 void JsonRpcConnection::Start()
@@ -125,6 +132,8 @@ void JsonRpcConnection::WriteOutgoingMessages(boost::asio::yield_context yc)
 
 				break;
 			}
+
+			m_QueuedMessages.fetch_sub(queue.size());
 		}
 	} while (!m_ShuttingDown);
 
@@ -164,13 +173,18 @@ ConnectionRole JsonRpcConnection::GetRole() const
 void JsonRpcConnection::SendMessage(const Dictionary::Ptr& message)
 {
 	Ptr keepAlive (this);
+	m_QueuedMessages.fetch_add(1);
 
-	m_IoStrand.post([this, keepAlive, message]() { SendMessageInternal(message); });
+	m_IoStrand.post([this, keepAlive, message]() {
+		m_OutgoingMessagesQueue.emplace_back(JsonEncode(message));
+		m_OutgoingMessagesQueued.Set();
+	});
 }
 
 void JsonRpcConnection::SendRawMessage(const String& message)
 {
 	Ptr keepAlive (this);
+	m_QueuedMessages.fetch_add(1);
 
 	m_IoStrand.post([this, keepAlive, message]() {
 		m_OutgoingMessagesQueue.emplace_back(message);
@@ -180,6 +194,7 @@ void JsonRpcConnection::SendRawMessage(const String& message)
 
 void JsonRpcConnection::SendMessageInternal(const Dictionary::Ptr& message)
 {
+	m_QueuedMessages.fetch_add(1);
 	m_OutgoingMessagesQueue.emplace_back(JsonEncode(message));
 	m_OutgoingMessagesQueued.Set();
 }
