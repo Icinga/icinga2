@@ -494,7 +494,7 @@ Dictionary::Ptr LegacyTimePeriod::FindRunningSegment(const String& daydef, const
 			double bestEnd = 0.0;
 
 			ObjectLock olock(segments);
-			for (const Dictionary::Ptr& segment : segments) {
+			for (Dictionary::Ptr segment : segments) {
 				double begin = segment->Get("begin");
 				double end = segment->Get("end");
 
@@ -552,7 +552,7 @@ Dictionary::Ptr LegacyTimePeriod::FindNextSegment(const String& daydef, const St
 				double bestBegin;
 
 				ObjectLock olock(segments);
-				for (const Dictionary::Ptr& segment : segments) {
+				for (Dictionary::Ptr segment : segments) {
 					double begin = segment->Get("begin");
 
 					if (begin < tsref)

@@ -104,7 +104,7 @@ bool ModifyObjectHandler::HandleRequest(
 
 	ArrayData results;
 
-	for (const ConfigObject::Ptr& obj : objs) {
+	for (ConfigObject::Ptr obj : objs) {
 		Dictionary::Ptr result1 = new Dictionary();
 
 		result1->Set("type", type->GetName());
