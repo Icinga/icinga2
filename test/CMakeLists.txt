@@ -187,6 +187,8 @@ add_boost_test(base
     icinga_macros/simple
     icinga_legacytimeperiod/simple
     icinga_legacytimeperiod/is_in_range
+    icinga_legacytimeperiod/out_of_range_segments
+    icinga_legacytimeperiod/include_exclude_timeperiods
     icinga_legacytimeperiod/advanced
     icinga_legacytimeperiod/dst
     icinga_legacytimeperiod/dst_isinside
