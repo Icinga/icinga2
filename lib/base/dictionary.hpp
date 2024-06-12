@@ -3,6 +3,7 @@
 #ifndef DICTIONARY_H
 #define DICTIONARY_H
 
+#include "base/hybrid-map.hpp"
 #include "base/i2-base.hpp"
 #include "base/object.hpp"
 #include "base/value.hpp"
@@ -29,7 +30,7 @@ public:
 	/**
 	 * An iterator that can be used to iterate over dictionary elements.
 	 */
-	typedef std::map<String, Value>::iterator Iterator;
+	typedef HybridMap<String, Value>::Iterator Iterator;
 
 	typedef std::map<String, Value>::size_type SizeType;
 
@@ -76,7 +77,7 @@ public:
 	bool GetOwnField(const String& field, Value *result) const override;
 
 private:
-	std::map<String, Value> m_Data; /**< The data for the dictionary. */
+	HybridMap<String, Value> m_Data; /**< The data for the dictionary. */
 	mutable std::shared_timed_mutex m_DataMutex;
 	bool m_Frozen{false};
 };
