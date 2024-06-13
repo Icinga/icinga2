@@ -813,7 +813,7 @@ parameters need to be passed inside the JSON body:
 
   Parameters        | Type         | Description
   ------------------|--------------|--------------------------
-  templates         | Array        | **Optional.** Import existing configuration templates for this object type. Note: These templates must either be statically configured or provided in [config packages](12-icinga2-api.md#icinga2-api-config-management)-
+  templates         | Array        | **Optional.** Import existing configuration templates for this object type. Note: These templates must either be statically configured or provided in [config packages](12-icinga2-api.md#icinga2-api-config-management).
   attrs             | Dictionary   | **Required.** Set specific object attributes for this [object type](09-object-types.md#object-types).
   ignore\_on\_error | Boolean      | **Optional.** Ignore object creation errors and return an HTTP 200 status instead.
 
@@ -950,7 +950,7 @@ list the latter in the `restore_attrs` parameter. E.g.:
 ```bash
 curl -k -s -S -i -u root:icinga -H 'Accept: application/json' \
  -X POST 'https://localhost:5665/v1/objects/hosts/example.localdomain' \
- -d '{ "restore_attrs": [ "address", "vars.os" ] }, "pretty": true }'
+ -d '{ "restore_attrs": [ "address", "vars.os" ], "pretty": true }'
 ```
 
 ```json
@@ -1878,6 +1878,32 @@ Example for all object events:
   timestamp     | Timestamp     | Unix timestamp when the event happened.
   downtime      | Dictionary    | Serialized [Downtime](09-object-types.md#objecttype-downtime) object.
 
+#### <a id="icinga2-api-event-streams-type-objectcreated"></a> Event Stream Type: ObjectCreated
+
+| Name         | Type      | Description                                                    |
+|--------------|-----------|----------------------------------------------------------------|
+| type         | String    | Event type `ObjectCreated`.                                    |
+| timestamp    | Timestamp | Unix timestamp when the event happened.                        |
+| object\_type | String    | Type of the newly created object, such as `Host` or `Service`. |
+| object\_name | String    | The full name of the object.                                   |
+
+#### <a id="icinga2-api-event-streams-type-objectmodified"></a> Event Stream Type: ObjectModified
+
+| Name         | Type      | Description                                               |
+|--------------|-----------|-----------------------------------------------------------|
+| type         | String    | Event type `ObjectModified`.                              |
+| timestamp    | Timestamp | Unix timestamp when the event happened.                   |
+| object\_type | String    | Type of the modified object, such as `Host` or `Service`. |
+| object\_name | String    | The full name of the object.                              |
+
+#### <a id="icinga2-api-event-streams-type-objectdeleted"></a> Event Stream Type: ObjectDeleted
+
+| Name         | Type      | Description                                              |
+|--------------|-----------|----------------------------------------------------------|
+| type         | String    | Event type `ObjectDeleted`.                              |
+| timestamp    | Timestamp | Unix timestamp when the event happened.                  |
+| object\_type | String    | Type of the deleted object, such as `Host` or `Service`. |
+| object\_name | String    | The full name of the object.                             |
 
 ### Event Stream Filter <a id="icinga2-api-event-streams-filter"></a>
 
