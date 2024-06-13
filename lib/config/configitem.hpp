@@ -52,7 +52,7 @@ public:
 	static ConfigItem::Ptr GetByTypeAndName(const Type::Ptr& type,
 		const String& name);
 
-	static bool CommitItems(const ActivationContext::Ptr& context, WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems, bool silent = false);
+	static bool CommitItems(const ActivationContext::Ptr& context, WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems, bool silent = false, bool registerEarly = true);
 	static bool ActivateItems(const std::vector<ConfigItem::Ptr>& newItems, bool runtimeCreated = false,
 		bool mainConfigActivation = false, bool withModAttrs = false, const Value& cookie = Empty);
 
@@ -96,9 +96,9 @@ private:
 	static ConfigItem::Ptr GetObjectUnlocked(const String& type,
 		const String& name);
 
-	ConfigObject::Ptr Commit(bool discard = true);
+	ConfigObject::Ptr Commit(bool discard, bool registerObject);
 
-	static bool CommitNewItems(const ActivationContext::Ptr& context, WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems);
+	static bool CommitNewItems(const ActivationContext::Ptr& context, WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems, bool registerEarly);
 };
 
 }
