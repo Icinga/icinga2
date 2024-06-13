@@ -42,7 +42,7 @@ namespace po = boost::program_options;
 
 static ScriptFrame *l_ScriptFrame;
 static Url::Ptr l_Url;
-static Shared<AsioTlsStream>::Ptr l_TlsStream;
+static AsioTlsStream::Ptr l_TlsStream;
 static String l_Session;
 
 REGISTER_CLICOMMAND("console", ConsoleCommand);
@@ -522,7 +522,7 @@ incomplete:
  *
  * @returns AsioTlsStream pointer for future HTTP connections.
  */
-Shared<AsioTlsStream>::Ptr ConsoleCommand::Connect()
+AsioTlsStream::Ptr ConsoleCommand::Connect()
 {
 	Shared<boost::asio::ssl::context>::Ptr sslContext;
 
@@ -537,7 +537,7 @@ Shared<AsioTlsStream>::Ptr ConsoleCommand::Connect()
 	String host = l_Url->GetHost();
 	String port = l_Url->GetPort();
 
-	Shared<AsioTlsStream>::Ptr stream = Shared<AsioTlsStream>::Make(IoEngine::Get().GetIoContext(), *sslContext, host);
+	AsioTlsStream::Ptr stream = AsioTlsStream::Make(IoEngine::Get().GetIoContext(), *sslContext, host);
 
 	try {
 		icinga::Connect(stream->lowest_layer(), host, port);

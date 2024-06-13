@@ -21,12 +21,12 @@ namespace icinga
 class JsonRpc
 {
 public:
-	static size_t SendMessage(const Shared<AsioTlsStream>::Ptr& stream, const Dictionary::Ptr& message);
-	static size_t SendMessage(const Shared<AsioTlsStream>::Ptr& stream, const Dictionary::Ptr& message, boost::asio::yield_context yc);
-	static size_t SendRawMessage(const Shared<AsioTlsStream>::Ptr& stream, const String& json, boost::asio::yield_context yc);
+	static size_t SendMessage(const AsioTlsStream::Ptr& stream, const Dictionary::Ptr& message);
+	static size_t SendMessage(const AsioTlsStream::Ptr& stream, const Dictionary::Ptr& message, boost::asio::yield_context yc);
+	static size_t SendRawMessage(const AsioTlsStream::Ptr& stream, const String& json, boost::asio::yield_context yc);
 
-	static String ReadMessage(const Shared<AsioTlsStream>::Ptr& stream, ssize_t maxMessageLength = -1);
-	static String ReadMessage(const Shared<AsioTlsStream>::Ptr& stream, boost::asio::yield_context yc, ssize_t maxMessageLength = -1);
+	static String ReadMessage(const AsioTlsStream::Ptr& stream, ssize_t maxMessageLength = -1);
+	static String ReadMessage(const AsioTlsStream::Ptr& stream, boost::asio::yield_context yc, ssize_t maxMessageLength = -1);
 
 	static Dictionary::Ptr DecodeMessage(const String& message);
 

@@ -94,9 +94,9 @@ static const char* GetUnderstandableError(const std::exception& ex)
 }
 
 static void DoIfwNetIo(
-	boost::asio::yield_context yc, const Checkable::Ptr& checkable, const Array::Ptr& cmdLine,
+	boost::asio::yield_context yc, boost::asio::io_context::strand& strand, const Checkable::Ptr& checkable, const Array::Ptr& cmdLine,
 	const CheckResult::Ptr& cr, const String& psCommand, const String& psHost, const String& san, const String& psPort,
-	AsioTlsStream& conn, boost::beast::http::request<boost::beast::http::string_body>& req, double start
+	const AsioTlsStream::Ptr& conn, boost::beast::http::request<boost::beast::http::string_body>& req, double start
 )
 {
 	namespace http = boost::beast::http;
@@ -105,7 +105,7 @@ static void DoIfwNetIo(
 	http::response<http::string_body> resp;
 
 	try {
-		Connect(conn.lowest_layer(), psHost, psPort, yc);
+		Connect(conn->lowest_layer(), psHost, psPort, yc);
 	} catch (const std::exception& ex) {
 		ReportIfwCheckResult(
 			yc, checkable, cmdLine, cr,
@@ -115,10 +115,10 @@ static void DoIfwNetIo(
 		return;
 	}
 
-	auto& sslConn (conn.next_layer());
+	auto& sslConn (conn->next_layer());
 
 	try {
-		sslConn.async_handshake(conn.next_layer().client, yc);
+		sslConn.async_handshake(conn->next_layer().client, yc);
 	} catch (const std::exception& ex) {
 		ReportIfwCheckResult(
 			yc, checkable, cmdLine, cr,
@@ -148,8 +148,8 @@ static void DoIfwNetIo(
 	}
 
 	try {
-		http::async_write(conn, req, yc);
-		conn.async_flush(yc);
+		http::async_write(*conn, req, yc);
+		conn->async_flush(yc);
 	} catch (const std::exception& ex) {
 		ReportIfwCheckResult(
 			yc, checkable, cmdLine, cr,
@@ -160,7 +160,7 @@ static void DoIfwNetIo(
 	}
 
 	try {
-		http::async_read(conn, buf, resp, yc);
+		http::async_read(*conn, buf, resp, yc);
 	} catch (const std::exception& ex) {
 		ReportIfwCheckResult(
 			yc, checkable, cmdLine, cr,
@@ -172,10 +172,7 @@ static void DoIfwNetIo(
 
 	double end = Utility::GetTime();
 
-	{
-		boost::system::error_code ec;
-		sslConn.async_shutdown(yc[ec]);
-	}
+	conn->GracefulDisconnect(strand, yc);
 
 	CpuBoundWork cbw (yc);
 	Value jsonRoot;
@@ -507,7 +504,7 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 		return;
 	}
 
-	auto conn (Shared<AsioTlsStream>::Make(io, *ctx, expectedSan));
+	auto conn (AsioTlsStream::Make(io, *ctx, expectedSan));
 
 	IoEngine::SpawnCoroutine(
 		*strand,
@@ -525,7 +522,7 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 
 			Defer cancelTimeout ([&timeout]() { timeout->Cancel(); });
 
-			DoIfwNetIo(yc, checkable, cmdLine, cr, psCommand, psHost, expectedSan, psPort, *conn, *req, start);
+			DoIfwNetIo(yc, *strand, checkable, cmdLine, cr, psCommand, psHost, expectedSan, psPort, conn, *req, start);
 		}
 	);
 }
