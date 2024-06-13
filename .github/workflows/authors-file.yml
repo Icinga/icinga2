@@ -20,8 +20,8 @@ jobs:
           sort -uo AUTHORS AUTHORS
           git add AUTHORS
           git log --format='format:%aN <%aE>' "$(
-            git merge-base "origin/$GITHUB_BASE_REF" "origin/$GITHUB_HEAD_REF"
-          )..origin/$GITHUB_HEAD_REF" >> AUTHORS
+            git merge-base HEAD^1 HEAD^2
+          )..HEAD^2" >> AUTHORS
           sort -uo AUTHORS AUTHORS
           git diff AUTHORS >> AUTHORS.diff
 
