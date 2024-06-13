@@ -2309,6 +2309,42 @@ snmp_service_count         | **Optional.** Compare matching services with a spec
 snmp_service_showall       | **Optional.** Show all services in the output, instead of only the non-active ones. Defaults to false.
 snmp_service_noregexp      | **Optional.** Do not use regexp to match NAME in service description. Defaults to false.
 
+### elasticsearch (NETWAYS) <a id="plugin-check-command-elasticsearch"></a>
+
+This category includes all subcommands using the [check_elasticsearch](https://github.com/NETWAYS/check_elasticsearch) plugin.
+
+Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                       | Description
+---------------------------|-----------------------------------------------------------------------------------------
+elasticsearch_hostname     | **Optional.** Hostname of the Elasticsearch instance. Defaults to "localhost".
+elasticsearch_port         | **Optional.** Port of the Elasticsearch instance. Defaults to 9200.
+elasticsearch_username     | **Optional.** Username if authentication is required. No value defined as default.
+elasticsearch_password     | **Optional.** Password if authentication is required. No value defined as default.
+elasticsearch_tls          | **Optional.** Use a HTTPS connection. Defaults to false.
+elasticsearch_insecure     | **Optional.** Skip the verification of the server's TLS certificate. Defaults to false.
+elasticsearch_timeout      | **Optional.** Timeout in seconds for the CheckPlugin. Defaults to 30 seconds.
+
+#### elasticsearch-query <a id="plugin-check-command-elasticsearch-query"></a>
+
+This subcommand is provided by check_elasticsearch executed as `elasticsearch query`.
+Checks the total hits/results of an Elasticsearch query.
+
+Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                    	 | Description
+-----------------------------|-----------------------------------------------------------------------------------------
+elasticsearch_query          | **Required.** The Elasticsearch query.
+elasticsearch_query_index    | **Optional.** Name of the Index which will be used. Defaults to "_all".
+elasticsearch_query_msgkey   | **Optional.** Message of messagekey to display. No value defined as default.
+elasticsearch_query_msglen   | **Optional.** Number of characters to display in the latest message. Defaults to 80.
+elasticsearch_query_warning  | **Optional.** Warning threshold for total hits. Defaults to 20 hits.
+elasticsearch_query_critical | **Optional.** Critical threshold for total hits. Defaults to 50 hits.
+
+#### elasticsearch-health <a id="plugin-check-command-elasticsearch-health"></a>
+
+This subcommand is provided by check_elasticsearch executed as `elasticsearch health`.
+Checks the health status of an Elasticsearch cluster.
 
 ## Contributed Plugin Check Commands <a id="plugin-contrib"></a>
 
