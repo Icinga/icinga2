@@ -342,6 +342,8 @@ Without plugins Icinga 2 does not know how to check external services. The
 an extensive set of plugins which can be used with Icinga 2 to check whether
 services are working properly.
 
+The nagios-plugins packages are provided by the [Nagios Plugins Project](http://nagios-plugins.org/).
+
 These plugins are required to make the [example configuration](04-configuration.md#configuring-icinga2-overview)
 work out-of-the-box.
 
