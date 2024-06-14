@@ -355,9 +355,15 @@ Example as JSON object:
 
 ### Request Method Override <a id="icinga2-api-requests-method-override"></a>
 
-`GET` requests do not allow you to send a request body. In case you cannot pass everything as URL
-parameters (e.g. complex filters or JSON-encoded dictionaries) you can use the `X-HTTP-Method-Override`
-header. This comes in handy when you are using HTTP proxies disallowing `PUT` or `DELETE` requests too.
+Following the HTTP specification, `GET` requests do not have a [semantic for content sent in the request body](https://www.rfc-editor.org/rfc/rfc9110#section-9.3.1-6).
+In other words, sending additional content within a `GET` request might work, but some web server implementations are going to reject this.
+The Icinga 2 API supports this behavior and even makes use of this, e.g., for complex filters or JSON-encoded dictionaries.
+
+However, when not connecting directly to the Icinga 2 API, but going through some middleware or proxy server, either the whole request or the content might get dropped.
+In this case, Icinga 2 supports the `X-HTTP-Method-Override` HTTP header for method overriding within `POST` requests.
+This also comes in handy when using HTTP proxies disallowing `PUT` or `DELETE` requests.
+
+To avoid these difficult to debug errors, request method overriding is used in all further examples, even if not strictly necessary.
 
 Query an existing object by sending a `POST` request with `X-HTTP-Method-Override: GET` as request header:
 
@@ -519,7 +525,8 @@ curl -k -s -S -i -u 'root:icinga' -H 'Accept: application/json' \
 ```
 
 We're using [X-HTTP-Method-Override](12-icinga2-api.md#icinga2-api-requests-method-override) here because
-the HTTP specification does not allow message bodies for GET requests.
+the HTTP specification is quite vague regarding GET requests with a request body
+and middle boxes might drop those requests.
 
 The `filters_vars` attribute can only be used inside the request body, but not as
 a URL parameter because there is no way to specify a dictionary in a URL.
