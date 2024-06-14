@@ -32,6 +32,7 @@ set(remote_SOURCES
   infohandler.cpp infohandler.hpp
   jsonrpc.cpp jsonrpc.hpp
   jsonrpcconnection.cpp jsonrpcconnection.hpp jsonrpcconnection-heartbeat.cpp jsonrpcconnection-pki.cpp
+  mallocinfohandler.cpp mallocinfohandler.hpp
   messageorigin.cpp messageorigin.hpp
   modifyobjecthandler.cpp modifyobjecthandler.hpp
   objectqueryhandler.cpp objectqueryhandler.hpp
