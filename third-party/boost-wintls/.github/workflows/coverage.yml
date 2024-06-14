@@ -1,0 +1,48 @@
+---
+name: coverage
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  codecoverage:
+    runs-on: windows-2022
+    name: Generate and upload code coverage
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Install Boost
+      uses: MarkusJx/install-boost@v2.4.4
+      id: install-boost
+      with:
+        boost_version: 1.83.0
+        toolset: msvc
+        platform_version: 2022
+
+    - name: Install packages
+      run: choco install openssl opencppcoverage
+
+    - name: Configure
+      env:
+        BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
+      shell: bash
+      run: cmake -B build -T v143 -DENABLE_DOCUMENTATION=OFF
+
+    - name: Build
+      run: cmake --build build/ --target unittest
+
+    - name: Generate code coverage
+      shell: bash
+      run: exec "${PROGRAMFILES}"/opencppcoverage/opencppcoverage --cover_children --sources="${GITHUB_WORKSPACE}"\\include --modules=unittest.exe --export_type=cobertura:cobertura.xml -- ctest
+      working-directory: build/
+
+    - name: Upload code coverage
+      uses: codecov/codecov-action@v3
+      with:
+        files: build/cobertura.xml
+        fail_ci_if_error: true

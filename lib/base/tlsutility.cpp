@@ -72,18 +72,18 @@ void InitializeOpenSSL()
 	l_SSLInitialized = true;
 }
 
-static void InitSslContext(const Shared<boost::asio::ssl::context>::Ptr& context, const String& pubkey, const String& privkey, const String& cakey)
+static void InitSslContext(const Shared<TlsContext>::Ptr& context, const String& pubkey, const String& privkey, const String& cakey)
 {
 	char errbuf[256];
 
 	// Enforce TLS v1.2 as minimum
 	context->set_options(
-		boost::asio::ssl::context::default_workarounds |
-		boost::asio::ssl::context::no_compression |
-		boost::asio::ssl::context::no_sslv2 |
-		boost::asio::ssl::context::no_sslv3 |
-		boost::asio::ssl::context::no_tlsv1 |
-		boost::asio::ssl::context::no_tlsv1_1
+		TlsContext::default_workarounds |
+		TlsContext::no_compression |
+		TlsContext::no_sslv2 |
+		TlsContext::no_sslv3 |
+		TlsContext::no_tlsv1 |
+		TlsContext::no_tlsv1_1
 	);
 
 	// Custom TLS flags
@@ -202,13 +202,13 @@ static void InitSslContext(const Shared<boost::asio::ssl::context>::Ptr& context
  * @param cakey CA certificate chain file.
  * @returns An SSL context.
  */
-Shared<boost::asio::ssl::context>::Ptr MakeAsioSslContext(const String& pubkey, const String& privkey, const String& cakey)
+Shared<TlsContext>::Ptr MakeAsioSslContext(const String& pubkey, const String& privkey, const String& cakey)
 {
 	namespace ssl = boost::asio::ssl;
 
 	InitializeOpenSSL();
 
-	auto context (Shared<ssl::context>::Make(ssl::context::tls));
+	auto context (Shared<TlsContext>::Make(TlsContext::tls));
 
 	InitSslContext(context, pubkey, privkey, cakey);
 
@@ -220,7 +220,7 @@ Shared<boost::asio::ssl::context>::Ptr MakeAsioSslContext(const String& pubkey, 
  * @param context The ssl context.
  * @param cipherList The ciper list.
  **/
-void SetCipherListToSSLContext(const Shared<boost::asio::ssl::context>::Ptr& context, const String& cipherList)
+void SetCipherListToSSLContext(const Shared<TlsContext>::Ptr& context, const String& cipherList)
 {
 	char errbuf[256];
 
@@ -278,12 +278,12 @@ int ResolveTlsProtocolVersion(const std::string& version) {
 	}
 }
 
-Shared<boost::asio::ssl::context>::Ptr SetupSslContext(String certPath, String keyPath,
+Shared<TlsContext>::Ptr SetupSslContext(String certPath, String keyPath,
 	String caPath, String crlPath, String cipherList, String protocolmin, DebugInfo di)
 {
 	namespace ssl = boost::asio::ssl;
 
-	Shared<ssl::context>::Ptr context;
+	Shared<TlsContext>::Ptr context;
 
 	try {
 		context = MakeAsioSslContext(certPath, keyPath, caPath);
@@ -327,7 +327,7 @@ Shared<boost::asio::ssl::context>::Ptr SetupSslContext(String certPath, String k
  * @param context The ssl context.
  * @param tlsProtocolmin The minimum TLS protocol version.
  */
-void SetTlsProtocolminToSSLContext(const Shared<boost::asio::ssl::context>::Ptr& context, const String& tlsProtocolmin)
+void SetTlsProtocolminToSSLContext(const Shared<TlsContext>::Ptr& context, const String& tlsProtocolmin)
 {
 #if OPENSSL_VERSION_NUMBER >= 0x10100000L
 	int ret = SSL_CTX_set_min_proto_version(context->native_handle(), ResolveTlsProtocolVersion(tlsProtocolmin));
@@ -355,7 +355,7 @@ void SetTlsProtocolminToSSLContext(const Shared<boost::asio::ssl::context>::Ptr&
  * @param context The SSL context.
  * @param crlPath The path to the CRL file.
  */
-void AddCRLToSSLContext(const Shared<boost::asio::ssl::context>::Ptr& context, const String& crlPath)
+void AddCRLToSSLContext(const Shared<TlsContext>::Ptr& context, const String& crlPath)
 {
 	X509_STORE *x509_store = SSL_CTX_get_cert_store(context->native_handle());
 	AddCRLToSSLContext(x509_store, crlPath);
