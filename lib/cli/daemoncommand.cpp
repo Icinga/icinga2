@@ -635,7 +635,7 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 	else if (!vm.count("no-config")) {
 		/* The implicit string assignment is needed for Windows builds. */
 		String configDir = Configuration::ConfigDir;
-		configs.push_back(configDir + "/icinga2.conf");
+		configs.emplace_back(configDir + "/icinga2.conf");
 	}
 
 	if (vm.count("dump-objects")) {

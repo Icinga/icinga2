@@ -401,7 +401,7 @@ void DbEvents::AddCommentInternal(std::vector<DbQuery>& queries, const Comment::
 	}
 
 	query1.Category = DbCatComment;
-	query1.Fields = fields1;
+	query1.Fields = std::move(fields1);
 	queries.emplace_back(std::move(query1));
 }
 
@@ -548,7 +548,7 @@ void DbEvents::AddDowntimeInternal(std::vector<DbQuery>& queries, const Downtime
 	}
 
 	query1.Category = DbCatDowntime;
-	query1.Fields = fields1;
+	query1.Fields = std::move(fields1);
 	queries.emplace_back(std::move(query1));
 
 	/* host/service status */
@@ -576,7 +576,7 @@ void DbEvents::AddDowntimeInternal(std::vector<DbQuery>& queries, const Downtime
 		Dictionary::Ptr fields2 = new Dictionary();
 		fields2->Set("scheduled_downtime_depth", checkable->GetDowntimeDepth());
 
-		query2.Fields = fields2;
+		query2.Fields = std::move(fields2);
 		query2.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 		queries.emplace_back(std::move(query2));
@@ -609,9 +609,6 @@ void DbEvents::RemoveDowntimeInternal(std::vector<DbQuery>& queries, const Downt
 	query1.WhereCriteria->Set("name", downtime->GetName());
 	queries.emplace_back(std::move(query1));
 
-	/* History - update actual_end_time, was_cancelled for service (and host in case) */
-	std::pair<unsigned long, unsigned long> timeBag = ConvertTimestamp(Utility::GetTime());
-
 	DbQuery query3;
 	query3.Table = "downtimehistory";
 	query3.Type = DbQueryUpdate;
@@ -621,12 +618,15 @@ void DbEvents::RemoveDowntimeInternal(std::vector<DbQuery>& queries, const Downt
 	fields3->Set("was_cancelled", downtime->GetWasCancelled() ? 1 : 0);
 
 	if (downtime->GetFixed() || (!downtime->GetFixed() && downtime->GetTriggerTime() > 0)) {
+		/* History - update actual_end_time, was_cancelled for service (and host in case) */
+		std::pair<unsigned long, unsigned long> timeBag = ConvertTimestamp(Utility::GetTime());
+
 		fields3->Set("actual_end_time", DbValue::FromTimestamp(timeBag.first));
 		fields3->Set("actual_end_time_usec", timeBag.second);
 	}
 
 	fields3->Set("is_in_effect", 0);
-	query3.Fields = fields3;
+	query3.Fields = std::move(fields3);
 
 	query3.WhereCriteria = new Dictionary({
 		{ "object_id", checkable },
@@ -663,7 +663,7 @@ void DbEvents::RemoveDowntimeInternal(std::vector<DbQuery>& queries, const Downt
 	Dictionary::Ptr fields4 = new Dictionary();
 	fields4->Set("scheduled_downtime_depth", checkable->GetDowntimeDepth());
 
-	query4.Fields = fields4;
+	query4.Fields = std::move(fields4);
 	query4.WhereCriteria->Set("instance_id", 0); /* DbConnection class fills in real ID */
 
 	queries.emplace_back(std::move(query4));
@@ -787,7 +787,7 @@ void DbEvents::AddAcknowledgementHistory(const Checkable::Ptr& checkable, const 
 	if (endpoint)
 		fields1->Set("endpoint_object_id", endpoint);
 
-	query1.Fields = fields1;
+	query1.Fields = std::move(fields1);
 	DbObject::OnQuery(query1);
 }
 
@@ -959,7 +959,7 @@ void DbEvents::AddStateChangeHistory(const Checkable::Ptr& checkable, const Chec
 	if (endpoint)
 		fields1->Set("endpoint_object_id", endpoint);
 
-	query1.Fields = fields1;
+	query1.Fields = std::move(fields1);
 	DbObject::OnQuery(query1);
 }
 
@@ -1260,7 +1260,7 @@ void DbEvents::AddLogHistory(const Checkable::Ptr& checkable, const String& buff
 	if (endpoint)
 		fields1->Set("endpoint_object_id", endpoint);
 
-	query1.Fields = fields1;
+	query1.Fields = std::move(fields1);
 	DbObject::OnQuery(query1);
 }
 
@@ -1303,7 +1303,7 @@ void DbEvents::AddFlappingChangedHistory(const Checkable::Ptr& checkable)
 	if (endpoint)
 		fields1->Set("endpoint_object_id", endpoint);
 
-	query1.Fields = fields1;
+	query1.Fields = std::move(fields1);
 	DbObject::OnQuery(query1);
 }
 
@@ -1343,7 +1343,7 @@ void DbEvents::AddEnableFlappingChangedHistory(const Checkable::Ptr& checkable)
 	if (endpoint)
 		fields1->Set("endpoint_object_id", endpoint);
 
-	query1.Fields = fields1;
+	query1.Fields = std::move(fields1);
 	DbObject::OnQuery(query1);
 }
 
@@ -1403,7 +1403,7 @@ void DbEvents::AddCheckableCheckHistory(const Checkable::Ptr& checkable, const C
 	if (endpoint)
 		fields1->Set("endpoint_object_id", endpoint);
 
-	query1.Fields = fields1;
+	query1.Fields = std::move(fields1);
 	DbObject::OnQuery(query1);
 }
 
@@ -1446,7 +1446,7 @@ void DbEvents::AddEventHandlerHistory(const Checkable::Ptr& checkable)
 	if (endpoint)
 		fields1->Set("endpoint_object_id", endpoint);
 
-	query1.Fields = fields1;
+	query1.Fields = std::move(fields1);
 	DbObject::OnQuery(query1);
 }
 
@@ -1471,7 +1471,7 @@ void DbEvents::AddExternalCommandHistory(double time, const String& command, con
 	if (endpoint)
 		fields1->Set("endpoint_object_id", endpoint);
 
-	query1.Fields = fields1;
+	query1.Fields = std::move(fields1);
 	DbObject::OnQuery(query1);
 }
 

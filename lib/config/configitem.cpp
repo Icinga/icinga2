@@ -422,7 +422,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 
 		for (const ConfigItem::Ptr& item : m_UnnamedItems) {
 			if (item->m_ActivationContext != context) {
-				newUnnamedItems.push_back(item);
+				newUnnamedItems.emplace_back(item);
 				continue;
 			}
 
@@ -450,7 +450,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 
 	for (const Type::Ptr& type : Type::GetAllTypes()) {
 		if (ConfigObject::TypeInstance->IsAssignableFrom(type))
-			types.insert(type);
+			types.emplace(type);
 	}
 
 	while (types.size() != completed_types.size()) {
@@ -501,7 +501,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 
 			itemsCount += committed_items;
 
-			completed_types.insert(type);
+			completed_types.emplace(type);
 
 #ifdef I2_DEBUG
 			if (committed_items > 0)
@@ -565,7 +565,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 
 							{
 								std::unique_lock<std::mutex> lock(item->m_Mutex);
-								item->m_IgnoredItems.push_back(item->m_DebugInfo.Path);
+								item->m_IgnoredItems.emplace_back(item->m_DebugInfo.Path);
 							}
 						}
 					});
@@ -574,7 +574,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 				}
 			}
 
-			completed_types.insert(type);
+			completed_types.emplace(type);
 
 #ifdef I2_DEBUG
 			if (notified_items > 0)

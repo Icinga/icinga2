@@ -115,7 +115,7 @@ bool ObjectQueryHandler::HandleRequest(
 	}
 
 	QueryDescription qd;
-	qd.Types.insert(type->GetName());
+	qd.Types.emplace(type->GetName());
 	qd.Permission = "objects/query/" + type->GetName();
 
 	Array::Ptr uattrs, ujoins, umetas;
@@ -174,7 +174,7 @@ bool ObjectQueryHandler::HandleRequest(
 	if (ujoins) {
 		ObjectLock olock(ujoins);
 		for (const String& ujoin : ujoins) {
-			userJoinAttrs.insert(ujoin.SubStr(0, ujoin.FindFirstOf(".")));
+			userJoinAttrs.emplace(ujoin.SubStr(0, ujoin.FindFirstOf(".")));
 		}
 	}
 

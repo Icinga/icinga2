@@ -53,7 +53,7 @@ void ScriptGlobal::Set(const String& name, const Value& value)
 				if (!parent->Get(token, &vparent)) {
 					Namespace::Ptr dict = new Namespace();
 					parent->Set(token, dict);
-					parent = dict;
+					parent = std::move(dict);
 				} else {
 					parent = vparent;
 				}

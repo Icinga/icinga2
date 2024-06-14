@@ -262,7 +262,7 @@ Object::Ptr Array::Clone() const
 
 	ObjectLock olock(this);
 	for (const Value& val : m_Data) {
-		arr.push_back(val.Clone());
+		arr.emplace_back(val.Clone());
 	}
 
 	return new Array(std::move(arr));

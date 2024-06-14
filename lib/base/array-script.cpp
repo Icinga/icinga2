@@ -131,7 +131,7 @@ static Array::Ptr ArrayMap(const Function::Ptr& function)
 
 	ObjectLock olock(self);
 	for (const Value& item : self) {
-		result.push_back(function->Invoke({ item }));
+		result.emplace_back(function->Invoke({ item }));
 	}
 
 	return new Array(std::move(result));
