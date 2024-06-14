@@ -262,16 +262,20 @@ void Checkable::FireSuppressedNotificationsTimer(const Timer * const&)
  */
 bool Checkable::NotificationReasonApplies(NotificationType type)
 {
+	const auto stateNotifications (NotificationRecovery | NotificationProblem);
+
 	switch (type) {
 		case NotificationProblem:
 			{
 				auto cr (GetLastCheckResult());
-				return cr && !IsStateOK(cr->GetState()) && cr->GetState() != GetStateBeforeSuppression();
+				return cr && !IsStateOK(cr->GetState())
+					&& !(cr->GetState() == GetStateBeforeSuppression() && GetSuppressedNotifications() & stateNotifications);
 			}
 		case NotificationRecovery:
 			{
 				auto cr (GetLastCheckResult());
-				return cr && IsStateOK(cr->GetState()) && cr->GetState() != GetStateBeforeSuppression();
+				return cr && IsStateOK(cr->GetState())
+					&& !(cr->GetState() == GetStateBeforeSuppression() && GetSuppressedNotifications() & stateNotifications);
 			}
 		case NotificationFlappingStart:
 			return IsFlapping();
