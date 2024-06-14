@@ -242,5 +242,5 @@ String icinga::PackObject(const Value& value)
 	std::string builder;
 	PackAny(value, builder);
 
-	return std::move(builder);
+	return builder;
 }
