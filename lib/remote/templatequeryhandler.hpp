@@ -21,7 +21,8 @@ public:
 		boost::beast::http::response<boost::beast::http::string_body>& response,
 		const Dictionary::Ptr& params,
 		boost::asio::yield_context& yc,
-		HttpServerConnection& server
+		HttpServerConnection& server,
+		CpuBoundWork& handlingRequest
 	) override;
 };
 
