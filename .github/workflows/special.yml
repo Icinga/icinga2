@@ -1,0 +1,33 @@
+name: Special
+
+on:
+  push:
+    branches:
+      - master
+      - 'support/*'
+  pull_request: {}
+
+concurrency:
+  group: special-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  nounity:
+    name: ICINGA2_UNITY_BUILD=OFF
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout HEAD
+        uses: actions/checkout@v3
+
+      - name: Restore/backup ccache
+        uses: actions/cache@v3
+        with:
+          path: ccache
+          key: ccache/nounity
+
+      - name: Build
+        run: >-
+          docker run --rm -v "$(pwd):/icinga2"
+          -e DISTRO=debian:11 -e CMAKE_OPTS=-DICINGA2_UNITY_BUILD=OFF
+          debian:11 /icinga2/.github/workflows/linux.bash
