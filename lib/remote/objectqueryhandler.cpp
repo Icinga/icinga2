@@ -31,7 +31,7 @@ Dictionary::Ptr ObjectQueryHandler::SerializeObjectAttrs(const Object::Ptr& obje
 		}
 	}
 
-	if (!isJoin && (!attrs || attrs->GetLength() == 0))
+	if (!isJoin && !attrs)
 		allAttrs = true;
 
 	if (allAttrs) {
