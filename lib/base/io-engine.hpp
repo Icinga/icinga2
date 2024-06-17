@@ -109,8 +109,7 @@ public:
 					// https://github.com/boostorg/coroutine/issues/39
 					throw;
 				} catch (const std::exception& ex) {
-					Log(LogCritical, "IoEngine", "Exception in coroutine!");
-					Log(LogDebug, "IoEngine") << "Exception in coroutine: " << DiagnosticInformation(ex);
+					Log(LogCritical, "IoEngine") << "Exception in coroutine: " << DiagnosticInformation(ex);
 				} catch (...) {
 					Log(LogCritical, "IoEngine", "Exception in coroutine!");
 				}
