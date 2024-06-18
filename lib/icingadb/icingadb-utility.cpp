@@ -245,6 +245,12 @@ String IcingaDB::GetLowerCaseTypeNameDB(const ConfigObject::Ptr& obj)
 }
 
 long long IcingaDB::TimestampToMilliseconds(double timestamp) {
+	// In addition to the limit of 2^63 of the Icinga DB PostgreSQL schema,
+	// negative timestamps or years with more than four digits may cause problems.
+	if (timestamp <= 0.0 || timestamp > 2e11 /* 8307 AD */) {
+		return 0;
+	}
+
 	return static_cast<long long>(timestamp * 1000);
 }
 
