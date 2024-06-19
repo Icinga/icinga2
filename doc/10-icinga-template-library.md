@@ -3652,7 +3652,7 @@ iostat\_cwrite | **Required.** Critical threshold for KB/s writes (default: 200)
 
 #### systemd <a id="plugin-contrib-command-systemd"></a>
 
-The [check_systemd.py](https://github.com/Josef-Friedrich/check_systemd) plugin
+The [check_systemd](https://github.com/Josef-Friedrich/check_systemd) plugin
 will report a degraded system to your monitoring solution. It requires only the [nagiosplugin](https://nagiosplugin.readthedocs.io/en/stable) library.
 
 Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):

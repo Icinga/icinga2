@@ -2135,7 +2135,7 @@ In order to find out about the command argument, call the plugin's help
 or consult the README.
 
 ```
-./check_systemd.py --help
+./check_systemd --help
 
 ...
 
@@ -2194,7 +2194,7 @@ With the [example above](03-monitoring-basics.md#command-arguments-value),
 inspect the parameter's help text.
 
 ```
-./check_systemd.py --help
+./check_systemd --help
 
 ...
 

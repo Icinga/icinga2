@@ -281,10 +281,10 @@ that [it works](05-service-monitoring.md#service-monitoring-plugins-it-works). T
 `--help` parameter to see the actual parameters (docs might be outdated).
 
 ```
-./check_systemd.py --help
+./check_systemd --help
 
-usage: check_systemd.py [-h] [-c SECONDS] [-e UNIT | -u UNIT] [-v] [-V]
-                        [-w SECONDS]
+usage: check_systemd [-h] [-c SECONDS] [-e UNIT | -u UNIT] [-v] [-V]
+                     [-w SECONDS]
 
 ...
 
@@ -319,7 +319,7 @@ Start with the basic plugin call without any parameters.
 
 ```
 object CheckCommand "systemd" { // Plugin name without 'check_' prefix
-  command = [ PluginContribDir + "/check_systemd.py" ] // Use the 'PluginContribDir' constant, see the contributed ITL commands
+  command = [ PluginContribDir + "/check_systemd" ] // Use the 'PluginContribDir' constant, see the contributed ITL commands
 }
 ```
 
