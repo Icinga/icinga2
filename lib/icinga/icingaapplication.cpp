@@ -21,9 +21,17 @@
 #include "base/loader.hpp"
 #include <fstream>
 
+#ifdef __linux__
+#	include <malloc.h>
+#endif /* __linux__ */
+
 using namespace icinga;
 
 static Timer::Ptr l_RetentionTimer;
+
+#ifdef __linux__
+static Timer::Ptr l_MallocTrimTimer;
+#endif /* __linux__ */
 
 REGISTER_TYPE(IcingaApplication);
 /* Ensure that the priority is lower than the basic System namespace initialization in scriptframe.cpp. */
@@ -109,6 +117,18 @@ int IcingaApplication::Main()
 	l_RetentionTimer->OnTimerExpired.connect([this](const Timer * const&) { DumpProgramState(); });
 	l_RetentionTimer->Start();
 
+#ifdef __linux__
+	l_MallocTrimTimer = Timer::Create();
+	l_MallocTrimTimer->SetInterval(300);
+
+	l_MallocTrimTimer->OnTimerExpired.connect([this](const Timer * const&) {
+		Log(LogNotice, "IcingaApplication") << "Releasing heap memory via malloc_trim(0).";
+		Log(LogNotice, "IcingaApplication") << "malloc_trim(0) returned " << malloc_trim(0) << ".";
+	});
+
+	l_MallocTrimTimer->Start();
+#endif /* __linux__ */
+
 	RunEventLoop();
 
 	Log(LogInformation, "IcingaApplication", "Icinga has shut down.");
@@ -121,6 +141,10 @@ void IcingaApplication::OnShutdown()
 	{
 		ObjectLock olock(this);
 		l_RetentionTimer->Stop();
+
+#ifdef __linux__
+		l_MallocTrimTimer->Stop();
+#endif /* __linux__ */
 	}
 
 	DumpProgramState();
