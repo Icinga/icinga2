@@ -38,6 +38,8 @@
             this.lblConfigStatus = new System.Windows.Forms.Label();
             this.prgConfig = new System.Windows.Forms.ProgressBar();
             this.tabParameters = new System.Windows.Forms.TabPage();
+            this.txtParentZone = new System.Windows.Forms.TextBox();
+            this.lblParentZone = new System.Windows.Forms.Label();
             this.linkLabelDocs = new System.Windows.Forms.LinkLabel();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
             this.btnEditGlobalZone = new System.Windows.Forms.Button();
@@ -141,7 +143,7 @@
             this.tabFinish.Location = new System.Drawing.Point(4, 5);
             this.tabFinish.Name = "tabFinish";
             this.tabFinish.Padding = new System.Windows.Forms.Padding(3);
-            this.tabFinish.Size = new System.Drawing.Size(617, 495);
+            this.tabFinish.Size = new System.Drawing.Size(617, 472);
             this.tabFinish.TabIndex = 5;
             this.tabFinish.Text = "Finish";
             this.tabFinish.UseVisualStyleBackColor = true;
@@ -162,7 +164,7 @@
             this.tabConfigure.Location = new System.Drawing.Point(4, 5);
             this.tabConfigure.Name = "tabConfigure";
             this.tabConfigure.Padding = new System.Windows.Forms.Padding(3);
-            this.tabConfigure.Size = new System.Drawing.Size(617, 495);
+            this.tabConfigure.Size = new System.Drawing.Size(617, 472);
             this.tabConfigure.TabIndex = 4;
             this.tabConfigure.Text = "Configure Icinga 2";
             this.tabConfigure.UseVisualStyleBackColor = true;
@@ -185,6 +187,8 @@
             // 
             // tabParameters
             // 
+            this.tabParameters.Controls.Add(this.txtParentZone);
+            this.tabParameters.Controls.Add(this.lblParentZone);
             this.tabParameters.Controls.Add(this.linkLabelDocs);
             this.tabParameters.Controls.Add(this.groupBox4);
             this.tabParameters.Controls.Add(this.introduction1);
@@ -202,6 +206,23 @@
             this.tabParameters.TabIndex = 3;
             this.tabParameters.Text = "Agent Parameters";
             this.tabParameters.UseVisualStyleBackColor = true;
+            // 
+            // txtParentZone
+            // 
+            this.txtParentZone.Location = new System.Drawing.Point(528, 56);
+            this.txtParentZone.Name = "txtParentZone";
+            this.txtParentZone.Size = new System.Drawing.Size(73, 20);
+            this.txtParentZone.TabIndex = 12;
+            this.txtParentZone.Text = "master";
+            // 
+            // lblParentZone
+            // 
+            this.lblParentZone.AutoSize = true;
+            this.lblParentZone.Location = new System.Drawing.Point(525, 30);
+            this.lblParentZone.Name = "lblParentZone";
+            this.lblParentZone.Size = new System.Drawing.Size(69, 13);
+            this.lblParentZone.TabIndex = 11;
+            this.lblParentZone.Text = "Parent Zone:";
             // 
             // linkLabelDocs
             // 
@@ -544,7 +565,7 @@
             this.tabRetrieveCertificate.Location = new System.Drawing.Point(4, 5);
             this.tabRetrieveCertificate.Name = "tabRetrieveCertificate";
             this.tabRetrieveCertificate.Padding = new System.Windows.Forms.Padding(3);
-            this.tabRetrieveCertificate.Size = new System.Drawing.Size(617, 495);
+            this.tabRetrieveCertificate.Size = new System.Drawing.Size(617, 472);
             this.tabRetrieveCertificate.TabIndex = 7;
             this.tabRetrieveCertificate.Text = "Checking Certificate";
             this.tabRetrieveCertificate.UseVisualStyleBackColor = true;
@@ -576,7 +597,7 @@
             this.tabVerifyCertificate.Location = new System.Drawing.Point(4, 5);
             this.tabVerifyCertificate.Name = "tabVerifyCertificate";
             this.tabVerifyCertificate.Padding = new System.Windows.Forms.Padding(3);
-            this.tabVerifyCertificate.Size = new System.Drawing.Size(617, 495);
+            this.tabVerifyCertificate.Size = new System.Drawing.Size(617, 472);
             this.tabVerifyCertificate.TabIndex = 6;
             this.tabVerifyCertificate.Text = "Verify Certificate";
             this.tabVerifyCertificate.UseVisualStyleBackColor = true;
@@ -677,7 +698,7 @@
             this.tabError.Location = new System.Drawing.Point(4, 5);
             this.tabError.Name = "tabError";
             this.tabError.Padding = new System.Windows.Forms.Padding(3);
-            this.tabError.Size = new System.Drawing.Size(617, 495);
+            this.tabError.Size = new System.Drawing.Size(617, 472);
             this.tabError.TabIndex = 8;
             this.tabError.Text = "Error";
             this.tabError.UseVisualStyleBackColor = true;
@@ -816,6 +837,8 @@
 		private System.Windows.Forms.ColumnHeader colGlobalZoneName;
 		private System.Windows.Forms.CheckBox chkDisableConf;
 		private System.Windows.Forms.LinkLabel linkLabelDocs;
-	}
+        private System.Windows.Forms.TextBox txtParentZone;
+        private System.Windows.Forms.Label lblParentZone;
+    }
 }
 
