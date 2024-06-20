@@ -32,7 +32,7 @@ vim /etc/icinga2/conf.d/templates.conf
 
 Install the package `nano-icinga2` with your distribution's package manager.
 
-**Note:** On Debian, Ubuntu and Raspbian, the syntax files are installed with the `icinga2-common` package already.
+**Note:** On Debian, Ubuntu, Raspbian and Raspberry Pi OS, the syntax files are installed with the `icinga2-common` package already.
 
 Copy the `/etc/nanorc` sample file to your home directory.
 
