@@ -246,7 +246,7 @@ with `root` permissions unless noted otherwise.
 
 <!-- {% if debian or ubuntu or raspbian %} -->
 <!-- {% if not icingaDocs %} -->
-#### Debian / Ubuntu / Raspbian
+#### Debian / Ubuntu / Raspbian / Raspberry Pi OS
 <!-- {% endif %} -->
 ```bash
 apt install icinga2
@@ -358,7 +358,7 @@ to determine where to find the plugin binaries.
 
 <!-- {% if debian or ubuntu or raspbian %} -->
 <!-- {% if not icingaDocs %} -->
-#### Debian / Ubuntu / Raspbian
+#### Debian / Ubuntu / Raspbian / Raspberry Pi OS
 <!-- {% endif %} -->
 ```bash
 apt install monitoring-plugins
@@ -531,7 +531,7 @@ yum install icingadb-redis
 
 <!-- {% if debian or ubuntu %} -->
 <!-- {% if not icingaDocs %} -->
-##### Debian / Ubuntu
+##### Debian / Ubuntu / Raspberry Pi OS
 <!-- {% endif %} -->
 ```bash
 apt install icingadb-redis
