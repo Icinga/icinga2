@@ -567,11 +567,11 @@ void Checkable::ExecuteCheck(const WaitGroup::Ptr& producer)
 
 	SetLastCheckStarted(Utility::GetTime());
 
-	/* This calls SetNextCheck() which updates the CheckerComponent's idle/pending
+	/* This calls SetNextCheck() for a later update of the CheckerComponent's idle/pending
 	 * queues and ensures that checks are not fired multiple times. ProcessCheckResult()
 	 * is called too late. See #6421.
 	 */
-	UpdateNextCheck();
+	UpdateNextCheck(nullptr, true);
 
 	bool reachable = IsReachable();
 
@@ -644,7 +644,7 @@ void Checkable::ExecuteCheck(const WaitGroup::Ptr& producer)
 			 * a check result from the remote instance. The check will be re-scheduled
 			 * using the proper check interval once we've received a check result.
 			 */
-			SetNextCheck(Utility::GetTime() + checkTimeout + 30);
+			SetNextCheck(Utility::GetTime() + checkTimeout + 30, true);
 
 		/*
 		 * Let the user know that there was a problem with the check if
