@@ -12,6 +12,7 @@
 #include "base/objectlock.hpp"
 #include <algorithm>
 #include <cstdint>
+#include <cstring>
 #include <mmatch.h>
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
@@ -31,6 +32,10 @@
 #include <set>
 #include <utf8.h>
 #include <vector>
+
+extern "C" {
+	#include <crypt_blowfish.h>
+}
 
 #ifdef __FreeBSD__
 #	include <pthread_np.h>
@@ -1972,4 +1977,14 @@ bool Utility::ComparePasswords(const String& enteredPassword, const String& actu
 	}
 
 	return result;
+}
+
+/**
+ * Compare the password entered by a client with the actual password's BCrypt hash.
+ */
+bool Utility::CompareBCryptPasswords(const String& enteredPassword, const String& bCryptHash)
+{
+	char out[64] = { 0 };
+	_crypt_blowfish_rn(enteredPassword.CStr(), bCryptHash.CStr(), out, sizeof(out));
+	return strcmp(out, bCryptHash.CStr()) == 0;
 }
