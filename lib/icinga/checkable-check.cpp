@@ -49,7 +49,7 @@ long Checkable::GetSchedulingOffset()
 	return m_SchedulingOffset;
 }
 
-void Checkable::UpdateNextCheck(const MessageOrigin::Ptr& origin)
+void Checkable::UpdateNextCheck(const MessageOrigin::Ptr& origin, bool suppressEvents)
 {
 	double interval;
 
@@ -75,7 +75,7 @@ void Checkable::UpdateNextCheck(const MessageOrigin::Ptr& origin)
 		<< "' from last check time at " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", (lastCheck < 0 ? 0 : lastCheck))
 		<< " (" << GetLastCheck() << ") to next check time at " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", nextCheck) << " (" << nextCheck << ").";
 
-	SetNextCheck(nextCheck, false, origin);
+	SetNextCheck(nextCheck, suppressEvents, origin);
 }
 
 bool Checkable::HasBeenChecked() const
@@ -556,11 +556,11 @@ void Checkable::ExecuteCheck()
 
 	SetLastCheckStarted(Utility::GetTime());
 
-	/* This calls SetNextCheck() which updates the CheckerComponent's idle/pending
+	/* This calls SetNextCheck() for a later update of the CheckerComponent's idle/pending
 	 * queues and ensures that checks are not fired multiple times. ProcessCheckResult()
 	 * is called too late. See #6421.
 	 */
-	UpdateNextCheck();
+	UpdateNextCheck(nullptr, true);
 
 	bool reachable = IsReachable();
 
@@ -629,7 +629,7 @@ void Checkable::ExecuteCheck()
 			 * a check result from the remote instance. The check will be re-scheduled
 			 * using the proper check interval once we've received a check result.
 			 */
-			SetNextCheck(Utility::GetTime() + GetCheckCommand()->GetTimeout() + 30);
+			SetNextCheck(Utility::GetTime() + GetCheckCommand()->GetTimeout() + 30, true);
 
 		/*
 		 * Let the user know that there was a problem with the check if
