@@ -23,8 +23,8 @@ jobs:
         distro:
           - amazonlinux:2
           - amazonlinux:2023
-          - debian:11 # and Raspbian 11
-          - debian:12 # and Raspbian 12
+          - debian:11 # and Raspberry Pi OS 11
+          - debian:12 # and Raspberry Pi OS 12
           - fedora:37
           - fedora:38
           - fedora:39
