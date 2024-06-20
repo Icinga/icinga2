@@ -51,7 +51,7 @@ long Checkable::GetSchedulingOffset()
 	return m_SchedulingOffset;
 }
 
-void Checkable::UpdateNextCheck(const MessageOrigin::Ptr& origin)
+void Checkable::UpdateNextCheck(const MessageOrigin::Ptr& origin, bool suppressEvents)
 {
 	double interval;
 
@@ -79,7 +79,7 @@ void Checkable::UpdateNextCheck(const MessageOrigin::Ptr& origin)
 		<< " (" << lastCheck << ") to next check time at "
 		<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", nextCheck) << " (" << nextCheck << ").";
 
-	SetNextCheck(nextCheck, false, origin);
+	SetNextCheck(nextCheck, suppressEvents, origin);
 }
 
 bool Checkable::HasBeenChecked() const
