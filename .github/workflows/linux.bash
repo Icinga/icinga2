@@ -1,7 +1,7 @@
 #!/bin/bash
 set -exo pipefail
 
-export PATH="/usr/lib/ccache:/usr/lib64/ccache:/opt/rh/devtoolset-11/root/usr/bin:$PATH"
+export PATH="/usr/lib/ccache:/usr/lib64/ccache:$PATH"
 export CCACHE_DIR=/icinga2/ccache
 export CTEST_OUTPUT_ON_FAILURE=1
 CMAKE_OPTS=''
@@ -30,15 +30,6 @@ case "$DISTRO" in
   amazonlinux:20*)
     dnf install -y bison cmake flex gcc-c++ ninja-build \
       {boost,libedit,mariadb1\*,ncurses,openssl,postgresql,systemd}-devel
-    ;;
-
-  centos:*)
-    yum install -y centos-release-scl epel-release
-    yum install -y bison ccache cmake devtoolset-11-gcc-c++ flex ninja-build \
-      {boost169,libedit,mariadb,ncurses,openssl,postgresql,systemd}-devel
-
-    ln -vs /usr/bin/ccache /usr/lib64/ccache/g++
-    CMAKE_OPTS='-DBOOST_INCLUDEDIR=/usr/include/boost169 -DBOOST_LIBRARYDIR=/usr/lib64/boost169'
     ;;
 
   debian:*|ubuntu:*)
