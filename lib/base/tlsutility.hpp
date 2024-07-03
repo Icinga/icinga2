@@ -51,8 +51,8 @@ void SetCipherListToSSLContext(const Shared<TlsContext>::Ptr& context, const Str
 void SetTlsProtocolminToSSLContext(const Shared<TlsContext>::Ptr& context, const String& tlsProtocolmin);
 int ResolveTlsProtocolVersion(const std::string& version);
 
-Shared<TlsContext>::Ptr SetupSslContext(String certPath, String keyPath,
-	String caPath, String crlPath, String cipherList, String protocolmin, DebugInfo di);
+Shared<TlsContext>::Ptr SetupSslContext(const String& certPath, const String& keyPath,
+	const String& caPath, const String& crlPath, const String& cipherList, const String& protocolmin, DebugInfo di);
 
 String GetCertificateCN(const std::shared_ptr<X509>& certificate);
 std::shared_ptr<X509> GetX509Certificate(const String& pemfile);

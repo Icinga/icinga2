@@ -14,6 +14,7 @@
 #include <openssl/ssl.h>
 #include <openssl/ssl3.h>
 #include <fstream>
+#include <utility>
 
 namespace icinga
 {
@@ -278,8 +279,8 @@ int ResolveTlsProtocolVersion(const std::string& version) {
 	}
 }
 
-Shared<TlsContext>::Ptr SetupSslContext(String certPath, String keyPath,
-	String caPath, String crlPath, String cipherList, String protocolmin, DebugInfo di)
+Shared<TlsContext>::Ptr SetupSslContext(const String& certPath, const String& keyPath,
+	const String& caPath, const String& crlPath, const String& cipherList, const String& protocolmin, DebugInfo di)
 {
 	namespace ssl = boost::asio::ssl;
 
@@ -289,7 +290,7 @@ Shared<TlsContext>::Ptr SetupSslContext(String certPath, String keyPath,
 		context = MakeAsioSslContext(certPath, keyPath, caPath);
 	} catch (const std::exception&) {
 		BOOST_THROW_EXCEPTION(ScriptError("Cannot make SSL context for cert path: '"
-			+ certPath + "' key path: '" + keyPath + "' ca path: '" + caPath + "'.", di));
+			+ certPath + "' key path: '" + keyPath + "' ca path: '" + caPath + "'.", std::move(di)));
 	}
 
 	if (!crlPath.IsEmpty()) {
@@ -297,7 +298,7 @@ Shared<TlsContext>::Ptr SetupSslContext(String certPath, String keyPath,
 			AddCRLToSSLContext(context, crlPath);
 		} catch (const std::exception&) {
 			BOOST_THROW_EXCEPTION(ScriptError("Cannot add certificate revocation list to SSL context for crl path: '"
-				+ crlPath + "'.", di));
+				+ crlPath + "'.", std::move(di)));
 		}
 	}
 
@@ -306,7 +307,7 @@ Shared<TlsContext>::Ptr SetupSslContext(String certPath, String keyPath,
 			SetCipherListToSSLContext(context, cipherList);
 		} catch (const std::exception&) {
 			BOOST_THROW_EXCEPTION(ScriptError("Cannot set cipher list to SSL context for cipher list: '"
-				+ cipherList + "'.", di));
+				+ cipherList + "'.", std::move(di)));
 		}
 	}
 
@@ -314,7 +315,7 @@ Shared<TlsContext>::Ptr SetupSslContext(String certPath, String keyPath,
 		try {
 			SetTlsProtocolminToSSLContext(context, protocolmin);
 		} catch (const std::exception&) {
-			BOOST_THROW_EXCEPTION(ScriptError("Cannot set minimum TLS protocol version to SSL context with tls_protocolmin: '" + protocolmin + "'.", di));
+			BOOST_THROW_EXCEPTION(ScriptError("Cannot set minimum TLS protocol version to SSL context with tls_protocolmin: '" + protocolmin + "'.", std::move(di)));
 		}
 	}
 
