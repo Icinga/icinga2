@@ -501,7 +501,7 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	double start = Utility::GetTime();
 
 	try {
-		ctx = SetupSslContext(cert, key, ca, crl, DEFAULT_TLS_CIPHERS, DEFAULT_TLS_PROTOCOLMIN, DebugInfo());
+		ctx = SetupSslContext(cert, key, ca, crl, DEFAULT_TLS_CIPHERS, DEFAULT_TLS_PROTOCOLMIN);
 	} catch (const std::exception& ex) {
 		ReportIfwCheckResult(checkable, cmdLine, cr, ex.what(), start, Utility::GetTime());
 		return;
