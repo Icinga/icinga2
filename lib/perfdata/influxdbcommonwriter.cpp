@@ -152,10 +152,9 @@ OptionalTlsStream InfluxdbCommonWriter::Connect()
 		Shared<TlsContext>::Ptr sslContext;
 
 		try {
-			sslContext = MakeAsioSslContext(GetSslCert(), GetSslKey(), GetSslCaCert());
+			sslContext = SetupSslContext(GetSslCert(), GetSslKey(), GetSslCaCert());
 		} catch (const std::exception& ex) {
-			Log(LogWarning, GetReflectionType()->GetName())
-				<< "Unable to create SSL context.";
+			Log(LogWarning, GetReflectionType()->GetName()) << ex.what();
 			throw;
 		}
 

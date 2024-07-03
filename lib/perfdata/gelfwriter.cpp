@@ -177,10 +177,9 @@ void GelfWriter::ReconnectInternal()
 		Shared<TlsContext>::Ptr sslContext;
 
 		try {
-			sslContext = MakeAsioSslContext(GetCertPath(), GetKeyPath(), GetCaPath());
+			sslContext = SetupSslContext(GetCertPath(), GetKeyPath(), GetCaPath());
 		} catch (const std::exception& ex) {
-			Log(LogWarning, "GelfWriter")
-				<< "Unable to create SSL context.";
+			Log(LogWarning, "GelfWriter") << ex.what();
 			throw;
 		}
 

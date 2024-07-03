@@ -605,10 +605,9 @@ OptionalTlsStream ElasticsearchWriter::Connect()
 		Shared<TlsContext>::Ptr sslContext;
 
 		try {
-			sslContext = MakeAsioSslContext(GetCertPath(), GetKeyPath(), GetCaPath());
-		} catch (const std::exception&) {
-			Log(LogWarning, "ElasticsearchWriter")
-				<< "Unable to create SSL context.";
+			sslContext = SetupSslContext(GetCertPath(), GetKeyPath(), GetCaPath());
+		} catch (const std::exception& ex) {
+			Log(LogWarning, "ElasticsearchWriter") << ex.what();
 			throw;
 		}
 
