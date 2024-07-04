@@ -40,6 +40,8 @@ const auto RENEW_INTERVAL  = 60 * 60 * 24;
 
 typedef boost::asio::ssl::context TlsContext;
 
+typedef int TlsProtocolMin;
+
 void InitializeOpenSSL();
 
 String GetOpenSSLVersion();
@@ -48,7 +50,7 @@ void AddCRLToSSLContext(const Shared<TlsContext>::Ptr& context, const String& cr
 void AddCRLToSSLContext(X509_STORE *x509_store, const String& crlPath);
 void SetCipherListToSSLContext(const Shared<TlsContext>::Ptr& context, const String& cipherList);
 void SetTlsProtocolminToSSLContext(const Shared<TlsContext>::Ptr& context, const String& tlsProtocolmin);
-int ResolveTlsProtocolVersion(const std::string& version);
+TlsProtocolMin ResolveTlsProtocolVersion(const std::string& version);
 
 Shared<TlsContext>::Ptr SetupSslContext(const String& certPath = String(), const String& keyPath = String(), const String& caPath = String(),
 	const String& crlPath = String(), const String& cipherList = String(), const String& protocolmin = String(), DebugInfo di = {});

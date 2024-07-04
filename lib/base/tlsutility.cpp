@@ -244,7 +244,7 @@ void SetCipherListToSSLContext(const Shared<TlsContext>::Ptr& context, const Str
  * @param version String of a TLS version, for example "TLSv1.2".
  * @return The value of the corresponding TLS*_VERSION macro.
  */
-int ResolveTlsProtocolVersion(const std::string& version) {
+TlsProtocolMin ResolveTlsProtocolVersion(const std::string& version) {
 	if (version == "TLSv1.2") {
 		return TLS1_2_VERSION;
 	} else if (version == "TLSv1.3") {
