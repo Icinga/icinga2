@@ -44,7 +44,6 @@ void InitializeOpenSSL();
 
 String GetOpenSSLVersion();
 
-Shared<TlsContext>::Ptr MakeAsioSslContext(const String& pubkey = String(), const String& privkey = String(), const String& cakey = String());
 void AddCRLToSSLContext(const Shared<TlsContext>::Ptr& context, const String& crlPath);
 void AddCRLToSSLContext(X509_STORE *x509_store, const String& crlPath);
 void SetCipherListToSSLContext(const Shared<TlsContext>::Ptr& context, const String& cipherList);

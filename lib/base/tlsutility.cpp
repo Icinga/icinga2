@@ -196,27 +196,6 @@ static void InitSslContext(const Shared<TlsContext>::Ptr& context, const String&
 }
 
 /**
- * Initializes an SSL context using the specified certificates.
- *
- * @param pubkey The public key.
- * @param privkey The matching private key.
- * @param cakey CA certificate chain file.
- * @returns An SSL context.
- */
-Shared<TlsContext>::Ptr MakeAsioSslContext(const String& pubkey, const String& privkey, const String& cakey)
-{
-	namespace ssl = boost::asio::ssl;
-
-	InitializeOpenSSL();
-
-	auto context (Shared<TlsContext>::Make(TlsContext::tls));
-
-	InitSslContext(context, pubkey, privkey, cakey);
-
-	return context;
-}
-
-/**
  * Set the cipher list to the specified SSL context.
  * @param context The ssl context.
  * @param cipherList The ciper list.
@@ -286,8 +265,12 @@ Shared<TlsContext>::Ptr SetupSslContext(const String& certPath, const String& ke
 
 	Shared<TlsContext>::Ptr context;
 
+	InitializeOpenSSL();
+
 	try {
-		context = MakeAsioSslContext(certPath, keyPath, caPath);
+		context = Shared<TlsContext>::Make(TlsContext::tls);
+
+		InitSslContext(context, certPath, keyPath, caPath);
 	} catch (const std::exception&) {
 		BOOST_THROW_EXCEPTION(ScriptError("Cannot make SSL context for cert path: '"
 			+ certPath + "' key path: '" + keyPath + "' ca path: '" + caPath + "'.", std::move(di)));
