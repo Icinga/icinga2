@@ -75,8 +75,10 @@ plugin scripts.
 
 ### icinga <a id="itl-icinga"></a>
 
-Check command for the built-in `icinga` check. This check returns performance
-data for the current Icinga instance, reports as warning if the last reload failed and optionally allows for minimum version checks.
+Check command for the built-in `icinga` check. This check returns performance data for the current Icinga instance,
+reports as warning if the last reload/config-sync failed and optionally allows for minimum version checks.
+
+For the config sync check to work this must be executed on Satellites/Agents.
 
 Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
