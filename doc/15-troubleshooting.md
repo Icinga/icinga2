@@ -1640,7 +1640,7 @@ Typical errors are:
 * The api feature doesn't [accept config](06-distributed-monitoring.md#distributed-monitoring-top-down-config-sync). This is logged into `/var/lib/icinga2/icinga2.log`.
 * The received configuration zone is not configured in [zones.conf](04-configuration.md#zones-conf) and Icinga denies it. This is logged into `/var/lib/icinga2/icinga2.log`.
 * The satellite/agent has local configuration in `/etc/icinga2/zones.d` and thinks it is authoritive for this zone. It then denies the received update. Purge the content from `/etc/icinga2/zones.d`, `/var/lib/icinga2/api/zones/*` and restart Icinga to fix this.
-* Configuration parts stored outside of `/etc/icinga2/zones.d` on the master, for example a constant in /etc/icinga2/constants.conf, which are then missing on the satellite/agent.
+* Configuration parts stored outside of `/etc/icinga2/zones.d` on the master, for example a constant in `/etc/icinga2/constants.conf`, are then missing on the satellite/agent.
 
 Note that if set up, the [built-in icinga CheckCommand](10-icinga-template-library.md#icinga) will notify you in case the config sync wasn't successful.
 
