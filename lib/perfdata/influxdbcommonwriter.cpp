@@ -148,13 +148,12 @@ OptionalTlsStream InfluxdbCommonWriter::Connect()
 	bool ssl = GetSslEnable();
 
 	if (ssl) {
-		Shared<boost::asio::ssl::context>::Ptr sslContext;
+		Shared<TlsContext>::Ptr sslContext;
 
 		try {
-			sslContext = MakeAsioSslContext(GetSslCert(), GetSslKey(), GetSslCaCert());
+			sslContext = SetupSslContext(GetSslCert(), GetSslKey(), GetSslCaCert());
 		} catch (const std::exception& ex) {
-			Log(LogWarning, GetReflectionType()->GetName())
-				<< "Unable to create SSL context.";
+			Log(LogWarning, GetReflectionType()->GetName()) << ex.what();
 			throw;
 		}
 

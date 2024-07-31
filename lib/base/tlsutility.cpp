@@ -14,6 +14,7 @@
 #include <openssl/ssl.h>
 #include <openssl/ssl3.h>
 #include <fstream>
+#include <utility>
 
 namespace icinga
 {
@@ -72,18 +73,18 @@ void InitializeOpenSSL()
 	l_SSLInitialized = true;
 }
 
-static void InitSslContext(const Shared<boost::asio::ssl::context>::Ptr& context, const String& pubkey, const String& privkey, const String& cakey)
+static void InitSslContext(const Shared<TlsContext>::Ptr& context, const String& pubkey, const String& privkey, const String& cakey)
 {
 	char errbuf[256];
 
 	// Enforce TLS v1.2 as minimum
 	context->set_options(
-		boost::asio::ssl::context::default_workarounds |
-		boost::asio::ssl::context::no_compression |
-		boost::asio::ssl::context::no_sslv2 |
-		boost::asio::ssl::context::no_sslv3 |
-		boost::asio::ssl::context::no_tlsv1 |
-		boost::asio::ssl::context::no_tlsv1_1
+		TlsContext::default_workarounds |
+		TlsContext::no_compression |
+		TlsContext::no_sslv2 |
+		TlsContext::no_sslv3 |
+		TlsContext::no_tlsv1 |
+		TlsContext::no_tlsv1_1
 	);
 
 	// Custom TLS flags
@@ -195,32 +196,11 @@ static void InitSslContext(const Shared<boost::asio::ssl::context>::Ptr& context
 }
 
 /**
- * Initializes an SSL context using the specified certificates.
- *
- * @param pubkey The public key.
- * @param privkey The matching private key.
- * @param cakey CA certificate chain file.
- * @returns An SSL context.
- */
-Shared<boost::asio::ssl::context>::Ptr MakeAsioSslContext(const String& pubkey, const String& privkey, const String& cakey)
-{
-	namespace ssl = boost::asio::ssl;
-
-	InitializeOpenSSL();
-
-	auto context (Shared<ssl::context>::Make(ssl::context::tls));
-
-	InitSslContext(context, pubkey, privkey, cakey);
-
-	return context;
-}
-
-/**
  * Set the cipher list to the specified SSL context.
  * @param context The ssl context.
  * @param cipherList The ciper list.
  **/
-void SetCipherListToSSLContext(const Shared<boost::asio::ssl::context>::Ptr& context, const String& cipherList)
+void SetCipherListToSSLContext(const Shared<TlsContext>::Ptr& context, const String& cipherList)
 {
 	char errbuf[256];
 
@@ -264,32 +244,59 @@ void SetCipherListToSSLContext(const Shared<boost::asio::ssl::context>::Ptr& con
  * @param version String of a TLS version, for example "TLSv1.2".
  * @return The value of the corresponding TLS*_VERSION macro.
  */
-int ResolveTlsProtocolVersion(const std::string& version) {
+TlsProtocolMin ResolveTlsProtocolVersion(const std::string& version) {
+#ifdef _WIN32
+	if (version == "TLSv1.2") {
+		return TlsProtocolMin((int)TlsProtocolMin::tlsv12 | (int)TlsProtocolMin::tlsv13);
+	} else if (version == "TLSv1.3") {
+		return TlsProtocolMin::tlsv13;
+#else /* _WIN32 */
 	if (version == "TLSv1.2") {
 		return TLS1_2_VERSION;
 	} else if (version == "TLSv1.3") {
-#if OPENSSL_VERSION_NUMBER >= 0x10101000L
+#	if OPENSSL_VERSION_NUMBER >= 0x10101000L
 		return TLS1_3_VERSION;
-#else /* OPENSSL_VERSION_NUMBER >= 0x10101000L */
+#	else /* OPENSSL_VERSION_NUMBER >= 0x10101000L */
 		throw std::runtime_error("'" + version + "' is only supported with OpenSSL 1.1.1 or newer");
-#endif /* OPENSSL_VERSION_NUMBER >= 0x10101000L */
+#	endif /* OPENSSL_VERSION_NUMBER >= 0x10101000L */
+#endif /* _WIN32 */
 	} else {
 		throw std::runtime_error("Unknown TLS protocol version '" + version + "'");
 	}
 }
 
-Shared<boost::asio::ssl::context>::Ptr SetupSslContext(String certPath, String keyPath,
-	String caPath, String crlPath, String cipherList, String protocolmin, DebugInfo di)
+Shared<TlsContext>::Ptr SetupSslContext(const String& certPath, const String& keyPath,
+	const String& caPath, const String& crlPath, const String& cipherList, const String& protocolmin, DebugInfo di)
 {
 	namespace ssl = boost::asio::ssl;
 
-	Shared<ssl::context>::Ptr context;
+	Shared<TlsContext>::Ptr context;
+
+#ifdef _WIN32
+	auto method (TlsProtocolMin::system_default);
+#else /* _WIN32 */
+	auto method (TlsContext::tls);
+#endif /* _WIN32 */
+
+	InitializeOpenSSL();
+
+#ifdef _WIN32
+	if (!protocolmin.IsEmpty()) {
+		try {
+			method = ResolveTlsProtocolVersion(protocolmin);
+		} catch (const std::exception&) {
+			BOOST_THROW_EXCEPTION(ScriptError("Cannot set minimum TLS protocol version to SSL context with tls_protocolmin: '" + protocolmin + "'.", std::move(di)));
+		}
+	}
+#endif /* _WIN32 */
 
 	try {
-		context = MakeAsioSslContext(certPath, keyPath, caPath);
+		context = Shared<TlsContext>::Make(method);
+
+		InitSslContext(context, certPath, keyPath, caPath);
 	} catch (const std::exception&) {
 		BOOST_THROW_EXCEPTION(ScriptError("Cannot make SSL context for cert path: '"
-			+ certPath + "' key path: '" + keyPath + "' ca path: '" + caPath + "'.", di));
+			+ certPath + "' key path: '" + keyPath + "' ca path: '" + caPath + "'.", std::move(di)));
 	}
 
 	if (!crlPath.IsEmpty()) {
@@ -297,7 +304,7 @@ Shared<boost::asio::ssl::context>::Ptr SetupSslContext(String certPath, String k
 			AddCRLToSSLContext(context, crlPath);
 		} catch (const std::exception&) {
 			BOOST_THROW_EXCEPTION(ScriptError("Cannot add certificate revocation list to SSL context for crl path: '"
-				+ crlPath + "'.", di));
+				+ crlPath + "'.", std::move(di)));
 		}
 	}
 
@@ -306,30 +313,33 @@ Shared<boost::asio::ssl::context>::Ptr SetupSslContext(String certPath, String k
 			SetCipherListToSSLContext(context, cipherList);
 		} catch (const std::exception&) {
 			BOOST_THROW_EXCEPTION(ScriptError("Cannot set cipher list to SSL context for cipher list: '"
-				+ cipherList + "'.", di));
+				+ cipherList + "'.", std::move(di)));
 		}
 	}
 
+#ifndef _WIN32
 	if (!protocolmin.IsEmpty()){
 		try {
 			SetTlsProtocolminToSSLContext(context, protocolmin);
 		} catch (const std::exception&) {
-			BOOST_THROW_EXCEPTION(ScriptError("Cannot set minimum TLS protocol version to SSL context with tls_protocolmin: '" + protocolmin + "'.", di));
+			BOOST_THROW_EXCEPTION(ScriptError("Cannot set minimum TLS protocol version to SSL context with tls_protocolmin: '" + protocolmin + "'.", std::move(di)));
 		}
 	}
+#endif /* _WIN32 */
 
 	return context;
 }
 
+#ifndef _WIN32
 /**
  * Set the minimum TLS protocol version to the specified SSL context.
  *
  * @param context The ssl context.
  * @param tlsProtocolmin The minimum TLS protocol version.
  */
-void SetTlsProtocolminToSSLContext(const Shared<boost::asio::ssl::context>::Ptr& context, const String& tlsProtocolmin)
+void SetTlsProtocolminToSSLContext(const Shared<TlsContext>::Ptr& context, const String& tlsProtocolmin)
 {
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+#	if OPENSSL_VERSION_NUMBER >= 0x10100000L
 	int ret = SSL_CTX_set_min_proto_version(context->native_handle(), ResolveTlsProtocolVersion(tlsProtocolmin));
 
 	if (ret != 1) {
@@ -342,12 +352,13 @@ void SetTlsProtocolminToSSLContext(const Shared<boost::asio::ssl::context>::Ptr&
 			<< boost::errinfo_api_function("SSL_CTX_set_min_proto_version")
 			<< errinfo_openssl_error(ERR_peek_error()));
 	}
-#else /* OPENSSL_VERSION_NUMBER >= 0x10100000L */
+#	else /* OPENSSL_VERSION_NUMBER >= 0x10100000L */
 	// This should never happen. On this OpenSSL version, ResolveTlsProtocolVersion() should either return TLS 1.2
 	// or throw an exception, as that's the only TLS version supported by both Icinga and ancient OpenSSL.
 	VERIFY(ResolveTlsProtocolVersion(tlsProtocolmin) == TLS1_2_VERSION);
-#endif /* OPENSSL_VERSION_NUMBER >= 0x10100000L */
+#	endif /* OPENSSL_VERSION_NUMBER >= 0x10100000L */
 }
+#endif /* _WIN32 */
 
 /**
  * Loads a CRL and appends its certificates to the specified Boost SSL context.
@@ -355,7 +366,7 @@ void SetTlsProtocolminToSSLContext(const Shared<boost::asio::ssl::context>::Ptr&
  * @param context The SSL context.
  * @param crlPath The path to the CRL file.
  */
-void AddCRLToSSLContext(const Shared<boost::asio::ssl::context>::Ptr& context, const String& crlPath)
+void AddCRLToSSLContext(const Shared<TlsContext>::Ptr& context, const String& crlPath)
 {
 	X509_STORE *x509_store = SSL_CTX_get_cert_store(context->native_handle());
 	AddCRLToSSLContext(x509_store, crlPath);

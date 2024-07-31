@@ -161,7 +161,7 @@ protected:
 	void ValidateTlsHandshakeTimeout(const Lazy<double>& lvalue, const ValidationUtils& utils) override;
 
 private:
-	Shared<boost::asio::ssl::context>::Ptr m_SSLContext;
+	Shared<TlsContext>::Ptr m_SSLContext;
 	boost::shared_mutex m_SSLContextMutex;
 
 	mutable std::mutex m_AnonymousClientsLock;

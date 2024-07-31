@@ -1,0 +1,150 @@
+---
+name: unittest
+on: [push, pull_request]
+
+jobs:
+  unittest:
+    name: "${{matrix.generator}} ${{matrix.toolset}} Boost ${{matrix.boost_version}} ${{matrix.build_type}} ${{matrix.name_args}}"
+    runs-on: ${{matrix.os}}
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      fail-fast: false
+      matrix:
+        boost_version: ["1.75.0", "1.76.0", "1.77.0", "1.78.0", "1.79.0", "1.80.0", "1.81.0", "1.82.0", "1.83.0"]
+        os: [windows-2019, windows-2022]
+        toolset: [v141, v142, v143, ClangCL]
+        build_type: [Debug, Release]
+        generator: ["Visual Studio 16 2019", "Visual Studio 17 2022"]
+        config_args: [""]
+        build_args: [""]
+        name_args: [""]
+        exclude:
+          - { os: windows-2019, toolset: v143 }
+          - { os: windows-2022, toolset: v141 }
+          - { os: windows-2019, generator: "Visual Studio 17 2022" }
+          - { os: windows-2022, generator: "Visual Studio 16 2019" }
+          - { toolset: ClangCL, build_type: Release }
+          # The following combinations are not available through install-boost
+          - { boost_version: "1.75.0", toolset: v143 }
+          - { boost_version: "1.76.0", toolset: v143 }
+          - { boost_version: "1.77.0", toolset: v143 }
+          - { boost_version: "1.78.0", toolset: v141 }
+          - { boost_version: "1.79.0", toolset: v141 }
+          - { boost_version: "1.80.0", toolset: v141 }
+          - { boost_version: "1.81.0", toolset: v141 }
+          - { boost_version: "1.82.0", toolset: v141 }
+          - { boost_version: "1.83.0", toolset: v141 }
+        include:
+          - boost_version: "1.83.0"
+            os: windows-2022
+            toolset: v143
+            build_type: Debug
+            generator: "Visual Studio 17 2022"
+            config_args: ""
+            build_args: "-- -p:CharacterSet=Unicode"
+            name_args: "Unicode"
+          - boost_version: "1.83.0"
+            os: windows-2022
+            toolset: v143
+            build_type: Debug
+            generator: "Visual Studio 17 2022"
+            config_args: "-A Win32 -DENABLE_TESTING:BOOL=OFF"
+            name_args: "32 bit"
+          - boost_version: "1.83.0"
+            os: windows-2022
+            toolset: ""
+            build_type: ""
+            generator: "MinGW Makefiles"
+            config_args: ""
+            name_args: ""
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Add boost toolset to environment
+      if: contains(fromJson('["1.78.0", "1.79.0", "1.80.0", "1.81.0", "1.82.0", "1.83.0"]'), matrix.boost_version)
+      run: echo BOOST_TOOLSET=$([[ "${{matrix.generator}}" == "MinGW Makefiles" ]] && echo "mingw" || echo "msvc") >> $GITHUB_ENV
+
+    # The platform_version passed to boost-install determines the msvc toolset version for which static libs are installed.
+    - name: Add boost platform version to environment
+      run: |
+        declare -A toolset_to_platform_version=( [mingw]="2019" [v141]="2016" [v142]="2019" [v143]="2022" [ClangCL]="2019" )
+        key=$([[ "${{matrix.generator}}" == "MinGW Makefiles" ]] && echo "mingw" || echo "${{matrix.toolset}}")
+        echo BOOST_PLATFORM_VERSION="${toolset_to_platform_version[$key]}" >> $GITHUB_ENV
+
+    # install-boost does not provide pre-built clang binaries, hence tell cmake/FindBoost that we want to use vc142 binaries.
+    - name: Add boost compiler arg to environment
+      if: matrix.toolset == 'ClangCL'
+      run: echo BOOST_COMPILER_ARG="-DBoost_COMPILER=-vc142" >> $GITHUB_ENV
+
+    - name: Add boost install path to environment
+      run: echo BOOST_INSTALL_PATH="${GITHUB_WORKSPACE}/boost-${{matrix.boost_version}}${BOOST_TOOLSET}${BOOST_PLATFORM_VERSION}" >> $GITHUB_ENV
+
+    - name: Add build type configuration to environment
+      if: matrix.generator != 'MinGW Makefiles'
+      run: echo BUILD_CONFIG_ARG="--config ${{matrix.build_type}}" >> $GITHUB_ENV
+
+    - name: Add test type configuration to environment
+      if: matrix.generator != 'MinGW Makefiles'
+      run: echo TEST_CONFIG_ARG="-C ${{matrix.build_type}}" >> $GITHUB_ENV
+
+    - name: Cache Boost installation
+      id: cache-boost
+      uses: actions/cache@v3
+      with:
+        path: ${{env.BOOST_INSTALL_PATH}}
+        key: ${{matrix.boost_version}}${{env.BOOST_TOOLSET}}${{env.BOOST_PLATFORM_VERSION}}
+
+    - name: Install Boost
+      if: steps.cache-boost.outputs.cache-hit != 'true'
+      uses: MarkusJx/install-boost@v2.4.4
+      with:
+        boost_version: ${{matrix.boost_version}}
+        toolset: ${{env.BOOST_TOOLSET}}
+        boost_install_dir: ${{env.BOOST_INSTALL_PATH}}
+        platform_version: ${{env.BOOST_PLATFORM_VERSION}}
+        arch: null
+
+    - name: Increase size of pagefile
+      if: matrix.generator == 'MinGW Makefiles'
+      uses: al-cheb/configure-pagefile-action@v1.2
+      with:
+        minimum-size: 16GB
+        maximum-size: 16GB
+        disk-root: "C:"
+
+    - name: Install packages
+      run: choco install openssl
+
+    - name: Create build directory
+      run: mkdir build
+
+    - name: Configure
+      working-directory: build
+      run: |
+        cmake -T "${{matrix.toolset}}" \
+              -G "${{matrix.generator}}" \
+              ${{matrix.config_args}} \
+              ${BOOST_COMPILER_ARG} \
+              "${GITHUB_WORKSPACE}"
+      env:
+        BOOST_ROOT: ${{env.BOOST_INSTALL_PATH}}/boost
+
+    - name: Build
+      working-directory: build
+      run: |
+        cmake --build . \
+        -j \
+        ${BUILD_CONFIG_ARG} \
+        ${{matrix.build_args}}
+
+    - name: Run tests
+      working-directory: build
+      run: ctest ${TEST_CONFIG_ARG} -V
+      env:
+        CTEST_OUTPUT_ON_FAILURE: True
