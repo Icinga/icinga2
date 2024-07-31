@@ -22,6 +22,8 @@ public:
 	{
 	}
 
+	Defer() = default;
+
 	Defer(const Defer&) = delete;
 	Defer(Defer&&) = delete;
 	Defer& operator=(const Defer&) = delete;
@@ -37,6 +39,11 @@ public:
 				// https://stackoverflow.com/questions/130117/throwing-exceptions-out-of-a-destructor
 			}
 		}
+	}
+
+	inline void SetFunc(std::function<void()> func)
+	{
+		m_Func = std::move(func);
 	}
 
 	inline

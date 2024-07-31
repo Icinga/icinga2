@@ -163,6 +163,10 @@ ConnectionRole JsonRpcConnection::GetRole() const
 
 void JsonRpcConnection::SendMessage(const Dictionary::Ptr& message)
 {
+	if (m_ShuttingDown) {
+		BOOST_THROW_EXCEPTION(std::runtime_error("Cannot send message to already disconnected API client '" + GetIdentity() + "'!"));
+	}
+
 	Ptr keepAlive (this);
 
 	m_IoStrand.post([this, keepAlive, message]() { SendMessageInternal(message); });
@@ -170,9 +174,17 @@ void JsonRpcConnection::SendMessage(const Dictionary::Ptr& message)
 
 void JsonRpcConnection::SendRawMessage(const String& message)
 {
+	if (m_ShuttingDown) {
+		BOOST_THROW_EXCEPTION(std::runtime_error("Cannot send message to already disconnected API client '" + GetIdentity() + "'!"));
+	}
+
 	Ptr keepAlive (this);
 
 	m_IoStrand.post([this, keepAlive, message]() {
+		if (m_ShuttingDown) {
+			return;
+		}
+
 		m_OutgoingMessagesQueue.emplace_back(message);
 		m_OutgoingMessagesQueued.Set();
 	});
@@ -180,6 +192,10 @@ void JsonRpcConnection::SendRawMessage(const String& message)
 
 void JsonRpcConnection::SendMessageInternal(const Dictionary::Ptr& message)
 {
+	if (m_ShuttingDown) {
+		return;
+	}
+
 	m_OutgoingMessagesQueue.emplace_back(JsonEncode(message));
 	m_OutgoingMessagesQueued.Set();
 }
@@ -188,12 +204,10 @@ void JsonRpcConnection::Disconnect()
 {
 	namespace asio = boost::asio;
 
-	JsonRpcConnection::Ptr keepAlive (this);
+	if (!m_ShuttingDown.exchange(true)) {
+		JsonRpcConnection::Ptr keepAlive (this);
 
-	IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) {
-		if (!m_ShuttingDown) {
-			m_ShuttingDown = true;
-
+		IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) {
 			Log(LogWarning, "JsonRpcConnection")
 				<< "API client disconnected for identity '" << m_Identity << "'";
 
@@ -241,8 +255,8 @@ void JsonRpcConnection::Disconnect()
 			shutdownTimeout->Cancel();
 
 			m_Stream->lowest_layer().shutdown(m_Stream->lowest_layer().shutdown_both, ec);
-		}
-	});
+		});
+	}
 }
 
 void JsonRpcConnection::MessageHandler(const String& jsonString)
