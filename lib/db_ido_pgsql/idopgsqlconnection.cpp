@@ -700,9 +700,20 @@ bool IdoPgsqlConnection::FieldToEscapedString(const String& key, const Value& va
 
 		*result = static_cast<long>(dbrefcol);
 	} else if (DbValue::IsTimestamp(value)) {
-		long ts = rawvalue;
+		double ts = rawvalue;
+
+		// PostgreSQL timestamp limits. Not the exact ones, but with "better safe than sorry" buffers
+		// not to worry about time zones, floating point arithmetic details and the precise numbers themselves.
+		// The buffers were chosen so that the resulting numbers are easy to write and read.
+		if (ts < -2e11 || ts > 9e12) {
+			// NULL is even more eye-catching than the very low/high numbers themselves
+			// and consistent with the behavior of FROM_UNIXTIME() in MySQL.
+			*result = "NULL";
+			return true;
+		}
+
 		std::ostringstream msgbuf;
-		msgbuf << "TO_TIMESTAMP(" << ts << ") AT TIME ZONE 'UTC'";
+		msgbuf << "TO_TIMESTAMP(" << std::fixed << std::setprecision(0) << ts << ") AT TIME ZONE 'UTC'";
 		*result = Value(msgbuf.str());
 	} else if (DbValue::IsObjectInsertID(value)) {
 		auto id = static_cast<long>(rawvalue);
