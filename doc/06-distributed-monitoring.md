@@ -3230,6 +3230,46 @@ information/pki: Writing certificate to file 'icinga2-satellite1.localdomain.crt
 
 Copy and move these certificates to the respective instances e.g. with SSH/SCP.
 
+#### External CA/PKI
+
+Icinga works best with its own certificates.
+The commands described above take care of the optimal certificate properties.
+Also, Icinga renews them periodically at runtime to avoid expiry.
+But you can also provide your own certificates,
+just like to any other application which uses TLS.
+
+!!! warning
+
+    The only serious reasons to generate own certificates are company policies.
+    You are responsible for making Icinga working with your certificates,
+    as well as for renewal. Especially the CLI doesn't expect such certificates.
+    Apropos renewal, don't provide the CA private key in `/var/lib/icinga2/ca`!
+    Icinga uses it to automatically renew certificates with standard properties,
+    not any custom ones.
+
+The basic requirements for all leaf certificates are:
+
+* Subject with CN matching the endpoint name
+* A DNS SAN matching the endpoint name
+
+Pretty much everything else is limited only by your company policy
+and the OpenSSL versions your Icinga nodes use. E.g. the following works:
+
+* Custom key sizes, e.g. 2048 bits
+* Custom key types, e.g. ECC
+* Any number of intermediate CAs (but see limitations below)
+* Multiple trusted root CAs in `/var/lib/icinga2/certs/ca.crt`
+* Different root CAs per cluster subtree, as long as each node trusts the
+  certificate issuers of all nodes it's directly connected to
+
+Intermediate CA restrictions:
+
+* Each side has to provide its intermediate CAs along with the leaf certificate
+  in `/var/lib/icinga2/certs/NODENAME.crt`, ordered from leaf to root.
+* Intermediate CAs may not be used directly as root CAs. To trust only specific
+  intermediate CAs, cross-sign them with themselves, so that you get equal
+  certificates except that they're self-signed. Use them as root CAs in Icinga.
+
 ## Automation <a id="distributed-monitoring-automation"></a>
 
 These hints should get you started with your own automation tools (Puppet, Ansible, Chef, Salt, etc.)
