@@ -72,6 +72,43 @@ std::vector<Type::Ptr> Type::GetAllTypes()
 	return types;
 }
 
+std::vector<Type::Ptr> Type::SortByLoadDependencies(const std::vector<Type::Ptr>& types)
+{
+	std::vector<Type::Ptr> sorted;
+	std::unordered_set<Type*> pending, loaded;
+	bool ready;
+
+	sorted.reserve(types.size());
+	pending.reserve(types.size());
+	loaded.reserve(types.size());
+
+	for (auto& type : types) {
+		pending.emplace(type.get());
+	}
+
+	while (!pending.empty()) {
+		auto type (*pending.begin());
+
+		do {
+			ready = true;
+
+			for (auto dep : type->GetLoadDependencies()) {
+				if (loaded.find(dep) == loaded.end() && pending.find(dep) != pending.end()) {
+					type = dep;
+					ready = false;
+					break;
+				}
+			}
+		} while (!ready);
+
+		sorted.emplace_back(type);
+		loaded.emplace(type);
+		pending.erase(type);
+	}
+
+	return sorted;
+}
+
 String Type::GetPluralName() const
 {
 	String name = GetName();
