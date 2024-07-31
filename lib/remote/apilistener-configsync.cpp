@@ -443,7 +443,16 @@ void ApiListener::SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient
 	Log(LogInformation, "ApiListener")
 		<< "Syncing runtime objects to endpoint '" << endpoint->GetName() << "'.";
 
-	for (const Type::Ptr& type : Type::GetAllTypes()) {
+	// Sync all objects in priority descending order, otherwise downtimes, comments... might be synced before their
+	// respective checkables are synchronized, which would result in comments/downtimes being ignored by the other
+	// endpoint since it does not yet know about their checkables. Since the runtime config updates event doesn't
+	// trigger a reload on the remote endpoint, these objects won't be synced again til the next reload.
+	std::vector<Type::Ptr> types = Type::GetAllTypes();
+	std::sort(types.begin(), types.end(), [](const Type::Ptr& a, const Type::Ptr& b) {
+		return a->GetActivationPriority() > b->GetActivationPriority();
+	});
+
+	for (const Type::Ptr& type : types) {
 		auto *dtype = dynamic_cast<ConfigType *>(type.get());
 
 		if (!dtype)
