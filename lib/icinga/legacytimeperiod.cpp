@@ -62,17 +62,20 @@ void LegacyTimePeriod::FindNthWeekday(int wday, int n, tm *reference)
 
 	if (n > 0) {
 		dir = 1;
+
+		/* Postitive days are relative to the first day of the month. */
+		t.tm_mday = 1;
 	} else {
 		n *= -1;
 		dir = -1;
 
-		/* Negative days are relative to the next month. */
+		/* Negative days are relative to the last day of the month which is
+		 * what mktime() normalizes the 0th day of the next month to. */
 		t.tm_mon++;
+		t.tm_mday = 0;
 	}
 
 	ASSERT(n > 0);
-
-	t.tm_mday = 1;
 
 	for (;;) {
 		// Always operate on 00:00:00 with automatic DST detection, otherwise days could
