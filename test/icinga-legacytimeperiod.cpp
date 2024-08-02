@@ -682,4 +682,56 @@ BOOST_AUTO_TEST_CASE(dst_isinside)
 	}
 }
 
+BOOST_AUTO_TEST_CASE(find_nth_weekday) {
+	auto run = [](const std::string &refDay, int wday, int n, const std::string &expectedDay) {
+		tm expected = make_tm(expectedDay + " 00:00:00");
+
+		tm t = make_tm(refDay + " 00:00:00");
+		LegacyTimePeriod::FindNthWeekday(wday, n, &t);
+
+		BOOST_CHECK_MESSAGE(mktime(&expected) == mktime(&t),
+			"[ref=" << refDay << ", wday=" << wday << ", n=" << n << "] "
+			"expected: " << pretty_time(expected) << ", "
+			"got: " << pretty_time(t));
+	};
+
+	/*      March 2019
+	 * Mo Tu We Th Fr Sa Su
+	 *              1  2  3
+	 *  4  5  6  7  8  9 10
+	 * 11 12 13 14 15 16 17
+	 * 18 19 20 21 22 23 24
+	 * 25 26 27 28 29 30 31
+	 */
+
+	// Use every day of the month as reference day, all must give the same result for that month.
+	for (int i = 1; i <= 31; ++i) {
+		std::stringstream refDayStream;
+		refDayStream << "2019-03-" << std::setw(2) << std::setfill('0') << i;
+		std::string refDay = refDayStream.str();
+
+		const int monday = 1; // 4 ocurrences in March 2019
+		run(refDay, monday, 1, "2019-03-04");
+		run(refDay, monday, 2, "2019-03-11");
+		run(refDay, monday, 3, "2019-03-18");
+		run(refDay, monday, 4, "2019-03-25");
+		run(refDay, monday, -1, "2019-03-25");
+		run(refDay, monday, -2, "2019-03-18");
+		run(refDay, monday, -3, "2019-03-11");
+		run(refDay, monday, -4, "2019-03-04");
+
+		const int friday = 5; // 5 ocurrences in March 2019
+		run(refDay, friday, 1, "2019-03-01");
+		run(refDay, friday, 2, "2019-03-08");
+		run(refDay, friday, 3, "2019-03-15");
+		run(refDay, friday, 4, "2019-03-22");
+		run(refDay, friday, 5, "2019-03-29");
+		run(refDay, friday, -1, "2019-03-29");
+		run(refDay, friday, -2, "2019-03-22");
+		run(refDay, friday, -3, "2019-03-15");
+		run(refDay, friday, -4, "2019-03-08");
+		run(refDay, friday, -5, "2019-03-01");
+	}
+}
+
 BOOST_AUTO_TEST_SUITE_END()
