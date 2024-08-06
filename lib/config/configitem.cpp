@@ -478,13 +478,16 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 				continue;
 
 			std::atomic<int> committed_items(0);
-			std::mutex newItemsMutex;
 
 			{
 				auto items (itemsByType.find(type.get()));
 
 				if (items != itemsByType.end()) {
-					upq.ParallelFor(items->second, [&committed_items, &newItems, &newItemsMutex](const ItemPair& ip) {
+					for (const ItemPair& pair: items->second) {
+						newItems.emplace_back(pair.first);
+					}
+
+					upq.ParallelFor(items->second, [&committed_items](const ItemPair& ip) {
 						const ConfigItem::Ptr& item = ip.first;
 
 						if (!item->Commit(ip.second)) {
@@ -496,9 +499,6 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 						}
 
 						committed_items++;
-
-						std::unique_lock<std::mutex> lock(newItemsMutex);
-						newItems.emplace_back(item);
 					});
 
 					upq.Join();
