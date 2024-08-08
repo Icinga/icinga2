@@ -188,6 +188,7 @@ add_boost_test(base
     icinga_legacytimeperiod/advanced
     icinga_legacytimeperiod/dst
     icinga_legacytimeperiod/dst_isinside
+    icinga_legacytimeperiod/find_nth_weekday
     icinga_perfdata/empty
     icinga_perfdata/simple
     icinga_perfdata/quotes
