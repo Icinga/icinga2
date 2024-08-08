@@ -213,6 +213,198 @@ BOOST_AUTO_TEST_CASE(simple)
 	BOOST_CHECK_EQUAL(end, expectedEnd);
 }
 
+BOOST_AUTO_TEST_CASE(is_in_range)
+{
+	tm tm_beg = Utility::LocalTime(1706518800); // 2024-01-29 09:00:00 UTC
+	tm tm_end = Utility::LocalTime(1706520600); // 2024-01-29 09:30:00 UTC
+
+	tm reference = tm_beg; // 2024-01-29 09:00:00 UTC
+
+	// The start date of the range should ofcourse be inside.
+	BOOST_CHECK_EQUAL(true, LegacyTimePeriod::IsInTimeRange(&tm_beg, &tm_end, 1, &reference));
+
+	reference = Utility::LocalTime(1706519400); // 2024-01-29 09:10:00 UTC
+	// The reference time is only 10 minutes behind the start date, which should be covered by this range.
+	BOOST_CHECK_EQUAL(true, LegacyTimePeriod::IsInTimeRange(&tm_beg, &tm_end, 1, &reference));
+
+	reference = Utility::LocalTime(1706518799); // 2024-01-29 08:59:59 UTC
+
+	// The reference time is 1 second ahead of the range start date, which shouldn't be covered by this range.
+	BOOST_CHECK_EQUAL(false, LegacyTimePeriod::IsInTimeRange(&tm_beg, &tm_end, 1, &reference));
+
+	reference = Utility::LocalTime(1706520599); // 2024-01-29 09:29:59 UTC
+
+	// The reference time is 1 second before the specified end time, so this should be in the range.
+	BOOST_CHECK_EQUAL(true, LegacyTimePeriod::IsInTimeRange(&tm_beg, &tm_end, 1, &reference));
+
+	reference = tm_end; // 2024-01-29 09:30:00 UTC
+
+	// The reference time is exactly the same as the specified end time, so this should definitely not be in the range.
+	BOOST_CHECK_EQUAL(false, LegacyTimePeriod::IsInTimeRange(&tm_beg, &tm_end, 1, &reference));
+
+	tm_beg = Utility::LocalTime(1706518800); // 2024-01-29 09:00:00 UTC
+	tm_end = Utility::LocalTime(1706720400); // 2024-01-31 17:00:00 UTC
+
+	reference = Utility::LocalTime(1706612400); // 2024-01-30 12:00:00 UTC
+
+	// Even if the reference time is within the specified range, the stride guarantees that the reference
+	// should be 2 days after the range start date, which is not the case.
+	BOOST_CHECK_EQUAL(false, LegacyTimePeriod::IsInTimeRange(&tm_beg, &tm_end, 2, &reference));
+
+	reference = Utility::LocalTime(1706698800); // 2024-01-31 11:00:00 UTC
+
+	// The reference time is now within the specified range and 2 days after the range start date.
+	BOOST_CHECK_EQUAL(true, LegacyTimePeriod::IsInTimeRange(&tm_beg, &tm_end, 2, &reference));
+}
+
+BOOST_AUTO_TEST_CASE(out_of_range_segments)
+{
+	TimePeriod::Ptr tp = new TimePeriod();
+	tp->SetUpdate(new Function("LegacyTimePeriod", LegacyTimePeriod::ScriptFunc, {"tp", "begin", "end"}), true);
+
+	// A single day range shouldn't span to the following day too (see https://github.com/Icinga/icinga2/issues/9388).
+	tp->SetRanges(new Dictionary({{"2024-06-12", "00:00-24:00"}}), true);
+	tp->UpdateRegion(1718150400, 1718236800, true);  // 2024-06-12 00:00:00 - 24:00:00 UTC
+
+	BOOST_CHECK_EQUAL(true, tp->IsInside(1718200800)); // 2024-06-12 14:00:00 UTC
+	{
+		Array::Ptr segments = tp->GetSegments();
+		BOOST_REQUIRE_EQUAL(1, segments->GetLength());
+
+		Dictionary::Ptr segment = segments->Get(0);
+		BOOST_CHECK_EQUAL(1718150400, segment->Get("begin")); // 2024-06-12 00:00:00 UTC
+		BOOST_CHECK_EQUAL(1718236800, segment->Get("end")); // 2024-06-12 24:00:00 UTC
+	}
+	tp->UpdateRegion(1718236800, 1718323200, true);  // 2024-06-13 00:00:00 - 24:00:00 UTC
+
+	BOOST_CHECK_EQUAL(false, tp->IsInside(1718287200)); // 2024-06-13 14:00:00 UTC
+	{
+		Array::Ptr segments = tp->GetSegments();
+		BOOST_CHECK_EQUAL(0, segments->GetLength()); // There should be no segments at all!
+	}
+
+	// One partially day range shouldn't contain more than a single segment (see https://github.com/Icinga/icinga2/issues/9781).
+	tp->SetRanges(new Dictionary({{"2024-06-12", "10:00-12:00"}}), true);
+	tp->UpdateRegion(1718150400, 1718236800, true);  // 2024-06-12 00:00:00 - 24:00:00 UTC
+
+	BOOST_CHECK_EQUAL(true, tp->IsInside(1718190000)); // 2024-06-12 11:00:00 UTC
+	{
+		Array::Ptr segments = tp->GetSegments();
+		BOOST_REQUIRE_EQUAL(1, segments->GetLength());
+
+		Dictionary::Ptr segment = segments->Get(0);
+		BOOST_CHECK_EQUAL(1718186400, segment->Get("begin")); // 2024-06-12 10:00:00 UTC (range start date)
+		BOOST_CHECK_EQUAL(1718193600, segment->Get("end")); // 2024-06-12 12:00:00 UTC (range end date)
+	}
+	tp->UpdateRegion(1718236800, 1718323200, true);  // 2024-06-13 00:00:00 - 24:00:00 UTC
+
+	BOOST_CHECK_EQUAL(false, tp->IsInside(1718287200)); // 2024-06-13 14:00:00 UTC
+	BOOST_CHECK_EQUAL(0, tp->GetSegments()->GetLength()); // There should be no segments at all!
+}
+
+BOOST_AUTO_TEST_CASE(include_exclude_timeperiods)
+{
+	Function::Ptr update = new Function("LegacyTimePeriod", LegacyTimePeriod::ScriptFunc, {"tp", "begin", "end"});
+	TimePeriod::Ptr excludedTp = new TimePeriod();
+	excludedTp->SetName("excluded", true);
+	excludedTp->SetUpdate(update, true);
+	excludedTp->SetRanges(new Dictionary({{"2024-06-11", "00:00-24:00"}}), true);
+
+	excludedTp->UpdateRegion(1718064000, 1718323200, true);  // 2024-06-11 00:00:00 - 2024-06-13 24:00:00 UTC
+
+	BOOST_CHECK_EQUAL(1, excludedTp->GetSegments()->GetLength());
+	BOOST_CHECK_EQUAL(true, excludedTp->IsInside(1718114400)); // 2024-06-11 14:00:00 UTC
+	BOOST_CHECK_EQUAL(false, excludedTp->IsInside(1718200800)); // 2024-06-12 14:00:00 UTC
+	BOOST_CHECK_EQUAL(false, excludedTp->IsInside(1718287200)); // 2024-06-13 14:00:00 UTC
+
+	// Register the excluded timeperiod to make it globally visible.
+	excludedTp->Register();
+
+	Dictionary::Ptr ranges = new Dictionary({
+		{"2024-06-11", "09:00-17:00"},
+		{"2024-06-12", "09:00-17:00"},
+		{"2024-06-13", "09:00-17:00"}
+	});
+
+	TimePeriod::Ptr tp = new TimePeriod();
+	tp->SetExcludes(new Array({"excluded"}), true);
+	tp->SetUpdate(update, true);
+	tp->SetRanges(ranges, true);
+	tp->UpdateRegion(1718064000, 1718323200, true);  // 2024-06-11 00:00:00 - 2024-06-13 24:00:00 UTC
+
+	BOOST_CHECK_EQUAL(false, tp->IsInside(1718114400)); // 2024-06-11 14:00:00 UTC
+	BOOST_CHECK_EQUAL(false, tp->IsInside(1718150400)); // 2024-06-12 00:00:00 UTC
+	BOOST_CHECK_EQUAL(true, tp->IsInside(1718200800)); // 2024-06-12 14:00:00 UTC
+	BOOST_CHECK_EQUAL(false, tp->IsInside(1718323200)); // 2024-06-13 00:00:00 UTC
+	BOOST_CHECK_EQUAL(true, tp->IsInside(1718287200)); // 2024-06-13 14:00:00 UTC
+	{
+		Array::Ptr segments = tp->GetSegments();
+		// The updated region is 2024-06-11 - 13, so there should only be 2 segements, when the excludes works correctly.
+		BOOST_REQUIRE_EQUAL(2, segments->GetLength());
+
+		Dictionary::Ptr segment = segments->Get(0);
+		BOOST_CHECK_EQUAL(1718182800, segment->Get("begin")); // 2024-06-12 09:00:00 UTC
+		BOOST_CHECK_EQUAL(1718211600, segment->Get("end")); // 2024-06-12 17:00:00 UTC
+
+		BOOST_CHECK_EQUAL(true, tp->IsInside(segment->Get("begin")));
+		BOOST_CHECK_EQUAL(false, tp->IsInside(segment->Get("end")));
+
+		BOOST_CHECK_EQUAL(false, excludedTp->IsInside(segment->Get("begin")));
+		BOOST_CHECK_EQUAL(false, excludedTp->IsInside(segment->Get("end")));
+
+		segment = segments->Get(1);
+		BOOST_CHECK_EQUAL(1718269200, segment->Get("begin")); // 2024-06-13 09:00:00 UTC
+		BOOST_CHECK_EQUAL(1718298000, segment->Get("end")); // 2024-06-13 17:00:00 UTC
+
+		BOOST_CHECK_EQUAL(true, tp->IsInside(segment->Get("begin")));
+		BOOST_CHECK_EQUAL(false, tp->IsInside(segment->Get("end")));
+
+		BOOST_CHECK_EQUAL(false, excludedTp->IsInside(segment->Get("begin")));
+		BOOST_CHECK_EQUAL(false, excludedTp->IsInside(segment->Get("end")));
+	}
+
+	// Include timeperiod test cases ...
+	TimePeriod::Ptr includedTp = new TimePeriod();
+	includedTp->SetName("included", true);
+	includedTp->SetUpdate(update, true);
+	includedTp->SetRanges(new Dictionary({{"2024-06-11", "08:00-17:00"}}), true);
+
+	includedTp->UpdateRegion(1718064000, 1718323200, true);  // 2024-06-11 00:00:00 - 2024-06-13 24:00:00 UTC
+
+	BOOST_CHECK_EQUAL(1, includedTp->GetSegments()->GetLength());
+	BOOST_CHECK_EQUAL(true, includedTp->IsInside(1718114400)); // 2024-06-11 14:00:00 UTC
+	BOOST_CHECK_EQUAL(false, includedTp->IsInside(1718200800)); // 2024-06-12 14:00:00 UTC
+	BOOST_CHECK_EQUAL(false, includedTp->IsInside(1718287200)); // 2024-06-13 14:00:00 UTC
+
+	// Register the timeperiod to make it globally visible.
+	includedTp->Register();
+
+	tp->SetIncludes(new Array({"included"}), true);
+	tp->UpdateRegion(1718064000, 1718323200, true);  // 2024-06-11 00:00:00 - 2024-06-13 24:00:00 UTC
+	{
+		Array::Ptr segments = tp->GetSegments();
+		// The updated region is 2024-06-11 - 13, so there should be 3 segements, when the *prefer* includes works correctly.
+		BOOST_REQUIRE_EQUAL(3, segments->GetLength());
+
+		Dictionary::Ptr segment = segments->Get(0);
+		BOOST_CHECK_EQUAL(1718182800, segment->Get("begin")); // 2024-06-12 09:00:00 UTC
+		BOOST_CHECK_EQUAL(1718211600, segment->Get("end")); // 2024-06-12 17:00:00 UTC
+
+		segment = segments->Get(1);
+		BOOST_CHECK_EQUAL(1718269200, segment->Get("begin")); // 2024-06-13 09:00:00 UTC
+		BOOST_CHECK_EQUAL(1718298000, segment->Get("end")); // 2024-06-13 17:00:00 UTC
+
+		segment = segments->Get(2);
+		BOOST_CHECK_EQUAL(1718092800, segment->Get("begin")); // 2024-06-11 08:00:00 UTC
+		BOOST_CHECK_EQUAL(1718125200, segment->Get("end")); // 2024-06-11 17:00:00 UTC
+
+		BOOST_CHECK_EQUAL(true, tp->IsInside(segment->Get("begin")));
+		BOOST_CHECK_EQUAL(true, includedTp->IsInside(segment->Get("begin")));
+		BOOST_CHECK_EQUAL(false, tp->IsInside(segment->Get("end")));
+		BOOST_CHECK_EQUAL(false, includedTp->IsInside(segment->Get("end")));
+	}
+}
+
 struct DateTime
 {
 	struct {

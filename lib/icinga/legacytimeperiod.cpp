@@ -31,7 +31,7 @@ bool LegacyTimePeriod::IsInTimeRange(const tm *begin, const tm *end, int stride,
 	tsend = mktime_const(end);
 	tsref = mktime_const(reference);
 
-	if (tsref < tsbegin || tsref > tsend)
+	if (tsref < tsbegin || tsref >= tsend)
 		return false;
 
 	int daynumber = (tsref - tsbegin) / (24 * 60 * 60);

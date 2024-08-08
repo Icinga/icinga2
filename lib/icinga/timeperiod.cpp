@@ -291,7 +291,7 @@ bool TimePeriod::IsInside(double ts) const
 	if (segments) {
 		ObjectLock dlock(segments);
 		for (const Dictionary::Ptr& segment : segments) {
-			if (ts > segment->Get("begin") && ts < segment->Get("end"))
+			if (ts >= segment->Get("begin") && ts < segment->Get("end"))
 				return true;
 		}
 	}
