@@ -1432,10 +1432,10 @@ vim /usr/local/icinga2/etc/icinga2/conf.d/api-users.conf
 /usr/local/icinga2/lib/icinga2/sbin/icinga2 daemon
 ```
 
-#### Debian 10 <a id="development-linux-dev-env-debian"></a>
+#### Debian 12 <a id="development-linux-dev-env-debian"></a>
 
-Debian Buster doesn't need updated Boost packages from packages.icinga.com,
-the distribution already provides 1.66+. For older versions such as Stretch,
+Debian Bookworm doesn't need updated Boost packages from packages.icinga.com,
+the distribution already provides 1.74+. For older versions such as Stretch,
 include the release repository for packages.icinga.com as shown in the [setup instructions](02-installation.md).
 
 ```bash
@@ -1477,6 +1477,7 @@ handled in the package builds which are officially supported.
 
 ```bash
 chown -R icinga:icinga /usr/local/icinga2/var/
+chown -R icinga:icinga /usr/local/icinga2/etc/
 
 /usr/local/icinga2/lib/icinga2/prepare-dirs /usr/local/icinga2/etc/sysconfig/icinga2
 /usr/local/icinga2/sbin/icinga2 api setup
