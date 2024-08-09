@@ -79,6 +79,8 @@ void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 
 		try {
 			CpuBoundWork handleMessage (yc);
+			TimeoutLog logIfSlow (LogWarning, "JsonRpcConnection");
+			logIfSlow << "Handling message from " << m_Identity << " took long";
 
 			MessageHandler(message);
 
