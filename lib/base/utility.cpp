@@ -1051,7 +1051,6 @@ String Utility::FormatDuration(double duration)
 
 String Utility::FormatDateTime(const char *format, double ts)
 {
-	char timestamp[128];
 	auto tempts = (time_t)ts; /* We don't handle sub-second timestamps here just yet. */
 	tm tmthen;
 
@@ -1073,9 +1072,19 @@ String Utility::FormatDateTime(const char *format, double ts)
 	}
 #endif /* _MSC_VER */
 
-	strftime(timestamp, sizeof(timestamp), format, &tmthen);
+	return FormatDateTime(format, &tmthen);
+}
 
-	return timestamp;
+String Utility::FormatDateTime(const char *format, const tm* t) {
+	try {
+		std::ostringstream stream;
+		stream.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+		stream << std::put_time(t, format);
+		return stream.str();
+	} catch (const std::exception& ex) {
+		BOOST_THROW_EXCEPTION(std::invalid_argument(
+			"cannot format date, possibly invalid format string: " + std::string(ex.what())));
+	}
 }
 
 String Utility::FormatErrorNumber(int code) {

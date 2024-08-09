@@ -135,4 +135,46 @@ BOOST_AUTO_TEST_CASE(TruncateUsingHash)
 		std::string(37, 'a') + "...86f33652fcffd7fa1443e246dd34fe5d00e25ffd");
 }
 
+BOOST_AUTO_TEST_CASE(FormatDateTime) {
+	// Helper to repeat a given string a number of times.
+	auto repeat = [](const std::string& s, size_t n) {
+		std::ostringstream stream;
+		for (size_t i = 0; i < n; ++i) {
+			stream << s;
+		}
+		return stream.str();
+	};
+
+	const time_t t = 1136214245; // 2006-01-02 15:04:05 UTC
+
+	BOOST_CHECK_EQUAL("2006-01-02 15:04:05", Utility::FormatDateTime("%F %T", t));
+	BOOST_CHECK_EQUAL("2006", Utility::FormatDateTime("%Y", t));
+	BOOST_CHECK_EQUAL("2006#2006", Utility::FormatDateTime("%Y#%Y", t));
+	BOOST_CHECK_EQUAL("%", Utility::FormatDateTime("%%", t));
+	BOOST_CHECK_EQUAL("%Y", Utility::FormatDateTime("%%Y", t));
+	BOOST_CHECK_EQUAL("", Utility::FormatDateTime("", t));
+
+	// Inconsistent behavior between platforms: Windows prefers negative 0, others prefer positive 0.
+	std::string z = Utility::FormatDateTime("%z", t);
+	BOOST_CHECK_MESSAGE(z == "+0000" || z == "-0000",
+		"FormatDateTime(\"%z\", " << t << ") = " << std::quoted(z) << " should be one of [\"+0000\", \"-0000\"]");
+
+	// Long format string with a long result.
+	BOOST_CHECK_EQUAL(repeat("2024", 1000), Utility::FormatDateTime(repeat("%Y", 1000).c_str(), 1723105155));
+
+	for (const char* format : {"%", "x % y", "x %! y"}) {
+		try {
+			std::string result = Utility::FormatDateTime(format, t);
+
+			// An invalid format string should either return a predictable result ...
+			BOOST_CHECK_MESSAGE(result.empty() || result == format,
+				"FormatDateTime(" << std::quoted(format) << ", " << t << ") = " << std::quoted(result) <<
+				" should be one of [\"\", " << std::quoted(format) << "]");
+		} catch (const std::invalid_argument& ex) {
+			// ... or throw an exception.
+			BOOST_TEST_MESSAGE("FormatDateTime(" << std::quoted(format) << ", " << t << ") threw: " << ex.what());
+		}
+	}
+}
+
 BOOST_AUTO_TEST_SUITE_END()
