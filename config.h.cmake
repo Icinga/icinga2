@@ -8,6 +8,7 @@
 #cmakedefine HAVE_LIBEXECINFO
 #cmakedefine HAVE_CXXABI_H
 #cmakedefine HAVE_NICE
+#cmakedefine HAVE_MALLOC_INFO
 #cmakedefine HAVE_EDITLINE
 #cmakedefine HAVE_SYSTEMD
 
