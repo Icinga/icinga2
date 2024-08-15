@@ -785,6 +785,7 @@ curl_ipv4                        | **Optional.** Use IPv4 connection. Defaults t
 curl_ipv6                        | **Optional.** Use IPv6 connection. Defaults to false.
 curl_link                        | **Optional.** Wrap output in HTML link. Defaults to false.
 curl_haproxy_protocol            | **Optional.** Send HAProxy proxy protocol v1 header (CURLOPT_HAPROXYPROTOCOL) (available since Monitoring Plugins v2.4.0)
+curl_cookie_jar_file             | **Optional.** Path to a cookie jar file. Store cookies in the cookie jar and send them out when requested. (available since Monitoring Plugins v2.3.4)
 
 
 ### icmp <a id="plugin-check-command-icmp"></a>
