@@ -755,6 +755,7 @@ curl_url                         | **Optional.** The request URL for GET or POST
 curl_port                        | **Optional.** The TCP port. Defaults to 80 when not using SSL, 443 otherwise.
 curl_tls						 | **Optional.** Whether to use SSL. Defaults to false.
 curl_tls_version	             | **Optional.** Connect via SSL. Port defaults to 443. VERSION is optional, and prevents auto-negotiation (2 = SSLv2, 3 = SSLv3, 1 = TLSv1, 1.1 = TLSv1.1, 1.2 = TLSv1.2, 1.3 = TLSv1.3). With a '+' suffix, newer versions are also accepted. Note: SSLv2 and SSLv3 are deprecated and are usually disabled in libcurl.
+curl_continue_after_certificate  | **Optional.** Allows the HTTP check to continue after performing the certificate check. Does nothing unless tls certificate check mode is used (`curl_certificate_valid_days_min`). (available since Monitoring Plugins v2.3.2)
 curl_sni                         | **Optional.** Whether to use SNI. Defaults to false.
 curl_authorization               | **Optional.** Add 'username:password' authorization pair.
 curl_proxy-authorization         | **Optional.** Add 'username:password' authorization pair for proxy.
