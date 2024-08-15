@@ -758,27 +758,27 @@ curl_tls_version	             | **Optional.** Connect via SSL. Port defaults to 
 curl_continue_after_certificate  | **Optional.** Allows the HTTP check to continue after performing the certificate check. Does nothing unless tls certificate check mode is used (`curl_certificate_valid_days_min`). (available since Monitoring Plugins v2.3.2)
 curl_sni                         | **Optional.** Whether to use SNI. Defaults to false.
 curl_authorization               | **Optional.** Add 'username:password' authorization pair.
-curl_proxy-authorization         | **Optional.** Add 'username:password' authorization pair for proxy.
-curl_no-body                     | **Optional.** Don't wait for document body: stop reading after headers. (Note that this stilldoes an HTTP GET or POST, not a HEAD.).
+curl_proxy_authorization         | **Optional.** Add 'username:password' authorization pair for proxy.
+curl_no_body                     | **Optional.** Don't wait for document body: stop reading after headers. (Note that this stilldoes an HTTP GET or POST, not a HEAD.).
 curl_linespan                    | **Optional.** Allow regex to span newline.
 curl_ereg			             | **Optional.** A regular expression which the body must match against. Incompatible with curl_no-body.
 curl_eregi 				         | **Optional.** A case-insensitive expression which the body must match against. Incompatible with curl_no-body.
-curl_invert-regex                | **Optional.** Changes behavior of curl_ereg and curl_eregi to return CRITICAL if found, OK if not.
+curl_invert_regex                | **Optional.** Changes behavior of curl_ereg and curl_eregi to return CRITICAL if found, OK if not.
 curl_warning                     | **Optional.** The warning threshold.
 curl_critical 	                 | **Optional.** The critical threshold.
-curl_expect-string               | **Optional.** Comma-delimited list of strings, at least one of them is expected in the first (status) line of the server response. Default: HTTP/1.
+curl_expect_string               | **Optional.** Comma-delimited list of strings, at least one of them is expected in the first (status) line of the server response. Default: HTTP/1.
 curl_certificate_valid_days_min  | **Optional.** Minimum number of days a certificate has to be valid. Port defaults to 443. When this option is used the URL is not checked. The first parameter defines the warning threshold (in days), the second parameter the critical threshold (in days). (Example `curl_certificate = "30,20"`).
-curl_client-certificate-file     | **Optional.** Name of file contains the client certificate (PEM format).
-curl_client-certificate-key-file | **Optional.** Name of file contains the private key (PEM format).
-curl_expect-header-string        | **Optional.** String to expect in the response headers.
-curl_expect-content-string		 | **Optional.** String to expect in the content.
-curl_post-data                   | **Optional.** URL encoded curl POST data.
+curl_client_certificate_file     | **Optional.** Name of file contains the client certificate (PEM format).
+curl_client_certificate_key_file | **Optional.** Name of file contains the private key (PEM format).
+curl_expect_header_string        | **Optional.** String to expect in the response headers.
+curl_expect_content_string		 | **Optional.** String to expect in the content.
+curl_post_data                   | **Optional.** URL encoded curl POST data.
 curl_http_method                 | **Optional.** Set curl method (for example: HEAD, OPTIONS, TRACE, PUT, DELETE).
-curl_max-age                      | **Optional.** Warn if document is more than seconds old.
-curl_content-type                 | **Optional.** Specify Content-Type header when POSTing.
-curl_user-agent                   | **Optional.** String to be sent in curl header as User Agent.
+curl_max_age                      | **Optional.** Warn if document is more than seconds old.
+curl_content_type                 | **Optional.** Specify Content-Type header when POSTing.
+curl_user_agent                   | **Optional.** String to be sent in curl header as User Agent.
 curl_header                      | **Optional.** Any other tags to be sent in curl header. Can be an array if multiple headers should be passed to `check_curl`.
-curl_extended-perfdata            | **Optional.** Print additional perfdata. Defaults to false.
+curl_extended_perfdata            | **Optional.** Print additional perfdata. Defaults to false.
 curl_onredirect                  | **Optional.** How to handle redirect pages. Possible values: "ok" (default), "warning", "critical", "follow", "sticky" (like follow but stick to address), "stickyport" (like sticky but also to port)
 curl_pagesize                    | **Optional.** Minimum page size required:Maximum page size required.
 curl_timeout                     | **Optional.** Seconds before connection times out.
