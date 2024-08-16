@@ -749,44 +749,50 @@ Custom variables passed as [command parameters](03-monitoring-basics.md#command-
 
 Name                             | Description
 ---------------------------------|---------------------------------
-curl_ip							 | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 curl_vhost                       | **Optional.** The virtual host that should be sent in the "Host" header.
-curl_url                         | **Optional.** The request URL for GET or POST. Defaults to `/`.
+curl_ip							 | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 curl_port                        | **Optional.** The TCP port. Defaults to 80 when not using SSL, 443 otherwise.
+curl_ipv4                        | **Optional.** Use IPv4 connection. Defaults to false.
+curl_ipv6                        | **Optional.** Use IPv6 connection. Defaults to false.
 curl_tls						 | **Optional.** Whether to use SSL. Defaults to false.
 curl_tls_version	             | **Optional.** Connect via SSL. Port defaults to 443. VERSION is optional, and prevents auto-negotiation (2 = SSLv2, 3 = SSLv3, 1 = TLSv1, 1.1 = TLSv1.1, 1.2 = TLSv1.2, 1.3 = TLSv1.3). With a '+' suffix, newer versions are also accepted. Note: SSLv2 and SSLv3 are deprecated and are usually disabled in libcurl.
-curl_continue_after_certificate  | **Optional.** Allows the HTTP check to continue after performing the certificate check. Does nothing unless tls certificate check mode is used (`curl_certificate_valid_days_min`). (available since Monitoring Plugins v2.3.2)
 curl_sni                         | **Optional.** Whether to use SNI. Defaults to false.
-curl_authorization               | **Optional.** Add 'username:password' authorization pair.
-curl_proxy_authorization         | **Optional.** Add 'username:password' authorization pair for proxy.
+curl_certificate_valid_days_min  | **Optional.** Minimum number of days a certificate has to be valid. Port defaults to 443. When this option is used the URL is not checked. The first parameter defines the warning threshold (in days), the second parameter the critical threshold (in days). (Example `curl_certificate = "30,20"`).
+curl_continue_after_certificate  | **Optional.** Allows the HTTP check to continue after performing the certificate check. Does nothing unless tls certificate check mode is used (`curl_certificate_valid_days_min`). (available since Monitoring Plugins v2.3.2)
+curl_client_certificate_file     | **Optional.** Name of file contains the client certificate (PEM format).
+curl_client_certificate_key_file | **Optional.** Name of file contains the private key (PEM format).
+curl_ca_cert_file                | **Optional.** CA certificate file to verify peer against.
+curl_verify_peer_cert            | **Optional.** Verify that the peers certificate matches against the hostname
+curl_expect_string               | **Optional.** Comma-delimited list of strings, at least one of them is expected in the first (status) line of the server response. Default: HTTP/1.
+curl_expect_header_string        | **Optional.** String to expect in the response headers.
+curl_expect_content_string		 | **Optional.** String to expect in the content.
+curl_url                         | **Optional.** The request URL for GET or POST. Defaults to `/`.
+curl_post_data                   | **Optional.** URL encoded curl POST data.
+curl_http_method                 | **Optional.** Set curl method (for example: HEAD, OPTIONS, TRACE, PUT, DELETE).
 curl_no_body                     | **Optional.** Don't wait for document body: stop reading after headers. (Note that this stilldoes an HTTP GET or POST, not a HEAD.).
+curl_max_age                      | **Optional.** Warn if document is more than seconds old.
+curl_content_type                 | **Optional.** Specify Content-Type header when POSTing.
 curl_linespan                    | **Optional.** Allow regex to span newline.
 curl_ereg			             | **Optional.** A regular expression which the body must match against. Incompatible with curl_no-body.
 curl_eregi 				         | **Optional.** A case-insensitive expression which the body must match against. Incompatible with curl_no-body.
 curl_invert_regex                | **Optional.** Changes behavior of curl_ereg and curl_eregi to return CRITICAL if found, OK if not.
-curl_warning                     | **Optional.** The warning threshold.
-curl_critical 	                 | **Optional.** The critical threshold.
-curl_expect_string               | **Optional.** Comma-delimited list of strings, at least one of them is expected in the first (status) line of the server response. Default: HTTP/1.
-curl_certificate_valid_days_min  | **Optional.** Minimum number of days a certificate has to be valid. Port defaults to 443. When this option is used the URL is not checked. The first parameter defines the warning threshold (in days), the second parameter the critical threshold (in days). (Example `curl_certificate = "30,20"`).
-curl_client_certificate_file     | **Optional.** Name of file contains the client certificate (PEM format).
-curl_client_certificate_key_file | **Optional.** Name of file contains the private key (PEM format).
-curl_expect_header_string        | **Optional.** String to expect in the response headers.
-curl_expect_content_string		 | **Optional.** String to expect in the content.
-curl_post_data                   | **Optional.** URL encoded curl POST data.
-curl_http_method                 | **Optional.** Set curl method (for example: HEAD, OPTIONS, TRACE, PUT, DELETE).
-curl_max_age                      | **Optional.** Warn if document is more than seconds old.
-curl_content_type                 | **Optional.** Specify Content-Type header when POSTing.
+curl_authorization               | **Optional.** Add 'username:password' authorization pair.
+curl_proxy_authorization         | **Optional.** Add 'username:password' authorization pair for proxy.
 curl_user_agent                   | **Optional.** String to be sent in curl header as User Agent.
 curl_header                      | **Optional.** Any other tags to be sent in curl header. Can be an array if multiple headers should be passed to `check_curl`.
 curl_extended_perfdata            | **Optional.** Print additional perfdata. Defaults to false.
-curl_onredirect                  | **Optional.** How to handle redirect pages. Possible values: "ok" (default), "warning", "critical", "follow", "sticky" (like follow but stick to address), "stickyport" (like sticky but also to port)
-curl_pagesize                    | **Optional.** Minimum page size required:Maximum page size required.
-curl_timeout                     | **Optional.** Seconds before connection times out.
-curl_ipv4                        | **Optional.** Use IPv4 connection. Defaults to false.
-curl_ipv6                        | **Optional.** Use IPv6 connection. Defaults to false.
+curl_show_body                   | **Optional.** Print body content below status line
 curl_link                        | **Optional.** Wrap output in HTML link. Defaults to false.
+curl_onredirect                  | **Optional.** How to handle redirect pages. Possible values: "ok" (default), "warning", "critical", "follow", "sticky" (like follow but stick to address), "stickyport" (like sticky but also to port)
+curl_max_redir                   | **Optional.** Maximum number of redirects
+curl_pagesize                    | **Optional.** Minimum page size required:Maximum page size required.
+curl_http_version                | **Optional.** Connect via specific HTTP protocol. 1.0 = HTTP/1.0, 1.1 = HTTP/1.1, 2.0 = HTTP/2 (HTTP/2 will fail without -S)
+curl_enable_automatic_decompression |  **Optional.** Enable automatic decompression of body (CURLOPT_ACCEPT_ENCODING).
 curl_haproxy_protocol            | **Optional.** Send HAProxy proxy protocol v1 header (CURLOPT_HAPROXYPROTOCOL) (available since Monitoring Plugins v2.4.0)
 curl_cookie_jar_file             | **Optional.** Path to a cookie jar file. Store cookies in the cookie jar and send them out when requested. (available since Monitoring Plugins v2.3.4)
+curl_warning                     | **Optional.** The warning threshold.
+curl_critical 	                 | **Optional.** The critical threshold.
+curl_timeout                     | **Optional.** Seconds before connection times out.
 
 
 ### icmp <a id="plugin-check-command-icmp"></a>
