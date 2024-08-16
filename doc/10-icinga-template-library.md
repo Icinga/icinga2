@@ -757,7 +757,8 @@ curl_ipv6                        | **Optional.** Use IPv6 connection. Defaults t
 curl_tls						 | **Optional.** Whether to use SSL. Defaults to false.
 curl_tls_version	             | **Optional.** Connect via SSL. Port defaults to 443. VERSION is optional, and prevents auto-negotiation (2 = SSLv2, 3 = SSLv3, 1 = TLSv1, 1.1 = TLSv1.1, 1.2 = TLSv1.2, 1.3 = TLSv1.3). With a '+' suffix, newer versions are also accepted. Note: SSLv2 and SSLv3 are deprecated and are usually disabled in libcurl.
 curl_sni                         | **Optional.** Whether to use SNI. Defaults to false.
-curl_certificate_valid_days_min  | **Optional.** Minimum number of days a certificate has to be valid. Port defaults to 443. When this option is used the URL is not checked. The first parameter defines the warning threshold (in days), the second parameter the critical threshold (in days). (Example `curl_certificate = "30,20"`).
+curl_certificate_valid_days_min_warning  | **Optional.** Minimum number of days a certificate has to be valid. Port defaults to 443. When this option is used, the URL is not checked (by default). This defines the warning threshold (in days).
+curl_certificate_valid_days_min_critical  | **Optional.** Minimum number of days a certificate has to be valid. This parameter defines the critical threshold (in days). See also `curl_certificate_valid_days_min_warning` above for more information.
 curl_continue_after_certificate  | **Optional.** Allows the HTTP check to continue after performing the certificate check. Does nothing unless tls certificate check mode is used (`curl_certificate_valid_days_min`). (available since Monitoring Plugins v2.3.2)
 curl_client_certificate_file     | **Optional.** Name of file contains the client certificate (PEM format).
 curl_client_certificate_key_file | **Optional.** Name of file contains the private key (PEM format).
