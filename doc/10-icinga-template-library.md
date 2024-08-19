@@ -743,7 +743,7 @@ tests the HTTP service on the specified host. It can test normal (http) and secu
 (https) servers, follow redirects, search for strings and regular expressions,
 check connection times, and report on certificate expiration times.
 
-The plugin can either test the HTTP response of a server, or if `curl_certificate` is set to a non-empty value, the TLS certificate age for a HTTPS host.
+The plugin can either test the HTTP response of a server, or if `curl_certificate_valid_days_min_warning`/`curl_certificate_valid_days_min_critical` is set to a non-empty value, the TLS certificate age for a HTTPS host.
 
 Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
@@ -759,7 +759,7 @@ curl_tls_version	             | **Optional.** Connect via SSL. Port defaults to 
 curl_sni                         | **Optional.** Whether to use SNI. Defaults to false.
 curl_certificate_valid_days_min_warning  | **Optional.** Minimum number of days a certificate has to be valid. Port defaults to 443. When this option is used, the URL is not checked (by default). This defines the warning threshold (in days).
 curl_certificate_valid_days_min_critical  | **Optional.** Minimum number of days a certificate has to be valid. This parameter defines the critical threshold (in days). See also `curl_certificate_valid_days_min_warning` above for more information.
-curl_continue_after_certificate  | **Optional.** Allows the HTTP check to continue after performing the certificate check. Does nothing unless tls certificate check mode is used (`curl_certificate_valid_days_min`). (available since Monitoring Plugins v2.3.2)
+curl_continue_after_certificate  | **Optional.** Allows the HTTP check to continue after performing the certificate check. Does nothing unless tls certificate check mode is used (`curl_certificate_valid_days_min_warning`/`curl_certificate_valid_days_min_critical`). (available since Monitoring Plugins v2.3.2)
 curl_client_certificate_file     | **Optional.** Name of file contains the client certificate (PEM format).
 curl_client_certificate_key_file | **Optional.** Name of file contains the private key (PEM format).
 curl_ca_cert_file                | **Optional.** CA certificate file to verify peer against.
