@@ -777,6 +777,7 @@ curl_linespan                    | **Optional.** Allow regex to span newline.
 curl_ereg			             | **Optional.** A regular expression which the body must match against. Incompatible with curl_no-body.
 curl_eregi 				         | **Optional.** A case-insensitive expression which the body must match against. Incompatible with curl_no-body.
 curl_invert_regex                | **Optional.** Changes behavior of curl_ereg and curl_eregi to return CRITICAL if found, OK if not.
+curl_state_regex                 | **Optional.** Return STATE if regex is found, OK if not. STATE can be one of "critical","warning"
 curl_authorization               | **Optional.** Add 'username:password' authorization pair.
 curl_proxy_authorization         | **Optional.** Add 'username:password' authorization pair for proxy.
 curl_user_agent                   | **Optional.** String to be sent in curl header as User Agent.
