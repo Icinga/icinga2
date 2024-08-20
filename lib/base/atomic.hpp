@@ -41,6 +41,8 @@ public:
 	}
 };
 
+class LockedMutex;
+
 /**
  * Wraps any T into a std::atomic<T>-like interface that locks using a mutex.
  *
@@ -53,27 +55,70 @@ template<typename T>
 class Locked
 {
 public:
-	inline T load() const
-	{
-		std::unique_lock<std::mutex> lock(m_Mutex);
-
-		return m_Value;
-	}
-
-	inline void store(T desired)
-	{
-		std::unique_lock<std::mutex> lock(m_Mutex);
-
-		m_Value = std::move(desired);
-	}
+	T load(LockedMutex& mtx) const;
+	void store(T desired, LockedMutex& mtx);
 
 private:
-	mutable std::mutex m_Mutex;
 	T m_Value;
 };
 
 /**
- * Type alias for std::atomic<T> if possible, otherwise Locked<T> is used as a fallback.
+ * Wraps std::mutex, so that only Locked<T> can (un)lock it.
+ *
+ * The latter tiny lock scope is enforced this way to prevent deadlocks while passing around mutexes.
+ *
+ * @ingroup base
+ */
+class LockedMutex
+{
+	template<class T>
+	friend class Locked;
+
+private:
+	std::mutex m_Mutex;
+};
+
+template<class T>
+T Locked<T>::load(LockedMutex& mtx) const
+{
+	std::unique_lock lock (mtx.m_Mutex);
+
+	return m_Value;
+}
+
+template<class T>
+void Locked<T>::store(T desired, LockedMutex& mtx)
+{
+	std::unique_lock lock (mtx.m_Mutex);
+
+	m_Value = std::move(desired);
+}
+
+/**
+ * Extends std::atomic with a Locked-like interface.
+ *
+ * @ingroup base
+ */
+template<class T>
+class AtomicPseudoLocked : public std::atomic<T> {
+public:
+	using std::atomic<T>::atomic;
+	using std::atomic<T>::load;
+	using std::atomic<T>::store;
+
+	T load(LockedMutex&) const
+	{
+		return load();
+	}
+
+	void store(T desired, LockedMutex&)
+	{
+		store(desired);
+	}
+};
+
+/**
+ * Type alias for AtomicPseudoLocked<T> if possible, otherwise Locked<T> is used as a fallback.
  *
  * @ingroup base
  */
@@ -81,9 +126,9 @@ template <typename T>
 using AtomicOrLocked =
 #if defined(__GNUC__) && __GNUC__ < 5
 	// GCC does not implement std::is_trivially_copyable until version 5.
-	typename std::conditional<std::is_fundamental<T>::value || std::is_pointer<T>::value, std::atomic<T>, Locked<T>>::type;
+	typename std::conditional<std::is_fundamental<T>::value || std::is_pointer<T>::value, AtomicPseudoLocked<T>, Locked<T>>::type;
 #else /* defined(__GNUC__) && __GNUC__ < 5 */
-	typename std::conditional<std::is_trivially_copyable<T>::value, std::atomic<T>, Locked<T>>::type;
+	typename std::conditional<std::is_trivially_copyable<T>::value, AtomicPseudoLocked<T>, Locked<T>>::type;
 #endif /* defined(__GNUC__) && __GNUC__ < 5 */
 
 }
