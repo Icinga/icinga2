@@ -1935,7 +1935,7 @@ Download the [boost-binaries](https://sourceforge.net/projects/boost/files/boost
 - 64 for 64 bit builds
 
 ```
-https://sourceforge.net/projects/boost/files/boost-binaries/1.82.0/boost_1_85_0-msvc-14.2-64.exe/download
+https://sourceforge.net/projects/boost/files/boost-binaries/1.85.0/boost_1_85_0-msvc-14.2-64.exe/download
 ```
 
 Run the installer and leave the default installation path in `C:\local\boost_1_85_0`.
