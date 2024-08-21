@@ -186,6 +186,11 @@ BOOST_AUTO_TEST_CASE(FormatDateTime) {
 	BOOST_CHECK_THROW(Utility::FormatDateTime("%Y", std::nextafter(time_t_limit::min(), 0)), posix_error);
 	BOOST_CHECK_THROW(Utility::FormatDateTime("%Y", std::nextafter(time_t_limit::max(), 0)), posix_error);
 
+	// Excessive format strings can result in something too large for the buffer, errors out to the empty string.
+	// Note: both returning the proper result or throwing an exception would be fine too, unfortunately, that's
+	// not really possible due to limitations in strftime() error handling, see comment in the implementation.
+	BOOST_CHECK_EQUAL("", Utility::FormatDateTime(repeat("%Y", 1000).c_str(), ts));
+
 	// Out of range timestamps.
 	BOOST_CHECK_THROW(Utility::FormatDateTime("%Y", std::nextafter(time_t_limit::min(), -double_limit::infinity())), negative_overflow);
 	BOOST_CHECK_THROW(Utility::FormatDateTime("%Y", std::nextafter(time_t_limit::max(), +double_limit::infinity())), positive_overflow);

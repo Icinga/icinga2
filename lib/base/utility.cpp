@@ -1052,7 +1052,27 @@ String Utility::FormatDuration(double duration)
 
 String Utility::FormatDateTime(const char *format, double ts)
 {
-	char timestamp[128];
+	/* Known limitations of the implementation: Only works if the result is at most 127 bytes, otherwise returns an
+	 * empty string. An empty string is also returned in all other error cases as proper error handling for strftime()
+	 * is impossible.
+	 *
+	 * From strftime(3):
+	 *
+	 *     If the output string would exceed max bytes, errno is not set. This makes it impossible to distinguish this
+	 *     error case from cases where the format string legitimately produces a zero-length output string. POSIX.1-2001
+	 *     does not specify any errno settings for strftime().
+	 *
+	 * https://manpages.debian.org/bookworm/manpages-dev/strftime.3.en.html#BUGS
+	 *
+	 * There's also std::put_time() from C++ which works with an ostream and does not have a fixed size output buffer
+	 * and should allow using the error handling of the ostream. However, there seem to be an unfortunate implementation
+	 * of this on some Windows versions where passing an invalid format string results in std::bad_alloc and the process
+	 * allocating more and more memory before throwing the exception. In case someone in the future wants to try
+	 * std::put_time() again: better build packages for Windows and test them across all supported versions.
+	 * Hypothesis: it's implemented using a fixed output buffer and retrying with a larger buffer on error, assuming
+	 * the error was due to the buffer being too small.
+	 */
+
 	// Sub-second precision is removed, strftime() has no format specifiers for that anyway.
 	auto tempts = boost::numeric_cast<time_t>(ts);
 	tm tmthen;
@@ -1072,9 +1092,10 @@ String Utility::FormatDateTime(const char *format, double ts)
 	}
 #endif /* _MSC_VER */
 
-	strftime(timestamp, sizeof(timestamp), format, &tmthen);
-
-	return timestamp;
+	char buf[128];
+	size_t n = strftime(buf, sizeof(buf), format, &tmthen);
+	// On error, n == 0 and an empty string is returned.
+	return std::string(buf, n);
 }
 
 String Utility::FormatErrorNumber(int code) {
