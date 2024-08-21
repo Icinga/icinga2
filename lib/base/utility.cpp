@@ -4,6 +4,7 @@
 #include "base/utility.hpp"
 #include "base/convert.hpp"
 #include "base/application.hpp"
+#include "base/defer.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
 #include "base/socket.hpp"
@@ -1090,6 +1091,32 @@ String Utility::FormatDateTime(const char *format, double ts)
 			<< boost::errinfo_api_function("localtime_r")
 			<< boost::errinfo_errno(errno));
 	}
+#endif /* _MSC_VER */
+
+#ifdef _MSC_VER
+	/* On Windows, the strftime() function family invokes an invalid parameter handler when the format string is
+	 * invalid (see the "Remarks" section in their documentation). std::put_time() shows the same behavior as it
+	 * uses _wcsftime_l() internally. The default invalid parameter handler may terminate the process, which can
+	 * be a problem given that the format string can be specified by the user from the Icinga DSL.
+	 *
+	 * Thus, temporarily set a thread-local no-op handler to disable the default one allowing the program to
+	 * continue. This then simply results in the function returning an error which then results in an exception as
+	 * we ask the stream to throw one.
+	 *
+	 * See also:
+	 * https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/strftime-wcsftime-strftime-l-wcsftime-l?view=msvc-170
+	 * https://learn.microsoft.com/en-us/cpp/c-runtime-library/parameter-validation?view=msvc-170
+	 * https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/set-invalid-parameter-handler-set-thread-local-invalid-parameter-handler?view=msvc-170
+	 */
+
+	auto oldHandler = _set_thread_local_invalid_parameter_handler(
+		[](const wchar_t*, const wchar_t*, const wchar_t*, unsigned int, uintptr_t) {
+			// Intentionally do nothing to continue executing.
+		});
+
+	Defer resetHandler([oldHandler]() {
+		_set_thread_local_invalid_parameter_handler(oldHandler);
+	});
 #endif /* _MSC_VER */
 
 	char buf[128];
