@@ -191,6 +191,19 @@ BOOST_AUTO_TEST_CASE(FormatDateTime) {
 	// not really possible due to limitations in strftime() error handling, see comment in the implementation.
 	BOOST_CHECK_EQUAL("", Utility::FormatDateTime(repeat("%Y", 1000).c_str(), ts));
 
+	// Invalid format strings.
+	for (const char* format : {"%", "x % y", "x %! y"}) {
+		std::string result = Utility::FormatDateTime(format, ts);
+
+		// Implementations of strftime() seem to either keep invalid format specifiers and return them in the output, or
+		// treat them as an error which our implementation currently maps to the empty string due to strftime() not
+		// properly reporting errors. If this limitation of our implementation is lifted, other behavior like throwing
+		// an exception would also be valid.
+		BOOST_CHECK_MESSAGE(result.empty() || result == format,
+			"FormatDateTime(" << std::quoted(format) << ", " << ts << ") = " << std::quoted(result) <<
+			" should be one of [\"\", " << std::quoted(format) << "]");
+	}
+
 	// Out of range timestamps.
 	BOOST_CHECK_THROW(Utility::FormatDateTime("%Y", std::nextafter(time_t_limit::min(), -double_limit::infinity())), negative_overflow);
 	BOOST_CHECK_THROW(Utility::FormatDateTime("%Y", std::nextafter(time_t_limit::max(), +double_limit::infinity())), positive_overflow);
