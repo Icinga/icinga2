@@ -43,21 +43,6 @@ DIST=$(awk -F"[)(]+" '/VERSION=/ {print $2}' /etc/os-release); \
 
 apt update
 ```
-
-#### Debian Backports Repository <a id="debian-backports-repository"></a>
-
-This repository is required for Debian Stretch since Icinga v2.11.
-
-Debian Stretch:
-
-```bash
-DIST=$(awk -F"[)(]+" '/VERSION=/ {print $2}' /etc/os-release); \
- echo "deb https://deb.debian.org/debian ${DIST}-backports main" > \
- /etc/apt/sources.list.d/${DIST}-backports.list
-
-apt update
-```
-
 <!-- {% endif %} -->
 
 <!-- {% if ubuntu %} -->
