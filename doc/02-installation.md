@@ -79,25 +79,6 @@ apt update
 ```
 <!-- {% endif %} -->
 
-<!-- {% if raspbian %} -->
-### Raspbian Repository <a id="raspbian-repository"></a>
-
-```bash
-apt update
-apt -y install apt-transport-https wget gnupg
-
-wget -O - https://packages.icinga.com/icinga.key | gpg --dearmor -o /usr/share/keyrings/icinga-archive-keyring.gpg
-
-DIST=$(awk -F"[)(]+" '/VERSION=/ {print $2}' /etc/os-release); \
- echo "deb [signed-by=/usr/share/keyrings/icinga-archive-keyring.gpg] https://packages.icinga.com/raspbian icinga-${DIST} main" > \
- /etc/apt/sources.list.d/icinga.list
- echo "deb-src [signed-by=/usr/share/keyrings/icinga-archive-keyring.gpg] https://packages.icinga.com/raspbian icinga-${DIST} main" >> \
- /etc/apt/sources.list.d/icinga.list
-
-apt update
-```
-<!-- {% endif %} -->
-
 <!-- {% if centos %} -->
 ### CentOS Repository <a id="centos-repository"></a>
 
@@ -244,9 +225,9 @@ with `root` permissions unless noted otherwise.
     If you have [SELinux](22-selinux.md) enabled, the package `icinga2-selinux` is also required.
 <!-- {% endif %} -->
 
-<!-- {% if debian or ubuntu or raspbian %} -->
+<!-- {% if debian or ubuntu %} -->
 <!-- {% if not icingaDocs %} -->
-#### Debian / Ubuntu / Raspbian / Raspberry Pi OS
+#### Debian / Ubuntu / Raspberry Pi OS
 <!-- {% endif %} -->
 ```bash
 apt install icinga2
@@ -356,9 +337,9 @@ to determine where to find the plugin binaries.
     additional check plugins into your Icinga 2 setup.
 
 
-<!-- {% if debian or ubuntu or raspbian %} -->
+<!-- {% if debian or ubuntu %} -->
 <!-- {% if not icingaDocs %} -->
-#### Debian / Ubuntu / Raspbian / Raspberry Pi OS
+#### Debian / Ubuntu / Raspberry Pi OS
 <!-- {% endif %} -->
 ```bash
 apt install monitoring-plugins
