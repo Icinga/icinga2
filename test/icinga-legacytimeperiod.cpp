@@ -527,16 +527,7 @@ struct Segment
 
 std::string pretty_time(const tm& t)
 {
-#if defined(__GNUC__) && __GNUC__ < 5
-	// GCC did not implement std::put_time() until version 5
-	char buf[128];
-	size_t n = strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S %Z", &t);
-	return std::string(buf, n);
-#else /* defined(__GNUC__) && __GNUC__ < 5 */
-	std::ostringstream stream;
-	stream << std::put_time(&t, "%Y-%m-%d %H:%M:%S %Z");
-	return stream.str();
-#endif /* defined(__GNUC__) && __GNUC__ < 5 */
+	return Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %Z", &t);
 }
 
 std::string pretty_time(time_t t)
