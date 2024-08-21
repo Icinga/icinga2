@@ -19,6 +19,7 @@
 #include <boost/thread/tss.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <boost/numeric/conversion/cast.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/regex.hpp>
@@ -1052,7 +1053,8 @@ String Utility::FormatDuration(double duration)
 String Utility::FormatDateTime(const char *format, double ts)
 {
 	char timestamp[128];
-	auto tempts = (time_t)ts; /* We don't handle sub-second timestamps here just yet. */
+	// Sub-second precision is removed, strftime() has no format specifiers for that anyway.
+	auto tempts = boost::numeric_cast<time_t>(ts);
 	tm tmthen;
 
 #ifdef _MSC_VER
