@@ -1051,8 +1051,31 @@ String Utility::FormatDuration(double duration)
 	return NaturalJoin(tokens);
 }
 
-String Utility::FormatDateTime(const char *format, double ts)
+String Utility::FormatDateTime(const char* format, double ts)
 {
+	// Sub-second precision is removed, strftime() has no format specifiers for that anyway.
+	auto tempts = boost::numeric_cast<time_t>(ts);
+	tm tmthen;
+
+#ifdef _MSC_VER
+	errno_t err = localtime_s(&tmthen, &tempts);
+	if (err) {
+		BOOST_THROW_EXCEPTION(posix_error()
+			<< boost::errinfo_api_function("localtime_s")
+			<< boost::errinfo_errno(err));
+	}
+#else /* _MSC_VER */
+	if (!localtime_r(&tempts, &tmthen)) {
+		BOOST_THROW_EXCEPTION(posix_error()
+			<< boost::errinfo_api_function("localtime_r")
+			<< boost::errinfo_errno(errno));
+	}
+#endif /* _MSC_VER */
+
+	return FormatDateTime(format, &tmthen);
+}
+
+String Utility::FormatDateTime(const char* format, const tm* t) {
 	/* Known limitations of the implementation: Only works if the result is at most 127 bytes, otherwise returns an
 	 * empty string. An empty string is also returned in all other error cases as proper error handling for strftime()
 	 * is impossible.
@@ -1073,25 +1096,6 @@ String Utility::FormatDateTime(const char *format, double ts)
 	 * Hypothesis: it's implemented using a fixed output buffer and retrying with a larger buffer on error, assuming
 	 * the error was due to the buffer being too small.
 	 */
-
-	// Sub-second precision is removed, strftime() has no format specifiers for that anyway.
-	auto tempts = boost::numeric_cast<time_t>(ts);
-	tm tmthen;
-
-#ifdef _MSC_VER
-	errno_t err = localtime_s(&tmthen, &tempts);
-	if (err) {
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("localtime_s")
-			<< boost::errinfo_errno(err));
-	}
-#else /* _MSC_VER */
-	if (!localtime_r(&tempts, &tmthen)) {
-		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("localtime_r")
-			<< boost::errinfo_errno(errno));
-	}
-#endif /* _MSC_VER */
 
 #ifdef _MSC_VER
 	/* On Windows, the strftime() function family invokes an invalid parameter handler when the format string is
@@ -1120,7 +1124,7 @@ String Utility::FormatDateTime(const char *format, double ts)
 #endif /* _MSC_VER */
 
 	char buf[128];
-	size_t n = strftime(buf, sizeof(buf), format, &tmthen);
+	size_t n = strftime(buf, sizeof(buf), format, t);
 	// On error, n == 0 and an empty string is returned.
 	return std::string(buf, n);
 }
