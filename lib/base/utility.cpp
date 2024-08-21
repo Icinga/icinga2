@@ -1058,15 +1058,12 @@ String Utility::FormatDateTime(const char *format, double ts)
 	tm tmthen;
 
 #ifdef _MSC_VER
-	tm *temp = localtime(&tempts);
-
-	if (!temp) {
+	errno_t err = localtime_s(&tmthen, &tempts);
+	if (err) {
 		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("localtime")
-			<< boost::errinfo_errno(errno));
+			<< boost::errinfo_api_function("localtime_s")
+			<< boost::errinfo_errno(err));
 	}
-
-	tmthen = *temp;
 #else /* _MSC_VER */
 	if (!localtime_r(&tempts, &tmthen)) {
 		BOOST_THROW_EXCEPTION(posix_error()
