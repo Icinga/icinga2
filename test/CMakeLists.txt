@@ -125,6 +125,7 @@ add_boost_test(base
     base_utility/validateutf8
     base_utility/EscapeCreateProcessArg
     base_utility/TruncateUsingHash
+    base_utility/FormatDateTime
     base_value/scalar
     base_value/convert
     base_value/format
