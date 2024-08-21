@@ -137,6 +137,9 @@ BOOST_AUTO_TEST_CASE(TruncateUsingHash)
 
 BOOST_AUTO_TEST_CASE(FormatDateTime) {
 	using time_t_limit = std::numeric_limits<time_t>;
+	using double_limit = std::numeric_limits<double>;
+	using boost::numeric::negative_overflow;
+	using boost::numeric::positive_overflow;
 
 	// Helper to repeat a given string a number of times.
 	auto repeat = [](const std::string& s, size_t n) {
@@ -182,6 +185,10 @@ BOOST_AUTO_TEST_CASE(FormatDateTime) {
 	// timestamps, so localtime_r() returns EOVERFLOW which makes the implementation throw an exception.
 	BOOST_CHECK_THROW(Utility::FormatDateTime("%Y", std::nextafter(time_t_limit::min(), 0)), posix_error);
 	BOOST_CHECK_THROW(Utility::FormatDateTime("%Y", std::nextafter(time_t_limit::max(), 0)), posix_error);
+
+	// Out of range timestamps.
+	BOOST_CHECK_THROW(Utility::FormatDateTime("%Y", std::nextafter(time_t_limit::min(), -double_limit::infinity())), negative_overflow);
+	BOOST_CHECK_THROW(Utility::FormatDateTime("%Y", std::nextafter(time_t_limit::max(), +double_limit::infinity())), positive_overflow);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
