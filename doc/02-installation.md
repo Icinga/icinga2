@@ -72,21 +72,6 @@ apt update
 ```
 <!-- {% endif %} -->
 
-<!-- {% if centos %} -->
-### CentOS Repository <a id="centos-repository"></a>
-
-```bash
-wget https://packages.icinga.com/centos/ICINGA-release.repo -O /etc/yum.repos.d/ICINGA-release.repo
-```
-
-The packages for CentOS depend on other packages which are distributed
-as part of the [EPEL repository](https://fedoraproject.org/wiki/EPEL):
-
-```bash
-yum install epel-release
-```
-<!-- {% endif %} -->
-
 <!-- {% if rhel %} -->
 ### RHEL Repository <a id="rhel-repository"></a>
 
@@ -212,7 +197,7 @@ You can install Icinga 2 by using your distribution's package manager
 to install the `icinga2` package. The following commands must be executed
 with `root` permissions unless noted otherwise.
 
-<!-- {% if centos or rhel or fedora or amazon_linux %} -->
+<!-- {% if rhel or fedora or amazon_linux %} -->
 !!! tip
 
     If you have [SELinux](22-selinux.md) enabled, the package `icinga2-selinux` is also required.
@@ -224,21 +209,6 @@ with `root` permissions unless noted otherwise.
 <!-- {% endif %} -->
 ```bash
 apt install icinga2
-```
-<!-- {% endif %} -->
-
-<!-- {% if centos %} -->
-<!-- {% if not icingaDocs %} -->
-#### CentOS
-<!-- {% endif %} -->
-!!! info
-
-    Note that installing Icinga 2 is only supported on CentOS 7 as CentOS 8 is EOL.
-
-```bash
-yum install icinga2
-systemctl enable icinga2
-systemctl start icinga2
 ```
 <!-- {% endif %} -->
 
@@ -339,17 +309,6 @@ apt install monitoring-plugins
 ```
 <!-- {% endif %} -->
 
-<!-- {% if centos %} -->
-<!-- {% if not icingaDocs %} -->
-#### CentOS
-<!-- {% endif %} -->
-The packages for CentOS depend on other packages which are distributed as part of the EPEL repository.
-
-```bash
-yum install nagios-plugins-all
-```
-<!-- {% endif %} -->
-
 <!-- {% if rhel %} -->
 <!-- {% if not icingaDocs %} -->
 #### RHEL
@@ -437,7 +396,7 @@ Restart Icinga 2 for these changes to take effect.
 systemctl restart icinga2
 ```
 
-<!-- {% if amazon_linux or centos or debian or rhel or sles or ubuntu %} -->
+<!-- {% if amazon_linux or debian or rhel or sles or ubuntu %} -->
 ## Set up Icinga DB <a id="set-up-icinga-db"></a>
 
 Icinga DB is a set of components for publishing, synchronizing and
@@ -484,20 +443,6 @@ Use your distribution's package manager to install the `icingadb-redis` package 
 <!-- {% if not icingaDocs %} -->
 ##### Amazon Linux
 <!-- {% endif %} -->
-```bash
-yum install icingadb-redis
-```
-<!-- {% endif %} -->
-
-<!-- {% if centos %} -->
-<!-- {% if not icingaDocs %} -->
-##### CentOS
-<!-- {% endif %} -->
-
-!!! info
-
-    Note that installing Icinga DB Redis is only supported on CentOS 7 as CentOS 8 is EOL.
-
 ```bash
 yum install icingadb-redis
 ```
@@ -615,9 +560,6 @@ The Icinga DB daemon package is also included in the Icinga repository, and sinc
 you have completed the instructions here and can proceed to
 <!-- {% if amazon_linux %} -->
 [install the Icinga DB daemon on Amazon Linux](https://icinga.com/docs/icinga-db/latest/doc/02-Installation/01-Amazon-Linux/#installing-icinga-db-package),
-<!-- {% endif %} -->
-<!-- {% if centos %} -->
-[install the Icinga DB daemon on CentOS](https://icinga.com/docs/icinga-db/latest/doc/02-Installation/02-CentOS/#installing-icinga-db-package),
 <!-- {% endif %} -->
 <!-- {% if debian %} -->
 [install the Icinga DB daemon on Debian](https://icinga.com/docs/icinga-db/latest/doc/02-Installation/03-Debian/#installing-icinga-db-package),

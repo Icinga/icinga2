@@ -73,7 +73,7 @@ RPM and Debian packages install the bash completion files into
 
 You need to install the `bash-completion` package if not already installed.
 
-RHEL/CentOS/Fedora:
+RHEL/Fedora:
 
 ```bash
 yum install bash-completion

@@ -264,7 +264,7 @@ The setup wizard will ensure that the following steps are taken:
 * Update the [ApiListener](06-distributed-monitoring.md#distributed-monitoring-apilistener) and [constants](04-configuration.md#constants-conf) configuration.
 * Update the [icinga2.conf](04-configuration.md#icinga2-conf) to disable the `conf.d` inclusion, and add the `api-users.conf` file inclusion.
 
-Here is an example of a master setup for the `icinga2-master1.localdomain` node on CentOS 7:
+Here is an example of a master setup for the `icinga2-master1.localdomain` node:
 
 ```
 [root@icinga2-master1.localdomain /]# icinga2 node wizard
@@ -1031,9 +1031,7 @@ in `/etc/icinga2/icinga2.conf`.
 > Defaults to disabled.
 
 Now it is time to validate the configuration and to restart the Icinga 2 daemon
-on both nodes.
-
-Example on CentOS 7:
+on both nodes:
 
 ```
 [root@icinga2-agent1.localdomain /]# icinga2 daemon -C
@@ -1112,7 +1110,8 @@ Save the changes and validate the configuration on the master node:
 ```
 [root@icinga2-master1.localdomain /]# icinga2 daemon -C
 ```
-Restart the Icinga 2 daemon (example for CentOS 7):
+
+Restart the Icinga 2 daemon:
 
 ```
 [root@icinga2-master1.localdomain /]# systemctl restart icinga2
@@ -1221,9 +1220,7 @@ object ApiListener "api" {
 ```
 
 Now it is time to validate the configuration and to restart the Icinga 2 daemon
-on both nodes.
-
-Example on CentOS 7:
+on both nodes:
 
 ```
 [root@icinga2-satellite1.localdomain /]# icinga2 daemon -C
@@ -1285,7 +1282,7 @@ Save the changes and validate the configuration on the master node:
 [root@icinga2-master1.localdomain /]# icinga2 daemon -C
 ```
 
-Restart the Icinga 2 daemon (example for CentOS 7):
+Restart the Icinga 2 daemon:
 
 ```
 [root@icinga2-master1.localdomain /]# systemctl restart icinga2
