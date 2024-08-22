@@ -815,16 +815,6 @@ apt-get install icinga2-ido-mysql
     default. You can skip the automated setup and install/upgrade the
     database manually if you prefer.
 
-###### CentOS 7
-
-!!! info
-
-    Note that installing `icinga2-ido-mysql` is only supported on CentOS 7 as CentOS 8 is EOL.
-
-```bash
-yum install icinga2-ido-mysql
-```
-
 ###### RHEL 8
 
 ```bash
@@ -913,16 +903,6 @@ apt-get install icinga2-ido-pgsql
     Upstream Debian packages provide a database configuration wizard by default.
     You can skip the automated setup and install/upgrade the database manually
     if you prefer that.
-
-###### CentOS 7
-
-!!! info
-
-    Note that installing `icinga2-ido-pgsql` is only supported on CentOS 7 as CentOS 8 is EOL.
-
-```bash
-yum install icinga2-ido-pgsql
-```
 
 ###### RHEL 8
 
