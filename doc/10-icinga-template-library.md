@@ -716,6 +716,7 @@ http_warn_time                   | **Optional.** The warning threshold.
 http_critical_time               | **Optional.** The critical threshold.
 http_expect                      | **Optional.** Comma-delimited list of strings, at least one of them is expected in the first (status) line of the server response. Default: HTTP/1.
 http_certificate                 | **Optional.** Minimum number of days a certificate has to be valid. Port defaults to 443. When this option is used the URL is not checked. The first parameter defines the warning threshold (in days), the second parameter the critical threshold (in days). (Example `http_certificate = "30,20"`).
+http_certificate_continue        | **Optional.** Allows the HTTP check to continue after performing the certificate check. Does nothing unless http_certificate is used.
 http_clientcert                  | **Optional.** Name of file contains the client certificate (PEM format).
 http_privatekey                  | **Optional.** Name of file contains the private key (PEM format).
 http_headerstring                | **Optional.** String to expect in the response headers.
@@ -734,6 +735,7 @@ http_ipv4                        | **Optional.** Use IPv4 connection. Defaults t
 http_ipv6                        | **Optional.** Use IPv6 connection. Defaults to false.
 http_link                        | **Optional.** Wrap output in HTML link. Defaults to false.
 http_verbose                     | **Optional.** Show details for command-line debugging. Defaults to false.
+http_extra_opts                  | **Optional.** Read extra plugin options from an ini file.
 http_verify_host                 | **Optional.** Verify SSL certificate is for the -H hostname (with --sni and -S). Defaults to false. **Only supported by the Nagios plugins version of check\_http, not by the monitoring plugins one.**
 
 
