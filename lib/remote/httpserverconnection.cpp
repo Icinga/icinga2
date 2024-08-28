@@ -348,8 +348,6 @@ bool EnsureValidBody(
 		Array::Ptr permissions = authenticatedUser->GetPermissions();
 
 		if (permissions) {
-			CpuBoundWork evalPermissions (yc);
-
 			ObjectLock olock(permissions);
 
 			for (const Value& permissionInfo : permissions) {
