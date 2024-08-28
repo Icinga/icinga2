@@ -433,13 +433,17 @@ bool ProcessRequest(
 	boost::beast::http::response<boost::beast::http::string_body>& response,
 	HttpServerConnection& server,
 	bool& hasStartedStreaming,
+	std::chrono::steady_clock::duration& cpuBoundWorkTime,
 	boost::asio::yield_context& yc
 )
 {
 	namespace http = boost::beast::http;
 
 	try {
+		// Cache the elapsed time to acquire a CPU semaphore used to detect extremely heavy workloads.
+		auto start (std::chrono::steady_clock::now());
 		CpuBoundWork handlingRequest (yc);
+		cpuBoundWorkTime = std::chrono::steady_clock::now() - start;
 
 		HttpHandler::ProcessRequest(stream, authenticatedUser, request, response, yc, server);
 	} catch (const std::exception& ex) {
@@ -530,9 +534,14 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 				<< "), user: " << (authenticatedUser ? authenticatedUser->GetName() : "<unauthenticated>")
 				<< ", agent: " << request[http::field::user_agent]; //operator[] - Returns the value for a field, or "" if it does not exist.
 
-			Defer addRespCode ([&response, start, &logMsg]() {
-				logMsg << ", status: " << response.result() << ") took "
-					<< ch::duration_cast<ch::milliseconds>(ch::steady_clock::now() - start).count() << "ms.";
+			ch::steady_clock::duration cpuBoundWorkTime(0);
+			Defer addRespCode ([&response, start, &logMsg, &cpuBoundWorkTime]() {
+				logMsg << ", status: " << response.result() << ")";
+				if (cpuBoundWorkTime >= ch::seconds(1)) {
+					logMsg << " waited " << ch::duration_cast<ch::milliseconds>(cpuBoundWorkTime).count() << "ms on semaphore and";
+				}
+
+				logMsg << " took total " << ch::duration_cast<ch::milliseconds>(ch::steady_clock::now() - start).count() << "ms.";
 			});
 
 			if (!HandleAccessControl(*m_Stream, request, response, yc)) {
@@ -553,7 +562,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 
 			m_Seen = std::numeric_limits<decltype(m_Seen)>::max();
 
-			if (!ProcessRequest(*m_Stream, request, authenticatedUser, response, *this, m_HasStartedStreaming, yc)) {
+			if (!ProcessRequest(*m_Stream, request, authenticatedUser, response, *this, m_HasStartedStreaming, cpuBoundWorkTime, yc)) {
 				break;
 			}
 
