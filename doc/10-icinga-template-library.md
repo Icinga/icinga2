@@ -786,7 +786,7 @@ curl_extended_perfdata            | **Optional.** Print additional perfdata. Def
 curl_show_body                   | **Optional.** Print body content below status line
 curl_link                        | **Optional.** Wrap output in HTML link. Defaults to false.
 curl_onredirect                  | **Optional.** How to handle redirect pages. Possible values: "ok" (default), "warning", "critical", "follow", "sticky" (like follow but stick to address), "stickyport" (like sticky but also to port)
-curl_max_redir                   | **Optional.** Maximum number of redirects
+curl_max_redirs                   | **Optional.** Maximum number of redirects
 curl_pagesize                    | **Optional.** Minimum page size required:Maximum page size required.
 curl_http_version                | **Optional.** Connect via specific HTTP protocol. 1.0 = HTTP/1.0, 1.1 = HTTP/1.1, 2.0 = HTTP/2 (HTTP/2 will fail without -S)
 curl_enable_automatic_decompression |  **Optional.** Enable automatic decompression of body (CURLOPT_ACCEPT_ENCODING).
