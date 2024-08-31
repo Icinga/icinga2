@@ -1,0 +1,44 @@
+---
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    name: Generate and publish release and documentation
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    - name: Install APT packages
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: sudo apt-get -yq install doxygen libboost-dev libssl-dev python3-pip
+    - name: Install PIP packages
+      # TODO: Consider using requirements.txt to ensure specific versions are used
+      run: sudo pip3 install sphinx breathe sphinx_bootstrap_theme
+    - name: Configure build system
+      run: mkdir build && cmake -Bbuild -H.
+    - name: Build documentation
+      run: cmake --build build/ --target doc
+    - name: Copy HTML documentation to source package
+      run: cp -r build/doc/html doc
+    - name: Create release package
+      run: cmake --build build/ --target package_source
+    - name: Create release
+      uses: "marvinpinto/action-automatic-releases@latest"
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        prerelease: false
+        files: build/boost-wintls-*.zip
+    - name: Disable Jekyll templating
+      run: touch build/doc/html/.nojekyll
+    - name: Deploy documentation
+      uses: JamesIves/github-pages-deploy-action@v4
+      with:
+        folder: build/doc/html

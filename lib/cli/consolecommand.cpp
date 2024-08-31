@@ -524,13 +524,12 @@ incomplete:
  */
 Shared<AsioTlsStream>::Ptr ConsoleCommand::Connect()
 {
-	Shared<boost::asio::ssl::context>::Ptr sslContext;
+	Shared<TlsContext>::Ptr sslContext;
 
 	try {
-		sslContext = MakeAsioSslContext(Empty, Empty, Empty); //TODO: Add support for cert, key, ca parameters
+		sslContext = SetupSslContext(); //TODO: Add support for cert, key, ca parameters
 	} catch(const std::exception& ex) {
-		Log(LogCritical, "DebugConsole")
-			<< "Cannot make SSL context: " << ex.what();
+		Log(LogCritical, "DebugConsole") << ex.what();
 		throw;
 	}
 

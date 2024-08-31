@@ -20,6 +20,10 @@
 #include <boost/asio/ssl/context.hpp>
 #include <boost/asio/ssl/stream.hpp>
 
+#ifdef _WIN32
+#	include <boost/wintls.hpp>
+#endif /* _WIN32 */
+
 namespace icinga
 {
 
@@ -59,11 +63,34 @@ private:
 struct UnbufferedAsioTlsStreamParams
 {
 	boost::asio::io_context& IoContext;
-	boost::asio::ssl::context& SslContext;
+	TlsContext& SslContext;
 	const String& Hostname;
 };
 
-typedef SeenStream<boost::asio::ssl::stream<boost::asio::ip::tcp::socket>> AsioTcpTlsStream;
+#ifdef _WIN32
+template<class T>
+class TlsStream : public boost::wintls::stream<T>
+{
+public:
+	using boost::wintls::stream<T>::stream;
+
+	typedef typename next_layer_type::lowest_layer_type lowest_layer_type;
+	typedef boost::wintls::handshake_type handshake_type;
+
+	static constexpr auto client = boost::wintls::handshake_type::client;
+	static constexpr auto server = boost::wintls::handshake_type::server;
+
+	lowest_layer_type& lowest_layer()
+	{
+		return next_layer().lowest_layer();
+	}
+};
+#else /* _WIN32 */
+template<class T>
+using TlsStream = boost::asio::ssl::stream<T>;
+#endif /* _WIN32 */
+
+typedef SeenStream<TlsStream<boost::asio::ip::tcp::socket>> AsioTcpTlsStream;
 
 class UnbufferedAsioTlsStream : public AsioTcpTlsStream
 {
@@ -108,7 +135,7 @@ class AsioTlsStream : public boost::asio::buffered_stream<UnbufferedAsioTlsStrea
 {
 public:
 	inline
-	AsioTlsStream(boost::asio::io_context& ioContext, boost::asio::ssl::context& sslContext, const String& hostname = String())
+	AsioTlsStream(boost::asio::io_context& ioContext, TlsContext& sslContext, const String& hostname = String())
 		: AsioTlsStream(UnbufferedAsioTlsStreamParams{ioContext, sslContext, hostname})
 	{
 	}

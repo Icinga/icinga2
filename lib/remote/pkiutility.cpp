@@ -83,15 +83,13 @@ int PkiUtility::SignCsr(const String& csrfile, const String& certfile)
 
 std::shared_ptr<X509> PkiUtility::FetchCert(const String& host, const String& port)
 {
-	Shared<boost::asio::ssl::context>::Ptr sslContext;
+	Shared<TlsContext>::Ptr sslContext;
 
 	try {
-		sslContext = MakeAsioSslContext();
+		sslContext = SetupSslContext();
 	} catch (const std::exception& ex) {
-		Log(LogCritical, "pki")
-			<< "Cannot make SSL context.";
-		Log(LogDebug, "pki")
-			<< "Cannot make SSL context:\n"  << DiagnosticInformation(ex);
+		Log(LogCritical, "pki") << ex.what();
+		Log(LogDebug, "pki") << DiagnosticInformation(ex);
 		return std::shared_ptr<X509>();
 	}
 
@@ -151,15 +149,13 @@ int PkiUtility::GenTicket(const String& cn, const String& salt, std::ostream& ti
 int PkiUtility::RequestCertificate(const String& host, const String& port, const String& keyfile,
 	const String& certfile, const String& cafile, const std::shared_ptr<X509>& trustedCert, const String& ticket)
 {
-	Shared<boost::asio::ssl::context>::Ptr sslContext;
+	Shared<TlsContext>::Ptr sslContext;
 
 	try {
-		sslContext = MakeAsioSslContext(certfile, keyfile);
+		sslContext = SetupSslContext(certfile, keyfile);
 	} catch (const std::exception& ex) {
-		Log(LogCritical, "cli")
-			<< "Cannot make SSL context for cert path: '" << certfile << "' key path: '" << keyfile << "' ca path: '" << cafile << "'.";
-		Log(LogDebug, "cli")
-			<< "Cannot make SSL context for cert path: '" << certfile << "' key path: '" << keyfile << "' ca path: '" << cafile << "':\n"  << DiagnosticInformation(ex);
+		Log(LogCritical, "cli") << ex.what();
+		Log(LogDebug, "cli") << DiagnosticInformation(ex);
 		return 1;
 	}
 

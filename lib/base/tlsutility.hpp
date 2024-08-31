@@ -22,6 +22,10 @@
 #include <boost/asio/ssl/context.hpp>
 #include <boost/exception/info.hpp>
 
+#ifdef _WIN32
+#	include <boost/wintls/context.hpp>
+#endif /* _WIN32 */
+
 namespace icinga
 {
 
@@ -38,19 +42,27 @@ const auto LEAF_VALID_FOR  = 60 * 60 * 24 * 397;
 const auto RENEW_THRESHOLD = 60 * 60 * 24 * 30;
 const auto RENEW_INTERVAL  = 60 * 60 * 24;
 
+#ifdef _WIN32
+typedef boost::wintls::context TlsContext;
+typedef boost::wintls::method TlsProtocolMin;
+#else /* _WIN32 */
+typedef boost::asio::ssl::context TlsContext;
+typedef int TlsProtocolMin;
+
+void SetTlsProtocolminToSSLContext(const Shared<TlsContext>::Ptr& context, const String& tlsProtocolmin);
+#endif /* _WIN32 */
+
 void InitializeOpenSSL();
 
 String GetOpenSSLVersion();
 
-Shared<boost::asio::ssl::context>::Ptr MakeAsioSslContext(const String& pubkey = String(), const String& privkey = String(), const String& cakey = String());
-void AddCRLToSSLContext(const Shared<boost::asio::ssl::context>::Ptr& context, const String& crlPath);
+void AddCRLToSSLContext(const Shared<TlsContext>::Ptr& context, const String& crlPath);
 void AddCRLToSSLContext(X509_STORE *x509_store, const String& crlPath);
-void SetCipherListToSSLContext(const Shared<boost::asio::ssl::context>::Ptr& context, const String& cipherList);
-void SetTlsProtocolminToSSLContext(const Shared<boost::asio::ssl::context>::Ptr& context, const String& tlsProtocolmin);
-int ResolveTlsProtocolVersion(const std::string& version);
+void SetCipherListToSSLContext(const Shared<TlsContext>::Ptr& context, const String& cipherList);
+TlsProtocolMin ResolveTlsProtocolVersion(const std::string& version);
 
-Shared<boost::asio::ssl::context>::Ptr SetupSslContext(String certPath, String keyPath,
-	String caPath, String crlPath, String cipherList, String protocolmin, DebugInfo di);
+Shared<TlsContext>::Ptr SetupSslContext(const String& certPath = String(), const String& keyPath = String(), const String& caPath = String(),
+	const String& crlPath = String(), const String& cipherList = String(), const String& protocolmin = String(), DebugInfo di = {});
 
 String GetCertificateCN(const std::shared_ptr<X509>& certificate);
 std::shared_ptr<X509> GetX509Certificate(const String& pemfile);

@@ -497,11 +497,11 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 
 	auto& io (IoEngine::Get().GetIoContext());
 	auto strand (Shared<asio::io_context::strand>::Make(io));
-	Shared<asio::ssl::context>::Ptr ctx;
+	Shared<TlsContext>::Ptr ctx;
 	double start = Utility::GetTime();
 
 	try {
-		ctx = SetupSslContext(cert, key, ca, crl, DEFAULT_TLS_CIPHERS, DEFAULT_TLS_PROTOCOLMIN, DebugInfo());
+		ctx = SetupSslContext(cert, key, ca, crl, DEFAULT_TLS_CIPHERS, DEFAULT_TLS_PROTOCOLMIN);
 	} catch (const std::exception& ex) {
 		ReportIfwCheckResult(checkable, cmdLine, cr, ex.what(), start, Utility::GetTime());
 		return;
