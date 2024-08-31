@@ -188,6 +188,14 @@ add_definitions(-DBOOST_ASIO_USE_TS_EXECUTOR_AS_DEFAULT)
 link_directories(${Boost_LIBRARY_DIRS})
 include_directories(${Boost_INCLUDE_DIRS})
 
+find_library(JEMALLOC_LIBRARIES NAMES jemalloc)
+
+if(JEMALLOC_LIBRARIES)
+  message(STATUS "Found jemalloc: ${JEMALLOC_LIBRARIES}")
+else()
+  message(WARNING "Couldn't find jemalloc")
+endif()
+
 find_package(OpenSSL REQUIRED)
 include_directories(${OPENSSL_INCLUDE_DIR})
 
