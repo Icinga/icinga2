@@ -951,7 +951,7 @@ object CheckCommand "check_compellent" {
   arguments   = {
     "--disks"  = {
       set_if = {{
-        var host_vars = host.vars
+        var host_vars = macro("$host.vars$")
         log(host_vars)
         var compel = host_vars.compellent
         log(compel)
