@@ -705,10 +705,8 @@ std::shared_ptr<X509> CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NAME
 		X509_EXTENSION_free(basicConstraintsExt);
 	}
 
-	String cn = GetX509NameCN(subject);
-
 	if (!ca) {
-		String san = "DNS:" + cn;
+		String san = "DNS:" + GetX509NameCN(subject);
 		X509_EXTENSION *subjectAltNameExt = X509V3_EXT_conf_nid(nullptr, &ctx, NID_subject_alt_name, const_cast<char *>(san.CStr()));
 		if (subjectAltNameExt) {
 			X509_add_ext(cert, subjectAltNameExt, -1);

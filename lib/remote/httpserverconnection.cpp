@@ -93,11 +93,12 @@ void HttpServerConnection::Disconnect()
 
 			m_CheckLivenessTimer.cancel();
 
-			m_Stream->lowest_layer().cancel(ec);
+			auto& lowestLayer = m_Stream->lowest_layer();
+			lowestLayer.cancel(ec);
 
 			m_Stream->next_layer().async_shutdown(yc[ec]);
 
-			m_Stream->lowest_layer().shutdown(m_Stream->lowest_layer().shutdown_both, ec);
+			lowestLayer.shutdown(lowestLayer.shutdown_both, ec);
 
 			auto listener (ApiListener::GetInstance());
 

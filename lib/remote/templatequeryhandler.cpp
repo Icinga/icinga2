@@ -102,7 +102,7 @@ bool TemplateQueryHandler::HandleRequest(
 	}
 
 	QueryDescription qd;
-	qd.Types.insert(type->GetName());
+	qd.Types.emplace(type->GetName());
 	qd.Permission = "templates/query/" + type->GetName();
 	qd.Provider = new TemplateTargetProvider();
 

@@ -487,7 +487,7 @@ void DbConnection::UpdateObject(const ConfigObject::Ptr& object)
 			} else {
 				dbobj->SendConfigUpdateLight();
 			}
-		} else if (!active) {
+		} else {
 			/* This may happen on reload/restart actions too
 			 * and is blocked above already.
 			 *

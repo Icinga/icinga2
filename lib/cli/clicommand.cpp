@@ -41,7 +41,7 @@ std::vector<String> icinga::GetBashCompletionSuggestions(const String& type, con
 		if (lstat(path.CStr(), &statbuf) >= 0) {
 			if (S_ISDIR(statbuf.st_mode)) {
 				result.clear(),
-				result.push_back(path + "/");
+				result.emplace_back(path + "/");
 			}
 		}
 	}

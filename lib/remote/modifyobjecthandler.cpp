@@ -40,7 +40,7 @@ bool ModifyObjectHandler::HandleRequest(
 	}
 
 	QueryDescription qd;
-	qd.Types.insert(type->GetName());
+	qd.Types.emplace(type->GetName());
 	qd.Permission = "objects/modify/" + type->GetName();
 
 	params->Set("type", type->GetName());

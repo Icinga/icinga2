@@ -47,7 +47,7 @@ Value MacroProcessor::ResolveMacros(const Value& str, const ResolverList& resolv
 				EscapeCallback(), resolvedMacros, useResolvedMacros, recursionLevel + 1);
 
 			if (value.IsObjectType<Array>())
-				resultArr.push_back(Utility::Join(value, ';'));
+				resultArr.emplace_back(Utility::Join(value, ';'));
 			else
 				resultArr.push_back(value);
 		}
