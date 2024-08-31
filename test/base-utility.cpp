@@ -72,6 +72,13 @@ BOOST_AUTO_TEST_CASE(comparepasswords_issafe)
 	BOOST_WARN(0.9 <= diff && diff <= 1.1);
 }
 
+BOOST_AUTO_TEST_CASE(comparebcryptpasswords)
+{
+	BOOST_CHECK(Utility::CompareBCryptPasswords("123456", "$2y$10$uJUA0HVV3lHVVE0LsxPYZ.ioK2b7Lt82h6vwpgVBQSPqYjL7Jke7q"));
+	BOOST_CHECK(!Utility::CompareBCryptPasswords("123457", "$2y$10$uJUA0HVV3lHVVE0LsxPYZ.ioK2b7Lt82h6vwpgVBQSPqYjL7Jke7q"));
+	BOOST_CHECK(!Utility::CompareBCryptPasswords("123457", "invalid"));
+}
+
 BOOST_AUTO_TEST_CASE(validateutf8)
 {
 	BOOST_CHECK(Utility::ValidateUTF8("") == "");
