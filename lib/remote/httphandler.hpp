@@ -42,6 +42,8 @@ public:
 		AsioTlsStream& stream,
 		const ApiUser::Ptr& user,
 		boost::beast::http::request<boost::beast::http::string_body>& request,
+		Url::Ptr& url,
+		Dictionary::Ptr& params,
 		boost::beast::http::response<boost::beast::http::string_body>& response,
 		boost::asio::yield_context& yc,
 		HttpServerConnection& server
