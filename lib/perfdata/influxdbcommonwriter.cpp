@@ -256,6 +256,11 @@ void InfluxdbCommonWriter::CheckResultHandlerWQ(const Checkable::Ptr& checkable,
 	CheckCommand::Ptr checkCommand = checkable->GetCheckCommand();
 
 	Array::Ptr perfdata = cr->GetPerformanceData();
+	Dictionary::Ptr fields;
+
+	if (GetEnableSingleRecord()) {
+		fields = new Dictionary();
+	}
 
 	if (perfdata) {
 		ObjectLock olock(perfdata);
@@ -276,24 +281,33 @@ void InfluxdbCommonWriter::CheckResultHandlerWQ(const Checkable::Ptr& checkable,
 				}
 			}
 
-			Dictionary::Ptr fields = new Dictionary();
-			fields->Set("value", pdv->GetValue());
+			String prefix;
+
+			if (GetEnableSingleRecord()) {
+				prefix = pdv->GetLabel() + " ";
+			} else {
+				fields = new Dictionary();
+			}
+
+			fields->Set(prefix + "value", pdv->GetValue());
 
 			if (GetEnableSendThresholds()) {
 				if (!pdv->GetCrit().IsEmpty())
-					fields->Set("crit", pdv->GetCrit());
+					fields->Set(prefix + "crit", pdv->GetCrit());
 				if (!pdv->GetWarn().IsEmpty())
-					fields->Set("warn", pdv->GetWarn());
+					fields->Set(prefix + "warn", pdv->GetWarn());
 				if (!pdv->GetMin().IsEmpty())
-					fields->Set("min", pdv->GetMin());
+					fields->Set(prefix + "min", pdv->GetMin());
 				if (!pdv->GetMax().IsEmpty())
-					fields->Set("max", pdv->GetMax());
+					fields->Set(prefix + "max", pdv->GetMax());
 			}
 			if (!pdv->GetUnit().IsEmpty()) {
-				fields->Set("unit", pdv->GetUnit());
+				fields->Set(prefix + "unit", pdv->GetUnit());
 			}
 
-			SendMetric(checkable, tmpl, pdv->GetLabel(), fields, ts);
+			if (!GetEnableSingleRecord()) {
+				SendMetric(checkable, tmpl, pdv->GetLabel(), fields, ts);
+			}
 		}
 	}
 
@@ -302,7 +316,9 @@ void InfluxdbCommonWriter::CheckResultHandlerWQ(const Checkable::Ptr& checkable,
 		Service::Ptr service;
 		tie(host, service) = GetHostService(checkable);
 
-		Dictionary::Ptr fields = new Dictionary();
+		if (!GetEnableSingleRecord()) {
+			fields = new Dictionary();
+		}
 
 		if (service)
 			fields->Set("state", new InfluxdbInteger(service->GetState()));
@@ -318,6 +334,12 @@ void InfluxdbCommonWriter::CheckResultHandlerWQ(const Checkable::Ptr& checkable,
 		fields->Set("latency", cr->CalculateLatency());
 		fields->Set("execution_time", cr->CalculateExecutionTime());
 
+		if (!GetEnableSingleRecord()) {
+			SendMetric(checkable, tmpl, Empty, fields, ts);
+		}
+	}
+
+	if (GetEnableSingleRecord()) {
 		SendMetric(checkable, tmpl, Empty, fields, ts);
 	}
 }
