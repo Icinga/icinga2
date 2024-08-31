@@ -19,7 +19,7 @@ set_target_properties (
   FOLDER Lib
 )
 
-include_directories(${Boost_INCLUDE_DIRS})
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
 if(ICINGA2_WITH_CHECKER)
   list(APPEND icinga_app_SOURCES $<TARGET_OBJECTS:checker>)

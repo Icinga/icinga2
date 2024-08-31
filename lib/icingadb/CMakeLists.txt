@@ -15,7 +15,7 @@ endif()
 
 add_library(icingadb OBJECT ${icingadb_SOURCES})
 
-include_directories(${icinga2_SOURCE_DIR}/third-party)
+include_directories(SYSTEM ${icinga2_SOURCE_DIR}/third-party)
 
 add_dependencies(icingadb base config icinga remote)
 

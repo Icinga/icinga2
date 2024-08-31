@@ -12,7 +12,7 @@ endif()
 
 add_library(db_ido_pgsql OBJECT ${db_ido_pgsql_SOURCES})
 
-include_directories(${PostgreSQL_INCLUDE_DIRS})
+include_directories(SYSTEM ${PostgreSQL_INCLUDE_DIRS})
 
 add_dependencies(db_ido_pgsql base config icinga db_ido)
 

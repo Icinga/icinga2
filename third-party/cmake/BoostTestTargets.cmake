@@ -130,7 +130,7 @@ function(add_boost_test _name)
 
 	if(Boost_FOUND)
 
-		include_directories(${Boost_INCLUDE_DIRS})
+		include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
 		set(includeType)
 		foreach(src ${SOURCES})
