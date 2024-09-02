@@ -1,9 +1,14 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/type.hpp"
+#include "base/atomic.hpp"
+#include "base/configobject.hpp"
+#include "base/debug.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/namespace.hpp"
 #include "base/objectlock.hpp"
+#include <algorithm>
+#include <functional>
 
 using namespace icinga;
 
@@ -31,6 +36,61 @@ INITIALIZE_ONCE_WITH_PRIORITY([]() {
 	Type::TypeInstance = type;
 	Type::Register(type);
 }, InitializePriority::RegisterTypeType);
+
+static std::vector<Type::Ptr> l_SortedByLoadDependencies;
+static Atomic l_SortingByLoadDependenciesDone (false);
+
+INITIALIZE_ONCE_WITH_PRIORITY([] {
+	auto types (Type::GetAllTypes());
+
+	types.erase(std::remove_if(types.begin(), types.end(), [](auto& type) {
+		return !ConfigObject::TypeInstance->IsAssignableFrom(type);
+	}), types.end());
+
+	// Depth-first search
+	std::unordered_set<Type*> unsorted;
+	std::unordered_set<Type*> visited;
+	std::vector<Type::Ptr> sorted;
+
+	for (auto type : types) {
+		unsorted.emplace(type.get());
+	}
+
+	std::function<void(Type*)> visit;
+	visit = ([&visit, &unsorted, &visited, &sorted](Type* type) {
+		if (unsorted.find(type) == unsorted.end()) {
+			return;
+		}
+
+		VERIFY(visited.emplace(type).second); // Detect cycles in type dependencies
+
+		for (auto dep : type->GetLoadDependencies()) {
+			visit(dep);
+		}
+
+		unsorted.erase(type);
+		sorted.emplace_back(type);
+	});
+
+	while (!unsorted.empty()) {
+		visit(*unsorted.begin());
+	}
+
+	VERIFY(sorted.size() == types.size());
+
+	visited.clear();
+
+	for (auto& t : sorted) {
+		for (auto dep : t->GetLoadDependencies()) {
+			VERIFY(visited.find(dep) != visited.end());
+		}
+
+		VERIFY(visited.emplace(t.get()).second);
+	}
+
+	std::swap(sorted, l_SortedByLoadDependencies);
+	l_SortingByLoadDependenciesDone.store(true);
+}, InitializePriority::SortTypes);
 
 String Type::ToString() const
 {
@@ -70,6 +130,12 @@ std::vector<Type::Ptr> Type::GetAllTypes()
 	}
 
 	return types;
+}
+
+const std::vector<Type::Ptr>& Type::GetAllConfigTypesSortedByLoadDependencies()
+{
+	VERIFY(l_SortingByLoadDependenciesDone.load());
+	return l_SortedByLoadDependencies;
 }
 
 String Type::GetPluralName() const
