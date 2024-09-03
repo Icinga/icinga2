@@ -24,7 +24,7 @@ if (-not ($env:PATH -contains $env:CMAKE_PATH)) {
 
 cd "$env:ICINGA2_BUILDPATH"
 
-ctest.exe -C "${env:CMAKE_BUILD_TYPE}" -T test -O $env:ICINGA2_BUILDPATH/Test.xml --output-on-failure --log_level=all
+ctest.exe -C "${env:CMAKE_BUILD_TYPE}" -T test -O $env:ICINGA2_BUILDPATH/Test.xml --output-on-failure
 if ($lastexitcode -ne 0) {
   cd ..
   exit $lastexitcode
