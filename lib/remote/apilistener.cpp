@@ -1021,17 +1021,22 @@ void ApiListener::ApiTimerHandler()
 				maxTs = client->GetTimestamp();
 		}
 
+		Log(LogNotice, "ApiListener")
+			<< "Setting log position for identity '" << endpoint->GetName() << "': "
+			<< Utility::FormatDateTime("%Y/%m/%d %H:%M:%S", ts);
+
 		for (const JsonRpcConnection::Ptr& client : endpoint->GetClients()) {
 			if (client->GetTimestamp() == maxTs) {
-				client->SendMessage(lmessage);
+				try {
+					client->SendMessage(lmessage);
+				} catch (const std::runtime_error& ex) {
+					Log(LogNotice, "ApiListener")
+						<< "Error while setting log position for identity '" << endpoint->GetName() << "': " << DiagnosticInformation(ex, false);
+				}
 			} else {
 				client->Disconnect();
 			}
 		}
-
-		Log(LogNotice, "ApiListener")
-			<< "Setting log position for identity '" << endpoint->GetName() << "': "
-			<< Utility::FormatDateTime("%Y/%m/%d %H:%M:%S", ts);
 	}
 }
 
@@ -1195,7 +1200,12 @@ void ApiListener::SyncSendMessage(const Endpoint::Ptr& endpoint, const Dictionar
 			if (client->GetTimestamp() != maxTs)
 				continue;
 
-			client->SendMessage(message);
+			try {
+				client->SendMessage(message);
+			} catch (const std::runtime_error& ex) {
+				Log(LogNotice, "ApiListener")
+					<< "Error while sending message to endpoint '" << endpoint->GetName() << "': " << DiagnosticInformation(ex, false);
+			}
 		}
 	}
 }
@@ -1437,10 +1447,12 @@ void ApiListener::LogGlobHandler(std::vector<int>& files, const String& file)
 void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 {
 	Endpoint::Ptr endpoint = client->GetEndpoint();
+	Defer resetEndpointSyncing ([&endpoint]() {
+		ObjectLock olock(endpoint);
+		endpoint->SetSyncing(false);
+	});
 
 	if (endpoint->GetLogDuration() == 0) {
-		ObjectLock olock2(endpoint);
-		endpoint->SetSyncing(false);
 		return;
 	}
 
@@ -1457,8 +1469,6 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 	Zone::Ptr target_zone = target_endpoint->GetZone();
 
 	if (!target_zone) {
-		ObjectLock olock2(endpoint);
-		endpoint->SetSyncing(false);
 		return;
 	}
 
@@ -1466,12 +1476,14 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 		std::unique_lock<std::mutex> lock(m_LogLock);
 
 		CloseLogFile();
+		Defer reopenLog;
 
 		if (count == -1 || count > 50000) {
 			OpenLogFile();
 			lock.unlock();
 		} else {
 			last_sync = true;
+			reopenLog.SetFunc([this]() { OpenLogFile(); });
 		}
 
 		count = 0;
@@ -1544,8 +1556,7 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 
 					Log(LogDebug, "ApiListener")
 						<< "Error while replaying log for endpoint '" << endpoint->GetName() << "': " << DiagnosticInformation(ex);
-
-					break;
+					return;
 				}
 
 				peer_ts = pmessage->Get("timestamp");
@@ -1578,14 +1589,7 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 		}
 
 		if (last_sync) {
-			{
-				ObjectLock olock2(endpoint);
-				endpoint->SetSyncing(false);
-			}
-
-			OpenLogFile();
-
-			break;
+			return;
 		}
 	}
 }
