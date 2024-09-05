@@ -1649,37 +1649,8 @@ static bool ReleaseHelper(String *platformName, String *platformVersion)
 		return true;
 	}
 
-	/* You are using a distribution which supports LSB. */
-	FILE *fp = popen("type lsb_release >/dev/null 2>&1 && lsb_release -s -i 2>&1", "r");
-
-	if (fp) {
-		std::ostringstream msgbuf;
-		char line[1024];
-		while (fgets(line, sizeof(line), fp))
-			msgbuf << line;
-		int status = pclose(fp);
-		if (WEXITSTATUS(status) == 0) {
-			if (platformName)
-				*platformName = msgbuf.str();
-		}
-	}
-
-	fp = popen("type lsb_release >/dev/null 2>&1 && lsb_release -s -r 2>&1", "r");
-
-	if (fp) {
-		std::ostringstream msgbuf;
-		char line[1024];
-		while (fgets(line, sizeof(line), fp))
-			msgbuf << line;
-		int status = pclose(fp);
-		if (WEXITSTATUS(status) == 0) {
-			if (platformVersion)
-				*platformVersion = msgbuf.str();
-		}
-	}
-
 	/* OS X */
-	fp = popen("type sw_vers >/dev/null 2>&1 && sw_vers -productName 2>&1", "r");
+	FILE* fp = popen("type sw_vers >/dev/null 2>&1 && sw_vers -productName 2>&1", "r");
 
 	if (fp) {
 		std::ostringstream msgbuf;
@@ -1713,43 +1684,6 @@ static bool ReleaseHelper(String *platformName, String *platformVersion)
 
 			return true;
 		}
-	}
-
-	/* Centos/RHEL < 7 */
-	release.close();
-	release.open("/etc/redhat-release");
-	if (release.is_open()) {
-		std::string release_line;
-		getline(release, release_line);
-
-		String info = release_line;
-
-		/* example: Red Hat Enterprise Linux Server release 6.7 (Santiago) */
-		if (platformName)
-			*platformName = info.SubStr(0, info.Find("release") - 1);
-
-		if (platformVersion)
-			*platformVersion = info.SubStr(info.Find("release") + 8);
-
-		return true;
-	}
-
-	/* sles 11 sp3, opensuse w/e */
-	release.close();
-	release.open("/etc/SuSE-release");
-	if (release.is_open()) {
-		std::string release_line;
-		getline(release, release_line);
-
-		String info = release_line;
-
-		if (platformName)
-			*platformName = info.SubStr(0, info.FindFirstOf(" "));
-
-		if (platformVersion)
-			*platformVersion = info.SubStr(info.FindFirstOf(" ") + 1);
-
-		return true;
 	}
 
 	/* Just give up */
