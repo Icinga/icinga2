@@ -3717,22 +3717,33 @@ iostat\_cwrite | **Required.** Critical threshold for KB/s writes (default: 200)
 
 #### systemd <a id="plugin-contrib-command-systemd"></a>
 
-The [check_systemd.py](https://github.com/Josef-Friedrich/check_systemd) plugin
-will report a degraded system to your monitoring solution. It requires only the [nagiosplugin](https://nagiosplugin.readthedocs.io/en/stable) library.
+The [check_systemd](https://github.com/Josef-Friedrich/check_systemd) plugin
+will report a degraded system to your monitoring solution.
 
 Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
-Name                            | Description
---------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------
-systemd\_unit                   | **Optional.** Name of the systemd unit that is being tested.
-systemd\_exclude\_unit          | **Optional.** Exclude a systemd unit from the checks. This option can be applied multiple times. Also supports regular expressions.
-systemd\_no\_startup\_time      | **Optional.** Don’t check the startup time. Using this option the options `systemd_warning` and `systemd_critical` have no effect. (Default: `false`)
-systemd\_warning                | **Optional.** Startup time in seconds to result in a warning status. (Default: `60s`)
-systemd\_critical               | **Optional.** Startup time in seconds to result in a critical status. (Default: `120s`)
-systemd\_dead\_timers           | **Optional.** Detect dead / inactive timers. (Default: `false`)
-systemd\_dead\_timers\_warning  | **Optional.** Time ago in seconds for dead / inactive timers to trigger a warning state (by default 6 days).
-systemd\_dead\_timers\_critical | **Optional.** Time ago in seconds for dead / inactive timers to trigger a critical state (by default 7 days).
-systemd\_verbose\_level         | **Optional.** Increase verbosity level (Accepted values: `1`, `2` or `3`). (Defaults to none)
+Name                             | Description
+---------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------
+systemd\_verbose\_level          | **Optional.** Increase verbosity level (Accepted values: `1`, `2` or `3`). (Defaults to none)
+systemd\_ignore\_inactive\_state | **Optional.** Ignore an inactive state on a specific unit. Only affective if used with `systemd_unit`.
+systemd\_include                 | **Optional.** Include systemd units to the checks, regular expressions are supported. This option can be applied multiple times.
+systemd\_unit                    | **Optional.** Name of the systemd unit that is being tested.
+systemd\_include\_type           | **Optional.** Unit types to be tested (for example: `service`, `timer`). This option can be applied multiple times.
+systemd\_exclude\_unit           | **Optional.** Exclude a systemd unit from the checks, regular expressions are supported. This option can be applied multiple times.
+systemd\_exclude\_unit\_name     | **Optional.** Exclude a systemd unit from the checks. This option can be applied multiple times.
+systemd\_exclude\_type           | **Optional.** Exclude a systemd unit type (for example: `service`, `timer`)
+systemd\_state                   | **Optional.** Specify the active state that the systemd unit must have (for example: `active`, `inactive`)
+systemd\_dead\_timers            | **Optional.** Detect dead / inactive timers, see `systemd_dead_timers_{warning,critical}`. (Default `false`)
+systemd\_dead\_timers\_warning   | **Optional.** Time ago in seconds for dead / inactive timers to trigger a warning state. (Default 6 days)
+systemd\_dead\_timers\_critical  | **Optional.** Time ago in seconds for dead / inactive timers to trigger a critical state. (Default 7 days)
+systemd\_no\_startup\_time       | **Optional.** Don't check the startup time. Using this option, the options `systemd_{warning,critical}` have no effect. (Default `false`)
+systemd\_warning                 | **Optional.** Startup time in seconds to result in a warning status. (Default 60 seconds)
+systemd\_critical                | **Optional.** Startup time in seconds to result in a critical status. (Default 120 seconds)
+systemd\_dbus                    | **Optional.** Use systemd's D-Bus API instead of parsing command output. Only partially implemented!
+systemd\_cli                     | **Optional.** Use text output from parsing command output. (Default)
+systemd\_user                    | **Optional.** Also show user (systemctl --user) units.
+
+
 
 #### yum <a id="plugin-contrib-command-yum"></a>
 
