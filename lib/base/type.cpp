@@ -7,9 +7,7 @@
 #include "base/scriptglobal.hpp"
 #include "base/namespace.hpp"
 #include "base/objectlock.hpp"
-#include <algorithm>
 #include <functional>
-#include <unordered_map>
 
 using namespace icinga;
 
@@ -41,53 +39,37 @@ INITIALIZE_ONCE_WITH_PRIORITY([]() {
 static std::vector<Type::Ptr> l_SortedByLoadDependencies;
 static Atomic l_SortingByLoadDependenciesDone (false);
 
-typedef std::unordered_map<Type*, bool> Visited; // https://stackoverflow.com/a/8942986
-
 INITIALIZE_ONCE_WITH_PRIORITY([] {
-	auto types (Type::GetAllTypes());
+	std::unordered_set<Type*> visited;
 
-	types.erase(std::remove_if(types.begin(), types.end(), [](auto& type) {
-		return !ConfigObject::TypeInstance->IsAssignableFrom(type);
-	}), types.end());
-
-	// Depth-first search
-	std::unordered_set<Type*> unsorted;
-	Visited visited;
-	std::vector<Type::Ptr> sorted;
-
-	for (auto type : types) {
-		unsorted.emplace(type.get());
-	}
-
-	std::function<void(Type*)> visit ([&visit, &unsorted, &visited, &sorted](Type* type) {
-		if (unsorted.find(type) == unsorted.end()) {
+	std::function<void(Type*)> visit;
+	// Please note that this callback does not detect any cyclic load dependencies,
+	// instead, it relies on the "sort_by_load_after" unit test to fail.
+	visit = ([&visit, &visited](Type* type) {
+		if (visited.find(type) != visited.end()) {
 			return;
 		}
+		visited.emplace(type);
 
-		bool& alreadyVisited (visited.at(type));
-		VERIFY(!alreadyVisited);
-		alreadyVisited = true;
-
-		for (auto dep : type->GetLoadDependencies()) {
-			visit(dep);
+		for (auto dependency : type->GetLoadDependencies()) {
+			visit(dependency);
 		}
 
-		unsorted.erase(type);
-		sorted.emplace_back(type);
+		// We have managed to reach the final/top node in this dependency graph,
+		// so let's place them in reverse order to their final place.
+		l_SortedByLoadDependencies.emplace_back(type);
 	});
 
-	while (!unsorted.empty()) {
-		for (auto& type : types) {
-			visited[type.get()] = false;
+	// Sort the types by their load_after dependencies in a Depth-First search manner.
+	for (const Type::Ptr& type : Type::GetAllTypes()) {
+		// Note that only those types that are assignable to the dynamic ConfigObject type can have "load_after"
+		// dependencies, otherwise they are just some Icinga 2 primitive types such as Number, String, etc. and
+		// we need to ignore them.
+		if (ConfigObject::TypeInstance->IsAssignableFrom(type)) {
+			visit(type.get());
 		}
-
-		visit(*unsorted.begin());
 	}
 
-	VERIFY(sorted.size() == types.size());
-	VERIFY(sorted[0]->GetLoadDependencies().empty());
-
-	std::swap(sorted, l_SortedByLoadDependencies);
 	l_SortingByLoadDependenciesDone.store(true);
 }, InitializePriority::SortTypes);
 

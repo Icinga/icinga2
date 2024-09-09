@@ -82,6 +82,20 @@ public:
 	static void Register(const Type::Ptr& type);
 	static Type::Ptr GetByName(const String& name);
 	static std::vector<Type::Ptr> GetAllTypes();
+
+	/**
+	 * Returns a list of config types sorted by their "load_after" dependencies.
+	 *
+	 * All dependencies of a given type are listed at a lower index than that of the type itself. In other words,
+	 * if a `Service` type load depends on the `Host` and `ApiListener` types, the Host and ApiListener types are
+	 * guaranteed to appear first on the list. Nevertheless, the order of the Host and ApiListener types themselves
+	 * is arbitrary if the two types are not dependent.
+	 *
+	 * It should be noted that this method will fail fatally when used prior to the completion
+	 * of namespace initialization.
+	 *
+	 * @return std::vector<Type::Ptr>
+	 */
 	static const std::vector<Ptr>& GetConfigTypesSortedByLoadDependencies();
 
 	void SetField(int id, const Value& value, bool suppress_events = false, const Value& cookie = Empty) override;
