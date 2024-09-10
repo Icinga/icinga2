@@ -2,6 +2,59 @@
 
 include(BoostTestTargets)
 
+set(types_test_SOURCES
+  icingaapplication-fixture.cpp
+  base-type.cpp
+  ${base_OBJS}
+  $<TARGET_OBJECTS:config>
+  $<TARGET_OBJECTS:remote>
+  $<TARGET_OBJECTS:icinga>
+  $<TARGET_OBJECTS:methods>
+)
+
+if(ICINGA2_WITH_CHECKER)
+  list(APPEND types_test_SOURCES $<TARGET_OBJECTS:checker>)
+endif()
+
+if(ICINGA2_WITH_MYSQL)
+  list(APPEND types_test_SOURCES $<TARGET_OBJECTS:db_ido> $<TARGET_OBJECTS:db_ido_mysql>)
+endif()
+
+if(ICINGA2_WITH_PGSQL)
+  list(APPEND types_test_SOURCES $<TARGET_OBJECTS:db_ido> $<TARGET_OBJECTS:db_ido_pgsql>)
+endif()
+
+if(ICINGA2_WITH_ICINGADB)
+  list(APPEND types_test_SOURCES $<TARGET_OBJECTS:icingadb>)
+endif()
+
+if(ICINGA2_WITH_NOTIFICATION)
+  list(APPEND types_test_SOURCES $<TARGET_OBJECTS:notification>)
+endif()
+
+if(ICINGA2_WITH_PERFDATA)
+  list(APPEND types_test_SOURCES $<TARGET_OBJECTS:perfdata>)
+endif()
+
+if(ICINGA2_UNITY_BUILD)
+  mkunity_target(types test types_test_SOURCES)
+endif()
+
+# In order to test the order of all Icinga 2 config type load dependencies, we need to link against all the libraries,
+# but this results in boost signals e.g. in dbevents.cpp being triggered by icinga-checkresult.cpp test cases that
+# only pass partially initialised objects. Therefore, the types test cases are decoupled from base and moved to a
+# separate executable to not crash the base test cases.
+add_boost_test(types
+  SOURCES test-runner.cpp ${types_test_SOURCES}
+  LIBRARIES ${base_DEPS}
+  TESTS
+    types/gettype
+    types/assign
+    types/byname
+    types/instantiate
+    types/sort_by_load_after
+)
+
 set(base_test_SOURCES
   icingaapplication-fixture.cpp
   base-array.cpp
@@ -21,7 +74,6 @@ set(base_test_SOURCES
   base-string.cpp
   base-timer.cpp
   base-tlsutility.cpp
-  base-type.cpp
   base-utility.cpp
   base-value.cpp
   config-apply.cpp
@@ -117,10 +169,6 @@ add_boost_test(base
     base_tlsutility/iscertuptodate_ok
     base_tlsutility/iscertuptodate_expiring
     base_tlsutility/iscertuptodate_old
-    base_type/gettype
-    base_type/assign
-    base_type/byname
-    base_type/instantiate
     base_utility/parse_version
     base_utility/compare_version
     base_utility/comparepasswords_works
