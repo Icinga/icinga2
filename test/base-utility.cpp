@@ -199,7 +199,16 @@ BOOST_AUTO_TEST_CASE(FormatDateTime) {
 		// treat them as an error which our implementation currently maps to the empty string due to strftime() not
 		// properly reporting errors. If this limitation of our implementation is lifted, other behavior like throwing
 		// an exception would also be valid.
-		BOOST_CHECK_MESSAGE(result.empty() || result == format,
+
+		std::string percentLessOutput(format);
+		// `strftime(3)` seems to return the provided invalid format specifiers on all Platforms as documented above,
+		// i.e. even on macOS, but the macOS/*BSD libc implementations of `strftime(3)` appears to behave differently
+		// and causes the `%` character not to be populated into the results buffer if invalid format specifiers such
+		// as `"x %! y"` are given. If such specifiers are provided, the output will contain `x ! y` instead of the
+		// given invalid format specifiers.
+		percentLessOutput.erase(std::remove(percentLessOutput.begin(), percentLessOutput.end(), '%'), percentLessOutput.end());
+
+		BOOST_CHECK_MESSAGE(result.empty() || result == format || result == percentLessOutput,
 			"FormatDateTime(" << std::quoted(format) << ", " << ts << ") = " << std::quoted(result) <<
 			" should be one of [\"\", " << std::quoted(format) << "]");
 	}
