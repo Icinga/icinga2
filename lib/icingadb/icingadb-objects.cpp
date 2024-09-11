@@ -286,6 +286,15 @@ void IcingaDB::UpdateAllConfigObjects()
 				if (lcType != GetLowerCaseTypeNameDB(object))
 					continue;
 
+				// If we encounter not yet activated objects, i.e. they are currently being loaded and are about to
+				// be activated, but are still partially initialised, we want to exclude them from the config dump
+				// before we end up in a nullptr deference and crash the Icinga 2 process. Should these excluded
+				// objects later reach the activation process, they will be captured via the `OnActiveChanged` event
+				// and processed in IcingaDB::VersionChangedHandler() as runtime updates.
+				if (!object->IsActive()) {
+					continue;
+				}
+
 				std::vector<Dictionary::Ptr> runtimeUpdates;
 				CreateConfigUpdate(object, lcType, hMSets, runtimeUpdates, false);
 
