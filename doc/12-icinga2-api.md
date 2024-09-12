@@ -2374,7 +2374,7 @@ Creation, modification and deletion of templates at runtime is not supported.
 ### Querying Templates <a id="icinga2-api-config-templates-query"></a>
 
 You can request information about configuration templates by sending
-a `GET` query to the `/v1/templates/<type>` URL endpoint. `<type` has
+a `GET` query to the `/v1/templates/<type>` URL endpoint. `<type>` has
 to be replaced with the plural name of the object type you are interested
 in:
 
