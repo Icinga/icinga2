@@ -1887,7 +1887,7 @@ source         | String        | The execution UUID
 
 Special handling, calls `ClusterEvents::EnqueueCheck()` for command endpoint checks.
 This function enqueues check tasks into a queue which is controlled in `RemoteCheckThreadProc()`.
-If the `endpoint` parameter is specified and is not equal to the local endpoint then the message is forwarded to the correct endpoint zone. 
+If the `endpoint` parameter is specified and is not equal to the local endpoint then the message is forwarded to the correct endpoint zone.
 
 ##### Permissions
 
@@ -1932,7 +1932,7 @@ executions     | Dictionary    | Executions to be updated
 ##### Functions
 
 **Event Sender:** `ClusterEvents::ExecutedCommandAPIHandler`, `ClusterEvents::UpdateExecutionsAPIHandler`, `ApiActions::ExecuteCommand`
-**Event Receiver:** `ClusterEvents::UpdateExecutionsAPIHandler` 
+**Event Receiver:** `ClusterEvents::UpdateExecutionsAPIHandler`
 
 ##### Permissions
 
@@ -1962,7 +1962,7 @@ Key            | Type          | Description
 host           | String        | Host name.
 service        | String        | Service name.
 execution      | String        | The execution ID executed.
-exitStatus     | Number        | The command exit status. 
+exitStatus     | Number        | The command exit status.
 output         | String        | The command output.
 start          | Number        | The unix timestamp at the start of the command execution
 end            | Number        | The unix timestamp at the end of the command execution
@@ -1970,7 +1970,7 @@ end            | Number        | The unix timestamp at the end of the command ex
 ##### Functions
 
 **Event Sender:** `ClusterEvents::ExecuteCheckFromQueue`, `ClusterEvents::ExecuteCommandAPIHandler`
-**Event Receiver:** `ClusterEvents::ExecutedCommandAPIHandler` 
+**Event Receiver:** `ClusterEvents::ExecutedCommandAPIHandler`
 
 ##### Permissions
 
