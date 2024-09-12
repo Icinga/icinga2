@@ -692,4 +692,3 @@ the [servicegroups](24-appendix.md#schema-livestatus-servicegroups-table-attribu
 
 All [services](24-appendix.md#schema-livestatus-services-table-attributes) table attributes grouped with
 the [hostgroups](24-appendix.md#schema-livestatus-hostgroups-table-attributes) table prefixed with `hostgroup_`.
-

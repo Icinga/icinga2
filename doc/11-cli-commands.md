@@ -22,7 +22,7 @@ Supported commands:
   * api setup (setup for API)
   * ca list (lists all certificate signing requests)
   * ca restore (restores a removed certificate request)
-  * ca remove (removes an outstanding certificate request)  
+  * ca remove (removes an outstanding certificate request)
   * ca sign (signs an outstanding certificate request)
   * console (Icinga debug console)
   * daemon (starts Icinga 2)

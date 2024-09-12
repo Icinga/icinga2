@@ -3447,7 +3447,7 @@ thola_identify_discover_timeouts   | **Optional.** The number of discover timeou
 
 > **Note**:
 >
-> One of the variables `thola_identify_model`, `thola_identify_os_version`, 
+> One of the variables `thola_identify_model`, `thola_identify_os_version`,
 > `thola_identify_vendor` or `thola_identify_serial_number` must be set
 
 ##### thola-memory-usage <a id="plugin-contrib-command-thola-memory-usage"></a>
