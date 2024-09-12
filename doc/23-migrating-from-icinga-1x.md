@@ -804,7 +804,7 @@ define service {
 }
 ```
 
-Icinga 2 supports objects and (global) variables, but does not make a difference 
+Icinga 2 supports objects and (global) variables, but does not make a difference
 between the main configuration file or any other included file.
 
 icinga2.conf:

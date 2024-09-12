@@ -116,19 +116,19 @@ The policy provides a role `icinga2adm_r` for confining an user which enables an
 
 SELinux is based on the least level of access required for a service to run. Using booleans you can grant more access in a defined way. The Icinga 2 policy package provides the following booleans.
 
-**icinga2_can_connect_all** 
+**icinga2_can_connect_all**
 
 Having this boolean enabled allows icinga2 to connect to all ports. This can be necessary if you use features which connect to unconfined services, for example the [influxdb writer](14-features.md#influxdb-writer).
 
-**icinga2_run_sudo** 
+**icinga2_run_sudo**
 
 To allow Icinga 2 executing plugins via sudo you can toogle this boolean. It is disabled by default, resulting in error messages like `execvpe(sudo) failed: Permission denied`.
 
-**httpd_can_write_icinga2_command** 
+**httpd_can_write_icinga2_command**
 
 To allow httpd to write to the command pipe of icinga2 this boolean has to be enabled. This is enabled by default, if not needed you can disable it for more security.
 
-**httpd_can_connect_icinga2_api** 
+**httpd_can_connect_icinga2_api**
 
 Enabling this boolean allows httpd to connect to the API of icinga2 (Ports labeled `icinga2_port_t`). This is enabled by default, if not needed you can disable it for more security.
 
