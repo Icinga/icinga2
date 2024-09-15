@@ -839,6 +839,7 @@ Value ClusterEvents::AcknowledgementSetAPIHandler(const MessageOrigin::Ptr& orig
 			<< "' from '" << origin->FromClient->GetIdentity() << "': Checkable is already acknowledged.";
 		return Empty;
 	}
+	oLock.Unlock();
 
 	checkable->AcknowledgeProblem(params->Get("author"), params->Get("comment"),
 		static_cast<AcknowledgementType>(static_cast<int>(params->Get("acktype"))),
