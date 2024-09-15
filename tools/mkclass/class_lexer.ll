@@ -26,8 +26,8 @@ do {							\
 } while (0)
 
 struct lex_buf {
-	char *buf;
-	size_t size;
+	char *buf = NULL;
+	size_t size = 0;
 };
 
 static void lb_init(lex_buf *lb)

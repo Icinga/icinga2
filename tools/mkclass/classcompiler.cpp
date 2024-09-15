@@ -893,7 +893,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 				if (field.Type.ArrayRank > 0) {
 					m_Impl << "\t" << "if (oldValue) {" << std::endl
 						<< "\t\t" << "ObjectLock olock(oldValue);" << std::endl
-						<< "\t\t" << "for (const String& ref : oldValue) {" << std::endl
+						<< "\t\t" << "for (auto& ref : oldValue) {" << std::endl
 						<< "\t\t\t" << "DependencyGraph::RemoveDependency(this, ConfigObject::GetObject";
 
 					/* Ew */
@@ -907,7 +907,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 						<< "\t" << "}" << std::endl
 						<< "\t" << "if (newValue) {" << std::endl
 						<< "\t\t" << "ObjectLock olock(newValue);" << std::endl
-						<< "\t\t" << "for (const String& ref : newValue) {" << std::endl
+						<< "\t\t" << "for (auto& ref : newValue) {" << std::endl
 						<< "\t\t\t" << "DependencyGraph::AddDependency(this, ConfigObject::GetObject";
 
 					/* Ew */

@@ -32,9 +32,7 @@ static void ScriptFrameCleanupHandler()
 
 	std::vector<String> cleanup_keys;
 
-	typedef std::pair<String, ApiScriptFrame> KVPair;
-
-	for (const KVPair& kv : l_ApiScriptFrames) {
+	for (auto& kv : l_ApiScriptFrames) {
 		if (kv.second.Seen < Utility::GetTime() - 1800)
 			cleanup_keys.push_back(kv.first);
 	}
