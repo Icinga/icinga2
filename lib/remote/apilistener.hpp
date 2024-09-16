@@ -247,6 +247,8 @@ private:
 	/* configsync */
 	void UpdateConfigObject(const ConfigObject::Ptr& object, const MessageOrigin::Ptr& origin,
 		const JsonRpcConnection::Ptr& client = nullptr);
+	void UpdateConfigObjectWithParents(const ConfigObject::Ptr& object, const Zone::Ptr& azone,
+		const JsonRpcConnection::Ptr& client, std::unordered_set<ConfigObject*>& syncedObjects);
 	void DeleteConfigObject(const ConfigObject::Ptr& object, const MessageOrigin::Ptr& origin,
 		const JsonRpcConnection::Ptr& client = nullptr);
 	void SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient);
