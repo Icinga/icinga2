@@ -5,11 +5,13 @@
 #include "remote/configobjectutility.hpp"
 #include "remote/jsonrpc.hpp"
 #include "base/configtype.hpp"
-#include "base/json.hpp"
 #include "base/convert.hpp"
+#include "base/dependencygraph.hpp"
+#include "base/json.hpp"
 #include "config/vmops.hpp"
 #include "remote/configobjectslock.hpp"
 #include <fstream>
+#include <unordered_set>
 
 using namespace icinga;
 
@@ -403,6 +405,40 @@ void ApiListener::UpdateConfigObject(const ConfigObject::Ptr& object, const Mess
 	}
 }
 
+/**
+ * Syncs the specified object and its direct and indirect parents to the provided client
+ * in topological order of their dependency graph recursively.
+ *
+ * Objects that the client does not have access to are skipped without going through their dependency graph.
+ *
+ * Please do not use this method to forward remote generated cluster updates; it should only be used to
+ * send local updates to that specific non-nullptr client.
+ *
+ * @param object The config object you want to sync.
+ * @param azone The zone of the client you want to send the update to.
+ * @param client The JsonRpc client you send the update to.
+ * @param syncedObjects Used to cache the already synced objects.
+ */
+void ApiListener::UpdateConfigObjectWithParents(const ConfigObject::Ptr& object, const Zone::Ptr& azone,
+	const JsonRpcConnection::Ptr& client, std::unordered_set<ConfigObject*>& syncedObjects)
+{
+	if (syncedObjects.find(object.get()) != syncedObjects.end()) {
+		return;
+	}
+
+	/* don't sync objects for non-matching parent-child zones */
+	if (!azone->CanAccessObject(object)) {
+		return;
+	}
+	syncedObjects.emplace(object.get());
+
+	for (const auto& parent : DependencyGraph::GetParents(object)) {
+		UpdateConfigObjectWithParents(parent, azone, client, syncedObjects);
+	}
+
+	/* send the config object to the connected client */
+	UpdateConfigObject(object, nullptr, client);
+}
 
 void ApiListener::DeleteConfigObject(const ConfigObject::Ptr& object, const MessageOrigin::Ptr& origin,
 	const JsonRpcConnection::Ptr& client)
@@ -464,19 +500,17 @@ void ApiListener::SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient
 	Log(LogInformation, "ApiListener")
 		<< "Syncing runtime objects to endpoint '" << endpoint->GetName() << "'.";
 
+	std::unordered_set<ConfigObject*> syncedObjects;
 	for (const Type::Ptr& type : Type::GetAllTypes()) {
-		auto *dtype = dynamic_cast<ConfigType *>(type.get());
-
-		if (!dtype)
-			continue;
-
-		for (const ConfigObject::Ptr& object : dtype->GetObjects()) {
-			/* don't sync objects for non-matching parent-child zones */
-			if (!azone->CanAccessObject(object))
-				continue;
-
-			/* send the config object to the connected client */
-			UpdateConfigObject(object, nullptr, aclient);
+		if (auto *ctype = dynamic_cast<ConfigType *>(type.get())) {
+			for (const auto& object : ctype->GetObjects()) {
+				// All objects must be synced sorted by their dependency graph.
+				// Otherwise, downtimes/comments etc. might get synced before their respective Checkables, which will
+				// result in comments and downtimes being ignored by the other endpoint since it does not yet know
+				// about their checkables. Given that the runtime config updates event does not trigger a reload on the
+				// remote endpoint, these objects won't be synced again until the next reload.
+				UpdateConfigObjectWithParents(object, azone, aclient, syncedObjects);
+			}
 		}
 	}
 
