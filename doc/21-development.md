@@ -1423,7 +1423,7 @@ The source installation doesn't set proper permissions, this is
 handled in the package builds which are officially supported.
 
 ```bash
-chown -R icinga:icinga /usr/local/icinga2/var/
+chown -R icinga:icinga /usr/local/icinga2/{etc,var}/
 
 /usr/local/icinga2/lib/icinga2/prepare-dirs /usr/local/icinga2/etc/sysconfig/icinga2
 /usr/local/icinga2/sbin/icinga2 api setup
@@ -1476,7 +1476,7 @@ The source installation doesn't set proper permissions, this is
 handled in the package builds which are officially supported.
 
 ```bash
-chown -R icinga:icinga /usr/local/icinga2/var/
+chown -R icinga:icinga /usr/local/icinga2/{etc,var}/
 
 /usr/local/icinga2/lib/icinga2/prepare-dirs /usr/local/icinga2/etc/sysconfig/icinga2
 /usr/local/icinga2/sbin/icinga2 api setup
@@ -1540,7 +1540,7 @@ The source installation doesn't set proper permissions, this is
 handled in the package builds which are officially supported.
 
 ```bash
-chown -R icinga:icinga /usr/local/icinga2/var/
+chown -R icinga:icinga /usr/local/icinga2/{etc,var}/
 
 /usr/local/icinga2/lib/icinga2/prepare-dirs /usr/local/icinga2/etc/sysconfig/icinga2
 /usr/local/icinga2/sbin/icinga2 api setup
