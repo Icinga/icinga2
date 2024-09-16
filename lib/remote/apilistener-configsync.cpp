@@ -5,11 +5,14 @@
 #include "remote/configobjectutility.hpp"
 #include "remote/jsonrpc.hpp"
 #include "base/configtype.hpp"
-#include "base/json.hpp"
 #include "base/convert.hpp"
+#include "base/dependencygraph.hpp"
+#include "base/json.hpp"
 #include "config/vmops.hpp"
 #include "remote/configobjectslock.hpp"
 #include <fstream>
+#include <set>
+#include <functional>
 
 using namespace icinga;
 
@@ -454,19 +457,47 @@ void ApiListener::SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient
 	Log(LogInformation, "ApiListener")
 		<< "Syncing runtime objects to endpoint '" << endpoint->GetName() << "'.";
 
-	for (const Type::Ptr& type : Type::GetAllTypes()) {
-		auto *dtype = dynamic_cast<ConfigType *>(type.get());
+	std::set<ConfigObject*> syncedObjects;
 
-		if (!dtype)
-			continue;
+	std::function<void(const ConfigObject::Ptr&)> syncObject;
+	// syncObject syncs the specified object and its direct/intermediate parents to
+	// "aclient" in topological order of their dependency graph recursively.
+	// Objects that the aclient does not have access to are skipped without going through their dependency graph.
+	syncObject = [this, &aclient, &azone, &syncObject, &syncedObjects](const ConfigObject::Ptr& object) {
+		// Don't sync already synced objects.
+		if (syncedObjects.find(object.get()) != syncedObjects.end()) {
+			return;
+		}
 
-		for (const ConfigObject::Ptr& object : dtype->GetObjects()) {
-			/* don't sync objects for non-matching parent-child zones */
-			if (!azone->CanAccessObject(object))
-				continue;
+		/* don't sync objects for non-matching parent-child zones */
+		if (!azone->CanAccessObject(object)) {
+			return;
+		}
+		syncedObjects.emplace(object.get());
 
-			/* send the config object to the connected client */
-			UpdateConfigObject(object, nullptr, aclient);
+		for (const Object::Ptr& parent : DependencyGraph::GetParents(object)) {
+			// Actually, the following dynamic cast should never fail, since the DependencyGraph class
+			// expects the types to always be of type Object::Ptr and such an object is supposed to always
+			// point to an instance of the specific derived ConfigObject class. See TypeHelper<>::GetFactory().
+			if (ConfigObject::Ptr parentObj = dynamic_pointer_cast<ConfigObject>(parent)) {
+				syncObject(parentObj);
+			}
+		}
+
+		/* send the config object to the connected client */
+		UpdateConfigObject(object, nullptr, aclient);
+	};
+
+	for (const Type::Ptr& type : Type::GetConfigTypesSortedByLoadDependencies()) {
+		if (auto *ctype = dynamic_cast<ConfigType *>(type.get()); ctype) {
+			for (const ConfigObject::Ptr& object : ctype->GetObjects()) {
+				// All objects must be synced sorted by their dependency graph.
+				// Otherwise, downtimes/comments etc. might get synced before their respective Checkables, which will
+				// result in comments and downtimes being ignored by the other endpoint since it does not yet know
+				// about their checkables. Given that the runtime config updates event does not trigger a reload on the
+				// remote endpoint, these objects won't be synced again until the next reload.
+				syncObject(object);
+			}
 		}
 	}
 
