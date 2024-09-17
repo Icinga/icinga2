@@ -288,6 +288,7 @@ Available permissions for specific URL endpoints:
   config/query                  | /v1/config    | No                | 1
   config/modify                 | /v1/config    | No                | 512
   console                       | /v1/console   | No                | 1
+  debug                         | /v1/debug     | No                | 1
   events/&lt;type&gt;           | /v1/events    | No                | 1
   objects/query/&lt;type&gt;    | /v1/objects   | Yes               | 1
   objects/create/&lt;type&gt;   | /v1/objects   | No                | 1
@@ -2500,6 +2501,72 @@ curl -k -s -S -i -u root:icinga -H 'Accept: application/json' \
         }
     ]
 }
+```
+
+## Memory Usage Analysis <a id="icinga2-api-memory"></a>
+
+The GNU libc function `malloc_info(3)` provides memory allocation and usage
+statistics of Icinga 2 itself. You can call it directly by sending a `GET`
+request to the URL endpoint `/v1/debug/malloc_info`.
+
+The [API permission](12-icinga2-api.md#icinga2-api-permissions) `debug` is required.
+
+Example:
+
+```bash
+curl -k -s -S -i -u root:icinga https://localhost:5665/v1/debug/malloc_info
+```
+
+In contrast to other API endpoints, the response is not JSON,
+but the raw XML output from `malloc_info(3)`. See also the
+[glibc malloc(3) internals](https://sourceware.org/glibc/wiki/MallocInternals).
+
+```xml
+<malloc version="1">
+  <heap nr="0">
+    <sizes>
+      <size from="33" to="48" total="96" count="2"/>
+      <size from="49" to="64" total="192" count="3"/>
+      <size from="65" to="80" total="80" count="1"/>
+      <unsorted from="84817" to="84817" total="84817" count="1"/>
+    </sizes>
+    <total type="fast" count="6" size="368"/>
+    <total type="rest" count="2" size="859217"/>
+    <system type="current" size="7409664"/>
+    <system type="max" size="7409664"/>
+    <aspace type="total" size="7409664"/>
+    <aspace type="mprotect" size="7409664"/>
+  </heap>
+  <!-- ... -->
+  <heap nr="30">
+    <sizes>
+      <size from="17" to="32" total="96" count="3"/>
+      <size from="33" to="48" total="576" count="12"/>
+      <size from="49" to="64" total="64" count="1"/>
+      <size from="97" to="112" total="3584" count="32"/>
+      <size from="49" to="49" total="98" count="2"/>
+      <size from="81" to="81" total="810" count="10"/>
+      <size from="257" to="257" total="2827" count="11"/>
+      <size from="689" to="689" total="689" count="1"/>
+      <size from="705" to="705" total="705" count="1"/>
+      <unsorted from="81" to="81" total="81" count="1"/>
+    </sizes>
+    <total type="fast" count="48" size="4320"/>
+    <total type="rest" count="27" size="118618"/>
+    <system type="current" size="135168"/>
+    <system type="max" size="135168"/>
+    <aspace type="total" size="135168"/>
+    <aspace type="mprotect" size="135168"/>
+    <aspace type="subheaps" size="1"/>
+  </heap>
+  <total type="fast" count="938" size="79392"/>
+  <total type="rest" count="700" size="4409469"/>
+  <total type="mmap" count="0" size="0"/>
+  <system type="current" size="15114240"/>
+  <system type="max" size="15114240"/>
+  <aspace type="total" size="15114240"/>
+  <aspace type="mprotect" size="15114240"/>
+</malloc>
 ```
 
 ## API Clients <a id="icinga2-api-clients"></a>
