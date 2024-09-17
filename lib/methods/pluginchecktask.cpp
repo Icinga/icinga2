@@ -10,6 +10,7 @@
 #include "base/utility.hpp"
 #include "base/process.hpp"
 #include "base/convert.hpp"
+#include <sstream>
 
 using namespace icinga;
 
@@ -66,15 +67,22 @@ void PluginCheckTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, co
 	Checkable::CurrentConcurrentChecks.fetch_sub(1);
 	Checkable::DecreasePendingChecks();
 
+	String output = pr.Output.Trim();
+
 	if (pr.ExitStatus > 3) {
 		Process::Arguments parguments = Process::PrepareCommand(commandLine);
 		Log(LogWarning, "PluginCheckTask")
 			<< "Check command for object '" << checkable->GetName() << "' (PID: " << pr.PID
 			<< ", arguments: " << Process::PrettyPrintArguments(parguments) << ") terminated with exit code "
 			<< pr.ExitStatus << ", output: " << pr.Output;
-	}
 
-	String output = pr.Output.Trim();
+		std::stringstream crOutput;
+
+		crOutput << "<Terminated with exit code " << pr.ExitStatus
+			<< " (0x" << std::noshowbase << std::hex << std::uppercase << pr.ExitStatus << ").>";
+
+		output += crOutput.str();
+	}
 
 	std::pair<String, String> co = PluginUtility::ParseCheckOutput(output);
 	cr->SetCommand(commandLine);
