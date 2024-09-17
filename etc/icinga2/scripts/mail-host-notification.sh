@@ -165,13 +165,15 @@ if [ -n "$MAILFROM" ] ; then
 
   ## Debian/Ubuntu use mailutils which requires `-a` to append the header
   if [ -f /etc/debian_version ]; then
-    /usr/bin/printf "%b" "$NOTIFICATION_MESSAGE" | $MAILBIN -a "From: $MAILFROM" -s "$SUBJECT" $USEREMAIL
+    /usr/bin/printf "%b" "$NOTIFICATION_MESSAGE" | tr -d '\015' \
+    | $MAILBIN -a "From: $MAILFROM" -s "$SUBJECT" $USEREMAIL
   ## Other distributions (RHEL/SUSE/etc.) prefer mailx which sets a sender address with `-r`
   else
-    /usr/bin/printf "%b" "$NOTIFICATION_MESSAGE" | $MAILBIN -r "$MAILFROM" -s "$SUBJECT" $USEREMAIL
+    /usr/bin/printf "%b" "$NOTIFICATION_MESSAGE" | tr -d '\015' \
+    | $MAILBIN -r "$MAILFROM" -s "$SUBJECT" $USEREMAIL
   fi
 
 else
-  /usr/bin/printf "%b" "$NOTIFICATION_MESSAGE" \
+  /usr/bin/printf "%b" "$NOTIFICATION_MESSAGE" | tr -d '\015' \
   | $MAILBIN -s "$SUBJECT" $USEREMAIL
 fi
