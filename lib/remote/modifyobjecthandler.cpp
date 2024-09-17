@@ -112,6 +112,9 @@ bool ModifyObjectHandler::HandleRequest(
 
 		String key;
 
+		// Lock the object name of the given type to prevent from being modified/deleted concurrently.
+		ObjectNameLock objectNameLock(type, obj->GetName());
+
 		try {
 			if (restoreAttrs) {
 				ObjectLock oLock (restoreAttrs);

@@ -84,6 +84,9 @@ bool DeleteObjectHandler::HandleRequest(
 		Array::Ptr errors = new Array();
 		Array::Ptr diagnosticInformation = new Array();
 
+		// Lock the object name of the given type to prevent from being modified/deleted concurrently.
+		ObjectNameLock objectNameLock(type, obj->GetName());
+
 		if (!ConfigObjectUtility::DeleteObject(obj, cascade, errors, diagnosticInformation)) {
 			code = 500;
 			status = "Object could not be deleted.";
