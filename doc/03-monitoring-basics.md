@@ -2729,7 +2729,7 @@ Requirements:
 * Icinga 2 as client on the remote node
 * icinga user with sudo permissions to the httpd daemon
 
-Example on CentOS 7:
+Example on RHEL:
 
 ```
 # visudo
