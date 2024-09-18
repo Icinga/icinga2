@@ -48,7 +48,7 @@ public:
 
 	static Ptr AddDowntime(const intrusive_ptr<Checkable>& checkable, const String& author,
 		const String& comment, double startTime, double endTime, bool fixed,
-		const String& triggeredBy, double duration, const String& scheduledDowntime = String(),
+		const Ptr& parentDowntime, double duration, const String& scheduledDowntime = String(),
 		const String& scheduledBy = String(), const String& parent = String(), const String& id = String(),
 		const MessageOrigin::Ptr& origin = nullptr);
 
@@ -64,7 +64,7 @@ public:
 
 	void OnAllConfigLoaded() override;
 
-	static String GetDowntimeIDFromLegacyID(int id);
+	static Downtime::Ptr GetDowntimeFromLegacyID(int id);
 
 	static DowntimeChildOptions ChildOptionsFromValue(const Value& options);
 
