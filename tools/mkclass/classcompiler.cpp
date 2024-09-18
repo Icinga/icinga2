@@ -376,19 +376,21 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		<< "}" << std::endl << std::endl;
 
 	/* GetLoadDependencies */
-	m_Header << "\t" << "const std::unordered_set<Type*>& GetLoadDependencies() const override;" << std::endl;
+	if (!klass.LoadDependencies.empty()) {
+		m_Header << "\tconst std::unordered_set<Type*>& GetLoadDependencies() const override;" << std::endl;
 
-	m_Impl << "const std::unordered_set<Type*>& TypeImpl<" << klass.Name << ">::GetLoadDependencies() const" << std::endl
-		<< "{" << std::endl
-		<< "\t" << "static const std::unordered_set<Type*> deps ({" << std::endl;
+		m_Impl << "const std::unordered_set<Type*>& TypeImpl<" << klass.Name << ">::GetLoadDependencies() const" << std::endl
+			<< "{" << std::endl
+			<< "\tstatic const std::unordered_set deps ({" << std::endl;
 
-	for (const std::string& dep : klass.LoadDependencies)
-		m_Impl << "\t\t" << "GetByName(\"" << dep << "\").get()," << std::endl;
+		for (const std::string& dep : klass.LoadDependencies)
+			m_Impl << "\t\tGetByName(\"" << dep << "\").get()," << std::endl;
 
-	m_Impl << "\t" << "});" << std::endl;
+		m_Impl << "\t});" << std::endl;
 
-	m_Impl << "\t" << "return deps;" << std::endl
-		<< "}" << std::endl << std::endl;
+		m_Impl << "\treturn deps;" << std::endl
+			<< "}" << std::endl << std::endl;
+	}
 
 	/* GetActivationPriority */
 	m_Header << "\t" << "int GetActivationPriority() const override;" << std::endl;
