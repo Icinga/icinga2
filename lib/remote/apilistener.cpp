@@ -1819,6 +1819,10 @@ Value ApiListener::HelloAPIHandler(const MessageOrigin::Ptr& origin, const Dicti
 					}
 				}
 			}
+
+			decltype(client->OnNextHello) listeners;
+			std::swap(client->OnNextHello, listeners);
+			listeners(client);
 		}
 	}
 
