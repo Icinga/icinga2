@@ -30,18 +30,18 @@ namespace asio = boost::asio;
 
 boost::regex RedisConnection::m_ErrAuth ("\\AERR AUTH ");
 
-RedisConnection::RedisConnection(const String& host, int port, const String& path, const String& password, int db,
+RedisConnection::RedisConnection(const String& host, int port, const String& path, const String& username, const String& password, int db,
 	bool useTls, bool insecure, const String& certPath, const String& keyPath, const String& caPath, const String& crlPath,
 	const String& tlsProtocolmin, const String& cipherList, double connectTimeout, DebugInfo di, const RedisConnection::Ptr& parent)
-	: RedisConnection(IoEngine::Get().GetIoContext(), host, port, path, password, db,
+	: RedisConnection(IoEngine::Get().GetIoContext(), host, port, path, username, password, db,
 	  useTls, insecure, certPath, keyPath, caPath, crlPath, tlsProtocolmin, cipherList, connectTimeout, std::move(di), parent)
 {
 }
 
-RedisConnection::RedisConnection(boost::asio::io_context& io, String host, int port, String path, String password,
+RedisConnection::RedisConnection(boost::asio::io_context& io, String host, int port, String path, String username, String password,
 	int db, bool useTls, bool insecure, String certPath, String keyPath, String caPath, String crlPath,
 	String tlsProtocolmin, String cipherList, double connectTimeout, DebugInfo di, const RedisConnection::Ptr& parent)
-	: m_Host(std::move(host)), m_Port(port), m_Path(std::move(path)), m_Password(std::move(password)),
+	: m_Host(std::move(host)), m_Port(port), m_Path(std::move(path)), m_Username(std::move(username)), m_Password(std::move(password)),
 	  m_DbIndex(db), m_CertPath(std::move(certPath)), m_KeyPath(std::move(keyPath)), m_Insecure(insecure),
 	  m_CaPath(std::move(caPath)), m_CrlPath(std::move(crlPath)), m_TlsProtocolmin(std::move(tlsProtocolmin)),
 	  m_CipherList(std::move(cipherList)), m_ConnectTimeout(connectTimeout), m_DebugInfo(std::move(di)), m_Connecting(false), m_Connected(false),
