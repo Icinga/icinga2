@@ -381,14 +381,25 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 		m_Impl << "const std::unordered_set<Type*>& TypeImpl<" << klass.Name << ">::GetLoadDependencies() const" << std::endl
 			<< "{" << std::endl
-			<< "\tstatic const std::unordered_set deps ({" << std::endl;
+			<< "\tstatic const auto deps ([] {" << std::endl;
+
+		for (auto& dep : klass.LoadDependencies)
+			m_Impl << "\t\tauto type" << dep << " (GetByName(\"" << dep << "\").get());" << std::endl;
+
+		m_Impl << std::endl;
+
+		for (auto& dep : klass.LoadDependencies)
+			m_Impl << "\t\tVERIFY(type" << dep << ");" << std::endl;
+
+		m_Impl << std::endl
+			<< "\t\treturn std::unordered_set<Type*>{";
 
 		for (const std::string& dep : klass.LoadDependencies)
-			m_Impl << "\t\tGetByName(\"" << dep << "\").get()," << std::endl;
+			m_Impl << " type" << dep << ",";
 
-		m_Impl << "\t});" << std::endl;
-
-		m_Impl << "\treturn deps;" << std::endl
+		m_Impl << " };" << std::endl
+			<< "\t}());" << std::endl << std::endl
+			<< "\treturn deps;" << std::endl
 			<< "}" << std::endl << std::endl;
 	}
 
@@ -1465,6 +1476,7 @@ void ClassCompiler::CompileStream(const std::string& path, std::istream& input,
 		<< "#include \"base/objectlock.hpp\"" << std::endl
 		<< "#include \"base/utility.hpp\"" << std::endl
 		<< "#include \"base/convert.hpp\"" << std::endl
+		<< "#include \"base/debug.hpp\"" << std::endl
 		<< "#include \"base/dependencygraph.hpp\"" << std::endl
 		<< "#include \"base/logger.hpp\"" << std::endl
 		<< "#include \"base/function.hpp\"" << std::endl
