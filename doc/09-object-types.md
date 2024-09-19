@@ -1388,6 +1388,7 @@ Configuration Attributes:
   port                      | Number                | **Optional.** Redis port. Defaults to `6380` since the Redis server provided by the `icingadb-redis` package listens on that port.
   path                      | String                | **Optional.** Redis unix socket path. Can be used instead of `host` and `port` attributes.
   password                  | String                | **Optional.** Redis auth password.
+  db\_index                 | Number                | **Optional.** Redis logical database by its number. Defaults to `0`.
   enable\_tls               | Boolean               | **Optional.** Whether to use TLS.
   cert\_path                | String                | **Optional.** Path to the certificate.
   key\_path                 | String                | **Optional.** Path to the private key.

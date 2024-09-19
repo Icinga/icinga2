@@ -48,7 +48,8 @@ void IcingaDB::Validate(int types, const ValidationUtils& utils)
 		return;
 
 	if (GetEnableTls() && GetCertPath().IsEmpty() != GetKeyPath().IsEmpty()) {
-		BOOST_THROW_EXCEPTION(ValidationError(this, std::vector<String>(), "Validation failed: Either both a client certificate (cert_path) and its private key (key_path) or none of them must be given."));
+		BOOST_THROW_EXCEPTION(ValidationError(this, std::vector<String>(),
+			"Either both a client certificate (cert_path) and its private key (key_path) or none of them must be given."));
 	}
 
 	try {
