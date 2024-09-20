@@ -14,6 +14,7 @@ set(remote_SOURCES
   apilistener-authority.cpp
   apiuser.cpp apiuser.hpp apiuser-ti.hpp
   configfileshandler.cpp configfileshandler.hpp
+  configobjectslock.cpp configobjectslock.hpp
   configobjectutility.cpp configobjectutility.hpp
   configpackageshandler.cpp configpackageshandler.hpp
   configpackageutility.cpp configpackageutility.hpp

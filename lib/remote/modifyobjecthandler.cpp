@@ -4,6 +4,7 @@
 #include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
 #include "remote/apiaction.hpp"
+#include "remote/configobjectslock.hpp"
 #include "base/exception.hpp"
 #include <boost/algorithm/string/case_conv.hpp>
 #include <set>
@@ -86,6 +87,9 @@ bool ModifyObjectHandler::HandleRequest(
 		result1->Set("name", obj->GetName());
 
 		String key;
+
+		// Lock the object name of the given type to prevent from being modified/deleted concurrently.
+		ObjectNameLock objectNameLock(type, obj->GetName());
 
 		try {
 			if (attrs) {
