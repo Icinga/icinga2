@@ -18,6 +18,33 @@
 using namespace icinga;
 
 /**
+ * Measures how long it takes to acquire a slot.
+ *
+ * @param yc Forwarded to the regular constructor.
+ * @param strand Forwarded to the regular constructor.
+ * @param took Set to the time it took to acquire the slot.
+ */
+CpuBoundWork::CpuBoundWork(boost::asio::yield_context yc, boost::asio::io_context::strand& strand, Clock::duration& took)
+	: CpuBoundWork(std::move(yc), strand, Clock::now(), took)
+{
+}
+
+/**
+ * An internal helper layer between the regular constructor and the one that measures how long it takes.
+ * This is necessary to get the start time before the regular constructor is called.
+ *
+ * @param yc Forwarded to the regular constructor.
+ * @param strand Forwarded to the regular constructor.
+ * @param started The current time.
+ * @param took Set to the time it took to acquire the slot.
+ */
+CpuBoundWork::CpuBoundWork(boost::asio::yield_context yc, boost::asio::io_context::strand& strand, Clock::time_point started, Clock::duration& took)
+	: CpuBoundWork(std::move(yc), strand)
+{
+	took = Clock::now() - started;
+}
+
+/**
  * Acquires a slot for CPU-bound work.
  *
  * If and as long as the lock-free TryAcquireSlot() doesn't succeed,

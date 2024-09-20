@@ -11,6 +11,7 @@
 #include "base/logger.hpp"
 #include "base/shared.hpp"
 #include <atomic>
+#include <chrono>
 #include <exception>
 #include <memory>
 #include <mutex>
@@ -40,8 +41,14 @@ namespace icinga
  */
 class CpuBoundWork
 {
+private:
+	using Clock = std::chrono::steady_clock;
+
+	CpuBoundWork(boost::asio::yield_context yc, boost::asio::io_context::strand&, Clock::time_point started, Clock::duration& took);
+
 public:
 	CpuBoundWork(boost::asio::yield_context yc, boost::asio::io_context::strand&);
+	CpuBoundWork(boost::asio::yield_context yc, boost::asio::io_context::strand&, Clock::duration& took);
 	CpuBoundWork(const CpuBoundWork&) = delete;
 	CpuBoundWork(CpuBoundWork&&) = delete;
 	CpuBoundWork& operator=(const CpuBoundWork&) = delete;
