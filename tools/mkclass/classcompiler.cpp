@@ -384,15 +384,11 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			<< "\tstatic const auto deps ([] {" << std::endl;
 
 		for (auto& dep : klass.LoadDependencies)
-			m_Impl << "\t\tauto type" << dep << " (GetByName(\"" << dep << "\").get());" << std::endl;
+			m_Impl << "\t\tauto type" << dep << " (GetByName(\"" << dep << "\").get());" << std::endl
+				<< "\t\tVERIFY(type" << dep << ");" << std::endl
+				<< "\t\tVERIFY(ConfigObject::TypeInstance->IsAssignableFrom(type" << dep << "));" << std::endl << std::endl;
 
-		m_Impl << std::endl;
-
-		for (auto& dep : klass.LoadDependencies)
-			m_Impl << "\t\tVERIFY(type" << dep << ");" << std::endl;
-
-		m_Impl << std::endl
-			<< "\t\treturn std::unordered_set<Type*>{";
+		m_Impl << "\t\treturn std::unordered_set<Type*>{";
 
 		for (const std::string& dep : klass.LoadDependencies)
 			m_Impl << " type" << dep << ",";
@@ -1480,6 +1476,7 @@ void ClassCompiler::CompileStream(const std::string& path, std::istream& input,
 		<< "#include \"base/dependencygraph.hpp\"" << std::endl
 		<< "#include \"base/logger.hpp\"" << std::endl
 		<< "#include \"base/function.hpp\"" << std::endl
+		<< "#include \"base/configobject.hpp\"" << std::endl
 		<< "#include \"base/configtype.hpp\"" << std::endl
 		<< "#ifdef _MSC_VER" << std::endl
 		<< "#pragma warning( push )" << std::endl
