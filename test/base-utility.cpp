@@ -200,8 +200,8 @@ BOOST_AUTO_TEST_CASE(FormatDateTime) {
 		// properly reporting errors. If this limitation of our implementation is lifted, other behavior like throwing
 		// an exception would also be valid.
 		BOOST_CHECK_MESSAGE(result.empty() || result == format,
-			"FormatDateTime(" << std::quoted(format) << ", " << ts << ") = " << std::quoted(result) <<
-			" should be one of [\"\", " << std::quoted(format) << "]");
+			"FormatDateTime(\"" << format << "\", " << ts << ") = \"" << result <<
+			"\" should be one of [\"\", \"" << format << "\"]");
 	}
 
 	// Out of range timestamps.
