@@ -335,16 +335,14 @@ More integrations:
 #### Elasticsearch Writer <a id="elasticsearch-writer"></a>
 
 This feature forwards check results, state changes and notification events
-to an [Elasticsearch](https://www.elastic.co/products/elasticsearch) installation over its HTTP API.
+to an [Elasticsearch](https://www.elastic.co/products/elasticsearch) or an [OpenSearch](https://opensearch.org/) installation over its HTTP API.
 
 The check results include parsed performance data metrics if enabled.
 
 > **Note**
 >
-> Elasticsearch 5.x or 6.x are required. This feature has been successfully tested with
-> Elasticsearch 5.6.7 and 6.3.1.
-
-
+> Elasticsearch 5.x, 6.x or Opensearch 2.12.x are required. This feature has been successfully tested with
+> Elasticsearch 5.6.7, 6.3.1 and OpenSearch 2.13.0.
 
 Enable the feature and restart Icinga 2.
 
@@ -396,6 +394,24 @@ check_result.perfdata.<perfdata-label>.min
 check_result.perfdata.<perfdata-label>.max
 check_result.perfdata.<perfdata-label>.warn
 check_result.perfdata.<perfdata-label>.crit
+```
+
+Additionaly it is possible to configure custom tags that are applied to the metrics via `host_tags_template` or `service_tags_template`.
+Depending on whether the write event was triggered on a service or host object, additional tags are added to the ElasticSearch entries.
+
+A host metrics entry configured with the following `host_tags_template`:
+```
+host_tags_template = {
+  os_name = "$host.vars.os$"
+  custom_label = "A Custom Label"
+  a_list_of_items = [ "foo", "bar" ]
+}
+```
+Will in addition to the above mentioned lines also contain:
+```
+tags.os_name = "Linux"
+tags.custom_label = "A Custom Label"
+tags.a_list_of_items = [ "foo", "bar" ]
 ```
 
 #### Elasticsearch in Cluster HA Zones <a id="elasticsearch-writer-cluster-ha"></a>
