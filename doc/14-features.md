@@ -398,6 +398,28 @@ check_result.perfdata.<perfdata-label>.warn
 check_result.perfdata.<perfdata-label>.crit
 ```
 
+Additionaly it is possible to configure custom tags that are applied to the metrics via `host_tags_template` or `service_tags_template`.
+Depending on whether the write event was triggered on a service or host object, additional tags are added to the ElasticSearch entries.
+
+A host metrics entry configured with the following `host_tags_template`:
+
+```
+host_tags_template = {
+
+  os_name = "$host.vars.os$"
+  custom_label = "A Custom Label"
+  list = [ "$host.groups$", "$host.vars.foo$" ]
+}
+```
+
+Will in addition to the above mentioned lines also contain:
+
+```
+os_name = "Linux"
+custom_label = "A Custom Label"
+list = [ "group-A;linux-servers", "bar" ]
+```
+
 #### Elasticsearch in Cluster HA Zones <a id="elasticsearch-writer-cluster-ha"></a>
 
 The Elasticsearch feature supports [high availability](06-distributed-monitoring.md#distributed-monitoring-high-availability-features)
