@@ -742,7 +742,7 @@ void ElasticsearchWriter::ValidateHostTagsTemplate(const Lazy<Dictionary::Ptr>& 
 					}
 				}
 			} else if (!MacroProcessor::ValidateMacroString(pair.second)) {
-					BOOST_THROW_EXCEPTION(ValidationError(this, { "host_tags_template", pair.first }, "Closing $ not found in macro format string '" + pair.second + "'."));
+				BOOST_THROW_EXCEPTION(ValidationError(this, { "host_tags_template", pair.first }, "Closing $ not found in macro format string '" + pair.second + "'."));
 			}
 		}
 	}
@@ -765,7 +765,7 @@ void ElasticsearchWriter::ValidateServiceTagsTemplate(const Lazy<Dictionary::Ptr
 					}
 				}
 			} else if (!MacroProcessor::ValidateMacroString(pair.second)) {
-					BOOST_THROW_EXCEPTION(ValidationError(this, { "service_tags_template", pair.first }, "Closing $ not found in macro format string '" + pair.second + "'."));
+				BOOST_THROW_EXCEPTION(ValidationError(this, { "service_tags_template", pair.first }, "Closing $ not found in macro format string '" + pair.second + "'."));
 			}
 		}
 	}
