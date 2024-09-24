@@ -153,15 +153,13 @@ void ElasticsearchWriter::AddTemplateTags(const Dictionary::Ptr& fields, const C
 		}
 
 		Dictionary::Ptr tags = new Dictionary();
-		{
-			ObjectLock olock(tmpl);
-			for (const Dictionary::Pair& pair : tmpl) {
-				String missing_macro;
-				Value value = MacroProcessor::ResolveMacros(pair.second, resolvers, cr, &missing_macro);
+		ObjectLock olock(tmpl);
+		for (const Dictionary::Pair& pair : tmpl) {
+			String missingMacro;
+			Value value = MacroProcessor::ResolveMacros(pair.second, resolvers, cr, &missingMacro);
 
-				if (missing_macro.IsEmpty()) {
-					tags->Set(pair.first, value);
-				}
+			if (missingMacro.IsEmpty()) {
+				tags->Set(pair.first, value);
 			}
 		}
 		fields->Set("tags", tags);
@@ -736,19 +734,15 @@ void ElasticsearchWriter::ValidateHostTagsTemplate(const Lazy<Dictionary::Ptr>& 
 		ObjectLock olock(tags);
 		for (const Dictionary::Pair& pair : tags) {
 			if (pair.second.IsObjectType<Array>()) {
-				Array::Ptr arr_object = pair.second;
-				Array::SizeType arr_index = 0;
-				ObjectLock arr_lock(arr_object);
-				for (const Value& arrval : arr_object) {
-					if (!MacroProcessor::ValidateMacroString(arrval)) {
-						BOOST_THROW_EXCEPTION(ValidationError(this, { "host_tags_template", pair.first, Convert::ToString(arr_index) }, "Closing $ not found in macro format string '" + arrval + "'."));
+				Array::Ptr arrObject = pair.second;
+				ObjectLock arrLock(arrObject);
+				for (const Value& arrValue : arrObject) {
+					if (!MacroProcessor::ValidateMacroString(arrValue)) {
+						BOOST_THROW_EXCEPTION(ValidationError(this, { "host_tags_template", pair.first }, "Closing $ not found in macro format string '" + arrValue + "'."));
 					}
-					arr_index ++;
 				}
-			} else {
-				if (!MacroProcessor::ValidateMacroString(pair.second)) {
+			} else if (!MacroProcessor::ValidateMacroString(pair.second)) {
 					BOOST_THROW_EXCEPTION(ValidationError(this, { "host_tags_template", pair.first }, "Closing $ not found in macro format string '" + pair.second + "'."));
-				}
 			}
 		}
 	}
@@ -763,19 +757,15 @@ void ElasticsearchWriter::ValidateServiceTagsTemplate(const Lazy<Dictionary::Ptr
 		ObjectLock olock(tags);
 		for (const Dictionary::Pair& pair : tags) {
 			if (pair.second.IsObjectType<Array>()) {
-				Array::Ptr arr_object = pair.second;
-				Array::SizeType arr_index = 0;
-				ObjectLock arr_lock(arr_object);
-				for (const Value& arrval : arr_object) {
-					if (!MacroProcessor::ValidateMacroString(arrval)) {
-						BOOST_THROW_EXCEPTION(ValidationError(this, { "service_tags_template", pair.first, Convert::ToString(arr_index) }, "Closing $ not found in macro format string '" + arrval + "'."));
+				Array::Ptr arrObject = pair.second;
+				ObjectLock arrLock(arrObject);
+				for (const Value& arrValue : arrObject) {
+					if (!MacroProcessor::ValidateMacroString(arrValue)) {
+						BOOST_THROW_EXCEPTION(ValidationError(this, { "service_tags_template", pair.first }, "Closing $ not found in macro format string '" + arrValue + "'."));
 					}
-					arr_index ++;
 				}
-			} else {
-				if (!MacroProcessor::ValidateMacroString(pair.second)) {
+			} else if (!MacroProcessor::ValidateMacroString(pair.second)) {
 					BOOST_THROW_EXCEPTION(ValidationError(this, { "service_tags_template", pair.first }, "Closing $ not found in macro format string '" + pair.second + "'."));
-				}
 			}
 		}
 	}
