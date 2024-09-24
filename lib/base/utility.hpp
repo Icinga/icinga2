@@ -77,7 +77,8 @@ public:
 	static String Join(const Array::Ptr& tokens, char separator, bool escapeSeparator = true);
 
 	static String FormatDuration(double duration);
-	static String FormatDateTime(const char *format, double ts);
+	static String FormatDateTime(const char* format, double ts);
+	static String FormatDateTime(const char* format, const tm* t);
 	static String FormatErrorNumber(int code);
 
 #ifndef _WIN32

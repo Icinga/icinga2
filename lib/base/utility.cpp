@@ -4,6 +4,7 @@
 #include "base/utility.hpp"
 #include "base/convert.hpp"
 #include "base/application.hpp"
+#include "base/defer.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
 #include "base/socket.hpp"
@@ -19,6 +20,7 @@
 #include <boost/thread/tss.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <boost/numeric/conversion/cast.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/regex.hpp>
@@ -1049,22 +1051,19 @@ String Utility::FormatDuration(double duration)
 	return NaturalJoin(tokens);
 }
 
-String Utility::FormatDateTime(const char *format, double ts)
+String Utility::FormatDateTime(const char* format, double ts)
 {
-	char timestamp[128];
-	auto tempts = (time_t)ts; /* We don't handle sub-second timestamps here just yet. */
+	// Sub-second precision is removed, strftime() has no format specifiers for that anyway.
+	auto tempts = boost::numeric_cast<time_t>(ts);
 	tm tmthen;
 
 #ifdef _MSC_VER
-	tm *temp = localtime(&tempts);
-
-	if (!temp) {
+	errno_t err = localtime_s(&tmthen, &tempts);
+	if (err) {
 		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("localtime")
-			<< boost::errinfo_errno(errno));
+			<< boost::errinfo_api_function("localtime_s")
+			<< boost::errinfo_errno(err));
 	}
-
-	tmthen = *temp;
 #else /* _MSC_VER */
 	if (!localtime_r(&tempts, &tmthen)) {
 		BOOST_THROW_EXCEPTION(posix_error()
@@ -1073,9 +1072,61 @@ String Utility::FormatDateTime(const char *format, double ts)
 	}
 #endif /* _MSC_VER */
 
-	strftime(timestamp, sizeof(timestamp), format, &tmthen);
+	return FormatDateTime(format, &tmthen);
+}
 
-	return timestamp;
+String Utility::FormatDateTime(const char* format, const tm* t) {
+	/* Known limitations of the implementation: Only works if the result is at most 127 bytes, otherwise returns an
+	 * empty string. An empty string is also returned in all other error cases as proper error handling for strftime()
+	 * is impossible.
+	 *
+	 * From strftime(3):
+	 *
+	 *     If the output string would exceed max bytes, errno is not set. This makes it impossible to distinguish this
+	 *     error case from cases where the format string legitimately produces a zero-length output string. POSIX.1-2001
+	 *     does not specify any errno settings for strftime().
+	 *
+	 * https://manpages.debian.org/bookworm/manpages-dev/strftime.3.en.html#BUGS
+	 *
+	 * There's also std::put_time() from C++ which works with an ostream and does not have a fixed size output buffer
+	 * and should allow using the error handling of the ostream. However, there seem to be an unfortunate implementation
+	 * of this on some Windows versions where passing an invalid format string results in std::bad_alloc and the process
+	 * allocating more and more memory before throwing the exception. In case someone in the future wants to try
+	 * std::put_time() again: better build packages for Windows and test them across all supported versions.
+	 * Hypothesis: it's implemented using a fixed output buffer and retrying with a larger buffer on error, assuming
+	 * the error was due to the buffer being too small.
+	 */
+
+#ifdef _MSC_VER
+	/* On Windows, the strftime() function family invokes an invalid parameter handler when the format string is
+	 * invalid (see the "Remarks" section in their documentation). std::put_time() shows the same behavior as it
+	 * uses _wcsftime_l() internally. The default invalid parameter handler may terminate the process, which can
+	 * be a problem given that the format string can be specified by the user from the Icinga DSL.
+	 *
+	 * Thus, temporarily set a thread-local no-op handler to disable the default one allowing the program to
+	 * continue. This then simply results in the function returning an error which then results in an exception as
+	 * we ask the stream to throw one.
+	 *
+	 * See also:
+	 * https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/strftime-wcsftime-strftime-l-wcsftime-l?view=msvc-170
+	 * https://learn.microsoft.com/en-us/cpp/c-runtime-library/parameter-validation?view=msvc-170
+	 * https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/set-invalid-parameter-handler-set-thread-local-invalid-parameter-handler?view=msvc-170
+	 */
+
+	auto oldHandler = _set_thread_local_invalid_parameter_handler(
+		[](const wchar_t*, const wchar_t*, const wchar_t*, unsigned int, uintptr_t) {
+			// Intentionally do nothing to continue executing.
+		});
+
+	Defer resetHandler([oldHandler]() {
+		_set_thread_local_invalid_parameter_handler(oldHandler);
+	});
+#endif /* _MSC_VER */
+
+	char buf[128];
+	size_t n = strftime(buf, sizeof(buf), format, t);
+	// On error, n == 0 and an empty string is returned.
+	return std::string(buf, n);
 }
 
 String Utility::FormatErrorNumber(int code) {
