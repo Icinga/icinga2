@@ -571,7 +571,7 @@ void InfluxdbCommonWriter::ValidateHostTemplate(const Lazy<Dictionary::Ptr>& lva
 		ObjectLock olock(tags);
 		for (const Dictionary::Pair& pair : tags) {
 			if (!MacroProcessor::ValidateMacroString(pair.second))
-				BOOST_THROW_EXCEPTION(ValidationError(this, { "host_template", "tags", pair.first }, "Closing $ not found in macro format string '" + pair.second));
+				BOOST_THROW_EXCEPTION(ValidationError(this, { "host_template", "tags", pair.first }, "Closing $ not found in macro format string '" + pair.second + "'."));
 		}
 	}
 }
@@ -589,7 +589,7 @@ void InfluxdbCommonWriter::ValidateServiceTemplate(const Lazy<Dictionary::Ptr>& 
 		ObjectLock olock(tags);
 		for (const Dictionary::Pair& pair : tags) {
 			if (!MacroProcessor::ValidateMacroString(pair.second))
-				BOOST_THROW_EXCEPTION(ValidationError(this, { "service_template", "tags", pair.first }, "Closing $ not found in macro format string '" + pair.second));
+				BOOST_THROW_EXCEPTION(ValidationError(this, { "service_template", "tags", pair.first }, "Closing $ not found in macro format string '" + pair.second + "'."));
 		}
 	}
 }
