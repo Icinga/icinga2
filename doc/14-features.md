@@ -335,16 +335,14 @@ More integrations:
 #### Elasticsearch Writer <a id="elasticsearch-writer"></a>
 
 This feature forwards check results, state changes and notification events
-to an [Elasticsearch](https://www.elastic.co/products/elasticsearch) installation over its HTTP API.
+to an [Elasticsearch](https://www.elastic.co/products/elasticsearch) or an [OpenSearch](https://opensearch.org/) installation over its HTTP API.
 
 The check results include parsed performance data metrics if enabled.
 
 > **Note**
 >
-> Elasticsearch 5.x or 6.x are required. This feature has been successfully tested with
-> Elasticsearch 5.6.7 and 6.3.1.
-
-
+> Elasticsearch 7.x, 8.x or Opensearch 2.12.x are required. This feature has been successfully tested with
+> Elasticsearch 7.17.10, 8.8.1 and OpenSearch 2.13.0.
 
 Enable the feature and restart Icinga 2.
 
