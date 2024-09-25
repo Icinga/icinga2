@@ -341,8 +341,8 @@ The check results include parsed performance data metrics if enabled.
 
 > **Note**
 >
-> Elasticsearch 5.x, 6.x or Opensearch 2.12.x are required. This feature has been successfully tested with
-> Elasticsearch 5.6.7, 6.3.1 and OpenSearch 2.13.0.
+> Elasticsearch 7.x, 8.x or Opensearch 2.12.x are required. This feature has been successfully tested with
+> Elasticsearch 7.17.10, 8.8.1 and OpenSearch 2.13.0.
 
 Enable the feature and restart Icinga 2.
 
