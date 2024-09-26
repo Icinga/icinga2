@@ -1219,8 +1219,8 @@ Configuration Attributes:
   password                  | String                | **Optional.** Basic auth password if Elasticsearch is hidden behind an HTTP proxy.
   enable\_tls               | Boolean               | **Optional.** Whether to use a TLS stream. Defaults to `false`. Requires an HTTP proxy.
   insecure\_noverify        | Boolean               | **Optional.** Disable TLS peer verification.
-  host\_tags\_template      | Dictionary            | **Optional.** Allows to apply additional tags to the Elasticsearch host entries. They will be added under `tags`.
-  service\_tags\_template   | Dictionary            | **Optional.** Allows to apply additional tags to the Elasticsearch service entries. They will be added under `tags`.
+  host\_tags\_template      | Dictionary            | **Optional.** Allows to apply additional tags to the Elasticsearch host entries.
+  service\_tags\_template   | Dictionary            | **Optional.** Allows to apply additional tags to the Elasticsearch service entries.
   ca\_path                  | String                | **Optional.** Path to CA certificate to validate the remote host. Requires `enable_tls` set to `true`.
   cert\_path                | String                | **Optional.** Path to host certificate to present to the remote host for mutual verification. Requires `enable_tls` set to `true`.
   key\_path                 | String                | **Optional.** Path to host key to accompany the cert\_path. Requires `enable_tls` set to `true`.

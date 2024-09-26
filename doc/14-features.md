@@ -409,9 +409,9 @@ host_tags_template = {
 ```
 Will in addition to the above mentioned lines also contain:
 ```
-tags.os_name = "Linux"
-tags.custom_label = "A Custom Label"
-tags.a_list_of_items = [ "foo", "bar" ]
+os_name = "Linux"
+custom_label = "A Custom Label"
+a_list_of_items = [ "foo", "bar" ]
 ```
 
 #### Elasticsearch in Cluster HA Zones <a id="elasticsearch-writer-cluster-ha"></a>

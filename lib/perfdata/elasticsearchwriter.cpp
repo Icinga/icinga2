@@ -152,17 +152,15 @@ void ElasticsearchWriter::AddTemplateTags(const Dictionary::Ptr& fields, const C
 			resolvers.emplace_back("service", service);
 		}
 
-		Dictionary::Ptr tags = new Dictionary();
 		ObjectLock olock(tmpl);
 		for (const Dictionary::Pair& pair : tmpl) {
 			String missingMacro;
 			Value value = MacroProcessor::ResolveMacros(pair.second, resolvers, cr, &missingMacro);
 
 			if (missingMacro.IsEmpty()) {
-				tags->Set(pair.first, value);
+				fields->Set(pair.first, value);
 			}
 		}
-		fields->Set("tags", tags);
 	}
 }
 
