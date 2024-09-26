@@ -116,15 +116,11 @@ bool EventsHandler::HandleRequest(
 		auto event (subscriber.GetInbox()->Shift(yc));
 
 		if (event) {
-			CpuBoundWork buildingResponse (yc);
-
 			String body = JsonEncode(event);
 
 			boost::algorithm::replace_all(body, "\n", "");
 
 			asio::const_buffer payload (body.CStr(), body.GetLength());
-
-			buildingResponse.Done();
 
 			asio::async_write(stream, payload, yc);
 			asio::async_write(stream, newLine, yc);
