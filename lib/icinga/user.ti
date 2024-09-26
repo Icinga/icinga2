@@ -11,6 +11,9 @@ namespace icinga
 
 class User : CustomVarObject
 {
+	load_after TimePeriod;
+	load_after UserGroup;
+
 	[config] String display_name {
 		get {{{
 			String displayName = m_DisplayName.load();
