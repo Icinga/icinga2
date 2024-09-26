@@ -981,7 +981,7 @@ String BinaryToHex(const unsigned char* data, size_t length) {
 	return output;
 }
 
-bool VerifyCertificate(const std::shared_ptr<X509> &caCertificate, const std::shared_ptr<X509> &certificate, const String& crlFile)
+bool VerifyCertificate(const std::shared_ptr<X509> &caCertificate, const std::shared_ptr<X509> &certificate, const String& crlFile, STACK_OF(X509) *chain)
 {
 	X509_STORE *store = X509_STORE_new();
 
@@ -995,7 +995,7 @@ bool VerifyCertificate(const std::shared_ptr<X509> &caCertificate, const std::sh
 	}
 
 	X509_STORE_CTX *csc = X509_STORE_CTX_new();
-	X509_STORE_CTX_init(csc, store, certificate.get(), nullptr);
+	X509_STORE_CTX_init(csc, store, certificate.get(), chain);
 
 	int rc = X509_verify_cert(csc);
 
