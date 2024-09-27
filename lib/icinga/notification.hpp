@@ -55,6 +55,7 @@ class ApplyRule;
 struct ScriptFrame;
 class Host;
 class Service;
+class UserGroup;
 
 /**
  * An Icinga notification specification.
@@ -73,7 +74,7 @@ public:
 	intrusive_ptr<NotificationCommand> GetCommand() const;
 	TimePeriod::Ptr GetPeriod() const;
 	std::set<User::Ptr> GetUsers() const;
-	std::set<UserGroup::Ptr> GetUserGroups() const;
+	std::set<intrusive_ptr<UserGroup>> GetUserGroups() const;
 
 	void UpdateNotificationNumber();
 	void ResetNotificationNumber();
