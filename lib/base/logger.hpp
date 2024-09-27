@@ -121,7 +121,10 @@ public:
 	template<typename T>
 	Log& operator<<(const T& val)
 	{
-		m_Buffer << val;
+		if (!m_IsNoOp) {
+			m_Buffer << val;
+		}
+
 		return *this;
 	}
 
