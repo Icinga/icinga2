@@ -33,55 +33,6 @@ using namespace icinga;
 
 REGISTER_FUNCTION_NONCONST(Internal, IfwApiCheck, &IfwApiCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
 
-static void ReportIfwCheckResult(
-	const Checkable::Ptr& checkable, const Value& cmdLine, const CheckResult::Ptr& cr,
-	const String& output, double start, double end, int exitcode = 3, const Array::Ptr& perfdata = nullptr
-)
-{
-	if (Checkable::ExecuteCommandProcessFinishedHandler) {
-		ProcessResult pr;
-		pr.PID = -1;
-		pr.Output = perfdata ? output + " |" + String(perfdata->Join(" ")) : output;
-		pr.ExecutionStart = start;
-		pr.ExecutionEnd = end;
-		pr.ExitStatus = exitcode;
-
-		Checkable::ExecuteCommandProcessFinishedHandler(cmdLine, pr);
-	} else {
-		auto splittedPerfdata (perfdata);
-
-		if (perfdata) {
-			splittedPerfdata = new Array();
-			ObjectLock oLock (perfdata);
-
-			for (String pv : perfdata) {
-				PluginUtility::SplitPerfdata(pv)->CopyTo(splittedPerfdata);
-			}
-		}
-
-		cr->SetOutput(output);
-		cr->SetPerformanceData(splittedPerfdata);
-		cr->SetState((ServiceState)exitcode);
-		cr->SetExitStatus(exitcode);
-		cr->SetExecutionStart(start);
-		cr->SetExecutionEnd(end);
-		cr->SetCommand(cmdLine);
-
-		checkable->ProcessCheckResult(cr);
-	}
-}
-
-static void ReportIfwCheckResult(
-	boost::asio::yield_context yc, const Checkable::Ptr& checkable, const Value& cmdLine,
-	const CheckResult::Ptr& cr, const String& output, double start
-)
-{
-	double end = Utility::GetTime();
-	CpuBoundWork cbw (yc);
-
-	ReportIfwCheckResult(checkable, cmdLine, cr, output, start, end);
-}
-
 static const char* GetUnderstandableError(const std::exception& ex)
 {
 	auto se (dynamic_cast<const boost::system::system_error*>(&ex));
@@ -93,10 +44,12 @@ static const char* GetUnderstandableError(const std::exception& ex)
 	return ex.what();
 }
 
+// Note: If DoIfwNetIo returns due to an error, the plugin output of the specified CheckResult (cr) will always be set,
+// and if it was successful, the cr exit status, plugin state and performance data (if any) will also be overridden.
+// Therefore, you have to take care yourself of setting all the other necessary fields for the check result.
 static void DoIfwNetIo(
-	boost::asio::yield_context yc, const Checkable::Ptr& checkable, const Array::Ptr& cmdLine,
-	const CheckResult::Ptr& cr, const String& psCommand, const String& psHost, const String& san, const String& psPort,
-	AsioTlsStream& conn, boost::beast::http::request<boost::beast::http::string_body>& req, double start
+	boost::asio::yield_context yc, const CheckResult::Ptr& cr, const String& psCommand, const String& psHost, const String& san,
+	const String& psPort, AsioTlsStream& conn, boost::beast::http::request<boost::beast::http::string_body>& req
 )
 {
 	namespace http = boost::beast::http;
@@ -107,11 +60,7 @@ static void DoIfwNetIo(
 	try {
 		Connect(conn.lowest_layer(), psHost, psPort, yc);
 	} catch (const std::exception& ex) {
-		ReportIfwCheckResult(
-			yc, checkable, cmdLine, cr,
-			"Can't connect to IfW API on host '" + psHost + "' port '" + psPort + "': " + GetUnderstandableError(ex),
-			start
-		);
+		cr->SetOutput("Can't connect to IfW API on host '" + psHost + "' port '" + psPort + "': " + GetUnderstandableError(ex));
 		return;
 	}
 
@@ -120,12 +69,7 @@ static void DoIfwNetIo(
 	try {
 		sslConn.async_handshake(conn.next_layer().client, yc);
 	} catch (const std::exception& ex) {
-		ReportIfwCheckResult(
-			yc, checkable, cmdLine, cr,
-			"TLS handshake with IfW API on host '" + psHost + "' (SNI: '" + san
-				+ "') port '" + psPort + "' failed: " + GetUnderstandableError(ex),
-			start
-		);
+		cr->SetOutput("TLS handshake with IfW API on host '" + psHost + "' (SNI: '" + san+ "') port '" + psPort + "' failed: " + GetUnderstandableError(ex));
 		return;
 	}
 
@@ -135,15 +79,10 @@ static void DoIfwNetIo(
 
 		try {
 			cn = GetCertificateCN(cert);
-		} catch (const std::exception&) {
-		}
+		} catch (const std::exception&) { }
 
-		ReportIfwCheckResult(
-			yc, checkable, cmdLine, cr,
-			"Certificate validation failed for IfW API on host '" + psHost + "' (SNI: '" + san + "'; CN: "
-				+ (cn.IsString() ? "'" + cn + "'" : "N/A") + ") port '" + psPort + "': " + sslConn.GetVerifyError(),
-			start
-		);
+		cr->SetOutput("Certificate validation failed for IfW API on host '" + psHost + "' (SNI: '" + san + "'; CN: "
+			+ (cn.IsString() ? "'" + cn + "'" : "N/A") + ") port '" + psPort + "': " + sslConn.GetVerifyError());
 		return;
 	}
 
@@ -151,87 +90,56 @@ static void DoIfwNetIo(
 		http::async_write(conn, req, yc);
 		conn.async_flush(yc);
 	} catch (const std::exception& ex) {
-		ReportIfwCheckResult(
-			yc, checkable, cmdLine, cr,
-			"Can't send HTTP request to IfW API on host '" + psHost + "' port '" + psPort + "': " + GetUnderstandableError(ex),
-			start
-		);
+		cr->SetOutput("Can't send HTTP request to IfW API on host '" + psHost + "' port '" + psPort + "': " + GetUnderstandableError(ex));
 		return;
 	}
 
 	try {
 		http::async_read(conn, buf, resp, yc);
 	} catch (const std::exception& ex) {
-		ReportIfwCheckResult(
-			yc, checkable, cmdLine, cr,
-			"Can't read HTTP response from IfW API on host '" + psHost + "' port '" + psPort + "': " + GetUnderstandableError(ex),
-			start
-		);
+		cr->SetOutput("Can't read HTTP response from IfW API on host '" + psHost + "' port '" + psPort + "': " + GetUnderstandableError(ex));
 		return;
 	}
-
-	double end = Utility::GetTime();
 
 	{
 		boost::system::error_code ec;
 		sslConn.async_shutdown(yc[ec]);
 	}
 
-	CpuBoundWork cbw (yc);
 	Value jsonRoot;
 
 	try {
 		jsonRoot = JsonDecode(resp.body());
 	} catch (const std::exception& ex) {
-		ReportIfwCheckResult(
-			checkable, cmdLine, cr,
-			"Got bad JSON from IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what(), start, end
-		);
+		cr->SetOutput("Got bad JSON from IfW API on host '" + psHost + "' port '" + psPort + "': " + ex.what());
 		return;
 	}
 
 	if (!jsonRoot.IsObjectType<Dictionary>()) {
-		ReportIfwCheckResult(
-			checkable, cmdLine, cr,
-			"Got JSON, but not an object, from IfW API on host '"
-				+ psHost + "' port '" + psPort + "': " + JsonEncode(jsonRoot),
-			start, end
-		);
+		cr->SetOutput("Got JSON, but not an object, from IfW API on host '"+ psHost + "' port '" + psPort + "': " + JsonEncode(jsonRoot));
 		return;
 	}
 
 	Value jsonBranch;
 
 	if (!Dictionary::Ptr(jsonRoot)->Get(psCommand, &jsonBranch)) {
-		ReportIfwCheckResult(
-			checkable, cmdLine, cr,
-			"Missing ." + psCommand + " in JSON object from IfW API on host '"
-				+ psHost + "' port '" + psPort + "': " + JsonEncode(jsonRoot),
-			start, end
-		);
+		cr->SetOutput("Missing ." + psCommand + " in JSON object from IfW API on host '" + psHost + "' port '" + psPort + "': " + JsonEncode(jsonRoot));
 		return;
 	}
 
 	if (!jsonBranch.IsObjectType<Dictionary>()) {
-		ReportIfwCheckResult(
-			checkable, cmdLine, cr,
-			"." + psCommand + " in JSON from IfW API on host '"
-				+ psHost + "' port '" + psPort + "' is not an object: " + JsonEncode(jsonBranch),
-			start, end
-		);
+		cr->SetOutput("." + psCommand + " in JSON from IfW API on host '" + psHost + "' port '" + psPort + "' is not an object: " + JsonEncode(jsonBranch));
 		return;
 	}
 
 	Dictionary::Ptr result = jsonBranch;
 
-	Value exitcode;
+	Value rawExitcode;
 
-	if (!result->Get("exitcode", &exitcode)) {
-		ReportIfwCheckResult(
-			checkable, cmdLine, cr,
+	if (!result->Get("exitcode", &rawExitcode)) {
+		cr->SetOutput(
 			"Missing ." + psCommand + ".exitcode in JSON object from IfW API on host '"
-				+ psHost + "' port '" + psPort + "': " + JsonEncode(result),
-			start, end
+			+ psHost + "' port '" + psPort + "': " + JsonEncode(result)
 		);
 		return;
 	}
@@ -239,15 +147,15 @@ static void DoIfwNetIo(
 	static const std::set<double> exitcodes {ServiceOK, ServiceWarning, ServiceCritical, ServiceUnknown};
 	static const auto exitcodeList (Array::FromSet(exitcodes)->Join(", "));
 
-	if (!exitcode.IsNumber() || exitcodes.find(exitcode) == exitcodes.end()) {
-		ReportIfwCheckResult(
-			checkable, cmdLine, cr,
-			"Got bad exitcode " + JsonEncode(exitcode) + " from IfW API on host '" + psHost + "' port '" + psPort
-				+ "', expected one of: " + exitcodeList,
-			start, end
+	if (!rawExitcode.IsNumber() || exitcodes.find(rawExitcode) == exitcodes.end()) {
+		cr->SetOutput(
+			"Got bad exitcode " + JsonEncode(rawExitcode) + " from IfW API on host '" + psHost + "' port '" + psPort
+				+ "', expected one of: " + exitcodeList
 		);
 		return;
 	}
+
+	auto exitcode (static_cast<ServiceState>(rawExitcode.Get<double>()));
 
 	auto perfdataVal (result->Get("perfdata"));
 	Array::Ptr perfdata;
@@ -255,11 +163,9 @@ static void DoIfwNetIo(
 	try {
 		perfdata = perfdataVal;
 	} catch (const std::exception&) {
-		ReportIfwCheckResult(
-			checkable, cmdLine, cr,
+		cr->SetOutput(
 			"Got bad perfdata " + JsonEncode(perfdataVal) + " from IfW API on host '"
-				+ psHost + "' port '" + psPort + "', expected an array",
-			start, end
+				+ psHost + "' port '" + psPort + "', expected an array"
 		);
 		return;
 	}
@@ -269,18 +175,20 @@ static void DoIfwNetIo(
 
 		for (auto& pv : perfdata) {
 			if (!pv.IsString()) {
-				ReportIfwCheckResult(
-					checkable, cmdLine, cr,
+				cr->SetOutput(
 					"Got bad perfdata value " + JsonEncode(perfdata) + " from IfW API on host '"
-						+ psHost + "' port '" + psPort + "', expected an array of strings",
-					start, end
+						+ psHost + "' port '" + psPort + "', expected an array of strings"
 				);
 				return;
 			}
 		}
+
+		cr->SetPerformanceData(PluginUtility::SplitPerfdata(perfdata->Join(" ")));
 	}
 
-	ReportIfwCheckResult(checkable, cmdLine, cr, result->Get("checkresult"), start, end, exitcode, perfdata);
+	cr->SetState(exitcode);
+	cr->SetExitStatus(exitcode);
+	cr->SetOutput(result->Get("checkresult"));
 }
 
 void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
@@ -344,6 +252,34 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	String username = resolveMacros("$ifw_api_username$");
 	String password = resolveMacros("$ifw_api_password$");
 
+	// Use this lambda to process the final Ifw check result. Callers don't need to pass the check result
+	// as an argument, as the lambda already captures the `cr` and notices all the `cr` changes made across
+	// the code. You just need to set the necessary cr fields when appropriated and then call this closure.
+	std::function<void()> reportResult;
+
+	if (auto callback = Checkable::ExecuteCommandProcessFinishedHandler; callback) {
+		reportResult = [cr, callback = std::move(callback)]() {
+			ProcessResult pr;
+			pr.PID = -1;
+			if (auto pd = cr->GetPerformanceData(); pd) {
+				pr.Output = cr->GetOutput() +" |" + String(pd->Join(" "));
+			} else {
+				pr.Output = cr->GetOutput();
+			}
+			pr.ExecutionStart = cr->GetExecutionStart();
+			pr.ExecutionEnd = cr->GetExecutionEnd();
+			pr.ExitStatus = cr->GetExitStatus();
+
+			callback(cr->GetCommand(), pr);
+		};
+	} else {
+		reportResult = [checkable, cr]() { checkable->ProcessCheckResult(cr); };
+	}
+
+	// Set the default check result state and exit code to unknown for the moment!
+	cr->SetExitStatus(ServiceUnknown);
+	cr->SetState(ServiceUnknown);
+
 	Dictionary::Ptr params = new Dictionary();
 
 	if (arguments) {
@@ -369,11 +305,12 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 					if (kv.second.GetType() == ValueObject) {
 						auto now (Utility::GetTime());
 
-						ReportIfwCheckResult(
-							checkable, command->GetName(), cr,
-							"$ifw_api_arguments$ may not directly contain objects (especially functions).", now, now
-						);
+						cr->SetCommand(command->GetName());
+						cr->SetExecutionStart(now);
+						cr->SetExecutionEnd(now);
+						cr->SetOutput("$ifw_api_arguments$ may not directly contain objects (especially functions).");
 
+						reportResult();
 						return;
 					}
 				}
@@ -498,12 +435,17 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	auto& io (IoEngine::Get().GetIoContext());
 	auto strand (Shared<asio::io_context::strand>::Make(io));
 	Shared<asio::ssl::context>::Ptr ctx;
-	double start = Utility::GetTime();
+
+	cr->SetExecutionStart(Utility::GetTime());
+	cr->SetCommand(cmdLine);
 
 	try {
 		ctx = SetupSslContext(cert, key, ca, crl, DEFAULT_TLS_CIPHERS, DEFAULT_TLS_PROTOCOLMIN, DebugInfo());
 	} catch (const std::exception& ex) {
-		ReportIfwCheckResult(checkable, cmdLine, cr, ex.what(), start, Utility::GetTime());
+		cr->SetOutput(ex.what());
+		cr->SetExecutionEnd(Utility::GetTime());
+
+		reportResult();
 		return;
 	}
 
@@ -511,7 +453,7 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 
 	IoEngine::SpawnCoroutine(
 		*strand,
-		[strand, checkable, cmdLine, cr, psCommand, psHost, expectedSan, psPort, conn, req, start, checkTimeout](asio::yield_context yc) {
+		[strand, checkable, cr, psCommand, psHost, expectedSan, psPort, conn, req, checkTimeout, reportResult = std::move(reportResult)](asio::yield_context yc) {
 			Timeout::Ptr timeout = new Timeout(strand->context(), *strand, boost::posix_time::microseconds(int64_t(checkTimeout * 1e6)),
 				[&conn, &checkable](boost::asio::yield_context yc) {
 					Log(LogNotice, "IfwApiCheckTask")
@@ -525,7 +467,13 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 
 			Defer cancelTimeout ([&timeout]() { timeout->Cancel(); });
 
-			DoIfwNetIo(yc, checkable, cmdLine, cr, psCommand, psHost, expectedSan, psPort, *conn, *req, start);
+			DoIfwNetIo(yc, cr, psCommand, psHost, expectedSan, psPort, *conn, *req);
+
+			cr->SetExecutionEnd(Utility::GetTime());
+
+			// Post the check result processing to the global pool not to block the I/O threads,
+			// which could affect processing important RPC messages and HTTP connections.
+			Utility::QueueAsyncCallback(reportResult);
 		}
 	);
 }
