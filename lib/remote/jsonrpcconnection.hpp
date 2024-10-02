@@ -89,7 +89,19 @@ private:
 	void CheckLiveness(boost::asio::yield_context yc);
 
 	bool ProcessMessage();
-	void MessageHandler(const String& jsonString);
+
+	/**
+	* MessageHandler routes the provided message to its corresponding handler (if any).
+	*
+	* This will first verify the timestamp of that RPC message (if any) and subsequently, rejects any message whose
+	* timestamp is less than the remote log position of the client Endpoint; otherwise, the endpoint's remote log
+	* position is updated to that timestamp. It is not expected to happen, but any message lacking an RPC method or
+	* referring to a non-existent one is also discarded. Afterwards, the RPC handler is then called for that message
+	* and sends it's result back to the sender if the message contains an ID.
+	*
+	* @param message Dictionary::Ptr The RPC message you want to process.
+	*/
+	void MessageHandler(const Dictionary::Ptr& message);
 
 	void CertificateRequestResponseHandler(const Dictionary::Ptr& message);
 
