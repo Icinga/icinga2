@@ -16,60 +16,57 @@
 
 using namespace icinga;
 
-CpuBoundWork::CpuBoundWork(boost::asio::yield_context yc)
+CpuBoundWork::CpuBoundWork(boost::asio::yield_context yc, boost::asio::io_context::strand& strand)
 	: m_Done(false)
 {
 	auto& ioEngine (IoEngine::Get());
+	auto& sem (ioEngine.m_CpuBoundSemaphore);
+	std::unique_lock<std::mutex> lock (sem.Mutex);
 
-	for (;;) {
-		auto availableSlots (ioEngine.m_CpuBoundSemaphore.fetch_sub(1));
+	if (sem.FreeSlots) {
+		--sem.FreeSlots;
+		return;
+	}
 
-		if (availableSlots < 1) {
-			ioEngine.m_CpuBoundSemaphore.fetch_add(1);
-			IoEngine::YieldCurrentCoroutine(yc);
-			continue;
+	auto cv (Shared<AsioConditionVariable>::Make(ioEngine.GetIoContext()));
+	bool gotSlot = false;
+	auto pos (sem.Waiting.insert(sem.Waiting.end(), IoEngine::CpuBoundQueueItem{&strand, cv, &gotSlot}));
+
+	lock.unlock();
+
+	try {
+		cv->Wait(yc);
+	} catch (...) {
+		std::unique_lock<std::mutex> lock (sem.Mutex);
+
+		if (gotSlot) {
+			lock.unlock();
+			Done();
+		} else {
+			sem.Waiting.erase(pos);
 		}
 
-		break;
-	}
-}
-
-CpuBoundWork::~CpuBoundWork()
-{
-	if (!m_Done) {
-		IoEngine::Get().m_CpuBoundSemaphore.fetch_add(1);
+		throw;
 	}
 }
 
 void CpuBoundWork::Done()
 {
 	if (!m_Done) {
-		IoEngine::Get().m_CpuBoundSemaphore.fetch_add(1);
+		auto& sem (IoEngine::Get().m_CpuBoundSemaphore);
+		std::unique_lock<std::mutex> lock (sem.Mutex);
 
-		m_Done = true;
-	}
-}
+		if (sem.Waiting.empty()) {
+			++sem.FreeSlots;
+		} else {
+			auto next (sem.Waiting.front());
 
-IoBoundWorkSlot::IoBoundWorkSlot(boost::asio::yield_context yc)
-	: yc(yc)
-{
-	IoEngine::Get().m_CpuBoundSemaphore.fetch_add(1);
-}
-
-IoBoundWorkSlot::~IoBoundWorkSlot()
-{
-	auto& ioEngine (IoEngine::Get());
-
-	for (;;) {
-		auto availableSlots (ioEngine.m_CpuBoundSemaphore.fetch_sub(1));
-
-		if (availableSlots < 1) {
-			ioEngine.m_CpuBoundSemaphore.fetch_add(1);
-			IoEngine::YieldCurrentCoroutine(yc);
-			continue;
+			*next.GotSlot = true;
+			sem.Waiting.pop_front();
+			boost::asio::post(*next.Strand, [cv = std::move(next.CV)]() { cv->Set(); });
 		}
 
-		break;
+		m_Done = true;
 	}
 }
 
@@ -88,7 +85,11 @@ boost::asio::io_context& IoEngine::GetIoContext()
 IoEngine::IoEngine() : m_IoContext(), m_KeepAlive(boost::asio::make_work_guard(m_IoContext)), m_Threads(decltype(m_Threads)::size_type(Configuration::Concurrency * 2u)), m_AlreadyExpiredTimer(m_IoContext)
 {
 	m_AlreadyExpiredTimer.expires_at(boost::posix_time::neg_infin);
-	m_CpuBoundSemaphore.store(Configuration::Concurrency * 3u / 2u);
+
+	{
+		std::unique_lock<std::mutex> lock (m_CpuBoundSemaphore.Mutex);
+		m_CpuBoundSemaphore.FreeSlots = Configuration::Concurrency * 3u / 2u;
+	}
 
 	for (auto& thread : m_Threads) {
 		thread = std::thread(&IoEngine::RunEventLoop, this);
