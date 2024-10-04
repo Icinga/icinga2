@@ -12,36 +12,37 @@ class IcingaDB : ConfigObject
 {
 	activation_priority 100;
 
-	[config] String host {
+	[config, no_user_modify] String host {
 		default {{{ return "127.0.0.1"; }}}
 	};
-	[config] int port {
+	[config, no_user_modify] int port {
 		default {{{ return 6380; }}}
 	};
-	[config] String path;
+	[config, no_user_modify] String path;
+	[config, no_user_modify] String username;
 	[config, no_user_view, no_user_modify] String password;
-	[config] int db_index;
+	[config, no_user_modify] int db_index;
 
-	[config] bool enable_tls {
+	[config, no_user_modify] bool enable_tls {
 		default {{{ return false; }}}
 	};
 
-	[config] bool insecure_noverify {
+	[config, no_user_modify] bool insecure_noverify {
 		default {{{ return false; }}}
 	};
 
-	[config] String cert_path;
-	[config] String key_path;
-	[config] String ca_path;
-	[config] String crl_path;
-	[config] String cipher_list {
+	[config, no_user_modify] String cert_path;
+	[config, no_user_modify] String key_path;
+	[config, no_user_modify] String ca_path;
+	[config, no_user_modify] String crl_path;
+	[config, no_user_modify] String cipher_list {
 		default {{{ return DEFAULT_TLS_CIPHERS; }}}
 	};
-	[config] String tls_protocolmin {
+	[config, no_user_modify] String tls_protocolmin {
 		default {{{ return DEFAULT_TLS_PROTOCOLMIN; }}}
 	};
 
-	[config] double connect_timeout {
+	[config, no_user_modify] double connect_timeout {
 		default {{{ return DEFAULT_CONNECT_TIMEOUT; }}}
 	};
 

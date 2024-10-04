@@ -84,7 +84,7 @@ namespace icinga
 				: Config(config), State(state), History(history) { }
 		};
 
-		RedisConnection(const String& host, int port, const String& path, const String& password, int db,
+		RedisConnection(const String& host, int port, const String& path, const String& username, const String& password, int db,
 			bool useTls, bool insecure, const String& certPath, const String& keyPath, const String& caPath, const String& crlPath,
 			const String& tlsProtocolmin, const String& cipherList, double connectTimeout, DebugInfo di, const Ptr& parent = nullptr);
 
@@ -196,7 +196,7 @@ namespace icinga
 
 		static boost::regex m_ErrAuth;
 
-		RedisConnection(boost::asio::io_context& io, String host, int port, String path, String password,
+		RedisConnection(boost::asio::io_context& io, String host, int port, String path, String username, String password,
 			int db, bool useTls, bool insecure, String certPath, String keyPath, String caPath, String crlPath,
 			String tlsProtocolmin, String cipherList, double connectTimeout, DebugInfo di, const Ptr& parent);
 
@@ -227,6 +227,7 @@ namespace icinga
 		String m_Path;
 		String m_Host;
 		int m_Port;
+		String m_Username;
 		String m_Password;
 		int m_DbIndex;
 
@@ -457,7 +458,9 @@ void RedisConnection::Handshake(StreamPtr& strm, boost::asio::yield_context& yc)
 		// Trigger NOAUTH
 		WriteRESP(*strm, {"PING"}, yc);
 	} else {
-		if (!m_Password.IsEmpty()) {
+		if (!m_Username.IsEmpty()) {
+			WriteRESP(*strm, {"AUTH", m_Username, m_Password}, yc);
+		} else if (!m_Password.IsEmpty()) {
 			WriteRESP(*strm, {"AUTH", m_Password}, yc);
 		}
 
