@@ -14,6 +14,10 @@ class Host : Checkable
 	load_after ApiListener;
 	load_after Endpoint;
 	load_after Zone;
+	load_after CheckCommand;
+	load_after EventCommand;
+	load_after HostGroup;
+	load_after TimePeriod;
 
 	[config, no_user_modify, required, signal_with_old_value] array(name(HostGroup)) groups {
 		default {{{ return new Array(); }}}

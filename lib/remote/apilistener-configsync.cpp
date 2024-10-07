@@ -454,13 +454,17 @@ void ApiListener::SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient
 	Log(LogInformation, "ApiListener")
 		<< "Syncing runtime objects to endpoint '" << endpoint->GetName() << "'.";
 
-	for (const Type::Ptr& type : Type::GetAllTypes()) {
-		auto *dtype = dynamic_cast<ConfigType *>(type.get());
+	// All objects must be synced sorted by their load dependency. Otherwise, downtimes and/or comments might get
+	// synced before their respective Checkables, which will result in comments and downtimes being ignored by the
+	// other endpoint since it does not yet know about their checkables. Given that the runtime config updates event
+	// does not trigger a reload on the remote endpoint, these objects won't be synced again until the next reload.
+	for (const Type::Ptr& type : Type::GetConfigTypesSortedByLoadDependencies()) {
+		auto *ctype = dynamic_cast<ConfigType *>(type.get());
 
-		if (!dtype)
+		if (!ctype)
 			continue;
 
-		for (const ConfigObject::Ptr& object : dtype->GetObjects()) {
+		for (const ConfigObject::Ptr& object : ctype->GetObjects()) {
 			/* don't sync objects for non-matching parent-child zones */
 			if (!azone->CanAccessObject(object))
 				continue;
