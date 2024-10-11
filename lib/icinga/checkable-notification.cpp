@@ -203,7 +203,7 @@ void Checkable::FireSuppressedNotifications()
 			 * If any of these conditions is not met, processing the suppressed notification is further delayed.
 			 */
 			if (!state_suppressed && GetStateType() == StateTypeHard && !IsLikelyToBeCheckedSoon() && !wasLastParentRecoveryRecent.Get()) {
-				if (NotificationReasonApplies(type)) {
+				if (cr->GetState() != GetStateBeforeSuppression()) {
 					Checkable::OnNotificationsRequested(this, type, cr, "", "", nullptr);
 				}
 				subtract |= NotificationRecovery|NotificationProblem;
@@ -266,12 +266,12 @@ bool Checkable::NotificationReasonApplies(NotificationType type)
 		case NotificationProblem:
 			{
 				auto cr (GetLastCheckResult());
-				return cr && !IsStateOK(cr->GetState()) && cr->GetState() != GetStateBeforeSuppression();
+				return cr && !IsStateOK(cr->GetState());
 			}
 		case NotificationRecovery:
 			{
 				auto cr (GetLastCheckResult());
-				return cr && IsStateOK(cr->GetState()) && cr->GetState() != GetStateBeforeSuppression();
+				return cr && IsStateOK(cr->GetState());
 			}
 		case NotificationFlappingStart:
 			return IsFlapping();
