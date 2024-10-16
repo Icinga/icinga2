@@ -69,12 +69,12 @@ class UnbufferedAsioTlsStream : public AsioTcpTlsStream
 public:
 	inline
 	UnbufferedAsioTlsStream(UnbufferedAsioTlsStreamParams& init)
-		: AsioTcpTlsStream(init.IoContext, init.SslContext), m_VerifyOK(true), m_Hostname(init.Hostname)
+		: AsioTcpTlsStream(init.IoContext, init.SslContext), m_Hostname(init.Hostname)
 	{
 	}
 
-	bool IsVerifyOK() const;
-	String GetVerifyError() const;
+	bool IsVerifyOK();
+	String GetVerifyError();
 	std::shared_ptr<X509> GetPeerCertificate();
 
 	template<class... Args>
@@ -96,8 +96,6 @@ public:
 	}
 
 private:
-	bool m_VerifyOK;
-	String m_VerifyError;
 	String m_Hostname;
 
 	void BeforeHandshake(handshake_type type);
