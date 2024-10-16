@@ -585,10 +585,12 @@ void ConfigObject::StopObjects()
 {
 	std::vector<Type::Ptr> types = Type::GetAllTypes();
 
+	// The higher the activation priority, the later the config object will be
+	// loaded, with the CheckerComponent at 300 being last. To make sure they
+	// are shutting down in the right order, we need to shut down the objects
+	// with the highest priority first.
 	std::sort(types.begin(), types.end(), [](const Type::Ptr& a, const Type::Ptr& b) {
-		if (a->GetActivationPriority() > b->GetActivationPriority())
-			return true;
-		return false;
+		return a->GetActivationPriority() < b->GetActivationPriority();
 	});
 
 	for (const Type::Ptr& type : types) {
@@ -600,7 +602,13 @@ void ConfigObject::StopObjects()
 		for (const ConfigObject::Ptr& object : dtype->GetObjects()) {
 #ifdef I2_DEBUG
 			Log(LogDebug, "ConfigObject")
-				<< "Deactivate() called for config object '" << object->GetName() << "' with type '" << type->GetName() << "'.";
+				<< "Deactivate() called for config object '"
+				<< object->GetName()
+				<< "' with type '"
+				<< type->GetName()
+				<< "' and priority "
+				<< object->GetActivationPriority()
+				<< ".";
 #endif /* I2_DEBUG */
 			object->Deactivate();
 		}
