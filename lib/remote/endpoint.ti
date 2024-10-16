@@ -10,6 +10,8 @@ namespace icinga
 
 class Endpoint : ConfigObject
 {
+	activation_priority 300;
+
 	load_after Zone;
 
 	[config] String host;

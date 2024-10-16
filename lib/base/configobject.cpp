@@ -607,7 +607,7 @@ void ConfigObject::StopObjects()
 				<< "' with type '"
 				<< type->GetName()
 				<< "' and priority "
-				<< object->GetActivationPriority()
+				<< type->GetActivationPriority()
 				<< ".";
 #endif /* I2_DEBUG */
 			object->Deactivate();
