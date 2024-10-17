@@ -15,7 +15,7 @@ class Zone : ConfigObject
 		}}}
 	};
 
-	[config] array(name(Endpoint)) endpoints (EndpointsRaw);
+	[config, no_user_modify] array(name(Endpoint)) endpoints (EndpointsRaw);
 	[config] bool global;
 	[no_user_modify, no_storage] array(Value) all_parents {
 		get;
