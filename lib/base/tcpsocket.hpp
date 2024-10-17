@@ -55,7 +55,7 @@ void Connect(Socket& socket, const String& node, const String& service)
 		} catch (const std::exception& ex) {
 			auto se (dynamic_cast<const boost::system::system_error*>(&ex));
 
-			if (se && se->code() == boost::asio::error::operation_aborted || ++current == result.end()) {
+			if ((se && se->code() == boost::asio::error::operation_aborted) || ++current == result.end()) {
 				throw;
 			}
 
@@ -86,7 +86,7 @@ void Connect(Socket& socket, const String& node, const String& service, boost::a
 		} catch (const std::exception& ex) {
 			auto se (dynamic_cast<const boost::system::system_error*>(&ex));
 
-			if (se && se->code() == boost::asio::error::operation_aborted || ++current == result.end()) {
+			if ((se && se->code() == boost::asio::error::operation_aborted) || ++current == result.end()) {
 				throw;
 			}
 

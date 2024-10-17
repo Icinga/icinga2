@@ -643,8 +643,7 @@ String Notification::NotificationFilterToString(int filter, const std::map<Strin
 {
 	std::vector<String> sFilters;
 
-	typedef std::pair<String, int> kv_pair;
-	for (const kv_pair& kv : filterMap) {
+	for (auto& kv : filterMap) {
 		if (filter & kv.second)
 			sFilters.push_back(kv.first);
 	}

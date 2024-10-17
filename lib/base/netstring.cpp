@@ -127,7 +127,7 @@ size_t NetString::WriteStringToStream(const Stream::Ptr& stream, const String& s
  * @see https://github.com/PeterScott/netstring-c/blob/master/netstring.c
  */
 String NetString::ReadStringFromStream(const Shared<AsioTlsStream>::Ptr& stream,
-	ssize_t maxMessageLength)
+	size_t maxMessageLength)
 {
 	namespace asio = boost::asio;
 
@@ -167,7 +167,7 @@ String NetString::ReadStringFromStream(const Shared<AsioTlsStream>::Ptr& stream,
 		}
 	}
 
-	if (maxMessageLength >= 0 && len > maxMessageLength) {
+	if (len > maxMessageLength) {
 		std::stringstream errorMessage;
 		errorMessage << "Max data length exceeded: " << (maxMessageLength / 1024) << " KB";
 
@@ -206,7 +206,7 @@ String NetString::ReadStringFromStream(const Shared<AsioTlsStream>::Ptr& stream,
  * @see https://github.com/PeterScott/netstring-c/blob/master/netstring.c
  */
 String NetString::ReadStringFromStream(const Shared<AsioTlsStream>::Ptr& stream,
-	boost::asio::yield_context yc, ssize_t maxMessageLength)
+	boost::asio::yield_context yc, size_t maxMessageLength)
 {
 	namespace asio = boost::asio;
 
@@ -246,7 +246,7 @@ String NetString::ReadStringFromStream(const Shared<AsioTlsStream>::Ptr& stream,
 		}
 	}
 
-	if (maxMessageLength >= 0 && len > maxMessageLength) {
+	if (len > maxMessageLength) {
 		std::stringstream errorMessage;
 		errorMessage << "Max data length exceeded: " << (maxMessageLength / 1024) << " KB";
 
