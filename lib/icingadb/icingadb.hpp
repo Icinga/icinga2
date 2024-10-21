@@ -103,6 +103,7 @@ private:
 	std::vector<String> GetTypeDumpSignalKeys(const Type::Ptr& type);
 	void InsertObjectDependencies(const ConfigObject::Ptr& object, const String typeName, std::map<String, std::vector<String>>& hMSets,
 			std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate);
+	void UpdateDependencyState(const Dependency::Ptr& dependency);
 	void UpdateState(const Checkable::Ptr& checkable, StateUpdate mode);
 	void SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpdate);
 	void CreateConfigUpdate(const ConfigObject::Ptr& object, const String type, std::map<String, std::vector<String>>& hMSets,
@@ -223,6 +224,8 @@ private:
 	Locked<RedisConnection::Ptr> m_RconLocked;
 	std::unordered_map<ConfigType*, RedisConnection::Ptr> m_Rcons;
 	std::atomic_size_t m_PendingRcons;
+
+	Dictionary::Ptr m_CheckablesToDependencies;
 
 	struct {
 		DumpedGlobals CustomVar, ActionUrl, NotesUrl, IconImage;
