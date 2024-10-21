@@ -106,7 +106,7 @@ The current naming schema is defined as follows. The [Icinga Web 2 Graphite modu
 depends on this schema.
 
 The default prefix for hosts and services is configured using
-[runtime macros](03-monitoring-basics.md#runtime-macros)like this:
+[runtime macros](03-monitoring-basics.md#runtime-macros) like this:
 
 ```
 icinga2.$host.name$.host.$host.check_command$
