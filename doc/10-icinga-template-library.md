@@ -5942,6 +5942,7 @@ ssl_cert_ignore_ocsp_errors   | **Optional.** Continue if the OCSP status cannot
 ssl_cert_ignore_ocsp_timeout  | **Optional.** Ignore OCSP result when timeout occurs while checking.
 ssl_cert_ignore_sct           | **Optional.** Do not check for signed certificate timestamps.
 ssl_cert_ignore_tls_renegotiation  | **Optional.** Do not check for renegotiation.
+ssl_cert_dane                 | **Optional.** Verify that valid DANE records exist {211,301,302,311 or empty string}.
 
 
 #### jmx4perl <a id="plugin-contrib-command-jmx4perl"></a>
