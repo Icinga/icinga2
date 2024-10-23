@@ -739,7 +739,7 @@ void Notification::Validate(int types, const ValidationUtils& utils)
 	Array::Ptr groups = GetUserGroupsRaw();
 
 	if ((!users || users->GetLength() == 0) && (!groups || groups->GetLength() == 0))
-		BOOST_THROW_EXCEPTION(ValidationError(this, std::vector<String>(), "Validation failed: No users/user_groups specified."));
+		BOOST_THROW_EXCEPTION(ValidationError(this, std::vector<String>(), "No users/user_groups specified."));
 }
 
 void Notification::ValidateStates(const Lazy<Array::Ptr>& lvalue, const ValidationUtils& utils)
