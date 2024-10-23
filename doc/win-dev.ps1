@@ -70,6 +70,9 @@ try {
 	$Env:Path += $ChocoPath
 }
 
+choco install -y winflexbison3
+ThrowOnNativeFailure
+
 # GitHub Actions uses an image that comes with most dependencies preinstalled. Don't install them twice.
 if (-not $Env:GITHUB_ACTIONS) {
     choco install -y `
@@ -82,12 +85,8 @@ if (-not $Env:GITHUB_ACTIONS) {
         "visualstudio${VsVersion}buildtools" `
         git `
         cmake `
-        winflexbison3 `
         windows-sdk-8.1 `
         wixtoolset
-    ThrowOnNativeFailure
-} else {
-    choco install -y winflexbison3
     ThrowOnNativeFailure
 }
 
