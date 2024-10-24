@@ -878,7 +878,7 @@ actively attempts to schedule and execute checks. Otherwise the node does not fe
 }
 ```
 
-You may ask why this analysis is important? Fair enough - if the numbers are not inverted in a HA zone
+You may ask why this analysis is important? Fair enough - if the numbers are not inverted in an HA zone
 with two members, this may give a hint that the cluster nodes are in a split-brain scenario, or you've
 found a bug in the cluster.
 

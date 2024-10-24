@@ -651,7 +651,7 @@ authority = endpoints[Utility::SDBM(object->GetName()) % endpoints.size()] == my
 that by querying the `paused` attribute for all objects via REST API
 or debug console on both endpoints.
 
-Endpoints inside a HA zone calculate the object authority independent from each other.
+Endpoints inside an HA zone calculate the object authority independent from each other.
 This object authority is important for selected features explained below.
 
 Since features are configuration objects too, you must ensure that all nodes
