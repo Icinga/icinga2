@@ -70,24 +70,24 @@ try {
 	$Env:Path += $ChocoPath
 }
 
-# GitHub Actions uses an image that comes with most dependencies preinstalled. Don't install them twice.
+choco install -y `
+    "visualstudio${VsVersion}community" `
+    "visualstudio${VsVersion}-workload-netcoretools" `
+    "visualstudio${VsVersion}-workload-vctools" `
+    "visualstudio${VsVersion}-workload-manageddesktop" `
+    "visualstudio${VsVersion}-workload-nativedesktop" `
+    "visualstudio${VsVersion}-workload-universal" `
+    "visualstudio${VsVersion}buildtools" `
+    winflexbison3
+ThrowOnNativeFailure
+
+# GitHub Actions uses an image that comes with some dependencies preinstalled. Don't install them twice.
 if (-not $Env:GITHUB_ACTIONS) {
     choco install -y `
-        "visualstudio${VsVersion}community" `
-        "visualstudio${VsVersion}-workload-netcoretools" `
-        "visualstudio${VsVersion}-workload-vctools" `
-        "visualstudio${VsVersion}-workload-manageddesktop" `
-        "visualstudio${VsVersion}-workload-nativedesktop" `
-        "visualstudio${VsVersion}-workload-universal" `
-        "visualstudio${VsVersion}buildtools" `
         git `
         cmake `
-        winflexbison3 `
         windows-sdk-8.1 `
         wixtoolset
-    ThrowOnNativeFailure
-} else {
-    choco install -y winflexbison3
     ThrowOnNativeFailure
 }
 
