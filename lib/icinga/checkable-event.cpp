@@ -24,6 +24,15 @@ void Checkable::ExecuteEventHandler(const Dictionary::Ptr& resolvedMacros, bool 
 	if (!IcingaApplication::GetInstance()->GetEnableEventHandlers() || !GetEnableEventHandler())
 		return;
 
+	auto zone (GetZone());
+
+	if (zone && zone != Zone::GetLocalZone()) {
+		Log(LogNotice, "Checkable")
+			<< "Skipping event handler for checkable '" << GetName()
+			<< "' in child zone '" << zone->GetName() << "'";
+		return;
+	}
+
 	/* HA enabled zones. */
 	if (IsActive() && IsPaused()) {
 		Log(LogNotice, "Checkable")
