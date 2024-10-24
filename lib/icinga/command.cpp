@@ -35,7 +35,7 @@ void Command::Validate(int types, const ValidationUtils& utils)
 					Value argvalue = argdict->Get("value");
 
 					if (argvalue.IsString() && !MacroProcessor::ValidateMacroString(argvalue))
-						BOOST_THROW_EXCEPTION(ValidationError(this, { "arguments", kv.first, "value" }, "Validation failed: Closing $ not found in macro format string '" + argvalue + "'."));
+						BOOST_THROW_EXCEPTION(ValidationError(this, { "arguments", kv.first, "value" }, "Closing $ not found in macro format string '" + argvalue + "'."));
 				}
 
 				if (argdict->Contains("set_if")) {
