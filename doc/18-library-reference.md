@@ -1648,9 +1648,9 @@ Example:
 function set_x(val) {
   this.x = val
 }
-	
+
 dict = {}
-	
+
 set_x.call(dict, 7) /* Invokes set_x using `dict` as `this` */
 ```
 
@@ -1671,7 +1671,7 @@ Example:
 function set_x(val) {
   this.x = val
 }
-	
+
 var dict = {}
 
 var args = [ 7 ]

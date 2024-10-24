@@ -115,7 +115,7 @@ You can also use [jq](https://stedolan.github.io/jq/) or `python -m json.tool`
 in combination with curl on the CLI.
 
 ```bash
-curl ... | jq 
+curl ... | jq
 curl ... | python -m json.tool
 ```
 
@@ -566,7 +566,7 @@ created by the API.
 ### Querying Objects <a id="icinga2-api-config-objects-query"></a>
 
 You can request information about configuration objects by sending
-a `GET` query to the `/v1/objects/<type>` URL endpoint. `<type` has
+a `GET` query to the `/v1/objects/<type>` URL endpoint. `<type>` has
 to be replaced with the plural name of the object type you are interested
 in:
 
@@ -814,7 +814,7 @@ parameters need to be passed inside the JSON body:
 
   Parameters        | Type         | Description
   ------------------|--------------|--------------------------
-  templates         | Array        | **Optional.** Import existing configuration templates for this object type. Note: These templates must either be statically configured or provided in [config packages](12-icinga2-api.md#icinga2-api-config-management)-
+  templates         | Array        | **Optional.** Import existing configuration templates for this object type. Note: These templates must either be statically configured or provided in [config packages](12-icinga2-api.md#icinga2-api-config-management).
   attrs             | Dictionary   | **Required.** Set specific object attributes for this [object type](09-object-types.md#object-types).
   ignore\_on\_error | Boolean      | **Optional.** Ignore object creation errors and return an HTTP 200 status instead.
 
@@ -951,7 +951,7 @@ list the latter in the `restore_attrs` parameter. E.g.:
 ```bash
 curl -k -s -S -i -u root:icinga -H 'Accept: application/json' \
  -X POST 'https://localhost:5665/v1/objects/hosts/example.localdomain' \
- -d '{ "restore_attrs": [ "address", "vars.os" ] }, "pretty": true }'
+ -d '{ "restore_attrs": [ "address", "vars.os" ], "pretty": true }'
 ```
 
 ```json
@@ -1658,14 +1658,14 @@ Send a `POST` request to the URL endpoint `/v1/actions/execute-command`.
   --------------|------------|--------------
   ttl           | Number     | **Required.** The time to live of the execution expressed in seconds.
   command_type  | String     | **Optional.** The command type: `CheckCommand` or `EventCommand` or `NotificationCommand`. Default: `EventCommand`
-  command       | String     | **Optional.** The command to execute. Its type must the same as `command_type`. It can be a macro string. Default: depending on the `command_type` it's either `$check_command$`, `$event_command$` or `$notification_command$`   
+  command       | String     | **Optional.** The command to execute. Its type must the same as `command_type`. It can be a macro string. Default: depending on the `command_type` it's either `$check_command$`, `$event_command$` or `$notification_command$`
   endpoint      | String     | **Optional.** The endpoint to execute the command on. It can be a macro string. Default: `$command_endpoint$`.
   macros        | Dictionary | **Optional.** Macro overrides. Default: `{}`
-  user          | String     | **Optional.** The user used for the notification command. 
+  user          | String     | **Optional.** The user used for the notification command.
   notification  | String     | **Optional.** The notification used for the notification command.
-  
+
 Example:
-  
+
 ```bash
 curl -k -s -S -i -u root:icinga -H 'Accept: application/json' \
  -X POST 'https://localhost:5665/v1/actions/execute-command' \
@@ -1879,6 +1879,32 @@ Example for all object events:
   timestamp     | Timestamp     | Unix timestamp when the event happened.
   downtime      | Dictionary    | Serialized [Downtime](09-object-types.md#objecttype-downtime) object.
 
+#### <a id="icinga2-api-event-streams-type-objectcreated"></a> Event Stream Type: ObjectCreated
+
+| Name         | Type      | Description                                                    |
+|--------------|-----------|----------------------------------------------------------------|
+| type         | String    | Event type `ObjectCreated`.                                    |
+| timestamp    | Timestamp | Unix timestamp when the event happened.                        |
+| object\_type | String    | Type of the newly created object, such as `Host` or `Service`. |
+| object\_name | String    | The full name of the object.                                   |
+
+#### <a id="icinga2-api-event-streams-type-objectmodified"></a> Event Stream Type: ObjectModified
+
+| Name         | Type      | Description                                               |
+|--------------|-----------|-----------------------------------------------------------|
+| type         | String    | Event type `ObjectModified`.                              |
+| timestamp    | Timestamp | Unix timestamp when the event happened.                   |
+| object\_type | String    | Type of the modified object, such as `Host` or `Service`. |
+| object\_name | String    | The full name of the object.                              |
+
+#### <a id="icinga2-api-event-streams-type-objectdeleted"></a> Event Stream Type: ObjectDeleted
+
+| Name         | Type      | Description                                              |
+|--------------|-----------|----------------------------------------------------------|
+| type         | String    | Event type `ObjectDeleted`.                              |
+| timestamp    | Timestamp | Unix timestamp when the event happened.                  |
+| object\_type | String    | Type of the deleted object, such as `Host` or `Service`. |
+| object\_name | String    | The full name of the object.                             |
 
 ### Event Stream Filter <a id="icinga2-api-event-streams-filter"></a>
 
@@ -2348,7 +2374,7 @@ Creation, modification and deletion of templates at runtime is not supported.
 ### Querying Templates <a id="icinga2-api-config-templates-query"></a>
 
 You can request information about configuration templates by sending
-a `GET` query to the `/v1/templates/<type>` URL endpoint. `<type` has
+a `GET` query to the `/v1/templates/<type>` URL endpoint. `<type>` has
 to be replaced with the plural name of the object type you are interested
 in:
 
@@ -2612,7 +2638,7 @@ Name												| Language	| Description
 [BitBar for OSX](https://getbitbar.com/plugins/Dev/Icinga2/icinga2.24m.py)			| Python	| macOS tray app for highlighting the host/service status
 [Icinga 2 Multistatus](https://chrome.google.com/webstore/detail/icinga-multi-status/khabbhcojgkibdeipanmiphceeoiijal/related)	| - 	| Chrome Extension
 [Naglite4](https://github.com/wftech/icinga2-naglite4)						| Python	| Naglite3 rewrite using the Icinga 2 REST API.
-[icinga-telegram-bot](https://github.com/joni1993/icinga-telegram-bot)				| Python	| Telegram Bot using the Icinga 2 REST API 
+[icinga-telegram-bot](https://github.com/joni1993/icinga-telegram-bot)				| Python	| Telegram Bot using the Icinga 2 REST API
 
 ### Manage Objects <a id="icinga2-api-clients-management"></a>
 
