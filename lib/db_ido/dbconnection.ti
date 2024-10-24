@@ -10,6 +10,8 @@ namespace icinga
 
 abstract class DbConnection : ConfigObject
 {
+	activation_priority 250;
+
 	[config] String table_prefix {
 		default {{{ return "icinga_"; }}}
 	};

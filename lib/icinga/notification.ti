@@ -20,6 +20,8 @@ public:
 
 class Notification : CustomVarObject < NotificationNameComposer
 {
+	activation_priority 200;
+
 	load_after Host;
 	load_after Service;
 
