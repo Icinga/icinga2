@@ -3131,7 +3131,7 @@ object Endpoint "icinga2-master2.localdomain" {
 > **Note**
 >
 > This is required if you decide to change an already running single endpoint production
-> environment into a HA-enabled cluster zone with two endpoints.
+> environment into an HA-enabled cluster zone with two endpoints.
 > The [initial setup](06-distributed-monitoring.md#distributed-monitoring-scenarios-ha-master-clients)
 > with 2 HA masters doesn't require this step.
 
