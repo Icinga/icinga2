@@ -47,6 +47,11 @@ void IcingaDB::Validate(int types, const ValidationUtils& utils)
 	if (!(types & FAConfig))
 		return;
 
+	if (!GetUsername().IsEmpty() && GetPassword().IsEmpty()) {
+		BOOST_THROW_EXCEPTION(ValidationError(this, std::vector<String>(),
+			"Redis password must be set, if username is provided."));
+	}
+
 	if (GetEnableTls() && GetCertPath().IsEmpty() != GetKeyPath().IsEmpty()) {
 		BOOST_THROW_EXCEPTION(ValidationError(this, std::vector<String>(), "Validation failed: Either both a client certificate (cert_path) and its private key (key_path) or none of them must be given."));
 	}
@@ -77,7 +82,7 @@ void IcingaDB::Start(bool runtimeCreated)
 
 	m_WorkQueue.SetExceptionCallback([this](boost::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
 
-	m_Rcon = new RedisConnection(GetHost(), GetPort(), GetPath(), GetPassword(), GetDbIndex(),
+	m_Rcon = new RedisConnection(GetHost(), GetPort(), GetPath(), GetUsername(), GetPassword(), GetDbIndex(),
 		GetEnableTls(), GetInsecureNoverify(), GetCertPath(), GetKeyPath(), GetCaPath(), GetCrlPath(),
 		GetTlsProtocolmin(), GetCipherList(), GetConnectTimeout(), GetDebugInfo());
 	m_RconLocked.store(m_Rcon);
@@ -87,7 +92,7 @@ void IcingaDB::Start(bool runtimeCreated)
 		if (!ctype)
 			continue;
 
-		RedisConnection::Ptr con = new RedisConnection(GetHost(), GetPort(), GetPath(), GetPassword(), GetDbIndex(),
+		RedisConnection::Ptr con = new RedisConnection(GetHost(), GetPort(), GetPath(), GetUsername(), GetPassword(), GetDbIndex(),
 			GetEnableTls(), GetInsecureNoverify(), GetCertPath(), GetKeyPath(), GetCaPath(), GetCrlPath(),
 			GetTlsProtocolmin(), GetCipherList(), GetConnectTimeout(), GetDebugInfo(), m_Rcon);
 
