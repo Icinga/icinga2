@@ -7,6 +7,15 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.13.10 (2024-11-12)
+
+This security release fixes a TLS certificate validation bypass.
+Given the severity of that issue, users are advised to upgrade all nodes immediately.
+
+* Security: fix TLS certificate validation bypass. CVE-2024-49369
+* Security: update OpenSSL shipped on Windows to v3.0.15.
+* Windows: sign MSI packages with a certificate the OS trusts by default.
+
 ## 2.13.9 (2023-12-21)
 
 Version 2.13.9 is a hotfix release for masters and satellites that mainly
