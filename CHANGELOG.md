@@ -1052,6 +1052,15 @@ Thanks to all contributors:
 * Metrics
   * OpenTSDB-Writer: Remove incorrect space causing missing tag error #8245
 
+## 2.12.11 (2024-11-12)
+
+This security release fixes a TLS certificate validation bypass.
+Given the severity of that issue, users are advised to upgrade all nodes immediately.
+
+* Security: fix TLS certificate validation bypass. CVE-2024-49369
+* Security: update OpenSSL shipped on Windows to v3.0.15.
+* Windows: sign MSI packages with a certificate the OS trusts by default.
+
 ## 2.12.10 (2023-02-16)
 
 This security release updates Boost and OpenSSL libraries bundled on Windows
