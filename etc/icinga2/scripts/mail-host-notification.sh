@@ -175,5 +175,5 @@ if [ -n "$MAILFROM" ] ; then
 
 else
   /usr/bin/printf "%b" "$NOTIFICATION_MESSAGE" | tr -d '\015' \
-  | $MAILBIN -s "$SUBJECT" $USEREMAIL
+  | $MAILBIN -s "$SUBJECT" -a "References: <$HOSTNAME@$ICINGA2HOST>" $USEREMAIL
 fi
