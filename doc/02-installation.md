@@ -150,12 +150,6 @@ SUSEConnect -p PackageHub/$VERSION_ID/x86_64
 zypper ar https://packages.icinga.com/openSUSE/ICINGA-release.repo
 zypper ref
 ```
-
-You need to additionally add the `server:monitoring` repository to fulfill dependencies:
-
-```bash
-zypper ar https://download.opensuse.org/repositories/server:/monitoring/15.3/server:monitoring.repo
-```
 <!-- {% endif %} -->
 
 <!-- {% if amazon_linux %} -->
