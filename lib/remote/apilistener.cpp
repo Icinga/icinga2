@@ -843,9 +843,11 @@ void ApiListener::NewClientHandlerInternal(
 		Log(LogNotice, "ApiListener", "New JSON-RPC client");
 
 		if (endpoint && endpoint->GetConnected()) {
-			Log(LogNotice, "ApiListener")
+			Log(LogInformation, "ApiListener")
 				<< "Ignoring JSON-RPC connection " << conninfo
-				<< ". We're already connected to Endpoint '" << endpoint->GetName() << "'.";
+				<< ". We're already connected to Endpoint '" << endpoint->GetName()
+				<< "' (last message sent: " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", endpoint->GetLastMessageSent())
+				<< ", last message received: " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", endpoint->GetLastMessageReceived()) << ").";
 			return;
 		}
 
