@@ -1552,7 +1552,7 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 					count++;
 				} catch (const std::exception& ex) {
 					Log(LogWarning, "ApiListener")
-						<< "Error while replaying log for endpoint '" << endpoint->GetName() << "': " << DiagnosticInformation(ex, false);
+						<< "Error while replaying log for endpoint '" << endpoint->GetName() << "': " << ex.what();
 
 					Log(LogDebug, "ApiListener")
 						<< "Error while replaying log for endpoint '" << endpoint->GetName() << "': " << DiagnosticInformation(ex);
