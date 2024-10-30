@@ -170,6 +170,7 @@ if [ "$VERBOSE" = "true" ] ; then
   logger "$PROG sends $SUBJECT => $USEREMAIL"
 fi
 
+# A mail header to relate mails for the same host/service, to enable the use of threaded view in a client.
 REFHEADER="References: <$HOSTNAME+$SERVICENAME@$(hostname --fqdn)>"
 
 ## Send the mail using the $MAILBIN command.
