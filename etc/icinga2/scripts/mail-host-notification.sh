@@ -157,6 +157,8 @@ if [ "$VERBOSE" = "true" ] ; then
   logger "$PROG sends $SUBJECT => $USEREMAIL"
 fi
 
+REFHEADER="References: <$HOSTNAME@$ICINGA2HOST>"
+
 ## Send the mail using the $MAILBIN command.
 ## If an explicit sender was specified, try to set it.
 if [ -n "$MAILFROM" ] ; then
@@ -166,7 +168,7 @@ if [ -n "$MAILFROM" ] ; then
   ## Debian/Ubuntu use mailutils which requires `-a` to append the header
   if [ -f /etc/debian_version ]; then
     /usr/bin/printf "%b" "$NOTIFICATION_MESSAGE" | tr -d '\015' \
-    | $MAILBIN -a "From: $MAILFROM" -s "$SUBJECT" $USEREMAIL
+    | $MAILBIN -a "From: $MAILFROM" -s "$SUBJECT" -a "$REFHEADER" $USEREMAIL
   ## Other distributions (RHEL/SUSE/etc.) prefer mailx which sets a sender address with `-r`
   else
     /usr/bin/printf "%b" "$NOTIFICATION_MESSAGE" | tr -d '\015' \
@@ -175,5 +177,5 @@ if [ -n "$MAILFROM" ] ; then
 
 else
   /usr/bin/printf "%b" "$NOTIFICATION_MESSAGE" | tr -d '\015' \
-  | $MAILBIN -s "$SUBJECT" -a "References: <$HOSTNAME@$ICINGA2HOST>" $USEREMAIL
+  | $MAILBIN -s "$SUBJECT" -a "$REFHEADER" $USEREMAIL
 fi
