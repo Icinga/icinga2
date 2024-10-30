@@ -38,7 +38,7 @@ JsonRpcConnection::JsonRpcConnection(const String& identity, bool authenticated,
 JsonRpcConnection::JsonRpcConnection(const String& identity, bool authenticated,
 	const Shared<AsioTlsStream>::Ptr& stream, ConnectionRole role, boost::asio::io_context& io)
 	: m_Identity(identity), m_Authenticated(authenticated), m_Stream(stream), m_Role(role),
-	m_Timestamp(Utility::GetTime()), m_Seen(Utility::GetTime()), m_NextHeartbeat(0), m_IoStrand(io),
+	m_Timestamp(Utility::GetTime()), m_Seen(Utility::GetTime()), m_IoStrand(io),
 	m_OutgoingMessagesQueued(io), m_WriterDone(io), m_ShuttingDown(false),
 	m_CheckLivenessTimer(io), m_HeartbeatTimer(io)
 {

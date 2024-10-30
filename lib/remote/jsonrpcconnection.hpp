@@ -73,7 +73,6 @@ private:
 	ConnectionRole m_Role;
 	double m_Timestamp;
 	double m_Seen;
-	double m_NextHeartbeat;
 	boost::asio::io_context::strand m_IoStrand;
 	std::vector<String> m_OutgoingMessagesQueue;
 	AsioConditionVariable m_OutgoingMessagesQueued;
