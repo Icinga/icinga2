@@ -211,16 +211,6 @@ void JsonRpcConnection::Disconnect()
 			Log(LogWarning, "JsonRpcConnection")
 				<< "API client disconnected for identity '" << m_Identity << "'";
 
-			// We need to unregister the endpoint client as soon as possible not to confuse Icinga 2,
-			// given that Endpoint::GetConnected() is just performing a check that the endpoint's client
-			// cache is not empty, which could result in an already disconnected endpoint never trying to
-			// reconnect again. See #7444.
-			if (m_Endpoint) {
-				m_Endpoint->RemoveClient(this);
-			} else {
-				ApiListener::GetInstance()->RemoveAnonymousClient(this);
-			}
-
 			m_OutgoingMessagesQueued.Set();
 
 			m_WriterDone.Wait(yc);
@@ -255,6 +245,12 @@ void JsonRpcConnection::Disconnect()
 			shutdownTimeout->Cancel();
 
 			m_Stream->lowest_layer().shutdown(m_Stream->lowest_layer().shutdown_both, ec);
+
+			if (m_Endpoint) {
+				m_Endpoint->RemoveClient(this);
+			} else {
+				ApiListener::GetInstance()->RemoveAnonymousClient(this);
+			}
 		});
 	}
 }
