@@ -68,44 +68,49 @@ void HttpServerConnection::Start()
 	IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) { CheckLiveness(yc); });
 }
 
-void HttpServerConnection::Disconnect()
+/**
+ * Tries to asynchronously shut down the SSL stream and underlying socket.
+ *
+ * It is important to note that this method should only be called from within a coroutine that uses `m_IoStrand`.
+ *
+ * @param yc boost::asio::yield_context The coroutine yield context which you are calling this method from.
+ */
+void HttpServerConnection::Disconnect(boost::asio::yield_context yc)
 {
 	namespace asio = boost::asio;
 
-	HttpServerConnection::Ptr keepAlive (this);
+	if (m_ShuttingDown) {
+		return;
+	}
 
-	IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) {
-		if (!m_ShuttingDown) {
-			m_ShuttingDown = true;
+	m_ShuttingDown = true;
 
-			Log(LogInformation, "HttpServerConnection")
-				<< "HTTP client disconnected (from " << m_PeerAddress << ")";
+	Log(LogInformation, "HttpServerConnection")
+		<< "HTTP client disconnected (from " << m_PeerAddress << ")";
 
-			/*
-			 * Do not swallow exceptions in a coroutine.
-			 * https://github.com/Icinga/icinga2/issues/7351
-			 * We must not catch `detail::forced_unwind exception` as
-			 * this is used for unwinding the stack.
-			 *
-			 * Just use the error_code dummy here.
-			 */
-			boost::system::error_code ec;
+	/*
+	 * Do not swallow exceptions in a coroutine.
+	 * https://github.com/Icinga/icinga2/issues/7351
+	 * We must not catch `detail::forced_unwind exception` as
+	 * this is used for unwinding the stack.
+	 *
+	 * Just use the error_code dummy here.
+	 */
+	boost::system::error_code ec;
 
-			m_CheckLivenessTimer.cancel();
+	m_CheckLivenessTimer.cancel();
 
-			m_Stream->lowest_layer().cancel(ec);
+	m_Stream->lowest_layer().cancel(ec);
 
-			m_Stream->next_layer().async_shutdown(yc[ec]);
+	m_Stream->next_layer().async_shutdown(yc[ec]);
 
-			m_Stream->lowest_layer().shutdown(m_Stream->lowest_layer().shutdown_both, ec);
+	m_Stream->lowest_layer().shutdown(m_Stream->lowest_layer().shutdown_both, ec);
 
-			auto listener (ApiListener::GetInstance());
+	auto listener (ApiListener::GetInstance());
 
-			if (listener) {
-				listener->RemoveHttpClient(this);
-			}
-		}
-	});
+	if (listener) {
+		listener->RemoveHttpClient(this);
+	}
 }
 
 void HttpServerConnection::StartStreaming()
@@ -126,7 +131,7 @@ void HttpServerConnection::StartStreaming()
 				m_Stream->async_read_some(readBuf, yc[ec]);
 			} while (!ec);
 
-			Disconnect();
+			Disconnect(yc);
 		}
 	});
 }
@@ -563,7 +568,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 		}
 	}
 
-	Disconnect();
+	Disconnect(yc);
 }
 
 void HttpServerConnection::CheckLiveness(boost::asio::yield_context yc)
@@ -582,7 +587,7 @@ void HttpServerConnection::CheckLiveness(boost::asio::yield_context yc)
 			Log(LogInformation, "HttpServerConnection")
 				<<  "No messages for HTTP connection have been received in the last 10 seconds.";
 
-			Disconnect();
+			Disconnect(yc);
 			break;
 		}
 	}
