@@ -24,7 +24,7 @@ public:
 	 *
 	 * @param desired Initial value
 	 */
-	inline Atomic(T desired)
+	inline Atomic(T desired) : std::atomic<T>(desired)
 	{
 		this->store(desired);
 	}
@@ -35,7 +35,7 @@ public:
 	 * @param desired Initial value
 	 * @param order Initial store operation's memory order
 	 */
-	inline Atomic(T desired, std::memory_order order)
+	inline Atomic(T desired, std::memory_order order) : std::atomic<T>(desired)
 	{
 		this->store(desired, order);
 	}
