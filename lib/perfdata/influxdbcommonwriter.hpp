@@ -5,6 +5,7 @@
 
 #include "perfdata/influxdbcommonwriter-ti.hpp"
 #include "icinga/service.hpp"
+#include "base/atomic.hpp"
 #include "base/configobject.hpp"
 #include "base/perfdatavalue.hpp"
 #include "base/tcpsocket.hpp"
@@ -14,7 +15,7 @@
 #include "remote/url.hpp"
 #include <boost/beast/http/message.hpp>
 #include <boost/beast/http/string_body.hpp>
-#include <atomic>
+#include <cstddef>
 #include <fstream>
 
 namespace icinga
@@ -51,7 +52,7 @@ private:
 	Timer::Ptr m_FlushTimer;
 	WorkQueue m_WorkQueue{10000000, 1};
 	std::vector<String> m_DataBuffer;
-	std::atomic_size_t m_DataBufferSize{0};
+	Atomic<size_t> m_DataBufferSize {0};
 
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 	void SendMetric(const Checkable::Ptr& checkable, const Dictionary::Ptr& tmpl,
