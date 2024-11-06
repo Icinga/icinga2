@@ -391,4 +391,4 @@ bool ScheduledDowntime::AllConfigIsLoaded()
 	return m_AllConfigLoaded.load();
 }
 
-std::atomic<bool> ScheduledDowntime::m_AllConfigLoaded (false);
+Atomic<bool> ScheduledDowntime::m_AllConfigLoaded (false);
