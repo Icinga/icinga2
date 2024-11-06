@@ -3,6 +3,7 @@
 #ifndef CONFIGSTAGESHANDLER_H
 #define CONFIGSTAGESHANDLER_H
 
+#include "base/atomic.hpp"
 #include "remote/httphandler.hpp"
 
 namespace icinga

@@ -112,12 +112,12 @@ private:
 };
 
 /**
- * Type alias for std::atomic<T> if possible, otherwise Locked<T> is used as a fallback.
+ * Type alias for Atomic<T> if possible, otherwise Locked<T> is used as a fallback.
  *
  * @ingroup base
  */
 template <typename T>
-using AtomicOrLocked = std::conditional_t<std::is_trivially_copyable_v<T>, std::atomic<T>, Locked<T>>;
+using AtomicOrLocked = std::conditional_t<std::is_trivially_copyable_v<T>, Atomic<T>, Locked<T>>;
 
 }
 
