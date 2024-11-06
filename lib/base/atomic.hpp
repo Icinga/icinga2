@@ -12,7 +12,12 @@ namespace icinga
 {
 
 /**
- * Extends std::atomic with an atomic constructor.
+ * Like std::atomic, but enforces usage of its only safe constructor.
+ *
+ * "The default-initialized std::atomic<T> does not contain a T object,
+ * and its only valid uses are destruction and
+ * initialization by std::atomic_init, see LWG issue 2334."
+ *  -- https://en.cppreference.com/w/cpp/atomic/atomic/atomic
  *
  * @ingroup base
  */
@@ -20,24 +25,12 @@ template<class T>
 class Atomic : public std::atomic<T> {
 public:
 	/**
-	 * Like std::atomic#atomic, but operates atomically
+	 * The only safe constructor of std::atomic#atomic
 	 *
 	 * @param desired Initial value
 	 */
 	inline Atomic(T desired) : std::atomic<T>(desired)
 	{
-		this->store(desired);
-	}
-
-	/**
-	 * Like std::atomic#atomic, but operates atomically
-	 *
-	 * @param desired Initial value
-	 * @param order Initial store operation's memory order
-	 */
-	inline Atomic(T desired, std::memory_order order) : std::atomic<T>(desired)
-	{
-		this->store(desired, order);
 	}
 };
 
