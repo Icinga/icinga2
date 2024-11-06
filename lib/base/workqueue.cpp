@@ -12,7 +12,7 @@
 
 using namespace icinga;
 
-std::atomic<int> WorkQueue::m_NextID(1);
+Atomic<int> WorkQueue::m_NextID (1);
 boost::thread_specific_ptr<WorkQueue *> l_ThreadWorkQueue;
 
 WorkQueue::WorkQueue(size_t maxItems, int threadCount, LogSeverity statsLogLevel)
