@@ -25,6 +25,8 @@ namespace icinga
 template<class T>
 class Atomic : public std::atomic<T> {
 public:
+	using std::atomic<T>::operator=;
+
 	/**
 	 * The only safe constructor of std::atomic#atomic
 	 *
