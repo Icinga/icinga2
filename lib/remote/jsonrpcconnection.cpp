@@ -240,20 +240,6 @@ void JsonRpcConnection::Disconnect()
 
 			m_WriterDone.Wait(yc);
 
-			Timeout::Ptr shutdownTimeout (new Timeout(
-				m_IoStrand.context(),
-				m_IoStrand,
-				boost::posix_time::seconds(10),
-				[this, keepAlive](asio::yield_context yc) {
-					boost::system::error_code ec;
-					m_Stream->lowest_layer().cancel(ec);
-				}
-			));
-
-			m_Stream->next_layer().async_shutdown(yc[ec]);
-
-			shutdownTimeout->Cancel();
-
 			m_Stream->lowest_layer().shutdown(m_Stream->lowest_layer().shutdown_both, ec);
 		});
 	}
