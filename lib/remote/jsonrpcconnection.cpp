@@ -149,6 +149,10 @@ void JsonRpcConnection::WriteOutgoingMessages(boost::asio::yield_context yc)
 		if (!queue.empty()) {
 			try {
 				for (auto& message : queue) {
+					if (m_ShuttingDown) {
+						break;
+					}
+
 					size_t bytesSent = JsonRpc::SendRawMessage(m_Stream, message, yc);
 
 					if (m_Endpoint) {
