@@ -239,8 +239,6 @@ void JsonRpcConnection::Disconnect()
 			m_Stream->lowest_layer().cancel(ec);
 
 			m_WriterDone.Wait(yc);
-
-			m_Stream->lowest_layer().shutdown(m_Stream->lowest_layer().shutdown_both, ec);
 		});
 	}
 }
