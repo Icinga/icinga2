@@ -223,8 +223,6 @@ void JsonRpcConnection::Disconnect()
 
 			m_OutgoingMessagesQueued.Set();
 
-			m_WriterDone.Wait(yc);
-
 			/*
 			 * Do not swallow exceptions in a coroutine.
 			 * https://github.com/Icinga/icinga2/issues/7351
@@ -239,6 +237,8 @@ void JsonRpcConnection::Disconnect()
 			m_HeartbeatTimer.cancel();
 
 			m_Stream->lowest_layer().cancel(ec);
+
+			m_WriterDone.Wait(yc);
 
 			Timeout::Ptr shutdownTimeout (new Timeout(
 				m_IoStrand.context(),
