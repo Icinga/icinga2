@@ -121,6 +121,10 @@ void JsonRpcConnection::WriteOutgoingMessages(boost::asio::yield_context yc)
 					}
 				}
 
+				if (m_ShuttingDown) {
+					return;
+				}
+
 				m_Stream->async_flush(yc);
 			} catch (const std::exception& ex) {
 				Log(m_ShuttingDown ? LogDebug : LogWarning, "JsonRpcConnection")
