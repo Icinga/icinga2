@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "remote/apiaction.hpp"
-#include "base/singleton.hpp"
 
 using namespace icinga;
 
@@ -27,9 +26,4 @@ ApiAction::Ptr ApiAction::GetByName(const String& name)
 void ApiAction::Register(const String& name, const ApiAction::Ptr& action)
 {
 	ApiActionRegistry::GetInstance()->Register(name, action);
-}
-
-ApiActionRegistry *ApiActionRegistry::GetInstance()
-{
-	return Singleton<ApiActionRegistry>::GetInstance();
 }

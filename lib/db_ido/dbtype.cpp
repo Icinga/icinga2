@@ -133,8 +133,3 @@ std::set<DbType::Ptr> DbType::GetAllTypes()
 
 	return result;
 }
-
-DbTypeRegistry *DbTypeRegistry::GetInstance()
-{
-	return Singleton<DbTypeRegistry>::GetInstance();
-}

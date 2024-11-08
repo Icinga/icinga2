@@ -47,8 +47,6 @@ private:
  */
 class ApiActionRegistry : public Registry<ApiActionRegistry, ApiAction::Ptr>
 {
-public:
-	static ApiActionRegistry *GetInstance();
 };
 
 #define REGISTER_APIACTION(name, types, callback) \

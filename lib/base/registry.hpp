@@ -7,6 +7,7 @@
 #include "base/atomic.hpp"
 #include "base/exception.hpp"
 #include "base/string.hpp"
+#include "base/singleton.hpp"
 #include <shared_mutex>
 #include <stdexcept>
 #include <unordered_map>
@@ -25,6 +26,11 @@ class Registry
 {
 public:
 	typedef std::unordered_map<String, T> ItemMap;
+
+	static Registry* GetInstance()
+	{
+		return Singleton<Registry>::GetInstance();
+	}
 
 	void Register(const String& name, const T& item)
 	{
