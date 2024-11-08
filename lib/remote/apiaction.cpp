@@ -4,6 +4,10 @@
 
 using namespace icinga;
 
+INITIALIZE_ONCE_WITH_PRIORITY([]{
+	ApiActionRegistry::GetInstance()->Freeze();
+}, InitializePriority::FreezeNamespaces);
+
 ApiAction::ApiAction(std::vector<String> types, Callback action)
 	: m_Types(std::move(types)), m_Callback(std::move(action))
 { }
