@@ -127,11 +127,6 @@ void EventQueue::Register(const String& name, const EventQueue::Ptr& function)
 	EventQueueRegistry::GetInstance()->Register(name, function);
 }
 
-void EventQueue::Unregister(const String& name)
-{
-	EventQueueRegistry::GetInstance()->Unregister(name);
-}
-
 EventQueueRegistry *EventQueueRegistry::GetInstance()
 {
 	return Singleton<EventQueueRegistry>::GetInstance();

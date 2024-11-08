@@ -41,7 +41,6 @@ public:
 
 	static EventQueue::Ptr GetByName(const String& name);
 	static void Register(const String& name, const EventQueue::Ptr& function);
-	static void Unregister(const String& name);
 
 private:
 	String m_Name;
