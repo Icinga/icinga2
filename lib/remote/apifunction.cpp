@@ -4,6 +4,10 @@
 
 using namespace icinga;
 
+INITIALIZE_ONCE_WITH_PRIORITY([]{
+	ApiFunctionRegistry::GetInstance()->Freeze();
+}, InitializePriority::FreezeNamespaces);
+
 ApiFunction::ApiFunction(Callback function)
 	: m_Callback(std::move(function))
 { }
