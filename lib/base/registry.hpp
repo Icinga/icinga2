@@ -23,16 +23,6 @@ class Registry
 public:
 	typedef std::map<String, T> ItemMap;
 
-	void RegisterIfNew(const String& name, const T& item)
-	{
-		std::unique_lock<std::mutex> lock(m_Mutex);
-
-		if (m_Items.find(name) != m_Items.end())
-			return;
-
-		RegisterInternal(name, item, lock);
-	}
-
 	void Register(const String& name, const T& item)
 	{
 		std::unique_lock<std::mutex> lock(m_Mutex);
