@@ -50,7 +50,6 @@ public:
 	}
 
 	boost::signals2::signal<void (const String&, const T&)> OnRegistered;
-	boost::signals2::signal<void (const String&)> OnUnregistered;
 
 private:
 	mutable std::mutex m_Mutex;
@@ -58,17 +57,9 @@ private:
 
 	void RegisterInternal(const String& name, const T& item, std::unique_lock<std::mutex>& lock)
 	{
-		bool old_item = false;
-
-		if (m_Items.erase(name) > 0)
-			old_item = true;
-
 		m_Items[name] = item;
 
 		lock.unlock();
-
-		if (old_item)
-			OnUnregistered(name);
 
 		OnRegistered(name, item);
 	}
