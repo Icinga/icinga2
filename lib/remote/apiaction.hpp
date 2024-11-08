@@ -34,7 +34,6 @@ public:
 
 	static ApiAction::Ptr GetByName(const String& name);
 	static void Register(const String& name, const ApiAction::Ptr& action);
-	static void Unregister(const String& name);
 
 private:
 	std::vector<String> m_Types;
