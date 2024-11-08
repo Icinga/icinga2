@@ -428,9 +428,16 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 			continue;
 		}
 
+		// Verify if the 'Problem' filter is configured at both the User and Notification object levels.
+		bool foundProblemFilter = NotificationProblem & user->GetTypeFilter() & GetTypeFilter();
+
 		/* on recovery, check if user was notified before */
 		if (type == NotificationRecovery) {
-			if (!notifiedProblemUsers->Contains(userName) && (NotificationProblem & user->GetTypeFilter())) {
+			// Do not notify the user about the recovery of a problem that they have not been notified about,
+			// unless they are explicitly configured to receive recovery notifications but no problem ones, or
+			// this Notification instance isn't allowed to send problem notifications (doesn't contain the
+			// 'Problem' type filter).
+			if (!notifiedProblemUsers->Contains(userName) && foundProblemFilter) {
 				Log(LogNotice, "Notification")
 					<< "Notification object '" << notificationName << "': We did not notify user '" << userName
 					<< "' (Problem types enabled) for a problem before. Not sending Recovery notification.";
@@ -440,7 +447,10 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 
 		/* on acknowledgement, check if user was notified before */
 		if (type == NotificationAcknowledgement) {
-			if (!notifiedProblemUsers->Contains(userName) && (NotificationProblem & user->GetTypeFilter())) {
+			// Do not notify the user about the ACK of a problem state that they have not been notified about, unless
+			// they are explicitly configured to receive ACK notifications but no problem ones, or this Notification
+			// instance isn't allowed to send problem notifications (doesn't contain the 'Problem' type filter).
+			if (!notifiedProblemUsers->Contains(userName) && foundProblemFilter) {
 				Log(LogNotice, "Notification")
 					<< "Notification object '" << notificationName << "': We did not notify user '" << userName
 					<< "' (Problem types enabled) for a problem before. Not sending acknowledgement notification.";
