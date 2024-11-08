@@ -5,7 +5,6 @@
 
 #include "base/i2-base.hpp"
 #include "base/string.hpp"
-#include <boost/signals2.hpp>
 #include <map>
 #include <mutex>
 
@@ -49,8 +48,6 @@ public:
 		return m_Items; /* Makes a copy of the map. */
 	}
 
-	boost::signals2::signal<void (const String&, const T&)> OnRegistered;
-
 private:
 	mutable std::mutex m_Mutex;
 	typename Registry<U, T>::ItemMap m_Items;
@@ -60,8 +57,6 @@ private:
 		m_Items[name] = item;
 
 		lock.unlock();
-
-		OnRegistered(name, item);
 	}
 };
 
