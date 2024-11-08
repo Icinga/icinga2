@@ -5,6 +5,7 @@
 
 #include "base/i2-base.hpp"
 #include "base/string.hpp"
+#include <shared_mutex>
 #include <unordered_map>
 #include <mutex>
 
@@ -24,14 +25,14 @@ public:
 
 	void Register(const String& name, const T& item)
 	{
-		std::unique_lock<std::mutex> lock(m_Mutex);
+		std::unique_lock lock (m_Mutex);
 
 		m_Items[name] = item;
 	}
 
 	T GetItem(const String& name) const
 	{
-		std::unique_lock<std::mutex> lock(m_Mutex);
+		std::shared_lock lock (m_Mutex);
 
 		auto it = m_Items.find(name);
 
@@ -43,13 +44,13 @@ public:
 
 	ItemMap GetItems() const
 	{
-		std::unique_lock<std::mutex> lock(m_Mutex);
+		std::shared_lock lock (m_Mutex);
 
 		return m_Items; /* Makes a copy of the map. */
 	}
 
 private:
-	mutable std::mutex m_Mutex;
+	mutable std::shared_mutex m_Mutex;
 	typename Registry<U, T>::ItemMap m_Items;
 };
 
