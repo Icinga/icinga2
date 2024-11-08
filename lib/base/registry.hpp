@@ -30,25 +30,6 @@ public:
 		RegisterInternal(name, item, lock);
 	}
 
-	void Clear()
-	{
-		typename Registry<U, T>::ItemMap items;
-
-		{
-			std::unique_lock<std::mutex> lock(m_Mutex);
-			items = m_Items;
-		}
-
-		for (const auto& kv : items) {
-			OnUnregistered(kv.first);
-		}
-
-		{
-			std::unique_lock<std::mutex> lock(m_Mutex);
-			m_Items.clear();
-		}
-	}
-
 	T GetItem(const String& name) const
 	{
 		std::unique_lock<std::mutex> lock(m_Mutex);
