@@ -40,19 +40,6 @@ public:
 		RegisterInternal(name, item, lock);
 	}
 
-	void Unregister(const String& name)
-	{
-		size_t erased;
-
-		{
-			std::unique_lock<std::mutex> lock(m_Mutex);
-			erased = m_Items.erase(name);
-		}
-
-		if (erased > 0)
-			OnUnregistered(name);
-	}
-
 	void Clear()
 	{
 		typename Registry<U, T>::ItemMap items;
