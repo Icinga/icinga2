@@ -31,7 +31,6 @@ public:
 
 	static ApiFunction::Ptr GetByName(const String& name);
 	static void Register(const String& name, const ApiFunction::Ptr& function);
-	static void Unregister(const String& name);
 
 private:
 	Callback m_Callback;
