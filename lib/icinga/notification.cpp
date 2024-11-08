@@ -428,22 +428,17 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 			continue;
 		}
 
-		/* on recovery, check if user was notified before */
-		if (type == NotificationRecovery) {
-			if (!notifiedProblemUsers->Contains(userName) && (NotificationProblem & user->GetTypeFilter())) {
+		/* on acknowledgement/recovery, check if user was notified before */
+		if (type == NotificationAcknowledgement || type == NotificationRecovery) {
+			// Do not notify the user about the ACK/recovery of a problem state that they have not been notified
+			// about, unless they are explicitly configured to receive ACK/recovery notifications but no problem
+			// ones, or this Notification instance isn't allowed to send problem notifications (doesn't contain
+			// the 'Problem' type filter).
+			if (!notifiedProblemUsers->Contains(userName) && NotificationProblem & user->GetTypeFilter() & GetTypeFilter()) {
 				Log(LogNotice, "Notification")
 					<< "Notification object '" << notificationName << "': We did not notify user '" << userName
-					<< "' (Problem types enabled) for a problem before. Not sending Recovery notification.";
-				continue;
-			}
-		}
-
-		/* on acknowledgement, check if user was notified before */
-		if (type == NotificationAcknowledgement) {
-			if (!notifiedProblemUsers->Contains(userName) && (NotificationProblem & user->GetTypeFilter())) {
-				Log(LogNotice, "Notification")
-					<< "Notification object '" << notificationName << "': We did not notify user '" << userName
-					<< "' (Problem types enabled) for a problem before. Not sending acknowledgement notification.";
+					<< "' (Problem types enabled) for a problem before. Not sending "
+					<< (type == NotificationRecovery ? "Recovery" : "acknowledgement") << " notification.";
 				continue;
 			}
 		}
