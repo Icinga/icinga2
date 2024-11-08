@@ -26,7 +26,7 @@ public:
 	{
 		std::unique_lock<std::mutex> lock(m_Mutex);
 
-		RegisterInternal(name, item, lock);
+		m_Items[name] = item;
 	}
 
 	T GetItem(const String& name) const
@@ -51,13 +51,6 @@ public:
 private:
 	mutable std::mutex m_Mutex;
 	typename Registry<U, T>::ItemMap m_Items;
-
-	void RegisterInternal(const String& name, const T& item, std::unique_lock<std::mutex>& lock)
-	{
-		m_Items[name] = item;
-
-		lock.unlock();
-	}
 };
 
 }
