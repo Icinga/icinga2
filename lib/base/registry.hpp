@@ -4,8 +4,11 @@
 #define REGISTRY_H
 
 #include "base/i2-base.hpp"
+#include "base/atomic.hpp"
+#include "base/exception.hpp"
 #include "base/string.hpp"
 #include <shared_mutex>
+#include <stdexcept>
 #include <unordered_map>
 #include <mutex>
 
@@ -27,12 +30,16 @@ public:
 	{
 		std::unique_lock lock (m_Mutex);
 
+		if (m_Frozen) {
+			BOOST_THROW_EXCEPTION(std::logic_error("Registry is read-only and must not be modified."));
+		}
+
 		m_Items[name] = item;
 	}
 
 	T GetItem(const String& name) const
 	{
-		std::shared_lock lock (m_Mutex);
+		auto lock (ReadLockUnlessFrozen());
 
 		auto it = m_Items.find(name);
 
@@ -44,14 +51,37 @@ public:
 
 	ItemMap GetItems() const
 	{
-		std::shared_lock lock (m_Mutex);
+		auto lock (ReadLockUnlessFrozen());
 
 		return m_Items; /* Makes a copy of the map. */
 	}
 
+	/**
+	 * Freeze the registry, preventing further updates.
+	 *
+	 * This only prevents inserting, replacing or deleting values from the registry.
+	 * This operation has no effect on objects referenced by the values, these remain mutable if they were before.
+	 */
+	void Freeze()
+	{
+		std::unique_lock lock (m_Mutex);
+
+		m_Frozen.store(true);
+	}
+
 private:
 	mutable std::shared_mutex m_Mutex;
+	Atomic<bool> m_Frozen {false};
 	typename Registry<U, T>::ItemMap m_Items;
+
+	std::shared_lock<std::shared_mutex> ReadLockUnlessFrozen() const
+	{
+		if (m_Frozen.load(std::memory_order_relaxed)) {
+			return {};
+		}
+
+		return std::shared_lock(m_Mutex);
+	}
 };
 
 }
