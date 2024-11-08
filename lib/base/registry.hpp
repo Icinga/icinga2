@@ -5,7 +5,7 @@
 
 #include "base/i2-base.hpp"
 #include "base/string.hpp"
-#include <map>
+#include <unordered_map>
 #include <mutex>
 
 namespace icinga
@@ -20,7 +20,7 @@ template<typename U, typename T>
 class Registry
 {
 public:
-	typedef std::map<String, T> ItemMap;
+	typedef std::unordered_map<String, T> ItemMap;
 
 	void Register(const String& name, const T& item)
 	{
