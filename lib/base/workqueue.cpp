@@ -16,7 +16,7 @@ boost::thread_specific_ptr<WorkQueue *> l_ThreadWorkQueue;
 
 WorkQueue::WorkQueue(size_t maxItems, int threadCount, LogSeverity statsLogLevel)
 	: m_ID(m_NextID++), m_ThreadCount(threadCount), m_MaxItems(maxItems),
-	m_TaskStats(15 * 60), m_StatsLogLevel(statsLogLevel)
+	m_StatsLogLevel(statsLogLevel), m_TaskStats(15 * 60)
 {
 	/* Initialize logger. */
 	m_StatusTimerTimeout = Utility::GetTime();
