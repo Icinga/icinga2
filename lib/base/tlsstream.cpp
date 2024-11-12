@@ -18,14 +18,48 @@
 
 using namespace icinga;
 
-bool UnbufferedAsioTlsStream::IsVerifyOK() const
+/**
+ * Checks whether the TLS handshake was completed with a valid peer certificate.
+ *
+ * @return true if the peer presented a valid certificate, false otherwise
+ */
+bool UnbufferedAsioTlsStream::IsVerifyOK()
 {
-	return m_VerifyOK;
+	if (!SSL_is_init_finished(native_handle())) {
+		// handshake was not completed
+		return false;
+	}
+
+	if (GetPeerCertificate() == nullptr) {
+		// no peer certificate was sent
+		return false;
+	}
+
+	return SSL_get_verify_result(native_handle()) == X509_V_OK;
 }
 
-String UnbufferedAsioTlsStream::GetVerifyError() const
+/**
+ * Returns a human-readable error string for situations where IsVerifyOK() returns false.
+ *
+ * If the handshake was completed and a peer certificate was provided,
+ * the string additionally contains the OpenSSL verification error code.
+ *
+ * @return string containing the error message
+ */
+String UnbufferedAsioTlsStream::GetVerifyError()
 {
-	return m_VerifyError;
+	if (!SSL_is_init_finished(native_handle())) {
+		return "handshake not completed";
+	}
+
+	if (GetPeerCertificate() == nullptr) {
+		return "no peer certificate provided";
+	}
+
+	std::ostringstream buf;
+	long err = SSL_get_verify_result(native_handle());
+	buf << "code " << err << ": " << X509_verify_cert_error_string(err);
+	return buf.str();
 }
 
 std::shared_ptr<X509> UnbufferedAsioTlsStream::GetPeerCertificate()
@@ -43,17 +77,17 @@ void UnbufferedAsioTlsStream::BeforeHandshake(handshake_type type)
 
 	set_verify_mode(ssl::verify_peer | ssl::verify_client_once);
 
-	set_verify_callback([this](bool preverified, ssl::verify_context& ctx) {
-		if (!preverified) {
-			m_VerifyOK = false;
+	set_verify_callback([](bool preverified, ssl::verify_context& ctx) {
+		(void) preverified;
+		(void) ctx;
 
-			std::ostringstream msgbuf;
-			int err = X509_STORE_CTX_get_error(ctx.native_handle());
-
-			msgbuf << "code " << err << ": " << X509_verify_cert_error_string(err);
-			m_VerifyError = msgbuf.str();
-		}
-
+		/* Continue the handshake even if an invalid peer certificate was presented. The verification result has to be
+		 * checked using the IsVerifyOK() method.
+		 *
+		 * Such connections are used for the initial enrollment of nodes where they use a self-signed certificate to
+		 * send a certificate request and receive their valid certificate after approval (manually by the administrator
+		 * or using a certificate ticket).
+		 */
 		return true;
 	});
 
