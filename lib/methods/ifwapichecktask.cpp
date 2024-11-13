@@ -102,6 +102,8 @@ static void DoIfwNetIo(
 	}
 
 	{
+		// Using async_shutdown() instead of AsioTlsStream::GracefulDisconnect() as this whole function
+		// is already guarded by a timeout based on the check timeout.
 		boost::system::error_code ec;
 		sslConn.async_shutdown(yc[ec]);
 	}
