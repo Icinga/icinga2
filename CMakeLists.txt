@@ -185,6 +185,8 @@ add_definitions(-DBOOST_FILESYSTEM_NO_DEPRECATED)
 # Required for Boost v1.74+
 add_definitions(-DBOOST_ASIO_USE_TS_EXECUTOR_AS_DEFAULT)
 
+#add_definitions(-DBOOST_ASIO_ENABLE_HANDLER_TRACKING)
+
 link_directories(${Boost_LIBRARY_DIRS})
 include_directories(${Boost_INCLUDE_DIRS})
 

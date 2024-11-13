@@ -66,6 +66,13 @@ public:
 	static void SendCertificateRequest(const JsonRpcConnection::Ptr& aclient, const intrusive_ptr<MessageOrigin>& origin, const String& path);
 
 private:
+	enum class State
+	{
+		Active,        // up and running (initial state, as JsonRpcConnection is constructed from an open connection)
+		Disconnecting, // in the process of being shut down gracefully
+		Disconnected,  // completely shut down
+	};
+
 	String m_Identity;
 	bool m_Authenticated;
 	Endpoint::Ptr m_Endpoint;
@@ -76,9 +83,9 @@ private:
 	boost::asio::io_context::strand m_IoStrand;
 	std::vector<String> m_OutgoingMessagesQueue;
 	AsioConditionVariable m_OutgoingMessagesQueued;
-	AsioConditionVariable m_WriterDone;
-	Atomic<bool> m_ShuttingDown;
-	boost::asio::deadline_timer m_CheckLivenessTimer, m_HeartbeatTimer;
+	AsioConditionVariable m_ReadLoopDone;
+	Atomic<State> m_State;
+	//boost::asio::deadline_timer m_CheckLivenessTimer, m_HeartbeatTimer;
 
 	JsonRpcConnection(const String& identity, bool authenticated, const AsioTlsStream::Ptr& stream, ConnectionRole role, boost::asio::io_context& io);
 
@@ -93,6 +100,8 @@ private:
 	void CertificateRequestResponseHandler(const Dictionary::Ptr& message);
 
 	void SendMessageInternal(const Dictionary::Ptr& request);
+	void ForceDisconnectInternal(bool clean = false);
+	void Cleanup();
 };
 
 }

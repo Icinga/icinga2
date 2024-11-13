@@ -368,6 +368,18 @@ void ApiListener::Stop(bool runtimeDeleted)
 	m_Timer->Stop(true);
 	m_RenewOwnCertTimer->Stop(true);
 
+	for (const Endpoint::Ptr& endpoint : ConfigType::GetObjectsByType<Endpoint>()) {
+		for (const JsonRpcConnection::Ptr& client : endpoint->GetClients()) {
+			client->Disconnect();
+		}
+	}
+
+	for (const JsonRpcConnection::Ptr& client : m_AnonymousClients) {
+		client->Disconnect();
+	}
+
+	Utility::Sleep(3);
+
 	ObjectImpl<ApiListener>::Stop(runtimeDeleted);
 
 	Log(LogInformation, "ApiListener")
@@ -507,7 +519,7 @@ void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const Sha
 		lastModified = Utility::GetFileCreationTime(crlPath);
 	}
 
-	for (;;) {
+	while (IsActive()) {
 		try {
 			asio::ip::tcp::socket socket (io);
 
