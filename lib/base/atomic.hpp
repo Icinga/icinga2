@@ -66,18 +66,12 @@ private:
 };
 
 /**
- * Type alias for std::atomic<T> if possible, otherwise Locked<T> is used as a fallback.
+ * Type alias for std::atomic<T> if the better choice, otherwise Locked<T> is used as a fallback.
  *
  * @ingroup base
  */
 template <typename T>
-using AtomicOrLocked =
-#if defined(__GNUC__) && __GNUC__ < 5
-	// GCC does not implement std::is_trivially_copyable until version 5.
-	typename std::conditional<std::is_fundamental<T>::value || std::is_pointer<T>::value, std::atomic<T>, Locked<T>>::type;
-#else /* defined(__GNUC__) && __GNUC__ < 5 */
-	typename std::conditional<std::is_trivially_copyable<T>::value, std::atomic<T>, Locked<T>>::type;
-#endif /* defined(__GNUC__) && __GNUC__ < 5 */
+using AtomicOrLocked = std::conditional_t<std::is_fundamental_v<T> || std::is_pointer_v<T>, std::atomic<T>, Locked<T>>;
 
 }
 
