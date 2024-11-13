@@ -177,6 +177,11 @@ if [ -n "$MAILFROM" ] ; then
   fi
 
 else
-  /usr/bin/printf "%b" "$NOTIFICATION_MESSAGE" | tr -d '\015' \
-  | $MAILBIN -s "$SUBJECT" $USEREMAIL
+  if [ -f /etc/debian_version ]; then
+    /usr/bin/printf "%b" "$NOTIFICATION_MESSAGE" | tr -d '\015' \
+    | $MAILBIN -s "$SUBJECT" -a "$REFHEADER" $USEREMAIL
+  else
+    /usr/bin/printf "%b" "$NOTIFICATION_MESSAGE" | tr -d '\015' \
+    | $MAILBIN -s "$SUBJECT" $USEREMAIL
+  fi
 fi
