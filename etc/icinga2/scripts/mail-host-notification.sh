@@ -178,5 +178,5 @@ if [ -n "$MAILFROM" ] ; then
 
 else
   /usr/bin/printf "%b" "$NOTIFICATION_MESSAGE" | tr -d '\015' \
-  | $MAILBIN -s "$SUBJECT" -a "$REFHEADER" $USEREMAIL
+  | $MAILBIN -s "$SUBJECT" $USEREMAIL
 fi
