@@ -13,7 +13,7 @@ template const bool& Value::Get<bool>() const;
 template const String& Value::Get<String>() const;
 template const Object::Ptr& Value::Get<Object::Ptr>() const;
 
-Value icinga::Empty;
+const Value icinga::Empty;
 
 Value::Value(std::nullptr_t)
 { }

@@ -27,7 +27,7 @@ class String;
 struct DebugInfo;
 class ValidationUtils;
 
-extern Value Empty;
+extern const Value Empty;
 
 #define DECLARE_PTR_TYPEDEFS(klass) \
 	typedef intrusive_ptr<klass> Ptr

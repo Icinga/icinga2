@@ -149,7 +149,7 @@ extern template const bool& Value::Get<bool>() const;
 extern template const String& Value::Get<String>() const;
 extern template const Object::Ptr& Value::Get<Object::Ptr>() const;
 
-extern Value Empty;
+extern const Value Empty;
 
 Value operator+(const Value& lhs, const char *rhs);
 Value operator+(const char *lhs, const Value& rhs);
