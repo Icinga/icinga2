@@ -62,7 +62,7 @@ void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 {
 	m_Stream->next_layer().SetSeen(&m_Seen);
 
-	for (;;) {
+	while (!m_ShuttingDown) {
 		String message;
 
 		try {
@@ -81,6 +81,8 @@ void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 			CpuBoundWork handleMessage (yc);
 
 			MessageHandler(message);
+
+			l_TaskStats.InsertValue(Utility::GetTime(), 1);
 		} catch (const std::exception& ex) {
 			Log(m_ShuttingDown ? LogDebug : LogWarning, "JsonRpcConnection")
 				<< "Error while processing JSON-RPC message for identity '" << m_Identity
@@ -88,10 +90,6 @@ void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 
 			break;
 		}
-
-		CpuBoundWork taskStats (yc);
-
-		l_TaskStats.InsertValue(Utility::GetTime(), 1);
 	}
 
 	Disconnect();
@@ -213,14 +211,14 @@ void JsonRpcConnection::Disconnect()
 			Log(LogWarning, "JsonRpcConnection")
 				<< "API client disconnected for identity '" << m_Identity << "'";
 
-			{
-				CpuBoundWork removeClient (yc);
-
-				if (m_Endpoint) {
-					m_Endpoint->RemoveClient(this);
-				} else {
-					ApiListener::GetInstance()->RemoveAnonymousClient(this);
-				}
+			// We need to unregister the endpoint client as soon as possible not to confuse Icinga 2,
+			// given that Endpoint::GetConnected() is just performing a check that the endpoint's client
+			// cache is not empty, which could result in an already disconnected endpoint never trying to
+			// reconnect again. See #7444.
+			if (m_Endpoint) {
+				m_Endpoint->RemoveClient(this);
+			} else {
+				ApiListener::GetInstance()->RemoveAnonymousClient(this);
 			}
 
 			m_OutgoingMessagesQueued.Set();

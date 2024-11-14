@@ -102,8 +102,6 @@ void HttpServerConnection::Disconnect()
 			auto listener (ApiListener::GetInstance());
 
 			if (listener) {
-				CpuBoundWork removeHttpClient (yc);
-
 				listener->RemoveHttpClient(this);
 			}
 		}
@@ -192,10 +190,8 @@ bool EnsureValidHeaders(
 
 		response.set(http::field::connection, "close");
 
-		boost::system::error_code ec;
-
-		http::async_write(stream, response, yc[ec]);
-		stream.async_flush(yc[ec]);
+		http::async_write(stream, response, yc);
+		stream.async_flush(yc);
 
 		return false;
 	}
@@ -217,10 +213,8 @@ void HandleExpect100(
 
 		response.result(http::status::continue_);
 
-		boost::system::error_code ec;
-
-		http::async_write(stream, response, yc[ec]);
-		stream.async_flush(yc[ec]);
+		http::async_write(stream, response, yc);
+		stream.async_flush(yc);
 	}
 }
 
@@ -240,8 +234,6 @@ bool HandleAccessControl(
 		auto headerAllowOrigin (listener->GetAccessControlAllowOrigin());
 
 		if (headerAllowOrigin) {
-			CpuBoundWork allowOriginHeader (yc);
-
 			auto allowedOrigins (headerAllowOrigin->ToSet<String>());
 
 			if (!allowedOrigins.empty()) {
@@ -250,8 +242,6 @@ bool HandleAccessControl(
 				if (allowedOrigins.find(std::string(origin)) != allowedOrigins.end()) {
 					response.set(http::field::access_control_allow_origin, origin);
 				}
-
-				allowOriginHeader.Done();
 
 				response.set(http::field::access_control_allow_credentials, "true");
 
@@ -263,10 +253,8 @@ bool HandleAccessControl(
 					response.content_length(response.body().size());
 					response.set(http::field::connection, "close");
 
-					boost::system::error_code ec;
-
-					http::async_write(stream, response, yc[ec]);
-					stream.async_flush(yc[ec]);
+					http::async_write(stream, response, yc);
+					stream.async_flush(yc);
 
 					return false;
 				}
@@ -294,10 +282,8 @@ bool EnsureAcceptHeader(
 		response.content_length(response.body().size());
 		response.set(http::field::connection, "close");
 
-		boost::system::error_code ec;
-
-		http::async_write(stream, response, yc[ec]);
-		stream.async_flush(yc[ec]);
+		http::async_write(stream, response, yc);
+		stream.async_flush(yc);
 
 		return false;
 	}
@@ -335,10 +321,8 @@ bool EnsureAuthenticatedUser(
 			response.content_length(response.body().size());
 		}
 
-		boost::system::error_code ec;
-
-		http::async_write(stream, response, yc[ec]);
-		stream.async_flush(yc[ec]);
+		http::async_write(stream, response, yc);
+		stream.async_flush(yc);
 
 		return false;
 	}
@@ -364,8 +348,6 @@ bool EnsureValidBody(
 		Array::Ptr permissions = authenticatedUser->GetPermissions();
 
 		if (permissions) {
-			CpuBoundWork evalPermissions (yc);
-
 			ObjectLock olock(permissions);
 
 			for (const Value& permissionInfo : permissions) {
@@ -429,8 +411,8 @@ bool EnsureValidBody(
 
 		response.set(http::field::connection, "close");
 
-		http::async_write(stream, response, yc[ec]);
-		stream.async_flush(yc[ec]);
+		http::async_write(stream, response, yc);
+		stream.async_flush(yc);
 
 		return false;
 	}
@@ -470,10 +452,8 @@ bool ProcessRequest(
 
 		HttpUtility::SendJsonError(response, nullptr, 500, "Unhandled exception" , DiagnosticInformation(ex));
 
-		boost::system::error_code ec;
-
-		http::async_write(stream, response, yc[ec]);
-		stream.async_flush(yc[ec]);
+		http::async_write(stream, response, yc);
+		stream.async_flush(yc);
 
 		return true;
 	}
@@ -482,10 +462,8 @@ bool ProcessRequest(
 		return false;
 	}
 
-	boost::system::error_code ec;
-
-	http::async_write(stream, response, yc[ec]);
-	stream.async_flush(yc[ec]);
+	http::async_write(stream, response, yc);
+	stream.async_flush(yc);
 
 	return true;
 }
@@ -537,8 +515,6 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 			auto authenticatedUser (m_ApiUser);
 
 			if (!authenticatedUser) {
-				CpuBoundWork fetchingAuthenticatedUser (yc);
-
 				authenticatedUser = ApiUser::GetByAuthHeader(std::string(request[http::field::authorization]));
 			}
 
@@ -582,8 +558,8 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 		}
 	} catch (const std::exception& ex) {
 		if (!m_ShuttingDown) {
-			Log(LogCritical, "HttpServerConnection")
-				<< "Unhandled exception while processing HTTP request: " << ex.what();
+			Log(LogWarning, "HttpServerConnection")
+				<< "Exception while processing HTTP request from " << m_PeerAddress << ": " << ex.what();
 		}
 	}
 
