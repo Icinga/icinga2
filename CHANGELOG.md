@@ -243,6 +243,15 @@ Add `linux_netdev` check command. #9045
 * Several code quality improvements. #8815 #9106 #9250
   #9508 #9517 #9537 #9594 #9605 #9606 #9641 #9658 #9702 #9717 #9738
 
+## 2.13.10 (2024-11-12)
+
+This security release fixes a TLS certificate validation bypass.
+Given the severity of that issue, users are advised to upgrade all nodes immediately.
+
+* Security: fix TLS certificate validation bypass. CVE-2024-49369
+* Security: update OpenSSL shipped on Windows to v3.0.15.
+* Windows: sign MSI packages with a certificate the OS trusts by default.
+
 ## 2.13.9 (2023-12-21)
 
 Version 2.13.9 is a hotfix release for masters and satellites that mainly
