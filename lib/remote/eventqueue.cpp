@@ -71,14 +71,6 @@ void EventQueue::RemoveClient(void *client)
 	m_Events.erase(client);
 }
 
-void EventQueue::UnregisterIfUnused(const String& name, const EventQueue::Ptr& queue)
-{
-	std::unique_lock<std::mutex> lock(queue->m_Mutex);
-
-	if (queue->m_Events.empty())
-		Unregister(name);
-}
-
 void EventQueue::SetTypes(const std::set<String>& types)
 {
 	std::unique_lock<std::mutex> lock(m_Mutex);
@@ -133,11 +125,6 @@ EventQueue::Ptr EventQueue::GetByName(const String& name)
 void EventQueue::Register(const String& name, const EventQueue::Ptr& function)
 {
 	EventQueueRegistry::GetInstance()->Register(name, function);
-}
-
-void EventQueue::Unregister(const String& name)
-{
-	EventQueueRegistry::GetInstance()->Unregister(name);
 }
 
 EventQueueRegistry *EventQueueRegistry::GetInstance()
