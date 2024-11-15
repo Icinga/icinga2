@@ -49,7 +49,6 @@ protected:
 		return *this;
 	}
 
-	inline virtual
 	~SharedObject() = default;
 
 private:
