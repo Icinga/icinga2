@@ -1225,23 +1225,24 @@ of processes. Search filters can be applied to limit the processes to check.
 
 Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
-Name                 | Description
----------------------|--------------
-procs_warning        | **Optional.** The process count warning threshold. Defaults to 250.
-procs_critical       | **Optional.** The process count critical threshold. Defaults to 400.
-procs_metric         | **Optional.** Check thresholds against metric.
-procs_timeout        | **Optional.** Seconds before plugin times out.
-procs_traditional    | **Optional.** Filter own process the traditional way by PID instead of /proc/pid/exe. Defaults to false.
-procs_state          | **Optional.** Only scan for processes that have one or more of the status flags you specify.
-procs_ppid           | **Optional.** Only scan for children of the parent process ID indicated.
-procs_vsz            | **Optional.** Only scan for processes with VSZ higher than indicated.
-procs_rss            | **Optional.** Only scan for processes with RSS higher than indicated.
-procs_pcpu           | **Optional.** Only scan for processes with PCPU higher than indicated.
-procs_user           | **Optional.** Only scan for processes with user name or ID indicated.
-procs_argument       | **Optional.** Only scan for processes with args that contain STRING.
-procs_argument_regex | **Optional.** Only scan for processes with args that contain the regex STRING.
-procs_command        | **Optional.** Only scan for exact matches of COMMAND (without path).
-procs_nokthreads     | **Optional.** Only scan for non kernel threads. Defaults to false.
+Name                  | Description
+----------------------|--------------
+procs_warning         | **Optional.** The process count warning threshold. Defaults to 250.
+procs_critical        | **Optional.** The process count critical threshold. Defaults to 400.
+procs_metric          | **Optional.** Check thresholds against metric.
+procs_timeout         | **Optional.** Seconds before plugin times out.
+procs_traditional     | **Optional.** Filter own process the traditional way by PID instead of /proc/pid/exe. Defaults to false.
+procs_state           | **Optional.** Only scan for processes that have one or more of the status flags you specify.
+procs_ppid            | **Optional.** Only scan for children of the parent process ID indicated.
+procs_vsz             | **Optional.** Only scan for processes with VSZ higher than indicated.
+procs_rss             | **Optional.** Only scan for processes with RSS higher than indicated.
+procs_pcpu            | **Optional.** Only scan for processes with PCPU higher than indicated.
+procs_user            | **Optional.** Only scan for processes with user name or ID indicated.
+procs_argument        | **Optional.** Only scan for processes with args that contain STRING.
+procs_argument_regex  | **Optional.** Only scan for processes with args that contain the regex STRING.
+procs_command         | **Optional.** Only scan for exact matches of COMMAND (without path).
+procs_exclude_process | **Optional.** Exclude processes which match this comma separated list.
+procs_nokthreads      | **Optional.** Only scan for non kernel threads. Defaults to false.
 
 
 ### radius <a id="plugin-check-command-radius"></a>
