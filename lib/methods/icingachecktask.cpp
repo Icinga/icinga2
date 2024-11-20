@@ -9,7 +9,7 @@
 #include "icinga/checkable.hpp"
 #include "remote/apilistener.hpp"
 #include "base/application.hpp"
-#include "base/objectlock.hpp"
+#include "base/io-engine.hpp"
 #include "base/utility.hpp"
 #include "base/perfdatavalue.hpp"
 #include "base/function.hpp"
@@ -80,6 +80,8 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	perfdata->Add(new PerfdataValue("current_pending_callbacks", Application::GetTP().GetPending()));
 	perfdata->Add(new PerfdataValue("current_concurrent_checks", Checkable::CurrentConcurrentChecks.load()));
 	perfdata->Add(new PerfdataValue("remote_check_queue", ClusterEvents::GetCheckRequestQueueSize()));
+
+	perfdata->Add(new PerfdataValue("num_free_io_cpu_slots", IoEngine::Get().GetCpuSemaphore()));
 
 	CheckableCheckStatistics scs = CIB::CalculateServiceCheckStats();
 

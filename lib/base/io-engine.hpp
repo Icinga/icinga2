@@ -83,6 +83,8 @@ public:
 
 	boost::asio::io_context& GetIoContext();
 
+	int_fast32_t GetCpuSemaphore() const;
+
 	static inline size_t GetCoroutineStackSize() {
 #ifdef _WIN32
 		// Increase the stack size for Windows coroutines to prevent exception corruption.
