@@ -50,6 +50,8 @@ void HttpHandler::ProcessRequest(
 	AsioTlsStream& stream,
 	const ApiUser::Ptr& user,
 	boost::beast::http::request<boost::beast::http::string_body>& request,
+	Url::Ptr& url,
+	Dictionary::Ptr& params,
 	boost::beast::http::response<boost::beast::http::string_body>& response,
 	boost::asio::yield_context& yc,
 	HttpServerConnection& server
@@ -58,7 +60,7 @@ void HttpHandler::ProcessRequest(
 	Dictionary::Ptr node = m_UrlTree;
 	std::vector<HttpHandler::Ptr> handlers;
 
-	Url::Ptr url = new Url(std::string(request.target()));
+	url = new Url(std::string(request.target()));
 	auto& path (url->GetPath());
 
 	for (std::vector<String>::size_type i = 0; i <= path.size(); i++) {
@@ -88,8 +90,6 @@ void HttpHandler::ProcessRequest(
 	}
 
 	std::reverse(handlers.begin(), handlers.end());
-
-	Dictionary::Ptr params;
 
 	try {
 		params = HttpUtility::FetchRequestParameters(url, request.body());
