@@ -246,10 +246,10 @@ void JsonRpcConnection::Disconnect()
 	if (!m_ShuttingDown.exchange(true)) {
 		JsonRpcConnection::Ptr keepAlive (this);
 
-		IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) {
-			Log(LogWarning, "JsonRpcConnection")
-				<< "API client disconnected for identity '" << m_Identity << "'";
+		Log(LogNotice, "JsonRpcConnection")
+			<< "Disconnecting API client for identity '" << m_Identity << "'";
 
+		IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) {
 			// We need to unregister the endpoint client as soon as possible not to confuse Icinga 2,
 			// given that Endpoint::GetConnected() is just performing a check that the endpoint's client
 			// cache is not empty, which could result in an already disconnected endpoint never trying to
@@ -268,6 +268,9 @@ void JsonRpcConnection::Disconnect()
 			m_HeartbeatTimer.cancel();
 
 			m_Stream->GracefulDisconnect(m_IoStrand, yc);
+
+			Log(LogWarning, "JsonRpcConnection")
+				<< "API client disconnected for identity '" << m_Identity << "'";
 		});
 	}
 }
