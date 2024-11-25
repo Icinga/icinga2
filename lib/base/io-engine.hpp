@@ -3,9 +3,11 @@
 #ifndef IO_ENGINE_H
 #define IO_ENGINE_H
 
+#include "base/defer.hpp"
 #include "base/exception.hpp"
 #include "base/lazy-init.hpp"
 #include "base/logger.hpp"
+#include "base/shared.hpp"
 #include "base/shared-object.hpp"
 #include <atomic>
 #include <exception>
@@ -172,14 +174,16 @@ public:
 
 	template<class Executor, class TimeoutFromNow, class OnTimeout>
 	Timeout(boost::asio::io_context& io, Executor& executor, TimeoutFromNow timeoutFromNow, OnTimeout onTimeout)
-		: m_Timer(io)
+		: m_Timer(io), m_Done(io)
 	{
 		Ptr keepAlive (this);
 
 		m_Cancelled.store(false);
 		m_Timer.expires_from_now(std::move(timeoutFromNow));
 
-		IoEngine::SpawnCoroutine(executor, [this, keepAlive, onTimeout](boost::asio::yield_context yc) {
+		auto setDone (Shared<Defer>::Make([this, keepAlive] { m_Done.Set(); }));
+
+		IoEngine::SpawnCoroutine(executor, [this, keepAlive, setDone, onTimeout](boost::asio::yield_context yc) {
 			if (m_Cancelled.load()) {
 				return;
 			}
@@ -204,10 +208,12 @@ public:
 	}
 
 	void Cancel();
+	void Cancel(boost::asio::yield_context yc);
 
 private:
 	boost::asio::deadline_timer m_Timer;
 	std::atomic<bool> m_Cancelled;
+	AsioConditionVariable m_Done;
 };
 
 }
