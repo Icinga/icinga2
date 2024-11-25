@@ -516,7 +516,7 @@ Timeout::Ptr RedisConnection::MakeTimeout(StreamPtr& stream)
 {
 	Ptr keepAlive (this);
 
-	return new Timeout(
+	return Timeout::Ptr(new Timeout(
 		m_Strand.context(),
 		m_Strand,
 		boost::posix_time::microseconds(intmax_t(m_ConnectTimeout * 1000000)),
@@ -524,7 +524,7 @@ Timeout::Ptr RedisConnection::MakeTimeout(StreamPtr& stream)
 			boost::system::error_code ec;
 			stream->lowest_layer().cancel(ec);
 		}
-	);
+	));
 }
 
 /**
