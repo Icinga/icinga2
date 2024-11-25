@@ -250,10 +250,10 @@ void JsonRpcConnection::Disconnect()
 	if (!m_ShuttingDown.exchange(true)) {
 		JsonRpcConnection::Ptr keepAlive (this);
 
-		IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) {
-			Log(LogWarning, "JsonRpcConnection")
-				<< "API client disconnected for identity '" << m_Identity << "'";
+		Log(LogNotice, "JsonRpcConnection")
+			<< "Disconnecting API client for identity '" << m_Identity << "'";
 
+		IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) {
 			m_OutgoingMessagesQueued.Set();
 
 			m_WriterDone.Wait(yc);
@@ -268,6 +268,9 @@ void JsonRpcConnection::Disconnect()
 			} else {
 				ApiListener::GetInstance()->RemoveAnonymousClient(this);
 			}
+
+			Log(LogWarning, "JsonRpcConnection")
+				<< "API client disconnected for identity '" << m_Identity << "'";
 		});
 	}
 }
