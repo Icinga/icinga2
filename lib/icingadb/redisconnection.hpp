@@ -520,7 +520,7 @@ Timeout::Ptr RedisConnection::MakeTimeout(StreamPtr& stream)
 		m_Strand.context(),
 		m_Strand,
 		boost::posix_time::microseconds(intmax_t(m_ConnectTimeout * 1000000)),
-		[keepAlive, stream](boost::asio::yield_context yc) {
+		[keepAlive, stream] {
 			boost::system::error_code ec;
 			stream->lowest_layer().cancel(ec);
 		}
