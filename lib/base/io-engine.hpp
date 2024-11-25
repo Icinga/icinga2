@@ -199,7 +199,7 @@ public:
 			}
 
 			auto f (onTimeout);
-			f(std::move(yc));
+			f();
 		});
 	}
 

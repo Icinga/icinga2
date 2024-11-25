@@ -457,7 +457,7 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 		*strand,
 		[strand, checkable, cr, psCommand, psHost, expectedSan, psPort, conn, req, checkTimeout, reportResult = std::move(reportResult)](asio::yield_context yc) {
 			Timeout::Ptr timeout = new Timeout(strand->context(), *strand, boost::posix_time::microseconds(int64_t(checkTimeout * 1e6)),
-				[&conn, &checkable](boost::asio::yield_context yc) {
+				[&conn, &checkable] {
 					Log(LogNotice, "IfwApiCheckTask")
 						<< "Timeout while checking " << checkable->GetReflectionType()->GetName()
 						<< " '" << checkable->GetName() << "', cancelling attempt";
