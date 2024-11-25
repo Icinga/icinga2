@@ -48,6 +48,12 @@ template<typename T>
 class Locked
 {
 public:
+	Locked() = default;
+
+	Locked(T desired) : m_Value(std::move(desired))
+	{
+	}
+
 	inline T load() const
 	{
 		std::unique_lock<std::mutex> lock(m_Mutex);
