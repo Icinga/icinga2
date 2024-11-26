@@ -138,14 +138,7 @@ void ElasticsearchWriter::AddTemplateTags(const Dictionary::Ptr& fields, const C
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	Dictionary::Ptr tmpl;
-	if (service) {
-		if (GetServiceTagsTemplate()) {
-			tmpl = static_pointer_cast<Dictionary>(GetServiceTagsTemplate()->ShallowClone());
-		}
-	} else if (GetHostTagsTemplate()) {
-		tmpl = static_pointer_cast<Dictionary>(GetHostTagsTemplate()->ShallowClone());
-	}
+	Dictionary::Ptr tmpl = service ? GetServiceTagsTemplate() : GetHostTagsTemplate();
 
 	if (tmpl) {
 		MacroProcessor::ResolverList resolvers;
