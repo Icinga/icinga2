@@ -25,10 +25,9 @@ jobs:
           - amazonlinux:2023
           - debian:11 # and Raspbian 11
           - debian:12 # and Raspbian 12
-          - fedora:37
-          - fedora:38
           - fedora:39
           - fedora:40
+          - fedora:41
           - opensuse/leap:15.3 # SLES 15.3
           - opensuse/leap:15.4 # and SLES 15.4
           - opensuse/leap:15.5 # and SLES 15.5
