@@ -172,42 +172,19 @@ public:
 
 	template<class Executor, class TimeoutFromNow, class OnTimeout>
 	Timeout(boost::asio::io_context& io, Executor& executor, TimeoutFromNow timeoutFromNow, OnTimeout onTimeout)
-		: m_Timer(io)
+		: m_Timer(io, timeoutFromNow)
 	{
-		Ptr keepAlive (this);
-
-		m_Cancelled.store(false);
-		m_Timer.expires_from_now(std::move(timeoutFromNow));
-
-		IoEngine::SpawnCoroutine(executor, [this, keepAlive, onTimeout](boost::asio::yield_context yc) {
-			if (m_Cancelled.load()) {
-				return;
+		m_Timer.async_wait(boost::asio::bind_executor(executor, [onTimeout = std::move(onTimeout)](boost::system::error_code ec) {
+			if (!ec) {
+				onTimeout();
 			}
-
-			{
-				boost::system::error_code ec;
-
-				m_Timer.async_wait(yc[ec]);
-
-				if (ec) {
-					return;
-				}
-			}
-
-			if (m_Cancelled.load()) {
-				return;
-			}
-
-			auto f (onTimeout);
-			f();
-		});
+		}));
 	}
 
 	void Cancel();
 
 private:
 	boost::asio::deadline_timer m_Timer;
-	std::atomic<bool> m_Cancelled;
 };
 
 }
