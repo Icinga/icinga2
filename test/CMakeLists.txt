@@ -9,6 +9,7 @@ set(base_test_SOURCES
   base-convert.cpp
   base-dictionary.cpp
   base-fifo.cpp
+  base-io-engine.cpp
   base-json.cpp
   base-match.cpp
   base-netstring.cpp
@@ -76,6 +77,11 @@ add_boost_test(base
     base_dictionary/keys_ordered
     base_fifo/construct
     base_fifo/io
+    base_io_engine/timeout_run
+    base_io_engine/timeout_cancelled
+    base_io_engine/timeout_scope
+    base_io_engine/timeout_due_cancelled
+    base_io_engine/timeout_due_scope
     base_json/encode
     base_json/decode
     base_json/invalid1
