@@ -148,8 +148,6 @@ void AsioConditionVariable::Wait(boost::asio::yield_context yc)
 
 void Timeout::Cancel()
 {
-	m_Cancelled.store(true);
-
 	boost::system::error_code ec;
 	m_Timer.cancel(ec);
 }
