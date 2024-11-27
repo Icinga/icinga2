@@ -244,7 +244,7 @@ void JsonRpcConnection::Disconnect()
 				m_IoStrand.context(),
 				m_IoStrand,
 				boost::posix_time::seconds(10),
-				[this, keepAlive](asio::yield_context yc) {
+				[this, keepAlive] {
 					boost::system::error_code ec;
 					m_Stream->lowest_layer().cancel(ec);
 				}
