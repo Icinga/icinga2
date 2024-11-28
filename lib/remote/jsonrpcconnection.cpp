@@ -256,7 +256,22 @@ void JsonRpcConnection::Disconnect()
 		IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) {
 			m_OutgoingMessagesQueued.Set();
 
-			m_WriterDone.Wait(yc);
+			{
+				Timeout writerTimeout(
+					m_IoStrand,
+					boost::posix_time::seconds(5),
+					[this]() {
+						// The writer coroutine could not finish soon enough to unblock the waiter down blow,
+						// so we have to do this on our own, and the coroutine will be terminated forcibly when
+						// the ops on the underlying socket are cancelled.
+						boost::system::error_code ec;
+						m_Stream->lowest_layer().cancel(ec);
+					}
+				);
+
+				m_WriterDone.Wait(yc);
+				// We don't need to explicitly cancel the timer here; its destructor will handle it for us.
+			}
 
 			m_CheckLivenessTimer.cancel();
 			m_HeartbeatTimer.cancel();
