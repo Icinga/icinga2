@@ -512,7 +512,6 @@ template<class StreamPtr>
 Timeout::Ptr RedisConnection::MakeTimeout(StreamPtr& stream)
 {
 	return new Timeout(
-		m_Strand.context(),
 		m_Strand,
 		boost::posix_time::microseconds(intmax_t(m_ConnectTimeout * 1000000)),
 		[stream] {

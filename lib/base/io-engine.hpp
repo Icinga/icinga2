@@ -3,6 +3,7 @@
 #ifndef IO_ENGINE_H
 #define IO_ENGINE_H
 
+#include "base/debug.hpp"
 #include "base/exception.hpp"
 #include "base/lazy-init.hpp"
 #include "base/logger.hpp"
@@ -169,12 +170,15 @@ class Timeout : public SharedObject
 {
 public:
 	DECLARE_PTR_TYPEDEFS(Timeout);
+	using Timer = boost::asio::deadline_timer;
 
-	template<class Executor, class TimeoutFromNow, class OnTimeout>
-	Timeout(boost::asio::io_context& io, Executor& executor, TimeoutFromNow timeoutFromNow, OnTimeout onTimeout)
-		: m_Timer(io, timeoutFromNow)
+	template<class OnTimeout>
+	Timeout(boost::asio::io_context::strand& strand, const Timer::duration_type& timeoutFromNow, OnTimeout onTimeout)
+		: m_Timer(strand.context(), timeoutFromNow)
 	{
-		m_Timer.async_wait(boost::asio::bind_executor(executor, [onTimeout = std::move(onTimeout)](boost::system::error_code ec) {
+		VERIFY(strand.running_in_this_thread());
+
+		m_Timer.async_wait(boost::asio::bind_executor(strand, [onTimeout = std::move(onTimeout)](boost::system::error_code ec) {
 			if (!ec) {
 				onTimeout();
 			}
@@ -184,7 +188,7 @@ public:
 	void Cancel();
 
 private:
-	boost::asio::deadline_timer m_Timer;
+	Timer m_Timer;
 };
 
 }

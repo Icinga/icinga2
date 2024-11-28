@@ -456,7 +456,7 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	IoEngine::SpawnCoroutine(
 		*strand,
 		[strand, checkable, cr, psCommand, psHost, expectedSan, psPort, conn, req, checkTimeout, reportResult = std::move(reportResult)](asio::yield_context yc) {
-			Timeout::Ptr timeout = new Timeout(strand->context(), *strand, boost::posix_time::microseconds(int64_t(checkTimeout * 1e6)),
+			Timeout::Ptr timeout = new Timeout(*strand, boost::posix_time::microseconds(int64_t(checkTimeout * 1e6)),
 				[&conn, &checkable] {
 					Log(LogNotice, "IfwApiCheckTask")
 						<< "Timeout while checking " << checkable->GetReflectionType()->GetName()
