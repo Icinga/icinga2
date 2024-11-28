@@ -687,7 +687,7 @@ void ApiListener::NewClientHandlerInternal(
 			strand->context(),
 			*strand,
 			boost::posix_time::microseconds(intmax_t(Configuration::TlsHandshakeTimeout * 1000000)),
-			[strand, client] {
+			[client] {
 				boost::system::error_code ec;
 				client->lowest_layer().cancel(ec);
 			}
