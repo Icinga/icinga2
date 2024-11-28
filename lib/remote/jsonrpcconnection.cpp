@@ -241,7 +241,6 @@ void JsonRpcConnection::Disconnect()
 			m_Stream->lowest_layer().cancel(ec);
 
 			Timeout::Ptr shutdownTimeout (new Timeout(
-				m_IoStrand.context(),
 				m_IoStrand,
 				boost::posix_time::seconds(10),
 				[this] {
