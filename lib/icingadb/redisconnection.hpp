@@ -511,13 +511,11 @@ void RedisConnection::Handshake(StreamPtr& strm, boost::asio::yield_context& yc)
 template<class StreamPtr>
 Timeout::Ptr RedisConnection::MakeTimeout(StreamPtr& stream)
 {
-	Ptr keepAlive (this);
-
 	return new Timeout(
 		m_Strand.context(),
 		m_Strand,
 		boost::posix_time::microseconds(intmax_t(m_ConnectTimeout * 1000000)),
-		[keepAlive, stream] {
+		[stream] {
 			boost::system::error_code ec;
 			stream->lowest_layer().cancel(ec);
 		}
