@@ -5,6 +5,7 @@
 #include <boost/asio.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <BoostTestTargetConfig.h>
+#include <thread>
 
 using namespace icinga;
 
@@ -30,7 +31,10 @@ BOOST_AUTO_TEST_CASE(timeout_run)
 		timer.async_wait(yc);
 	});
 
+	std::thread eventLoop ([&io] { io.run(); });
 	io.run();
+	eventLoop.join();
+
 	BOOST_CHECK_EQUAL(called, 1);
 }
 
@@ -54,7 +58,10 @@ BOOST_AUTO_TEST_CASE(timeout_cancelled)
 		timer.async_wait(yc);
 	});
 
+	std::thread eventLoop ([&io] { io.run(); });
 	io.run();
+	eventLoop.join();
+
 	BOOST_CHECK_EQUAL(called, 0);
 }
 
@@ -80,7 +87,10 @@ BOOST_AUTO_TEST_CASE(timeout_scope)
 		timer.async_wait(yc);
 	});
 
+	std::thread eventLoop ([&io] { io.run(); });
 	io.run();
+	eventLoop.join();
+
 	BOOST_CHECK_EQUAL(called, 0);
 }
 
@@ -108,7 +118,10 @@ BOOST_AUTO_TEST_CASE(timeout_due_cancelled)
 		timer.async_wait(yc);
 	});
 
+	std::thread eventLoop ([&io] { io.run(); });
 	io.run();
+	eventLoop.join();
+
 	BOOST_CHECK_EQUAL(called, 0);
 }
 
@@ -136,7 +149,10 @@ BOOST_AUTO_TEST_CASE(timeout_due_scope)
 		timer.async_wait(yc);
 	});
 
+	std::thread eventLoop ([&io] { io.run(); });
 	io.run();
+	eventLoop.join();
+
 	BOOST_CHECK_EQUAL(called, 0);
 }
 

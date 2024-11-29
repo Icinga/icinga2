@@ -3,10 +3,12 @@
 #ifndef IO_ENGINE_H
 #define IO_ENGINE_H
 
+#include "base/atomic.hpp"
 #include "base/debug.hpp"
 #include "base/exception.hpp"
 #include "base/lazy-init.hpp"
 #include "base/logger.hpp"
+#include "base/shared.hpp"
 #include "base/shared-object.hpp"
 #include <atomic>
 #include <exception>
@@ -174,21 +176,29 @@ public:
 
 	template<class OnTimeout>
 	Timeout(boost::asio::io_context::strand& strand, const Timer::duration_type& timeoutFromNow, OnTimeout onTimeout)
-		: m_Timer(strand.context(), timeoutFromNow)
+		: m_Timer(strand.context(), timeoutFromNow), m_Cancelled(Shared<Atomic<bool>>::Make(false))
 	{
 		VERIFY(strand.running_in_this_thread());
 
-		m_Timer.async_wait(boost::asio::bind_executor(strand, [onTimeout = std::move(onTimeout)](boost::system::error_code ec) {
-			if (!ec) {
-				onTimeout();
+		m_Timer.async_wait(boost::asio::bind_executor(
+			strand, [cancelled = m_Cancelled, onTimeout = std::move(onTimeout)](boost::system::error_code ec) {
+				if (!ec && !cancelled->load()) {
+					onTimeout();
+				}
 			}
-		}));
+		));
+	}
+
+	~Timeout() override
+	{
+		Cancel();
 	}
 
 	void Cancel();
 
 private:
 	Timer m_Timer;
+	Shared<Atomic<bool>>::Ptr m_Cancelled;
 };
 
 }
