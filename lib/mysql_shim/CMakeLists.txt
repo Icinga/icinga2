@@ -1,6 +1,6 @@
 # Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+
 
-include_directories(${MYSQL_INCLUDE_DIR})
+include_directories(SYSTEM ${MYSQL_INCLUDE_DIR})
 
 set(mysql_shim_SOURCES
   mysql_shim.def
