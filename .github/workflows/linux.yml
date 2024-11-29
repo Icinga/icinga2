@@ -23,22 +23,32 @@ jobs:
         distro:
           - amazonlinux:2
           - amazonlinux:2023
-          - debian:11 # and Raspbian 11
-          - debian:12 # and Raspbian 12
-          - fedora:37
-          - fedora:38
+
+          # Raspberry Pi OS is close enough to Debian to test just one of them.
+          # Its architecture is different, though, and covered by the Docker job.
+          - debian:11
+          - debian:12
+
           - fedora:39
           - fedora:40
-          - opensuse/leap:15.3 # SLES 15.3
-          - opensuse/leap:15.4 # and SLES 15.4
-          - opensuse/leap:15.5 # and SLES 15.5
-          - opensuse/leap:15.6 # and SLES 15.6
-          - rockylinux:8 # RHEL 8
-          - rockylinux:9 # RHEL 9
+          - fedora:41
+
+          # openSUSE Leap is close enough to SLES to test just one of them.
+          # As openSUSE is much easier to deploy, we test it despite the fact that we don't necessarily
+          # support individual versions of openSUSE as long as their SLES counterparts.
+          # I.e., remove any opensuse/leap:* line below only if we stopped packaging both openSUSE and SLES!
+          - opensuse/leap:15.3
+          - opensuse/leap:15.4
+          - opensuse/leap:15.5
+          - opensuse/leap:15.6
+
+          # We don't actually support Rocky Linux as such!
+          # We just use that RHEL clone to test the original.
+          - rockylinux:8
+          - rockylinux:9
+
           - ubuntu:20.04
           - ubuntu:22.04
-          - ubuntu:23.04
-          - ubuntu:23.10
           - ubuntu:24.04
           - ubuntu:24.10
 
