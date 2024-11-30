@@ -4393,23 +4393,24 @@ Check command object for the `check_vmware_esx` plugin. Shows net info.
 
 Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
-Name                    | Description
-------------------------|--------------
-vmware_host             | **Required.** ESX or ESXi hostname.
-vmware_datacenter       | **Optional.** Datacenter/vCenter hostname. In case the check is done through a Datacenter/vCenter host.
-vmware_sslport          | **Optional.** SSL port connection. Defaults to "443".
-vmware_ignoreunknown    | **Optional.** Sometimes 3 (unknown) is returned from a component. But the check itself is ok. With this option the plugin will return OK (0) instead of UNKNOWN (3). Defaults to "false".
-vmware_ignorewarning    | **Optional.** Sometimes 2 (warning) is returned from a component. But the check itself is ok (from an operator view). With this option the plugin will return OK (0) instead of WARNING (1). Defaults to "false".
-vmware_timeout          | **Optional.** Seconds before plugin times out. Defaults to "90".
-vmware_trace            | **Optional.** Set verbosity level of vSphere API request/respond trace.
-vmware_sessionfile      | **Optional.** Session file name enhancement.
-vmware_sessionfiledir   | **Optional.** Path to store the **vmware_sessionfile** file. Defaults to "/var/spool/icinga2/tmp".
-vmware_nosession        | **Optional.** No auth session -- IT SHOULD BE USED FOR TESTING PURPOSES ONLY!. Defaults to "false".
-vmware_username         | **Optional.** The username to connect to Host or vCenter server. No value defined as default.
-vmware_password         | **Optional.** The username's password. No value defined as default.
-vmware_authfile         | **Optional.** Use auth file instead username/password to session connect. No effect if **vmware_username** and **vmware_password** are defined <br> **Authentication file content:** <br>  username=vmuser <br> password=p@ssw0rd
-vmware_exclude          | **Optional.** Blacklist NICs. No value defined as default.
-vmware_isregexp         | **Optional.** Treat blacklist expression as regexp.
+Name                        | Description
+----------------------------|--------------
+vmware_host                 | **Required.** ESX or ESXi hostname.
+vmware_datacenter           | **Optional.** Datacenter/vCenter hostname. In case the check is done through a Datacenter/vCenter host.
+vmware_sslport              | **Optional.** SSL port connection. Defaults to "443".
+vmware_ignoreunknown        | **Optional.** Sometimes 3 (unknown) is returned from a component. But the check itself is ok. With this option the plugin will return OK (0) instead of UNKNOWN (3). Defaults to "false".
+vmware_ignorewarning        | **Optional.** Sometimes 2 (warning) is returned from a component. But the check itself is ok (from an operator view). With this option the plugin will return OK (0) instead of WARNING (1). Defaults to "false".
+vmware_timeout              | **Optional.** Seconds before plugin times out. Defaults to "90".
+vmware_trace                | **Optional.** Set verbosity level of vSphere API request/respond trace.
+vmware_sessionfile          | **Optional.** Session file name enhancement.
+vmware_sessionfiledir       | **Optional.** Path to store the **vmware_sessionfile** file. Defaults to "/var/spool/icinga2/tmp".
+vmware_nosession            | **Optional.** No auth session -- IT SHOULD BE USED FOR TESTING PURPOSES ONLY!. Defaults to "false".
+vmware_username             | **Optional.** The username to connect to Host or vCenter server. No value defined as default.
+vmware_password             | **Optional.** The username's password. No value defined as default.
+vmware_authfile             | **Optional.** Use auth file instead username/password to session connect. No effect if **vmware_username** and **vmware_password** are defined <br> **Authentication file content:** <br>  username=vmuser <br> password=p@ssw0rd
+vmware_exclude              | **Optional.** Blacklist NICs. No value defined as default.
+vmware_isregexp             | **Optional.** Treat blacklist expression as regexp.
+vmware_unplugged_nics_state | **Optional.** Sets status for unplugged nics (Possible values are: [OK | ok] or [CRITICAL | critical | CRIT | crit] or [WARNING | warning | WARN | warn]. Default is WARNING. Values are case insensitive.)
 
 
 **vmware-esx-soap-host-net-usage**
@@ -4493,23 +4494,24 @@ Check command object for the `check_vmware_esx` plugin. Check all active NICs.
 
 Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
-Name                    | Description
-------------------------|--------------
-vmware_host             | **Required.** ESX or ESXi hostname.
-vmware_datacenter       | **Optional.** Datacenter/vCenter hostname. In case the check is done through a Datacenter/vCenter host.
-vmware_sslport          | **Optional.** SSL port connection. Defaults to "443".
-vmware_ignoreunknown    | **Optional.** Sometimes 3 (unknown) is returned from a component. But the check itself is ok. With this option the plugin will return OK (0) instead of UNKNOWN (3). Defaults to "false".
-vmware_ignorewarning    | **Optional.** Sometimes 2 (warning) is returned from a component. But the check itself is ok (from an operator view). With this option the plugin will return OK (0) instead of WARNING (1). Defaults to "false".
-vmware_timeout          | **Optional.** Seconds before plugin times out. Defaults to "90".
-vmware_trace            | **Optional.** Set verbosity level of vSphere API request/respond trace.
-vmware_sessionfile      | **Optional.** Session file name enhancement.
-vmware_sessionfiledir   | **Optional.** Path to store the **vmware_sessionfile** file. Defaults to "/var/spool/icinga2/tmp".
-vmware_nosession        | **Optional.** No auth session -- IT SHOULD BE USED FOR TESTING PURPOSES ONLY!. Defaults to "false".
-vmware_username         | **Optional.** The username to connect to Host or vCenter server. No value defined as default.
-vmware_password         | **Optional.** The username's password. No value defined as default.
-vmware_authfile         | **Optional.** Use auth file instead username/password to session connect. No effect if **vmware_username** and **vmware_password** are defined <br> **Authentication file content:** <br>  username=vmuser <br> password=p@ssw0rd
-vmware_exclude          | **Optional.** Blacklist NICs. No value defined as default.
-vmware_isregexp         | **Optional.** Treat blacklist expression as regexp.
+Name                        | Description
+----------------------------|--------------
+vmware_host                 | **Required.** ESX or ESXi hostname.
+vmware_datacenter           | **Optional.** Datacenter/vCenter hostname. In case the check is done through a Datacenter/vCenter host.
+vmware_sslport              | **Optional.** SSL port connection. Defaults to "443".
+vmware_ignoreunknown        | **Optional.** Sometimes 3 (unknown) is returned from a component. But the check itself is ok. With this option the plugin will return OK (0) instead of UNKNOWN (3). Defaults to "false".
+vmware_ignorewarning        | **Optional.** Sometimes 2 (warning) is returned from a component. But the check itself is ok (from an operator view). With this option the plugin will return OK (0) instead of WARNING (1). Defaults to "false".
+vmware_timeout              | **Optional.** Seconds before plugin times out. Defaults to "90".
+vmware_trace                | **Optional.** Set verbosity level of vSphere API request/respond trace.
+vmware_sessionfile          | **Optional.** Session file name enhancement.
+vmware_sessionfiledir       | **Optional.** Path to store the **vmware_sessionfile** file. Defaults to "/var/spool/icinga2/tmp".
+vmware_nosession            | **Optional.** No auth session -- IT SHOULD BE USED FOR TESTING PURPOSES ONLY!. Defaults to "false".
+vmware_username             | **Optional.** The username to connect to Host or vCenter server. No value defined as default.
+vmware_password             | **Optional.** The username's password. No value defined as default.
+vmware_authfile             | **Optional.** Use auth file instead username/password to session connect. No effect if **vmware_username** and **vmware_password** are defined <br> **Authentication file content:** <br>  username=vmuser <br> password=p@ssw0rd
+vmware_exclude              | **Optional.** Blacklist NICs. No value defined as default.
+vmware_isregexp             | **Optional.** Treat blacklist expression as regexp.
+vmware_unplugged_nics_state | **Optional.** Sets status for unplugged nics (Possible values are: [OK | ok] or [CRITICAL | critical | CRIT | crit] or [WARNING | warning | WARN | warn]. Default is WARNING. Values are case insensitive.)
 
 
 **vmware-esx-soap-host-volumes**
