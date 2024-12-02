@@ -534,16 +534,15 @@ void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const Sha
 			auto strand (Shared<asio::io_context::strand>::Make(io));
 
 			IoEngine::SpawnCoroutine(*strand, [this, strand, sslConn, remoteEndpoint](asio::yield_context yc) {
-				Timeout::Ptr timeout(new Timeout(strand->context(), *strand, boost::posix_time::microseconds(int64_t(GetConnectTimeout() * 1e6)),
-					[sslConn, remoteEndpoint](asio::yield_context yc) {
+				Timeout timeout (*strand, boost::posix_time::microseconds(int64_t(GetConnectTimeout() * 1e6)),
+					[sslConn, remoteEndpoint] {
 						Log(LogWarning, "ApiListener")
 							<< "Timeout while processing incoming connection from " << remoteEndpoint;
 
 						boost::system::error_code ec;
 						sslConn->lowest_layer().cancel(ec);
 					}
-				));
-				Defer cancelTimeout([timeout]() { timeout->Cancel(); });
+				);
 
 				NewClientHandler(yc, strand, sslConn, String(), RoleServer);
 			});
@@ -585,8 +584,8 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 
 			lock.unlock();
 
-			Timeout::Ptr timeout(new Timeout(strand->context(), *strand, boost::posix_time::microseconds(int64_t(GetConnectTimeout() * 1e6)),
-				[sslConn, endpoint, host, port](asio::yield_context yc) {
+			Timeout timeout (*strand, boost::posix_time::microseconds(int64_t(GetConnectTimeout() * 1e6)),
+				[sslConn, endpoint, host, port] {
 					Log(LogCritical, "ApiListener")
 						<< "Timeout while reconnecting to endpoint '" << endpoint->GetName() << "' via host '" << host
 						<< "' and port '" << port << "', cancelling attempt";
@@ -594,8 +593,7 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 					boost::system::error_code ec;
 					sslConn->lowest_layer().cancel(ec);
 				}
-			));
-			Defer cancelTimeout([&timeout]() { timeout->Cancel(); });
+			);
 
 			Connect(sslConn->lowest_layer(), host, port, yc);
 
@@ -683,19 +681,16 @@ void ApiListener::NewClientHandlerInternal(
 	boost::system::error_code ec;
 
 	{
-		Timeout::Ptr handshakeTimeout (new Timeout(
-			strand->context(),
+		Timeout handshakeTimeout (
 			*strand,
 			boost::posix_time::microseconds(intmax_t(Configuration::TlsHandshakeTimeout * 1000000)),
-			[strand, client](asio::yield_context yc) {
+			[client] {
 				boost::system::error_code ec;
 				client->lowest_layer().cancel(ec);
 			}
-		));
+		);
 
 		sslConn.async_handshake(role == RoleClient ? sslConn.client : sslConn.server, yc[ec]);
-
-		handshakeTimeout->Cancel();
 	}
 
 	if (ec) {

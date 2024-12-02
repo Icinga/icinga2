@@ -318,7 +318,6 @@ void RedisConnection::Connect(asio::yield_context& yc)
 					auto conn (Shared<AsioTlsStream>::Make(m_Strand.context(), *m_TLSContext, m_Host));
 					auto& tlsConn (conn->next_layer());
 					auto connectTimeout (MakeTimeout(conn));
-					Defer cancelTimeout ([&connectTimeout]() { connectTimeout->Cancel(); });
 
 					icinga::Connect(conn->lowest_layer(), m_Host, Convert::ToString(m_Port), yc);
 					tlsConn.async_handshake(tlsConn.client, yc);
@@ -348,7 +347,6 @@ void RedisConnection::Connect(asio::yield_context& yc)
 
 					auto conn (Shared<TcpConn>::Make(m_Strand.context()));
 					auto connectTimeout (MakeTimeout(conn));
-					Defer cancelTimeout ([&connectTimeout]() { connectTimeout->Cancel(); });
 
 					icinga::Connect(conn->next_layer(), m_Host, Convert::ToString(m_Port), yc);
 					Handshake(conn, yc);
@@ -361,7 +359,6 @@ void RedisConnection::Connect(asio::yield_context& yc)
 
 				auto conn (Shared<UnixConn>::Make(m_Strand.context()));
 				auto connectTimeout (MakeTimeout(conn));
-				Defer cancelTimeout ([&connectTimeout]() { connectTimeout->Cancel(); });
 
 				conn->next_layer().async_connect(Unix::endpoint(m_Path.CStr()), yc);
 				Handshake(conn, yc);

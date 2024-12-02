@@ -3,10 +3,12 @@
 #ifndef IO_ENGINE_H
 #define IO_ENGINE_H
 
+#include "base/atomic.hpp"
+#include "base/debug.hpp"
 #include "base/exception.hpp"
 #include "base/lazy-init.hpp"
 #include "base/logger.hpp"
-#include "base/shared-object.hpp"
+#include "base/shared.hpp"
 #include <atomic>
 #include <exception>
 #include <memory>
@@ -163,51 +165,80 @@ private:
 /**
  * I/O timeout emulator
  *
+ * This class provides a workaround for Boost.ASIO's lack of built-in timeout support.
+ * While Boost.ASIO handles asynchronous operations, it does not natively support timeouts for these operations.
+ * This class uses a boost::asio::deadline_timer to emulate a timeout by scheduling a callback to be triggered
+ * after a specified duration, effectively adding timeout behavior where none exists.
+ * The callback is executed within the provided strand, ensuring thread-safety.
+ *
+ * The constructor returns immediately after scheduling the timeout callback.
+ * The callback itself is invoked asynchronously when the timeout occurs.
+ * This allows the caller to continue execution while the timeout is running in the background.
+ *
+ * The class provides a Cancel() method to unschedule any pending callback. If the callback has already been run,
+ * calling Cancel() has no effect. This method can be used to abort the timeout early if the monitored operation
+ * completes before the callback has been run. The Timeout destructor also automatically cancels any pending callback.
+ * A callback is considered pending even if the timeout has already expired,
+ * but the callback has not been executed yet due to a busy strand.
+ *
  * @ingroup base
  */
-class Timeout : public SharedObject
+class Timeout
 {
 public:
-	DECLARE_PTR_TYPEDEFS(Timeout);
+	using Timer = boost::asio::deadline_timer;
 
-	template<class Executor, class TimeoutFromNow, class OnTimeout>
-	Timeout(boost::asio::io_context& io, Executor& executor, TimeoutFromNow timeoutFromNow, OnTimeout onTimeout)
-		: m_Timer(io)
+	/**
+	 * Schedules onTimeout to be triggered after timeoutFromNow on strand.
+	 *
+	 * @param strand The strand in which the callback will be executed.
+	 *				 The caller must also run in this strand, as well as Cancel() and the destructor!
+	 * @param timeoutFromNow The duration after which the timeout callback will be triggered.
+	 * @param onTimeout The callback to invoke when the timeout occurs.
+	 */
+	template<class OnTimeout>
+	Timeout(boost::asio::io_context::strand& strand, const Timer::duration_type& timeoutFromNow, OnTimeout onTimeout)
+		: m_Timer(strand.context(), timeoutFromNow), m_Cancelled(Shared<Atomic<bool>>::Make(false))
 	{
-		Ptr keepAlive (this);
+		VERIFY(strand.running_in_this_thread());
 
-		m_Cancelled.store(false);
-		m_Timer.expires_from_now(std::move(timeoutFromNow));
-
-		IoEngine::SpawnCoroutine(executor, [this, keepAlive, onTimeout](boost::asio::yield_context yc) {
-			if (m_Cancelled.load()) {
-				return;
-			}
-
-			{
-				boost::system::error_code ec;
-
-				m_Timer.async_wait(yc[ec]);
-
-				if (ec) {
-					return;
+		m_Timer.async_wait(boost::asio::bind_executor(
+			strand, [cancelled = m_Cancelled, onTimeout = std::move(onTimeout)](boost::system::error_code ec) {
+				if (!ec && !cancelled->load()) {
+					onTimeout();
 				}
 			}
+		));
+	}
 
-			if (m_Cancelled.load()) {
-				return;
-			}
+	Timeout(const Timeout&) = delete;
+	Timeout(Timeout&&) = delete;
+	Timeout& operator=(const Timeout&) = delete;
+	Timeout& operator=(Timeout&&) = delete;
 
-			auto f (onTimeout);
-			f(std::move(yc));
-		});
+	/**
+	 * Cancels any pending timeout callback.
+	 *
+	 * Must be called in the strand in which the callback was scheduled!
+	 */
+	~Timeout()
+	{
+		Cancel();
 	}
 
 	void Cancel();
 
 private:
-	boost::asio::deadline_timer m_Timer;
-	std::atomic<bool> m_Cancelled;
+	Timer m_Timer;
+
+	/**
+	 * Indicates whether the Timeout has been cancelled.
+	 *
+	 * This must be Shared<> between the lambda in the constructor and Cancel() for the case
+	 * the destructor calls Cancel() while the lambda is already queued in the strand.
+	 * The whole Timeout instance can't be kept alive by the lambda because this would delay the destructor.
+	 */
+	Shared<Atomic<bool>>::Ptr m_Cancelled;
 };
 
 }
