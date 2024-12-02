@@ -146,9 +146,6 @@ void AsioTlsStream::GracefulDisconnect(boost::asio::io_context::strand& strand, 
 				ForceDisconnect();
 			}
 		));
-		Defer cancelTimeout ([&shutdownTimeout]() {
-			shutdownTimeout->Cancel();
-		});
 
 		// Close the TLS connection, effectively uses SSL_shutdown() to send a close_notify shutdown alert to the peer.
 		boost::system::error_code ec;

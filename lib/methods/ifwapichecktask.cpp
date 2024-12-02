@@ -467,8 +467,6 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 				}
 			);
 
-			Defer cancelTimeout ([&timeout]() { timeout->Cancel(); });
-
 			DoIfwNetIo(yc, cr, psCommand, psHost, expectedSan, psPort, *conn, *req);
 
 			cr->SetExecutionEnd(Utility::GetTime());
