@@ -122,6 +122,35 @@ bool Checkable::IsReachable(DependencyType dt, Dependency::Ptr *failedDependency
 	return true;
 }
 
+/**
+ * Checks whether the last check result of this Checkable affects its child dependencies.
+ *
+ * A Checkable affects its child dependencies if it runs into a non-OK state and results in any of its child
+ * Checkables to become unreachable. Though, that unavailable dependency may not necessarily cause the child
+ * Checkable to be in unreachable state as it might have some other dependencies that are still reachable, instead
+ * it just indicates whether the edge/connection between this and the child Checkable is broken or not.
+ *
+ * @return bool - Returns true if the Checkable affects its child dependencies, otherwise false.
+ */
+bool Checkable::AffectsChildren() const
+{
+	if (!GetLastCheckResult() || !IsReachable()) {
+		// If there is no check result, or the Checkable is not reachable, we can't safely determine whether
+		// the Checkable affects its child dependencies.
+		return false;
+	}
+
+	for (auto& dep : GetReverseDependencies()) {
+		if (!dep->IsAvailable(DependencyState)) {
+			// If one of the child dependency is not available, then it's definitely due to the
+			// current Checkable state, so we don't need to verify the remaining ones.
+			return true;
+		}
+	}
+
+	return false;
+}
+
 std::set<Checkable::Ptr> Checkable::GetParents() const
 {
 	std::set<Checkable::Ptr> parents;
