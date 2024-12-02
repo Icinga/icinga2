@@ -9,7 +9,6 @@
 #include "base/lazy-init.hpp"
 #include "base/logger.hpp"
 #include "base/shared.hpp"
-#include "base/shared-object.hpp"
 #include <atomic>
 #include <exception>
 #include <memory>
@@ -168,10 +167,9 @@ private:
  *
  * @ingroup base
  */
-class Timeout : public SharedObject
+class Timeout
 {
 public:
-	DECLARE_PTR_TYPEDEFS(Timeout);
 	using Timer = boost::asio::deadline_timer;
 
 	template<class OnTimeout>
@@ -189,7 +187,7 @@ public:
 		));
 	}
 
-	~Timeout() override
+	~Timeout()
 	{
 		Cancel();
 	}

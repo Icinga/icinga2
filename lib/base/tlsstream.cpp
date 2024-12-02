@@ -140,12 +140,12 @@ void AsioTlsStream::GracefulDisconnect(boost::asio::io_context::strand& strand, 
 	}
 
 	{
-		Timeout::Ptr shutdownTimeout(new Timeout(strand, boost::posix_time::seconds(10),
+		Timeout shutdownTimeout (strand, boost::posix_time::seconds(10),
 			[this] {
 				// Forcefully terminate the connection if async_shutdown() blocked more than 10 seconds.
 				ForceDisconnect();
 			}
-		));
+		);
 
 		// Close the TLS connection, effectively uses SSL_shutdown() to send a close_notify shutdown alert to the peer.
 		boost::system::error_code ec;
