@@ -145,6 +145,39 @@ std::set<Checkable::Ptr> Checkable::GetChildren() const
 	return parents;
 }
 
+/**
+ * Retrieve the total number of all the children of the current Checkable.
+ *
+ * Note, this function performs a recursive call chain traversing all the children of the current Checkable
+ * up to a certain limit (256). When that limit is reached, it will log a warning message and abort the operation.
+ * Thus, the returned number may not reflect the actual total number of children involved in the dependency chain.
+ *
+ * In fact, there is already a method GetAllChildren() that does kind of same thing, but it involves too much
+ * overhead, copying and passing around sets, which is not necessary for this simple operation (just count them).
+ *
+ * @return int - Returns the total number of all the children of the current Checkable.
+ */
+int Checkable::GetAllChildrenCount(int rstack) const
+{
+	if (rstack > 256) {
+		Log(LogWarning, "Checkable")
+			<< "Too many nested dependencies (>" << 256 << ") for checkable '" << GetName() << "': aborting count.";
+
+		// The limit from GetAllChildrenInternal() doesn't seem to make sense, and appears to be
+		// some random number. So, this limit is set to 256 to match the limit in IsReachable().
+		return 0;
+	}
+
+	int count = 0;
+	// Actually, incrementing the rstack should be done once outside the loop here, but since IsReachable()
+	// applies the limit the exact same way, it should be fine to limit the sum of calls to 256 here as well.
+	for (auto& dependency: GetReverseDependencies()) {
+		count += dependency->GetChild()->GetAllChildrenCount(rstack + 1) + 1;
+	}
+
+	return count;
+}
+
 std::set<Checkable::Ptr> Checkable::GetAllChildren() const
 {
 	std::set<Checkable::Ptr> children = GetChildren();
