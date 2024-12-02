@@ -145,6 +145,21 @@ std::set<Checkable::Ptr> Checkable::GetChildren() const
 	return parents;
 }
 
+/**
+ * Retrieve the total number of all the children of the current Checkable.
+ *
+ * Note, due to the max recursion limit of 256, the returned number may not reflect
+ * the actual total number of children involved in the dependency chain.
+ *
+ * @return int - Returns the total number of all the children of the current Checkable.
+ */
+size_t Checkable::GetAllChildrenCount() const
+{
+	std::set<Checkable::Ptr> children(GetChildren());
+	GetAllChildrenInternal(children, 0);
+	return children.size();
+}
+
 std::set<Checkable::Ptr> Checkable::GetAllChildren() const
 {
 	std::set<Checkable::Ptr> children = GetChildren();
@@ -154,22 +169,36 @@ std::set<Checkable::Ptr> Checkable::GetAllChildren() const
 	return children;
 }
 
+/**
+ * Retrieve all direct and indirect children of the current Checkable.
+ *
+ * Note, this function performs a recursive call chain traversing all the children of the current Checkable
+ * up to a certain limit (256). When that limit is reached, it will log a warning message and abort the operation.
+ *
+ * @param children - The set of children to be filled with all the children of the current Checkable.
+ * @param level - The current level of recursion.
+ */
 void Checkable::GetAllChildrenInternal(std::set<Checkable::Ptr>& children, int level) const
 {
-	if (level > 32)
-		return;
+	// The previous limit (32) doesn't seem to make sense, and appears to be some random number.
+	// So, this limit is set to 256 to match the limit in IsReachable().
+	if (level > 256) {
+		Log(LogWarning, "Checkable")
+			<< "Too many nested dependencies (>" << 256 << ") for checkable '" << GetName() << "': aborting traversal.";
+		return ;
+	}
 
 	std::set<Checkable::Ptr> localChildren;
 
 	for (const Checkable::Ptr& checkable : children) {
-		std::set<Checkable::Ptr> cChildren = checkable->GetChildren();
-
-		if (!cChildren.empty()) {
+		if (auto cChildren(checkable->GetChildren()); !cChildren.empty()) {
 			GetAllChildrenInternal(cChildren, level + 1);
 			localChildren.insert(cChildren.begin(), cChildren.end());
 		}
 
-		localChildren.insert(checkable);
+		if (level != 0) { // Recursion level 0 is the initiator, so checkable is already in the set.
+			localChildren.insert(checkable);
+		}
 	}
 
 	children.insert(localChildren.begin(), localChildren.end());
