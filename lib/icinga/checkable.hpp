@@ -77,6 +77,7 @@ public:
 	std::set<Checkable::Ptr> GetParents() const;
 	std::set<Checkable::Ptr> GetChildren() const;
 	std::set<Checkable::Ptr> GetAllChildren() const;
+	int GetAllChildrenCount(int rstack = 0) const;
 
 	void AddGroup(const String& name);
 
