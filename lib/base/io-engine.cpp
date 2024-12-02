@@ -153,3 +153,14 @@ void Timeout::Cancel()
 	boost::system::error_code ec;
 	m_Timer.cancel(ec);
 }
+
+/**
+ * Cancels the timeout and waits for the own coroutine to finish.
+ *
+ * @param yc Yield Context for ASIO
+ */
+void Timeout::Cancel(boost::asio::yield_context yc)
+{
+	Cancel();
+	m_Done.Wait(yc);
+}
