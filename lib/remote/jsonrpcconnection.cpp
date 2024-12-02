@@ -250,23 +250,26 @@ void JsonRpcConnection::Disconnect()
 	if (!m_ShuttingDown.exchange(true)) {
 		JsonRpcConnection::Ptr keepAlive (this);
 
+		Log(LogNotice, "JsonRpcConnection")
+			<< "Disconnecting API client for identity '" << m_Identity << "'";
+
 		IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) {
-			Log(LogWarning, "JsonRpcConnection")
-				<< "API client disconnected for identity '" << m_Identity << "'";
-
-			// We need to unregister the endpoint client as soon as possible not to confuse Icinga 2,
-			// given that Endpoint::GetConnected() is just performing a check that the endpoint's client
-			// cache is not empty, which could result in an already disconnected endpoint never trying to
-			// reconnect again. See #7444.
-			if (m_Endpoint) {
-				m_Endpoint->RemoveClient(this);
-			} else {
-				ApiListener::GetInstance()->RemoveAnonymousClient(this);
-			}
-
 			m_OutgoingMessagesQueued.Set();
 
-			m_WriterDone.Wait(yc);
+			{
+				asio::deadline_timer writerTimeout(m_IoStrand.context(), boost::posix_time::seconds(5));
+				writerTimeout.async_wait(asio::bind_executor(m_IoStrand, [this](boost::system::error_code ec) {
+					if (!ec) {
+						// The writer coroutine could not finish soon enough to unblock the waiter down blow,
+						// so we have to do this on our own, and the coroutine will be terminated forcibly when
+						// the ops on the underlying socket are cancelled.
+						m_Stream->lowest_layer().cancel(ec);
+					}
+				}));
+
+				m_WriterDone.Wait(yc);
+				// We don't need to explicitly cancel the timer here; its destructor will handle it for us.
+			}
 
 			/*
 			 * Do not swallow exceptions in a coroutine.
@@ -298,6 +301,15 @@ void JsonRpcConnection::Disconnect()
 			shutdownTimeout->Cancel();
 
 			m_Stream->lowest_layer().shutdown(m_Stream->lowest_layer().shutdown_both, ec);
+
+			if (m_Endpoint) {
+				m_Endpoint->RemoveClient(this);
+			} else {
+				ApiListener::GetInstance()->RemoveAnonymousClient(this);
+			}
+
+			Log(LogWarning, "JsonRpcConnection")
+				<< "API client disconnected for identity '" << m_Identity << "'";
 		});
 	}
 }
