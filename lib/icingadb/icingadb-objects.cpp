@@ -1482,6 +1482,11 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 		attributes->Set("notes", checkable->GetNotes());
 		attributes->Set("icon_image_alt", checkable->GetIconImageAlt());
 
+		if (size_t totalChildren (checkable->GetAllChildrenCount()); totalChildren > 0) {
+			// Only set the Redis key if the Checkable has actually some child dependencies.
+			attributes->Set("total_children", totalChildren);
+		}
+
 		attributes->Set("checkcommand_id", GetObjectIdentifier(checkable->GetCheckCommand()));
 
 		Endpoint::Ptr commandEndpoint = checkable->GetCommandEndpoint();
