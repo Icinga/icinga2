@@ -20,7 +20,7 @@ BOOST_AUTO_TEST_CASE(timeout_run)
 	boost::asio::spawn(strand, [&](boost::asio::yield_context yc) {
 		boost::asio::deadline_timer timer (io);
 
-		Timeout::Ptr timeout = new Timeout(strand, boost::posix_time::millisec(300), [&called] { ++called; });
+		Timeout timeout (strand, boost::posix_time::millisec(300), [&called] { ++called; });
 		BOOST_CHECK_EQUAL(called, 0);
 
 		timer.expires_from_now(boost::posix_time::millisec(200));
@@ -46,12 +46,12 @@ BOOST_AUTO_TEST_CASE(timeout_cancelled)
 
 	boost::asio::spawn(strand, [&](boost::asio::yield_context yc) {
 		boost::asio::deadline_timer timer (io);
-		Timeout::Ptr timeout = new Timeout(strand, boost::posix_time::millisec(300), [&called] { ++called; });
+		Timeout timeout (strand, boost::posix_time::millisec(300), [&called] { ++called; });
 
 		timer.expires_from_now(boost::posix_time::millisec(200));
 		timer.async_wait(yc);
 
-		timeout->Cancel();
+		timeout.Cancel();
 		BOOST_CHECK_EQUAL(called, 0);
 
 		timer.expires_from_now(boost::posix_time::millisec(200));
@@ -75,7 +75,7 @@ BOOST_AUTO_TEST_CASE(timeout_scope)
 		boost::asio::deadline_timer timer (io);
 
 		{
-			Timeout::Ptr timeout = new Timeout(strand, boost::posix_time::millisec(300), [&called] { ++called; });
+			Timeout timeout (strand, boost::posix_time::millisec(300), [&called] { ++called; });
 
 			timer.expires_from_now(boost::posix_time::millisec(200));
 			timer.async_wait(yc);
@@ -102,7 +102,7 @@ BOOST_AUTO_TEST_CASE(timeout_due_cancelled)
 
 	boost::asio::spawn(strand, [&](boost::asio::yield_context yc) {
 		boost::asio::deadline_timer timer (io);
-		Timeout::Ptr timeout = new Timeout(strand, boost::posix_time::millisec(300), [&called] { ++called; });
+		Timeout timeout (strand, boost::posix_time::millisec(300), [&called] { ++called; });
 
 		// Give the timeout enough time to become due while blocking its strand to prevent it from actually running...
 		Utility::Sleep(0.4);
@@ -110,7 +110,7 @@ BOOST_AUTO_TEST_CASE(timeout_due_cancelled)
 		BOOST_CHECK_EQUAL(called, 0);
 
 		// ... so that this shall still work:
-		timeout->Cancel();
+		timeout.Cancel();
 
 		BOOST_CHECK_EQUAL(called, 0);
 
@@ -135,7 +135,7 @@ BOOST_AUTO_TEST_CASE(timeout_due_scope)
 		boost::asio::deadline_timer timer (io);
 
 		{
-			Timeout::Ptr timeout = new Timeout(strand, boost::posix_time::millisec(300), [&called] { ++called; });
+			Timeout timeout (strand, boost::posix_time::millisec(300), [&called] { ++called; });
 
 			// Give the timeout enough time to become due while blocking its strand to prevent it from actually running...
 			Utility::Sleep(0.4);
