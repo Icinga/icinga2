@@ -186,21 +186,21 @@ add_definitions(-DBOOST_FILESYSTEM_NO_DEPRECATED)
 add_definitions(-DBOOST_ASIO_USE_TS_EXECUTOR_AS_DEFAULT)
 
 link_directories(${Boost_LIBRARY_DIRS})
-include_directories(${Boost_INCLUDE_DIRS})
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
 find_package(OpenSSL REQUIRED)
-include_directories(${OPENSSL_INCLUDE_DIR})
+include_directories(SYSTEM ${OPENSSL_INCLUDE_DIR})
 
 set(base_DEPS ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES})
 set(base_OBJS $<TARGET_OBJECTS:mmatch> $<TARGET_OBJECTS:socketpair> $<TARGET_OBJECTS:base>)
 
 # JSON
 find_package(JSON)
-include_directories(${JSON_INCLUDE})
+include_directories(SYSTEM ${JSON_INCLUDE})
 
 # UTF8CPP
 find_package(UTF8CPP)
-include_directories(${UTF8CPP_INCLUDE})
+include_directories(SYSTEM ${UTF8CPP_INCLUDE})
 
 find_package(Editline)
 set(HAVE_EDITLINE "${EDITLINE_FOUND}")
@@ -223,12 +223,12 @@ endif()
 
 if(EDITLINE_FOUND)
   list(APPEND base_DEPS ${EDITLINE_LIBRARIES})
-  include_directories(${EDITLINE_INCLUDE_DIR})
+  include_directories(SYSTEM ${EDITLINE_INCLUDE_DIR})
 endif()
 
 if(TERMCAP_FOUND)
   list(APPEND base_DEPS ${TERMCAP_LIBRARIES})
-  include_directories(${TERMCAP_INCLUDE_DIR})
+  include_directories(SYSTEM ${TERMCAP_INCLUDE_DIR})
 endif()
 
 if(WIN32)
@@ -239,6 +239,8 @@ set(CMAKE_MACOSX_RPATH 1)
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH};${CMAKE_INSTALL_FULL_LIBDIR}/icinga2")
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -Winconsistent-missing-override")
+
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Qunused-arguments -fcolor-diagnostics -fno-limit-debug-info")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Qunused-arguments -fcolor-diagnostics -fno-limit-debug-info")
 
@@ -256,6 +258,8 @@ if(CMAKE_C_COMPILER_ID STREQUAL "SunPro")
 endif()
 
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
+  set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -Wsuggest-override")
+
   if(CMAKE_SYSTEM_NAME MATCHES AIX)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -lpthread")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -lpthread")
