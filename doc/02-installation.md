@@ -14,9 +14,16 @@ In case you are upgrading an existing setup, please ensure to
 follow the [upgrade documentation](16-upgrading-icinga-2.md#upgrading-icinga-2).
 <!-- {% else %} -->
 
+<!-- {% if not windows %} -->
 ## Add Icinga Package Repository <a id="add-icinga-package-repository"></a>
 
-We recommend using our official repositories. Here's how to add it to your system:
+We recommend using our official repositories.
+
+All the following commands should be executed as the root user.
+As pipes and nested commands are used, it is recommended to switch to a root user session, e.g., using `sudo -i`.
+
+Here's how to add it to your system:
+<!-- {% endif %} -->
 
 <!-- {% if debian %} -->
 
@@ -24,9 +31,13 @@ We recommend using our official repositories. Here's how to add it to your syste
 
 ```bash
 apt update
-apt -y install apt-transport-https wget gnupg
+apt -y install apt-transport-https wget
 
-wget -O - https://packages.icinga.com/icinga.key | gpg --dearmor -o /usr/share/keyrings/icinga-archive-keyring.gpg
+wget -O icinga-archive-keyring.deb "https://packages.icinga.com/icinga-archive-keyring_latest+debian$(
+ . /etc/os-release; echo "$VERSION_ID"
+).deb"
+
+apt install ./icinga-archive-keyring.deb
 
 DIST=$(awk -F"[)(]+" '/VERSION=/ {print $2}' /etc/os-release); \
  echo "deb [signed-by=/usr/share/keyrings/icinga-archive-keyring.gpg] https://packages.icinga.com/debian icinga-${DIST} main" > \
@@ -36,21 +47,6 @@ DIST=$(awk -F"[)(]+" '/VERSION=/ {print $2}' /etc/os-release); \
 
 apt update
 ```
-
-#### Debian Backports Repository <a id="debian-backports-repository"></a>
-
-This repository is required for Debian Stretch since Icinga v2.11.
-
-Debian Stretch:
-
-```bash
-DIST=$(awk -F"[)(]+" '/VERSION=/ {print $2}' /etc/os-release); \
- echo "deb https://deb.debian.org/debian ${DIST}-backports main" > \
- /etc/apt/sources.list.d/${DIST}-backports.list
-
-apt update
-```
-
 <!-- {% endif %} -->
 
 <!-- {% if ubuntu %} -->
@@ -58,9 +54,13 @@ apt update
 
 ```bash
 apt update
-apt -y install apt-transport-https wget gnupg
+apt -y install apt-transport-https wget
 
-wget -O - https://packages.icinga.com/icinga.key | gpg --dearmor -o /usr/share/keyrings/icinga-archive-keyring.gpg
+wget -O icinga-archive-keyring.deb "https://packages.icinga.com/icinga-archive-keyring_latest+ubuntu$(
+ . /etc/os-release; echo "$VERSION_ID"
+).deb"
+
+apt install ./icinga-archive-keyring.deb
 
 . /etc/os-release; if [ ! -z ${UBUNTU_CODENAME+x} ]; then DIST="${UBUNTU_CODENAME}"; else DIST="$(lsb_release -c| awk '{print $2}')"; fi; \
  echo "deb [signed-by=/usr/share/keyrings/icinga-archive-keyring.gpg] https://packages.icinga.com/ubuntu icinga-${DIST} main" > \
@@ -69,41 +69,6 @@ wget -O - https://packages.icinga.com/icinga.key | gpg --dearmor -o /usr/share/k
  /etc/apt/sources.list.d/${DIST}-icinga.list
 
 apt update
-```
-<!-- {% endif %} -->
-
-<!-- {% if raspbian %} -->
-### Raspbian Repository <a id="raspbian-repository"></a>
-
-```bash
-apt update
-apt -y install apt-transport-https wget gnupg
-
-wget -O - https://packages.icinga.com/icinga.key | gpg --dearmor -o /usr/share/keyrings/icinga-archive-keyring.gpg
-
-DIST=$(awk -F"[)(]+" '/VERSION=/ {print $2}' /etc/os-release); \
- echo "deb [signed-by=/usr/share/keyrings/icinga-archive-keyring.gpg] https://packages.icinga.com/raspbian icinga-${DIST} main" > \
- /etc/apt/sources.list.d/icinga.list
- echo "deb-src [signed-by=/usr/share/keyrings/icinga-archive-keyring.gpg] https://packages.icinga.com/raspbian icinga-${DIST} main" >> \
- /etc/apt/sources.list.d/icinga.list
-
-apt update
-```
-<!-- {% endif %} -->
-
-<!-- {% if centos %} -->
-### CentOS Repository <a id="centos-repository"></a>
-
-```bash
-rpm --import https://packages.icinga.com/icinga.key
-wget https://packages.icinga.com/centos/ICINGA-release.repo -O /etc/yum.repos.d/ICINGA-release.repo
-```
-
-The packages for CentOS depend on other packages which are distributed
-as part of the [EPEL repository](https://fedoraproject.org/wiki/EPEL):
-
-```bash
-yum install epel-release
 ```
 <!-- {% endif %} -->
 
@@ -118,7 +83,6 @@ yum install epel-release
     Don't forget to fill in the username and password section with your credentials in the local .repo file.
 
 ```bash
-rpm --import https://packages.icinga.com/icinga.key
 wget https://packages.icinga.com/subscription/rhel/ICINGA-release.repo -O /etc/yum.repos.d/ICINGA-release.repo
 ```
 
@@ -150,7 +114,6 @@ yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.r
 ### Fedora Repository <a id="fedora-repository"></a>
 
 ```bash
-rpm --import https://packages.icinga.com/icinga.key
 dnf install -y 'dnf-command(config-manager)'
 dnf config-manager --add-repo https://packages.icinga.com/fedora/$(. /etc/os-release; echo "$VERSION_ID")/release
 ```
@@ -167,8 +130,6 @@ dnf config-manager --add-repo https://packages.icinga.com/fedora/$(. /etc/os-rel
     Don't forget to fill in the username and password section with your credentials in the local .repo file.
 
 ```bash
-rpm --import https://packages.icinga.com/icinga.key
-
 zypper ar https://packages.icinga.com/subscription/sles/ICINGA-release.repo
 zypper ref
 ```
@@ -186,16 +147,8 @@ SUSEConnect -p PackageHub/$VERSION_ID/x86_64
 ### openSUSE Repository <a id="opensuse-repository"></a>
 
 ```bash
-rpm --import https://packages.icinga.com/icinga.key
-
 zypper ar https://packages.icinga.com/openSUSE/ICINGA-release.repo
 zypper ref
-```
-
-You need to additionally add the `server:monitoring` repository to fulfill dependencies:
-
-```bash
-zypper ar https://download.opensuse.org/repositories/server:/monitoring/15.3/server:monitoring.repo
 ```
 <!-- {% endif %} -->
 
@@ -210,7 +163,6 @@ zypper ar https://download.opensuse.org/repositories/server:/monitoring/15.3/ser
     Don't forget to fill in the username and password section with your credentials in the local .repo file.
 
 ```bash
-rpm --import https://packages.icinga.com/icinga.key
 wget https://packages.icinga.com/subscription/amazon/ICINGA-release.repo -O /etc/yum.repos.d/ICINGA-release.repo
 ```
 
@@ -239,33 +191,18 @@ You can install Icinga 2 by using your distribution's package manager
 to install the `icinga2` package. The following commands must be executed
 with `root` permissions unless noted otherwise.
 
-<!-- {% if centos or rhel or fedora or amazon_linux %} -->
+<!-- {% if rhel or fedora or amazon_linux %} -->
 !!! tip
 
     If you have [SELinux](22-selinux.md) enabled, the package `icinga2-selinux` is also required.
 <!-- {% endif %} -->
 
-<!-- {% if debian or ubuntu or raspbian %} -->
+<!-- {% if debian or ubuntu %} -->
 <!-- {% if not icingaDocs %} -->
-#### Debian / Ubuntu / Raspbian / Raspberry Pi OS
+#### Debian / Ubuntu / Raspberry Pi OS
 <!-- {% endif %} -->
 ```bash
 apt install icinga2
-```
-<!-- {% endif %} -->
-
-<!-- {% if centos %} -->
-<!-- {% if not icingaDocs %} -->
-#### CentOS
-<!-- {% endif %} -->
-!!! info
-
-    Note that installing Icinga 2 is only supported on CentOS 7 as CentOS 8 is EOL.
-
-```bash
-yum install icinga2
-systemctl enable icinga2
-systemctl start icinga2
 ```
 <!-- {% endif %} -->
 
@@ -357,23 +294,12 @@ to determine where to find the plugin binaries.
     additional check plugins into your Icinga 2 setup.
 
 
-<!-- {% if debian or ubuntu or raspbian %} -->
+<!-- {% if debian or ubuntu %} -->
 <!-- {% if not icingaDocs %} -->
-#### Debian / Ubuntu / Raspbian / Raspberry Pi OS
+#### Debian / Ubuntu / Raspberry Pi OS
 <!-- {% endif %} -->
 ```bash
 apt install monitoring-plugins
-```
-<!-- {% endif %} -->
-
-<!-- {% if centos %} -->
-<!-- {% if not icingaDocs %} -->
-#### CentOS
-<!-- {% endif %} -->
-The packages for CentOS depend on other packages which are distributed as part of the EPEL repository.
-
-```bash
-yum install nagios-plugins-all
 ```
 <!-- {% endif %} -->
 
@@ -464,7 +390,7 @@ Restart Icinga 2 for these changes to take effect.
 systemctl restart icinga2
 ```
 
-<!-- {% if amazon_linux or centos or debian or rhel or sles or ubuntu %} -->
+<!-- {% if amazon_linux or debian or rhel or sles or ubuntu %} -->
 ## Set up Icinga DB <a id="set-up-icinga-db"></a>
 
 Icinga DB is a set of components for publishing, synchronizing and
@@ -511,20 +437,6 @@ Use your distribution's package manager to install the `icingadb-redis` package 
 <!-- {% if not icingaDocs %} -->
 ##### Amazon Linux
 <!-- {% endif %} -->
-```bash
-yum install icingadb-redis
-```
-<!-- {% endif %} -->
-
-<!-- {% if centos %} -->
-<!-- {% if not icingaDocs %} -->
-##### CentOS
-<!-- {% endif %} -->
-
-!!! info
-
-    Note that installing Icinga DB Redis is only supported on CentOS 7 as CentOS 8 is EOL.
-
 ```bash
 yum install icingadb-redis
 ```
@@ -642,9 +554,6 @@ The Icinga DB daemon package is also included in the Icinga repository, and sinc
 you have completed the instructions here and can proceed to
 <!-- {% if amazon_linux %} -->
 [install the Icinga DB daemon on Amazon Linux](https://icinga.com/docs/icinga-db/latest/doc/02-Installation/01-Amazon-Linux/#installing-icinga-db-package),
-<!-- {% endif %} -->
-<!-- {% if centos %} -->
-[install the Icinga DB daemon on CentOS](https://icinga.com/docs/icinga-db/latest/doc/02-Installation/02-CentOS/#installing-icinga-db-package),
 <!-- {% endif %} -->
 <!-- {% if debian %} -->
 [install the Icinga DB daemon on Debian](https://icinga.com/docs/icinga-db/latest/doc/02-Installation/03-Debian/#installing-icinga-db-package),

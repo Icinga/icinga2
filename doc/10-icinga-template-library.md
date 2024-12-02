@@ -75,8 +75,10 @@ plugin scripts.
 
 ### icinga <a id="itl-icinga"></a>
 
-Check command for the built-in `icinga` check. This check returns performance
-data for the current Icinga instance, reports as warning if the last reload failed and optionally allows for minimum version checks.
+Check command for the built-in `icinga` check. This check returns performance data for the current Icinga instance,
+reports as warning if the last reload or config sync failed and optionally allows for minimum version checks.
+
+For the config sync check to work, it must be run on the satellite or agent.
 
 Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
@@ -3447,7 +3449,7 @@ thola_identify_discover_timeouts   | **Optional.** The number of discover timeou
 
 > **Note**:
 >
-> One of the variables `thola_identify_model`, `thola_identify_os_version`, 
+> One of the variables `thola_identify_model`, `thola_identify_os_version`,
 > `thola_identify_vendor` or `thola_identify_serial_number` must be set
 
 ##### thola-memory-usage <a id="plugin-contrib-command-thola-memory-usage"></a>

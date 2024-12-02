@@ -1599,7 +1599,7 @@ A common pattern is to store the users and user groups
 on the host or service objects instead of the notification
 object itself.
 
-The sample configuration provided in [hosts.conf](04-configuration.md#hosts-conf) and [notifications.conf](notifications-conf)
+The sample configuration provided in [hosts.conf](04-configuration.md#hosts-conf) and [notifications.conf](04-configuration.md#notifications-conf)
 already provides an example for this question.
 
 > **Tip**
@@ -2729,7 +2729,7 @@ Requirements:
 * Icinga 2 as client on the remote node
 * icinga user with sudo permissions to the httpd daemon
 
-Example on CentOS 7:
+Example on RHEL:
 
 ```
 # visudo
