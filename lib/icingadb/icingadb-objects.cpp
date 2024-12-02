@@ -2828,6 +2828,7 @@ Dictionary::Ptr IcingaDB::SerializeState(const Checkable::Ptr& checkable)
 	attrs->Set("check_attempt", checkable->GetCheckAttempt());
 
 	attrs->Set("is_active", checkable->IsActive());
+	attrs->Set("affects_children", checkable->AffectsChildren());
 
 	CheckResult::Ptr cr = checkable->GetLastCheckResult();
 
