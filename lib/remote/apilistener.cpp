@@ -534,7 +534,7 @@ void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const Sha
 			auto strand (Shared<asio::io_context::strand>::Make(io));
 
 			IoEngine::SpawnCoroutine(*strand, [this, strand, sslConn, remoteEndpoint](asio::yield_context yc) {
-				Timeout::Ptr timeout (new Timeout(*strand, boost::posix_time::microseconds(int64_t(GetConnectTimeout() * 1e6)),
+				Timeout timeout (*strand, boost::posix_time::microseconds(int64_t(GetConnectTimeout() * 1e6)),
 					[sslConn, remoteEndpoint] {
 						Log(LogWarning, "ApiListener")
 							<< "Timeout while processing incoming connection from " << remoteEndpoint;
@@ -542,7 +542,7 @@ void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const Sha
 						boost::system::error_code ec;
 						sslConn->lowest_layer().cancel(ec);
 					}
-				));
+				);
 
 				NewClientHandler(yc, strand, sslConn, String(), RoleServer);
 			});
@@ -584,7 +584,7 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 
 			lock.unlock();
 
-			Timeout::Ptr timeout (new Timeout(*strand, boost::posix_time::microseconds(int64_t(GetConnectTimeout() * 1e6)),
+			Timeout timeout (*strand, boost::posix_time::microseconds(int64_t(GetConnectTimeout() * 1e6)),
 				[sslConn, endpoint, host, port] {
 					Log(LogCritical, "ApiListener")
 						<< "Timeout while reconnecting to endpoint '" << endpoint->GetName() << "' via host '" << host
@@ -593,7 +593,7 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 					boost::system::error_code ec;
 					sslConn->lowest_layer().cancel(ec);
 				}
-			));
+			);
 
 			Connect(sslConn->lowest_layer(), host, port, yc);
 
@@ -681,14 +681,14 @@ void ApiListener::NewClientHandlerInternal(
 	boost::system::error_code ec;
 
 	{
-		Timeout::Ptr handshakeTimeout (new Timeout(
+		Timeout handshakeTimeout (
 			*strand,
 			boost::posix_time::microseconds(intmax_t(Configuration::TlsHandshakeTimeout * 1000000)),
 			[client] {
 				boost::system::error_code ec;
 				client->lowest_layer().cancel(ec);
 			}
-		));
+		);
 
 		sslConn.async_handshake(role == RoleClient ? sslConn.client : sslConn.server, yc[ec]);
 	}

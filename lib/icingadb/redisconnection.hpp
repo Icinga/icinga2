@@ -222,7 +222,7 @@ namespace icinga
 		void Handshake(StreamPtr& stream, boost::asio::yield_context& yc);
 
 		template<class StreamPtr>
-		Timeout::Ptr MakeTimeout(StreamPtr& stream);
+		Timeout MakeTimeout(StreamPtr& stream);
 
 		String m_Path;
 		String m_Host;
@@ -512,9 +512,9 @@ void RedisConnection::Handshake(StreamPtr& strm, boost::asio::yield_context& yc)
  * @param stream Redis server connection
  */
 template<class StreamPtr>
-Timeout::Ptr RedisConnection::MakeTimeout(StreamPtr& stream)
+Timeout RedisConnection::MakeTimeout(StreamPtr& stream)
 {
-	return new Timeout(
+	return Timeout(
 		m_Strand,
 		boost::posix_time::microseconds(intmax_t(m_ConnectTimeout * 1000000)),
 		[stream] {
