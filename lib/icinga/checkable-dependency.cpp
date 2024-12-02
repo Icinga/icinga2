@@ -7,6 +7,14 @@
 
 using namespace icinga;
 
+/**
+ * The maximum number of dependency recursion levels allowed.
+ *
+ * This is a subjective limit how deep the dependency tree should be allowed to go, as anything beyond this level
+ * is just madness and will likely result in a stack overflow or other undefined behavior.
+ */
+static constexpr int l_MaxDependencyRecursionLevel(256);
+
 void Checkable::AddDependency(const Dependency::Ptr& dep)
 {
 	std::unique_lock<std::mutex> lock(m_DependencyMutex);
@@ -45,12 +53,9 @@ std::vector<Dependency::Ptr> Checkable::GetReverseDependencies() const
 
 bool Checkable::IsReachable(DependencyType dt, Dependency::Ptr *failedDependency, int rstack) const
 {
-	/* Anything greater than 256 causes recursion bus errors. */
-	int limit = 256;
-
-	if (rstack > limit) {
+	if (rstack > l_MaxDependencyRecursionLevel) {
 		Log(LogWarning, "Checkable")
-			<< "Too many nested dependencies (>" << limit << ") for checkable '" << GetName() << "': Dependency failed.";
+			<< "Too many nested dependencies (>" << l_MaxDependencyRecursionLevel << ") for checkable '" << GetName() << "': Dependency failed.";
 
 		return false;
 	}
@@ -145,6 +150,22 @@ std::set<Checkable::Ptr> Checkable::GetChildren() const
 	return parents;
 }
 
+/**
+ * Retrieve the total number of all the children of the current Checkable.
+ *
+ * Note, due to the max recursion limit of 256, the returned number may not reflect
+ * the actual total number of children involved in the dependency chain.
+ *
+ * @return int - Returns the total number of all the children of the current Checkable.
+ */
+size_t Checkable::GetAllChildrenCount() const
+{
+	// Are you thinking in making this more efficient? Please, don't.
+	// In order not to count the same child multiple times, we need to maintain a separate set of visited children,
+	// which is basically the same as what GetAllChildren() does. So, we're using it here!
+	return GetAllChildren().size();
+}
+
 std::set<Checkable::Ptr> Checkable::GetAllChildren() const
 {
 	std::set<Checkable::Ptr> children = GetChildren();
@@ -154,22 +175,34 @@ std::set<Checkable::Ptr> Checkable::GetAllChildren() const
 	return children;
 }
 
+/**
+ * Retrieve all direct and indirect children of the current Checkable.
+ *
+ * Note, this function performs a recursive call chain traversing all the children of the current Checkable
+ * up to a certain limit (256). When that limit is reached, it will log a warning message and abort the operation.
+ *
+ * @param children - The set of children to be filled with all the children of the current Checkable.
+ * @param level - The current level of recursion.
+ */
 void Checkable::GetAllChildrenInternal(std::set<Checkable::Ptr>& children, int level) const
 {
-	if (level > 32)
-		return;
+	if (level > l_MaxDependencyRecursionLevel) {
+		Log(LogWarning, "Checkable")
+			<< "Too many nested dependencies (>" << l_MaxDependencyRecursionLevel << ") for checkable '" << GetName() << "': aborting traversal.";
+		return ;
+	}
 
 	std::set<Checkable::Ptr> localChildren;
 
 	for (const Checkable::Ptr& checkable : children) {
-		std::set<Checkable::Ptr> cChildren = checkable->GetChildren();
-
-		if (!cChildren.empty()) {
+		if (auto cChildren(checkable->GetChildren()); !cChildren.empty()) {
 			GetAllChildrenInternal(cChildren, level + 1);
 			localChildren.insert(cChildren.begin(), cChildren.end());
 		}
 
-		localChildren.insert(checkable);
+		if (level != 0) { // Recursion level 0 is the initiator, so checkable is already in the set.
+			localChildren.insert(checkable);
+		}
 	}
 
 	children.insert(localChildren.begin(), localChildren.end());
