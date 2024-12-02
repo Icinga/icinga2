@@ -187,6 +187,11 @@ public:
 		));
 	}
 
+	Timeout(const Timeout&) = delete;
+	Timeout(Timeout&&) = delete;
+	Timeout& operator=(const Timeout&) = delete;
+	Timeout& operator=(Timeout&&) = delete;
+
 	~Timeout()
 	{
 		Cancel();
