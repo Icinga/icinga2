@@ -250,9 +250,6 @@ void JsonRpcConnection::Disconnect()
 			));
 
 			m_Stream->next_layer().async_shutdown(yc[ec]);
-
-			shutdownTimeout->Cancel();
-
 			m_Stream->lowest_layer().shutdown(m_Stream->lowest_layer().shutdown_both, ec);
 		});
 	}

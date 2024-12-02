@@ -543,7 +543,6 @@ void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const Sha
 						sslConn->lowest_layer().cancel(ec);
 					}
 				));
-				Defer cancelTimeout([timeout]() { timeout->Cancel(); });
 
 				NewClientHandler(yc, strand, sslConn, String(), RoleServer);
 			});
@@ -595,7 +594,6 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 					sslConn->lowest_layer().cancel(ec);
 				}
 			));
-			Defer cancelTimeout([&timeout]() { timeout->Cancel(); });
 
 			Connect(sslConn->lowest_layer(), host, port, yc);
 
@@ -693,8 +691,6 @@ void ApiListener::NewClientHandlerInternal(
 		));
 
 		sslConn.async_handshake(role == RoleClient ? sslConn.client : sslConn.server, yc[ec]);
-
-		handshakeTimeout->Cancel();
 	}
 
 	if (ec) {
