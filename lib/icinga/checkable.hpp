@@ -107,7 +107,9 @@ public:
 	Checkable();
 
 	std::set<Checkable::Ptr> GetParents() const;
+	int GetParentsCount() const;
 	std::set<Checkable::Ptr> GetChildren() const;
+	int GetChildrenCount() const;
 	std::set<Checkable::Ptr> GetAllChildren() const;
 	int GetAllChildrenCount(int rstack = 0) const;
 

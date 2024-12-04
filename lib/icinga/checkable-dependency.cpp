@@ -373,6 +373,25 @@ std::set<Checkable::Ptr> Checkable::GetParents() const
 	return parents;
 }
 
+/**
+ * Retrieve the total number of dependencies the current Checkable depends on.
+ *
+ * @return int - Returns the total number of dependencies for the current Checkable.
+ */
+int Checkable::GetParentsCount() const
+{
+	std::unique_lock<std::mutex> lock(m_DependencyMutex);
+
+	return std::accumulate(
+		m_Dependencies.begin(),
+		m_Dependencies.end(),
+		0,
+		[](int sum, const auto& pair) {
+			return sum + pair.second->GetMemberCount();
+		}
+	);
+}
+
 std::set<Checkable::Ptr> Checkable::GetChildren() const
 {
 	std::set<Checkable::Ptr> parents;
@@ -385,6 +404,17 @@ std::set<Checkable::Ptr> Checkable::GetChildren() const
 	}
 
 	return parents;
+}
+
+/**
+ * Retrieve the total number of child dependencies of the current Checkable.
+ *
+ * @return int - Returns the total number of dependencies that depend on the current Checkable.
+ */
+int Checkable::GetChildrenCount() const
+{
+	std::unique_lock<std::mutex> lock(m_DependencyMutex);
+	return m_ReverseDependencies.size();
 }
 
 /**
