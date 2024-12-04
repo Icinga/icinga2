@@ -3,11 +3,12 @@
 #ifndef IO_ENGINE_H
 #define IO_ENGINE_H
 
+#include "base/atomic.hpp"
 #include "base/exception.hpp"
 #include "base/lazy-init.hpp"
 #include "base/logger.hpp"
 #include "base/shared-object.hpp"
-#include <atomic>
+#include <cstdint>
 #include <exception>
 #include <memory>
 #include <thread>
@@ -135,7 +136,7 @@ private:
 	boost::asio::executor_work_guard<boost::asio::io_context::executor_type> m_KeepAlive;
 	std::vector<std::thread> m_Threads;
 	boost::asio::deadline_timer m_AlreadyExpiredTimer;
-	std::atomic_int_fast32_t m_CpuBoundSemaphore;
+	Atomic<int_fast32_t> m_CpuBoundSemaphore;
 };
 
 class TerminateIoThread : public std::exception
@@ -176,7 +177,6 @@ public:
 	{
 		Ptr keepAlive (this);
 
-		m_Cancelled.store(false);
 		m_Timer.expires_from_now(std::move(timeoutFromNow));
 
 		IoEngine::SpawnCoroutine(executor, [this, keepAlive, onTimeout](boost::asio::yield_context yc) {
@@ -207,7 +207,7 @@ public:
 
 private:
 	boost::asio::deadline_timer m_Timer;
-	std::atomic<bool> m_Cancelled;
+	Atomic<bool> m_Cancelled {false};
 };
 
 }
