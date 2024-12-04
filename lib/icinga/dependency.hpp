@@ -180,6 +180,15 @@ protected:
 
 private:
 	mutable std::mutex m_Mutex;
+	/**
+	 * This identifier is used by Icinga DB to cache the unique hash of this dependency group.
+	 *
+	 * For redundancy groups, once Icinga DB sets this identifier, it will never change again for the lifetime
+	 * of the object. For non-redundant dependency groups, this identifier is (mis)used to cache the shared edge
+	 * state ID of the group. Specifically, non-redundant dependency groups are irrelevant for Icinga DB, so since
+	 * this field isn't going to be used for anything else, we use it to cache the computed shared edge state ID.
+	 * Likewise, if that gets set, it will never change again for the lifetime of the object as well.
+	 */
 	String m_IcingaDBIdentifier;
 	String m_RedundancyGroupName;
 	MembersMap m_Members;
