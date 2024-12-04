@@ -62,7 +62,6 @@ std::vector<Type::Ptr> IcingaDB::GetTypes()
 		// Then sync them for similar reasons.
 		Downtime::TypeInstance,
 		Comment::TypeInstance,
-		Dependency::TypeInstance,
 
 		HostGroup::TypeInstance,
 		ServiceGroup::TypeInstance,
@@ -205,10 +204,18 @@ void IcingaDB::UpdateAllConfigObjects()
 	m_Rcon->FireAndForgetQuery({"XADD", "icinga:dump", "MAXLEN", "1", "*", "key", "*", "state", "wip"}, Prio::Config);
 
 	const std::vector<String> globalKeys = {
-			m_PrefixConfigObject + "customvar",
-			m_PrefixConfigObject + "action:url",
-			m_PrefixConfigObject + "notes:url",
-			m_PrefixConfigObject + "icon:image",
+		m_PrefixConfigObject + "customvar",
+		m_PrefixConfigObject + "action:url",
+		m_PrefixConfigObject + "notes:url",
+		m_PrefixConfigObject + "icon:image",
+
+		// These keys aren't tied to a specific Checkable object but apply to all of them, and as such
+		// we've to make sure to clear them before we actually start dumping the actual objects.
+		// This also allows us to wait on all the Checkables to be dumped before we send a config
+		// dump done signal for those keys.
+		m_PrefixConfigObject + "dependency:node",
+		m_PrefixConfigObject + "dependency:edge",
+		m_PrefixConfigObject + "redundancygroup",
 	};
 	DeleteKeys(m_Rcon, globalKeys, Prio::Config);
 	DeleteKeys(m_Rcon, {"icinga:nextupdate:host", "icinga:nextupdate:service"}, Prio::Config);
@@ -219,6 +226,7 @@ void IcingaDB::UpdateAllConfigObjects()
 		m_DumpedGlobals.ActionUrl.Reset();
 		m_DumpedGlobals.NotesUrl.Reset();
 		m_DumpedGlobals.IconImage.Reset();
+		m_DumpedGlobals.RedundancyGroup.Reset();
 	});
 
 	upq.ParallelFor(types, false, [this](const Type::Ptr& type) {
@@ -790,138 +798,9 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			}
 		}
 
+		InsertCheckableDependencies(checkable, hMSets, runtimeUpdate ? &runtimeUpdates : nullptr);
+
 		return;
-	}
-
-	if (type == Dependency::TypeInstance) {
-		auto& dependencyNodes (hMSets[m_PrefixConfigObject + "dependency:node"]);
-		auto& dependencyEdges (hMSets[m_PrefixConfigObject + "dependency:edge"]);
-		auto& redundancyGroups (hMSets[m_PrefixConfigObject + "redundancygroup"]);
-
-		Dependency::Ptr dependency = static_pointer_cast<Dependency>(object);
-
-		Host::Ptr parentHost, childHost;
-		Service::Ptr parentService, childService;
-		tie(parentHost, parentService) = GetHostService(dependency->GetParent());
-		tie(childHost, childService) = GetHostService(dependency->GetChild());
-		String redundancyGroup = dependency->GetRedundancyGroup();
-
-		String redundancyGroupId, dependencyNodeParentId, dependencyNodeChildId, dependencyNodeReduId;
-
-		Dictionary::Ptr parentNodeData, childNodeData;
-
-		if (parentService) {
-			dependencyNodeParentId = HashValue(new Array({
-						m_EnvironmentId,
-						GetObjectIdentifier(parentHost),
-						GetObjectIdentifier(parentService)}));
-			parentNodeData = new Dictionary({
-					{"environment_id", m_EnvironmentId},
-					{"host_id", GetObjectIdentifier(parentHost)},
-					{"service_id", GetObjectIdentifier(parentService)}});
-
-			m_CheckablesToDependencies->Set(GetObjectIdentifier(parentService), dependency);
-		} else {
-			dependencyNodeParentId = HashValue(new Array({
-						m_EnvironmentId,
-						GetObjectIdentifier(parentHost)}));
-			parentNodeData = new Dictionary({
-					{"environment_id", m_EnvironmentId},
-					{"host_id", GetObjectIdentifier(parentHost)}});
-
-			m_CheckablesToDependencies->Set(GetObjectIdentifier(parentHost), dependency);
-		}
-
-		if (childService) {
-			dependencyNodeChildId = HashValue(new Array({
-						m_EnvironmentId,
-						GetObjectIdentifier(childHost),
-						GetObjectIdentifier(childService)}));
-			childNodeData = new Dictionary({
-					{"environment_id", m_EnvironmentId},
-					{"host_id", GetObjectIdentifier(childHost)},
-					{"service_id", GetObjectIdentifier(childService)}});
-
-			m_CheckablesToDependencies->Set(GetObjectIdentifier(childService), dependency);
-		} else {
-			dependencyNodeChildId = HashValue(new Array({
-						m_EnvironmentId,
-						GetObjectIdentifier(childHost)}));
-			childNodeData = new Dictionary({
-					{"environment_id", m_EnvironmentId},
-					{"host_id", GetObjectIdentifier(childHost)}});
-
-			m_CheckablesToDependencies->Set(GetObjectIdentifier(childHost), dependency);
-		}
-
-		dependencyNodes.emplace_back(dependencyNodeParentId);
-		dependencyNodes.emplace_back(JsonEncode(parentNodeData));
-		dependencyNodes.emplace_back(dependencyNodeChildId);
-		dependencyNodes.emplace_back(JsonEncode(childNodeData));
-
-		if (runtimeUpdate) {
-			AddObjectDataToRuntimeUpdates(runtimeUpdates, dependencyNodeParentId, m_PrefixConfigObject + "dependency:node", parentNodeData);
-			AddObjectDataToRuntimeUpdates(runtimeUpdates, dependencyNodeChildId, m_PrefixConfigObject + "dependency:node", childNodeData);
-		}
-
-		if (!redundancyGroup.IsEmpty()) {
-			/* TODO: name should be suffixed with names of all children.
-			 * however, at this point I don't have this information,
-			 * only the direct neighbors.
-			 */
-			redundancyGroupId = HashValue(new Array({m_EnvironmentId, redundancyGroup, dependencyNodeChildId}));
-			dependencyNodeReduId = redundancyGroupId;
-
-			redundancyGroups.emplace_back(redundancyGroupId);
-			Dictionary::Ptr groupData = new Dictionary({
-					{"environment_id", m_EnvironmentId},
-					{"name", redundancyGroupId},
-					{"display_name", redundancyGroup}});
-			redundancyGroups.emplace_back(JsonEncode(groupData));
-
-			dependencyNodes.emplace_back(dependencyNodeReduId);
-			Dictionary::Ptr reduNodeData = new Dictionary({
-					{"environment_id", m_EnvironmentId},
-					{"redundancy_group_id", redundancyGroupId}});
-			dependencyNodes.emplace_back(JsonEncode(reduNodeData));
-
-			String edgeInId = HashValue(new Array({m_EnvironmentId, dependencyNodeChildId, dependencyNodeReduId}));
-			dependencyEdges.emplace_back(edgeInId);
-			Dictionary::Ptr edgeInData = new Dictionary({
-					{"environment_id", m_EnvironmentId},
-					{"from_node_id", dependencyNodeChildId},
-					{"to_node_id", dependencyNodeReduId}});
-			dependencyEdges.emplace_back(JsonEncode(edgeInData));
-
-			String edgeOutId = HashValue(new Array({m_EnvironmentId, dependencyNodeReduId, dependencyNodeParentId}));
-			dependencyEdges.emplace_back(edgeOutId);
-			Dictionary::Ptr edgeOutData = new Dictionary({
-					{"environment_id", m_EnvironmentId},
-					{"from_node_id", dependencyNodeReduId},
-					{"to_node_id", dependencyNodeParentId},
-					{"dependency_id", GetObjectIdentifier(dependency)}});
-			dependencyEdges.emplace_back(JsonEncode(edgeOutData));
-
-			if (runtimeUpdate) {
-				AddObjectDataToRuntimeUpdates(runtimeUpdates, redundancyGroupId, m_PrefixConfigObject + "redundancygroup", groupData);
-				AddObjectDataToRuntimeUpdates(runtimeUpdates, dependencyNodeReduId, m_PrefixConfigObject + "dependency:node", reduNodeData);
-				AddObjectDataToRuntimeUpdates(runtimeUpdates, edgeInId, m_PrefixConfigObject + "dependency:edge", edgeInData);
-				AddObjectDataToRuntimeUpdates(runtimeUpdates, edgeOutId, m_PrefixConfigObject + "dependency:edge", edgeOutData);
-			}
-		} else {
-			String edgeId = HashValue(new Array({m_EnvironmentId, dependencyNodeChildId, dependencyNodeParentId}));
-			dependencyEdges.emplace_back(edgeId);
-			Dictionary::Ptr edgeData = new Dictionary({
-					{"environment_id", m_EnvironmentId},
-					{"from_node_id", dependencyNodeChildId},
-					{"to_node_id", dependencyNodeParentId},
-					{"dependency_id", GetObjectIdentifier(dependency)}});
-			dependencyEdges.emplace_back(JsonEncode(edgeData));
-
-			if (runtimeUpdate) {
-				AddObjectDataToRuntimeUpdates(runtimeUpdates, edgeId, m_PrefixConfigObject + "dependency:edge", edgeData);
-			}
-		}
 	}
 
 	if (type == TimePeriod::TypeInstance) {
@@ -1254,44 +1133,105 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 	}
 }
 
-void IcingaDB::UpdateDependencyState(const Dependency::Ptr& dependency)
+void IcingaDB::InsertCheckableDependencies(const Checkable::Ptr& checkable, std::map<String, RedisConnection::Query>& hMSets,
+		std::vector<Dictionary::Ptr>* runtimeUpdates)
 {
-	if (!m_Rcon || !m_Rcon->IsConnected()) {
+	auto redundancyGroups(checkable->GetRedundancyGroups());
+	if (redundancyGroups.empty() && checkable->GetReverseDependencies().empty()) {
+		// Only generate a dependency node event if the Checkable is actually part of some dependency graph.
+		// That's, it either depends on other Checkables or others depend on it, and in both cases, we have
+		// to at least generate a dependency node entry for it.
 		return;
 	}
 
-	auto& redundancyGroupStates (hMSets[m_PrefixConfigObject + "redundancygroup:state"]);
+	auto& hmsetDependencyNodes(hMSets[m_PrefixConfigObject + "dependency:node"]);
+	auto& hmsetDependencyEdges(hMSets[m_PrefixConfigObject + "dependency:edge"]);
+	auto& hmsetRedundancyGroups(hMSets[m_PrefixConfigObject + "redundancygroup"]);
 
-	String redundancyGroup = dependency->GetRedundancyGroup();
+	auto [host, service] = GetHostService(checkable);
+	auto checkableId(GetObjectIdentifier(checkable));
+	{
+		Dictionary::Ptr data(new Dictionary{{"environment_id", m_EnvironmentId}, {"host_id", GetObjectIdentifier(host)}});
+		if (service) {
+			data->Set("service_id", checkableId);
+		}
 
-	if (!redundancyGroup.IsEmpty()) {
-		Host::Ptr childHost;
-		Service::Ptr childService;
-		tie(childHost, childService) = GetHostService(dependency->GetChild());
+		hmsetDependencyNodes.emplace_back(checkableId);
+		hmsetDependencyNodes.emplace_back(JsonEncode(data));
+		if (runtimeUpdates) {
+			AddObjectDataToRuntimeUpdates(*runtimeUpdates, checkableId, m_PrefixConfigObject + "dependency:node", data);
+		}
+	}
 
-		String dependencyNodeChildId = HashValue(
-					(childService)
-					? new Array({ m_EnvironmentId, GetObjectIdentifier(childHost), GetObjectIdentifier(childService) })
-					: new Array({ m_EnvironmentId, GetObjectIdentifier(childHost) }));
-		String redundancyGroupId = HashValue(new Array({
-					m_EnvironmentId,
-					redundancyGroup,
-					dependencyNodeChildId}));
+	for (auto& redundancyGroup : redundancyGroups) {
+		String redundancyGroupId(redundancyGroup->GetIcingaDBIdentifier());
+		if (!redundancyGroup->IsDefault()) {
+			redundancyGroupId = HashValue(new Array{m_EnvironmentId, redundancyGroup->GetCompositeKey()});
+			redundancyGroup->SetIcingaDBIdentifier(redundancyGroupId);
 
-		redundancyGroupStates.emplace_back(redundancyGroupId);
-		Dictionary::Ptr groupStateData = new Dictionary({
+			// Sync redundancy group information only once unless it's a runtime update.
+			if (runtimeUpdates || m_DumpedGlobals.RedundancyGroup.IsNew(redundancyGroupId)) {
+				Dictionary::Ptr groupData(new Dictionary{{"environment_id", m_EnvironmentId}, {"name", redundancyGroup->GetName()}});
+				hmsetRedundancyGroups.emplace_back(redundancyGroupId);
+				hmsetRedundancyGroups.emplace_back(JsonEncode(groupData));
+
+				Dictionary::Ptr nodeData(new Dictionary{
+					{"environment_id", m_EnvironmentId},
+					{"redundancy_group_id", redundancyGroupId},
+				});
+
+				hmsetDependencyNodes.emplace_back(redundancyGroupId);
+				hmsetDependencyNodes.emplace_back(JsonEncode(nodeData));
+
+				if (runtimeUpdates) {
+					AddObjectDataToRuntimeUpdates(*runtimeUpdates, redundancyGroupId, m_PrefixConfigObject + "redundancygroup", groupData);
+					AddObjectDataToRuntimeUpdates(*runtimeUpdates, redundancyGroupId, m_PrefixConfigObject + "dependency:node", nodeData);
+				}
+			}
+
+			Dictionary::Ptr data(new Dictionary{
 				{"environment_id", m_EnvironmentId},
-				{"redundancy_group_id", redundancyGroupId},
-				{"failed", !((childService) ? childService->IsReachable() : childHost->IsReachable())},
-				{"last_state_change", TimestampToMilliseconds(Utility::GetTime())}});
-		redundancyGroupStates.emplace_back(JsonEncode(groupStateData));
+				{"from_node_id", checkableId},
+				{"to_node_id", redundancyGroupId},
+				// All redundancy group members share the same state, thus use the group ID as a reference.
+				{"dependency_edge_state_id", redundancyGroupId},
+				{"display_name", redundancyGroup->GetName()},
+			});
 
-		// TODO
-		// AddObjectDataToRuntimeUpdates(runtimeUpdates, redundancyGroupId, m_PrefixConfigObject + "redundancygroup:state", groupStateData);
-		// dataClone->Set("id", objectKey); 		// redundancyGroupId
-		// dataClone->Set("redis_key", redisKey); 	// m_PrefixConfigObject + "redundancygroup:state"
-		// dataClone->Set("runtime_type", "upsert");
-		// runtimeUpdates.emplace_back(dataClone);
+			auto edgeId(HashValue(new Array{checkableId, redundancyGroupId}));
+			hmsetDependencyEdges.emplace_back(edgeId);
+			hmsetDependencyEdges.emplace_back(JsonEncode(data));
+
+			if (runtimeUpdates) {
+				AddObjectDataToRuntimeUpdates(*runtimeUpdates, edgeId, m_PrefixConfigObject + "dependency:edge", data);
+			}
+		}
+
+		for (auto& dependency : redundancyGroup->GetMembers(checkable.get())) {
+			auto dependencyId(GetObjectIdentifier(dependency));
+			Checkable::Ptr child(dependency->GetChild());
+			Dictionary::Ptr data(new Dictionary{
+				{"environment_id", m_EnvironmentId},
+				{"from_node_id", redundancyGroup->IsDefault() ? GetObjectIdentifier(child) : redundancyGroupId},
+				{"to_node_id", GetObjectIdentifier(dependency->GetParent())},
+				{"display_name", dependency->GetShortName()},
+			});
+
+			Array::Ptr edgeIdData(new Array{data->Get("from_node_id"), data->Get("to_node_id")});
+			if (redundancyGroup->IsDefault()) {
+				edgeIdData->Add(dependencyId);
+			}
+
+			String edgeId(HashValue(edgeIdData));
+			data->Set("dependency_edge_state_id", edgeId);
+
+			hmsetDependencyEdges.emplace_back(edgeId);
+			hmsetDependencyEdges.emplace_back(JsonEncode(data));
+
+			if (runtimeUpdates) {
+				AddObjectDataToRuntimeUpdates(*runtimeUpdates, edgeId, m_PrefixConfigObject + "dependency:edge", data);
+			}
+		}
 	}
 }
 
@@ -1624,32 +1564,6 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 
 		if (expireTime > 0) {
 			attributes->Set("expire_time", TimestampToMilliseconds(expireTime));
-		}
-
-		return true;
-	}
-
-	if (type == Dependency::TypeInstance) {
-		Dependency::Ptr dependency = static_pointer_cast<Dependency>(object);
-		String redundancyGroup = dependency->GetRedundancyGroup();
-
-		attributes->Set("name", GetObjectIdentifier(dependency));
-
-		if (!redundancyGroup.IsEmpty()) {
-			Host::Ptr childHost;
-			Service::Ptr childService;
-			tie(childHost, childService) = GetHostService(dependency->GetChild());
-
-			String dependencyNodeChildId = HashValue(
-						(childService)
-						? new Array({ m_EnvironmentId, GetObjectIdentifier(childHost), GetObjectIdentifier(childService) })
-						: new Array({ m_EnvironmentId, GetObjectIdentifier(childHost) }));
-			String redundancyGroupId = HashValue(new Array({
-						m_EnvironmentId,
-						redundancyGroup,
-						dependencyNodeChildId}));
-
-			attributes->Set("redundancy_group_id", redundancyGroupId);
 		}
 
 		return true;
