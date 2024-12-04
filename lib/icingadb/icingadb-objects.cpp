@@ -216,7 +216,9 @@ void IcingaDB::UpdateAllConfigObjects()
 		// dump done signal for those keys.
 		m_PrefixConfigObject + "dependency:node",
 		m_PrefixConfigObject + "dependency:edge",
+		m_PrefixConfigObject + "dependency:state",
 		m_PrefixConfigObject + "redundancygroup",
+		m_PrefixConfigObject + "redundancygroup:state",
 	};
 	DeleteKeys(m_Rcon, globalKeys, Prio::Config);
 	DeleteKeys(m_Rcon, {"icinga:nextupdate:host", "icinga:nextupdate:service"}, Prio::Config);
@@ -1178,7 +1180,7 @@ void IcingaDB::InsertCheckableDependencies(const Checkable::Ptr& checkable, std:
 
 				// Sync redundancy group information only once unless it's a runtime update.
 				if (runtimeUpdates || m_DumpedGlobals.RedundancyGroup.IsNew(redundancyGroupId)) {
-					Dictionary::Ptr groupData (new Dictionary{{"environment_id", m_EnvironmentId}, {"name", redundancyGroup->GetName()}});
+					Dictionary::Ptr groupData (SerializeRedundancyGroup(redundancyGroup));
 					hmsetRedundancyGroups.emplace_back(redundancyGroupId);
 					hmsetRedundancyGroups.emplace_back(JsonEncode(groupData));
 
@@ -1291,6 +1293,143 @@ void IcingaDB::UpdateState(const Checkable::Ptr& checkable, StateUpdate mode)
 		}
 
 		m_Rcon->FireAndForgetQuery(std::move(streamadd), Prio::RuntimeStateStream, {0, 1});
+	}
+
+	UpdateDependenciesState(checkable, mode);
+}
+
+/**
+ * Send dependencies state information of the given Checkable to Redis.
+ *
+ * The mode parameter loosely controls how and which states are sent to Redis.
+ *  - Volatile: Check each dependency object of the specified Checkable for its configuration before sending
+ *    the state update. For instance, if the dependency is configured to ignore soft state changes, its state
+ *    should not be different from the previous ones and will therefore not be sent to Redis.
+ *  - RuntimeOnly: Performs an additional check to the one above and ignores dependency objects that are not within
+ *    their time period. Once the dependencies pass all the necessary checks, these two mods only send the state
+ *    information to the icinga:runtime:state Redis stream via XADD.
+ *  - Full: Perform a full state update ignoring all the above mentioned checks. Additionally, set the same
+ *    state information that is streamed into the pipeline to the Redis keys icinga:{dependency,redundancygroup}:state
+ *    as well.
+ *
+ * @param checkable The Checkable you want to send the dependencies state update for
+ * @param mode The type of operation you want to perform (Volatile, RuntimeOnly, or Full)
+ */
+void IcingaDB::UpdateDependenciesState(const Checkable::Ptr& checkable, StateUpdate mode) const
+{
+	if (!m_Rcon || !m_Rcon->IsConnected()) {
+		return;
+	}
+
+	if (auto redundancyGroups (checkable->GetRedundancyGroups()); !redundancyGroups.empty()) {
+		RedisConnection::Query hmsetDepState{"HMSET", m_PrefixConfigObject + "dependency:state"};
+		RedisConnection::Query hmsetGroupState{"HMSET", m_PrefixConfigObject + "redundancygroup:state"};
+
+		RedisConnection::Query xAddGroup, xAddDep;
+		auto now (Utility::GetTime());
+
+		for (auto& [name, redundancyGroup]: redundancyGroups) {
+			RedundancyGroup::State groupState(RedundancyGroup::State::Reachable);
+			if (!RedundancyGroup::IsDefault(name)) {
+				if (redundancyGroup->GetIcingaDBIdentifier().IsEmpty()) {
+					// Way too soon! The Icinga DB hash will be set during the initial config dump, but this state
+					// update seems to occur way too early. So, we've to skip it for now and wait for the next one.
+					// The m_ConfigDumpInProgress flag is probably still set to true at this point!
+					continue;
+				}
+
+				groupState = redundancyGroup->GetState();
+			}
+
+			for (auto dependency: redundancyGroup->GetMembers()) {
+				if (!(mode & StateUpdate::RuntimeOnly) && dependency->GetIgnoreSoftStates()) {
+					// Someone requested a volatile state update, but the dependency is configured to
+					// ignore soft state changes, so avoid sending useless state information.
+					continue;
+				}
+
+				auto tp (dependency->GetPeriod());
+				if (mode != StateUpdate::Full && tp && !tp->IsInside(now)) {
+					// When the dependency is outside its time period, and we're not performing a full
+					// state update, we don't need to send any updates as it should always be reachable.
+					continue;
+				}
+
+				auto stateAttrs (SerializeDependencyState(dependency, groupState));
+				if (mode == StateUpdate::Full) {
+					// Actually we wouldn't need to send state updates via HMSET for dependency states here,
+					// as we're going to stream them via the runtime:state pipeline anyway. However, if we
+					// don't do this, Icinga DB is going to remove them from the DB and reinsert them again
+					// with each config dump. So, we've to refresh the non-stream keys regularly!
+					hmsetDepState.emplace_back(GetObjectIdentifier(dependency));
+					hmsetDepState.emplace_back(JsonEncode(stateAttrs));
+				}
+
+				ObjectLock olock(stateAttrs);
+				for (auto& [key, value]: stateAttrs) {
+					xAddDep.emplace_back(key);
+					xAddDep.emplace_back(IcingaToStreamValue(value));
+				}
+			}
+
+			if (!RedundancyGroup::IsDefault(name)) {
+				Dictionary::Ptr stateAttrs (SerializeRedundancyGroup(redundancyGroup, true));
+
+				if (mode == StateUpdate::Full) {
+					// Same as above, we've to refresh the group state information regularly to prevent
+					// Icinga DB from removing and reinserting them with each config dump.
+					hmsetGroupState.emplace_back(redundancyGroup->GetIcingaDBIdentifier());
+					hmsetGroupState.emplace_back(JsonEncode(stateAttrs));
+				}
+
+				ObjectLock olock(stateAttrs);
+				for (auto& [key, value]: stateAttrs) {
+					xAddGroup.emplace_back(key);
+					xAddGroup.emplace_back(IcingaToStreamValue(value));
+				}
+			}
+		}
+
+		if (mode == StateUpdate::Full) {
+			RedisConnection::Queries hmsets;
+
+			if (hmsetGroupState.size() > 2 /* 2 represents HMSET + redisKey from its initialization. */) {
+				hmsets.emplace_back(std::move(hmsetGroupState));
+			}
+
+			if (hmsetDepState.size() > 2 /* 2 represents HMSET + redisKey from its initialization. */) {
+				hmsets.emplace_back(std::move(hmsetDepState));
+			}
+
+			if (!hmsets.empty()) {
+				m_Rcon->FireAndForgetQueries(std::move(hmsets), Prio::RuntimeStateSync);
+			}
+		}
+
+		RedisConnection::Queries xAdds;
+		// If we don't have any explicitly configured redundancy groups, we don't need to stream the group
+		// state information, otherwise Icinga DB is going to crash due to incomplete pipeline information.
+		if (!xAddGroup.empty()) {
+			RedisConnection::Query streamGroup{
+				"XADD", "icinga:runtime:state", "MAXLEN", "~", "1000000", "*", "runtime_type", "upsert",
+				"redis_key", m_PrefixConfigObject + "redundancygroup:state"
+			};
+			std::move(xAddGroup.begin(), xAddGroup.end(), std::back_inserter(streamGroup));
+			xAdds.emplace_back(std::move(streamGroup));
+		}
+
+		if (!xAddDep.empty()) {
+			RedisConnection::Query streamDep{
+				"XADD", "icinga:runtime:state", "MAXLEN", "~", "1000000", "*", "runtime_type", "upsert",
+				"redis_key", m_PrefixConfigObject + "dependency:state"
+			};
+			std::move(xAddDep.begin(), xAddDep.end(), std::back_inserter(streamDep));
+			xAdds.emplace_back(std::move(streamDep));
+		}
+
+		if (!xAdds.empty()) {
+			m_Rcon->FireAndForgetQueries(std::move(xAdds), Prio::RuntimeStateStream, {0, 1});
+		}
 	}
 }
 

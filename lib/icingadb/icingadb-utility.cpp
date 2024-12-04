@@ -159,6 +159,58 @@ Dictionary::Ptr IcingaDB::SerializeVars(const Dictionary::Ptr& vars)
 	return res;
 }
 
+/**
+ * Serialize a dependency state for Icinga DB
+ *
+ * @param dependency The dependency object to serialize.
+ * @param state The state of the redundancy group the dependency is part of.
+ *
+ * @return A dictionary with the serialized state.
+ */
+Dictionary::Ptr IcingaDB::SerializeDependencyState(const Dependency::Ptr& dependency, RedundancyGroup::State state)
+{
+	auto dependencyId(GetObjectIdentifier(dependency));
+
+	bool dependencyFailed (!(state & RedundancyGroup::State::Reachable));
+	if (!dependencyFailed) {
+		dependencyFailed = !dependency->IsAvailable(DependencyState) || !dependency->GetParent()->IsReachable();
+	}
+
+	Dictionary::Ptr stateAttrs (new Dictionary{
+		{"id", dependencyId},
+		{"environment_id", m_EnvironmentId},
+		{"dependency_id", dependencyId},
+		{"failed", dependencyFailed},
+	});
+
+	return stateAttrs;
+}
+
+/**
+ * Serialize the provided redundancy group or its state attributes.
+ *
+ * @param redundancyGroup The redundancy group object to serialize.
+ * @param serializeState Whether to serialize the state of the redundancy group.
+ *
+ * @return A dictionary with the serialized redundancy group.
+ */
+Dictionary::Ptr IcingaDB::SerializeRedundancyGroup(const Shared<RedundancyGroup>::Ptr& redundancyGroup, bool serializeState)
+{
+	if (serializeState) {
+		auto state(redundancyGroup->GetState());
+		return new Dictionary{
+			{"id", redundancyGroup->GetIcingaDBIdentifier()},
+			{"environment_id", m_EnvironmentId},
+			{"redundancy_group_id", redundancyGroup->GetIcingaDBIdentifier()},
+			{"failed", static_cast<bool>(state & RedundancyGroup::State::Failed)},
+			{"is_reachable", static_cast<bool>(state & RedundancyGroup::State::Reachable)},
+			{"last_state_change", TimestampToMilliseconds(Utility::GetTime())},
+		};
+	}
+
+	return new Dictionary{{"environment_id", m_EnvironmentId}, {"name", redundancyGroup->GetName()}};
+}
+
 const char* IcingaDB::GetNotificationTypeByEnum(NotificationType type)
 {
 	switch (type) {
