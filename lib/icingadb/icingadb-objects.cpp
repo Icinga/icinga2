@@ -607,6 +607,8 @@ std::vector<String> IcingaDB::GetTypeOverwriteKeys(const String& type)
 
 		keys.emplace_back(m_PrefixConfigObject + "dependency:node");
 		keys.emplace_back(m_PrefixConfigObject + "dependency:edge");
+		keys.emplace_back(m_PrefixConfigObject + "dependency:state");
+		keys.emplace_back(m_PrefixConfigObject + "redundancy_group:state");
 	} else if (type == "timeperiod") {
 		keys.emplace_back(m_PrefixConfigObject + type + ":override:include");
 		keys.emplace_back(m_PrefixConfigObject + type + ":override:exclude");
@@ -640,6 +642,8 @@ std::vector<String> IcingaDB::GetTypeDumpSignalKeys(const Type::Ptr& type)
 
 		keys.emplace_back(m_PrefixConfigObject + "dependency:node");
 		keys.emplace_back(m_PrefixConfigObject + "dependency:edge");
+		keys.emplace_back(m_PrefixConfigObject + "dependency:state");
+		keys.emplace_back(m_PrefixConfigObject + "redundancy_group:state");
 	} else if (type == User::TypeInstance) {
 		keys.emplace_back(m_PrefixConfigObject + lcType + "group:member");
 	} else if (type == TimePeriod::TypeInstance) {
@@ -1267,6 +1271,88 @@ void IcingaDB::UpdateState(const Checkable::Ptr& checkable, StateUpdate mode)
 		}
 
 		m_Rcon->FireAndForgetQuery(std::move(streamadd), Prio::RuntimeStateStream, {0, 1});
+	}
+
+	// We've to always send a runtime update for the dependencies, as they don't have any volatile state information.
+	UpdateDependenciesState(checkable);
+}
+
+/**
+ * Send dependencies state information of the given Checkable to Redis.
+ *
+ * It streams the corresponding state info of the individual dependencies to the icinga:runtime:state Redis pipeline.
+ * Since dependencies don't have any volatile state information, this won't write any volatile states to Redis.
+ *
+ * @param checkable The Checkable you want to send the dependencies state update for
+ */
+void IcingaDB::UpdateDependenciesState(const Checkable::Ptr& checkable) const
+{
+	if (!m_Rcon || !m_Rcon->IsConnected()) {
+		return;
+	}
+
+	if (auto depGroups (checkable->GetGroupedDependencies()); !depGroups.empty()) {
+		auto redisDependencyStateKey (m_PrefixConfigObject + "dependency:state");
+		auto redisRedundancyGroupStateKey (m_PrefixConfigObject + "redundancy_group:state");
+
+		RedisConnection::Queries queries;
+		for (auto [redundancyGroup, deps]: depGroups) {
+			DependencyGroupState groupState(DependencyGroupState::Reachable);
+			if (!Checkable::IsDefaultRedundancyGroup(redundancyGroup)) {
+				groupState = checkable->GetRedundancyGroupState(redundancyGroup);
+				auto groupId(GetRedundancyGroupIdentifier(redundancyGroup, deps));
+
+				Dictionary::Ptr stateAttrs (new Dictionary({
+					{"id", groupId},
+					{"environment_id", m_EnvironmentId},
+					{"redundancy_group_id", groupId},
+					{"failed", static_cast<bool>(groupState & DependencyGroupState::Failed)},
+					{"is_reachable", static_cast<bool>(groupState & DependencyGroupState::Reachable)},
+				}));
+
+				auto xAddGroup (RedisConnection::Query({
+					"XADD", "icinga:runtime:state", "MAXLEN", "~", "1000000", "*",
+					"runtime_type", "upsert",
+					"redis_key", redisRedundancyGroupStateKey,
+					"checksum", HashValue(stateAttrs),
+				}));
+
+				ObjectLock olock(stateAttrs);
+				for (auto& [key, value] : stateAttrs) {
+					xAddGroup.emplace_back(key);
+					xAddGroup.emplace_back(IcingaToStreamValue(value));
+				}
+
+				queries.emplace_back(std::move(xAddGroup));
+			}
+
+			for (const auto& dependency: deps) {
+				auto dependencyId(GetObjectIdentifier(dependency));
+				Dictionary::Ptr stateAttrs (new Dictionary({
+					{"id", dependencyId},
+					{"environment_id", m_EnvironmentId},
+					{"dependency_id", dependencyId},
+					{"failed", static_cast<bool>(groupState & DependencyGroupState::Reachable) && !dependency->IsAvailable(DependencyState)},
+				}));
+
+				auto xAddDep (RedisConnection::Query({
+					"XADD", "icinga:runtime:state", "MAXLEN", "~", "1000000", "*",
+					"runtime_type", "upsert",
+					"redis_key", redisDependencyStateKey,
+					"checksum", HashValue(stateAttrs),
+				}));
+
+				ObjectLock olock(stateAttrs);
+				for (auto& [key, value] : stateAttrs) {
+					xAddDep.emplace_back(key);
+					xAddDep.emplace_back(IcingaToStreamValue(value));
+				}
+
+				queries.emplace_back(std::move(xAddDep));
+			}
+		}
+
+		m_Rcon->FireAndForgetQueries(std::move(queries), Prio::RuntimeStateStream, {0, 1});
 	}
 }
 
