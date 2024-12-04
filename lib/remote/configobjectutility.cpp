@@ -303,7 +303,7 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bool cascade,
 	const Array::Ptr& errors, const Array::Ptr& diagnosticInformation, const Value& cookie)
 {
-	std::vector<Object::Ptr> parents = DependencyGraph::GetParents(object);
+	auto parents (DependencyGraph::GetChildren(object));
 
 	Type::Ptr type = object->GetReflectionType();
 

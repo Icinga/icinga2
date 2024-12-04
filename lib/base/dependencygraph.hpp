@@ -18,9 +18,9 @@ namespace icinga {
 class DependencyGraph
 {
 public:
-	static void AddDependency(Object *parent, Object *child);
-	static void RemoveDependency(Object *parent, Object *child);
-	static std::vector<Object::Ptr> GetParents(const Object::Ptr& child);
+	static void AddDependency(Object* child, Object* parent);
+	static void RemoveDependency(Object* child, Object* parent);
+	static std::vector<Object::Ptr> GetChildren(const Object::Ptr& parent);
 
 private:
 	DependencyGraph();
