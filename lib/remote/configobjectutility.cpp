@@ -303,7 +303,7 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bool cascade,
 	const Array::Ptr& errors, const Array::Ptr& diagnosticInformation, const Value& cookie)
 {
-	std::vector<Object::Ptr> parents = DependencyGraph::GetParents(object);
+	auto parents (DependencyGraph::GetChildren(object));
 
 	Type::Ptr type = object->GetReflectionType();
 
@@ -319,12 +319,7 @@ bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bo
 		return false;
 	}
 
-	for (const Object::Ptr& pobj : parents) {
-		ConfigObject::Ptr parentObj = dynamic_pointer_cast<ConfigObject>(pobj);
-
-		if (!parentObj)
-			continue;
-
+	for (auto& parentObj : parents) {
 		DeleteObjectHelper(parentObj, cascade, errors, diagnosticInformation, cookie);
 	}
 
