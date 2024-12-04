@@ -90,6 +90,15 @@ private:
 		Full        = Volatile | RuntimeOnly,
 	};
 
+	enum class RedisKey : uint8_t
+	{
+		RedundancyGroup,
+		DependencyNode,
+		DependencyEdge,
+		RedundancyGroupState,
+		DependencyEdgeState,
+	};
+
 	void OnConnectedHandler();
 
 	void PublishStatsTimerHandler();
@@ -101,9 +110,10 @@ private:
 	void DeleteKeys(const RedisConnection::Ptr& conn, const std::vector<String>& keys, RedisConnection::QueryPriority priority);
 	std::vector<String> GetTypeOverwriteKeys(const String& type);
 	std::vector<String> GetTypeDumpSignalKeys(const Type::Ptr& type);
+	void InsertCheckableDependencies(const Checkable::Ptr& checkable, std::map<String, RedisConnection::Query>& hMSets,
+			std::vector<Dictionary::Ptr>* runtimeUpdates);
 	void InsertObjectDependencies(const ConfigObject::Ptr& object, const String typeName, std::map<String, std::vector<String>>& hMSets,
 			std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate);
-	void UpdateDependencyState(const Dependency::Ptr& dependency);
 	void UpdateState(const Checkable::Ptr& checkable, StateUpdate mode);
 	void SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpdate);
 	void CreateConfigUpdate(const ConfigObject::Ptr& object, const String type, std::map<String, std::vector<String>>& hMSets,
@@ -113,6 +123,7 @@ private:
 	void AddObjectDataToRuntimeUpdates(std::vector<Dictionary::Ptr>& runtimeUpdates, const String& objectKey,
 			const String& redisKey, const Dictionary::Ptr& data);
 	void DeleteRelationship(const String& id, const String& redisKeyWithoutPrefix, bool hasChecksum = false);
+	void AddDataToHmSets(std::map<String, RedisConnection::Query>& hMSets, RedisKey redisKey, const String& id, const Dictionary::Ptr& data) const;
 
 	void SendSentNotification(
 		const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::set<User::Ptr>& users,
@@ -225,10 +236,8 @@ private:
 	std::unordered_map<ConfigType*, RedisConnection::Ptr> m_Rcons;
 	std::atomic_size_t m_PendingRcons;
 
-	Dictionary::Ptr m_CheckablesToDependencies;
-
 	struct {
-		DumpedGlobals CustomVar, ActionUrl, NotesUrl, IconImage;
+		DumpedGlobals CustomVar, ActionUrl, NotesUrl, IconImage, DependencyGroup;
 	} m_DumpedGlobals;
 
 	// m_EnvironmentId is shared across all IcingaDB objects (typically there is at most one, but it is perfectly fine
