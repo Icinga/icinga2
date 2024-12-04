@@ -213,6 +213,35 @@ bool Checkable::AffectsChildren() const
 	return false;
 }
 
+/**
+ * Determine the state of the given redundancy group.
+ *
+ * @param redundancyGroup The name of the redendancy group you wnat determine the state for.
+ *
+ * @return DependencyGroupState - Returns the state of the given redundancy group.
+ */
+DependencyGroupState Checkable::GetRedundancyGroupState(const String& redundancyGroup) const
+{
+	if (! IsDefaultRedundancyGroup(redundancyGroup)) {
+		// TODO(TBD): How should we query the other members of given redundancy group for their state?
+		//   For now, the group state is determined based only on the current Checkable state.
+		if (auto deps(GetRedundancyGroupMembers(redundancyGroup)); !deps.empty()) {
+			std::set<Checkable::Ptr> children;
+			for (const Dependency::Ptr& dep: deps) {
+				if (!dep->GetParent()->IsReachable()) {
+					return DependencyGroupState::Unreachable;
+				}
+			}
+
+			// Since we're the child of all the dependencies above, we can mark the
+			// group as failed if we're not reachable.
+			return !IsReachable() ? DependencyGroupState::Failed : DependencyGroupState::Reachable;
+		}
+	}
+
+	return DependencyGroupState::Unknown;
+}
+
 std::set<Checkable::Ptr> Checkable::GetParents() const
 {
 	std::set<Checkable::Ptr> parents;

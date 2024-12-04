@@ -33,6 +33,17 @@ enum DependencyType
 };
 
 /**
+* @ingroup icinga
+*/
+enum DependencyGroupState
+{
+	Unknown = 1ull << 0,
+	Failed = 1ull << 1,
+	Unreachable = 1ull << 2,
+	Reachable = 1ull << 3,
+};
+
+/**
  * Checkable Types
  *
  * @ingroup icinga
@@ -188,6 +199,7 @@ public:
 	std::vector<intrusive_ptr<Dependency> > GetDependencies() const;
 	std::map<String, std::set<intrusive_ptr<Dependency>>> GetGroupedDependencies() const;
 	std::set<intrusive_ptr<Dependency>> GetRedundancyGroupMembers(const String& redundancyGroup) const;
+	DependencyGroupState GetRedundancyGroupState(const String& redundancyGroup) const;
 
 	static bool IsDefaultRedundancyGroup(const String& group);
 
