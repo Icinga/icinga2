@@ -814,7 +814,14 @@ public:
 	FunctionExpression(String name, std::vector<String> args,
 		std::map<String, std::unique_ptr<Expression> >&& closedVars, std::unique_ptr<Expression> expression, const DebugInfo& debugInfo = DebugInfo())
 		: DebuggableExpression(debugInfo), m_Name(std::move(name)), m_Args(std::move(args)), m_ClosedVars(std::move(closedVars)), m_Expression(expression.release())
-	{ }
+	{
+		auto closedThis (m_ClosedVars.find("this"));
+
+		if (closedThis != m_ClosedVars.end()) {
+			m_ClosedThis = std::move(closedThis->second);
+			m_ClosedVars.erase(closedThis);
+		}
+	}
 
 protected:
 	ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
@@ -823,6 +830,7 @@ private:
 	String m_Name;
 	std::vector<String> m_Args;
 	std::map<String, std::unique_ptr<Expression> > m_ClosedVars;
+	std::unique_ptr<Expression> m_ClosedThis;
 	Expression::Ptr m_Expression;
 };
 
