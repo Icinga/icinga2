@@ -219,6 +219,9 @@ public:
 	void AddDependency(const intrusive_ptr<Dependency>& dep);
 	void RemoveDependency(const intrusive_ptr<Dependency>& dep);
 	std::vector<intrusive_ptr<Dependency> > GetDependencies() const;
+	std::map<String, std::set<intrusive_ptr<Dependency>>> GetGroupedDependencies() const;
+
+	static bool IsDefaultRedundancyGroup(const String& group);
 
 	void AddReverseDependency(const intrusive_ptr<Dependency>& dep);
 	void RemoveReverseDependency(const intrusive_ptr<Dependency>& dep);
@@ -278,7 +281,7 @@ private:
 
 	/* Dependencies */
 	mutable std::mutex m_DependencyMutex;
-	std::set<intrusive_ptr<Dependency> > m_Dependencies;
+	std::unordered_map<String, Shared<RedundancyGroup>::Ptr> m_Dependencies;
 	std::set<intrusive_ptr<Dependency> > m_ReverseDependencies;
 
 	void GetAllChildrenInternal(std::set<Checkable::Ptr>& children, int level = 0) const;

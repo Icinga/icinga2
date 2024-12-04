@@ -3,6 +3,7 @@
 #include "icinga/service.hpp"
 #include "icinga/dependency.hpp"
 #include "base/logger.hpp"
+#include "base/utility.hpp"
 #include <unordered_map>
 #include <numeric>
 
@@ -172,19 +173,41 @@ String RedundancyGroup::GetUniqueName() const
 void Checkable::AddDependency(const Dependency::Ptr& dep)
 {
 	std::unique_lock<std::mutex> lock(m_DependencyMutex);
-	m_Dependencies.insert(dep);
+	auto group(dep->GetRedundancyGroup().IsEmpty() ? l_DefaultRedundancyGroup : dep->GetRedundancyGroup());
+	if (auto it (m_Dependencies.find(group)); it != m_Dependencies.end()) {
+		it->second->AddMember(dep);
+	} else {
+		m_Dependencies.emplace(group, Shared<RedundancyGroup>::Make(group, dep));
+	}
 }
 
 void Checkable::RemoveDependency(const Dependency::Ptr& dep)
 {
 	std::unique_lock<std::mutex> lock(m_DependencyMutex);
-	m_Dependencies.erase(dep);
+	auto group(dep->GetRedundancyGroup().IsEmpty() ? l_DefaultRedundancyGroup : dep->GetRedundancyGroup());
+	if (auto it(m_Dependencies.find(group)); it != m_Dependencies.end()) {
+		it->second->RemoveMember(dep);
+
+		if (!it->second->HasMembers()) {
+			m_Dependencies.erase(group);
+		}
+	}
 }
 
 std::vector<Dependency::Ptr> Checkable::GetDependencies() const
 {
 	std::unique_lock<std::mutex> lock(m_DependencyMutex);
-	return std::vector<Dependency::Ptr>(m_Dependencies.begin(), m_Dependencies.end());
+	return std::accumulate(
+		m_Dependencies.begin(),
+		m_Dependencies.end(),
+		std::vector<Dependency::Ptr>(),
+		[](std::vector<Dependency::Ptr>& acc, const auto& pair) {
+			auto members(pair.second->GetMembers());
+			acc.insert(acc.end(), members.begin(), members.end());
+
+			return acc;
+		}
+	);
 }
 
 void Checkable::AddReverseDependency(const Dependency::Ptr& dep)
