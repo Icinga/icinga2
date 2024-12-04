@@ -2,6 +2,7 @@
 
 #include "base/logger.hpp"
 #include "base/object-packer.hpp"
+#include "base/utility.hpp"
 #include "icinga/dependency.hpp"
 #include "icinga/service.hpp"
 #include <unordered_map>
@@ -256,22 +257,80 @@ String RedundancyGroup::GetCompositeKey() const
 	return PackObject(data);
 }
 
+/**
+ * Retrieve the Icinga DB identifier of the provided redundancy group (if any).
+ *
+ * @param redundancyGroup The name of the redundancy group.
+ *
+ * @return RedundancyGroup - Returns the Icinga DB identifier of the given redundancy group.
+ */
+Shared<RedundancyGroup>::Ptr Checkable::GetRedundancyGroup(const String& redundancyGroup)
+{
+	std::lock_guard<std::mutex> lock(m_DependencyMutex);
+	if (auto it(m_Dependencies.find(redundancyGroup)); it != m_Dependencies.end()) {
+		return it->second;
+	}
+
+	return nullptr;
+}
+
+/**
+ * Retrieve the Checkable dependencies grouped by redundancy group.
+ *
+ * Note, to simplify the implementation, non-redundant dependencies are grouped under a dummy group,
+ * which is a randomly generated string. To verify if a given redundancy group is the default one, use
+ * the RedundancyGroup::IsDefault() helper function.
+ *
+ * @return - Returns a map of redundancy groups and their member sets.
+ */
+std::unordered_map<String, Shared<RedundancyGroup>::Ptr> Checkable::GetRedundancyGroups() const
+{
+	std::lock_guard lock(m_DependencyMutex);
+	return {m_Dependencies.begin(), m_Dependencies.end()};
+}
+
 void Checkable::AddDependency(const Dependency::Ptr& dep)
 {
 	std::unique_lock<std::mutex> lock(m_DependencyMutex);
-	m_Dependencies.insert(dep);
+	auto group(dep->GetRedundancyGroup().IsEmpty() ? l_DefaultRedundancyGroup : dep->GetRedundancyGroup());
+	for (auto& redundancyGroup: m_Dependencies) {
+		if (redundancyGroup->GetName() == group) {
+			redundancyGroup->AddMember(dep);
+			return;
+		}
+	}
+	m_Dependencies.emplace(new RedundancyGroup(group, dep));
 }
 
 void Checkable::RemoveDependency(const Dependency::Ptr& dep)
 {
 	std::unique_lock<std::mutex> lock(m_DependencyMutex);
-	m_Dependencies.erase(dep);
+	auto groupName(dep->GetRedundancyGroup().IsEmpty() ? l_DefaultRedundancyGroup : dep->GetRedundancyGroup());
+	for (auto& redundancyGroup: m_Dependencies) {
+		if (redundancyGroup->GetName() == groupName) {
+			redundancyGroup->RemoveMember(dep);
+			if (!redundancyGroup->HasMembers()) {
+				m_Dependencies.erase(redundancyGroup);
+			}
+			return;
+		}
+	}
 }
 
 std::vector<Dependency::Ptr> Checkable::GetDependencies() const
 {
 	std::unique_lock<std::mutex> lock(m_DependencyMutex);
-	return std::vector<Dependency::Ptr>(m_Dependencies.begin(), m_Dependencies.end());
+	return std::accumulate(
+		m_Dependencies.begin(),
+		m_Dependencies.end(),
+		std::vector<Dependency::Ptr>(),
+		[](std::vector<Dependency::Ptr>& acc, const auto& pair) {
+			auto members(pair.second->GetMembers());
+			acc.insert(acc.end(), members.begin(), members.end());
+
+			return acc;
+		}
+	);
 }
 
 void Checkable::AddReverseDependency(const Dependency::Ptr& dep)
