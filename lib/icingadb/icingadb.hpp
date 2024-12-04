@@ -114,6 +114,7 @@ private:
 			std::vector<Dictionary::Ptr>* runtimeUpdates);
 	void InsertObjectDependencies(const ConfigObject::Ptr& object, const String typeName, std::map<String, std::vector<String>>& hMSets,
 			std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate);
+	void UpdateDependenciesState(const Checkable::Ptr& checkable, const DependencyGroup::Ptr& onlyDependencyGroup = nullptr) const;
 	void UpdateState(const Checkable::Ptr& checkable, StateUpdate mode);
 	void SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpdate);
 	void CreateConfigUpdate(const ConfigObject::Ptr& object, const String type, std::map<String, std::vector<String>>& hMSets,
@@ -169,6 +170,8 @@ private:
 	static String CalcEventID(const char* eventType, const ConfigObject::Ptr& object, double eventTime = 0, NotificationType nt = NotificationType(0));
 	static const char* GetNotificationTypeByEnum(NotificationType type);
 	static Dictionary::Ptr SerializeVars(const Dictionary::Ptr& vars);
+	static Dictionary::Ptr SerializeDependencyEdgeState(const DependencyGroup::Ptr& dependencyGroup, const Dependency::Ptr& dep);
+	static Dictionary::Ptr SerializeRedundancyGroupState(const DependencyGroup::Ptr& redundancyGroup);
 
 	static String HashValue(const Value& value);
 	static String HashValue(const Value& value, const std::set<String>& propertiesBlacklist, bool propertiesWhitelist = false);
