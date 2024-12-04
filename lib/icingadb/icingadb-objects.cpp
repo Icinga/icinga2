@@ -215,7 +215,9 @@ void IcingaDB::UpdateAllConfigObjects()
 		// dump done signal for those keys.
 		m_PrefixConfigObject + "dependency:node",
 		m_PrefixConfigObject + "dependency:edge",
+		m_PrefixConfigObject + "dependency:edge:state",
 		m_PrefixConfigObject + "redundancygroup",
+		m_PrefixConfigObject + "redundancygroup:state",
 	};
 	DeleteKeys(m_Rcon, globalKeys, Prio::Config);
 	DeleteKeys(m_Rcon, {"icinga:nextupdate:host", "icinga:nextupdate:service"}, Prio::Config);
@@ -1170,7 +1172,7 @@ void IcingaDB::InsertCheckableDependencies(const Checkable::Ptr& checkable, std:
 
 			// Sync redundancy group information only once unless it's a runtime update.
 			if (runtimeUpdates || m_DumpedGlobals.RedundancyGroup.IsNew(redundancyGroupId)) {
-				Dictionary::Ptr groupData(new Dictionary{{"environment_id", m_EnvironmentId}, {"name", dependencyGroup->GetName()}});
+				Dictionary::Ptr groupData(SerializeRedundancyGroup(dependencyGroup));
 				hmsetRedundancyGroups.emplace_back(redundancyGroupId);
 				hmsetRedundancyGroups.emplace_back(JsonEncode(groupData));
 
@@ -1292,6 +1294,101 @@ void IcingaDB::UpdateState(const Checkable::Ptr& checkable, StateUpdate mode)
 		}
 
 		m_Rcon->FireAndForgetQuery(std::move(streamadd), Prio::RuntimeStateStream, {0, 1});
+	}
+
+	UpdateDependenciesState(checkable, mode);
+}
+
+/**
+ * Send dependencies state information of the given Checkable to Redis.
+ *
+ * For explicitly configured redundancy groups, the state information is always sent to Redis, regardless of the
+ * mode parameter. The mode parameter loosely controls how and which states are sent to Redis for non-redundant
+ * dependencies. The value of that parameter can be one of the following:
+ *  - Volatile: Check each dependency object of the specified Checkable for its configuration before sending
+ *    the state update. For instance, if the dependency is configured to ignore soft state changes, its state
+ *    should not be different from the previous ones and will therefore not be sent to Redis.
+ *  - RuntimeOnly: Performs an additional check to the one above and ignores dependency objects that are not within
+ *    their time period. Once the dependencies pass all the necessary checks, these two mods only send the state
+ *    information to the icinga:runtime:state Redis stream via XADD.
+ *  - Full: Perform a full state update ignoring all the above mentioned checks. Additionally, set the same
+ *    state information that is streamed into the pipeline to the Redis keys icinga:{dependency:edge,redundancygroup}:state
+ *    as well.
+ *
+ * @param checkable The Checkable you want to send the dependencies state update for
+ * @param mode The type of operation you want to perform (Volatile, RuntimeOnly, or Full)
+ */
+void IcingaDB::UpdateDependenciesState(const Checkable::Ptr& checkable, StateUpdate mode) const
+{
+	if (!m_Rcon || !m_Rcon->IsConnected()) {
+		return;
+	}
+
+	auto dependencyGroups(checkable->GetDependencyGroups());
+	if (dependencyGroups.empty()) {
+		return;
+	}
+
+	RedisConnection::Queries streamStates;
+	auto addDependencyStateToStream([this, &streamStates](const String& redisKey, const Dictionary::Ptr& stateAttrs) {
+		RedisConnection::Query xAdd{
+			"XADD", "icinga:runtime:state", "MAXLEN", "~", "1000000", "*",
+			"runtime_type", "upsert", "redis_key", redisKey
+		};
+		ObjectLock olock(stateAttrs);
+		for (auto& [key, value] : stateAttrs) {
+			xAdd.emplace_back(key);
+			xAdd.emplace_back(IcingaToStreamValue(value));
+		}
+		streamStates.emplace_back(std::move(xAdd));
+	});
+
+	auto now(Utility::GetTime());
+	for (auto& dependencyGroup : dependencyGroups) {
+		bool isRedundancyGroup(dependencyGroup->IsRedundancyGroup());
+		if (isRedundancyGroup && dependencyGroup->GetIcingaDBIdentifier().IsEmpty()) {
+			// Way too soon! The Icinga DB hash will be set during the initial config dump, but this state
+			// update seems to occur way too early. So, we've to skip it for now and wait for the next one.
+			// The m_ConfigDumpInProgress flag is probably still set to true at this point!
+			continue;
+		}
+
+		auto members(dependencyGroup->GetMembers(checkable.get()));
+		for (auto it(members.begin()); it != members.end(); /* no increment */) {
+			auto dep(*it);
+			if (auto tp(dep->GetPeriod()); !isRedundancyGroup && mode != StateUpdate::Full && tp && !tp->IsInside(now)) {
+				// When the dependency is outside its time period, and we're not performing a full
+				// state update, we don't need to send any updates as it should always be reachable.
+				continue;
+			}
+
+			auto stateAttrs(SerializeDependencyEdgeState(dependencyGroup, dep));
+			// Find all members that share the same parent starting from the iterator position ("it" inclusively),
+			// and merge their relevant state information into a single one.
+			auto [begin, end] = std::equal_range(it, members.end(), dep->GetParent(), Dependency::ParentComparator{});
+			// We might not need to process the element pointed to by (it) as well, so we need to
+			// exclude it from the returned range (notice the ++begin below).
+			for (auto innerIt(++begin); innerIt != end && stateAttrs->Get("failed") == false; ++innerIt) {
+				stateAttrs = SerializeDependencyEdgeState(dependencyGroup, *innerIt);
+			}
+			it = end; // Advance the iterator to either end of the container or beginning of the next members block.
+			addDependencyStateToStream(m_PrefixConfigObject + "dependency:edge:state", stateAttrs);
+		}
+
+		if (isRedundancyGroup) {
+			Dictionary::Ptr stateAttrs(SerializeRedundancyGroup(dependencyGroup, true));
+			Dictionary::Ptr groupSharedState(stateAttrs->ShallowClone());
+			groupSharedState->Remove("redundancy_group_id");
+			groupSharedState->Remove("is_reachable");
+			groupSharedState->Remove("last_state_change");
+
+			addDependencyStateToStream(m_PrefixConfigObject + "redundancygroup:state", stateAttrs);
+			addDependencyStateToStream(m_PrefixConfigObject + "dependency:edge:state", groupSharedState);
+		}
+	}
+
+	if (!streamStates.empty()) {
+		m_Rcon->FireAndForgetQueries(std::move(streamStates), Prio::RuntimeStateStream, {0, 1});
 	}
 }
 
