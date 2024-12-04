@@ -62,7 +62,6 @@ std::vector<Type::Ptr> IcingaDB::GetTypes()
 		// Then sync them for similar reasons.
 		Downtime::TypeInstance,
 		Comment::TypeInstance,
-		Dependency::TypeInstance,
 
 		HostGroup::TypeInstance,
 		ServiceGroup::TypeInstance,
@@ -208,10 +207,17 @@ void IcingaDB::UpdateAllConfigObjects()
 	m_Rcon->FireAndForgetQuery({"XADD", "icinga:dump", "MAXLEN", "1", "*", "key", "*", "state", "wip"}, Prio::Config);
 
 	const std::vector<String> globalKeys = {
-			m_PrefixConfigObject + "customvar",
-			m_PrefixConfigObject + "action:url",
-			m_PrefixConfigObject + "notes:url",
-			m_PrefixConfigObject + "icon:image",
+		m_PrefixConfigObject + "customvar",
+		m_PrefixConfigObject + "action:url",
+		m_PrefixConfigObject + "notes:url",
+		m_PrefixConfigObject + "icon:image",
+
+		// These keys aren't tied to a specific Checkable type but apply to both "Host" and "Service" types,
+		// and as such we've to make sure to clear them before we actually start dumping the actual objects.
+		// This allows us to wait on both types to be dumped before we send a config dump done signal for those keys.
+		m_PrefixConfigObject + "dependency:node",
+		m_PrefixConfigObject + "dependency:edge",
+		m_PrefixConfigObject + "redundancygroup",
 	};
 	DeleteKeys(m_Rcon, globalKeys, Prio::Config);
 	DeleteKeys(m_Rcon, {"icinga:nextupdate:host", "icinga:nextupdate:service"}, Prio::Config);
@@ -222,6 +228,7 @@ void IcingaDB::UpdateAllConfigObjects()
 		m_DumpedGlobals.ActionUrl.Reset();
 		m_DumpedGlobals.NotesUrl.Reset();
 		m_DumpedGlobals.IconImage.Reset();
+		m_DumpedGlobals.DependencyGroup.Reset();
 	});
 
 	upq.ParallelFor(types, false, [this](const Type::Ptr& type) {
@@ -793,138 +800,9 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			}
 		}
 
+		InsertCheckableDependencies(checkable, hMSets, runtimeUpdate ? &runtimeUpdates : nullptr);
+
 		return;
-	}
-
-	if (type == Dependency::TypeInstance) {
-		auto& dependencyNodes (hMSets[m_PrefixConfigObject + "dependency:node"]);
-		auto& dependencyEdges (hMSets[m_PrefixConfigObject + "dependency:edge"]);
-		auto& redundancyGroups (hMSets[m_PrefixConfigObject + "redundancygroup"]);
-
-		Dependency::Ptr dependency = static_pointer_cast<Dependency>(object);
-
-		Host::Ptr parentHost, childHost;
-		Service::Ptr parentService, childService;
-		tie(parentHost, parentService) = GetHostService(dependency->GetParent());
-		tie(childHost, childService) = GetHostService(dependency->GetChild());
-		String redundancyGroup = dependency->GetRedundancyGroup();
-
-		String redundancyGroupId, dependencyNodeParentId, dependencyNodeChildId, dependencyNodeReduId;
-
-		Dictionary::Ptr parentNodeData, childNodeData;
-
-		if (parentService) {
-			dependencyNodeParentId = HashValue(new Array({
-						m_EnvironmentId,
-						GetObjectIdentifier(parentHost),
-						GetObjectIdentifier(parentService)}));
-			parentNodeData = new Dictionary({
-					{"environment_id", m_EnvironmentId},
-					{"host_id", GetObjectIdentifier(parentHost)},
-					{"service_id", GetObjectIdentifier(parentService)}});
-
-			m_CheckablesToDependencies->Set(GetObjectIdentifier(parentService), dependency);
-		} else {
-			dependencyNodeParentId = HashValue(new Array({
-						m_EnvironmentId,
-						GetObjectIdentifier(parentHost)}));
-			parentNodeData = new Dictionary({
-					{"environment_id", m_EnvironmentId},
-					{"host_id", GetObjectIdentifier(parentHost)}});
-
-			m_CheckablesToDependencies->Set(GetObjectIdentifier(parentHost), dependency);
-		}
-
-		if (childService) {
-			dependencyNodeChildId = HashValue(new Array({
-						m_EnvironmentId,
-						GetObjectIdentifier(childHost),
-						GetObjectIdentifier(childService)}));
-			childNodeData = new Dictionary({
-					{"environment_id", m_EnvironmentId},
-					{"host_id", GetObjectIdentifier(childHost)},
-					{"service_id", GetObjectIdentifier(childService)}});
-
-			m_CheckablesToDependencies->Set(GetObjectIdentifier(childService), dependency);
-		} else {
-			dependencyNodeChildId = HashValue(new Array({
-						m_EnvironmentId,
-						GetObjectIdentifier(childHost)}));
-			childNodeData = new Dictionary({
-					{"environment_id", m_EnvironmentId},
-					{"host_id", GetObjectIdentifier(childHost)}});
-
-			m_CheckablesToDependencies->Set(GetObjectIdentifier(childHost), dependency);
-		}
-
-		dependencyNodes.emplace_back(dependencyNodeParentId);
-		dependencyNodes.emplace_back(JsonEncode(parentNodeData));
-		dependencyNodes.emplace_back(dependencyNodeChildId);
-		dependencyNodes.emplace_back(JsonEncode(childNodeData));
-
-		if (runtimeUpdate) {
-			AddObjectDataToRuntimeUpdates(runtimeUpdates, dependencyNodeParentId, m_PrefixConfigObject + "dependency:node", parentNodeData);
-			AddObjectDataToRuntimeUpdates(runtimeUpdates, dependencyNodeChildId, m_PrefixConfigObject + "dependency:node", childNodeData);
-		}
-
-		if (!redundancyGroup.IsEmpty()) {
-			/* TODO: name should be suffixed with names of all children.
-			 * however, at this point I don't have this information,
-			 * only the direct neighbors.
-			 */
-			redundancyGroupId = HashValue(new Array({m_EnvironmentId, redundancyGroup, dependencyNodeChildId}));
-			dependencyNodeReduId = redundancyGroupId;
-
-			redundancyGroups.emplace_back(redundancyGroupId);
-			Dictionary::Ptr groupData = new Dictionary({
-					{"environment_id", m_EnvironmentId},
-					{"name", redundancyGroupId},
-					{"display_name", redundancyGroup}});
-			redundancyGroups.emplace_back(JsonEncode(groupData));
-
-			dependencyNodes.emplace_back(dependencyNodeReduId);
-			Dictionary::Ptr reduNodeData = new Dictionary({
-					{"environment_id", m_EnvironmentId},
-					{"redundancy_group_id", redundancyGroupId}});
-			dependencyNodes.emplace_back(JsonEncode(reduNodeData));
-
-			String edgeInId = HashValue(new Array({m_EnvironmentId, dependencyNodeChildId, dependencyNodeReduId}));
-			dependencyEdges.emplace_back(edgeInId);
-			Dictionary::Ptr edgeInData = new Dictionary({
-					{"environment_id", m_EnvironmentId},
-					{"from_node_id", dependencyNodeChildId},
-					{"to_node_id", dependencyNodeReduId}});
-			dependencyEdges.emplace_back(JsonEncode(edgeInData));
-
-			String edgeOutId = HashValue(new Array({m_EnvironmentId, dependencyNodeReduId, dependencyNodeParentId}));
-			dependencyEdges.emplace_back(edgeOutId);
-			Dictionary::Ptr edgeOutData = new Dictionary({
-					{"environment_id", m_EnvironmentId},
-					{"from_node_id", dependencyNodeReduId},
-					{"to_node_id", dependencyNodeParentId},
-					{"dependency_id", GetObjectIdentifier(dependency)}});
-			dependencyEdges.emplace_back(JsonEncode(edgeOutData));
-
-			if (runtimeUpdate) {
-				AddObjectDataToRuntimeUpdates(runtimeUpdates, redundancyGroupId, m_PrefixConfigObject + "redundancygroup", groupData);
-				AddObjectDataToRuntimeUpdates(runtimeUpdates, dependencyNodeReduId, m_PrefixConfigObject + "dependency:node", reduNodeData);
-				AddObjectDataToRuntimeUpdates(runtimeUpdates, edgeInId, m_PrefixConfigObject + "dependency:edge", edgeInData);
-				AddObjectDataToRuntimeUpdates(runtimeUpdates, edgeOutId, m_PrefixConfigObject + "dependency:edge", edgeOutData);
-			}
-		} else {
-			String edgeId = HashValue(new Array({m_EnvironmentId, dependencyNodeChildId, dependencyNodeParentId}));
-			dependencyEdges.emplace_back(edgeId);
-			Dictionary::Ptr edgeData = new Dictionary({
-					{"environment_id", m_EnvironmentId},
-					{"from_node_id", dependencyNodeChildId},
-					{"to_node_id", dependencyNodeParentId},
-					{"dependency_id", GetObjectIdentifier(dependency)}});
-			dependencyEdges.emplace_back(JsonEncode(edgeData));
-
-			if (runtimeUpdate) {
-				AddObjectDataToRuntimeUpdates(runtimeUpdates, edgeId, m_PrefixConfigObject + "dependency:edge", edgeData);
-			}
-		}
 	}
 
 	if (type == TimePeriod::TypeInstance) {
@@ -1257,44 +1135,179 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 	}
 }
 
-void IcingaDB::UpdateDependencyState(const Dependency::Ptr& dependency)
+/**
+ * Inserts the dependency data for a Checkable object into the given Redis HMSETs and runtime updates.
+ *
+ * It builds the dependency graph of the provided Checkable and injects the flattened dependency data into the
+ * given HMSETs and runtime updates (if provided). The dependency data consists of the following Redis HMSETs:
+ * - `icinga:config:dependency:node`: Contains dependency node data representing each node in the dependency graph.
+ * - `icinga:config:dependency:edge`: Dependency edge information representing all edges/connectors between the nodes.
+ * - `icinga:config:redundancygroup`: Redundancy group data representing all redundancy groups in the graph (if any).
+ *
+ * For initial dumps, it shouldn't be necessary to set the `runtimeUpdates` parameter.
+ *
+ * @param checkable The checkable object to extract dependencies from.
+ * @param hMSets The map of Redis HMSETs to insert the dependency data into.
+ * @param runtimeUpdates The vector of runtime updates to append the dependency data to.
+ */
+void IcingaDB::InsertCheckableDependencies(
+	const Checkable::Ptr& checkable,
+	std::map<String, RedisConnection::Query>& hMSets,
+	std::vector<Dictionary::Ptr>* runtimeUpdates
+)
 {
-	if (!m_Rcon || !m_Rcon->IsConnected()) {
+	// Only generate a dependency node event if the Checkable is actually part of some dependency graph.
+	// That's, it either depends on other Checkables or others depend on it, and in both cases, we have
+	// to at least generate a dependency node entry for it.
+	if (!checkable->HasAnyDependencies()) {
 		return;
 	}
 
-	auto& redundancyGroupStates (hMSets[m_PrefixConfigObject + "redundancygroup:state"]);
+	auto& hmsetDependencyNodes(hMSets[m_PrefixConfigObject + "dependency:node"]);
+	auto& hmsetDependencyEdges(hMSets[m_PrefixConfigObject + "dependency:edge"]);
+	auto& hmsetRedundancyGroups(hMSets[m_PrefixConfigObject + "redundancygroup"]);
 
-	String redundancyGroup = dependency->GetRedundancyGroup();
+	/**
+	 * This function is responsible for serializing the in memory represantation Checkable dependencies into Redis
+	 * HMSETs and runtime updates (if any) according to the Icinga DB schema. Here is a high-level breakdown of the
+	 * key operations performed by the following code blocks:
+	 *
+	 * 1. Generate Dependency Nodes:
+	 *	- First and foremost, it generates a dependency node entry for the Checkable object and inserts it into the
+	 *	  `hmsetDependencyNodes` HMSETs map and if set, the `runtimeUpdates` vector. Then, it proceeds to process the
+	 *	  Checkable dependency groups, and generates for each dependency group that's a redundancy group, a dependency
+	 *	  node entry. The serialized information depend on the Checkable type (Host or Service), so see the code for
+	 *	  more details. Note that non-redundant dependency groups are just placeholders and never get synced to Redis.
+	 *
+	 * Note: If `onlyDependencyGroup` is provided, it will only process that group; otherwise, it retrieves all
+	 * dependency groups using `checkable->GetDependencyGroups()`.
+	 *
+	 * 2. Process Dependency Group:
+	 *	- Processing a dependency group involves generating each and every dependency edges within that group and might
+	 *	  not be that easy and obvious to follow. The following is a simplified version of the performed operations and
+	 *	  don't cover all the edge cases:
+	 *
+	 *	- Redundancy Group Handling:
+	 *	  - If the dependency group is a redundancy group, it will serialize the redundancy group and its state and
+	 *		insert them into the `hmsetRedundancyGroups` and `hmsetRedundancyGroupsStates` maps accordingly. It will
+	 *		also create a dependency node entry for that group as described in the previous step. Next, it generates
+	 *		a dependency edge state entry shared by all its child Checkables. Note that since that very same redundancy
+	 *		group may be processed multiple times (referenced by multiple Checkables) during config dumps, those data
+	 *		only get generated only once. However, each Checkable that references that redundancy group will generate
+	 *		a dependency edge entry representing the connection between the Checkable and the redundancy group.
+	 *
+	 *	- Dependency Edges:
+	 *	  - For each dependency objects within the current dependency group, it will generate a dependency edge entry.
+	 *		The generated dependency edge "from_node_id" may vary depending on whether the dependency group is a
+	 *		redundancy group or not. If it's a redundancy group, the "from_node_id" will be the redundancy group ID;
+	 *		otherwise, it will be the current Checkable ID. However, the "to_node_id" value will always be the parent ID.
+	 */
+	auto [host, service] = GetHostService(checkable);
+	auto checkableId(GetObjectIdentifier(checkable));
+	{
+		Dictionary::Ptr data(new Dictionary{{"environment_id", m_EnvironmentId}, {"host_id", GetObjectIdentifier(host)}});
+		if (service) {
+			data->Set("service_id", checkableId);
+		}
 
-	if (!redundancyGroup.IsEmpty()) {
-		Host::Ptr childHost;
-		Service::Ptr childService;
-		tie(childHost, childService) = GetHostService(dependency->GetChild());
+		hmsetDependencyNodes.emplace_back(checkableId);
+		hmsetDependencyNodes.emplace_back(JsonEncode(data));
+		if (runtimeUpdates) {
+			AddObjectDataToRuntimeUpdates(*runtimeUpdates, checkableId, m_PrefixConfigObject + "dependency:node", data);
+		}
+	}
 
-		String dependencyNodeChildId = HashValue(
-					(childService)
-					? new Array({ m_EnvironmentId, GetObjectIdentifier(childHost), GetObjectIdentifier(childService) })
-					: new Array({ m_EnvironmentId, GetObjectIdentifier(childHost) }));
-		String redundancyGroupId = HashValue(new Array({
-					m_EnvironmentId,
-					redundancyGroup,
-					dependencyNodeChildId}));
+	for (auto& dependencyGroup : checkable->GetDependencyGroups()) {
+		String edgeFromNodeId(checkableId);
 
-		redundancyGroupStates.emplace_back(redundancyGroupId);
-		Dictionary::Ptr groupStateData = new Dictionary({
+		if (dependencyGroup->IsRedundancyGroup()) {
+			auto redundancyGroupId(HashValue(new Array{m_EnvironmentId, dependencyGroup->GetCompositeKey()}));
+			dependencyGroup->SetIcingaDBIdentifier(redundancyGroupId);
+
+			edgeFromNodeId = redundancyGroupId;
+
+			// Sync redundancy group information only once unless it's a runtime update.
+			if (runtimeUpdates || m_DumpedGlobals.DependencyGroup.IsNew(redundancyGroupId)) {
+				Dictionary::Ptr groupData(new Dictionary{
+					{"environment_id", m_EnvironmentId},
+					{"display_name", dependencyGroup->GetRedundancyGroupName()},
+				});
+
+				hmsetRedundancyGroups.emplace_back(redundancyGroupId);
+				hmsetRedundancyGroups.emplace_back(JsonEncode(groupData));
+
+				Dictionary::Ptr nodeData(new Dictionary{
+					{"environment_id", m_EnvironmentId},
+					{"redundancy_group_id", redundancyGroupId},
+				});
+
+				hmsetDependencyNodes.emplace_back(redundancyGroupId);
+				hmsetDependencyNodes.emplace_back(JsonEncode(nodeData));
+
+				if (runtimeUpdates) {
+					AddObjectDataToRuntimeUpdates(*runtimeUpdates, redundancyGroupId, m_PrefixConfigObject + "redundancygroup", groupData);
+					AddObjectDataToRuntimeUpdates(*runtimeUpdates, redundancyGroupId, m_PrefixConfigObject + "dependency:node", nodeData);
+				}
+			}
+
+			Dictionary::Ptr data(new Dictionary{
 				{"environment_id", m_EnvironmentId},
-				{"redundancy_group_id", redundancyGroupId},
-				{"failed", !((childService) ? childService->IsReachable() : childHost->IsReachable())},
-				{"last_state_change", TimestampToMilliseconds(Utility::GetTime())}});
-		redundancyGroupStates.emplace_back(JsonEncode(groupStateData));
+				{"from_node_id", checkableId},
+				{"to_node_id", redundancyGroupId},
+				// All redundancy group members share the same state, thus use the group ID as a reference.
+				{"dependency_edge_state_id", redundancyGroupId},
+				{"display_name", dependencyGroup->GetRedundancyGroupName()},
+			});
 
-		// TODO
-		// AddObjectDataToRuntimeUpdates(runtimeUpdates, redundancyGroupId, m_PrefixConfigObject + "redundancygroup:state", groupStateData);
-		// dataClone->Set("id", objectKey); 		// redundancyGroupId
-		// dataClone->Set("redis_key", redisKey); 	// m_PrefixConfigObject + "redundancygroup:state"
-		// dataClone->Set("runtime_type", "upsert");
-		// runtimeUpdates.emplace_back(dataClone);
+			auto edgeId(HashValue(new Array{checkableId, redundancyGroupId}));
+			hmsetDependencyEdges.emplace_back(edgeId);
+			hmsetDependencyEdges.emplace_back(JsonEncode(data));
+
+			if (runtimeUpdates) {
+				AddObjectDataToRuntimeUpdates(*runtimeUpdates, edgeId, m_PrefixConfigObject + "dependency:edge", data);
+			}
+		}
+
+		auto dependencies(dependencyGroup->GetDependenciesForChild(checkable.get()));
+		std::sort(dependencies.begin(), dependencies.end(), [](const Dependency::Ptr& lhs, const Dependency::Ptr& rhs) {
+			return lhs->GetParent() < rhs->GetParent();
+		});
+
+		for (auto it(dependencies.begin()); it != dependencies.end(); /* no increment */) {
+			auto dependency(*it);
+			auto parent(dependency->GetParent());
+			auto displayName(dependency->GetShortName());
+
+			// All dependency objects that share the same parent Checkable are placed next to each other in the
+			// container. Thus, "it" will either point to the next dependency with a different parent or to the
+			// end of the container after the below loop. Typically, this case isn't that common to happen in
+			// production, and if it indeed does, then it's probably not intended by the user but Icinga 2 itself
+			// accepts such config anyway, and we should do the same, i.e., merge them into a single edge.
+			while (++it != dependencies.end() && (*it)->GetParent() == parent) {
+				displayName += ", " + (*it)->GetShortName();
+			}
+
+			Dictionary::Ptr data(new Dictionary{
+				{"environment_id", m_EnvironmentId},
+				{"from_node_id", edgeFromNodeId},
+				{"to_node_id", GetObjectIdentifier(parent)},
+				{"dependency_edge_state_id", HashValue(new Array{
+					dependencyGroup->IsRedundancyGroup()
+					? dependencyGroup->GetIcingaDBIdentifier()
+					: dependencyGroup->GetCompositeKey(),
+					GetObjectIdentifier(dependency->GetParent()),
+				})},
+				{"display_name", std::move(displayName)},
+			});
+
+			auto edgeId(HashValue(new Array{data->Get("from_node_id"), data->Get("to_node_id")}));
+			hmsetDependencyEdges.emplace_back(edgeId);
+			hmsetDependencyEdges.emplace_back(JsonEncode(data));
+
+			if (runtimeUpdates) {
+				AddObjectDataToRuntimeUpdates(*runtimeUpdates, edgeId, m_PrefixConfigObject + "dependency:edge", data);
+			}
+		}
 	}
 }
 
@@ -1627,32 +1640,6 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 
 		if (expireTime > 0) {
 			attributes->Set("expire_time", TimestampToMilliseconds(expireTime));
-		}
-
-		return true;
-	}
-
-	if (type == Dependency::TypeInstance) {
-		Dependency::Ptr dependency = static_pointer_cast<Dependency>(object);
-		String redundancyGroup = dependency->GetRedundancyGroup();
-
-		attributes->Set("name", GetObjectIdentifier(dependency));
-
-		if (!redundancyGroup.IsEmpty()) {
-			Host::Ptr childHost;
-			Service::Ptr childService;
-			tie(childHost, childService) = GetHostService(dependency->GetChild());
-
-			String dependencyNodeChildId = HashValue(
-						(childService)
-						? new Array({ m_EnvironmentId, GetObjectIdentifier(childHost), GetObjectIdentifier(childService) })
-						: new Array({ m_EnvironmentId, GetObjectIdentifier(childHost) }));
-			String redundancyGroupId = HashValue(new Array({
-						m_EnvironmentId,
-						redundancyGroup,
-						dependencyNodeChildId}));
-
-			attributes->Set("redundancy_group_id", redundancyGroupId);
 		}
 
 		return true;
