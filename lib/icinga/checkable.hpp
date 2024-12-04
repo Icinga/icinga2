@@ -219,9 +219,8 @@ public:
 	void AddDependency(const intrusive_ptr<Dependency>& dep);
 	void RemoveDependency(const intrusive_ptr<Dependency>& dep);
 	std::vector<intrusive_ptr<Dependency> > GetDependencies() const;
-	std::map<String, std::set<intrusive_ptr<Dependency>>> GetGroupedDependencies() const;
-
-	static bool IsDefaultRedundancyGroup(const String& group);
+	std::unordered_map<String, Shared<RedundancyGroup>::Ptr> GetRedundancyGroups() const;
+	Shared<RedundancyGroup>::Ptr GetRedundancyGroup(const String& redundancyGroup);
 
 	void AddReverseDependency(const intrusive_ptr<Dependency>& dep);
 	void RemoveReverseDependency(const intrusive_ptr<Dependency>& dep);
