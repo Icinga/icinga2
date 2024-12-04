@@ -159,6 +159,57 @@ Dictionary::Ptr IcingaDB::SerializeVars(const Dictionary::Ptr& vars)
 	return res;
 }
 
+/**
+ * Serialize a dependency edge state for Icinga DB
+ *
+ * @param redundancyGroup The state of the redundancy group the dependency is part of.
+ * @param dep The dependency object to serialize.
+ *
+ * @return A dictionary with the serialized state.
+ */
+Dictionary::Ptr IcingaDB::SerializeDependencyEdgeState(const RedundancyGroup::Ptr& redundancyGroup, const Dependency::Ptr& dep)
+{
+	auto child(dep->GetChild());
+	Array::Ptr data(new Array{
+		redundancyGroup->IsDefault() ? GetObjectIdentifier(child) : redundancyGroup->GetIcingaDBIdentifier(),
+		GetObjectIdentifier(dep->GetParent())
+	});
+	if (redundancyGroup->IsDefault()) {
+		data->Add(GetObjectIdentifier(dep));
+	}
+
+	return new Dictionary{
+		{"id", HashValue(data)},
+		{"environment_id", m_EnvironmentId},
+		{"failed", !dep->IsAvailable(DependencyState) || !dep->GetParent()->IsReachable()}
+	};
+}
+
+/**
+ * Serialize the provided redundancy group or its state attributes.
+ *
+ * @param redundancyGroup The redundancy group object to serialize.
+ * @param serializeState Whether to serialize the state of the redundancy group.
+ *
+ * @return A dictionary with the serialized redundancy group.
+ */
+Dictionary::Ptr IcingaDB::SerializeRedundancyGroup(const RedundancyGroup::Ptr& redundancyGroup, bool serializeState)
+{
+	if (serializeState) {
+		auto state(redundancyGroup->GetState());
+		return new Dictionary{
+			{"id", redundancyGroup->GetIcingaDBIdentifier()},
+			{"environment_id", m_EnvironmentId},
+			{"redundancy_group_id", redundancyGroup->GetIcingaDBIdentifier()},
+			{"failed", static_cast<bool>(state & RedundancyGroup::State::UnreachableFailed)},
+			{"is_reachable", !(state & RedundancyGroup::State::Unreachable)},
+			{"last_state_change", TimestampToMilliseconds(Utility::GetTime())},
+		};
+	}
+
+	return new Dictionary{{"environment_id", m_EnvironmentId}, {"display_name", redundancyGroup->GetName()}};
+}
+
 const char* IcingaDB::GetNotificationTypeByEnum(NotificationType type)
 {
 	switch (type) {
