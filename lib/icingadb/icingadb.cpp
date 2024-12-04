@@ -38,8 +38,6 @@ IcingaDB::IcingaDB()
 
 	m_PrefixConfigObject = "icinga:";
 	m_PrefixConfigCheckSum = "icinga:checksum:";
-
-	m_CheckablesToDependencies = new Dictionary();
 }
 
 void IcingaDB::Validate(int types, const ValidationUtils& utils)

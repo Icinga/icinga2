@@ -103,7 +103,6 @@ private:
 	std::vector<String> GetTypeDumpSignalKeys(const Type::Ptr& type);
 	void InsertObjectDependencies(const ConfigObject::Ptr& object, const String typeName, std::map<String, std::vector<String>>& hMSets,
 			std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate);
-	void UpdateDependencyState(const Dependency::Ptr& dependency);
 	void UpdateState(const Checkable::Ptr& checkable, StateUpdate mode);
 	void SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpdate);
 	void CreateConfigUpdate(const ConfigObject::Ptr& object, const String type, std::map<String, std::vector<String>>& hMSets,
@@ -155,6 +154,7 @@ private:
 	static std::vector<String> GetDictionaryDeletedKeys(const Dictionary::Ptr& dictOld, const Dictionary::Ptr& dictNew);
 
 	static String GetObjectIdentifier(const ConfigObject::Ptr& object);
+	static String GetRedundancyGroupIdentifier(const String& redundancyGroup, const std::set<Dependency::Ptr>& members);
 	static String CalcEventID(const char* eventType, const ConfigObject::Ptr& object, double eventTime = 0, NotificationType nt = NotificationType(0));
 	static const char* GetNotificationTypeByEnum(NotificationType type);
 	static Dictionary::Ptr SerializeVars(const Dictionary::Ptr& vars);
@@ -225,10 +225,8 @@ private:
 	std::unordered_map<ConfigType*, RedisConnection::Ptr> m_Rcons;
 	std::atomic_size_t m_PendingRcons;
 
-	Dictionary::Ptr m_CheckablesToDependencies;
-
 	struct {
-		DumpedGlobals CustomVar, ActionUrl, NotesUrl, IconImage;
+		DumpedGlobals CustomVar, ActionUrl, NotesUrl, IconImage, RedundancyGroup;
 	} m_DumpedGlobals;
 
 	// m_EnvironmentId is shared across all IcingaDB objects (typically there is at most one, but it is perfectly fine
