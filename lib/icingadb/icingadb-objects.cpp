@@ -217,7 +217,9 @@ void IcingaDB::UpdateAllConfigObjects()
 		// This allows us to wait on both types to be dumped before we send a config dump done signal for those keys.
 		m_PrefixConfigObject + "dependency:node",
 		m_PrefixConfigObject + "dependency:edge",
+		m_PrefixConfigObject + "dependency:edge:state",
 		m_PrefixConfigObject + "redundancygroup",
+		m_PrefixConfigObject + "redundancygroup:state",
 	};
 	DeleteKeys(m_Rcon, globalKeys, Prio::Config);
 	DeleteKeys(m_Rcon, {"icinga:nextupdate:host", "icinga:nextupdate:service"}, Prio::Config);
@@ -1339,6 +1341,90 @@ void IcingaDB::UpdateState(const Checkable::Ptr& checkable, StateUpdate mode)
 		}
 
 		m_Rcon->FireAndForgetQuery(std::move(streamadd), Prio::RuntimeStateStream, {0, 1});
+	}
+}
+
+/**
+ * Send dependencies state information of the given Checkable to Redis.
+ *
+ * If the dependencyGroup parameter is set, only the dependencies state of that group are sent. Otherwise, all
+ * dependency groups of the provided Checkable are processed.
+ *
+ * @param checkable The Checkable you want to send the dependencies state update for
+ * @param dependencyGroup The DependencyGroup to send the state update for.
+ */
+void IcingaDB::UpdateDependenciesState(const Checkable::Ptr& checkable, const DependencyGroup::Ptr& dependencyGroup) const
+{
+	if (!m_Rcon || !m_Rcon->IsConnected()) {
+		return;
+	}
+
+	std::vector<DependencyGroup::Ptr> dependencyGroups{dependencyGroup};
+	if (!dependencyGroup) {
+		dependencyGroups = checkable->GetDependencyGroups();
+		if (dependencyGroups.empty()) {
+			return;
+		}
+	}
+
+	RedisConnection::Queries streamStates;
+	auto addDependencyStateToStream([this, &streamStates](const String& redisKey, const Dictionary::Ptr& stateAttrs) {
+		RedisConnection::Query xAdd{
+			"XADD", "icinga:runtime:state", "MAXLEN", "~", "1000000", "*", "runtime_type", "upsert",
+			"redis_key", redisKey
+		};
+		ObjectLock olock(stateAttrs);
+		for (auto& [key, value] : stateAttrs) {
+			xAdd.emplace_back(key);
+			xAdd.emplace_back(IcingaToStreamValue(value));
+		}
+		streamStates.emplace_back(std::move(xAdd));
+	});
+
+	for (auto& dependencyGroup : dependencyGroups) {
+		bool isRedundancyGroup(dependencyGroup->IsRedundancyGroup());
+		if (isRedundancyGroup && dependencyGroup->GetIcingaDBIdentifier().IsEmpty()) {
+			// Way too soon! The Icinga DB hash will be set during the initial config dump, but this state
+			// update seems to occur way too early. So, we've to skip it for now and wait for the next one.
+			// The m_ConfigDumpInProgress flag is probably still set to true at this point!
+			continue;
+		}
+
+		auto dependencies(dependencyGroup->GetDependenciesForChild(checkable.get()));
+		std::sort(dependencies.begin(), dependencies.end(), [](const Dependency::Ptr& lhs, const Dependency::Ptr& rhs) {
+			return lhs->GetParent() < rhs->GetParent();
+		});
+		for (auto it(dependencies.begin()); it != dependencies.end(); /* no increment */) {
+			const auto& dependency(*it);
+
+			Dictionary::Ptr stateAttrs;
+			// Note: The following loop is intended to cover some possible special cases but may not occur in practice
+			// that often. That is, having two or more dependency objects that point to the same parent Checkable.
+			// So, traverse all those duplicates and merge their relevant state information into a single edge.
+			for (; it != dependencies.end() && (*it)->GetParent() == dependency->GetParent(); ++it) {
+				if (!stateAttrs || stateAttrs->Get("failed") == false) {
+					stateAttrs = SerializeDependencyEdgeState(dependencyGroup, *it);
+				}
+			}
+
+			addDependencyStateToStream(m_PrefixConfigObject + "dependency:edge:state", stateAttrs);
+		}
+
+		if (isRedundancyGroup) {
+			Dictionary::Ptr stateAttrs(SerializeRedundancyGroupState(dependencyGroup));
+
+			Dictionary::Ptr sharedGroupState(stateAttrs->ShallowClone());
+			sharedGroupState->Remove("redundancy_group_id");
+			sharedGroupState->Remove("is_reachable");
+			sharedGroupState->Remove("last_state_change");
+
+			addDependencyStateToStream(m_PrefixConfigObject + "redundancygroup:state", stateAttrs);
+			addDependencyStateToStream(m_PrefixConfigObject + "dependency:edge:state", sharedGroupState);
+		}
+	}
+
+	if (!streamStates.empty()) {
+		m_Rcon->FireAndForgetQueries(std::move(streamStates), Prio::RuntimeStateStream, {0, 1});
 	}
 }
 
@@ -2931,6 +3017,7 @@ void IcingaDB::ReachabilityChangeHandler(const std::set<Checkable::Ptr>& childre
 	for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 		for (auto& checkable : children) {
 			rw->UpdateState(checkable, StateUpdate::Full);
+			rw->UpdateDependenciesState(checkable);
 		}
 	}
 }

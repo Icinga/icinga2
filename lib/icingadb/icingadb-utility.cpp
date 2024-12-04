@@ -159,6 +159,62 @@ Dictionary::Ptr IcingaDB::SerializeVars(const Dictionary::Ptr& vars)
 	return res;
 }
 
+/**
+ * Serialize a dependency edge state for Icinga DB
+ *
+ * @param dependencyGroup The state of the group the dependency is part of.
+ * @param dep The dependency object to serialize.
+ *
+ * @return A dictionary with the serialized state.
+ */
+Dictionary::Ptr IcingaDB::SerializeDependencyEdgeState(const DependencyGroup::Ptr& dependencyGroup, const Dependency::Ptr& dep)
+{
+	String edgeStateId;
+	if (dependencyGroup->IsRedundancyGroup() || dependencyGroup->GetIcingaDBIdentifier().IsEmpty()) {
+		edgeStateId = HashValue(new Array{
+			dependencyGroup->IsRedundancyGroup()
+				? dependencyGroup->GetIcingaDBIdentifier()
+				: dependencyGroup->GetCompositeKey(),
+			GetObjectIdentifier(dep->GetParent()),
+		});
+
+		if (!dependencyGroup->IsRedundancyGroup()) {
+			// Since non-redundant dependency groups don't get synced to Redis, we can use the Icinga DB identifier to
+			// cache the just computed shared edge state ID for later use.
+			dependencyGroup->SetIcingaDBIdentifier(edgeStateId);
+		}
+	} else {
+		// The cached Icinga DB identifier of a non-redundant dependency group is used as the edge state ID.
+		edgeStateId = dependencyGroup->GetIcingaDBIdentifier();
+	}
+
+	return new Dictionary{
+		{"id", std::move(edgeStateId)},
+		{"environment_id", m_EnvironmentId},
+		{"failed", !dep->IsAvailable(DependencyState) || !dep->GetParent()->IsReachable()}
+	};
+}
+
+/**
+ * Serialize the provided redundancy group state attributes.
+ *
+ * @param redundancyGroup The redundancy group object to serialize the state for.
+ *
+ * @return A dictionary with the serialized redundancy group state.
+ */
+Dictionary::Ptr IcingaDB::SerializeRedundancyGroupState(const DependencyGroup::Ptr& redundancyGroup)
+{
+	auto state(redundancyGroup->GetState());
+	return new Dictionary{
+		{"id", redundancyGroup->GetIcingaDBIdentifier()},
+		{"environment_id", m_EnvironmentId},
+		{"redundancy_group_id", redundancyGroup->GetIcingaDBIdentifier()},
+		{"failed", !state.Reachable || !state.OK},
+		{"is_reachable", state.Reachable},
+		{"last_state_change", TimestampToMilliseconds(Utility::GetTime())},
+	};
+}
+
 const char* IcingaDB::GetNotificationTypeByEnum(NotificationType type)
 {
 	switch (type) {
