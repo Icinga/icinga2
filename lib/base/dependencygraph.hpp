@@ -23,6 +23,7 @@ public:
 	static void AddDependency(Object *parent, Object *child);
 	static void RemoveDependency(Object *parent, Object *child);
 	static std::vector<Object::Ptr> GetParents(const Object::Ptr& child);
+	static std::vector<Object::Ptr> GetChildren(const Object::Ptr& parent);
 
 private:
 	DependencyGraph();
