@@ -190,7 +190,7 @@ void Dependency::OnAllConfigLoaded()
 	if (!m_Parent)
 		BOOST_THROW_EXCEPTION(ScriptError("Dependency '" + GetName() + "' references a parent host/service which doesn't exist.", GetDebugInfo()));
 
-	m_Child->AddDependency(this);
+	DependencyGroup::Register(this);
 	m_Parent->AddReverseDependency(this);
 
 	if (m_AssertNoCyclesForIndividualDeps) {
@@ -199,7 +199,7 @@ void Dependency::OnAllConfigLoaded()
 		try {
 			AssertNoDependencyCycle(m_Parent, graph);
 		} catch (...) {
-			m_Child->RemoveDependency(this);
+			DependencyGroup::Unregister(this);
 			m_Parent->RemoveReverseDependency(this);
 			throw;
 		}
@@ -210,7 +210,7 @@ void Dependency::Stop(bool runtimeRemoved)
 {
 	ObjectImpl<Dependency>::Stop(runtimeRemoved);
 
-	GetChild()->RemoveDependency(this);
+	DependencyGroup::Unregister(this);
 	GetParent()->RemoveReverseDependency(this);
 }
 
