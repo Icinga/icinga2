@@ -319,12 +319,7 @@ bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bo
 		return false;
 	}
 
-	for (const Object::Ptr& pobj : parents) {
-		ConfigObject::Ptr parentObj = dynamic_pointer_cast<ConfigObject>(pobj);
-
-		if (!parentObj)
-			continue;
-
+	for (auto& parentObj : parents) {
 		DeleteObjectHelper(parentObj, cascade, errors, diagnosticInformation, cookie);
 	}
 

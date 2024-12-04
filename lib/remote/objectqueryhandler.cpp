@@ -208,13 +208,7 @@ bool ObjectQueryHandler::HandleRequest(
 					Array::Ptr used_by = new Array();
 					metaAttrs.emplace_back("used_by", used_by);
 
-					for (auto& pobj : DependencyGraph::GetChildren(obj))
-					{
-						ConfigObject::Ptr configObj = dynamic_pointer_cast<ConfigObject>(pobj);
-
-						if (!configObj)
-							continue;
-
+					for (auto& configObj : DependencyGraph::GetChildren(obj)) {
 						used_by->Add(new Dictionary({
 							{ "type", configObj->GetReflectionType()->GetName() },
 							{ "name", configObj->GetName() }
