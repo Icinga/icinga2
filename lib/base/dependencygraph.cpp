@@ -5,7 +5,7 @@
 using namespace icinga;
 
 std::mutex DependencyGraph::m_Mutex;
-std::map<ConfigObject*, std::map<ConfigObject*, int>> DependencyGraph::m_Dependencies;
+std::unordered_map<ConfigObject*, std::unordered_map<ConfigObject*, int>> DependencyGraph::m_Dependencies;
 
 void DependencyGraph::AddDependency(ConfigObject* child, ConfigObject* parent)
 {

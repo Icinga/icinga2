@@ -5,7 +5,7 @@
 
 #include "base/i2-base.hpp"
 #include "base/configobject.hpp"
-#include <map>
+#include <unordered_map>
 #include <mutex>
 
 namespace icinga {
@@ -36,7 +36,7 @@ private:
 	DependencyGraph();
 
 	static std::mutex m_Mutex;
-	static std::map<ConfigObject*, std::map<ConfigObject*, int>> m_Dependencies;
+	static std::unordered_map<ConfigObject*, std::unordered_map<ConfigObject*, int>> m_Dependencies;
 };
 
 }
