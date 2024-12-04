@@ -58,6 +58,44 @@ std::vector<Dependency::Ptr> Checkable::GetDependencies() const
 	return dependencies;
 }
 
+/**
+ * Retrieve a copy of the dependencies grouped by redundancy group.
+ *
+ * Note, to simplify the implementation, non-redundant dependencies are grouped under a dummy group,
+ * which is a randomly generated string. To verify if a given redundancy group is the default one, use
+ * the Dependency::IsDefaultRedundancyGroup() helper function.
+ *
+ * @return - Returns a map of redundancy groups and their dependency sets.
+ */
+std::map<String, std::set<Dependency::Ptr>> Checkable::GetGroupedDependencies() const
+{
+	std::unique_lock<std::mutex> lock(m_DependencyMutex);
+	std::map<String, std::set<Dependency::Ptr>> dependencies;
+	for (auto& [group, deps]: m_Dependencies) {
+		dependencies.emplace(std::make_pair(group, std::set(deps.begin(), deps.end())));
+	}
+
+	return dependencies;
+}
+
+/**
+ * Retrieve a copy of all the dependencies that are members of the provided redundancy group.
+ *
+ * @param redundancyGroup The redundancy group name you want to retrieve the dependency members for.
+ *
+ * @return - Returns a set of the member of the given redundancy group.
+ */
+std::set<Dependency::Ptr> Checkable::GetRedundancyGroupMembers(const String& redundancyGroup) const
+{
+	std::unique_lock<std::mutex> lock(m_DependencyMutex);
+	std::set<Dependency::Ptr> dependencies;
+	if (auto it(m_Dependencies.find(redundancyGroup)); it != m_Dependencies.end()) {
+		dependencies.insert(it->second.begin(), it->second.end());
+	}
+
+	return dependencies;
+}
+
 void Checkable::AddReverseDependency(const Dependency::Ptr& dep)
 {
 	std::unique_lock<std::mutex> lock(m_DependencyMutex);

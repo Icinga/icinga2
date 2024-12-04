@@ -187,6 +187,7 @@ public:
 	void RemoveDependency(const intrusive_ptr<Dependency>& dep);
 	std::vector<intrusive_ptr<Dependency> > GetDependencies() const;
 	std::map<String, std::set<intrusive_ptr<Dependency>>> GetGroupedDependencies() const;
+	std::set<intrusive_ptr<Dependency>> GetRedundancyGroupMembers(const String& redundancyGroup) const;
 
 	static bool IsDefaultRedundancyGroup(const String& group);
 
