@@ -3,26 +3,59 @@
 #include "icinga/service.hpp"
 #include "icinga/dependency.hpp"
 #include "base/logger.hpp"
+#include "base/utility.hpp"
 #include <unordered_map>
 
 using namespace icinga;
 
+// Is the default (dummy) redundancy group used to group non-redundant dependencies.
+static String l_DefaultRedundancyGroup(Utility::NewUniqueID());
+
+/**
+ * Check if the provided redundancy group matches the randomly generated (default) one.
+ *
+ * @param group The redundancy group name you want to check.
+ *
+ * @return bool - Returns true if the provided redundancy group matches the randomly generated (default) one.
+ */
+bool Checkable::IsDefaultRedundancyGroup(const String& group)
+{
+	return group == l_DefaultRedundancyGroup;
+}
+
 void Checkable::AddDependency(const Dependency::Ptr& dep)
 {
 	std::unique_lock<std::mutex> lock(m_DependencyMutex);
-	m_Dependencies.insert(dep);
+	auto group(dep->GetRedundancyGroup().IsEmpty() ? l_DefaultRedundancyGroup : dep->GetRedundancyGroup());
+	if (m_Dependencies.find(group) == m_Dependencies.end()) {
+		m_Dependencies.emplace(std::move(group), std::set({dep}));
+	} else {
+		m_Dependencies[group].emplace(dep);
+	}
 }
 
 void Checkable::RemoveDependency(const Dependency::Ptr& dep)
 {
 	std::unique_lock<std::mutex> lock(m_DependencyMutex);
-	m_Dependencies.erase(dep);
+	auto group(dep->GetRedundancyGroup().IsEmpty() ? l_DefaultRedundancyGroup : dep->GetRedundancyGroup());
+	if (auto it(m_Dependencies.find(group)); it != m_Dependencies.end()) {
+		it->second.erase(dep);
+
+		if (it->second.empty()) {
+			m_Dependencies.erase(group);
+		}
+	}
 }
 
 std::vector<Dependency::Ptr> Checkable::GetDependencies() const
 {
 	std::unique_lock<std::mutex> lock(m_DependencyMutex);
-	return std::vector<Dependency::Ptr>(m_Dependencies.begin(), m_Dependencies.end());
+	std::vector<Dependency::Ptr> dependencies;
+	for (const auto& [_, deps] : m_Dependencies) {
+		std::copy(deps.begin(), deps.end(), std::back_inserter(dependencies));
+	}
+
+	return dependencies;
 }
 
 void Checkable::AddReverseDependency(const Dependency::Ptr& dep)
