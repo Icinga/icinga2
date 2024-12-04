@@ -251,7 +251,7 @@ void Dependency::OnAllConfigLoaded()
 	// InitChildParentReferences() has to be called before.
 	VERIFY(m_Child && m_Parent);
 
-	m_Child->AddDependency(this);
+	DependencyGroup::Register(this);
 	m_Parent->AddReverseDependency(this);
 }
 
@@ -259,7 +259,7 @@ void Dependency::Stop(bool runtimeRemoved)
 {
 	ObjectImpl<Dependency>::Stop(runtimeRemoved);
 
-	GetChild()->RemoveDependency(this);
+	DependencyGroup::Unregister(this);
 	GetParent()->RemoveReverseDependency(this);
 }
 

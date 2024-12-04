@@ -54,7 +54,7 @@ BOOST_AUTO_TEST_CASE(multi_parent)
 	dep1->SetStateFilter(StateFilterUp);
 
 	// Reverse dependencies
-        childHost->AddDependency(dep1);
+        DependencyGroup::Register(dep1);
         parentHost1->AddReverseDependency(dep1);
 
 	Dependency::Ptr dep2 = new Dependency();
@@ -64,7 +64,7 @@ BOOST_AUTO_TEST_CASE(multi_parent)
 	dep2->SetStateFilter(StateFilterUp);
 
 	// Reverse dependencies
-        childHost->AddDependency(dep2);
+        DependencyGroup::Register(dep2);
         parentHost2->AddReverseDependency(dep2);
 
 

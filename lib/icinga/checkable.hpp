@@ -187,8 +187,7 @@ public:
 	/* Dependencies */
 	void AddDependencyGroup(const intrusive_ptr<DependencyGroup>& dependencyGroup);
 	void RemoveDependencyGroup(const intrusive_ptr<DependencyGroup>& dependencyGroup);
-	void AddDependency(const intrusive_ptr<Dependency>& dep);
-	void RemoveDependency(const intrusive_ptr<Dependency>& dep);
+	std::vector<intrusive_ptr<DependencyGroup>> GetDependencyGroups() const;
 	std::vector<intrusive_ptr<Dependency> > GetDependencies() const;
 
 	void AddReverseDependency(const intrusive_ptr<Dependency>& dep);
@@ -250,7 +249,6 @@ private:
 	/* Dependencies */
 	mutable std::mutex m_DependencyMutex;
 	std::set<intrusive_ptr<DependencyGroup>> m_DependencyGroups;
-	std::set<intrusive_ptr<Dependency> > m_Dependencies;
 	std::set<intrusive_ptr<Dependency> > m_ReverseDependencies;
 
 	void GetAllChildrenInternal(std::set<Checkable::Ptr>& seenChildren, int level = 0) const;
