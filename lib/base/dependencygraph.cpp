@@ -5,15 +5,15 @@
 using namespace icinga;
 
 std::mutex DependencyGraph::m_Mutex;
-std::map<Object *, std::map<Object *, int> > DependencyGraph::m_Dependencies;
+std::map<ConfigObject*, std::map<ConfigObject*, int>> DependencyGraph::m_Dependencies;
 
-void DependencyGraph::AddDependency(Object* child, Object* parent)
+void DependencyGraph::AddDependency(ConfigObject* child, ConfigObject* parent)
 {
 	std::unique_lock<std::mutex> lock(m_Mutex);
 	m_Dependencies[parent][child]++;
 }
 
-void DependencyGraph::RemoveDependency(Object* child, Object* parent)
+void DependencyGraph::RemoveDependency(ConfigObject* child, ConfigObject* parent)
 {
 	std::unique_lock<std::mutex> lock(m_Mutex);
 
@@ -32,16 +32,15 @@ void DependencyGraph::RemoveDependency(Object* child, Object* parent)
 		m_Dependencies.erase(parent);
 }
 
-std::vector<Object::Ptr> DependencyGraph::GetChildren(const Object::Ptr& parent)
+std::vector<ConfigObject::Ptr> DependencyGraph::GetChildren(const ConfigObject::Ptr& parent)
 {
-	std::vector<Object::Ptr> objects;
+	std::vector<ConfigObject::Ptr> objects;
 
 	std::unique_lock<std::mutex> lock(m_Mutex);
 	auto it = m_Dependencies.find(parent.get());
 
 	if (it != m_Dependencies.end()) {
-		typedef std::pair<Object *, int> kv_pair;
-		for (const kv_pair& kv : it->second) {
+		for (auto& kv : it->second) {
 			objects.emplace_back(kv.first);
 		}
 	}
