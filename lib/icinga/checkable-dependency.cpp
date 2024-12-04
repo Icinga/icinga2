@@ -27,22 +27,22 @@ void Checkable::RemoveDependencyGroup(const DependencyGroup::Ptr& dependencyGrou
 	m_DependencyGroups.erase(dependencyGroup);
 }
 
-void Checkable::AddDependency(const Dependency::Ptr& dep)
+std::vector<DependencyGroup::Ptr> Checkable::GetDependencyGroups() const
 {
-	std::unique_lock<std::mutex> lock(m_DependencyMutex);
-	m_Dependencies.insert(dep);
-}
-
-void Checkable::RemoveDependency(const Dependency::Ptr& dep)
-{
-	std::unique_lock<std::mutex> lock(m_DependencyMutex);
-	m_Dependencies.erase(dep);
+	std::unique_lock lock(m_DependencyMutex);
+	return {m_DependencyGroups.begin(), m_DependencyGroups.end()};
 }
 
 std::vector<Dependency::Ptr> Checkable::GetDependencies() const
 {
 	std::unique_lock<std::mutex> lock(m_DependencyMutex);
-	return std::vector<Dependency::Ptr>(m_Dependencies.begin(), m_Dependencies.end());
+	std::vector<Dependency::Ptr> dependencies;
+	for (const auto& dependencyGroup : m_DependencyGroups) {
+		auto members(dependencyGroup->GetMembers(this));
+		dependencies.insert(dependencies.end(), members.begin(), members.end());
+	}
+
+	return dependencies;
 }
 
 void Checkable::AddReverseDependency(const Dependency::Ptr& dep)
