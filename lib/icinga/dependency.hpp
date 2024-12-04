@@ -50,6 +50,23 @@ public:
 	void SetParent(intrusive_ptr<Checkable> parent);
 	void SetChild(intrusive_ptr<Checkable> child);
 
+	/**
+	 * Functor to compare the parent Checkable of a dependency with an explicitly provided parent Checkable.
+	 *
+	 * This is used to group dependencies by their parent Checkable (c++ 14 heterogeneous lookups).
+	 */
+	struct ParentComparator {
+		bool operator()(const Dependency::Ptr& dependency, const Checkable::Ptr& parent) const
+		{
+			return dependency->GetParent() < parent;
+		}
+
+		bool operator()(const Checkable::Ptr& parent, const Dependency::Ptr& rhs) const
+		{
+			return parent < rhs->GetParent();
+		}
+	};
+
 protected:
 	void OnConfigLoaded() override;
 	void OnAllConfigLoaded() override;
