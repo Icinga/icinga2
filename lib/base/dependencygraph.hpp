@@ -4,7 +4,7 @@
 #define DEPENDENCYGRAPH_H
 
 #include "base/i2-base.hpp"
-#include "base/object.hpp"
+#include "base/configobject.hpp"
 #include <map>
 #include <mutex>
 
@@ -18,15 +18,25 @@ namespace icinga {
 class DependencyGraph
 {
 public:
-	static void AddDependency(Object* child, Object* parent);
-	static void RemoveDependency(Object* child, Object* parent);
-	static std::vector<Object::Ptr> GetChildren(const Object::Ptr& parent);
+	static void AddDependency(ConfigObject* child, ConfigObject* parent);
+	static void RemoveDependency(ConfigObject* child, ConfigObject* parent);
+	static std::vector<ConfigObject::Ptr> GetChildren(const ConfigObject::Ptr& parent);
+
+	static void AddDependency(ObjectImpl<ConfigObject>* child, ObjectImpl<ConfigObject>* parent)
+	{
+		AddDependency(static_cast<ConfigObject*>(child), static_cast<ConfigObject*>(parent));
+	}
+
+	static void RemoveDependency(ObjectImpl<ConfigObject>* child, ObjectImpl<ConfigObject>* parent)
+	{
+		RemoveDependency(static_cast<ConfigObject*>(child), static_cast<ConfigObject*>(parent));
+	}
 
 private:
 	DependencyGraph();
 
 	static std::mutex m_Mutex;
-	static std::map<Object *, std::map<Object *, int> > m_Dependencies;
+	static std::map<ConfigObject*, std::map<ConfigObject*, int>> m_Dependencies;
 };
 
 }
