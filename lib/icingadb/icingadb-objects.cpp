@@ -1150,6 +1150,10 @@ void IcingaDB::InsertCheckableDependencies(const Checkable::Ptr& checkable, std:
 	auto& hmsetDependencyEdges(hMSets[m_PrefixConfigObject + "dependency:edge"]);
 	auto& hmsetRedundancyGroups(hMSets[m_PrefixConfigObject + "redundancygroup"]);
 
+	// If this isn't a runtime update, we need to send initial state updates for the dependencies as well.
+	auto& hmsetDependenciesStates(hMSets[m_PrefixConfigObject + "dependency:edge:state"]);
+	auto& hmsetRedundancyGroupsStates(hMSets[m_PrefixConfigObject + "redundancygroup:state"]);
+
 	auto [host, service] = GetHostService(checkable);
 	auto checkableId(GetObjectIdentifier(checkable));
 	{
@@ -1167,12 +1171,14 @@ void IcingaDB::InsertCheckableDependencies(const Checkable::Ptr& checkable, std:
 
 	for (auto& redundancyGroup : redundancyGroups) {
 		String redundancyGroupId(redundancyGroup->GetIcingaDBIdentifier());
+		bool syncSharedEdgeState(false);
 		if (!redundancyGroup->IsDefault()) {
 			redundancyGroupId = HashValue(new Array{m_EnvironmentId, redundancyGroup->GetCompositeKey()});
 			redundancyGroup->SetIcingaDBIdentifier(redundancyGroupId);
 
 			// Sync redundancy group information only once unless it's a runtime update.
 			if (runtimeUpdates || m_DumpedGlobals.RedundancyGroup.IsNew(redundancyGroupId)) {
+				syncSharedEdgeState = true;
 				Dictionary::Ptr groupData(SerializeRedundancyGroup(redundancyGroup));
 				hmsetRedundancyGroups.emplace_back(redundancyGroupId);
 				hmsetRedundancyGroups.emplace_back(JsonEncode(groupData));
@@ -1188,6 +1194,9 @@ void IcingaDB::InsertCheckableDependencies(const Checkable::Ptr& checkable, std:
 				if (runtimeUpdates) {
 					AddObjectDataToRuntimeUpdates(*runtimeUpdates, redundancyGroupId, m_PrefixConfigObject + "redundancygroup", groupData);
 					AddObjectDataToRuntimeUpdates(*runtimeUpdates, redundancyGroupId, m_PrefixConfigObject + "dependency:node", nodeData);
+				} else {
+					hmsetRedundancyGroupsStates.emplace_back(redundancyGroupId);
+					hmsetRedundancyGroupsStates.emplace_back(JsonEncode(SerializeRedundancyGroup(redundancyGroup, true)));
 				}
 			}
 
@@ -1206,6 +1215,16 @@ void IcingaDB::InsertCheckableDependencies(const Checkable::Ptr& checkable, std:
 
 			if (runtimeUpdates) {
 				AddObjectDataToRuntimeUpdates(*runtimeUpdates, edgeId, m_PrefixConfigObject + "dependency:edge", data);
+			}
+
+			if (syncSharedEdgeState) { // It's enough to sync the state only once.
+				Dictionary::Ptr data(new Dictionary{
+					{"id", redundancyGroupId},
+					{"environment_id", m_EnvironmentId},
+					{"failed", static_cast<bool>(redundancyGroup->GetState() & RedundancyGroup::UnreachableFailed)},
+				});
+				hmsetDependenciesStates.emplace_back(redundancyGroupId);
+				hmsetDependenciesStates.emplace_back(JsonEncode(data));
 			}
 		}
 
@@ -1232,6 +1251,9 @@ void IcingaDB::InsertCheckableDependencies(const Checkable::Ptr& checkable, std:
 
 			if (runtimeUpdates) {
 				AddObjectDataToRuntimeUpdates(*runtimeUpdates, edgeId, m_PrefixConfigObject + "dependency:edge", data);
+			} else if (redundancyGroup->IsDefault() || syncSharedEdgeState) {
+				hmsetDependenciesStates.emplace_back(edgeId);
+				hmsetDependenciesStates.emplace_back(JsonEncode(SerializeDependencyEdgeState(redundancyGroup, dependency)));
 			}
 		}
 	}
