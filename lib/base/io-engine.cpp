@@ -142,6 +142,30 @@ void AsioDualEvent::WaitForClear(boost::asio::yield_context yc)
 	m_IsFalse.Wait(std::move(yc));
 }
 
+AsioConditionVariable::AsioConditionVariable(boost::asio::io_context& io)
+	: m_Timer(io)
+{
+	m_Timer.expires_at(decltype(m_Timer)::clock_type::time_point::max());
+}
+
+void AsioConditionVariable::Wait(boost::asio::yield_context yc)
+{
+	boost::system::error_code ec;
+	m_Timer.async_wait(yc[ec]);
+}
+
+bool AsioConditionVariable::NotifyOne()
+{
+	boost::system::error_code ec;
+	return m_Timer.cancel_one(ec);
+}
+
+size_t AsioConditionVariable::NotifyAll()
+{
+	boost::system::error_code ec;
+	return m_Timer.cancel(ec);
+}
+
 /**
  * Cancels any pending timeout callback.
  *

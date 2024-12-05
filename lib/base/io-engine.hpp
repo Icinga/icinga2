@@ -23,6 +23,7 @@
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/io_context_strand.hpp>
 #include <boost/asio/spawn.hpp>
+#include <boost/asio/system_timer.hpp>
 
 #if BOOST_VERSION >= 108700
 #	include <boost/asio/detached.hpp>
@@ -54,6 +55,24 @@ public:
 
 private:
 	bool m_Done;
+};
+
+/**
+ * Condition variable which doesn't block I/O threads
+ *
+ * @ingroup base
+ */
+class AsioConditionVariable
+{
+public:
+	AsioConditionVariable(boost::asio::io_context& io);
+
+	void Wait(boost::asio::yield_context yc);
+	bool NotifyOne();
+	size_t NotifyAll();
+
+private:
+	boost::asio::system_timer m_Timer;
 };
 
 /**
