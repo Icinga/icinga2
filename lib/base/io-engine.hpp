@@ -56,6 +56,24 @@ private:
 };
 
 /**
+ * Condition variable which doesn't block I/O threads
+ *
+ * @ingroup base
+ */
+class AsioConditionVariable
+{
+public:
+	AsioConditionVariable(boost::asio::io_context& io);
+
+	void Wait(boost::asio::yield_context yc);
+	bool NotifyOne();
+	size_t NotifyAll();
+
+private:
+	boost::asio::deadline_timer m_Timer;
+};
+
+/**
  * Async I/O engine
  *
  * @ingroup base
