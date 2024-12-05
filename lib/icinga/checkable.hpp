@@ -82,6 +82,16 @@ public:
 	const String& GetName() const;
 	String GetUniqueName() const;
 
+	enum State
+	{
+		Unknown     = 1ull << 0,
+		Failed      = 1ull << 1,
+		Unreachable = 1ull << 2,
+		Reachable   = 1ull << 3,
+	};
+
+	State GetState() const;
+
 private:
 	mutable std::mutex m_Mutex;
 	String m_IcingaDBIdentifier;

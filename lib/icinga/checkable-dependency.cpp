@@ -171,6 +171,35 @@ String RedundancyGroup::GetUniqueName() const
 }
 
 /**
+ * Retrieve the state of the current redundancy group.
+ *
+ * The state of the redundancy group is determined based on the state of the members of the group.
+ * If any of the members is not reachable, the group is marked as unreachable. Otherwise, if the
+ * child Checkable of the members is not reachable, the group is marked as failed
+ *
+ * @return - Returns the state of the current redundancy group.
+ */
+RedundancyGroup::State RedundancyGroup::GetState() const
+{
+	// TODO(TBD): How should we query the other members of a given redundancy group for their state?
+	//   For now, the group state is determined based only on the current Checkable state.
+	Checkable::Ptr child;
+	for (const Dependency::Ptr& member: GetMembers()) {
+		if (!member->GetParent()->IsReachable()) {
+			return RedundancyGroup::Unreachable;
+		}
+
+		if (!child) {
+			child = member->GetChild();
+		}
+	}
+
+	// Since the child of all the dependencies above is/should be the same,
+	// we can mark the group as failed if it's not reachable.
+	return child && !child->IsReachable() ? RedundancyGroup::Failed : RedundancyGroup::Reachable;
+}
+
+/**
  * Retrieve the Icinga DB identifier of the provided redundancy group (if any).
  *
  * @param redundancyGroup The name of the redundancy group.
