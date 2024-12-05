@@ -17,7 +17,6 @@
 #include <boost/exception/all.hpp>
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/io_context.hpp>
-#include <boost/asio/io_context_strand.hpp>
 #include <boost/asio/spawn.hpp>
 
 namespace icinga
@@ -31,7 +30,7 @@ namespace icinga
 class CpuBoundWork
 {
 public:
-	CpuBoundWork(boost::asio::yield_context yc, boost::asio::io_context::strand&);
+	CpuBoundWork(boost::asio::yield_context yc);
 	CpuBoundWork(const CpuBoundWork&) = delete;
 	CpuBoundWork(CpuBoundWork&&) = delete;
 	CpuBoundWork& operator=(const CpuBoundWork&) = delete;

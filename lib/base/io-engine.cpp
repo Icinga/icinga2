@@ -16,7 +16,7 @@
 
 using namespace icinga;
 
-CpuBoundWork::CpuBoundWork(boost::asio::yield_context yc, boost::asio::io_context::strand&)
+CpuBoundWork::CpuBoundWork(boost::asio::yield_context yc)
 	: m_Done(false)
 {
 	auto& ioEngine (IoEngine::Get());
