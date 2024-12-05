@@ -5,6 +5,7 @@
 
 #include "base/atomic.hpp"
 #include "base/timer.hpp"
+#include "base/shared-object.hpp"
 #include "base/process.hpp"
 #include "icinga/i2-icinga.hpp"
 #include "icinga/checkable-ti.hpp"
@@ -18,6 +19,7 @@
 #include <cstdint>
 #include <functional>
 #include <limits>
+#include <tuple>
 
 namespace icinga
 {
@@ -57,6 +59,61 @@ enum FlappingStateFilter
 class CheckCommand;
 class EventCommand;
 class Dependency;
+class Checkable;
+
+/**
+ * A dependency redundancy group that encapsulates its members and other internal logic used by Icinga DB.
+ *
+ * @ingroup base
+ */
+class RedundancyGroup : public SharedObject
+{
+public:
+	DECLARE_PTR_TYPEDEFS(RedundancyGroup);
+
+	/**
+	 * Defines the key type of each redundancy group members.
+	 *
+	 * For non-default redundancy groups, that tuple consists of the dependency parent name,
+	 * the dependency time period name (empty if not configured), the state filter, and the
+	 * ignore soft states flag.
+	 *
+	 * For the default non-redundant group of a given Checkable, the tuple consists of the
+	 * default redundancy group name (which is a randomly generated unique UUID), the child
+	 * Checkable name, the parent Checkable name, and the ignore soft states flag (is always false).
+	 */
+	using MemberTuple = std::tuple<String, String, int, bool>;
+	using MemberValueType = std::unordered_multimap<const Checkable*, Dependency*>;
+	using MembersMap = std::map<MemberTuple, MemberValueType>;
+
+	RedundancyGroup(String name, const intrusive_ptr<Dependency>& member);
+
+	static bool IsDefault(const String& name);
+	static MemberTuple MakeCompositeKeyFor(const intrusive_ptr<Dependency>& dep);
+
+	bool IsDefault() const;
+	bool HasMembers() const;
+	bool HasMembers(const intrusive_ptr<Checkable>& child) const;
+	MembersMap GetMembers() const;
+	std::set<intrusive_ptr<Dependency>> GetMembers(const Checkable* child) const;
+	size_t GetMemberCount() const;
+
+	void SetIcingaDBIdentifier(const String& identifier);
+	String GetIcingaDBIdentifier() const;
+
+	const String& GetName() const;
+	String GetCompositeKey() const;
+
+protected:
+	void AddMember(const intrusive_ptr<Dependency>& member);
+	void RemoveMember(const intrusive_ptr<Dependency>& member);
+
+private:
+	mutable std::mutex m_Mutex;
+	String m_IcingaDBIdentifier;
+	String m_Name;
+	MembersMap m_Members;
+};
 
 /**
  * An Icinga service.

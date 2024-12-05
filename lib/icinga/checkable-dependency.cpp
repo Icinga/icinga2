@@ -1,11 +1,260 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "icinga/service.hpp"
-#include "icinga/dependency.hpp"
 #include "base/logger.hpp"
+#include "base/object-packer.hpp"
+#include "icinga/dependency.hpp"
+#include "icinga/service.hpp"
 #include <unordered_map>
+#include <numeric>
 
 using namespace icinga;
+
+// Is the default (dummy) redundancy group used to group non-redundant dependencies.
+static String l_DefaultRedundancyGroup(Utility::NewUniqueID());
+
+RedundancyGroup::RedundancyGroup(String name, const Dependency::Ptr& dependency): m_Name(std::move(name))
+{
+	AddMember(dependency);
+}
+
+/**
+ * Check if the provided redundancy group matches the randomly generated (default) one.
+ *
+ * @param name The redundancy group name you want to check.
+ *
+ * @return bool - Returns true if the provided redundancy group matches the randomly generated (default) one.
+ */
+bool RedundancyGroup::IsDefault(const String& name)
+{
+	return  name == l_DefaultRedundancyGroup;
+}
+
+/**
+ * Create a composite key for the provided dependency.
+ *
+ * @param dep The dependency object to create a composite key for.
+ *
+ * @return - Returns the composite key for the provided dependency.
+ */
+RedundancyGroup::MemberTuple RedundancyGroup::MakeCompositeKeyFor(const Dependency::Ptr& dep)
+{
+	if (dep->GetRedundancyGroup().IsEmpty()) {
+		// Just to make sure we don't have any duplicates in the default group, i.e. each dependency object
+		// should be produce different hash value within the group itself. Note, this isn't used to determine
+		// the identity of the redundancy group, but to batch the individual group members.
+		return std::make_tuple(l_DefaultRedundancyGroup, dep->GetChild()->GetName(), 0, false);
+	}
+
+	return std::make_tuple(
+		dep->GetParent()->GetName(),
+		dep->GetPeriodRaw(),
+		dep->GetStateFilter(),
+		dep->GetIgnoreSoftStates()
+	);
+}
+
+/**
+ * Check if the current redundancy group is the default one.
+ *
+ * @return bool - Returns true if the current redundancy group is the default one.
+ */
+bool RedundancyGroup::IsDefault() const
+{
+    return IsDefault(m_Name);
+}
+
+/**
+ * Check if the current redundancy group has any members.
+ *
+ * @return bool - Returns true if the current redundancy group has any members.
+ */
+bool RedundancyGroup::HasMembers() const
+{
+	std::lock_guard lock(m_Mutex);
+	return !m_Members.empty();
+}
+
+/**
+ * Check if the current redundancy group has any members the provided child Checkable depend on.
+ *
+ * @param child The child Checkable to look for.
+ *
+ * @return bool - Returns true if the current redundancy group has any members the provided child depend on.
+ */
+bool RedundancyGroup::HasMembers(const Checkable::Ptr& child) const
+{
+	std::lock_guard lock(m_Mutex);
+	return std::any_of(m_Members.begin(), m_Members.end(), [child](const auto& member) {
+		return member.second.find(child.get()) != member.second.end();
+	});
+}
+
+/**
+ * Retrieve a copy of the members of the current redundancy group.
+ *
+ * @return - Returns all the members of the current redundancy group.
+ */
+RedundancyGroup::MembersMap RedundancyGroup::GetMembers() const
+{
+	std::lock_guard lock(m_Mutex);
+	return {m_Members.begin(), m_Members.end()};
+}
+
+/**
+ * Retrieve all members of the current redundancy group the provided child Checkable depend on.
+ *
+ * @param child The child Checkable to look for.
+ *
+ * @return - Returns all members of the current redundancy group the provided child depend on.
+ */
+std::set<Dependency::Ptr> RedundancyGroup::GetMembers(const Checkable* child) const
+{
+	std::lock_guard lock(m_Mutex);
+	std::set<Dependency::Ptr> members;
+	for (auto& [_, dependencies] : m_Members) {
+		auto range(dependencies.equal_range(child));
+		std::transform(range.first,range.second, std::inserter(members, members.end()), [](const auto& member) {
+			return member.second;
+		});
+	}
+
+	return members;
+}
+
+/**
+ * Retrieve the number of members in the current redundancy group.
+ *
+ * This function mainly exists for optimization purposes, i.e. instead of getting a copy of the members and
+ * counting them, we can directly query the number of members.
+ *
+ * @return - Returns the number of members in the current redundancy group.
+ */
+size_t RedundancyGroup::GetMemberCount() const
+{
+	std::lock_guard lock(m_Mutex);
+	return std::accumulate(m_Members.begin(), m_Members.end(), static_cast<size_t>(0), [](int sum, const auto& pair) {
+		return sum + pair.second.size();
+	});
+}
+
+/**
+ * Add a member to the current redundancy group.
+ *
+ * @param member The dependency to add to the redundancy group.
+ */
+void RedundancyGroup::AddMember(const Dependency::Ptr& member)
+{
+	std::lock_guard lock(m_Mutex);
+	MemberTuple compositeKey(MakeCompositeKeyFor(member));
+	if (auto it(m_Members.find(compositeKey)); it != m_Members.end()) {
+		it->second.emplace(member->GetChild().get(), member.get());
+	} else {
+		m_Members.emplace(compositeKey, MemberValueType{{member->GetChild().get(), member.get()}});
+	}
+}
+
+/**
+ * Remove a member from the current redundancy group.
+ *
+ * @param member The dependency to remove from the redundancy group.
+ */
+void RedundancyGroup::RemoveMember(const Dependency::Ptr& member)
+{
+	std::lock_guard lock(m_Mutex);
+	if (auto it(m_Members.find(MakeCompositeKeyFor(member))); it != m_Members.end()) {
+		auto [rangeBegin, rangeEnd] = it->second.equal_range(member->GetChild().get());
+		for (auto memberIt(rangeBegin); memberIt != rangeEnd; ++memberIt) {
+			if (memberIt->second == member) {
+				// This will also remove the child Checkable from the multimap container
+				// entirely if this was the last member of it.
+				it->second.erase(memberIt);
+				// If the composite key has no more members left, we can remove it entirely as well.
+				if (it->second.empty()) {
+					m_Members.erase(it);
+				}
+				return;
+			}
+		}
+	}
+}
+
+/**
+ * Set the Icinga DB identifier for the current redundancy group.
+ *
+ * The only usage of this function is the Icinga DB feature used to cache the unique hash of this redundancy groups.
+ *
+ * @param identifier The Icinga DB identifier to set.
+ */
+void RedundancyGroup::SetIcingaDBIdentifier(const String& identifier)
+{
+	std::lock_guard lock(m_Mutex);
+	m_IcingaDBIdentifier = identifier;
+}
+
+/**
+ * Retrieve the Icinga DB identifier for the current redundancy group.
+ *
+ * When the identifier is not already set by Icinga DB via the SetIcingaDBIdentifier method,
+ * this will just return an empty string.
+ *
+ * @return - Returns the Icinga DB identifier for the current redundancy group.
+ */
+String RedundancyGroup::GetIcingaDBIdentifier() const
+{
+	std::lock_guard lock(m_Mutex);
+	return m_IcingaDBIdentifier;
+}
+
+/**
+ * Retrieve the (non-unique) name of the current redundancy group.
+ *
+ * The name of the redundancy group is the same as the one located in the configuration files.
+ *
+ * @return - Returns the name of the current redundancy group.
+ */
+const String& RedundancyGroup::GetName() const
+{
+	// We don't need to lock the mutex here, as the name is set once during
+	// the object construction and never changed afterwards.
+	return m_Name;
+}
+
+/**
+ * Retrieve the unique composite key of the current redundancy group.
+ *
+ * The composite key consists of some unique data of the redundancy group members, and should be used
+ * to generate a unique deterministic hash for the redundancy group. Each key is a tuple of the parent name,
+ * the time period name (empty if not configured), the state filter, and the ignore soft states flag of the member.
+ *
+ * Additionally, to all the above mentioned keys, the non-unique redundancy group name is also included.
+ *
+ * @return - Returns the composite key of the current redundancy group.
+ */
+String RedundancyGroup::GetCompositeKey() const
+{
+	std::lock_guard lock(m_Mutex);
+	if (IsDefault()) {
+		// The default redundancy group is a special case, as it groups all non-redundant dependencies.
+		// Thus, packing the name of the dummy group and child Checkable name is always unique enough.
+		String childCheckableName;
+		if (!m_Members.empty()) {
+			auto [_, members] = *m_Members.begin();
+			childCheckableName = members.begin()->first->GetName();
+		}
+		return PackObject(new Array{GetName(), childCheckableName, 0, false});
+	}
+
+	Array::Ptr data(new Array{GetName()});
+	std::for_each(m_Members.begin(), m_Members.end(), [&data](const auto& member) {
+		auto [parentName, tpName, stateFilter, ignoreSoftStates] = member.first;
+		data->Add(std::move(parentName));
+		data->Add(std::move(tpName));
+		data->Add(stateFilter);
+		data->Add(ignoreSoftStates);
+	});
+
+	return PackObject(data);
+}
 
 void Checkable::AddDependency(const Dependency::Ptr& dep)
 {
