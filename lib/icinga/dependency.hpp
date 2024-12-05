@@ -160,6 +160,17 @@ public:
 	const String& GetName() const;
 	String GetCompositeKey();
 
+	enum State
+	{
+		Unknown           = 1ull << 0,
+		Failed            = 1ull << 1,
+		Unreachable       = 1ull << 2,
+		ReachableOK       = 1ull << 3,
+		UnreachableFailed = Unreachable | Failed,
+	};
+
+	State GetState(DependencyType dt = DependencyState, int rstack = 0) const;
+
 protected:
 	void AddMember(const Dependency::Ptr& member);
 	void RemoveMember(const Dependency::Ptr& member);

@@ -354,3 +354,56 @@ String DependencyGroup::GetCompositeKey()
 
 	return m_CompositeKey;
 }
+
+/**
+ * Retrieve the state of the current dependency group.
+ *
+ * The state of the dependency group is determined based on the state of the members of the group.
+ * This method returns a DependencyGroup::State::Unknown immediately when the group has no members.
+ * Otherwise, a dependency group is considered unreachable when none of the members is reachable.
+ * A reachable dependency group is failed when the edges connected to it are not available.
+ *
+ * @return - Returns the state of the current dependency group.
+ */
+DependencyGroup::State DependencyGroup::GetState(DependencyType dt, int rstack) const
+{
+	MembersMap members;
+	{
+		// We don't want to hold the mutex lock for the entire evaluation, thus we just need to operate on a copy.
+		std::lock_guard lock(m_Mutex);
+		members = m_Members;
+	}
+
+	State state(State::Unknown);
+	for (auto& [_, dependencies] : members) {
+		for (auto& [checkable, dependency] : dependencies) {
+			if (!dependency->GetParent()->IsReachable(dt, rstack)) {
+				if (!IsRedundancyGroup()) {
+					return State::Unreachable;
+				}
+				state = State::UnreachableFailed;
+				break; // Cache the state and continue with the next batch of group members.
+			}
+
+			if (!dependency->IsAvailable(dt)) {
+				if (!IsRedundancyGroup()) {
+					Log(LogDebug, "Checkable")
+						<< "Non-redundant dependency '" << dependency->GetName() << "' failed for checkable '"
+						<< checkable->GetName() << "': Marking as unreachable.";
+
+					return State::Failed;
+				}
+				state = State::Failed;
+				break; // Cache the state and continue with the next batch of group members.
+			}
+
+			state = State::ReachableOK;
+			if (IsRedundancyGroup()) {
+				return state; // We have found one functional path, so that's enough!
+			}
+			break; // Move on to the next batch of group members (next composite key).
+		}
+	}
+
+	return state;
+}
