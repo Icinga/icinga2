@@ -451,35 +451,57 @@ String RedundancyGroup::GetCompositeKey() const
 }
 
 /**
- * Retrieve the Icinga DB identifier of the provided redundancy group (if any).
+ * Retrieve the state of the current redundancy group.
  *
- * @param redundancyGroup The name of the redundancy group.
+ * The state of the redundancy group is determined based on the state of the members of the group.
+ * This method returns a RedundancyGroup::State::Unknown immediately when the redundancy group has no members.
+ * Otherwise, a redundancy group is considered unreachable when any of the members is unreachable.
+ * A reachable redundancy group is failed when the edges connected to it are not available.
  *
- * @return RedundancyGroup - Returns the Icinga DB identifier of the given redundancy group.
+ * @return - Returns the state of the current redundancy group.
  */
-Shared<RedundancyGroup>::Ptr Checkable::GetRedundancyGroup(const String& redundancyGroup)
+RedundancyGroup::State RedundancyGroup::GetState(DependencyType dt) const
 {
-	std::lock_guard<std::mutex> lock(m_DependencyMutex);
-	if (auto it(m_Dependencies.find(redundancyGroup)); it != m_Dependencies.end()) {
-		return it->second;
+	if (!HasMembers()) {
+		return State::Unknown;
 	}
 
-	return nullptr;
-}
+	bool isDefaultGroup(IsDefault());
+	State state(State::Failed);
+	// We don't want to hold the mutex lock for the entire evaluation, thus we just need to operate on a copy.
+	MembersMap members(GetMembers());
+	for (auto it(members.begin()); it != members.end() && (isDefaultGroup || state != State::ReachableAndOK); ++it) {
+		// Those are first batch of group members, i.e. they all share kind of the same Dependency config.
+		// So, for non-default groups, we only need to check a single parent Checkable of each such a group.
+		for (auto& [checkable, dependency] : it->second) {
+			if (!dependency->GetParent()->IsReachable(dt)) {
+				if (isDefaultGroup) {
+					// If any of the members is unreachable, the whole redundancy group is unreachable, too.
+					return State::Unreachable;
+				}
+				state = State::UnreachableFailed;
+				break;
+			}
 
-/**
- * Retrieve the Checkable dependencies grouped by redundancy group.
- *
- * Note, to simplify the implementation, non-redundant dependencies are grouped under a dummy group,
- * which is a randomly generated string. To verify if a given redundancy group is the default one, use
- * the RedundancyGroup::IsDefault() helper function.
- *
- * @return - Returns a map of redundancy groups and their member sets.
- */
-std::unordered_map<String, Shared<RedundancyGroup>::Ptr> Checkable::GetRedundancyGroups() const
-{
-	std::lock_guard lock(m_DependencyMutex);
-	return {m_Dependencies.begin(), m_Dependencies.end()};
+			if (!dependency->IsAvailable(dt)) {
+				if (isDefaultGroup) {
+					Log(LogDebug, "Checkable")
+						<< "Non-redundant dependency '" << dependency->GetName() << "' failed for checkable '"
+						<< checkable->GetName() << "': Marking as unreachable.";
+
+					return State::Failed;
+				}
+				break;
+			}
+
+			state = State::ReachableAndOK;
+			if (!isDefaultGroup) {
+				break;
+			}
+		}
+	}
+
+	return state;
 }
 
 void Checkable::AddDependency(const Dependency::Ptr& dep) const

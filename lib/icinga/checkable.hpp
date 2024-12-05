@@ -111,6 +111,17 @@ public:
 	const String& GetName() const;
 	String GetCompositeKey() const;
 
+	enum State
+	{
+		Unknown           = 1ull << 0,
+		Failed            = 1ull << 1,
+		Unreachable       = 1ull << 2,
+		ReachableAndOK    = 1ull << 3,
+		UnreachableFailed = Unreachable | Failed,
+	};
+
+	State GetState(DependencyType dt = DependencyState) const;
+
 protected:
 	void AddMember(const intrusive_ptr<Dependency>& member);
 	void RemoveMember(const intrusive_ptr<Dependency>& member);
