@@ -10,6 +10,7 @@
 #include <atomic>
 #include <exception>
 #include <memory>
+#include <mutex>
 #include <thread>
 #include <utility>
 #include <vector>
@@ -154,9 +155,9 @@ class AsioConditionVariable
 public:
 	AsioConditionVariable(boost::asio::io_context& io);
 
-	void Wait(boost::asio::yield_context yc);
-	bool NotifyOne();
-	size_t NotifyAll();
+	void Wait(std::unique_lock<std::mutex>& lock, boost::asio::yield_context yc);
+	bool NotifyOne(std::mutex& mutex);
+	size_t NotifyAll(std::mutex& mutex);
 
 private:
 	boost::asio::deadline_timer m_Timer;

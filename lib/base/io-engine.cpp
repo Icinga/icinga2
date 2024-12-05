@@ -1,6 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/configuration.hpp"
+#include "base/debug.hpp"
 #include "base/exception.hpp"
 #include "base/io-engine.hpp"
 #include "base/lazy-init.hpp"
@@ -122,21 +123,83 @@ AsioConditionVariable::AsioConditionVariable(boost::asio::io_context& io)
 	m_Timer.expires_at(boost::posix_time::pos_infin);
 }
 
-void AsioConditionVariable::Wait(boost::asio::yield_context yc)
+namespace icinga
 {
-	boost::system::error_code ec;
-	m_Timer.async_wait(yc[ec]);
+
+struct UnlockingYieldContext
+{
+	/*UnlockingYieldContext(boost::asio::yield_context yc, std::unique_lock<std::mutex>* lock)
+		: YC(std::move(yc)), Lock(lock)
+	{
+	}*/
+
+	boost::asio::yield_context YC;
+	std::unique_lock<std::mutex>* Lock;
+};
+
+template<class H>
+class UnlockingYcHandler
+{
+public:
+	UnlockingYcHandler(UnlockingYieldContext uyc)
+		: m_Handler(uyc.YC), m_Lock(uyc.Lock)
+	{
+	}
+
+	template<class... Args>
+	auto operator()(Args&&... args) -> decltype(m_Handler(std::forward<Args>(args)...))
+	{
+		m_Lock->unlock();
+		return m_Handler(std::forward<Args>(args)...);
+	}
+
+private:
+	H m_Handler;
+	std::unique_lock<std::mutex>* m_Lock;
+};
+
 }
 
-bool AsioConditionVariable::NotifyOne()
+template<class Signature>
+class boost::asio::async_result<UnlockingYieldContext, Signature>
+{
+public:
+	using BaseType = async_result<yield_context, Signature>;
+	using completion_handler_type = UnlockingYcHandler<typename BaseType::completion_handler_type>;
+	using return_type = typename BaseType::return_type;
+
+	template<class... Args>
+	explicit async_result(Args&&... args) : m_Result(std::forward<Args>(args)...)
+	{
+	}
+
+	return_type get()
+	{
+		return m_Result.get();
+	}
+
+private:
+	BaseType m_Result;
+};
+
+void AsioConditionVariable::Wait(std::unique_lock<std::mutex>& lock, boost::asio::yield_context yc)
+{
+	VERIFY(lock);
+	boost::system::error_code ec;
+	m_Timer.async_wait(UnlockingYieldContext{yc[ec], &lock});
+}
+
+bool AsioConditionVariable::NotifyOne(std::mutex& mutex)
 {
 	boost::system::error_code ec;
+	std::unique_lock lock (mutex);
 	return m_Timer.cancel_one(ec);
 }
 
-size_t AsioConditionVariable::NotifyAll()
+size_t AsioConditionVariable::NotifyAll(std::mutex& mutex)
 {
 	boost::system::error_code ec;
+	std::unique_lock lock (mutex);
 	return m_Timer.cancel(ec);
 }
 
