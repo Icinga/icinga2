@@ -158,14 +158,14 @@ class TerminateIoThread : public std::exception
 };
 
 /**
- * Condition variable which doesn't block I/O threads
+ * Awaitable flag which doesn't block I/O threads, inspired by threading.Event from Python
  *
  * @ingroup base
  */
-class AsioConditionVariable
+class AsioEvent
 {
 public:
-	AsioConditionVariable(boost::asio::io_context& io, bool init = false);
+	AsioEvent(boost::asio::io_context& io, bool init = false);
 
 	void Set();
 	void Clear();
