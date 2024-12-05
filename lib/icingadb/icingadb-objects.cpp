@@ -1145,6 +1145,9 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
  * - `icinga:config:dependency:node`: Contains dependency node data representing each node in the dependency graph.
  * - `icinga:config:dependency:edge`: Dependency edge information representing all edges/connectors between the nodes.
  * - `icinga:config:redundancygroup`: Redundancy group data representing all redundancy groups in the graph (if any).
+ * - `icinga:config:redundancygroup:state`: State information for redundancy groups.
+ * - `icinga:config:dependency:edge:state`: State information for (each) dependency edge. Multiple edges may share the
+ *	 same state.
  *
  * For initial dumps, it shouldn't be necessary to set the `runtimeUpdates` parameter.
  *
@@ -1168,6 +1171,10 @@ void IcingaDB::InsertCheckableDependencies(
 	auto& hmsetDependencyNodes(hMSets[m_PrefixConfigObject + "dependency:node"]);
 	auto& hmsetDependencyEdges(hMSets[m_PrefixConfigObject + "dependency:edge"]);
 	auto& hmsetRedundancyGroups(hMSets[m_PrefixConfigObject + "redundancygroup"]);
+
+	// If this isn't a runtime update, we need to send initial state updates for the dependencies as well.
+	auto& hmsetDependenciesStates(hMSets[m_PrefixConfigObject + "dependency:edge:state"]);
+	auto& hmsetRedundancyGroupsStates(hMSets[m_PrefixConfigObject + "redundancygroup:state"]);
 
 	/**
 	 * This function is responsible for serializing the in memory represantation Checkable dependencies into Redis
@@ -1221,8 +1228,11 @@ void IcingaDB::InsertCheckableDependencies(
 
 	for (auto& dependencyGroup : checkable->GetDependencyGroups()) {
 		String edgeFromNodeId(checkableId);
+		bool syncSharedEdgeState(false);
 
-		if (dependencyGroup->IsRedundancyGroup()) {
+		if (!dependencyGroup->IsRedundancyGroup()) {
+			syncSharedEdgeState = runtimeUpdates || m_DumpedGlobals.DependencyGroup.IsNew(dependencyGroup->GetCompositeKey());
+		} else {
 			auto redundancyGroupId(HashValue(new Array{m_EnvironmentId, dependencyGroup->GetCompositeKey()}));
 			dependencyGroup->SetIcingaDBIdentifier(redundancyGroupId);
 
@@ -1230,6 +1240,8 @@ void IcingaDB::InsertCheckableDependencies(
 
 			// Sync redundancy group information only once unless it's a runtime update.
 			if (runtimeUpdates || m_DumpedGlobals.DependencyGroup.IsNew(redundancyGroupId)) {
+				syncSharedEdgeState = true;
+
 				Dictionary::Ptr groupData(new Dictionary{
 					{"environment_id", m_EnvironmentId},
 					{"display_name", dependencyGroup->GetRedundancyGroupName()},
@@ -1250,6 +1262,17 @@ void IcingaDB::InsertCheckableDependencies(
 					AddObjectDataToRuntimeUpdates(*runtimeUpdates, redundancyGroupId, m_PrefixConfigObject + "redundancygroup", groupData);
 					AddObjectDataToRuntimeUpdates(*runtimeUpdates, redundancyGroupId, m_PrefixConfigObject + "dependency:node", nodeData);
 				}
+
+				auto stateAttrs(SerializeRedundancyGroupState(dependencyGroup));
+				hmsetRedundancyGroupsStates.emplace_back(redundancyGroupId);
+				hmsetRedundancyGroupsStates.emplace_back(JsonEncode(stateAttrs));
+
+				hmsetDependenciesStates.emplace_back(redundancyGroupId);
+				hmsetDependenciesStates.emplace_back(JsonEncode(new Dictionary{
+					{"id", redundancyGroupId},
+					{"environment_id", m_EnvironmentId},
+					{"failed", stateAttrs->Get("failed")},
+				}));
 			}
 
 			Dictionary::Ptr data(new Dictionary{
@@ -1280,6 +1303,8 @@ void IcingaDB::InsertCheckableDependencies(
 			auto parent(dependency->GetParent());
 			auto displayName(dependency->GetShortName());
 
+			Dictionary::Ptr edgeStateAttrs(SerializeDependencyEdgeState(dependencyGroup, dependency));
+
 			// All dependency objects that share the same parent Checkable are placed next to each other in the
 			// container. Thus, "it" will either point to the next dependency with a different parent or to the
 			// end of the container after the below loop. Typically, this case isn't that common to happen in
@@ -1287,18 +1312,16 @@ void IcingaDB::InsertCheckableDependencies(
 			// accepts such config anyway, and we should do the same, i.e., merge them into a single edge.
 			while (++it != dependencies.end() && (*it)->GetParent() == parent) {
 				displayName += ", " + (*it)->GetShortName();
+				if (syncSharedEdgeState && edgeStateAttrs->Get("failed") == false) {
+					edgeStateAttrs = SerializeDependencyEdgeState(dependencyGroup, *it);
+				}
 			}
 
 			Dictionary::Ptr data(new Dictionary{
 				{"environment_id", m_EnvironmentId},
 				{"from_node_id", edgeFromNodeId},
 				{"to_node_id", GetObjectIdentifier(parent)},
-				{"dependency_edge_state_id", HashValue(new Array{
-					dependencyGroup->IsRedundancyGroup()
-					? dependencyGroup->GetIcingaDBIdentifier()
-					: dependencyGroup->GetCompositeKey(),
-					GetObjectIdentifier(dependency->GetParent()),
-				})},
+				{"dependency_edge_state_id", edgeStateAttrs->Get("id")},
 				{"display_name", std::move(displayName)},
 			});
 
@@ -1308,6 +1331,11 @@ void IcingaDB::InsertCheckableDependencies(
 
 			if (runtimeUpdates) {
 				AddObjectDataToRuntimeUpdates(*runtimeUpdates, edgeId, m_PrefixConfigObject + "dependency:edge", data);
+			}
+
+			if (syncSharedEdgeState) {
+				hmsetDependenciesStates.emplace_back(edgeStateAttrs->Get("id"));
+				hmsetDependenciesStates.emplace_back(JsonEncode(edgeStateAttrs));
 			}
 		}
 	}
