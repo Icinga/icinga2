@@ -338,3 +338,46 @@ String DependencyGroup::GetCompositeKey()
 
 	return PackObject(data);
 }
+
+/**
+ * Retrieve the state of the current dependency group.
+ *
+ * The state of the dependency group is determined based on the state of the parent Checkables and dependency objects
+ * of the group. A dependency group is considered unreachable when none of the parent Checkables is reachable. However,
+ * a dependency group may still be marked as failed even when it has reachable parent Checkables, but an unreachable
+ * group has always a failed state.
+ *
+ * @return - Returns the state of the current dependency group.
+ */
+DependencyGroup::State DependencyGroup::GetState(DependencyType dt, int rstack) const
+{
+	MembersMap members;
+	{
+		// We don't want to hold the mutex lock for the entire evaluation, thus we just need to operate on a copy.
+		std::lock_guard lock(m_Mutex);
+		members = m_Members;
+	}
+
+	State state{false /* Reachable */, false /* OK */};
+	for (auto& [_, children] : members) {
+		for (auto& [checkable, dependency] : children) {
+			state.Reachable = dependency->GetParent()->IsReachable(dt, rstack);
+			if (!state.Reachable && !IsRedundancyGroup()) {
+				return state;
+			}
+
+			if (state.Reachable) {
+				state.OK = dependency->IsAvailable(dt);
+				// If this is a redundancy group, and we have found one functional path, that's enough and we can return.
+				// Likewise, if this is a non-redundant dependency group, and we have found one non-functional path,
+				// we have to mark the group as failed and return.
+				if (state.OK == IsRedundancyGroup()) { // OK && IsRedundancyGroup() || !OK && !IsRedundancyGroup()
+					return state;
+				}
+			}
+			break; // Move on to the next batch of group members (next composite key).
+		}
+	}
+
+	return state;
+}
