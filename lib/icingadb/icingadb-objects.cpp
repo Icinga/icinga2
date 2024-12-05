@@ -1147,6 +1147,10 @@ void IcingaDB::InsertCheckableDependencies(const Checkable::Ptr& checkable, std:
 		auto& hmsetDependencyEdges (hMSets[m_PrefixConfigObject + "dependency:edge"]);
 		auto& hmsetRedundancyGroups (hMSets[m_PrefixConfigObject + "redundancygroup"]);
 
+		// If this isn't a runtime update, we need to send initial state updates for the dependencies as well.
+		auto& hmsetDependenciesStates (hMSets[m_PrefixConfigObject + "dependency:state"]);
+		auto& hmsetRedundancyGroupsStates (hMSets[m_PrefixConfigObject + "redundancygroup:state"]);
+
 		auto [host, service] = GetHostService(checkable);
 		auto checkableId (GetObjectIdentifier(checkable));
 		{
@@ -1178,6 +1182,8 @@ void IcingaDB::InsertCheckableDependencies(const Checkable::Ptr& checkable, std:
 					redundancyGroup->SetIcingaDBIdentifier(redundancyGroupId);
 				}
 
+				redundancyGroupState = redundancyGroup->GetState();
+
 				// Sync redundancy group information only once unless it's a runtime update.
 				if (runtimeUpdates || m_DumpedGlobals.RedundancyGroup.IsNew(redundancyGroupId)) {
 					Dictionary::Ptr groupData (SerializeRedundancyGroup(redundancyGroup));
@@ -1195,6 +1201,9 @@ void IcingaDB::InsertCheckableDependencies(const Checkable::Ptr& checkable, std:
 					if (runtimeUpdates) {
 						AddObjectDataToRuntimeUpdates(*runtimeUpdates, redundancyGroupId, m_PrefixConfigObject + "redundancygroup", groupData);
 						AddObjectDataToRuntimeUpdates(*runtimeUpdates, redundancyGroupId, m_PrefixConfigObject + "dependency:node", nodeData);
+					} else {
+						hmsetRedundancyGroupsStates.emplace_back(redundancyGroupId);
+						hmsetRedundancyGroupsStates.emplace_back(JsonEncode(SerializeRedundancyGroup(redundancyGroup, true)));
 					}
 				}
 
@@ -1234,6 +1243,9 @@ void IcingaDB::InsertCheckableDependencies(const Checkable::Ptr& checkable, std:
 
 				if (runtimeUpdates) {
 					AddObjectDataToRuntimeUpdates(*runtimeUpdates, edgeId, m_PrefixConfigObject + "dependency:edge", data);
+				} else {
+					hmsetDependenciesStates.emplace_back(dependencyId);
+					hmsetDependenciesStates.emplace_back(JsonEncode(SerializeDependencyState(dependency, redundancyGroupState)));
 				}
 			}
 		}
