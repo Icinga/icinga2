@@ -77,7 +77,7 @@ class Dependency : CustomVarObject < DependencyNameComposer
 		}}}
 	};
 
-	[config] String redundancy_group;
+	[config, no_user_modify] String redundancy_group;
 
 	[config, navigation] name(TimePeriod) period (PeriodRaw) {
 		navigate {{{
