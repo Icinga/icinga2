@@ -3,9 +3,17 @@
 #ifndef DEPENDENCY_H
 #define DEPENDENCY_H
 
+#include "base/shared-object.hpp"
+#include "config/configitem.hpp"
 #include "icinga/i2-icinga.hpp"
 #include "icinga/dependency-ti.hpp"
-#include "config/configitem.hpp"
+#include "icinga/timeperiod.hpp"
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/hashed_index.hpp>
+#include <boost/multi_index/mem_fun.hpp>
+#include <map>
+#include <tuple>
+#include <unordered_map>
 
 namespace icinga
 {
@@ -58,6 +66,139 @@ private:
 	static bool EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule, bool skipFilter = false);
 
 	static void BeforeOnAllConfigLoadedHandler(const ConfigItems& items);
+};
+
+/**
+ * A DependencyGroup represents a set of dependencies that are somehow related to each other.
+ *
+ * Specifically, a DependencyGroup is a container for Dependency objects of different Checkables that share the same
+ * child -> parent relationship config, thus forming a group of dependencies. All dependencies of a Checkable that
+ * have the same "redundancy_group" attribute value set are guaranteed to be part of the same DependencyGroup object,
+ * and another Checkable will join that group if and only if it has identical set of dependencies, that is, the same
+ * parent(s), same redundancy group name and all other dependency attributes required to form a composite key.
+ *
+ * More specifically, let's say we have a dependency graph like this:
+ * @verbatim
+ *                      PP1              PP2
+ *                      /\               /\
+ *                      ||               ||
+ *                  ––––||–––––––––––––––||–––––
+ *                      P1 - ( "RG1" ) - P2
+ *                  ––––––––––––––––––––––––––––
+ *                          /\      /\
+ *                          ||      ||
+ *                          C1      C2
+ * @endverbatim
+ * The arrows represent a dependency relationship from bottom to top, i.e. both "C1" and "C2" depend on
+ * their "RG1" redundancy group, and "P1" and "P2" depend each on their respective parents (PP1, PP2 - no group).
+ * Now, as one can see, both "C1" and "C2" have identical dependencies, that is, they both depend on the same
+ * redundancy group "RG1" (these could e.g. be constructed through some Apply Rules).
+ *
+ * So, instead of having to maintain two separate copies of that graph, we can bring that imaginary redundancy group
+ * into reality by putting both "P1" and "P2" into an actual DependencyGroup object. However, we don't really put "P1"
+ * and "P2" objects into that group, but rather the actual Dependency objects of both child Checkables. Therefore, the
+ * group wouldn't just contain 2 dependencies, but 4 in total, i.e. 2 for each child Checkable (C1 -> {P1, P2} and
+ * C2 -> {P1, P2}). This way, both child Checkables can just refer to that very same DependencyGroup object.
+ *
+ * However, since not all dependencies are part of a redundancy group, we also have to consider the case where
+ * a Checkable has dependencies that are not part of any redundancy group, like P1 -> PP1. In such situations,
+ * each of the child Checkables (e.g. P1, P2) will have their own (sharable) DependencyGroup object just like for RGs.
+ * This allows us to keep the implementation simple and treat redundant and non-redundant dependencies in the same
+ * way, without having to introduce any special cases everywhere. So, in the end, we'd have 3 dependency groups in
+ * total, i.e. one for the redundancy group "RG1" (shared by C1 and C2), and two distinct groups for P1 and P2.
+ *
+ * @ingroup icinga
+ */
+class DependencyGroup final : public SharedObject
+{
+public:
+	DECLARE_PTR_TYPEDEFS(DependencyGroup);
+
+	/**
+	 * Defines the key type of each dependency group members.
+	 *
+	 * This tuple consists of the dependency parent Checkable, the dependency time period (nullptr if not configured),
+	 * the state filter, and the ignore soft states flag. Each of these values influences the availability of the
+	 * dependency object, and thus used to group similar dependencies from different Checkables together.
+	 */
+	using CompositeKeyType = std::tuple<Checkable*, TimePeriod*, int, bool>;
+
+	/**
+	 * Represents the value type of each dependency group members.
+	 *
+	 * It stores the dependency objects of any given Checkable that produce the same composite key (CompositeKeyType).
+	 * In other words, when looking at the dependency graph from the class description, the two dependency objects
+	 * {C1, C2} -> P1 produce the same composite key, thus they are mapped to the same MemberValueType container with
+	 * "C1" and "C2" as their keys respectively. Since Icinga 2 allows to construct different identical dependencies
+	 * (duplicates), we're using a multimap instead of a simple map here.
+	 */
+	using MemberValueType = std::unordered_multimap<const Checkable*, Dependency*>;
+	using MembersMap = std::map<CompositeKeyType, MemberValueType>;
+
+	explicit DependencyGroup(String name);
+
+	static void Register(const Dependency::Ptr& dependency);
+	static void Unregister(const Dependency::Ptr& dependency);
+	static size_t GetRegistrySize();
+
+	static CompositeKeyType MakeCompositeKeyFor(const Dependency::Ptr& dependency);
+
+	/**
+	 * Check whether the current dependency group represents an explicitly configured redundancy group.
+	 *
+	 * @return bool - Returns true if it's a redundancy group, false otherwise.
+	 */
+	inline bool IsRedundancyGroup() const
+	{
+		return !m_RedundancyGroupName.IsEmpty();
+	}
+
+	bool IsEmpty() const;
+	std::vector<Dependency::Ptr> GetDependenciesForChild(const Checkable* child) const;
+	size_t GetDependenciesCount() const;
+
+	void SetIcingaDBIdentifier(const String& identifier);
+	String GetIcingaDBIdentifier() const;
+
+	const String& GetRedundancyGroupName() const;
+	String GetCompositeKey();
+
+protected:
+	void AddDependency(const Dependency::Ptr& dependency);
+	void RemoveDependency(const Dependency::Ptr& dependency);
+	void CopyDependenciesTo(const DependencyGroup::Ptr& dest);
+
+	static void RefreshRegistry(const Dependency::Ptr& dependency, bool unregister);
+
+private:
+	mutable std::mutex m_Mutex;
+	String m_IcingaDBIdentifier;
+	String m_RedundancyGroupName;
+	MembersMap m_Members;
+
+	using RegistryType = boost::multi_index_container<
+		DependencyGroup*, // The type of the elements stored in the container.
+		boost::multi_index::indexed_by<
+			// This unique index allows to search/erase dependency groups by their composite key in an efficient manner.
+			boost::multi_index::hashed_unique<
+				boost::multi_index::mem_fun<DependencyGroup, String, &DependencyGroup::GetCompositeKey>,
+				std::hash<String>
+			>,
+			// This non-unique index allows to search for dependency groups by their name, and reduces the overall
+			// runtime complexity. Without this index, we would have to iterate over all elements to find the one
+			// with the desired members and since containers don't allow erasing elements while iterating, we would
+			// have to copy each of them to a temporary container, and then erase and reinsert them back to the original
+			// container. This produces way too much overhead, and slows down the startup time of Icinga 2 significantly.
+			boost::multi_index::hashed_non_unique<
+				boost::multi_index::const_mem_fun<DependencyGroup, const String&, &DependencyGroup::GetName>,
+				std::hash<String>
+			>
+		>
+	>;
+
+	// The global registry of dependency groups.
+	static std::mutex m_RegistryMutex;
+	static RegistryType m_Registry;
 };
 
 }

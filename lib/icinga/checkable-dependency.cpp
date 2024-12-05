@@ -15,6 +15,18 @@ using namespace icinga;
  */
 static constexpr int l_MaxDependencyRecursionLevel(256);
 
+void Checkable::AddDependencyGroup(const DependencyGroup::Ptr& dependencyGroup)
+{
+	std::unique_lock lock(m_DependencyMutex);
+	m_DependencyGroups.insert(dependencyGroup);
+}
+
+void Checkable::RemoveDependencyGroup(const DependencyGroup::Ptr& dependencyGroup)
+{
+	std::unique_lock lock(m_DependencyMutex);
+	m_DependencyGroups.erase(dependencyGroup);
+}
+
 void Checkable::AddDependency(const Dependency::Ptr& dep)
 {
 	std::unique_lock<std::mutex> lock(m_DependencyMutex);
