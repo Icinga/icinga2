@@ -1147,6 +1147,9 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
  *   in the dependency graph.
  * - RedisKey::DependencyEdge: Dependency edge information representing all connections between the nodes.
  * - RedisKey::RedundancyGroup: Redundancy group data representing all redundancy groups in the graph.
+ * - RedisKey::RedundancyGroupState: State information for redundancy groups.
+ * - RedisKey::DependencyEdgeState: State information for (each) dependency edge. Multiple edges may share the
+ *	 same state.
  *
  * For initial dumps, it shouldn't be necessary to set the `runtimeUpdates` parameter.
  *
@@ -1185,8 +1188,14 @@ void IcingaDB::InsertCheckableDependencies(
 
 	for (auto& dependencyGroup : checkable->GetDependencyGroups()) {
 		String edgeFromNodeId(checkableId);
+		bool syncSharedEdgeState(false);
 
-		if (dependencyGroup->IsRedundancyGroup()) {
+		if (!dependencyGroup->IsRedundancyGroup()) {
+			// Non-redundant dependency groups are just placeholders and never get synced to Redis, thus just figure
+			// out whether we have to sync the shared edge state. For runtime updates the states are sent via the
+			// UpdateDependenciesState() method, thus we don't have to sync them here.
+			syncSharedEdgeState = !runtimeUpdates && m_DumpedGlobals.DependencyGroup.IsNew(dependencyGroup->GetCompositeKey());
+		} else {
 			auto redundancyGroupId(HashValue(new Array{m_EnvironmentId, dependencyGroup->GetCompositeKey()}));
 			dependencyGroup->SetIcingaDBIdentifier(redundancyGroupId);
 
@@ -1216,6 +1225,20 @@ void IcingaDB::InsertCheckableDependencies(
 					// Send the same data sent to the Redis HMSETs to the runtime updates stream as well.
 					AddObjectDataToRuntimeUpdates(*runtimeUpdates, redundancyGroupId, m_PrefixConfigObject + "redundancygroup", groupData);
 					AddObjectDataToRuntimeUpdates(*runtimeUpdates, redundancyGroupId, m_PrefixConfigObject + "dependency:node", nodeData);
+				} else {
+					syncSharedEdgeState = true;
+
+					// Serialize and sync the redundancy group state information a) to the RedundancyGroupState and b)
+					// to the DependencyEdgeState HMSETs. The latter is shared by all child Checkables of the current
+					// redundancy group, and since they all depend on the redundancy group, the state of that group is
+					// basically the state of the dependency edges between the children and the redundancy group.
+					auto stateAttrs(SerializeRedundancyGroupState(dependencyGroup));
+					AddDataToHmSets(hMSets, RedisKey::RedundancyGroupState, redundancyGroupId, stateAttrs);
+					AddDataToHmSets(hMSets, RedisKey::DependencyEdgeState, redundancyGroupId, Dictionary::Ptr(new Dictionary{
+						{"id", redundancyGroupId},
+						{"environment_id", m_EnvironmentId},
+						{"failed", stateAttrs->Get("failed")},
+					}));
 				}
 			}
 
@@ -1257,6 +1280,8 @@ void IcingaDB::InsertCheckableDependencies(
 			auto parent(dependency->GetParent());
 			auto displayName(dependency->GetShortName());
 
+			Dictionary::Ptr edgeStateAttrs(SerializeDependencyEdgeState(dependencyGroup, dependency));
+
 			// In case there are multiple Dependency objects with the same parent, these are merged into a single edge
 			// to prevent duplicate edges in the resulting graph. All objects with the same parent were placed next to
 			// each other by the sort function above.
@@ -1265,18 +1290,16 @@ void IcingaDB::InsertCheckableDependencies(
 			// "it" will either point to the next dependency with a different parent or to the end of the container.
 			while (++it != dependencies.end() && (*it)->GetParent() == parent) {
 				displayName += ", " + (*it)->GetShortName();
+				if (syncSharedEdgeState && edgeStateAttrs->Get("failed") == false) {
+					edgeStateAttrs = SerializeDependencyEdgeState(dependencyGroup, *it);
+				}
 			}
 
 			Dictionary::Ptr data(new Dictionary{
 				{"environment_id", m_EnvironmentId},
 				{"from_node_id", edgeFromNodeId},
 				{"to_node_id", GetObjectIdentifier(parent)},
-				{"dependency_edge_state_id", HashValue(new Array{
-					dependencyGroup->IsRedundancyGroup()
-					? dependencyGroup->GetIcingaDBIdentifier()
-					: dependencyGroup->GetCompositeKey(),
-					GetObjectIdentifier(dependency->GetParent()),
-				})},
+				{"dependency_edge_state_id", edgeStateAttrs->Get("id")},
 				{"display_name", std::move(displayName)},
 			});
 
@@ -1285,6 +1308,8 @@ void IcingaDB::InsertCheckableDependencies(
 
 			if (runtimeUpdates) {
 				AddObjectDataToRuntimeUpdates(*runtimeUpdates, edgeId, m_PrefixConfigObject + "dependency:edge", data);
+			} else if (syncSharedEdgeState) {
+				AddDataToHmSets(hMSets, RedisKey::DependencyEdgeState, edgeStateAttrs->Get("id"), edgeStateAttrs);
 			}
 		}
 	}
@@ -3257,6 +3282,12 @@ void IcingaDB::AddDataToHmSets(std::map<String, RedisConnection::Query>& hMSets,
 			break;
 		case RedisKey::DependencyEdge:
 			query = &hMSets[m_PrefixConfigObject + "dependency:edge"];
+			break;
+		case RedisKey::RedundancyGroupState:
+			query = &hMSets[m_PrefixConfigObject + "redundancygroup:state"];
+			break;
+		case RedisKey::DependencyEdgeState:
+			query = &hMSets[m_PrefixConfigObject + "dependency:edge:state"];
 			break;
 		default:
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid RedisKey provided"));
