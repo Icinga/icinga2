@@ -5,6 +5,7 @@
 #include "base/io-engine.hpp"
 #include "base/lazy-init.hpp"
 #include "base/logger.hpp"
+#include "base/shared.hpp"
 #include <exception>
 #include <memory>
 #include <thread>
@@ -16,30 +17,54 @@
 
 using namespace icinga;
 
-CpuBoundWork::CpuBoundWork(boost::asio::yield_context yc, boost::asio::io_context::strand&)
+CpuBoundWork::CpuBoundWork(boost::asio::yield_context yc, boost::asio::io_context::strand& strand)
 	: m_Done(false)
 {
-	auto& ioEngine (IoEngine::Get());
+	VERIFY(strand.running_in_this_thread());
+
+	auto& ie (IoEngine::Get());
+	Shared<AsioConditionVariable>::Ptr cv;
 
 	for (;;) {
-		auto availableSlots (ioEngine.m_CpuBoundSemaphore.fetch_sub(1));
+		for (auto freeSlots (ie.m_CpuBoundSemaphore.load()); freeSlots > 0;) {
+			if (ie.m_CpuBoundSemaphore.compare_exchange_weak(freeSlots, freeSlots - 1)) {
+				return;
+			}
+		}
 
-		if (availableSlots < 1) {
-			ioEngine.m_CpuBoundSemaphore.fetch_add(1);
-			IoEngine::YieldCurrentCoroutine(yc);
+		if (!cv) {
+			cv = Shared<AsioConditionVariable>::Make(ie.GetIoContext());
 			continue;
 		}
 
-		break;
+		boost::asio::post(ie.m_CpuBoundStrand, [&ie, strand, cv] {
+			auto f = [strand, cv](boost::system::error_code) {
+				boost::asio::post(strand, [cv] { cv->NotifyOne(); });
+			};
+
+			if (ie.m_CpuBoundSemaphore.load() > 0) {
+				f(boost::system::error_code());
+			} else {
+				ie.m_CpuBoundCv.async_wait(boost::asio::bind_executor(ie.m_CpuBoundStrand, std::move(f)));
+			}
+		});
+
+		cv->Wait(yc);
 	}
 }
 
 void CpuBoundWork::Done()
 {
 	if (!m_Done) {
-		IoEngine::Get().m_CpuBoundSemaphore.fetch_add(1);
-
 		m_Done = true;
+
+		auto& ie (IoEngine::Get());
+		ie.m_CpuBoundSemaphore.fetch_add(1);
+
+		boost::asio::post(ie.m_CpuBoundStrand, [&ie] {
+			boost::system::error_code ec;
+			ie.m_CpuBoundCv.cancel(ec);
+		});
 	}
 }
 
@@ -55,10 +80,13 @@ boost::asio::io_context& IoEngine::GetIoContext()
 	return m_IoContext;
 }
 
-IoEngine::IoEngine() : m_IoContext(), m_KeepAlive(boost::asio::make_work_guard(m_IoContext)), m_Threads(decltype(m_Threads)::size_type(Configuration::Concurrency * 2u)), m_AlreadyExpiredTimer(m_IoContext)
+IoEngine::IoEngine()
+	: m_KeepAlive(boost::asio::make_work_guard(m_IoContext)), m_Threads(decltype(m_Threads)::size_type(Configuration::Concurrency * 2u)),
+	  m_AlreadyExpiredTimer(m_IoContext), m_CpuBoundCv(m_IoContext), m_CpuBoundStrand(m_IoContext)
 {
 	m_AlreadyExpiredTimer.expires_at(boost::posix_time::neg_infin);
 	m_CpuBoundSemaphore.store(Configuration::Concurrency * 3u / 2u);
+	m_CpuBoundCv.expires_at(boost::posix_time::pos_infin);
 
 	for (auto& thread : m_Threads) {
 		thread = std::thread(&IoEngine::RunEventLoop, this);
