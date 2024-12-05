@@ -6,14 +6,10 @@
 #include "base/exception.hpp"
 #include "base/lazy-init.hpp"
 #include "base/logger.hpp"
-#include "base/shared.hpp"
 #include "base/shared-object.hpp"
 #include <atomic>
-#include <cstdint>
 #include <exception>
-#include <list>
 #include <memory>
-#include <mutex>
 #include <thread>
 #include <utility>
 #include <vector>
@@ -35,7 +31,7 @@ namespace icinga
 class CpuBoundWork
 {
 public:
-	CpuBoundWork(boost::asio::yield_context yc, boost::asio::io_context::strand& strand);
+	CpuBoundWork(boost::asio::yield_context yc, boost::asio::io_context::strand&);
 	CpuBoundWork(const CpuBoundWork&) = delete;
 	CpuBoundWork(CpuBoundWork&&) = delete;
 	CpuBoundWork& operator=(const CpuBoundWork&) = delete;
@@ -50,25 +46,6 @@ public:
 
 private:
 	bool m_Done;
-};
-
-
-/**
- * Condition variable which doesn't block I/O threads
- *
- * @ingroup base
- */
-class AsioConditionVariable
-{
-public:
-	AsioConditionVariable(boost::asio::io_context& io, bool init = false);
-
-	void Set();
-	void Clear();
-	void Wait(boost::asio::yield_context yc);
-
-private:
-	boost::asio::deadline_timer m_Timer;
 };
 
 /**
@@ -133,13 +110,6 @@ public:
 	}
 
 private:
-	struct CpuBoundQueueItem
-	{
-		boost::asio::io_context::strand* Strand;
-		Shared<AsioConditionVariable>::Ptr CV;
-		bool* GotSlot;
-	};
-
 	IoEngine();
 
 	void RunEventLoop();
@@ -150,16 +120,29 @@ private:
 	boost::asio::executor_work_guard<boost::asio::io_context::executor_type> m_KeepAlive;
 	std::vector<std::thread> m_Threads;
 	boost::asio::deadline_timer m_AlreadyExpiredTimer;
-
-	struct {
-		std::mutex Mutex;
-		uint_fast32_t FreeSlots;
-		std::list<CpuBoundQueueItem> Waiting;
-	} m_CpuBoundSemaphore;
+	std::atomic_int_fast32_t m_CpuBoundSemaphore;
 };
 
 class TerminateIoThread : public std::exception
 {
+};
+
+/**
+ * Condition variable which doesn't block I/O threads
+ *
+ * @ingroup base
+ */
+class AsioConditionVariable
+{
+public:
+	AsioConditionVariable(boost::asio::io_context& io, bool init = false);
+
+	void Set();
+	void Clear();
+	void Wait(boost::asio::yield_context yc);
+
+private:
+	boost::asio::deadline_timer m_Timer;
 };
 
 /**
