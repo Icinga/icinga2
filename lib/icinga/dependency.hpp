@@ -163,6 +163,14 @@ public:
 	const String& GetRedundancyGroupName() const;
 	String GetCompositeKey();
 
+	struct State
+	{
+		bool Reachable; // Whether the dependency group is reachable.
+		bool OK; // Whether the dependency group is reachable and OK.
+	};
+
+	State GetState(DependencyType dt = DependencyState, int rstack = 0) const;
+
 protected:
 	void AddDependency(const Dependency::Ptr& dependency);
 	void RemoveDependency(const Dependency::Ptr& dependency);
