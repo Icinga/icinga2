@@ -59,6 +59,38 @@ class EventCommand;
 class Dependency;
 
 /**
+ * A dependency redundancy group that encapsulates its members and other internal logic used by Icinga DB.
+ *
+ * @ingroup base
+ */
+class RedundancyGroup
+{
+public:
+	RedundancyGroup(const String& name, const intrusive_ptr<Dependency>& dependency);
+
+	static bool IsDefault(const String& name);
+
+	bool HasMembers() const;
+	void AddMember(const intrusive_ptr<Dependency>& member);
+	void RemoveMember(const intrusive_ptr<Dependency>& member);
+	std::unordered_set<intrusive_ptr<Dependency>> GetMembers() const;
+	int GetMemberCount() const;
+
+	void SetIcingaDBIdentifier(const String& identifier);
+	String GetIcingaDBIdentifier() const;
+
+	const String& GetName() const;
+	String GetUniqueName() const;
+
+private:
+	mutable std::mutex m_Mutex;
+	String m_IcingaDBIdentifier;
+	String m_Name;
+	std::map<String, int /* parent name reference counter */> m_UniqueName;
+	std::unordered_set<intrusive_ptr<Dependency>> m_Members;
+};
+
+/**
  * An Icinga service.
  *
  * @ingroup icinga
