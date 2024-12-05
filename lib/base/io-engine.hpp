@@ -6,10 +6,12 @@
 #include "base/exception.hpp"
 #include "base/lazy-init.hpp"
 #include "base/logger.hpp"
+#include "base/shared.hpp"
 #include "base/shared-object.hpp"
 #include <atomic>
 #include <exception>
 #include <memory>
+#include <mutex>
 #include <thread>
 #include <utility>
 #include <vector>
@@ -138,7 +140,10 @@ private:
 	boost::asio::executor_work_guard<boost::asio::io_context::executor_type> m_KeepAlive;
 	std::vector<std::thread> m_Threads;
 	boost::asio::deadline_timer m_AlreadyExpiredTimer;
+
 	std::atomic_int_fast32_t m_CpuBoundSemaphore;
+	std::mutex m_CpuBoundWaitingMutex;
+	std::vector<std::pair<boost::asio::io_context::strand, Shared<AsioConditionVariable>::Ptr>> m_CpuBoundWaiting;
 };
 
 class TerminateIoThread : public std::exception
