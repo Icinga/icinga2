@@ -75,8 +75,8 @@ private:
 	double m_Seen;
 	boost::asio::io_context::strand m_IoStrand;
 	std::vector<String> m_OutgoingMessagesQueue;
-	AsioConditionVariable m_OutgoingMessagesQueued;
-	AsioConditionVariable m_WriterDone;
+	AsioEvent m_OutgoingMessagesQueued;
+	AsioEvent m_WriterDone;
 	Atomic<bool> m_ShuttingDown;
 	boost::asio::deadline_timer m_CheckLivenessTimer, m_HeartbeatTimer;
 
