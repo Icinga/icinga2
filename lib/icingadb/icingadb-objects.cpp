@@ -806,6 +806,26 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 		return;
 	}
 
+	if (type == Dependency::TypeInstance) {
+		if (runtimeUpdate) {
+			auto dependency (dynamic_pointer_cast<Dependency>(object));
+			auto parent (dependency->GetParent());
+			// Something has changed at runtime, i.e. the "affected_children" and "affects_children"
+			// attributes of the parent Checkable must be updated as well. However, we don't want to
+			// reprocess the whole Checkable dependency madness above and generate all kind of useless
+			// events, so we need exclude its dependencies from the runtime update.
+			SendConfigUpdate(parent, true, false);
+
+			if (parent->GetParentsCount() + parent->GetChildrenCount() <= 1) {
+				// If the parent Checkable hadn't any other dependencies before, we would need to
+				// generate a dependency node entry for it.
+				InsertCheckableDependencies(parent, hMSets, &runtimeUpdates);
+			}
+		}
+
+		return;
+	}
+
 	if (type == TimePeriod::TypeInstance) {
 		TimePeriod::Ptr timeperiod = static_pointer_cast<TimePeriod>(object);
 
@@ -1446,7 +1466,7 @@ void IcingaDB::UpdateDependenciesState(const Checkable::Ptr& checkable, StateUpd
 }
 
 // Used to update a single object, used for runtime updates
-void IcingaDB::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpdate)
+void IcingaDB::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpdate, bool includeDependencies)
 {
 	if (!m_Rcon || !m_Rcon->IsConnected())
 		return;
@@ -1456,7 +1476,7 @@ void IcingaDB::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpd
 	std::map<String, std::vector<String>> hMSets;
 	std::vector<Dictionary::Ptr> runtimeUpdates;
 
-	CreateConfigUpdate(object, typeName, hMSets, runtimeUpdates, runtimeUpdate);
+	CreateConfigUpdate(object, typeName, hMSets, runtimeUpdates, runtimeUpdate, includeDependencies);
 	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
 	if (checkable) {
 		UpdateState(checkable, runtimeUpdate ? StateUpdate::Full : StateUpdate::Volatile);
@@ -1849,7 +1869,7 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
  */
 void
 IcingaDB::CreateConfigUpdate(const ConfigObject::Ptr& object, const String typeName, std::map<String, std::vector<String>>& hMSets,
-								std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate)
+	std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate, bool includeDependencies)
 {
 	/* TODO: This isn't essentially correct as we don't keep track of config objects ourselves. This would avoid duplicated config updates at startup.
 	if (!runtimeUpdate && m_ConfigDumpInProgress)
@@ -1865,7 +1885,9 @@ IcingaDB::CreateConfigUpdate(const ConfigObject::Ptr& object, const String typeN
 	if (!PrepareObject(object, attr, chksm))
 		return;
 
-	InsertObjectDependencies(object, typeName, hMSets, runtimeUpdates, runtimeUpdate);
+	if (includeDependencies) {
+		InsertObjectDependencies(object, typeName, hMSets, runtimeUpdates, runtimeUpdate);
+	}
 
 	String objectKey = GetObjectIdentifier(object);
 	auto& attrs (hMSets[m_PrefixConfigObject + typeName]);
