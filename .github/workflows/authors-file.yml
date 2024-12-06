@@ -2,6 +2,7 @@ name: AUTHORS file
 
 on:
   pull_request: { }
+  push: { }
 
 jobs:
   authors-file:
