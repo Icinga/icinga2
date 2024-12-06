@@ -17,7 +17,7 @@ jobs:
   docker-release:
     if: github.event_name == 'release'
     concurrency: docker-release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Docker image
@@ -27,7 +27,7 @@ jobs:
 
   docker:
     if: github.event_name != 'release'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Docker image

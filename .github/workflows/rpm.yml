@@ -24,7 +24,7 @@ jobs:
             release: '12.5'
             subscription: true
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Vars
