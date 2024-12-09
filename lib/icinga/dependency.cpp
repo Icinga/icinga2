@@ -17,7 +17,7 @@ using namespace icinga;
 
 REGISTER_TYPE(Dependency);
 
-bool Dependency::m_AssertNoCyclesForIndividualDeps = false;
+bool Dependency::m_CyclicReferenceForAllDependenciesAsserted = false;
 
 struct DependencyCycleNode
 {
@@ -110,7 +110,7 @@ void Dependency::AssertNoCycles()
 		AssertNoDependencyCycle(service, graph);
 	}
 
-	m_AssertNoCyclesForIndividualDeps = true;
+	m_CyclicReferenceForAllDependenciesAsserted = true;
 }
 
 String DependencyNameComposer::MakeName(const String& shortName, const Object::Ptr& context) const
@@ -190,28 +190,97 @@ void Dependency::OnAllConfigLoaded()
 	if (!m_Parent)
 		BOOST_THROW_EXCEPTION(ScriptError("Dependency '" + GetName() + "' references a parent host/service which doesn't exist.", GetDebugInfo()));
 
-	DependencyGroup::Register(this);
-	m_Parent->AddReverseDependency(this);
+	if (!m_CyclicReferenceForAllDependenciesAsserted) {
+		// Yes, this is rather a hack and introduces an inconsistent behaviour between file-based and runtime created
+		// dependencies. Specifically, file-based dependencies will be registered in here and checked for cyclic
+		// references in the context of config loading and validation, i.e. before starting even a single object,
+		// while runtime created dependencies will be registered and checked for cycles within the Start() method.
+		//
+		// The reason for this inconsistency is simple, while Icinga DB doesn't need to know about every
+		// (un)registered dependencies on startup, we still need to track and notify it about each and every
+		// dependency change at runtime to keep the database consistent.
+		DependencyGroup::Register(this);
+		m_Parent->AddReverseDependency(this);
+	}
+}
 
-	if (m_AssertNoCyclesForIndividualDeps) {
-		DependencyCycleGraph graph;
+void Dependency::Start(bool runtimeCreated)
+{
+	if (runtimeCreated) {
+		std::vector<DependencyGroup::Ptr> previousGroups;
+		if (!GetRedundancyGroup().IsEmpty()) {
+			previousGroups = m_Child->GetDependencyGroups();
+		}
+
+		DependencyGroup::Register(this);
+		m_Parent->AddReverseDependency(this);
 
 		try {
+			DependencyCycleGraph graph;
 			AssertNoDependencyCycle(m_Parent, graph);
 		} catch (...) {
 			DependencyGroup::Unregister(this);
 			m_Parent->RemoveReverseDependency(this);
 			throw;
 		}
+
+		// Dependencies get activated before their parent Checkable objects, so if the child Checkable
+		// isn't active yet, it means that the Checkable is also created at runtime, and we don't need
+		// to notify Icinga DB, as the Checkable's OnVersionChanged signal will do that for us.
+		if (m_Child->IsActive()) {
+			std::vector<DependencyGroup::Ptr> outdatedGroups;
+			if (!previousGroups.empty()) {
+				auto newGroups(m_Child->GetDependencyGroups());
+				std::set_difference(
+					previousGroups.begin(),
+					previousGroups.end(),
+					newGroups.begin(),
+					newGroups.end(),
+					std::back_inserter(outdatedGroups)
+				);
+			}
+			DependencyGroup::OnMembersChanged(this, outdatedGroups);
+		}
 	}
+
+	ObjectImpl::Start(runtimeCreated);
 }
 
 void Dependency::Stop(bool runtimeRemoved)
 {
 	ObjectImpl<Dependency>::Stop(runtimeRemoved);
 
+	std::vector<DependencyGroup::Ptr> previousGroups;
+	std::set<DependencyGroup::Ptr> outdatedGroups;
+	if (runtimeRemoved && !GetRedundancyGroup().IsEmpty()) {
+		previousGroups = m_Child->GetDependencyGroups();
+		// Find the dependency group that this dependency is a member of, and add it to the outdated groups list.
+		// Otherwise, once the dependency is unregistered, we won't be able to identify the group that this dependency
+		// was member of anymore.
+		for (auto& dependencyGroup : previousGroups) {
+			if (dependencyGroup->HasIdenticalMember(this)) {
+				outdatedGroups.emplace(dependencyGroup);
+				break;
+			}
+		}
+	}
+
 	DependencyGroup::Unregister(this);
 	GetParent()->RemoveReverseDependency(this);
+
+	if (runtimeRemoved) {
+		if (!previousGroups.empty()) {
+			auto newGroups(m_Child->GetDependencyGroups());
+			std::set_difference(
+				previousGroups.begin(),
+				previousGroups.end(),
+				newGroups.begin(),
+				newGroups.end(),
+				std::inserter(outdatedGroups, outdatedGroups.end())
+			);
+		}
+		DependencyGroup::OnMembersChanged(this, {outdatedGroups.begin(), outdatedGroups.end()});
+	}
 }
 
 bool Dependency::IsAvailable(DependencyType dt) const
@@ -325,6 +394,8 @@ void Dependency::SetChild(intrusive_ptr<Checkable> child)
 {
 	m_Child = child;
 }
+
+boost::signals2::signal<void (const Dependency::Ptr&, const std::vector<DependencyGroup::Ptr>&)> DependencyGroup::OnMembersChanged;
 
 std::mutex DependencyGroup::m_RegistryMutex;
 DependencyGroup::RegistryType DependencyGroup::m_Registry;
