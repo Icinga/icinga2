@@ -9,6 +9,8 @@
 
 using namespace icinga;
 
+boost::signals2::signal<void (const Dependency::Ptr&, const std::vector<RedundancyGroup::Ptr>&)>Checkable::OnRedundancyGroupsChanged;
+
 std::mutex RedundancyGroup::m_RegistryMutex;
 RedundancyGroup::RegistryType RedundancyGroup::m_Registry;
 
@@ -506,7 +508,13 @@ RedundancyGroup::State RedundancyGroup::GetState(DependencyType dt) const
 
 void Checkable::AddDependency(const Dependency::Ptr& dep) const
 {
+	std::vector<RedundancyGroup::Ptr> oldGroups;
+	if (!dep->GetRedundancyGroup().IsEmpty()) {
+		oldGroups = GetRedundancyGroups();
+	}
+
 	RedundancyGroup::Register(dep);
+	Checkable::OnRedundancyGroupsChanged(dep, oldGroups);
 }
 
 void Checkable::AddRedundancyGroup(const RedundancyGroup::Ptr& redundancyGroup)
@@ -517,7 +525,17 @@ void Checkable::AddRedundancyGroup(const RedundancyGroup::Ptr& redundancyGroup)
 
 void Checkable::RemoveDependency(const Dependency::Ptr& dep) const
 {
+	std::vector<RedundancyGroup::Ptr> oldGroups;
+	if (!dep->GetRedundancyGroup().IsEmpty()) {
+		oldGroups = GetRedundancyGroups();
+	}
+
 	RedundancyGroup::Unregister(dep);
+	// We don't want to spam Icinga DB with false deletion events on every config reload, so trigger
+	// the event only when the dependency object is really going to be deleted.
+	if (!dep->IsActive() && dep->GetExtension("ConfigObjectDeleted")) {
+		Checkable::OnRedundancyGroupsChanged(dep, oldGroups);
+	}
 }
 
 void Checkable::RemoveRedundancyGroup(const RedundancyGroup::Ptr& redundancyGroup)

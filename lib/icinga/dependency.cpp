@@ -188,8 +188,10 @@ void Dependency::OnAllConfigLoaded()
 	if (!m_Parent)
 		BOOST_THROW_EXCEPTION(ScriptError("Dependency '" + GetName() + "' references a parent host/service which doesn't exist.", GetDebugInfo()));
 
-	m_Child->AddDependency(this);
+	// Note: The order in which we call the following methods matters for Icinga DB!
+	// See the Stop() method for more details.
 	m_Parent->AddReverseDependency(this);
+	m_Child->AddDependency(this);
 
 	if (m_AssertNoCyclesForIndividualDeps) {
 		DependencyCycleGraph graph;
@@ -208,8 +210,12 @@ void Dependency::Stop(bool runtimeRemoved)
 {
 	ObjectImpl<Dependency>::Stop(runtimeRemoved);
 
-	GetChild()->RemoveDependency(this);
+	// Note, the removing order is important here, as Icinga DB's OnRedundancyGroupsChanged handler relies on this.
+	// Meaning, while processing the removal of "this" from the child, it will emit a runtime update signal for the
+	// parent as well, forcing it to refresh the "affected_children" and "affects_children" attributes. However,
+	// we'll only get the desired result if the current dependency was already detached from the parent.
 	GetParent()->RemoveReverseDependency(this);
+	GetChild()->RemoveDependency(this);
 }
 
 bool Dependency::IsAvailable(DependencyType dt) const

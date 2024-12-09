@@ -133,6 +133,8 @@ void IcingaDB::ConfigStaticInitialize()
 		IcingaDB::NextCheckUpdatedHandler(checkable);
 	});
 
+	Checkable::OnRedundancyGroupsChanged.connect(&IcingaDB::RedundancyGroupsChangedHandler);
+
 	Service::OnHostProblemChanged.connect([](const Service::Ptr& service, const CheckResult::Ptr&, const MessageOrigin::Ptr&) {
 		IcingaDB::HostProblemChangedHandler(service);
 	});
@@ -1468,34 +1470,7 @@ void IcingaDB::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpd
 		UpdateState(checkable, runtimeUpdate ? StateUpdate::Full : StateUpdate::Volatile);
 	}
 
-	std::vector<std::vector<String> > transaction = {{"MULTI"}};
-
-	for (auto& kv : hMSets) {
-		if (!kv.second.empty()) {
-			kv.second.insert(kv.second.begin(), {"HMSET", kv.first});
-			transaction.emplace_back(std::move(kv.second));
-		}
-	}
-
-	for (auto& objectAttributes : runtimeUpdates) {
-		std::vector<String> xAdd({"XADD", "icinga:runtime", "MAXLEN", "~", "1000000", "*"});
-		ObjectLock olock(objectAttributes);
-
-		for (const Dictionary::Pair& kv : objectAttributes) {
-			String value = IcingaToStreamValue(kv.second);
-			if (!value.IsEmpty()) {
-				xAdd.emplace_back(kv.first);
-				xAdd.emplace_back(value);
-			}
-		}
-
-		transaction.emplace_back(std::move(xAdd));
-	}
-
-	if (transaction.size() > 1) {
-		transaction.push_back({"EXEC"});
-		m_Rcon->FireAndForgetQueries(std::move(transaction), Prio::Config, {1});
-	}
+	ExecuteRedisTransaction(hMSets, runtimeUpdates);
 
 	if (checkable) {
 		SendNextUpdate(checkable);
@@ -2859,6 +2834,92 @@ void IcingaDB::SendCustomVarsChanged(const ConfigObject::Ptr& object, const Dict
 	}
 }
 
+void IcingaDB::SendRedundancyGroupsChanged(const Dependency::Ptr& dependency, const std::vector<RedundancyGroup::Ptr>& oldGroups)
+{
+	if (!m_Rcon || !m_Rcon->IsConnected()) {
+		return;
+	}
+
+	auto parent(dependency->GetParent());
+	auto child(dependency->GetChild());
+
+	auto newGroups(child->GetRedundancyGroups());
+	if (newGroups.empty() && child->GetReverseDependencies().empty()) {
+		// If the child Checkable has no parent and reverse dependencies, we can safely remove the dependency node.
+		DeleteRelationship(GetObjectIdentifier(child), "dependency:node");
+	}
+
+	// The affects_children might now have different outcomes, so we need to update the parent Checkable state
+	// as well. This will only have the desired effect if the dependency object was already removed from the
+	// parent's reverse dependencies list. See also Dependency::Stop() for details.
+	SendConfigUpdate(parent, true);
+
+	RedisConnection::Queries hdels, xAdds;
+	auto deleteState([this, &hdels, &xAdds](const std::vector<String>& keys, const String& id) {
+		for (auto& redisKey : keys) {
+			hdels.emplace_back(RedisConnection::Query{"HDEL", m_PrefixConfigObject + redisKey, id});
+			xAdds.emplace_back(RedisConnection::Query{
+				"XADD", "icinga:runtime:state", "MAXLEN", "~", "1000000", "*", "runtime_type", "delete",
+				"redis_key", m_PrefixConfigObject + redisKey, "id", id
+			});
+		}
+	});
+
+	if (!dependency->IsActive() && dependency->GetExtension("ConfigObjectDeleted")) {
+		if (dependency->GetRedundancyGroup().IsEmpty()) {
+			// The dependency object is going to be deleted, so we need to remove its state from Redis as well.
+			deleteState({"dependency:edge:state"}, GetObjectIdentifier(dependency));
+			// Remove the edge between the parent and child Checkable linked through the removed dependency.
+			DeleteRelationship(
+				HashValue(new Array{
+					GetObjectIdentifier(child),
+					GetObjectIdentifier(parent),
+					GetObjectIdentifier(dependency),
+				}),
+				"dependency:edge"
+			);
+		}
+	}
+
+	if (!dependency->GetRedundancyGroup().IsEmpty() && !oldGroups.empty()) {
+		std::vector<RedundancyGroup::Ptr> outdatedGroups;
+		std::set_difference(oldGroups.begin(), oldGroups.end(), newGroups.begin(), newGroups.end(), std::back_inserter(outdatedGroups));
+
+		for (auto& redundancyGroup : outdatedGroups) {
+			String redundancyGroupId(redundancyGroup->GetIcingaDBIdentifier());
+			// Remove the connection from the child Checkable to the redundancy group.
+			DeleteRelationship(HashValue(new Array{GetObjectIdentifier(child), redundancyGroupId}), "dependency:edge");
+
+			auto members(redundancyGroup->GetMembers());
+			if (members.empty() || members.find(redundancyGroup->MakeCompositeKeyFor(dependency)) == members.end()) {
+				// Remove the connection from the redundancy group to the parent Checkable of the removed dependency,
+				// if there's no other member in the redundancy group that references that very same parent Checkable.
+				DeleteRelationship(HashValue(new Array{redundancyGroupId, GetObjectIdentifier(parent)}), "dependency:edge");
+			}
+
+			// Remove the redundancy group entirely if there's no other reference to it.
+			if (members.empty()) {
+				deleteState({"dependency:edge:state", "redundancygroup:state"}, redundancyGroupId);
+				// Next, clean up all the database entries referencing the old redundancy group ID and the redundancy group itself.
+				DeleteRelationship(redundancyGroupId, "dependency:node");
+				DeleteRelationship(redundancyGroupId, "redundancygroup");
+			}
+		}
+	}
+
+	m_Rcon->FireAndForgetQueries(std::move(hdels), Prio::RuntimeStateSync);
+	m_Rcon->FireAndForgetQueries(std::move(xAdds), Prio::RuntimeStateStream, {0, 1});
+
+	std::map<String, RedisConnection::Query> hMSets;
+	std::vector<Dictionary::Ptr> runtimeUpdates;
+	InsertCheckableDependencies(child, hMSets, &runtimeUpdates);
+
+	ExecuteRedisTransaction(hMSets, runtimeUpdates);
+
+	// Send full state updates immediately to reflect all the newly added changes.
+	UpdateDependenciesState(child, StateUpdate::Full);
+}
+
 Dictionary::Ptr IcingaDB::SerializeState(const Checkable::Ptr& checkable)
 {
 	Dictionary::Ptr attrs = new Dictionary();
@@ -3136,6 +3197,13 @@ void IcingaDB::NextCheckUpdatedHandler(const Checkable::Ptr& checkable)
 	}
 }
 
+void IcingaDB::RedundancyGroupsChangedHandler(const Dependency::Ptr& dep, const std::vector<RedundancyGroup::Ptr>& oldGroups)
+{
+	for (auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
+		rw->SendRedundancyGroupsChanged(dep, oldGroups);
+	}
+}
+
 void IcingaDB::HostProblemChangedHandler(const Service::Ptr& service) {
 	for (auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 		/* Host state changes affect is_handled and severity of services. */
@@ -3252,4 +3320,34 @@ void IcingaDB::DeleteRelationship(const String& id, const String& redisKeyWithou
 	});
 
 	m_Rcon->FireAndForgetQueries(queries, Prio::Config);
+}
+
+void IcingaDB::ExecuteRedisTransaction(std::map<String, RedisConnection::Query>& hMSets, const std::vector<Dictionary::Ptr>& runtimeUpdates) const
+{
+	RedisConnection::Queries transaction{{"MULTI"}};
+	for (auto& [redisKey, query] : hMSets) {
+		if (!query.empty()) {
+			query.insert(query.begin(), {"HMSET", redisKey});
+			transaction.emplace_back(std::move(query));
+		}
+	}
+
+	for (auto& attrs : runtimeUpdates) {
+		RedisConnection::Query xAdd({"XADD", "icinga:runtime", "MAXLEN", "~", "1000000", "*"});
+
+		ObjectLock olock(attrs);
+		for (auto& [key, value]: attrs) {
+			if (auto streamVal (IcingaToStreamValue(value)); !streamVal.IsEmpty()) {
+				xAdd.emplace_back(key);
+				xAdd.emplace_back(std::move(streamVal));
+			}
+		}
+
+		transaction.emplace_back(std::move(xAdd));
+	}
+
+	if (transaction.size() > 1) {
+		transaction.emplace_back(RedisConnection::Query{"EXEC"});
+		m_Rcon->FireAndForgetQueries(std::move(transaction), Prio::Config, {1});
+	}
 }

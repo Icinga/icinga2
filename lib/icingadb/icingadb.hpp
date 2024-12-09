@@ -115,6 +115,7 @@ private:
 	void AddObjectDataToRuntimeUpdates(std::vector<Dictionary::Ptr>& runtimeUpdates, const String& objectKey,
 			const String& redisKey, const Dictionary::Ptr& data);
 	void DeleteRelationship(const String& id, const String& redisKeyWithoutPrefix, bool hasChecksum = false);
+	void ExecuteRedisTransaction(std::map<String, RedisConnection::Query>& hMSets, const std::vector<Dictionary::Ptr>& runtimeUpdates) const;
 
 	void SendSentNotification(
 		const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::set<User::Ptr>& users,
@@ -139,6 +140,7 @@ private:
 	void SendCommandEnvChanged(const ConfigObject::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
 	void SendCommandArgumentsChanged(const ConfigObject::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
 	void SendCustomVarsChanged(const ConfigObject::Ptr& object, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
+	void SendRedundancyGroupsChanged(const Dependency::Ptr& dep, const std::vector<RedundancyGroup::Ptr>& oldGroups);
 
 	void ForwardHistoryEntries();
 
@@ -185,6 +187,7 @@ private:
 	static void FlappingChangeHandler(const Checkable::Ptr& checkable, double changeTime);
 	static void NewCheckResultHandler(const Checkable::Ptr& checkable);
 	static void NextCheckUpdatedHandler(const Checkable::Ptr& checkable);
+	static void RedundancyGroupsChangedHandler(const Dependency::Ptr& dep, const std::vector<RedundancyGroup::Ptr>& oldGroups);
 	static void HostProblemChangedHandler(const Service::Ptr& service);
 	static void AcknowledgementSetHandler(const Checkable::Ptr& checkable, const String& author, const String& comment, AcknowledgementType type, bool persistent, double changeTime, double expiry);
 	static void AcknowledgementClearedHandler(const Checkable::Ptr& checkable, const String& removedBy, double changeTime);

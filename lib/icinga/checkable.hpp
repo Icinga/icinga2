@@ -274,6 +274,8 @@ public:
 	static boost::signals2::signal<void (const Checkable::Ptr&)> OnNextCheckUpdated;
 	static boost::signals2::signal<void (const Checkable::Ptr&)> OnEventCommandExecuted;
 
+	static boost::signals2::signal<void (const intrusive_ptr<Dependency>&, const std::vector<RedundancyGroup::Ptr>&)> OnRedundancyGroupsChanged;
+
 	static Atomic<uint_fast64_t> CurrentConcurrentChecks;
 
 	/* Downtimes */
