@@ -16,60 +16,73 @@
 
 using namespace icinga;
 
-CpuBoundWork::CpuBoundWork(boost::asio::yield_context yc)
+CpuBoundWork::CpuBoundWork(boost::asio::yield_context yc, boost::asio::io_context::strand& strand)
 	: m_Done(false)
 {
-	auto& ioEngine (IoEngine::Get());
+	VERIFY(strand.running_in_this_thread());
 
-	for (;;) {
-		auto availableSlots (ioEngine.m_CpuBoundSemaphore.fetch_sub(1));
+	auto& ie (IoEngine::Get());
+	Shared<AsioConditionVariable>::Ptr cv;
 
-		if (availableSlots < 1) {
-			ioEngine.m_CpuBoundSemaphore.fetch_add(1);
-			IoEngine::YieldCurrentCoroutine(yc);
-			continue;
+	auto fastPath = [&ie](std::memory_order loadOrder = std::memory_order_relaxed) {
+		for (auto freeSlots (ie.m_CpuBoundSemaphore.load(loadOrder)); freeSlots > 0;) {
+			if (ie.m_CpuBoundSemaphore.compare_exchange_weak(
+				freeSlots,
+				freeSlots - 1,
+				std::memory_order_seq_cst, // The default memory order in case of success
+				loadOrder // A failure here is equivalent to loading the latest value
+			)) {
+				return true;
+			}
 		}
 
-		break;
-	}
-}
+		return false;
+	};
 
-CpuBoundWork::~CpuBoundWork()
-{
-	if (!m_Done) {
-		IoEngine::Get().m_CpuBoundSemaphore.fetch_add(1);
+	while (!fastPath()) {
+		if (!cv) {
+			cv = Shared<AsioConditionVariable>::Make(ie.GetIoContext());
+
+			// The above line may take a little bit, so let's optimistically re-check
+			if (fastPath()) {
+				break;
+			}
+		}
+
+		{
+			std::unique_lock lock (ie.m_CpuBoundWaitingMutex);
+
+			// The above line may take even longer, so let's check again
+			if (fastPath(std::memory_order_seq_cst)) { // Mitigate lost wake-ups via a strong memory order
+				break;
+			}
+
+			ie.m_CpuBoundWaiting.emplace_back(strand, cv);
+		}
+
+		cv->Wait(yc);
 	}
 }
 
 void CpuBoundWork::Done()
 {
 	if (!m_Done) {
-		IoEngine::Get().m_CpuBoundSemaphore.fetch_add(1);
-
 		m_Done = true;
-	}
-}
 
-IoBoundWorkSlot::IoBoundWorkSlot(boost::asio::yield_context yc)
-	: yc(yc)
-{
-	IoEngine::Get().m_CpuBoundSemaphore.fetch_add(1);
-}
+		auto& ie (IoEngine::Get());
 
-IoBoundWorkSlot::~IoBoundWorkSlot()
-{
-	auto& ioEngine (IoEngine::Get());
+		if (ie.m_CpuBoundSemaphore.fetch_add(1) < 1) {
+			decltype(ie.m_CpuBoundWaiting) subscribers;
 
-	for (;;) {
-		auto availableSlots (ioEngine.m_CpuBoundSemaphore.fetch_sub(1));
+			{
+				std::unique_lock lock (ie.m_CpuBoundWaitingMutex);
+				std::swap(subscribers, ie.m_CpuBoundWaiting);
+			}
 
-		if (availableSlots < 1) {
-			ioEngine.m_CpuBoundSemaphore.fetch_add(1);
-			IoEngine::YieldCurrentCoroutine(yc);
-			continue;
+			for (auto& subscriber : subscribers) {
+				boost::asio::post(subscriber.first, [cv = std::move(subscriber.second)] { cv->NotifyOne(); });
+			}
 		}
-
-		break;
 	}
 }
 
@@ -124,18 +137,30 @@ void IoEngine::RunEventLoop()
 	}
 }
 
-AsioConditionVariable::AsioConditionVariable(boost::asio::io_context& io, bool init)
+AsioEvent::AsioEvent(boost::asio::io_context& io, bool init)
 	: m_Timer(io)
 {
 	m_Timer.expires_at(init ? boost::posix_time::neg_infin : boost::posix_time::pos_infin);
 }
 
-void AsioConditionVariable::Set()
+void AsioEvent::Set()
 {
 	m_Timer.expires_at(boost::posix_time::neg_infin);
 }
 
-void AsioConditionVariable::Clear()
+void AsioEvent::Clear()
+{
+	m_Timer.expires_at(boost::posix_time::pos_infin);
+}
+
+void AsioEvent::Wait(boost::asio::yield_context yc)
+{
+	boost::system::error_code ec;
+	m_Timer.async_wait(yc[ec]);
+}
+
+AsioConditionVariable::AsioConditionVariable(boost::asio::io_context& io)
+	: m_Timer(io)
 {
 	m_Timer.expires_at(boost::posix_time::pos_infin);
 }
@@ -144,6 +169,18 @@ void AsioConditionVariable::Wait(boost::asio::yield_context yc)
 {
 	boost::system::error_code ec;
 	m_Timer.async_wait(yc[ec]);
+}
+
+bool AsioConditionVariable::NotifyOne()
+{
+	boost::system::error_code ec;
+	return m_Timer.cancel_one(ec);
+}
+
+size_t AsioConditionVariable::NotifyAll()
+{
+	boost::system::error_code ec;
+	return m_Timer.cancel(ec);
 }
 
 void Timeout::Cancel()
