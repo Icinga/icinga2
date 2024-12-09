@@ -208,8 +208,12 @@ void Dependency::Stop(bool runtimeRemoved)
 {
 	ObjectImpl<Dependency>::Stop(runtimeRemoved);
 
-	GetChild()->RemoveDependency(this);
+	// Note, the removing order is important here, as Icinga DB's SendRedundancyGroupMemberRemoved() method relies on this.
+	// Meaning, while processing the removal of "this" from the child, it will emit a runtime update signal for the
+	// parent as well, forcing it to refresh the "affected_children" and "affects_children" attributes. However,
+	// we'll only get the desired result if the current dependency was already detached from the parent.
 	GetParent()->RemoveReverseDependency(this);
+	GetChild()->RemoveDependency(this);
 }
 
 bool Dependency::IsAvailable(DependencyType dt) const

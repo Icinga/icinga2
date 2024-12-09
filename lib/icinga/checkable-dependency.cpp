@@ -12,6 +12,8 @@ using namespace icinga;
 // Is the default (dummy) redundancy group used to group non-redundant dependencies.
 static String l_DefaultRedundancyGroup(Utility::NewUniqueID());
 
+boost::signals2::signal<void (const Shared<RedundancyGroup>::Ptr&, const intrusive_ptr<Dependency>&)> Checkable::OnRedundancyGroupMemberRemoved;
+
 RedundancyGroup::RedundancyGroup(const String& name, const Dependency::Ptr& dependency): m_Name(name)
 {
 	AddMember(dependency);
@@ -244,15 +246,25 @@ void Checkable::AddDependency(const Dependency::Ptr& dep)
 
 void Checkable::RemoveDependency(const Dependency::Ptr& dep)
 {
-	std::unique_lock<std::mutex> lock(m_DependencyMutex);
-	auto group(dep->GetRedundancyGroup().IsEmpty() ? l_DefaultRedundancyGroup : dep->GetRedundancyGroup());
-	if (auto it(m_Dependencies.find(group)); it != m_Dependencies.end()) {
-		it->second->RemoveMember(dep);
+	Shared<RedundancyGroup>::Ptr redundancyGroup;
+	{
+		std::unique_lock<std::mutex> lock(m_DependencyMutex);
+		auto groupName(dep->GetRedundancyGroup());
+		auto it (m_Dependencies.find(groupName.IsEmpty() ? l_DefaultRedundancyGroup : std::move(groupName)));
+		if (it == m_Dependencies.end()) {
+			// This should never happen, but just in case.
+			return;
+		}
 
-		if (!it->second->HasMembers()) {
-			m_Dependencies.erase(group);
+		redundancyGroup = it->second;
+		redundancyGroup->RemoveMember(dep);
+		if (!redundancyGroup->HasMembers()) {
+			m_Dependencies.erase(it);
 		}
 	}
+
+	// We must notify the redundancy group change outside the m_DependencyMutex lock.
+	Checkable::OnRedundancyGroupMemberRemoved(redundancyGroup, dep);
 }
 
 std::vector<Dependency::Ptr> Checkable::GetDependencies() const

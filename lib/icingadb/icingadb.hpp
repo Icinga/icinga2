@@ -139,6 +139,7 @@ private:
 	void SendCommandEnvChanged(const ConfigObject::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
 	void SendCommandArgumentsChanged(const ConfigObject::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
 	void SendCustomVarsChanged(const ConfigObject::Ptr& object, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
+	void SendRedundancyGroupMemberRemoved(const Shared<RedundancyGroup>::Ptr& redundancyGroup, const Dependency::Ptr& removedMember);
 
 	void ForwardHistoryEntries();
 
@@ -185,6 +186,7 @@ private:
 	static void FlappingChangeHandler(const Checkable::Ptr& checkable, double changeTime);
 	static void NewCheckResultHandler(const Checkable::Ptr& checkable);
 	static void NextCheckUpdatedHandler(const Checkable::Ptr& checkable);
+	static void RedundancyGroupMemberRemovedHandler(const Shared<RedundancyGroup>::Ptr& redundancyGroup, const Dependency::Ptr& dep);
 	static void HostProblemChangedHandler(const Service::Ptr& service);
 	static void AcknowledgementSetHandler(const Checkable::Ptr& checkable, const String& author, const String& comment, AcknowledgementType type, bool persistent, double changeTime, double expiry);
 	static void AcknowledgementClearedHandler(const Checkable::Ptr& checkable, const String& removedBy, double changeTime);
