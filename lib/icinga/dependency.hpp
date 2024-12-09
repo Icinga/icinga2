@@ -70,13 +70,15 @@ public:
 protected:
 	void OnConfigLoaded() override;
 	void OnAllConfigLoaded() override;
+	void Start(bool runtimeCreated) override;
 	void Stop(bool runtimeRemoved) override;
 
 private:
 	Checkable::Ptr m_Parent;
 	Checkable::Ptr m_Child;
 
-	static bool m_AssertNoCyclesForIndividualDeps;
+	// Whether we've already performed the cyclic reference check for all dependencies on Icinga 2 startup.
+	static bool m_CyclicReferenceForAllDependenciesAsserted;
 
 	static bool EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, const String& name, ScriptFrame& frame, const ApplyRule& rule, bool skipFilter);
 	static bool EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule, bool skipFilter = false);
@@ -187,6 +189,8 @@ public:
 	};
 
 	State GetState(DependencyType dt = DependencyState, int rstack = 0) const;
+
+	static boost::signals2::signal<void (const Dependency::Ptr&, const std::vector<DependencyGroup::Ptr>&)> OnMembersChanged;
 
 protected:
 	void AddMember(const Dependency::Ptr& member);
