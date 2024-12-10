@@ -5,6 +5,7 @@
 
 #include "remote/i2-remote.hpp"
 #include "remote/endpoint-ti.hpp"
+#include "base/benchmark.hpp"
 #include "base/ringbuffer.hpp"
 #include <set>
 
@@ -43,6 +44,14 @@ public:
 	void AddMessageSent(int bytes);
 	void AddMessageReceived(int bytes);
 
+	template<class R, class S, class P>
+	void AddInputTimes(const R& readTime, const S& semaphoreTime, const P& processTime)
+	{
+		m_InputReadTime += readTime;
+		m_InputSemaphoreTime += semaphoreTime;
+		m_InputProcessTime += processTime;
+	}
+
 	double GetMessagesSentPerSecond() const override;
 	double GetMessagesReceivedPerSecond() const override;
 
@@ -61,6 +70,10 @@ private:
 	mutable RingBuffer m_MessagesReceived{60};
 	mutable RingBuffer m_BytesSent{60};
 	mutable RingBuffer m_BytesReceived{60};
+
+	Benchmark m_InputReadTime;
+	Benchmark m_InputSemaphoreTime;
+	Benchmark m_InputProcessTime;
 };
 
 }
