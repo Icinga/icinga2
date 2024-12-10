@@ -136,3 +136,13 @@ double Endpoint::GetBytesReceivedPerSecond() const
 {
 	return m_BytesReceived.CalculateRate(Utility::GetTime(), 60);
 }
+
+double Endpoint::GetSecondsReadingMessages() const
+{
+	return m_InputReadTime;
+}
+
+double Endpoint::GetSecondsProcessingMessages() const
+{
+	return m_InputProcessTime;
+}
