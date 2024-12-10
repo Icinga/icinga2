@@ -25,7 +25,7 @@ public:
 	 * @return The total accumulated time in seconds
 	 */
 	template<class T>
-	explicit operator T() const noexcept
+	operator T() const noexcept
 	{
 		return std::chrono::duration<T>(Clock::duration(m_Sum.load(std::memory_order_relaxed))).count();
 	}
