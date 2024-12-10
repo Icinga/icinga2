@@ -66,12 +66,24 @@ void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 		return ch::duration_cast<ch::milliseconds>(d).count();
 	});
 
+	AtomicDuration::Clock::time_point readStart, readEnd, processingStart;
+
 	m_Stream->next_layer().SetSeen(&m_Seen);
 
 	while (!m_ShuttingDown) {
 		String jsonString;
 
 		try {
+			if (m_Endpoint) {
+				// Only once we receive at least one byte, we know there must be a message to read.
+				if (!m_Stream->in_avail()) {
+					m_Stream->async_fill(yc);
+				}
+
+				// Only then we can start measuring the time it takes to read it.
+				readStart = AtomicDuration::Clock::now();
+			}
+
 			jsonString = JsonRpc::ReadMessage(m_Stream, yc, m_Endpoint ? -1 : 1024 * 1024);
 		} catch (const std::exception& ex) {
 			Log(m_ShuttingDown ? LogDebug : LogNotice, "JsonRpcConnection")
@@ -79,6 +91,10 @@ void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 				<< "': " << DiagnosticInformation(ex);
 
 			break;
+		}
+
+		if (m_Endpoint) {
+			readEnd = AtomicDuration::Clock::now();
 		}
 
 		m_Seen = Utility::GetTime();
@@ -96,12 +112,20 @@ void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 			// Cache the elapsed time to acquire a CPU semaphore used to detect extremely heavy workloads.
 			cpuBoundDuration = ch::steady_clock::now() - start;
 
+			if (m_Endpoint) {
+				processingStart = AtomicDuration::Clock::now();
+			}
+
 			Dictionary::Ptr message = JsonRpc::DecodeMessage(jsonString);
 			if (String method = message->Get("method"); !method.IsEmpty()) {
 				rpcMethod = std::move(method);
 			}
 
 			MessageHandler(message);
+
+			if (m_Endpoint) {
+				m_Endpoint->AddInputTimes(readEnd - readStart, cpuBoundDuration, AtomicDuration::Clock::now() - processingStart);
+			}
 
 			l_TaskStats.InsertValue(Utility::GetTime(), 1);
 
