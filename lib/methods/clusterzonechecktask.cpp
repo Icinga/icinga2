@@ -137,6 +137,9 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 	double messagesReceivedPerSecond = 0;
 	double bytesSentPerSecond = 0;
 	double bytesReceivedPerSecond = 0;
+	double secondsReadingMessages = 0;
+	double secondsAwaitingSemaphore = 0;
+	double secondsProcessingMessages = 0;
 
 	{
 		auto endpoints (zone->GetEndpoints());
@@ -160,6 +163,9 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 			messagesReceivedPerSecond += endpoint->GetMessagesReceivedPerSecond();
 			bytesSentPerSecond += endpoint->GetBytesSentPerSecond();
 			bytesReceivedPerSecond += endpoint->GetBytesReceivedPerSecond();
+			secondsReadingMessages += endpoint->GetSecondsReadingMessages();
+			secondsAwaitingSemaphore += endpoint->GetSecondsAwaitingSemaphore();
+			secondsProcessingMessages += endpoint->GetSecondsProcessingMessages();
 		}
 
 		if (!connected && endpoints.size() == 1u && *endpoints.begin() == Endpoint::GetLocalEndpoint()) {
@@ -210,7 +216,10 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 			new PerfdataValue("sum_messages_sent_per_second", messagesSentPerSecond),
 			new PerfdataValue("sum_messages_received_per_second", messagesReceivedPerSecond),
 			new PerfdataValue("sum_bytes_sent_per_second", bytesSentPerSecond),
-			new PerfdataValue("sum_bytes_received_per_second", bytesReceivedPerSecond)
+			new PerfdataValue("sum_bytes_received_per_second", bytesReceivedPerSecond),
+			new PerfdataValue("sum_seconds_reading_messages", secondsReadingMessages),
+			new PerfdataValue("sum_seconds_awaiting_semaphore", secondsAwaitingSemaphore),
+			new PerfdataValue("sum_seconds_processing_messages", secondsProcessingMessages)
 		}));
 
 		checkable->ProcessCheckResult(cr);
