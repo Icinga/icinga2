@@ -57,6 +57,9 @@ public:
 	double GetBytesSentPerSecond() const override;
 	double GetBytesReceivedPerSecond() const override;
 
+	double GetSecondsReadingMessages() const override;
+	double GetSecondsProcessingMessages() const override;
+
 protected:
 	void OnAllConfigLoaded() override;
 
