@@ -19,9 +19,11 @@ namespace icinga
  * initialization by std::atomic_init, see LWG issue 2334."
  *  -- https://en.cppreference.com/w/cpp/atomic/atomic/atomic
  *
+ *  Also, the second template parameter allows to specify the default memory order once for all operations.
+ *
  * @ingroup base
  */
-template<class T>
+template<class T, std::memory_order m = std::memory_order_seq_cst>
 class Atomic : public std::atomic<T> {
 public:
 	/**
@@ -31,6 +33,118 @@ public:
 	 */
 	inline Atomic(T desired) : std::atomic<T>(desired)
 	{
+	}
+
+	// The following methods have an argument with a default of std::memory_order_seq_cst hardcoded in the base class.
+	// Hence, we need to override them here to allow for a different default memory order.
+
+	void store(T desired, std::memory_order mo = m) noexcept
+	{
+		std::atomic<T>::store(desired, mo);
+	}
+
+	T load(std::memory_order mo = m) const noexcept
+	{
+		return std::atomic<T>::load(mo);
+	}
+
+	T exchange(T desired, std::memory_order mo = m) noexcept
+	{
+		return std::atomic<T>::exchange(desired, mo);
+	}
+
+	bool compare_exchange_weak(T& expected, T desired, std::memory_order mo = m) noexcept
+	{
+		return std::atomic<T>::compare_exchange_weak(expected, desired, mo);
+	}
+
+	bool compare_exchange_strong(T& expected, T desired, std::memory_order mo = m) noexcept
+	{
+		return std::atomic<T>::compare_exchange_strong(expected, desired, mo);
+	}
+
+	T fetch_add(T delta, std::memory_order mo = m) noexcept
+	{
+		return std::atomic<T>::fetch_add(delta, mo);
+	}
+
+	T fetch_sub(T delta, std::memory_order mo = m) noexcept
+	{
+		return std::atomic<T>::fetch_sub(delta, mo);
+	}
+
+	T fetch_and(T mask, std::memory_order mo = m) noexcept
+	{
+		return std::atomic<T>::fetch_and(mask, mo);
+	}
+
+	T fetch_or(T mask, std::memory_order mo = m) noexcept
+	{
+		return std::atomic<T>::fetch_or(mask, mo);
+	}
+
+	T fetch_xor(T mask, std::memory_order mo = m) noexcept
+	{
+		return std::atomic<T>::fetch_xor(mask, mo);
+	}
+
+	// The following operators call non-virtual methods we have overridden above.
+	// Hence, we need to override them here as well to allow for a different default memory order.
+
+	T operator=(T desired) noexcept
+	{
+		store(desired);
+		return desired;
+	}
+
+	operator T() const noexcept
+	{
+		return load();
+	}
+
+	T operator+=(T delta) noexcept
+	{
+		return fetch_add(delta) + delta;
+	}
+
+	T operator-=(T delta) noexcept
+	{
+		return fetch_sub(delta) - delta;
+	}
+
+	T operator++() noexcept
+	{
+		return *this += 1;
+	}
+
+	T operator++(int) noexcept
+	{
+		return fetch_add(1);
+	}
+
+	T operator--() noexcept
+	{
+		return *this -= 1;
+	}
+
+	T operator--(int) noexcept
+	{
+		return fetch_sub(1);
+	}
+
+	T operator&=(T mask) noexcept
+	{
+		return fetch_and(mask) & mask;
+	}
+
+	T operator|=(T mask) noexcept
+	{
+		return fetch_or(mask) | mask;
+	}
+
+	T operator^=(T mask) noexcept
+	{
+		return fetch_xor(mask) ^ mask;
 	}
 };
 
