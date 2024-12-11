@@ -154,6 +154,7 @@ void JsonRpcConnection::WriteOutgoingMessages(boost::asio::yield_context yc)
 					}
 
 					size_t bytesSent = JsonRpc::SendRawMessage(m_Stream, message, yc);
+					m_PendingOutgoingMessages--;
 
 					if (m_Endpoint) {
 						m_Endpoint->AddMessageSent(bytesSent);
@@ -230,6 +231,7 @@ void JsonRpcConnection::SendRawMessage(const String& message)
 
 		m_OutgoingMessagesQueue.emplace_back(message);
 		m_OutgoingMessagesQueued.Set();
+		m_PendingOutgoingMessages++;
 	});
 }
 
@@ -241,6 +243,7 @@ void JsonRpcConnection::SendMessageInternal(const Dictionary::Ptr& message)
 
 	m_OutgoingMessagesQueue.emplace_back(JsonEncode(message));
 	m_OutgoingMessagesQueued.Set();
+	m_PendingOutgoingMessages++;
 }
 
 void JsonRpcConnection::Disconnect()
