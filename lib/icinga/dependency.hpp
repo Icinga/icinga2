@@ -6,6 +6,9 @@
 #include "base/shared-object.hpp"
 #include "icinga/i2-icinga.hpp"
 #include "icinga/dependency-ti.hpp"
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/hashed_index.hpp>
+#include <boost/multi_index/mem_fun.hpp>
 #include <map>
 #include <tuple>
 #include <unordered_map>
@@ -130,6 +133,10 @@ public:
 
 	DependencyGroup(String name, const Dependency::Ptr& member);
 
+	static void Register(const Dependency::Ptr& dependency);
+	static void Unregister(const Dependency::Ptr& dependency);
+	static size_t GetRegistrySize();
+
 	static CompositeKeyType MakeCompositeKeyFor(const Dependency::Ptr& dependency);
 
 	/**
@@ -156,6 +163,9 @@ public:
 protected:
 	void AddMember(const Dependency::Ptr& member);
 	void RemoveMember(const Dependency::Ptr& member);
+	void MoveMembersTo(const DependencyGroup::Ptr& other);
+
+	static void RefreshRegistry(const Dependency::Ptr& dependency, bool unregister);
 
 private:
 	mutable std::mutex m_Mutex;
@@ -163,6 +173,30 @@ private:
 	String m_Name;
 	String m_CompositeKey;
 	MembersMap m_Members;
+
+	using RegistryType = boost::multi_index_container<
+		DependencyGroup*, // The type of the elements stored in the container.
+		boost::multi_index::indexed_by<
+			// This unique index allows to search/erase dependency groups by their composite key in an efficient manner.
+			boost::multi_index::hashed_unique<
+				boost::multi_index::mem_fun<DependencyGroup, String, &DependencyGroup::GetCompositeKey>,
+				std::hash<String>
+			>,
+			// This non-unique index allows to search for dependency groups by their name, and reduces the overall
+			// runtime complexity. Without this index, we would have to iterate over all elements to find the one
+			// with the desired members and since containers don't allow erasing elements while iterating, we would
+			// have to copy each of them to a temporary container, and then erase and reinsert them back to the original
+			// container. This produces way too much overhead, and slows down the startup time of Icinga 2 significantly.
+			boost::multi_index::hashed_non_unique<
+				boost::multi_index::const_mem_fun<DependencyGroup, const String&, &DependencyGroup::GetName>,
+				std::hash<String>
+			>
+		>
+	>;
+
+	// The global registry of dependency groups.
+	static std::mutex m_RegistryMutex;
+	static RegistryType m_Registry;
 };
 
 }

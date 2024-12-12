@@ -326,6 +326,122 @@ void Dependency::SetChild(intrusive_ptr<Checkable> child)
 	m_Child = child;
 }
 
+std::mutex DependencyGroup::m_RegistryMutex;
+DependencyGroup::RegistryType DependencyGroup::m_Registry;
+
+/**
+ * Refresh the global registry of dependency groups.
+ *
+ * Registers the provided dependency object to an existing dependency group with the same redundancy
+ * group name (if any), or creates a new one and registers it to the child Checkable and the registry.
+ *
+ * Note: This is a helper function intended for internal use only, and you should acquire the global registry mutex
+ * before calling this function.
+ *
+ * @param dependency The dependency object to refresh the registry for.
+ * @param unregister A flag indicating whether the provided dependency object should be unregistered from the registry.
+ */
+void DependencyGroup::RefreshRegistry(const Dependency::Ptr& dependency, bool unregister)
+{
+	auto registerRedundancyGroup = [](const DependencyGroup::Ptr& dependencyGroup) {
+		if (auto [it, inserted](m_Registry.insert(dependencyGroup.get())); !inserted) {
+			DependencyGroup::Ptr existingGroup(*it);
+			dependencyGroup->MoveMembersTo(existingGroup);
+		}
+	};
+
+	// Retrieve all the dependency groups with the same redundancy group name of the provided dependency object.
+	// This allows us to shorten the lookup for the _one_ optimal group to (un)register the dependency from/to.
+	auto [begin, end] = m_Registry.get<1>().equal_range(dependency->GetRedundancyGroup());
+	for (auto it(begin); it != end; ++it) {
+		DependencyGroup::Ptr existingGroup(*it);
+		auto child(dependency->GetChild());
+		if (auto members(existingGroup->GetMembers(child.get())); !members.empty()) {
+			m_Registry.erase(existingGroup->GetCompositeKey()); // Will be re-registered when needed down below.
+			if (unregister) {
+				existingGroup->RemoveMember(dependency);
+				// Remove the connection between the child Checkable and the dependency group if it has no members
+				// left or the above removed member was the only member of the group that the child depended on.
+				if (!existingGroup->HasMembers() || members.size() == 1) {
+					child->RemoveDependencyGroup(existingGroup);
+				}
+			}
+
+			size_t totalMembers(existingGroup->GetMemberCount());
+			// If the existing dependency group has an identical member already, or the child Checkable of the
+			// dependency object is the only member of it (totalMembers == members.size()), we can simply add the
+			// dependency object to the existing group.
+			if (!unregister && (existingGroup->HasIdenticalMember(dependency) || totalMembers == members.size())) {
+				existingGroup->AddMember(dependency);
+			} else if (!unregister || (members.size() > 1 && totalMembers >= members.size())) {
+				// The child Checkable is going to have a new dependency group, so we must detach the existing one.
+				child->RemoveDependencyGroup(existingGroup);
+
+				Ptr replacementGroup(unregister ? nullptr : new DependencyGroup(existingGroup->GetName(), dependency));
+				for (auto& member : members) {
+					if (member != dependency) {
+						existingGroup->RemoveMember(member);
+						if (replacementGroup) {
+							replacementGroup->AddMember(member);
+						} else {
+							replacementGroup = new DependencyGroup(existingGroup->GetName(), member);
+						}
+					}
+				}
+
+				child->AddDependencyGroup(replacementGroup);
+				registerRedundancyGroup(replacementGroup);
+			}
+
+			if (existingGroup->HasMembers()) {
+				registerRedundancyGroup(existingGroup);
+			}
+			return;
+		}
+	}
+
+	if (!unregister) {
+		// We couldn't find any existing dependency group to register the dependency to, so we must
+		// initiate a new one and attach it to the child Checkable and register to the global registry.
+		DependencyGroup::Ptr newGroup(new DependencyGroup(dependency->GetRedundancyGroup(), dependency));
+		dependency->GetChild()->AddDependencyGroup(newGroup);
+		registerRedundancyGroup(newGroup);
+	}
+}
+
+/**
+ * Register the provided dependency to the global dependency group registry.
+ *
+ * @param dependency The dependency to register.
+ */
+void DependencyGroup::Register(const Dependency::Ptr& dependency)
+{
+	std::lock_guard lock(m_RegistryMutex);
+	RefreshRegistry(dependency, false);
+}
+
+/**
+ * Unregister the provided dependency from the dependency group it was member of.
+ *
+ * @param dependency The dependency to unregister.
+ */
+void DependencyGroup::Unregister(const Dependency::Ptr& dependency)
+{
+	std::lock_guard lock(m_RegistryMutex);
+	RefreshRegistry(dependency, true);
+}
+
+/**
+ * Retrieve the size of the global dependency group registry.
+ *
+ * @return size_t - Returns the size of the global dependency groups registry.
+ */
+size_t DependencyGroup::GetRegistrySize()
+{
+	std::lock_guard lock(m_RegistryMutex);
+	return m_Registry.size();
+}
+
 DependencyGroup::DependencyGroup(String name, const Dependency::Ptr& dependency): m_Name(std::move(name))
 {
 	AddMember(dependency);
@@ -460,6 +576,30 @@ void DependencyGroup::RemoveMember(const Dependency::Ptr& member)
 					m_CompositeKey = ""; // Invalidate the composite key cache (if any).
 				}
 				return;
+			}
+		}
+	}
+}
+
+/**
+ * Move the members of the provided dependency group to the provided destination dependency group.
+ *
+ * @param dest The dependency group to move the members to.
+ */
+void DependencyGroup::MoveMembersTo(const DependencyGroup::Ptr& dest)
+{
+	VERIFY(this != dest); // Prevent from doing something stupid, i.e. deadlocking ourselves.
+
+	std::lock_guard lock(m_Mutex);
+	DependencyGroup::Ptr thisPtr(this); // Just in case the Checkable below was our last reference.
+	for (auto& [_, members] : m_Members) {
+		Checkable::Ptr previousChild;
+		for (auto& [checkable, dependency] : members) {
+			dest->AddMember(dependency);
+			if (!previousChild || previousChild != checkable) {
+				previousChild = dependency->GetChild();
+				previousChild->RemoveDependencyGroup(thisPtr);
+				previousChild->AddDependencyGroup(dest);
 			}
 		}
 	}
