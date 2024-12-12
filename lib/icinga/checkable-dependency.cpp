@@ -5,13 +5,184 @@
 #include "base/utility.hpp"
 #include "icinga/dependency.hpp"
 #include "icinga/service.hpp"
-#include <unordered_map>
 #include <numeric>
 
 using namespace icinga;
 
+std::mutex RedundancyGroup::m_RegistryMutex;
+RedundancyGroup::RegistryType RedundancyGroup::m_Registry;
+
 // Is the default (dummy) redundancy group used to group non-redundant dependencies.
 static String l_DefaultRedundancyGroup(Utility::NewUniqueID());
+
+/**
+ * Register a redundancy group in the global redundancy groups registry.
+ *
+ * At first, it tries to naively insert the redundancy group into the registry. In case there is already an
+ * identical redundancy group in the registry, the insertion will just fail. In this case, it will move all
+ * members of the provided redundancy group into the existing one and re-register the existing one recursively
+ * till there is no redundancy group with identical members left and the insertion finally succeeds.
+ *
+ * Note: This is a helper function intended for internal use only, and you should acquire the global registry mutex
+ * before calling this function.
+ *
+ * @param redundancyGroup The redundancy group to register.
+ */
+void RedundancyGroup::RegisterRedundancyGroup(const RedundancyGroup::Ptr& redundancyGroup)
+{
+	if (auto it(m_Registry.insert(redundancyGroup.get())); !it.second) {
+		RedundancyGroup::Ptr existingGroup(*it.first);
+		if (redundancyGroup->IsDefault()) {
+			// It's the dummy group, so just move the new members into the existing one, and it should be it.
+			redundancyGroup->MoveMembersTo(existingGroup);
+		} else {
+			// Erase it before we move the members into that group and change the hash.
+			m_Registry.erase(it.first);
+			redundancyGroup->MoveMembersTo(existingGroup);
+			RegisterRedundancyGroup(existingGroup);
+		}
+	}
+}
+
+/**
+ * Refresh the registry of redundancy groups.
+ *
+ * This function is used to refresh the global registry of redundancy groups.
+ * It will try to find an existing redundancy group the child Checkable of the given dependency is member of,
+ * and if found, it will move the remaining dependencies of the Checkable into the new redundancy group and add
+ * it to the registry. A nullptr as a new redundancy group means we want to unregister the provided dependency,
+ * thus it will not be moved into the temporary new redundancy group constructed within this function.
+ *
+ * Note: This is a helper function intended for internal use only, and you should acquire the global registry mutex
+ * before calling this function.
+ *
+ * @param dependency The dependency object to refresh the registry for.
+ * @param newGroup The new redundancy group to move the remaining Checkable dependencies into.
+ */
+void RedundancyGroup::RefreshRegistry(const Dependency::Ptr& dependency, const RedundancyGroup::Ptr& newGroup)
+{
+	auto [rangeBegin, rangeEnd] = m_Registry.get<1>().equal_range(dependency->GetRedundancyGroup());
+	for (auto groupIt(rangeBegin); groupIt != rangeEnd; ++groupIt) {
+		RedundancyGroup::Ptr existingGroup(*groupIt);
+		if (existingGroup->HasMembers(dependency->GetChild())) {
+			// Erase the existing redundancy group from the registry, before we move the members
+			// out of it and change its identity, i.e. the hash value used by the registry.
+			m_Registry.erase(existingGroup.get());
+
+			RedundancyGroup::Ptr replacementGroup(newGroup);
+			for (auto& [_, dependencies] : existingGroup->GetMembers()) {
+				auto [begin, end] = dependencies.equal_range(dependency->GetChild().get());
+				for (auto it(begin); it != end; ++it) {
+					// A nullptr newGroup means we want to unregister the provided dependency object. Otherwise,
+					// it should already be registered to the new redundancy group, and we just need to move the
+					// remaining dependencies of the Checkable into that new group.
+					if (newGroup || it->second != dependency) {
+						if (!replacementGroup) {
+							replacementGroup = new RedundancyGroup(existingGroup->GetName(), it->second);
+						} else {
+							// If there are any dependencies registered for the same child Checkable under the existing
+							// redundancy group, we must move them into the new one. Meaning, the redundancy group for
+							// that Checkable has changed, meanwhile for the other Checkables it's still the same.
+							replacementGroup->AddMember(it->second);
+						}
+					}
+					existingGroup->RemoveMember(it->second);
+				}
+			}
+
+			if (existingGroup->HasMembers()) {
+				// Detach the existing redundancy group from the child Checkable of the dependency
+				// object, as it's not a member of it anymore. Instead, we must...
+				dependency->GetChild()->RemoveRedundancyGroup(existingGroup);
+
+				if (replacementGroup) {
+					// ...attach the new redundancy group to the child Checkable.
+					dependency->GetChild()->AddRedundancyGroup(replacementGroup);
+					RegisterRedundancyGroup(replacementGroup);
+				}
+
+				// The existing redundancy group still has some members left, so we must re-register
+				// it and enforce the rehashing of the members due to the removed ones above.
+				RegisterRedundancyGroup(existingGroup);
+			} else if (replacementGroup) {
+				// We were the last member of the existing redundancy group, so instead of replacing it with the
+				// replacement group, we can just move back the members to it and re-add it to the registry.
+				replacementGroup->MoveMembersTo(existingGroup);
+				RegisterRedundancyGroup(existingGroup);
+			} else {
+				// The existing redundancy group has no members left, so we must detach it from the child Checkable.
+				dependency->GetChild()->RemoveRedundancyGroup(existingGroup);
+			}
+
+			return;
+		}
+	}
+
+	if (newGroup) {
+		// If we haven't found any existing redundancy group to register the dependency to, we must
+		// attach the new redundancy group to the child Checkable and register the new group to the registry.
+		dependency->GetChild()->AddRedundancyGroup(newGroup);
+		RegisterRedundancyGroup(newGroup);
+	}
+}
+
+/**
+ * Register the provided dependency to the global redundancy group registry.
+ *
+ * @param dependency The dependency to register.
+ */
+void RedundancyGroup::Register(const Dependency::Ptr& dependency)
+{
+	std::lock_guard lock(m_RegistryMutex);
+	auto groupName(dependency->GetRedundancyGroup());
+	RedundancyGroup::Ptr newGroup(new RedundancyGroup(groupName.IsEmpty() ? l_DefaultRedundancyGroup : groupName, dependency));
+	if (m_Registry.empty() || groupName.IsEmpty()) {
+		dependency->GetChild()->AddRedundancyGroup(newGroup);
+		RegisterRedundancyGroup(newGroup);
+		return;
+	}
+
+	RefreshRegistry(dependency, newGroup);
+}
+
+/**
+ * Unregister the provided dependency from the redundancy group it was member of.
+ *
+ * @param dependency The dependency to unregister.
+ */
+void RedundancyGroup::Unregister(const Dependency::Ptr& dependency)
+{
+	std::lock_guard lock(m_RegistryMutex);
+	if (dependency->GetRedundancyGroup().IsEmpty()) {
+		// Default redundancy group of a given Checkable always produce the very same hash, so we can
+		// safely use any instance of it to find the existing one in the registry.
+		RedundancyGroup::Ptr defaultGroup(new RedundancyGroup(l_DefaultRedundancyGroup, dependency));
+		if (auto it(m_Registry.find(defaultGroup)); it != m_Registry.end()) {
+			RedundancyGroup::Ptr existingGroup(*it);
+			existingGroup->RemoveMember(dependency);
+			if (!existingGroup->HasMembers()) {
+				// There are no members left in the default redundancy group, so we must detach
+				// it from the child Checkable of the dependency object.
+				dependency->GetChild()->RemoveRedundancyGroup(existingGroup);
+				m_Registry.erase(it);
+			}
+		}
+		return;
+	}
+
+	RefreshRegistry(dependency, Ptr());
+}
+
+/**
+ * Retrieve the size of the global redundancy group registry.
+ *
+ * @return size_t - Returns the size of the global redundancy group registry.
+ */
+size_t RedundancyGroup::GetRegistrySize()
+{
+	std::lock_guard lock(m_RegistryMutex);
+	return m_Registry.size();
+}
 
 RedundancyGroup::RedundancyGroup(String name, const Dependency::Ptr& dependency): m_Name(std::move(name))
 {
@@ -180,6 +351,28 @@ void RedundancyGroup::RemoveMember(const Dependency::Ptr& member)
 }
 
 /**
+ * Move the members of the provided redundancy group to the provided destination redundancy group.
+ *
+ * @param dest The redundancy group to move the members to.
+ */
+void RedundancyGroup::MoveMembersTo(const RedundancyGroup::Ptr& dest)
+{
+	std::lock_guard lock(m_Mutex);
+	RedundancyGroup::Ptr thisPtr(this); // Just in case the Checkable below was our last reference.
+	for (auto& [_, members] : m_Members) {
+		Checkable::Ptr previousChild;
+		for (auto& [checkable, dependency] : members) {
+			dest->AddMember(dependency);
+			if (!previousChild || previousChild != checkable) {
+				previousChild = dependency->GetChild();
+				previousChild->RemoveRedundancyGroup(thisPtr);
+				previousChild->AddRedundancyGroup(dest);
+			}
+		}
+	}
+}
+
+/**
  * Set the Icinga DB identifier for the current redundancy group.
  *
  * The only usage of this function is the Icinga DB feature used to cache the unique hash of this redundancy groups.
@@ -289,48 +482,43 @@ std::unordered_map<String, Shared<RedundancyGroup>::Ptr> Checkable::GetRedundanc
 	return {m_Dependencies.begin(), m_Dependencies.end()};
 }
 
-void Checkable::AddDependency(const Dependency::Ptr& dep)
+void Checkable::AddDependency(const Dependency::Ptr& dep) const
 {
-	std::unique_lock<std::mutex> lock(m_DependencyMutex);
-	auto group(dep->GetRedundancyGroup().IsEmpty() ? l_DefaultRedundancyGroup : dep->GetRedundancyGroup());
-	for (auto& redundancyGroup: m_Dependencies) {
-		if (redundancyGroup->GetName() == group) {
-			redundancyGroup->AddMember(dep);
-			return;
-		}
-	}
-	m_Dependencies.emplace(new RedundancyGroup(group, dep));
+	RedundancyGroup::Register(dep);
 }
 
-void Checkable::RemoveDependency(const Dependency::Ptr& dep)
+void Checkable::AddRedundancyGroup(const RedundancyGroup::Ptr& redundancyGroup)
 {
-	std::unique_lock<std::mutex> lock(m_DependencyMutex);
-	auto groupName(dep->GetRedundancyGroup().IsEmpty() ? l_DefaultRedundancyGroup : dep->GetRedundancyGroup());
-	for (auto& redundancyGroup: m_Dependencies) {
-		if (redundancyGroup->GetName() == groupName) {
-			redundancyGroup->RemoveMember(dep);
-			if (!redundancyGroup->HasMembers()) {
-				m_Dependencies.erase(redundancyGroup);
-			}
-			return;
-		}
-	}
+	std::unique_lock lock(m_DependencyMutex);
+	m_Dependencies.emplace(redundancyGroup);
+}
+
+void Checkable::RemoveDependency(const Dependency::Ptr& dep) const
+{
+	RedundancyGroup::Unregister(dep);
+}
+
+void Checkable::RemoveRedundancyGroup(const RedundancyGroup::Ptr& redundancyGroup)
+{
+	std::unique_lock lock(m_DependencyMutex);
+	m_Dependencies.erase(redundancyGroup);
 }
 
 std::vector<Dependency::Ptr> Checkable::GetDependencies() const
 {
 	std::unique_lock<std::mutex> lock(m_DependencyMutex);
-	return std::accumulate(
-		m_Dependencies.begin(),
-		m_Dependencies.end(),
-		std::vector<Dependency::Ptr>(),
-		[](std::vector<Dependency::Ptr>& acc, const auto& pair) {
-			auto members(pair.second->GetMembers());
-			acc.insert(acc.end(), members.begin(), members.end());
+	std::vector<Dependency::Ptr> dependencies;
+	for (const auto& redundancyGroup : m_Dependencies) {
+		auto members(redundancyGroup->GetMembers(this));
+		dependencies.insert(dependencies.end(), members.begin(), members.end());
+	}
 
-			return acc;
-		}
-	);
+	return dependencies;
+}
+
+std::vector<RedundancyGroup::Ptr> Checkable::GetRedundancyGroups() const {
+	std::unique_lock<std::mutex> lock(m_DependencyMutex);
+	return {m_Dependencies.begin(), m_Dependencies.end()};
 }
 
 void Checkable::AddReverseDependency(const Dependency::Ptr& dep)

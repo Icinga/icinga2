@@ -20,6 +20,9 @@
 #include <functional>
 #include <limits>
 #include <tuple>
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/hashed_index.hpp>
+#include <boost/multi_index/key.hpp>
 
 namespace icinga
 {
@@ -88,6 +91,10 @@ public:
 
 	RedundancyGroup(String name, const intrusive_ptr<Dependency>& member);
 
+	static void Register(const intrusive_ptr<Dependency>& dependency);
+	static void Unregister(const intrusive_ptr<Dependency>& dependency);
+	static size_t GetRegistrySize();
+
 	static bool IsDefault(const String& name);
 	static MemberTuple MakeCompositeKeyFor(const intrusive_ptr<Dependency>& dep);
 
@@ -107,12 +114,68 @@ public:
 protected:
 	void AddMember(const intrusive_ptr<Dependency>& member);
 	void RemoveMember(const intrusive_ptr<Dependency>& member);
+	void MoveMembersTo(const RedundancyGroup::Ptr& other);
+
+	static void RegisterRedundancyGroup(const RedundancyGroup::Ptr& redundancyGroup);
+	static void RefreshRegistry(const intrusive_ptr<Dependency>& dependency, const RedundancyGroup::Ptr& newGroup = nullptr);
 
 private:
 	mutable std::mutex m_Mutex;
 	String m_IcingaDBIdentifier;
 	String m_Name;
 	MembersMap m_Members;
+
+	struct Hash {
+		/**
+		 * Calculates the hash value of a redundancy group used by RedundancyGroup::RegistryType.
+		 *
+		 * @param redundancyGroup The redundancy group to calculate the hash value for.
+		 *
+		 * @return Returns the hash value of the redundancy group.
+		 */
+		size_t operator()(const RedundancyGroup::Ptr& redundancyGroup) const
+		{
+			return boost::hash<std::string>{}(redundancyGroup->GetCompositeKey());
+		}
+	};
+
+	struct Equal {
+		/**
+		 * Checks two redundancy groups for equality.
+		 *
+		 * The equality of two redundancy groups is determined by the equality of their composite keys.
+		 * That composite key consists of a tuple of the parent name, the time period name (empty if not configured),
+		 * state filter, and the ignore soft states flag of the member.
+		 *
+		 * @param lhs The first redundancy group to compare.
+		 * @param rhs The second redundancy group to compare.
+		 *
+		 * @return Returns true if the composite keys of the two redundancy groups are equal.
+		 */
+		bool operator()(const RedundancyGroup::Ptr& lhs, const RedundancyGroup::Ptr& rhs) const
+		{
+			return lhs->GetCompositeKey() == rhs->GetCompositeKey();
+		}
+	};
+
+	using RegistryType = boost::multi_index_container<
+		RedundancyGroup*, // The type of the elements stored in the container.
+		boost::multi_index::indexed_by<
+			// The first index is a unique index based on the identity of the redundancy group.
+			// The identity of the redundancy group is determined by the provided Hash and Equal functors.
+			boost::multi_index::hashed_unique<boost::multi_index::identity<RedundancyGroup*>, Hash, Equal>,
+			// This non-unique index allows to search for redundancy groups by their name, and reduces the overall
+			// runtime complexity. Without this index, we would have to iterate over all elements to find the on with
+			// the desired members and since std::unordered_set doesn't allow erasing elements while iterating, we would
+			// have to copy each of them to a temporary container, and then erase and reinsert them back t the original
+			// container. This produces way too much overhead, and slows down the startup time of Icinga 2 significantly.
+			boost::multi_index::hashed_non_unique<boost::multi_index::key<&RedundancyGroup::GetName>, std::hash<String>>
+		>
+	>;
+
+	// The global registry of redundancy groups.
+	static std::mutex m_RegistryMutex;
+	static RegistryType m_Registry;
 };
 
 /**
@@ -241,11 +304,12 @@ public:
 	bool IsFlapping() const;
 
 	/* Dependencies */
-	void AddDependency(const intrusive_ptr<Dependency>& dep);
-	void RemoveDependency(const intrusive_ptr<Dependency>& dep);
+	void AddDependency(const intrusive_ptr<Dependency>& dep) const;
+	void AddRedundancyGroup(const RedundancyGroup::Ptr& redundancyGroup);
+	void RemoveDependency(const intrusive_ptr<Dependency>& dep) const;
+	void RemoveRedundancyGroup(const RedundancyGroup::Ptr& redundancyGroup);
 	std::vector<intrusive_ptr<Dependency> > GetDependencies() const;
-	std::unordered_map<String, Shared<RedundancyGroup>::Ptr> GetRedundancyGroups() const;
-	Shared<RedundancyGroup>::Ptr GetRedundancyGroup(const String& redundancyGroup);
+	std::vector<RedundancyGroup::Ptr> GetRedundancyGroups() const;
 
 	void AddReverseDependency(const intrusive_ptr<Dependency>& dep);
 	void RemoveReverseDependency(const intrusive_ptr<Dependency>& dep);
