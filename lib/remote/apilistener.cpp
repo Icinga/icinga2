@@ -719,6 +719,9 @@ void ApiListener::NewClientHandlerInternal(
 			// Ignore the error, but do not throw an exception being swallowed at all cost.
 			// https://github.com/Icinga/icinga2/issues/7351
 			boost::system::error_code ec;
+
+			// Using async_shutdown() instead of AsioTlsStream::GracefulDisconnect() as this whole function
+			// is already guarded by a timeout based on the connect timeout.
 			sslConn.async_shutdown(yc[ec]);
 		}
 	});
