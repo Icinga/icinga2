@@ -57,6 +57,7 @@ enum FlappingStateFilter
 class CheckCommand;
 class EventCommand;
 class Dependency;
+class DependencyGroup;
 
 /**
  * An Icinga service.
@@ -184,6 +185,8 @@ public:
 	bool IsFlapping() const;
 
 	/* Dependencies */
+	void AddDependencyGroup(const intrusive_ptr<DependencyGroup>& dependencyGroup);
+	void RemoveDependencyGroup(const intrusive_ptr<DependencyGroup>& dependencyGroup);
 	void AddDependency(const intrusive_ptr<Dependency>& dep);
 	void RemoveDependency(const intrusive_ptr<Dependency>& dep);
 	std::vector<intrusive_ptr<Dependency> > GetDependencies() const;
@@ -246,6 +249,7 @@ private:
 
 	/* Dependencies */
 	mutable std::mutex m_DependencyMutex;
+	std::set<intrusive_ptr<DependencyGroup>> m_DependencyGroups;
 	std::set<intrusive_ptr<Dependency> > m_Dependencies;
 	std::set<intrusive_ptr<Dependency> > m_ReverseDependencies;
 
