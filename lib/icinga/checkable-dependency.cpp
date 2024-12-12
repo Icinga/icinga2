@@ -579,7 +579,7 @@ std::vector<Dependency::Ptr> Checkable::GetReverseDependencies() const
 	return std::vector<Dependency::Ptr>(m_ReverseDependencies.begin(), m_ReverseDependencies.end());
 }
 
-bool Checkable::IsReachable(DependencyType dt, Dependency::Ptr *failedDependency, int rstack) const
+bool Checkable::IsReachable(DependencyType dt, int rstack) const
 {
 	/* Anything greater than 256 causes recursion bus errors. */
 	int limit = 256;
@@ -592,7 +592,7 @@ bool Checkable::IsReachable(DependencyType dt, Dependency::Ptr *failedDependency
 	}
 
 	for (const Checkable::Ptr& checkable : GetParents()) {
-		if (!checkable->IsReachable(dt, failedDependency, rstack + 1))
+		if (!checkable->IsReachable(dt, rstack + 1))
 			return false;
 	}
 
@@ -602,9 +602,6 @@ bool Checkable::IsReachable(DependencyType dt, Dependency::Ptr *failedDependency
 		Host::Ptr host = service->GetHost();
 
 		if (host && host->GetState() != HostUp && host->GetStateType() == StateTypeHard) {
-			if (failedDependency)
-				*failedDependency = nullptr;
-
 			return false;
 		}
 	}
@@ -620,9 +617,6 @@ bool Checkable::IsReachable(DependencyType dt, Dependency::Ptr *failedDependency
 			if (redundancy_group.empty()) {
 				Log(LogDebug, "Checkable")
 					<< "Non-redundant dependency '" << dep->GetName() << "' failed for checkable '" << GetName() << "': Marking as unreachable.";
-
-				if (failedDependency)
-					*failedDependency = dep;
 
 				return false;
 			}
@@ -641,14 +635,8 @@ bool Checkable::IsReachable(DependencyType dt, Dependency::Ptr *failedDependency
 		Log(LogDebug, "Checkable")
 			<< "All dependencies in redundancy group '" << violator->first << "' have failed for checkable '" << GetName() << "': Marking as unreachable.";
 
-		if (failedDependency)
-			*failedDependency = violator->second;
-
 		return false;
 	}
-
-	if (failedDependency)
-		*failedDependency = nullptr;
 
 	return true;
 }
