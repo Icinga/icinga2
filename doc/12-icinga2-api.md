@@ -2595,6 +2595,40 @@ but the raw XML output from `malloc_info(3)`. See also the
 </malloc>
 ```
 
+### Memory Usage Reduction <a id="icinga2-api-memory-trim"></a>
+
+The GNU libc function `malloc_trim(3)` attempts to release free memory
+from the main heap arena of Icinga 2 itself. You can call it directly
+by sending a `POST` request to the URL endpoint `/v1/debug/malloc_trim`.
+
+The following parameters may be specified
+(either as URL parameters or in a JSON-encoded message body):
+
+  Parameter | Type   | Description
+  ----------|--------|-------------
+  pad       | Number | **Optional.** How many heap bytes to preserve, so the next `malloc(3)` call doesn't need to re-allocate memory again via `sbrk(2)`. Defaults to 0.
+
+The [API permission](12-icinga2-api.md#icinga2-api-permissions) `debug` is required.
+
+Example:
+
+```bash
+curl -k -s -S -i -u root:icinga -H 'Accept: application/json' \
+ -X POST 'https://localhost:5665/v1/debug/malloc_trim?pad=1'
+```
+
+```json
+{
+    "results": [
+        {
+            "code": 503.0,
+            "malloc_trim": 0.0,
+            "status": "It was not possible to release any memory."
+        }
+    ]
+}
+```
+
 ## API Clients <a id="icinga2-api-clients"></a>
 
 After its initial release in 2015, community members
