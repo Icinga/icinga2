@@ -22,16 +22,6 @@ public:
 	static void RemoveDependency(ConfigObject* child, ConfigObject* parent);
 	static std::vector<ConfigObject::Ptr> GetChildren(const ConfigObject::Ptr& parent);
 
-	static void AddDependency(ObjectImpl<ConfigObject>* child, ConfigObject* parent)
-	{
-		AddDependency(static_cast<ConfigObject*>(child), parent);
-	}
-
-	static void RemoveDependency(ObjectImpl<ConfigObject>* child, ConfigObject* parent)
-	{
-		RemoveDependency(static_cast<ConfigObject*>(child), parent);
-	}
-
 private:
 	DependencyGraph();
 

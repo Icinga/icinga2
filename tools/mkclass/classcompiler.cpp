@@ -903,7 +903,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 					m_Impl << "\t" << "if (oldValue) {" << std::endl
 						<< "\t\t" << "ObjectLock olock(oldValue);" << std::endl
 						<< "\t\t" << "for (const String& ref : oldValue) {" << std::endl
-						<< "\t\t\t" << "DependencyGraph::RemoveDependency(this, ConfigObject::GetObject";
+						<< "\t\t\tDependencyGraph::RemoveDependency(static_cast<ConfigObject*>(this), ConfigObject::GetObject";
 
 					/* Ew */
 					if (field.Type.TypeName == "Zone" && m_Library == "base")
@@ -917,7 +917,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 						<< "\t" << "if (newValue) {" << std::endl
 						<< "\t\t" << "ObjectLock olock(newValue);" << std::endl
 						<< "\t\t" << "for (const String& ref : newValue) {" << std::endl
-						<< "\t\t\t" << "DependencyGraph::AddDependency(this, ConfigObject::GetObject";
+						<< "\t\t\tDependencyGraph::AddDependency(static_cast<ConfigObject*>(this), ConfigObject::GetObject";
 
 					/* Ew */
 					if (field.Type.TypeName == "Zone" && m_Library == "base")
@@ -930,7 +930,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 						<< "\t" << "}" << std::endl;
 				} else {
 					m_Impl << "\t" << "if (!oldValue.IsEmpty())" << std::endl
-						<< "\t\t" << "DependencyGraph::RemoveDependency(this, ConfigObject::GetObject";
+						<< "\t\tDependencyGraph::RemoveDependency(static_cast<ConfigObject*>(this), ConfigObject::GetObject";
 
 					/* Ew */
 					if (field.Type.TypeName == "Zone" && m_Library == "base")
@@ -940,7 +940,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 					m_Impl << "oldValue).get());" << std::endl
 						<< "\t" << "if (!newValue.IsEmpty())" << std::endl
-						<< "\t\t" << "DependencyGraph::AddDependency(this, ConfigObject::GetObject";
+						<< "\t\tDependencyGraph::AddDependency(static_cast<ConfigObject*>(this), ConfigObject::GetObject";
 
 					/* Ew */
 					if (field.Type.TypeName == "Zone" && m_Library == "base")
