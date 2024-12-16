@@ -77,11 +77,6 @@ bool Checkable::IsReachable(DependencyType dt, int rstack) const
 		return false;
 	}
 
-	for (const Checkable::Ptr& checkable : GetParents()) {
-		if (!checkable->IsReachable(dt, rstack + 1))
-			return false;
-	}
-
 	/* implicit dependency on host if this is a service */
 	const auto *service = dynamic_cast<const Service *>(this);
 	if (service && (dt == DependencyState || dt == DependencyNotification)) {
@@ -92,36 +87,14 @@ bool Checkable::IsReachable(DependencyType dt, int rstack) const
 		}
 	}
 
-	auto deps = GetDependencies();
+	for (auto& dependencyGroup : GetDependencyGroups()) {
+		if (auto state(dependencyGroup->GetState(dt, rstack + 1)); !state.Reachable || !state.OK) {
+			Log(LogDebug, "Checkable")
+				<< "Dependency group '" << dependencyGroup->GetRedundancyGroupName() << "' have failed for checkable '"
+				<< GetName() << "': Marking as unreachable.";
 
-	std::unordered_map<std::string, Dependency::Ptr> violated; // key: redundancy group, value: nullptr if satisfied, violating dependency otherwise
-
-	for (const Dependency::Ptr& dep : deps) {
-		std::string redundancy_group = dep->GetRedundancyGroup();
-
-		if (!dep->IsAvailable(dt)) {
-			if (redundancy_group.empty()) {
-				Log(LogDebug, "Checkable")
-					<< "Non-redundant dependency '" << dep->GetName() << "' failed for checkable '" << GetName() << "': Marking as unreachable.";
-
-				return false;
-			}
-
-			// tentatively mark this dependency group as failed unless it is already marked;
-			//  so it either passed before (don't overwrite) or already failed (so don't care)
-			// note that std::unordered_map::insert() will not overwrite an existing entry
-			violated.insert(std::make_pair(redundancy_group, dep));
-		} else if (!redundancy_group.empty()) {
-			violated[redundancy_group] = nullptr;
+			return false;
 		}
-	}
-
-	auto violator = std::find_if(violated.begin(), violated.end(), [](auto& v) { return v.second != nullptr; });
-	if (violator != violated.end()) {
-		Log(LogDebug, "Checkable")
-			<< "All dependencies in redundancy group '" << violator->first << "' have failed for checkable '" << GetName() << "': Marking as unreachable.";
-
-		return false;
 	}
 
 	return true;
