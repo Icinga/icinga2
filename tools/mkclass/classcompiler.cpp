@@ -903,13 +903,13 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 					m_Impl << "\t" << "if (oldValue) {" << std::endl
 						<< "\t\t" << "ObjectLock olock(oldValue);" << std::endl
 						<< "\t\t" << "for (const String& ref : oldValue) {" << std::endl
-						<< "\t\t\t" << "DependencyGraph::RemoveDependency(this, ConfigObject::GetObject";
+						<< "\t\t\tDependencyGraph::RemoveDependency(";
 
 					/* Ew */
 					if (field.Type.TypeName == "Zone" && m_Library == "base")
-						m_Impl << "(\"Zone\", ";
+						m_Impl << "dynamic_cast<ConfigObject*>(this), ConfigObject::GetObject(\"Zone\", ";
 					else
-						m_Impl << "<" << field.Type.TypeName << ">(";
+						m_Impl << "this, ConfigObject::GetObject<" << field.Type.TypeName << ">(";
 
 					m_Impl << "ref).get());" << std::endl
 						<< "\t\t" << "}" << std::endl
@@ -917,36 +917,36 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 						<< "\t" << "if (newValue) {" << std::endl
 						<< "\t\t" << "ObjectLock olock(newValue);" << std::endl
 						<< "\t\t" << "for (const String& ref : newValue) {" << std::endl
-						<< "\t\t\t" << "DependencyGraph::AddDependency(this, ConfigObject::GetObject";
+						<< "\t\t\tDependencyGraph::AddDependency(";
 
 					/* Ew */
 					if (field.Type.TypeName == "Zone" && m_Library == "base")
-						m_Impl << "(\"Zone\", ";
+						m_Impl << "dynamic_cast<ConfigObject*>(this), ConfigObject::GetObject(\"Zone\", ";
 					else
-						m_Impl << "<" << field.Type.TypeName << ">(";
+						m_Impl << "this, ConfigObject::GetObject<" << field.Type.TypeName << ">(";
 
 					m_Impl << "ref).get());" << std::endl
 						<< "\t\t" << "}" << std::endl
 						<< "\t" << "}" << std::endl;
 				} else {
 					m_Impl << "\t" << "if (!oldValue.IsEmpty())" << std::endl
-						<< "\t\t" << "DependencyGraph::RemoveDependency(this, ConfigObject::GetObject";
+						<< "\t\tDependencyGraph::RemoveDependency(";
 
 					/* Ew */
 					if (field.Type.TypeName == "Zone" && m_Library == "base")
-						m_Impl << "(\"Zone\", ";
+						m_Impl << "dynamic_cast<ConfigObject*>(this), ConfigObject::GetObject(\"Zone\", ";
 					else
-						m_Impl << "<" << field.Type.TypeName << ">(";
+						m_Impl << "this, ConfigObject::GetObject<" << field.Type.TypeName << ">(";
 
 					m_Impl << "oldValue).get());" << std::endl
 						<< "\t" << "if (!newValue.IsEmpty())" << std::endl
-						<< "\t\t" << "DependencyGraph::AddDependency(this, ConfigObject::GetObject";
+						<< "\t\tDependencyGraph::AddDependency(";
 
 					/* Ew */
 					if (field.Type.TypeName == "Zone" && m_Library == "base")
-						m_Impl << "(\"Zone\", ";
+						m_Impl << "dynamic_cast<ConfigObject*>(this), ConfigObject::GetObject(\"Zone\", ";
 					else
-						m_Impl << "<" << field.Type.TypeName << ">(";
+						m_Impl << "this, ConfigObject::GetObject<" << field.Type.TypeName << ">(";
 
 					m_Impl << "newValue).get());" << std::endl;
 				}
