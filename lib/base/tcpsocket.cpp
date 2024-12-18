@@ -1,9 +1,12 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "base/io-engine.hpp"
 #include "base/tcpsocket.hpp"
 #include "base/logger.hpp"
 #include "base/utility.hpp"
 #include "base/exception.hpp"
+#include <boost/asio/error.hpp>
+#include <boost/system/system_error.hpp>
 #include <boost/exception/errinfo_api_function.hpp>
 #include <boost/exception/errinfo_errno.hpp>
 #include <iostream>
@@ -207,5 +210,44 @@ void TcpSocket::Connect(const String& node, const String& service)
 			<< boost::errinfo_api_function(func)
 			<< errinfo_win32_error(error));
 #endif /* _WIN32 */
+	}
+}
+
+using boost::asio::ip::tcp;
+
+AsioDnsResponse icinga::Resolve(const String& node, const String& service, boost::asio::yield_context* yc)
+{
+	tcp::resolver resolver (IoEngine::Get().GetIoContext());
+	tcp::resolver::query query (node, service);
+	return yc ? resolver.async_resolve(query, *yc) : resolver.resolve(query);
+}
+
+void icinga::Connect(AsioTcpSocket& socket, const AsioDnsResponse& to, boost::asio::yield_context* yc)
+{
+	auto current (to.begin());
+
+	for (;;) {
+		try {
+			socket.open(current->endpoint().protocol());
+			socket.set_option(tcp::socket::keep_alive(true));
+
+			if (yc) {
+				socket.async_connect(current->endpoint(), *yc);
+			} else {
+				socket.connect(current->endpoint());
+			}
+
+			break;
+		} catch (const std::exception& ex) {
+			auto se (dynamic_cast<const boost::system::system_error*>(&ex));
+
+			if (se && se->code() == boost::asio::error::operation_aborted || ++current == to.end()) {
+				throw;
+			}
+
+			if (socket.is_open()) {
+				socket.close();
+			}
+		}
 	}
 }

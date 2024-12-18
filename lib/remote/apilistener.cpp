@@ -585,6 +585,8 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 
 			lock.unlock();
 
+			auto ips (Resolve(host, port, yc));
+
 			Timeout::Ptr timeout(new Timeout(strand->context(), *strand, boost::posix_time::microseconds(int64_t(GetConnectTimeout() * 1e6)),
 				[sslConn, endpoint, host, port](asio::yield_context yc) {
 					Log(LogCritical, "ApiListener")
@@ -597,7 +599,7 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 			));
 			Defer cancelTimeout([&timeout]() { timeout->Cancel(); });
 
-			Connect(sslConn->lowest_layer(), host, port, yc);
+			Connect(sslConn->lowest_layer(), ips, yc);
 
 			NewClientHandler(yc, strand, sslConn, endpoint->GetName(), RoleClient);
 

@@ -4,12 +4,9 @@
 #define TCPSOCKET_H
 
 #include "base/i2-base.hpp"
-#include "base/io-engine.hpp"
 #include "base/socket.hpp"
-#include <boost/asio/error.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/spawn.hpp>
-#include <boost/system/system_error.hpp>
 
 namespace icinga
 {
@@ -30,71 +27,46 @@ public:
 	void Connect(const String& node, const String& service);
 };
 
+typedef boost::asio::ip::tcp::socket::lowest_layer_type AsioTcpSocket;
+typedef boost::asio::ip::tcp::resolver::results_type AsioDnsResponse;
+
+AsioDnsResponse Resolve(const String& node, const String& service, boost::asio::yield_context* yc);
+
+inline AsioDnsResponse Resolve(const String& node, const String& service)
+{
+	return Resolve(node, service, nullptr);
+}
+
+inline AsioDnsResponse Resolve(const String& node, const String& service, boost::asio::yield_context yc)
+{
+	return Resolve(node, service, &yc);
+}
+
 /**
  * TCP Connect based on Boost ASIO.
  *
  * @ingroup base
  */
-template<class Socket>
-void Connect(Socket& socket, const String& node, const String& service)
+void Connect(AsioTcpSocket& socket, const AsioDnsResponse& to, boost::asio::yield_context* yc);
+
+inline void Connect(AsioTcpSocket& socket, const String& node, const String& service)
 {
-	using boost::asio::ip::tcp;
-
-	tcp::resolver resolver (IoEngine::Get().GetIoContext());
-	tcp::resolver::query query (node, service);
-	auto result (resolver.resolve(query));
-	auto current (result.begin());
-
-	for (;;) {
-		try {
-			socket.open(current->endpoint().protocol());
-			socket.set_option(tcp::socket::keep_alive(true));
-			socket.connect(current->endpoint());
-
-			break;
-		} catch (const std::exception& ex) {
-			auto se (dynamic_cast<const boost::system::system_error*>(&ex));
-
-			if (se && se->code() == boost::asio::error::operation_aborted || ++current == result.end()) {
-				throw;
-			}
-
-			if (socket.is_open()) {
-				socket.close();
-			}
-		}
-	}
+	Connect(socket, Resolve(node, service, nullptr), nullptr);
 }
 
-template<class Socket>
-void Connect(Socket& socket, const String& node, const String& service, boost::asio::yield_context yc)
+inline void Connect(AsioTcpSocket& socket, const String& node, const String& service, boost::asio::yield_context yc)
 {
-	using boost::asio::ip::tcp;
+	Connect(socket, Resolve(node, service, &yc), &yc);
+}
 
-	tcp::resolver resolver (IoEngine::Get().GetIoContext());
-	tcp::resolver::query query (node, service);
-	auto result (resolver.async_resolve(query, yc));
-	auto current (result.begin());
+inline void Connect(AsioTcpSocket& socket, const AsioDnsResponse& to)
+{
+	Connect(socket, to, nullptr);
+}
 
-	for (;;) {
-		try {
-			socket.open(current->endpoint().protocol());
-			socket.set_option(tcp::socket::keep_alive(true));
-			socket.async_connect(current->endpoint(), yc);
-
-			break;
-		} catch (const std::exception& ex) {
-			auto se (dynamic_cast<const boost::system::system_error*>(&ex));
-
-			if (se && se->code() == boost::asio::error::operation_aborted || ++current == result.end()) {
-				throw;
-			}
-
-			if (socket.is_open()) {
-				socket.close();
-			}
-		}
-	}
+inline void Connect(AsioTcpSocket& socket, const AsioDnsResponse& to, boost::asio::yield_context yc)
+{
+	Connect(socket, to, &yc);
 }
 
 }
