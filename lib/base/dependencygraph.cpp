@@ -20,15 +20,14 @@ void DependencyGraph::RemoveDependency(ConfigObject* child, ConfigObject* parent
 	std::unique_lock<std::mutex> lock(m_Mutex);
 
 	if (auto it(m_Dependencies.find(Edge(parent, child))); it != m_Dependencies.end()) {
-		// A number <= 1 means, this isn't referenced by anyone and should be erased from the container.
-		if (it->count == 1) {
+		if (it->count > 1) {
+			// Remove a duplicate edge from child to node, i.e. decrement the corresponding counter.
+			m_Dependencies.modify(it, [](Edge& e) { e.count--; });
+		} else {
+			// Remove the last edge from child to node (decrementing the counter would set it to 0),
+			// thus remove that connection from the data structure completely.
 			m_Dependencies.erase(it);
-			return;
 		}
-
-		// Otherwise, each remove operation will should decrement this by 1 till it reaches <= 1
-		// and causes the edge to completely be erased from the container.
-		m_Dependencies.modify(it, [](Edge& e) { e.count--; });
 	}
 }
 
