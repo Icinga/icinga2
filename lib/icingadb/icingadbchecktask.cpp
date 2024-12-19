@@ -227,7 +227,9 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 		perfdata->Add(new PerfdataValue("icinga2_heartbeat_age", heartbeatLag, false, "seconds", heartbeatLagWarning, Empty, 0));
 	}
 
-	if (weResponsible) {
+	if (weResponsible && otherResponsible) {
+		critmsgs << " Both this instance and another instance are responsible!";
+	} else if (weResponsible) {
 		idbokmsgs << "\n* Responsible";
 	} else if (otherResponsible) {
 		idbokmsgs << "\n* Not responsible, but another instance is";
@@ -235,7 +237,7 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 		critmsgs << " No instance is responsible!";
 	}
 
-	perfdata->Add(new PerfdataValue("icingadb_responsible_instances", int(weResponsible || otherResponsible), false, "", Empty, Empty, 0, 1));
+	perfdata->Add(new PerfdataValue("icingadb_responsible_instances", int(weResponsible) + int(otherResponsible), false, "", Empty, Empty, 0, 1));
 
 	const auto clockDriftWarning (5);
 	const auto clockDriftCritical (30);
