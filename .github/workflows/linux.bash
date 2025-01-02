@@ -43,7 +43,7 @@ case "$DISTRO" in
       {boost,libedit,mariadb,ncurses,openssl,postgresql,systemd}-devel
     ;;
 
-  opensuse/*)
+  *suse*)
     zypper in -y bison ccache cmake flex gcc-c++ ninja {lib{edit,mariadb,openssl},ncurses,postgresql,systemd}-devel \
       libboost_{context,coroutine,filesystem,iostreams,program_options,regex,system,test,thread}-devel
     ;;
