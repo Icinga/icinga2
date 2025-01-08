@@ -484,7 +484,7 @@ host or service is considered flapping until it drops below the low flapping thr
 The attribute `flapping_ignore_states` allows to ignore state changes to specified states during the flapping calculation.
 
 `FlappingStart` and `FlappingEnd` notifications will be sent out accordingly, if configured. See the chapter on
-[notifications](alert-notifications) for details
+[notifications](03-monitoring-basics.md#notifications) for details
 
 > Note: There is no distinctions between hard and soft states with flapping. All state changes count and notifications
 > will be sent out regardless of the objects state.
