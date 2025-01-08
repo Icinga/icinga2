@@ -146,9 +146,14 @@ void AsioConditionVariable::Wait(boost::asio::yield_context yc)
 	m_Timer.async_wait(yc[ec]);
 }
 
+/**
+ * Cancels any pending timeout callback.
+ *
+ * Must be called in the strand in which the callback was scheduled!
+ */
 void Timeout::Cancel()
 {
-	m_Cancelled.store(true);
+	m_Cancelled->store(true);
 
 	boost::system::error_code ec;
 	m_Timer.cancel(ec);
