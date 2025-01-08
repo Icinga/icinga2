@@ -1480,13 +1480,15 @@ connects to an SSH server at a specified host and port.
 
 Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
-Name            | Description
-----------------|--------------
-ssh_address     | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
-ssh_port        | **Optional.** The port that should be checked. Defaults to 22.
-ssh_timeout     | **Optional.** Seconds before connection times out. Defaults to 10.
-ssh_ipv4        | **Optional.** Use IPv4 connection. Defaults to false.
-ssh_ipv6        | **Optional.** Use IPv6 connection. Defaults to false.
+Name                | Description
+--------------------|--------------
+ssh_address         | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
+ssh_port            | **Optional.** The port that should be checked. Defaults to 22.
+ssh_timeout         | **Optional.** Seconds before connection times out. Defaults to 10.
+ssh_ipv4            | **Optional.** Use IPv4 connection. Defaults to false.
+ssh_ipv6            | **Optional.** Use IPv6 connection. Defaults to false.
+ssh_remote_version  | **Optional.** Alert if string doesn't match expected server version (ex: OpenSSH_3.9p1).
+ssh_remote_protocol | **Optional.** Alert if protocol doesn't match expected protocol version (ex: 2.0).
 
 
 ### ssl <a id="plugin-check-command-ssl"></a>
