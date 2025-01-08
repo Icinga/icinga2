@@ -176,6 +176,64 @@ C:\> cd C:\ProgramData\icinga2\var\log\icinga2
 C:\ProgramData\icinga2\var\log\icinga2> Get-Content .\debug.log -tail 10 -wait
 ```
 
+### Enable/Disable Debug Output on the fly <a id="troubleshooting-enable-disable-debug-output-api"></a>
+
+The `debuglog` feature can also be created and deleted at runtime without having to restart Icinga 2.
+Technically, this is possible because this feature is a [FileLogger](09-object-types.md#objecttype-filelogger)
+that can be managed through the [API](12-icinga2-api.md#icinga2-api-config-objects).
+
+This is a good alternative to `icinga2 feature enable debuglog` as object
+creation/deletion via API happens immediately and requires no restart.
+
+The above matters in setups large enough for the reload to take a while.
+Especially these produce a lot of debug log output until disabled again.
+
+!!! info
+
+    In case of [an HA zone](06-distributed-monitoring.md#distributed-monitoring-scenarios-ha-master-agents),
+    the following API examples toggle the feature on both nodes.
+
+#### Enable Debug Output on the fly <a id="troubleshooting-enable-debug-output-api"></a>
+
+```bash
+curl -k -s -S -i -u root:icinga -H 'Accept: application/json' \
+ -X PUT 'https://localhost:5665/v1/objects/fileloggers/on-the-fly-debug-file' \
+ -d '{ "attrs": { "severity": "debug", "path": "/var/log/icinga2/on-the-fly-debug.log" }, "pretty": true }'
+```
+
+```json
+{
+    "results": [
+        {
+            "code": 200.0,
+            "status": "Object was created."
+        }
+    ]
+}
+```
+
+#### Disable Debug Output on the fly <a id="troubleshooting-disable-debug-output-api"></a>
+
+This works only for debug loggers enabled on the fly as above!
+
+```bash
+curl -k -s -S -i -u root:icinga -H 'Accept: application/json' \
+ -X DELETE 'https://localhost:5665/v1/objects/fileloggers/on-the-fly-debug-file?pretty=1'
+```
+
+```json
+{
+    "results": [
+        {
+            "code": 200.0,
+            "name": "on-the-fly-debug-file",
+            "status": "Object was deleted.",
+            "type": "FileLogger"
+        }
+    ]
+}
+```
+
 ## Icinga starts/restarts/reloads very slowly
 
 ### Try swapping out the allocator
@@ -878,7 +936,7 @@ actively attempts to schedule and execute checks. Otherwise the node does not fe
 }
 ```
 
-You may ask why this analysis is important? Fair enough - if the numbers are not inverted in a HA zone
+You may ask why this analysis is important? Fair enough - if the numbers are not inverted in an HA zone
 with two members, this may give a hint that the cluster nodes are in a split-brain scenario, or you've
 found a bug in the cluster.
 
@@ -1640,6 +1698,9 @@ Typical errors are:
 * The api feature doesn't [accept config](06-distributed-monitoring.md#distributed-monitoring-top-down-config-sync). This is logged into `/var/lib/icinga2/icinga2.log`.
 * The received configuration zone is not configured in [zones.conf](04-configuration.md#zones-conf) and Icinga denies it. This is logged into `/var/lib/icinga2/icinga2.log`.
 * The satellite/agent has local configuration in `/etc/icinga2/zones.d` and thinks it is authoritive for this zone. It then denies the received update. Purge the content from `/etc/icinga2/zones.d`, `/var/lib/icinga2/api/zones/*` and restart Icinga to fix this.
+* Configuration parts stored outside of `/etc/icinga2/zones.d` on the master, for example a constant in `/etc/icinga2/constants.conf`, are then missing on the satellite/agent.
+
+Note that if set up, the [built-in icinga CheckCommand](10-icinga-template-library.md#icinga) will notify you in case the config sync wasn't successful.
 
 #### New configuration does not trigger a reload <a id="troubleshooting-cluster-config-sync-no-reload"></a>
 

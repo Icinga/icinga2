@@ -52,7 +52,7 @@ Icinga DB is a set of components for publishing, synchronizing and
 visualizing monitoring data in the Icinga ecosystem, consisting of:
 
 * Icinga 2 with its `icingadb` feature enabled,
-  responsible for publishing monitoring data to a Redis server, i.e. configuration and its runtime updates,  
+  responsible for publishing monitoring data to a Redis server, i.e. configuration and its runtime updates,
   check results, state changes, downtimes, acknowledgements, notifications, and other events such as flapping
 * The [Icinga DB daemon](https://icinga.com/docs/icinga-db),
   which synchronizes the data between the Redis server and a database
@@ -106,7 +106,7 @@ The current naming schema is defined as follows. The [Icinga Web 2 Graphite modu
 depends on this schema.
 
 The default prefix for hosts and services is configured using
-[runtime macros](03-monitoring-basics.md#runtime-macros)like this:
+[runtime macros](03-monitoring-basics.md#runtime-macros) like this:
 
 ```
 icinga2.$host.name$.host.$host.check_command$
@@ -815,16 +815,6 @@ apt-get install icinga2-ido-mysql
     default. You can skip the automated setup and install/upgrade the
     database manually if you prefer.
 
-###### CentOS 7
-
-!!! info
-
-    Note that installing `icinga2-ido-mysql` is only supported on CentOS 7 as CentOS 8 is EOL.
-
-```bash
-yum install icinga2-ido-mysql
-```
-
 ###### RHEL 8
 
 ```bash
@@ -913,16 +903,6 @@ apt-get install icinga2-ido-pgsql
     Upstream Debian packages provide a database configuration wizard by default.
     You can skip the automated setup and install/upgrade the database manually
     if you prefer that.
-
-###### CentOS 7
-
-!!! info
-
-    Note that installing `icinga2-ido-pgsql` is only supported on CentOS 7 as CentOS 8 is EOL.
-
-```bash
-yum install icinga2-ido-pgsql
-```
 
 ###### RHEL 8
 

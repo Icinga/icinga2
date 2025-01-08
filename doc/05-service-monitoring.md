@@ -51,7 +51,7 @@ described. Try running the plugin after setup and [ensure it works](05-service-m
 Prior to using the check plugin with Icinga 2 you should ensure that it is working properly
 by trying to run it on the console using whichever user Icinga 2 is running as:
 
-RHEL/CentOS/Fedora
+RHEL/Fedora
 
 ```bash
 sudo -u icinga /usr/lib64/nagios/plugins/check_mysql_health --help
@@ -111,7 +111,7 @@ Can't locate Net/SNMP.pm in @INC (you may need to install the Net::SNMP module)
 
 Prior to installing the Perl module via CPAN, look for a distribution
 specific package, e.g. `libnet-snmp-perl` on Debian/Ubuntu or `perl-Net-SNMP`
-on RHEL/CentOS.
+on RHEL.
 
 
 #### Optional: Custom Path <a id="service-monitoring-plugins-custom-path"></a>

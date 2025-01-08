@@ -48,7 +48,7 @@ or `icinga2-ido-mysql`.
 Distribution       | Command
 -------------------|------------------------------------------
 Debian/Ubuntu      | `apt-get install icinga2-dbg`
-RHEL/CentOS        | `yum install icinga2-debuginfo`
+RHEL               | `yum install icinga2-debuginfo`
 Fedora             | `dnf install icinga2-debuginfo icinga2-bin-debuginfo icinga2-ido-mysql-debuginfo`
 SLES/openSUSE      | `zypper install icinga2-bin-debuginfo icinga2-ido-mysql-debuginfo`
 
@@ -65,7 +65,7 @@ Install GDB in your development environment.
 Distribution       | Command
 -------------------|------------------------------------------
 Debian/Ubuntu      | `apt-get install gdb`
-RHEL/CentOS        | `yum install gdb`
+RHEL               | `yum install gdb`
 Fedora             | `dnf install gdb`
 SLES/openSUSE      | `zypper install gdb`
 
@@ -537,7 +537,7 @@ packages.
 If you encounter a problem, please [open a new issue](https://github.com/Icinga/icinga2/issues/new/choose)
 on GitHub and mention that you're testing the snapshot packages.
 
-#### RHEL/CentOS <a id="development-tests-snapshot-packages-rhel"></a>
+#### RHEL <a id="development-tests-snapshot-packages-rhel"></a>
 
 2.11+ requires the EPEL repository for Boost 1.66+.
 
@@ -1332,9 +1332,6 @@ autocmd BufWinLeave * call clearmatches()
 
 ### Linux Dev Environment <a id="development-linux-dev-env"></a>
 
-Based on CentOS 7, we have an early draft available inside the Icinga Vagrant boxes:
-[centos7-dev](https://github.com/Icinga/icinga-vagrant/tree/master/centos7-dev).
-
 If you're compiling Icinga 2 natively without any virtualization layer in between,
 this usually is faster. This is also the reason why developers on macOS prefer native builds
 over Linux or Windows VMs. Don't forget to test the actual code on Linux later! Socket specific
@@ -1357,21 +1354,20 @@ mkdir -p release debug
 Proceed with the specific distribution examples below. Keep in mind that these instructions
 are best effort and sometimes out-of-date. Git Master may contain updates.
 
-* [CentOS 7](21-development.md#development-linux-dev-env-centos)
+* [Fedora 40](21-development.md#development-linux-dev-env-fedora)
 * [Debian 10 Buster](21-development.md#development-linux-dev-env-debian)
 * [Ubuntu 18 Bionic](21-development.md#development-linux-dev-env-ubuntu)
 
-
-#### CentOS 7 <a id="development-linux-dev-env-centos"></a>
+#### Fedora 40 <a id="development-linux-dev-env-fedora"></a>
 
 ```bash
-yum -y install gdb vim git bash-completion htop centos-release-scl
+yum -y install gdb vim git bash-completion htop
 
 yum -y install rpmdevtools ccache \
- cmake make devtoolset-11-gcc-c++ flex bison \
- openssl-devel boost169-devel systemd-devel \
+ cmake make gcc-c++ flex bison \
+ openssl-devel boost-devel systemd-devel \
  mysql-devel postgresql-devel libedit-devel \
- devtoolset-11-libstdc++-devel
+ libstdc++-devel
 
 groupadd icinga
 groupadd icingacmd
@@ -1389,47 +1385,42 @@ slower but allows for better debugging insights.
 For benchmarks, change `CMAKE_BUILD_TYPE` to `RelWithDebInfo` and
 build inside the `release` directory.
 
-First, off export some generics for Boost.
+First, override the default prefix path.
 
 ```bash
-export I2_BOOST="-DBoost_NO_BOOST_CMAKE=TRUE -DBoost_NO_SYSTEM_PATHS=TRUE -DBOOST_LIBRARYDIR=/usr/lib64/boost169 -DBOOST_INCLUDEDIR=/usr/include/boost169 -DBoost_ADDITIONAL_VERSIONS='1.69;1.69.0'"
+export I2_GENERIC="-DCMAKE_INSTALL_PREFIX=/usr/local/icinga2"
 ```
 
-Second, add the prefix path to it.
-
-```bash
-export I2_GENERIC="$I2_BOOST -DCMAKE_INSTALL_PREFIX=/usr/local/icinga2"
-```
-
-Third, define the two build types with their specific CMake variables.
+Second, define the two build types with their specific CMake variables.
 
 ```bash
 export I2_DEBUG="-DCMAKE_BUILD_TYPE=Debug -DICINGA2_UNITY_BUILD=OFF $I2_GENERIC"
 export I2_RELEASE="-DCMAKE_BUILD_TYPE=RelWithDebInfo -DICINGA2_WITH_TESTS=ON -DICINGA2_UNITY_BUILD=ON $I2_GENERIC"
 ```
 
-Fourth, depending on your likings, you may add a bash alias for building,
+Third, depending on your likings, you may use a bash alias for building,
 or invoke the commands inside:
 
 ```bash
-alias i2_debug="cd /root/icinga2; mkdir -p debug; cd debug; scl enable devtoolset-11 -- cmake $I2_DEBUG ..; make -j2; sudo make -j2 install; cd .."
-alias i2_release="cd /root/icinga2; mkdir -p release; cd release; scl enable devtoolset-11 -- cmake $I2_RELEASE ..; make -j2; sudo make -j2 install; cd .."
+alias i2_debug="cd /root/icinga2; mkdir -p debug; cd debug; cmake $I2_DEBUG ..; make -j2; sudo make -j2 install; cd .."
+alias i2_release="cd /root/icinga2; mkdir -p release; cd release; cmake $I2_RELEASE ..; make -j2; sudo make -j2 install; cd .."
 ```
 
-This is taken from the [centos7-dev](https://github.com/Icinga/icinga-vagrant/tree/master/centos7-dev) Vagrant box.
-
+```bash
+i2_debug
+```
 
 The source installation doesn't set proper permissions, this is
 handled in the package builds which are officially supported.
 
 ```bash
-chown -R icinga:icinga /usr/local/icinga2/var/
+chown -R icinga:icinga /usr/local/icinga2/{etc,var}/
 
 /usr/local/icinga2/lib/icinga2/prepare-dirs /usr/local/icinga2/etc/sysconfig/icinga2
 /usr/local/icinga2/sbin/icinga2 api setup
 vim /usr/local/icinga2/etc/icinga2/conf.d/api-users.conf
 
-/usr/local/icinga2/lib/icinga2/sbin/icinga2 daemon
+/usr/local/icinga2/lib64/icinga2/sbin/icinga2 daemon
 ```
 
 #### Debian 10 <a id="development-linux-dev-env-debian"></a>
@@ -1476,7 +1467,7 @@ The source installation doesn't set proper permissions, this is
 handled in the package builds which are officially supported.
 
 ```bash
-chown -R icinga:icinga /usr/local/icinga2/var/
+chown -R icinga:icinga /usr/local/icinga2/{etc,var}/
 
 /usr/local/icinga2/lib/icinga2/prepare-dirs /usr/local/icinga2/etc/sysconfig/icinga2
 /usr/local/icinga2/sbin/icinga2 api setup
@@ -1540,7 +1531,7 @@ The source installation doesn't set proper permissions, this is
 handled in the package builds which are officially supported.
 
 ```bash
-chown -R icinga:icinga /usr/local/icinga2/var/
+chown -R icinga:icinga /usr/local/icinga2/{etc,var}/
 
 /usr/local/icinga2/lib/icinga2/prepare-dirs /usr/local/icinga2/etc/sysconfig/icinga2
 /usr/local/icinga2/sbin/icinga2 api setup
@@ -1935,7 +1926,7 @@ Download the [boost-binaries](https://sourceforge.net/projects/boost/files/boost
 - 64 for 64 bit builds
 
 ```
-https://sourceforge.net/projects/boost/files/boost-binaries/1.82.0/boost_1_85_0-msvc-14.2-64.exe/download
+https://sourceforge.net/projects/boost/files/boost-binaries/1.85.0/boost_1_85_0-msvc-14.2-64.exe/download
 ```
 
 Run the installer and leave the default installation path in `C:\local\boost_1_85_0`.
@@ -2203,7 +2194,7 @@ Icinga application using a dist tarball (including notes for distributions):
     * Debian/Ubuntu: libpq-dev
     * postgresql-dev on Alpine
 * libedit (CLI console)
-    * RHEL/Fedora: libedit-devel on CentOS (RHEL requires rhel-7-server-optional-rpms)
+    * RHEL/Fedora: libedit-devel (RHEL requires rhel-7-server-optional-rpms)
     * Debian/Ubuntu/Alpine: libedit-dev
 * Termcap (only required if libedit doesn't already link against termcap/ncurses)
     * RHEL/Fedora: libtermcap-devel
@@ -2351,7 +2342,7 @@ can be used to disable the usage of `git describe`.
 
 ### Building RPMs <a id="development-package-builds-rpms"></a>
 
-#### Build Environment on RHEL, CentOS, Fedora, Amazon Linux
+#### Build Environment on RHEL, Fedora, Amazon Linux
 
 Setup your build environment:
 
@@ -2407,7 +2398,7 @@ spectool -g ../SPECS/icinga2.spec
 cd $HOME/rpmbuild
 ```
 
-Install the build dependencies. Example for CentOS 7:
+Install the build dependencies:
 
 ```bash
 yum -y install libedit-devel ncurses-devel gcc-c++ libstdc++-devel openssl-devel \
@@ -2436,20 +2427,8 @@ rpmbuild -ba SPECS/icinga2.spec
 The following packages are required to build the SELinux policy module:
 
 * checkpolicy
-* selinux-policy (selinux-policy on CentOS 6, selinux-policy-devel on CentOS 7)
+* selinux-policy-devel
 * selinux-policy-doc
-
-##### RHEL/CentOS 7
-
-The RedHat Developer Toolset is required for building Icinga 2 beforehand.
-This contains a C++ compiler which supports C++17 features.
-
-```bash
-yum install centos-release-scl
-```
-
-Dependencies to devtools-11 are used in the RPM SPEC, so the correct tools
-should be used for building.
 
 ##### Amazon Linux
 
