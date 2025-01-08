@@ -13,7 +13,7 @@ case "$DISTRO" in
       {libedit,mariadb,ncurses,openssl,postgresql,systemd}-devel
 
     yum install -y bzip2 tar wget
-    wget https://boostorg.jfrog.io/artifactory/main/release/1.69.0/source/boost_1_69_0.tar.bz2
+    wget https://archives.boost.io/release/1.69.0/source/boost_1_69_0.tar.bz2
     tar -xjf boost_1_69_0.tar.bz2
 
     (
