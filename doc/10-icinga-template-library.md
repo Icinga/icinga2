@@ -5918,6 +5918,7 @@ ssl_cert_file                 | **Optional.** Local file path. Works only if `ss
 ssl_cert_warn                 | **Optional.** Minimum number of days a certificate has to be valid.
 ssl_cert_critical             | **Optional.** Minimum number of days a certificate has to be valid to issue a critical status.
 ssl_cert_maximum_validity     | **Optional.** Maximum number of days a certificate is allowed to be valid (default: 397)
+ssl_cert_ignore_maximum_validity	| **Optional.** Ignore the certificate maximum validity
 ssl_cert_cn                   | **Optional.** Pattern to match the CN or AltName of the certificate.
 ssl_cert_issuer               | **Optional.** Pattern to match the issuer of the certificate.
 ssl_cert_org                  | **Optional.** Pattern to match the organization of the certificate.
