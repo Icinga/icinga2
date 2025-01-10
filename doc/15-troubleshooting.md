@@ -19,8 +19,8 @@ findings and details please.
 	* `icinga2 --version`
 	* `icinga2 feature list`
 	* `icinga2 daemon -C`
-	* [Icinga Web 2](https://icinga.com/products/icinga-web-2/) version (screenshot from System - About)
-	* [Icinga Web 2 modules](https://icinga.com/products/icinga-web-2-modules/) e.g. the Icinga Director (optional)
+	* [Icinga Web 2](https://icinga.com/docs/icinga-web/latest/) version (screenshot from System - About)
+	* Icinga Web 2 modules e.g. the Icinga Director (optional)
 * Configuration insights:
 	* Provide complete configuration snippets explaining your problem in detail
 	* Your [icinga2.conf](04-configuration.md#icinga2-conf) file
@@ -872,7 +872,7 @@ trying because you probably have a problem that requires manual intervention.
 
 ### Late Check Results <a id="late-check-results"></a>
 
-[Icinga Web 2](https://icinga.com/products/icinga-web-2/) provides
+[Icinga Web 2](https://icinga.com/docs/icinga-web/latest/) provides
 a dashboard overview for `overdue checks`.
 
 The REST API provides the [status](12-icinga2-api.md#icinga2-api-status) URL endpoint with some generic metrics
@@ -887,8 +887,7 @@ You can also calculate late check results via the REST API:
 * Fetch the `last_check` timestamp from each object
 * Compare the timestamp with the current time and add `check_interval` multiple times (change it to see which results are really late, like five times check_interval)
 
-You can use the [icinga2 console](11-cli-commands.md#cli-command-console) to connect to the instance, fetch all data
-and calculate the differences. More infos can be found in [this blogpost](https://icinga.com/2016/08/11/analyse-icinga-2-problems-using-the-console-api/).
+You can use the [icinga2 console](11-cli-commands.md#cli-command-console) to connect to the instance, fetch all data and calculate the differences.
 
 ```
 # ICINGA2_API_USERNAME=root ICINGA2_API_PASSWORD=icinga icinga2 console --connect 'https://localhost:5665/'

@@ -1009,7 +1009,7 @@ curl -k -s -S -i -u root:icinga -H 'Accept: application/json' \
 There are several actions available for Icinga 2 provided by the `/v1/actions`
 URL endpoint. You can run actions by sending a `POST` request.
 
-The following actions are also used by [Icinga Web 2](https://icinga.com/products/icinga-web-2/):
+The following actions are also used by [Icinga Web 2](https://icinga.com/docs/icinga-web/latest/):
 
 * sending check results to Icinga from scripts, remote agents, etc.
 * scheduling downtimes from external scripts or cronjobs
@@ -2699,7 +2699,7 @@ The following languages are covered:
 * [Golang](12-icinga2-api.md#icinga2-api-clients-programmatic-examples-golang)
 * [Powershell](12-icinga2-api.md#icinga2-api-clients-programmatic-examples-powershell)
 
-The [request method](icinga2-api-requests) is `POST` using [X-HTTP-Method-Override: GET](12-icinga2-api.md#icinga2-api-requests-method-override)
+The [request method](#icinga2-api-requests) is `POST` using [X-HTTP-Method-Override: GET](12-icinga2-api.md#icinga2-api-requests-method-override)
 which allows you to send a JSON request body. The examples request specific service
 attributes joined with host attributes. `attrs` and `joins` are therefore specified
 as array.
