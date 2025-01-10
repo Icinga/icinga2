@@ -20,6 +20,8 @@ public:
 
 class Dependency : CustomVarObject < DependencyNameComposer
 {
+	activation_priority -10;
+
 	load_after Host;
 	load_after Service;
 
