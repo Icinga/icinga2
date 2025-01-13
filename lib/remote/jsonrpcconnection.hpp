@@ -89,7 +89,8 @@ private:
 	void CheckLiveness(boost::asio::yield_context yc);
 
 	bool ProcessMessage();
-	void MessageHandler(const String& jsonString);
+
+	void MessageHandler(const Dictionary::Ptr& message);
 
 	void CertificateRequestResponseHandler(const Dictionary::Ptr& message);
 
