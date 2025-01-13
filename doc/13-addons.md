@@ -71,9 +71,6 @@ via email.
 
 ![Icinga Reporting](images/addons/icinga_reporting.png)
 
-Follow along in this [hands-on blog post](https://icinga.com/2019/06/17/icinga-reporting-hands-on/).
-
-
 ## Graphs and Metrics <a id="addons-graphs-metrics"></a>
 
 ### Graphite <a id="addons-graphing-graphite"></a>
@@ -185,7 +182,7 @@ in a tree or list overview and can be added to any dashboard.
 
 ![Icinga Web 2 Business Process](images/addons/icingaweb2_businessprocess.png)
 
-Read more [here](https://icinga.com/products/icinga-business-process-modelling/).
+Read more [here](https://icinga.com/docs/icinga-business-process-modeling/latest/).
 
 ### Certificate Monitoring <a id="addons-visualization-certificate-monitoring"></a>
 
@@ -194,8 +191,7 @@ actions and view all details at a glance.
 
 ![Icinga Certificate Monitoring](images/addons/icinga_certificate_monitoring.png)
 
-Read more [here](https://icinga.com/products/icinga-certificate-monitoring/)
-and [here](https://icinga.com/2019/06/03/monitoring-automation-with-icinga-certificate-monitoring/).
+Read more [here](https://icinga.com/products/icinga-certificate-monitoring/).
 
 ### Dashing Dashboard <a id="addons-visualization-dashing-dashboard"></a>
 
@@ -204,7 +200,7 @@ on top of Dashing and uses the [REST API](12-icinga2-api.md#icinga2-api) to visu
 on with your monitoring. It combines several popular widgets and provides development
 instructions for your own implementation.
 
-The dashboard also allows to embed the [Icinga Web 2](https://icinga.com/products/icinga-web-2/)
+The dashboard also allows to embed the [Icinga Web 2](https://icinga.com/docs/icinga-web/latest/)
 host and service problem lists as Iframe.
 
 ![Dashing dashboard](images/addons/dashing_icinga2.png)
@@ -233,10 +229,6 @@ There's a variety of resources available, for example different notification scr
 * IRC
 * Ticket systems
 * etc.
-
-Blog posts and howtos:
-
-* [Environmental Monitoring and Alerting](https://icinga.com/2019/09/02/environmental-monitoring-and-alerting-via-text-message/)
 
 Additionally external services can be [integrated with Icinga 2](https://icinga.com/products/integrations/):
 

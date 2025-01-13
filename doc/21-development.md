@@ -2334,7 +2334,7 @@ for implementation details.
 
 CMake determines the Icinga 2 version number using `git describe` if the
 source directory is contained in a Git repository. Otherwise the version number
-is extracted from the [ICINGA2_VERSION](ICINGA2_VERSION) file. This behavior can be
+is extracted from the `ICINGA2_VERSION` file. This behavior can be
 overridden by creating a file called `icinga-version.h.force` in the source
 directory. Alternatively the `-DICINGA2_GIT_VERSION_INFO=OFF` option for CMake
 can be used to disable the usage of `git describe`.
@@ -2520,7 +2520,7 @@ chmod +x /etc/init.d/icinga2
 
 Icinga 2 reads a single configuration file which is used to specify all
 configuration settings (global settings, hosts, services, etc.). The
-configuration format is explained in detail in the [doc/](doc/) directory.
+configuration format is explained in detail in the `doc/` directory.
 
 By default `make install` installs example configuration files in
 `/usr/local/etc/icinga2` unless you have specified a different prefix or

@@ -553,19 +553,19 @@ the Icinga DB daemon that synchronizes monitoring data between the Redis server 
 The Icinga DB daemon package is also included in the Icinga repository, and since it is already set up,
 you have completed the instructions here and can proceed to
 <!-- {% if amazon_linux %} -->
-[install the Icinga DB daemon on Amazon Linux](https://icinga.com/docs/icinga-db/latest/doc/02-Installation/01-Amazon-Linux/#installing-icinga-db-package),
+[install the Icinga DB daemon on Amazon Linux](https://icinga.com/docs/icinga-db/latest/doc/02-Installation/Amazon-Linux/#installing-the-package),
 <!-- {% endif %} -->
 <!-- {% if debian %} -->
-[install the Icinga DB daemon on Debian](https://icinga.com/docs/icinga-db/latest/doc/02-Installation/03-Debian/#installing-icinga-db-package),
+[install the Icinga DB daemon on Debian](https://icinga.com/docs/icinga-db/latest/doc/02-Installation/Debian/#installing-the-package),
 <!-- {% endif %} -->
 <!-- {% if rhel %} -->
-[install the Icinga DB daemon on RHEL](https://icinga.com/docs/icinga-db/latest/doc/02-Installation/04-RHEL/#installing-icinga-db-package),
+[install the Icinga DB daemon on RHEL](https://icinga.com/docs/icinga-db/latest/doc/02-Installation/RHEL/#installing-the-package),
 <!-- {% endif %} -->
 <!-- {% if sles %} -->
-[install the Icinga DB daemon on SLES](https://icinga.com/docs/icinga-db/latest/doc/02-Installation/05-SLES/#installing-icinga-db-package),
+[install the Icinga DB daemon on SLES](https://icinga.com/docs/icinga-db/latest/doc/02-Installation/SLES/#installing-the-package),
 <!-- {% endif %} -->
 <!-- {% if ubuntu %} -->
-[install the Icinga DB daemon on Ubuntu](https://icinga.com/docs/icinga-db/latest/doc/02-Installation/06-Ubuntu/#installing-icinga-db-package),
+[install the Icinga DB daemon on Ubuntu](https://icinga.com/docs/icinga-db/latest/doc/02-Installation/Ubuntu/#installing-the-package),
 <!-- {% endif %} -->
 which will also guide you through the setup of the database and Icinga DB Web.
 <!-- {% endif %} -->
