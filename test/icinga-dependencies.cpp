@@ -98,6 +98,16 @@ BOOST_AUTO_TEST_CASE(multi_parent)
 
 	BOOST_CHECK(childHost->IsReachable() == false);
 
+	Dependency::Ptr duplicateDep (CreateDependency(parentHost1, childHost, "dep4"));
+	duplicateDep->SetIgnoreSoftStates(false, true);
+	RegisterDependency(duplicateDep, "");
+	parentHost1->SetStateType(StateTypeSoft);
+
+	// It should still be unreachable, due to the duplicated dependency object above with ignore_soft_states set to false.
+	BOOST_CHECK(childHost->IsReachable() == false);
+	parentHost1->SetStateType(StateTypeHard);
+	DependencyGroup::Unregister(duplicateDep);
+
 	/* The only DNS server is DOWN.
 	 * Expected result: childHost is unreachable.
 	 */
@@ -146,12 +156,28 @@ BOOST_AUTO_TEST_CASE(default_redundancy_group_registration_unregistration)
 	AssertCheckableRedundancyGroup(childHostC, 2, 1, 2);
 	BOOST_CHECK_EQUAL(1, DependencyGroup::GetRegistrySize());
 
+	Checkable::Ptr childHostD(CreateHost("D"));
+	Dependency::Ptr depDA(CreateDependency(depCA->GetParent(), childHostD, "depDA"));
+	RegisterDependency(depDA, "");
+	AssertCheckableRedundancyGroup(childHostD, 1, 1, 1);
+	BOOST_CHECK_EQUAL(2, DependencyGroup::GetRegistrySize());
+
+	Dependency::Ptr depDB(CreateDependency(depCB->GetParent(), childHostD, "depDB"));
+	RegisterDependency(depDB, "");
+	AssertCheckableRedundancyGroup(childHostD, 2, 1, 4);
+	AssertCheckableRedundancyGroup(childHostC, 2, 1, 4);
+	BOOST_CHECK_EQUAL(1, DependencyGroup::GetRegistrySize());
+
 	DependencyGroup::Unregister(depCA);
-	AssertCheckableRedundancyGroup(childHostC, 1, 1, 1);
+	DependencyGroup::Unregister(depDA);
+	AssertCheckableRedundancyGroup(childHostC, 1, 1, 2);
+	AssertCheckableRedundancyGroup(childHostD, 1, 1, 2);
 	BOOST_CHECK_EQUAL(1, DependencyGroup::GetRegistrySize());
 
 	DependencyGroup::Unregister(depCB);
+	DependencyGroup::Unregister(depDB);
 	AssertCheckableRedundancyGroup(childHostC, 0, 0, 0);
+	AssertCheckableRedundancyGroup(childHostD, 0, 0, 0);
 	BOOST_CHECK_EQUAL(0, DependencyGroup::GetRegistrySize());
 }
 
