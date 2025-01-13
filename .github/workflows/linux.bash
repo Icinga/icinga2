@@ -13,7 +13,7 @@ case "$DISTRO" in
       {libedit,mariadb,ncurses,openssl,postgresql,systemd}-devel
 
     yum install -y bzip2 tar wget
-    wget https://boostorg.jfrog.io/artifactory/main/release/1.69.0/source/boost_1_69_0.tar.bz2
+    wget https://archives.boost.io/release/1.69.0/source/boost_1_69_0.tar.bz2
     tar -xjf boost_1_69_0.tar.bz2
 
     (
@@ -44,7 +44,7 @@ case "$DISTRO" in
       {boost,libedit,mariadb,ncurses,openssl,postgresql,systemd}-devel
     ;;
 
-  opensuse/*)
+  *suse*)
     zypper in -y bison ccache cmake flex gcc-c++ ninja {lib{edit,mariadb,openssl},ncurses,postgresql,systemd}-devel \
       libboost_{context,coroutine,filesystem,iostreams,program_options,regex,system,test,thread}-devel
     ;;

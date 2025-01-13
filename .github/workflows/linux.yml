@@ -33,12 +33,6 @@ jobs:
           - fedora:40
           - fedora:41
 
-          # openSUSE Leap is close enough to SLES to test just one of them.
-          # As openSUSE is much easier to deploy, we test it despite the fact that we don't necessarily
-          # support individual versions of openSUSE as long as their SLES counterparts.
-          # I.e., remove any opensuse/leap:* line below only if we stopped packaging both openSUSE and SLES!
-          - opensuse/leap:15.3
-          - opensuse/leap:15.4
           - opensuse/leap:15.5
           - opensuse/leap:15.6
 
@@ -46,6 +40,9 @@ jobs:
           # We just use that RHEL clone to test the original.
           - rockylinux:8
           - rockylinux:9
+
+          - registry.suse.com/suse/sle15:15.5
+          - registry.suse.com/suse/sle15:15.6
 
           - ubuntu:20.04
           - ubuntu:22.04
