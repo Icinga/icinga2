@@ -18,13 +18,13 @@ class Shared;
 template<class T>
 inline void intrusive_ptr_add_ref(Shared<T> *object)
 {
-	object->m_References.fetch_add(1);
+	object->m_References.fetch_add(1, std::memory_order_relaxed);
 }
 
 template<class T>
 inline void intrusive_ptr_release(Shared<T> *object)
 {
-	if (object->m_References.fetch_sub(1) == 1u) {
+	if (object->m_References.fetch_sub(1, std::memory_order_acq_rel) == 1u) {
 		delete object;
 	}
 }
