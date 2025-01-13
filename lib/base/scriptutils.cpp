@@ -520,7 +520,7 @@ String ScriptUtils::MsiGetComponentPathShim(const String& component)
 
 Array::Ptr ScriptUtils::TrackParents(const Object::Ptr& child)
 {
-	return Array::FromVector(DependencyGraph::GetParents(child));
+	return Array::FromVector(DependencyGraph::GetChildren(dynamic_pointer_cast<ConfigObject>(child)));
 }
 
 double ScriptUtils::Ptr(const Object::Ptr& object)
