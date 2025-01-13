@@ -259,6 +259,10 @@ PerfdataValue::Ptr PerfdataValue::Parse(const String& perfdata)
 
 	double value = Convert::ToDouble(tokens[0].SubStr(0, pos));
 
+	if (!std::isfinite(value)) {
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid performance data value: " + perfdata + " is outside of any reasonable range"));
+	}
+
 	bool counter = false;
 	String unit;
 	Value warn, crit, min, max;

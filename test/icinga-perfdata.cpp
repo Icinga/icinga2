@@ -336,6 +336,10 @@ BOOST_AUTO_TEST_CASE(invalid)
 	BOOST_CHECK_THROW(PerfdataValue::Parse("test=1;1;123,456;1;1"), boost::exception);
 	BOOST_CHECK_THROW(PerfdataValue::Parse("test=1;1;1;123,456;1"), boost::exception);
 	BOOST_CHECK_THROW(PerfdataValue::Parse("test=1;1;1;1;123,456"), boost::exception);
+	BOOST_CHECK_THROW(PerfdataValue::Parse("test=inf"), boost::exception);
+	BOOST_CHECK_THROW(PerfdataValue::Parse("test=Inf"), boost::exception);
+	BOOST_CHECK_THROW(PerfdataValue::Parse("test=-inf"), boost::exception);
+	BOOST_CHECK_THROW(PerfdataValue::Parse("test=-Inf"), boost::exception);
 }
 
 BOOST_AUTO_TEST_CASE(multi)
