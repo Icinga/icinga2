@@ -250,54 +250,42 @@ void JsonRpcConnection::Disconnect()
 	if (!m_ShuttingDown.exchange(true)) {
 		JsonRpcConnection::Ptr keepAlive (this);
 
-		IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) {
-			Log(LogWarning, "JsonRpcConnection")
-				<< "API client disconnected for identity '" << m_Identity << "'";
+		Log(LogNotice, "JsonRpcConnection")
+			<< "Disconnecting API client for identity '" << m_Identity << "'";
 
-			// We need to unregister the endpoint client as soon as possible not to confuse Icinga 2,
-			// given that Endpoint::GetConnected() is just performing a check that the endpoint's client
-			// cache is not empty, which could result in an already disconnected endpoint never trying to
-			// reconnect again. See #7444.
+		IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) {
+			m_OutgoingMessagesQueued.Set();
+
+			{
+				Timeout writerTimeout(
+					m_IoStrand,
+					boost::posix_time::seconds(5),
+					[this]() {
+						// The writer coroutine could not finish soon enough to unblock the waiter down blow,
+						// so we have to do this on our own, and the coroutine will be terminated forcibly when
+						// the ops on the underlying socket are cancelled.
+						boost::system::error_code ec;
+						m_Stream->lowest_layer().cancel(ec);
+					}
+				);
+
+				m_WriterDone.Wait(yc);
+				// We don't need to explicitly cancel the timer here; its destructor will handle it for us.
+			}
+
+			m_CheckLivenessTimer.cancel();
+			m_HeartbeatTimer.cancel();
+
+			m_Stream->GracefulDisconnect(m_IoStrand, yc);
+
 			if (m_Endpoint) {
 				m_Endpoint->RemoveClient(this);
 			} else {
 				ApiListener::GetInstance()->RemoveAnonymousClient(this);
 			}
 
-			m_OutgoingMessagesQueued.Set();
-
-			m_WriterDone.Wait(yc);
-
-			/*
-			 * Do not swallow exceptions in a coroutine.
-			 * https://github.com/Icinga/icinga2/issues/7351
-			 * We must not catch `detail::forced_unwind exception` as
-			 * this is used for unwinding the stack.
-			 *
-			 * Just use the error_code dummy here.
-			 */
-			boost::system::error_code ec;
-
-			m_CheckLivenessTimer.cancel();
-			m_HeartbeatTimer.cancel();
-
-			m_Stream->lowest_layer().cancel(ec);
-
-			Timeout::Ptr shutdownTimeout (new Timeout(
-				m_IoStrand.context(),
-				m_IoStrand,
-				boost::posix_time::seconds(10),
-				[this, keepAlive](asio::yield_context yc) {
-					boost::system::error_code ec;
-					m_Stream->lowest_layer().cancel(ec);
-				}
-			));
-
-			m_Stream->next_layer().async_shutdown(yc[ec]);
-
-			shutdownTimeout->Cancel();
-
-			m_Stream->lowest_layer().shutdown(m_Stream->lowest_layer().shutdown_both, ec);
+			Log(LogWarning, "JsonRpcConnection")
+				<< "API client disconnected for identity '" << m_Identity << "'";
 		});
 	}
 }
