@@ -96,8 +96,11 @@ void IcingaDB::ConfigStaticInitialize()
 		AcknowledgementClearedHandler(checkable, removedBy, changeTime);
 	});
 
-	Checkable::OnReachabilityChanged.connect([](const Checkable::Ptr&, const CheckResult::Ptr&, std::set<Checkable::Ptr> children, const MessageOrigin::Ptr&) {
-		IcingaDB::ReachabilityChangeHandler(children);
+	Checkable::OnReachabilityChanged.connect([](const Checkable::Ptr& parent, const CheckResult::Ptr&, std::set<Checkable::Ptr>, const MessageOrigin::Ptr&) {
+		// Icinga DB Web needs to know about the reachability of all children, not just the direct ones.
+		// These might get updated with their next check result anyway, but we can't rely on that, since
+		// they might not be actively checked or have a very high check interval.
+		IcingaDB::ReachabilityChangeHandler(parent->GetAllChildren());
 	});
 
 	/* triggered on create, update and delete objects */
