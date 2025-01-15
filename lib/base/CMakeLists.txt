@@ -130,7 +130,7 @@ if(HAVE_SYSTEMD)
   find_path(SYSTEMD_INCLUDE_DIR
     NAMES systemd/sd-daemon.h
     HINTS ${SYSTEMD_ROOT_DIR})
-  include_directories(${SYSTEMD_INCLUDE_DIR})
+  include_directories(SYSTEM ${SYSTEMD_INCLUDE_DIR})
   set_property(
     SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/journaldlogger.cpp
     APPEND PROPERTY COMPILE_DEFINITIONS
@@ -140,13 +140,13 @@ endif()
 
 add_library(base OBJECT ${base_SOURCES})
 
-include_directories(${icinga2_SOURCE_DIR}/third-party/execvpe)
+include_directories(SYSTEM ${icinga2_SOURCE_DIR}/third-party/execvpe)
 link_directories(${icinga2_BINARY_DIR}/third-party/execvpe)
 
-include_directories(${icinga2_SOURCE_DIR}/third-party/mmatch)
+include_directories(SYSTEM ${icinga2_SOURCE_DIR}/third-party/mmatch)
 link_directories(${icinga2_BINARY_DIR}/third-party/mmatch)
 
-include_directories(${icinga2_SOURCE_DIR}/third-party/socketpair)
+include_directories(SYSTEM ${icinga2_SOURCE_DIR}/third-party/socketpair)
 link_directories(${icinga2_BINARY_DIR}/third-party/socketpair)
 
 set_target_properties (
