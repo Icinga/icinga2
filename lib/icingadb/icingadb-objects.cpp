@@ -3061,6 +3061,12 @@ void IcingaDB::ReachabilityChangeHandler(const std::set<Checkable::Ptr>& childre
 	for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 		for (auto& checkable : children) {
 			rw->UpdateState(checkable, StateUpdate::Full);
+			if (auto grandChildren(checkable->GetChildren()); !grandChildren.empty()) {
+				// Icinga DB Web needs to know about the reachability of all children, not just the direct ones.
+				// These might get updated with their next check result anyway, but we can't rely on that, since
+				// they might not be actively checked or have a very high check interval.
+				IcingaDB::ReachabilityChangeHandler(grandChildren);
+			}
 		}
 	}
 }
