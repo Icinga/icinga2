@@ -606,34 +606,25 @@ static int Main()
 			errno = 0;
 			struct passwd *pw = getpwnam(user.CStr());
 
-			if (!pw) {
-				if (errno == 0) {
-					Log(LogCritical, "cli")
-						<< "Invalid user specified: " << user;
-					return EXIT_FAILURE;
-				} else {
-					Log(LogCritical, "cli")
-						<< "getpwnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-					return EXIT_FAILURE;
-				}
-			}
+			// only respect groups if there exists a passwd entry for the current user
+			if (pw) {
+				// also activate the additional groups the configured user is member of
+				if (getuid() != pw->pw_uid) {
+					if (!vm.count("reload-internal") && initgroups(user.CStr(), pw->pw_gid) < 0) {
+						Log(LogCritical, "cli")
+							<< "initgroups() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+						Log(LogCritical, "cli")
+							<< "Please re-run this command as a privileged user or using the \"" << user << "\" account.";
+						return EXIT_FAILURE;
+					}
 
-			// also activate the additional groups the configured user is member of
-			if (getuid() != pw->pw_uid) {
-				if (!vm.count("reload-internal") && initgroups(user.CStr(), pw->pw_gid) < 0) {
-					Log(LogCritical, "cli")
-						<< "initgroups() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-					Log(LogCritical, "cli")
-						<< "Please re-run this command as a privileged user or using the \"" << user << "\" account.";
-					return EXIT_FAILURE;
-				}
-
-				if (setuid(pw->pw_uid) < 0) {
-					Log(LogCritical, "cli")
-						<< "setuid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-					Log(LogCritical, "cli")
-						<< "Please re-run this command as a privileged user or using the \"" << user << "\" account.";
-					return EXIT_FAILURE;
+					if (setuid(pw->pw_uid) < 0) {
+						Log(LogCritical, "cli")
+							<< "setuid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+						Log(LogCritical, "cli")
+							<< "Please re-run this command as a privileged user or using the \"" << user << "\" account.";
+						return EXIT_FAILURE;
+					}
 				}
 			}
 		}
