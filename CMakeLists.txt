@@ -509,6 +509,11 @@ set(CPACK_WIX_PATCH_FILE "${CMAKE_CURRENT_BINARY_DIR}/icinga-installer/icinga2.w
 set(CPACK_WIX_EXTENSIONS "WixUtilExtension" "WixNetFxExtension")
 set(CPACK_WIX_INSTALL_SCOPE NONE)
 
+if(DEFINED ENV{ICINGA2_NO_MSI_VALIDATION})
+  # https://wixtoolset.org/docs/tools/validation/#errors-running-validation
+  set(CPACK_WIX_LIGHT_EXTRA_FLAGS "-sval")
+endif()
+
 set(CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION "sbin")
 set(CMAKE_INSTALL_UCRT_LIBRARIES TRUE)
 include(InstallRequiredSystemLibraries)
