@@ -105,7 +105,7 @@ dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-${OSVER}.n
 ```bash
 subscription-manager repos --enable rhel-7-server-optional-rpms
 
-yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+yum install --nogpgcheck https://archives.fedoraproject.org/pub/archive/epel/7/x86_64/Packages/e/epel-release-7-14.noarch.rpm
 ```
 <!-- {% endif %} -->
 
