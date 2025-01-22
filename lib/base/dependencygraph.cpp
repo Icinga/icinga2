@@ -10,8 +10,9 @@ DependencyGraph::DependencyMap DependencyGraph::m_Dependencies;
 void DependencyGraph::AddDependency(ConfigObject* child, ConfigObject* parent)
 {
 	std::unique_lock<std::mutex> lock(m_Mutex);
-	if (auto [it, inserted] = m_Dependencies.insert(Edge(parent, child)); !inserted) {
-		m_Dependencies.modify(it, [](Edge& e) { e.count++; });
+	auto pair = m_Dependencies.insert(Edge(parent, child));
+	if (!pair.second) {
+		m_Dependencies.modify(pair.first, [](Edge& e) { e.count++; });
 	}
 }
 
@@ -19,7 +20,8 @@ void DependencyGraph::RemoveDependency(ConfigObject* child, ConfigObject* parent
 {
 	std::unique_lock<std::mutex> lock(m_Mutex);
 
-	if (auto it(m_Dependencies.find(Edge(parent, child))); it != m_Dependencies.end()) {
+	auto it(m_Dependencies.find(Edge(parent, child)));
+	if (it != m_Dependencies.end()) {
 		if (it->count > 1) {
 			// Remove a duplicate edge from child to node, i.e. decrement the corresponding counter.
 			m_Dependencies.modify(it, [](Edge& e) { e.count--; });
@@ -43,10 +45,10 @@ std::vector<ConfigObject::Ptr> DependencyGraph::GetParents(const ConfigObject::P
 	std::vector<ConfigObject::Ptr> objects;
 
 	std::unique_lock<std::mutex> lock(m_Mutex);
-	auto [begin, end] = m_Dependencies.get<2>().equal_range(child.get());
-	std::transform(begin, end, std::back_inserter(objects), [](const Edge& edge) {
-		return edge.parent;
-	});
+	auto range = m_Dependencies.get<2>().equal_range(child.get());
+	for (auto it(range.first); it != range.second; ++it) {
+		objects.emplace_back(it->parent);
+	}
 
 	return objects;
 }
@@ -63,10 +65,10 @@ std::vector<ConfigObject::Ptr> DependencyGraph::GetChildren(const ConfigObject::
 	std::vector<ConfigObject::Ptr> objects;
 
 	std::unique_lock<std::mutex> lock(m_Mutex);
-	auto [begin, end] = m_Dependencies.get<1>().equal_range(parent.get());
-	std::transform(begin, end, std::back_inserter(objects), [](const Edge& edge) {
-		return edge.child;
-	});
+	auto range = m_Dependencies.get<1>().equal_range(parent.get());
+	for (auto it(range.first); it != range.second; ++it) {
+		objects.emplace_back(it->child);
+	}
 
 	return objects;
 }

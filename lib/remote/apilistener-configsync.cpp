@@ -501,7 +501,8 @@ void ApiListener::SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient
 
 	std::unordered_set<ConfigObject*> syncedObjects;
 	for (const Type::Ptr& type : Type::GetAllTypes()) {
-		if (auto *ctype = dynamic_cast<ConfigType *>(type.get())) {
+		auto *ctype = dynamic_cast<ConfigType *>(type.get());
+		if (ctype) {
 			for (const auto& object : ctype->GetObjects()) {
 				// All objects must be synced sorted by their dependency graph.
 				// Otherwise, downtimes/comments etc. might get synced before their respective Checkables, which will
