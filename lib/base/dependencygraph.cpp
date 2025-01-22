@@ -42,7 +42,7 @@ std::vector<ConfigObject::Ptr> DependencyGraph::GetParents(const ConfigObject::P
 {
 	std::vector<ConfigObject::Ptr> objects;
 
-	std::unique_lock lock(m_Mutex);
+	std::unique_lock<std::mutex> lock(m_Mutex);
 	auto [begin, end] = m_Dependencies.get<2>().equal_range(child.get());
 	std::transform(begin, end, std::back_inserter(objects), [](const Edge& edge) {
 		return edge.parent;
@@ -62,7 +62,7 @@ std::vector<ConfigObject::Ptr> DependencyGraph::GetChildren(const ConfigObject::
 {
 	std::vector<ConfigObject::Ptr> objects;
 
-	std::unique_lock lock(m_Mutex);
+	std::unique_lock<std::mutex> lock(m_Mutex);
 	auto [begin, end] = m_Dependencies.get<1>().equal_range(parent.get());
 	std::transform(begin, end, std::back_inserter(objects), [](const Edge& edge) {
 		return edge.child;

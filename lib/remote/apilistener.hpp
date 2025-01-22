@@ -25,6 +25,7 @@
 #include <cstdint>
 #include <mutex>
 #include <set>
+#include <unordered_set>
 
 namespace icinga
 {

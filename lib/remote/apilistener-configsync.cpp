@@ -11,7 +11,6 @@
 #include "config/vmops.hpp"
 #include "remote/configobjectslock.hpp"
 #include <fstream>
-#include <unordered_set>
 
 using namespace icinga;
 
