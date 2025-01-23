@@ -5,45 +5,69 @@
 using namespace icinga;
 
 std::mutex DependencyGraph::m_Mutex;
-std::map<Object *, std::map<Object *, int> > DependencyGraph::m_Dependencies;
+DependencyGraph::DependencyMap DependencyGraph::m_Dependencies;
 
-void DependencyGraph::AddDependency(Object *parent, Object *child)
+void DependencyGraph::AddDependency(ConfigObject* child, ConfigObject* parent)
 {
 	std::unique_lock<std::mutex> lock(m_Mutex);
-	m_Dependencies[child][parent]++;
+	auto pair = m_Dependencies.insert(Edge(parent, child));
+	if (!pair.second) {
+		m_Dependencies.modify(pair.first, [](Edge& e) { e.count++; });
+	}
 }
 
-void DependencyGraph::RemoveDependency(Object *parent, Object *child)
+void DependencyGraph::RemoveDependency(ConfigObject* child, ConfigObject* parent)
 {
 	std::unique_lock<std::mutex> lock(m_Mutex);
 
-	auto& refs = m_Dependencies[child];
-	auto it = refs.find(parent);
-
-	if (it == refs.end())
-		return;
-
-	it->second--;
-
-	if (it->second == 0)
-		refs.erase(it);
-
-	if (refs.empty())
-		m_Dependencies.erase(child);
-}
-
-std::vector<Object::Ptr> DependencyGraph::GetParents(const Object::Ptr& child)
-{
-	std::vector<Object::Ptr> objects;
-
-	std::unique_lock<std::mutex> lock(m_Mutex);
-	auto it = m_Dependencies.find(child.get());
-
+	auto it(m_Dependencies.find(Edge(parent, child)));
 	if (it != m_Dependencies.end()) {
-		typedef std::pair<Object *, int> kv_pair;
-		for (const kv_pair& kv : it->second) {
-			objects.emplace_back(kv.first);
+		if (it->count > 1) {
+			// Remove a duplicate edge from child to node, i.e. decrement the corresponding counter.
+			m_Dependencies.modify(it, [](Edge& e) { e.count--; });
+		} else {
+			// Remove the last edge from child to node (decrementing the counter would set it to 0),
+			// thus remove that connection from the data structure completely.
+			m_Dependencies.erase(it);
 		}
+	}
+}
+
+/**
+ * Returns all the parent objects of the given child object.
+ *
+ * @param child The child object.
+ *
+ * @returns A list of the parent objects.
+ */
+std::vector<ConfigObject::Ptr> DependencyGraph::GetParents(const ConfigObject::Ptr& child)
+{
+	std::vector<ConfigObject::Ptr> objects;
+
+	std::unique_lock<std::mutex> lock(m_Mutex);
+	auto range = m_Dependencies.get<2>().equal_range(child.get());
+	for (auto it(range.first); it != range.second; ++it) {
+		objects.emplace_back(it->parent);
+	}
+
+	return objects;
+}
+
+/**
+ * Returns all the dependent objects of the given parent object.
+ *
+ * @param parent The parent object.
+ *
+ * @returns A list of the dependent objects.
+ */
+std::vector<ConfigObject::Ptr> DependencyGraph::GetChildren(const ConfigObject::Ptr& parent)
+{
+	std::vector<ConfigObject::Ptr> objects;
+
+	std::unique_lock<std::mutex> lock(m_Mutex);
+	auto range = m_Dependencies.get<1>().equal_range(parent.get());
+	for (auto it(range.first); it != range.second; ++it) {
+		objects.emplace_back(it->child);
 	}
 
 	return objects;
