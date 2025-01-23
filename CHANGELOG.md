@@ -7,6 +7,35 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.13.11 (2025-01-23)
+
+This bugfix release addresses several crashes,
+both in the core itself and in Icinga DB (numbers out of range).
+In addition, it fixes several other issues such as lost notifications
+or TimePeriod/ScheduledDowntime exceeding specified date ranges.
+
+### Crash Fixes
+
+* Invalid `DateTime#format()` arguments in config and console on Windows Server 2016 and older. #10165
+* Downtime scheduling at runtime with non-existent trigger. #10127
+* Object creation at runtime during Icinga DB initialization. #10164
+* Icinga DB: several numbers out of database schema range. #10244
+
+### Miscellaneous Bugfixes
+
+* Lost notifications after recovery outside the notification time period. #10241
+* TimePeriod/ScheduledDowntime exceeding specified date range. #10128 #10133
+* Make parallel config syncs more robust. #10126
+* Reduce unnecessary cluster messages setting the next check time. #10168
+
+### Windows
+
+* Update OpenSSL shipped on Windows to v3.0.15. #10175
+* Update Boost shipped on Windows to v1.86. #10134
+* Support CMake v3.29. #10087
+* Don't require to build .msi as admin. #10305
+* Build configuration scripts: allow custom `$CMAKE_ARGS`. #10315
+
 ## 2.13.10 (2024-11-12)
 
 This security release fixes a TLS certificate validation bypass.
