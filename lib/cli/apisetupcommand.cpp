@@ -22,11 +22,6 @@ String ApiSetupCommand::GetShortDescription() const
 	return "setup for API";
 }
 
-ImpersonationLevel ApiSetupCommand::GetImpersonationLevel() const
-{
-	return ImpersonateIcinga;
-}
-
 void ApiSetupCommand::InitParameters(boost::program_options::options_description& visibleDesc,
 	boost::program_options::options_description& hiddenDesc) const
 {

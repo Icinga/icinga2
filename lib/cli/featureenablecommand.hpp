@@ -23,7 +23,6 @@ public:
 	int GetMinArguments() const override;
 	int GetMaxArguments() const override;
 	std::vector<String> GetPositionalSuggestions(const String& word) const override;
-	ImpersonationLevel GetImpersonationLevel() const override;
 	int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const override;
 };
 

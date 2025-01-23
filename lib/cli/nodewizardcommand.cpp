@@ -36,11 +36,6 @@ String NodeWizardCommand::GetShortDescription() const
 	return "wizard for node setup";
 }
 
-ImpersonationLevel NodeWizardCommand::GetImpersonationLevel() const
-{
-	return ImpersonateIcinga;
-}
-
 int NodeWizardCommand::GetMaxArguments() const
 {
 	return -1;

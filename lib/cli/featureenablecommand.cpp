@@ -34,11 +34,6 @@ int FeatureEnableCommand::GetMaxArguments() const
 	return -1;
 }
 
-ImpersonationLevel FeatureEnableCommand::GetImpersonationLevel() const
-{
-	return ImpersonateIcinga;
-}
-
 /**
  * The entry point for the "feature enable" CLI command.
  *

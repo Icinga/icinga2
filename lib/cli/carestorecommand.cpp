@@ -41,16 +41,6 @@ int CARestoreCommand::GetMinArguments() const
 }
 
 /**
- * Impersonate as Icinga user.
- *
- * @return impersonate level
- */
-ImpersonationLevel CARestoreCommand::GetImpersonationLevel() const
-{
-	return ImpersonateIcinga;
-}
-
-/**
  * The entry point for the "ca restore" CLI command.
  *
  * @returns An exit status.

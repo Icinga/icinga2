@@ -20,7 +20,6 @@ public:
 
 	String GetDescription() const override;
 	String GetShortDescription() const override;
-	ImpersonationLevel GetImpersonationLevel() const override;
 	bool IsHidden() const override;
 	void InitParameters(boost::program_options::options_description& visibleDesc,
 		boost::program_options::options_description& hiddenDesc) const override;

@@ -41,16 +41,6 @@ int CASignCommand::GetMinArguments() const
 }
 
 /**
- * Impersonate as Icinga user.
- *
- * @return impersonate level
- */
-ImpersonationLevel CASignCommand::GetImpersonationLevel() const
-{
-	return ImpersonateIcinga;
-}
-
-/**
  * The entry point for the "ca sign" CLI command.
  *
  * @return An exit status.
