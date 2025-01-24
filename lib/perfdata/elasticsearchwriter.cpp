@@ -5,6 +5,7 @@
 #include "remote/url.hpp"
 #include "icinga/compatutility.hpp"
 #include "icinga/service.hpp"
+#include "icinga/macroprocessor.hpp"
 #include "icinga/checkcommand.hpp"
 #include "base/application.hpp"
 #include "base/defer.hpp"
@@ -129,6 +130,33 @@ void ElasticsearchWriter::Pause()
 		<< "'" << GetName() << "' paused.";
 
 	ObjectImpl<ElasticsearchWriter>::Pause();
+}
+
+void ElasticsearchWriter::AddTemplateTags(const Dictionary::Ptr& fields, const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
+{
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
+
+	Dictionary::Ptr tmpl = service ? GetServiceTagsTemplate() : GetHostTagsTemplate();
+
+	if (tmpl) {
+		MacroProcessor::ResolverList resolvers;
+		resolvers.emplace_back("host", host);
+		if (service) {
+			resolvers.emplace_back("service", service);
+		}
+
+		ObjectLock olock(tmpl);
+		for (const Dictionary::Pair& pair : tmpl) {
+			String missingMacro;
+			Value value = MacroProcessor::ResolveMacros(pair.second, resolvers, cr, &missingMacro);
+
+			if (missingMacro.IsEmpty()) {
+				fields->Set(pair.first, value);
+			}
+		}
+	}
 }
 
 void ElasticsearchWriter::AddCheckResult(const Dictionary::Ptr& fields, const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
@@ -257,6 +285,8 @@ void ElasticsearchWriter::InternalCheckResultHandler(const Checkable::Ptr& check
 		ts = cr->GetExecutionEnd();
 	}
 
+	AddTemplateTags(fields, checkable, cr);
+
 	Enqueue(checkable, "checkresult", fields, ts);
 }
 
@@ -306,6 +336,8 @@ void ElasticsearchWriter::StateChangeHandlerInternal(const Checkable::Ptr& check
 		AddCheckResult(fields, checkable, cr);
 		ts = cr->GetExecutionEnd();
 	}
+
+	AddTemplateTags(fields, checkable, cr);
 
 	Enqueue(checkable, "statechange", fields, ts);
 }
@@ -376,6 +408,8 @@ void ElasticsearchWriter::NotificationSentToAllUsersHandlerInternal(const Notifi
 		AddCheckResult(fields, checkable, cr);
 		ts = cr->GetExecutionEnd();
 	}
+
+	AddTemplateTags(fields, checkable, cr);
 
 	Enqueue(checkable, "notification", fields, ts);
 }
@@ -682,4 +716,50 @@ String ElasticsearchWriter::FormatTimestamp(double ts)
 	auto milliSeconds = static_cast<int>((ts - static_cast<int>(ts)) * 1000);
 
 	return Utility::FormatDateTime("%Y-%m-%dT%H:%M:%S", ts) + "." + Convert::ToString(milliSeconds) + Utility::FormatDateTime("%z", ts);
+}
+
+void ElasticsearchWriter::ValidateHostTagsTemplate(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)
+{
+	ObjectImpl<ElasticsearchWriter>::ValidateHostTagsTemplate(lvalue, utils);
+
+	Dictionary::Ptr tags = lvalue();
+	if (tags) {
+		ObjectLock olock(tags);
+		for (const Dictionary::Pair& pair : tags) {
+			if (pair.second.IsObjectType<Array>()) {
+				Array::Ptr arrObject = pair.second;
+				ObjectLock arrLock(arrObject);
+				for (const Value& arrValue : arrObject) {
+					if (!MacroProcessor::ValidateMacroString(arrValue)) {
+						BOOST_THROW_EXCEPTION(ValidationError(this, { "host_tags_template", pair.first }, "Closing $ not found in macro format string '" + arrValue + "'."));
+					}
+				}
+			} else if (!MacroProcessor::ValidateMacroString(pair.second)) {
+				BOOST_THROW_EXCEPTION(ValidationError(this, { "host_tags_template", pair.first }, "Closing $ not found in macro format string '" + pair.second + "'."));
+			}
+		}
+	}
+}
+
+void ElasticsearchWriter::ValidateServiceTagsTemplate(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)
+{
+	ObjectImpl<ElasticsearchWriter>::ValidateServiceTagsTemplate(lvalue, utils);
+
+	Dictionary::Ptr tags = lvalue();
+	if (tags) {
+		ObjectLock olock(tags);
+		for (const Dictionary::Pair& pair : tags) {
+			if (pair.second.IsObjectType<Array>()) {
+				Array::Ptr arrObject = pair.second;
+				ObjectLock arrLock(arrObject);
+				for (const Value& arrValue : arrObject) {
+					if (!MacroProcessor::ValidateMacroString(arrValue)) {
+						BOOST_THROW_EXCEPTION(ValidationError(this, { "service_tags_template", pair.first }, "Closing $ not found in macro format string '" + arrValue + "'."));
+					}
+				}
+			} else if (!MacroProcessor::ValidateMacroString(pair.second)) {
+				BOOST_THROW_EXCEPTION(ValidationError(this, { "service_tags_template", pair.first }, "Closing $ not found in macro format string '" + pair.second + "'."));
+			}
+		}
+	}
 }
