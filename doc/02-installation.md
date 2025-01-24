@@ -100,15 +100,7 @@ subscription-manager repos --enable "codeready-builder-for-rhel-${OSVER}-${ARCH}
 dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-${OSVER}.noarch.rpm
 ```
 
-#### RHEL 7
-
-```bash
-subscription-manager repos --enable rhel-7-server-optional-rpms
-
-yum install --nogpgcheck https://archives.fedoraproject.org/pub/archive/epel/7/x86_64/Packages/e/epel-release-7-14.noarch.rpm
-```
 <!-- {% endif %} -->
-
 
 <!-- {% if fedora %} -->
 ### Fedora Repository <a id="fedora-repository"></a>
