@@ -298,7 +298,9 @@ static int Main()
 		("include,I", po::value<std::vector<std::string> >(), "add include search directory")
 		("log-level,x", po::value<std::string>(), "specify the log level for the console log.\n"
 			"The valid value is either debug, notice, information (default), warning, or critical")
-		("script-debugger,X", "whether to enable the script debugger");
+		("script-debugger,X", "whether to enable the script debugger")
+		("no-impersonate", ("run as current user, never impersonate " +
+							Configuration::RunAsUser + ":" + Configuration::RunAsGroup).CStr());
 
 	po::options_description hiddenDesc("Hidden options");
 

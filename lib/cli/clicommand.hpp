@@ -64,6 +64,8 @@ public:
 		bool autocomplete = false, int autoindex = -1);
 
 private:
+	ImpersonationLevel m_ImpersonationLevel = ImpersonateIcinga;
+
 	static std::mutex& GetRegistryMutex();
 	static std::map<std::vector<String>, CLICommand::Ptr>& GetRegistry();
 };
