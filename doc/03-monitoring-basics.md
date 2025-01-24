@@ -2579,6 +2579,7 @@ information.
   `notification_useremail`       | **Required.** The notification's recipient(s). Defaults to `$user.email$`.
   `notification_hoststate`       | **Required.** Current state of host. Defaults to `$host.state$`.
   `notification_type`            | **Required.** Type of notification. Defaults to `$notification.type$`.
+  `notification_hostnotes`       | **Optional.** The host's notes. Defaults to `$host.notes$`.
   `notification_address`         | **Optional.** The host's IPv4 address. Defaults to `$address$`.
   `notification_address6`        | **Optional.** The host's IPv6 address. Defaults to `$address6$`.
   `notification_author`          | **Optional.** Comment author. Defaults to `$notification.author$`.
@@ -2607,6 +2608,8 @@ information.
   `notification_useremail`          | **Required.** The notification's recipient(s). Defaults to `$user.email$`.
   `notification_servicestate`       | **Required.** Current state of host. Defaults to `$service.state$`.
   `notification_type`               | **Required.** Type of notification. Defaults to `$notification.type$`.
+  `notification_hostnotes`          | **Optional.** The host's notes. Defaults to `$host.notes$`.
+  `notification_servicenotes`       | **Optional.** The service's notes. Defaults to `$service.notes$`.
   `notification_address`            | **Optional.** The host's IPv4 address. Defaults to `$address$`.
   `notification_address6`           | **Optional.** The host's IPv6 address. Defaults to `$address6$`.
   `notification_author`             | **Optional.** Comment author. Defaults to `$notification.author$`.
