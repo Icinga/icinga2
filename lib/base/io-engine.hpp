@@ -12,6 +12,7 @@
 #include <atomic>
 #include <exception>
 #include <memory>
+#include <mutex>
 #include <thread>
 #include <utility>
 #include <vector>
@@ -47,6 +48,8 @@ public:
 	void Done();
 
 private:
+	static bool TryAcquireSlot();
+
 	bool m_Done;
 };
 
@@ -140,7 +143,10 @@ private:
 	boost::asio::executor_work_guard<boost::asio::io_context::executor_type> m_KeepAlive;
 	std::vector<std::thread> m_Threads;
 	boost::asio::deadline_timer m_AlreadyExpiredTimer;
+
 	std::atomic_int_fast32_t m_CpuBoundSemaphore;
+	std::mutex m_CpuBoundWaitingMutex;
+	std::vector<std::pair<boost::asio::io_context::strand, Shared<AsioConditionVariable>::Ptr>> m_CpuBoundWaiting;
 };
 
 class TerminateIoThread : public std::exception
