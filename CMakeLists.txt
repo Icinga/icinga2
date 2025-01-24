@@ -239,6 +239,8 @@ set(CMAKE_MACOSX_RPATH 1)
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH};${CMAKE_INSTALL_FULL_LIBDIR}/icinga2")
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -Winconsistent-missing-override")
+
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Qunused-arguments -fcolor-diagnostics -fno-limit-debug-info")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Qunused-arguments -fcolor-diagnostics -fno-limit-debug-info")
 
@@ -256,6 +258,8 @@ if(CMAKE_C_COMPILER_ID STREQUAL "SunPro")
 endif()
 
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
+  set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -Wsuggest-override")
+
   if(CMAKE_SYSTEM_NAME MATCHES AIX)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -lpthread")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -lpthread")
