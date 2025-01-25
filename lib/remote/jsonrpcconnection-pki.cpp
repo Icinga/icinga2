@@ -11,8 +11,10 @@
 #include "base/logger.hpp"
 #include "base/exception.hpp"
 #include "base/convert.hpp"
+#include <boost/filesystem.hpp>
 #include <boost/thread/once.hpp>
 #include <boost/regex.hpp>
+#include <boost/system/error_code.hpp>
 #include <fstream>
 #include <openssl/asn1.h>
 #include <openssl/ssl.h>
@@ -27,6 +29,8 @@ REGISTER_APIFUNCTION(UpdateCertificate, pki, &UpdateCertificateHandler);
 
 Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
+	namespace fs = boost::filesystem;
+
 	String certText = params->Get("cert_request");
 
 	std::shared_ptr<X509> cert;
@@ -156,9 +160,10 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 	result->Set("ca", CertificateToString(cacert));
 
 	JsonRpcConnection::Ptr client = origin->FromClient;
+	bool requestPathExists = Utility::PathExists(requestPath);
 
 	/* If we already have a signed certificate request, send it to the client. */
-	if (Utility::PathExists(requestPath)) {
+	if (requestPathExists) {
 		Dictionary::Ptr request = Utility::LoadJsonFile(requestPath);
 
 		String certResponse = request->Get("cert_response");
@@ -264,19 +269,50 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 	return result;
 
 delayed_request:
-	/* Send a delayed certificate signing request. */
-	Utility::MkDirP(requestDir, 0700);
+	if (!requestPathExists) {
+		/* Send a delayed certificate signing request. */
+		Utility::MkDirP(requestDir, 0700);
 
-	Dictionary::Ptr request = new Dictionary({
-		{ "cert_request", CertificateToString(cert) },
-		{ "ticket", params->Get("ticket") }
-	});
+		if (!signedByCA) {
+			decltype(fs::file_size({})) total = 0;
+			boost::system::error_code ec;
 
-	if (requestorCA) {
-		request->Set("requestor_ca", CertificateToString(requestorCA));
+			for (fs::directory_iterator dirIt (fs::path(requestDir.GetData())), dirEnd; !ec && dirIt != dirEnd; dirIt.increment(ec)) {
+				boost::system::error_code ec;
+				auto stats (dirIt->symlink_status(ec));
+
+				if (!ec && fs::is_regular_file(stats)) {
+					auto size (fs::file_size(dirIt->path(), ec));
+
+					if (!ec) {
+						total += size;
+					}
+				}
+			}
+
+			if (total > 1ul << 30ul) {
+				Log(LogCritical, "JsonRpcConnection")
+					<< "Temporarily rejecting certificate request for CN '"
+					<< cn << "'. Storage quota exceeded!";
+
+				result->Set("status_code", 1);
+				result->Set("error", "Temporarily rejecting certificate request for CN '" + cn + "'. Storage quota exceeded!");
+
+				goto disconnect_and_finish;
+			}
+		}
+
+		Dictionary::Ptr request = new Dictionary({
+			{ "cert_request", CertificateToString(cert) },
+			{ "ticket", params->Get("ticket") }
+		});
+
+		if (requestorCA) {
+			request->Set("requestor_ca", CertificateToString(requestorCA));
+		}
+
+		Utility::SaveJsonFile(requestPath, 0600, request);
 	}
-
-	Utility::SaveJsonFile(requestPath, 0600, request);
 
 	JsonRpcConnection::SendCertificateRequest(nullptr, origin, requestPath);
 
@@ -286,6 +322,7 @@ delayed_request:
 	Log(LogInformation, "JsonRpcConnection")
 		<< "Certificate request for CN '" << cn << "' is pending. Waiting for approval.";
 
+disconnect_and_finish:
 	if (origin) {
 		auto client (origin->FromClient);
 
