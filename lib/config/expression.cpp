@@ -915,7 +915,7 @@ ExpressionResult ApplyExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhin
 	ExpressionResult nameres = m_Name->Evaluate(frame);
 	CHECK_RESULT(nameres);
 
-	return VMOps::NewApply(frame, m_Type, m_Target, nameres.GetValue(), m_Filter,
+	return VMOps::NewApply(frame, m_Type, m_Target, nameres.GetValue(), m_Filter, m_Zone,
 		m_Package, m_FKVar, m_FVVar, m_FTerm, m_ClosedVars, m_IgnoreOnError, m_Expression, m_DebugInfo);
 }
 
