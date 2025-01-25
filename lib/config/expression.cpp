@@ -3,6 +3,7 @@
 #include "config/expression.hpp"
 #include "config/configitem.hpp"
 #include "config/configcompiler.hpp"
+#include "config/generator-function.hpp"
 #include "config/vmops.hpp"
 #include "base/array.hpp"
 #include "base/json.hpp"
@@ -734,6 +735,15 @@ ExpressionResult ContinueExpression::DoEvaluate(ScriptFrame& frame, DebugHint *d
 	return ExpressionResult(Empty, ResultContinue);
 }
 
+ExpressionResult YieldExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+{
+	ExpressionResult operand = m_Operand->Evaluate(frame);
+	CHECK_RESULT(operand);
+
+	l_GeneratorFunction->YieldItem(operand.GetValue());
+	return Empty;
+}
+
 ExpressionResult IndexerExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
 	ExpressionResult operand1 = m_Operand1->Evaluate(frame, dhint);
@@ -904,7 +914,7 @@ ExpressionResult ImportDefaultTemplatesExpression::DoEvaluate(ScriptFrame& frame
 
 ExpressionResult FunctionExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
-	return VMOps::NewFunction(frame, m_Name, m_Args, m_ClosedVars, m_Expression);
+	return VMOps::NewFunction(frame, m_Name, m_Args, m_ClosedVars, m_Expression, m_Generator);
 }
 
 ExpressionResult ApplyExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
