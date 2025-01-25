@@ -1375,7 +1375,7 @@ Name                | Description
 --------------------|--------------
 snmp_address        | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 snmp_oid            | **Required.** The SNMP OID.
-snmp_community      | **Optional.** The SNMP community. Defaults to "public".
+snmp_community      | **Optional.** The SNMP community. Defaults to "public" if `snmp_version` <= 2.
 snmp_port           | **Optional.** The SNMP port. Defaults to "161".
 snmp_retries        | **Optional.** Number of retries to be used in the SNMP requests.
 snmp_warn           | **Optional.** The warning threshold.
@@ -1386,7 +1386,7 @@ snmp_eregi          | **Optional.** Return OK state if case-insensitive extended
 snmp_label          | **Optional.** Prefix label for output value
 snmp_invert_search  | **Optional.** Invert search result and return CRITICAL state if found
 snmp_units          | **Optional.** Units label(s) for output value (e.g., 'sec.').
-snmp_version        | **Optional.** Version to use. E.g. 1, 2, 2c or 3.
+snmp_version        | **Optional.** Version to use. E.g. 1, 2c or 3. Defaults to 2c.
 snmp_miblist        | **Optional.** MIB's to use, comma separated. Defaults to "ALL".
 snmp_multiplier     |**Optional.** Multiplies current value, 0 < n < 1 works as divider, defaults to 1
 snmp_rate_multiplier | **Optional.** Converts rate per second. For example, set to 60 to convert to per minute.
@@ -1396,11 +1396,20 @@ snmp_timeout        | **Optional.** The command timeout in seconds. Defaults to 
 snmp_offset         | **Optional.** Add/subtract the specified OFFSET to numeric sensor data.
 snmp_output_delimiter | **Optional.** Separates output on multiple OID requests.
 snmp_perf_oids      | **Optional.** Label performance data with OIDs instead of --label's.
+snmp_user           | **Optional.** The username to log in with. Required if `snmp_version` == 3.
+snmp_seclevel       | **Optional.** The security level. Defaults to "authPriv" if `snmp_version` == 3.
+snmp_auth_alg       | **Optional.** The authentication algorithm. Defaults to "SHA" if `snmp_version` == 3.
+snmp_auth_key       | **Optional.** The authentication key. Required if `snmpv3_seclevel` is set to "authNoPriv" or "authPriv" otherwise optional.
+snmp_priv_alg       | **Optional.** The encryption algorithm. Defaults to "AES" if `snmp_version` == 3.
+snmp_priv_key       | **Optional.** The encryption key. Required if `snmpv3_seclevel` is set to "authPriv" otherwise optional.
+snmp_context        | **Optional.** The SNMPv3 context.
 
 ### snmpv3 <a id="plugin-check-command-snmpv3"></a>
 
 Check command object for the [check_snmp](https://www.monitoring-plugins.org/doc/man/check_snmp.html)
 plugin, using SNMPv3 authentication and encryption options.
+
+This definition is deprecreated, use `snmp` instead.
 
 Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
