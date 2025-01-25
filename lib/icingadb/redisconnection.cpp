@@ -45,7 +45,7 @@ RedisConnection::RedisConnection(boost::asio::io_context& io, String host, int p
 	  m_DbIndex(db), m_CertPath(std::move(certPath)), m_KeyPath(std::move(keyPath)), m_Insecure(insecure),
 	  m_CaPath(std::move(caPath)), m_CrlPath(std::move(crlPath)), m_TlsProtocolmin(std::move(tlsProtocolmin)),
 	  m_CipherList(std::move(cipherList)), m_ConnectTimeout(connectTimeout), m_DebugInfo(std::move(di)), m_Connecting(false), m_Connected(false),
-	  m_Started(false), m_Strand(io), m_QueuedWrites(io), m_QueuedReads(io), m_LogStatsTimer(io), m_Parent(parent)
+	  m_Started(false), m_Strand(io), m_QueuedWrites(io), m_QueuedReads(io), m_NoQueuedReads(io, true), m_LogStatsTimer(io), m_Parent(parent)
 {
 	if (useTls && m_Path.IsEmpty()) {
 		UpdateTLSContext();
@@ -302,12 +302,6 @@ void RedisConnection::Connect(asio::yield_context& yc)
 
 	boost::asio::deadline_timer timer (m_Strand.context());
 
-	auto waitForReadLoop ([this, &yc]() {
-		while (!m_Queues.FutureResponseActions.empty()) {
-			IoEngine::YieldCurrentCoroutine(yc);
-		}
-	});
-
 	for (;;) {
 		try {
 			if (m_Path.IsEmpty()) {
@@ -339,7 +333,7 @@ void RedisConnection::Connect(asio::yield_context& yc)
 					}
 
 					Handshake(conn, yc);
-					waitForReadLoop();
+					m_NoQueuedReads.Wait(yc);
 					m_TlsConn = std::move(conn);
 				} else {
 					Log(m_Parent ? LogNotice : LogInformation, "IcingaDB")
@@ -350,7 +344,7 @@ void RedisConnection::Connect(asio::yield_context& yc)
 
 					icinga::Connect(conn->next_layer(), m_Host, Convert::ToString(m_Port), yc);
 					Handshake(conn, yc);
-					waitForReadLoop();
+					m_NoQueuedReads.Wait(yc);
 					m_TcpConn = std::move(conn);
 				}
 			} else {
@@ -362,7 +356,7 @@ void RedisConnection::Connect(asio::yield_context& yc)
 
 				conn->next_layer().async_connect(Unix::endpoint(m_Path.CStr()), yc);
 				Handshake(conn, yc);
-				waitForReadLoop();
+				m_NoQueuedReads.Wait(yc);
 				m_UnixConn = std::move(conn);
 			}
 
@@ -474,6 +468,7 @@ void RedisConnection::ReadLoop(asio::yield_context& yc)
 		}
 
 		m_QueuedReads.Clear();
+		m_NoQueuedReads.Set();
 	}
 }
 
@@ -574,6 +569,7 @@ void RedisConnection::WriteItem(boost::asio::yield_context& yc, RedisConnection:
 		}
 
 		m_QueuedReads.Set();
+		m_NoQueuedReads.Clear();
 	}
 
 	if (next.FireAndForgetQueries) {
@@ -610,6 +606,7 @@ void RedisConnection::WriteItem(boost::asio::yield_context& yc, RedisConnection:
 		}
 
 		m_QueuedReads.Set();
+		m_NoQueuedReads.Clear();
 	}
 
 	if (next.GetResultOfQuery) {
@@ -635,6 +632,7 @@ void RedisConnection::WriteItem(boost::asio::yield_context& yc, RedisConnection:
 		}
 
 		m_QueuedReads.Set();
+		m_NoQueuedReads.Clear();
 	}
 
 	if (next.GetResultsOfQueries) {
@@ -657,6 +655,7 @@ void RedisConnection::WriteItem(boost::asio::yield_context& yc, RedisConnection:
 		m_Queues.FutureResponseActions.emplace(FutureResponseAction{item.first.size(), ResponseAction::DeliverBulk});
 
 		m_QueuedReads.Set();
+		m_NoQueuedReads.Clear();
 	}
 
 	if (next.Callback) {

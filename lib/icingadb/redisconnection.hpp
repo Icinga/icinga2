@@ -262,7 +262,7 @@ namespace icinga
 		std::set<QueryPriority> m_SuppressedQueryKinds;
 
 		// Indicate that there's something to send/receive
-		AsioConditionVariable m_QueuedWrites, m_QueuedReads;
+		AsioConditionVariable m_QueuedWrites, m_QueuedReads, m_NoQueuedReads;
 
 		std::function<void(boost::asio::yield_context& yc)> m_ConnectedCallback;
 
