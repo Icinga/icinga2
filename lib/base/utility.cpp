@@ -8,6 +8,7 @@
 #include "base/logger.hpp"
 #include "base/exception.hpp"
 #include "base/socket.hpp"
+#include "base/perfdatavalue.hpp"
 #include "base/utility.hpp"
 #include "base/json.hpp"
 #include "base/objectlock.hpp"
@@ -1957,4 +1958,49 @@ bool Utility::ComparePasswords(const String& enteredPassword, const String& actu
 	}
 
 	return result;
+}
+
+/**
+ * Removes all PerfdataValues from perfdata whose labels don't match any pattern of the filter Array.
+ */
+void Utility::FilterPerfdata(const Array::Ptr& perfdata, const Value& filter)
+{
+	if (!filter.IsObject()) {
+		return;
+	}
+
+	auto filterArray (dynamic_pointer_cast<Array>((Object::Ptr)filter));
+
+	if (!filterArray) {
+		return;
+	}
+
+	auto filterStrings (filterArray->ToSet<String>());
+
+	for (decltype(perfdata->GetLength()) i = 0; i < perfdata->GetLength(); ++i) {
+		auto item (perfdata->Get(i));
+
+		if (!item.IsObject()) {
+			continue;
+		}
+
+		auto itemPerfdataValue (dynamic_pointer_cast<PerfdataValue>((Object::Ptr)item));
+
+		if (!itemPerfdataValue) {
+			continue;
+		}
+
+		auto label (itemPerfdataValue->GetLabel());
+
+		for (auto& pattern : filterStrings) {
+			if (Utility::Match(pattern, label)) {
+				// continue 2;
+				goto NextItem;
+			}
+		}
+
+		perfdata->Remove(i--);
+
+NextItem:;
+	}
 }
