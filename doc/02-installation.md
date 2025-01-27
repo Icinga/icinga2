@@ -206,14 +206,6 @@ dnf install icinga2
 systemctl enable icinga2
 systemctl start icinga2
 ```
-
-#### RHEL 7
-
-```bash
-yum install icinga2
-systemctl enable icinga2
-systemctl start icinga2
-```
 <!-- {% endif %} -->
 
 <!-- {% if fedora %} -->
@@ -305,12 +297,6 @@ The packages for RHEL depend on other packages which are distributed as part of 
 
 ```bash
 dnf install nagios-plugins-all
-```
-
-#### RHEL 7
-
-```bash
-yum install nagios-plugins-all
 ```
 <!-- {% endif %} -->
 
@@ -448,12 +434,6 @@ apt install icingadb-redis
 
 ```bash
 dnf install icingadb-redis
-```
-
-##### RHEL 7
-
-```bash
-yum install icingadb-redis
 ```
 <!-- {% endif %} -->
 
