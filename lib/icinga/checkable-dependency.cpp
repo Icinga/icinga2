@@ -11,12 +11,59 @@ void Checkable::AddDependency(const Dependency::Ptr& dep)
 {
 	std::unique_lock<std::mutex> lock(m_DependencyMutex);
 	m_Dependencies.insert(dep);
+	UpdateDependencyGroups();
 }
 
 void Checkable::RemoveDependency(const Dependency::Ptr& dep)
 {
 	std::unique_lock<std::mutex> lock(m_DependencyMutex);
 	m_Dependencies.erase(dep);
+	UpdateDependencyGroups();
+}
+
+// Caller must hold m_DependencyMutex
+void Checkable::UpdateDependencyGroups()
+{
+	std::set<DependencyGroup::Ptr> newGroups;
+
+	auto getParent = [](const Dependency::Ptr& dep) -> DependencyGroup::ParentSet::value_type {
+		return {dep->GetParent(), dep->GetPeriod(), dep->GetStateFilter(), dep->GetIgnoreSoftStates()};
+	};
+
+	// Group dependency objects by redundancy_group attribute.
+	std::map<std::string, std::set<Dependency::Ptr>> redundancyGroups;
+	for (const Dependency::Ptr& dep : m_Dependencies) {
+		redundancyGroups[dep->GetRedundancyGroup()].insert(dep);
+	}
+
+	// Register dependencies without a redundancy group (empty string) individually.
+	if (auto it = redundancyGroups.find(""); it != redundancyGroups.end()) {
+		for (const auto& dep : it->second) {
+			newGroups.insert(DependencyGroup::RegisterChild("", {getParent(dep)}, this));
+		}
+		redundancyGroups.erase(it);
+	}
+
+	// Register all redundancy groups to the group defined by their parents.
+	for (auto& [group, parents] : redundancyGroups) {
+		DependencyGroup::ParentSet parentSet;
+		for (const auto& parent : parents) {
+			parentSet.insert(getParent(parent));
+		}
+		newGroups.insert(DependencyGroup::RegisterChild(group, parentSet, this));
+	}
+
+	// Check for group memberships that were made obsolete by this operation and unregister from them.
+	std::vector<DependencyGroup::Ptr> removedGroups;
+	std::set_difference(
+		m_DependencyGroups.begin(), m_DependencyGroups.end(),
+		newGroups.begin(), newGroups.end(),
+		std::back_inserter(removedGroups));
+	for (const DependencyGroup::Ptr& group : removedGroups) {
+		DependencyGroup::UnregisterChild(group, this);
+	}
+
+	m_DependencyGroups = std::move(newGroups);
 }
 
 std::vector<Dependency::Ptr> Checkable::GetDependencies() const

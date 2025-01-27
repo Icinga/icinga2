@@ -57,6 +57,41 @@ private:
 	static bool EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule, bool skipFilter = false);
 };
 
+class DependencyGroup : public SharedObject
+{
+public:
+	DECLARE_PTR_TYPEDEFS(DependencyGroup);
+
+	using ParentSet = std::set<std::tuple</* parent */ Checkable::Ptr, TimePeriod::Ptr, int, bool>>;
+	using KeyType = std::pair<std::string, ParentSet>;
+
+	DependencyGroup(KeyType key): DependencyGroup(std::move(key.first), std::move(key.second)) {};
+
+	DependencyGroup(String redundancyGroup, ParentSet parents)
+		: m_RedundancyGroup(std::move(redundancyGroup)), m_Parents(std::move(parents))
+	{}
+
+	static DependencyGroup::Ptr RegisterChild(const String& redundancyGroup, const ParentSet& parents, const Checkable::Ptr& child);
+	static void UnregisterChild(const String& redundancyGroup, const ParentSet& parents, const Checkable::Ptr& child);
+	static void UnregisterChild(const DependencyGroup::Ptr& group, const Checkable::Ptr& child);
+	static void DebugPrintAll();
+
+private:
+    mutable std::mutex m_Mutex;
+    const String m_RedundancyGroup;
+	const ParentSet m_Parents;
+	std::set</* child */ Checkable*> m_Children;
+
+    KeyType GetKey() const
+	{
+		return {m_RedundancyGroup, m_Parents};
+	}
+
+	// The global registry of dependency groups.
+	static std::mutex m_RegistryMutex;
+	static std::map<KeyType, DependencyGroup::Ptr> m_Registry;
+};
+
 }
 
 #endif /* DEPENDENCY_H */

@@ -25,6 +25,7 @@
 #include <boost/program_options.hpp>
 #include <iostream>
 #include <fstream>
+#include <icinga/dependency.hpp>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -656,6 +657,8 @@ int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::strin
 			Log(LogCritical, "cli", "Config validation failed. Re-run with 'icinga2 daemon -C' after fixing the config.");
 			return EXIT_FAILURE;
 		}
+
+		DependencyGroup::DebugPrintAll();
 
 		Log(LogInformation, "cli", "Finished validating the configuration file(s).");
 		return EXIT_SUCCESS;

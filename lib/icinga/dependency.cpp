@@ -323,3 +323,80 @@ void Dependency::SetChild(intrusive_ptr<Checkable> child)
 {
 	m_Child = child;
 }
+
+std::mutex DependencyGroup::m_RegistryMutex;
+std::map<DependencyGroup::KeyType, DependencyGroup::Ptr> DependencyGroup::m_Registry;
+
+DependencyGroup::Ptr DependencyGroup::RegisterChild(const String& redundancyGroup, const ParentSet& parents, const Checkable::Ptr& child)
+{
+	std::lock_guard lock(m_RegistryMutex);
+
+	Log(LogInformation, "DependencyGroup") << "register for " << child->GetName();
+
+
+	KeyType key {redundancyGroup, parents};
+
+	// group is a reference into the registry, assigning to it automatically updates the registry.
+	DependencyGroup::Ptr& group = m_Registry[key];
+
+	if (group == nullptr) {
+		group = new DependencyGroup(key);
+	}
+
+	if (group->m_Children.insert(child.get()).second) {
+		Log msg (LogInformation, "DependencyGroup");
+		msg << "Added " << std::quoted(std::string(child->GetName())) << " to " << std::quoted(std::string(redundancyGroup)) << " {";
+		for (const auto& tuple : parents) {
+			msg << std::quoted(std::string(std::get<0>(tuple)->GetName())) << ",";
+		}
+		msg << "} (size=" << group->m_Children.size() << ")";
+	}
+
+	return group;
+}
+
+void DependencyGroup::UnregisterChild(const String& redundancyGroup, const ParentSet& parents, const Checkable::Ptr& child)
+{
+	std::lock_guard lock(m_RegistryMutex);
+
+	auto it = m_Registry.find(KeyType{redundancyGroup, parents});
+	if (it == m_Registry.end()) {
+		return;
+	}
+
+	DependencyGroup::Ptr group = it->second;
+
+	group->m_Children.erase(child.get());
+	if (group->m_Children.empty()) {
+		m_Registry.erase(it);
+	}
+
+	Log msg (LogInformation, "DependencyGroup");
+	msg << "Removed " << std::quoted(std::string(child->GetName())) << " from " << std::quoted(std::string(redundancyGroup)) << " {";
+	for (const auto& tuple : parents) {
+		msg << std::quoted(std::string(std::get<0>(tuple)->GetName())) << ",";
+	}
+	msg << "} (size=" << group->m_Children.size() << ")";
+}
+
+void DependencyGroup::UnregisterChild(const DependencyGroup::Ptr& group, const Checkable::Ptr& child)
+{
+	UnregisterChild(group->m_RedundancyGroup, group->m_Parents, child);
+}
+
+void DependencyGroup::DebugPrintAll()
+{
+	std::lock_guard lock(m_RegistryMutex);
+	for (const auto& [key, group]: m_Registry) {
+		Log msg (LogInformation, "DependencyGroup");
+		msg << "Dependency group " << std::quoted(std::string(group->m_RedundancyGroup)) << " {";
+		for (const auto& tuple : group->m_Parents) {
+			msg << std::quoted(std::string(std::get<0>(tuple)->GetName())) << ",";
+		}
+		msg << "} (size=" << group->m_Children.size() << "):";
+		for (const auto& child : group->m_Children) {
+			msg << "\n\tchild: " << child->GetName();
+		}
+	}
+}
+
