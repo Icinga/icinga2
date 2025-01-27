@@ -7,22 +7,40 @@
 
 using namespace icinga;
 
-void Checkable::AddDependency(const Dependency::Ptr& dep)
+void Checkable::AddDependencyGroup(const DependencyGroup::Ptr& dependencyGroup)
 {
-	std::unique_lock<std::mutex> lock(m_DependencyMutex);
-	m_Dependencies.insert(dep);
+	std::unique_lock lock(m_DependencyMutex);
+	m_DependencyGroups.insert(dependencyGroup);
 }
 
-void Checkable::RemoveDependency(const Dependency::Ptr& dep)
+void Checkable::RemoveDependencyGroup(const DependencyGroup::Ptr& dependencyGroup)
 {
-	std::unique_lock<std::mutex> lock(m_DependencyMutex);
-	m_Dependencies.erase(dep);
+	std::unique_lock lock(m_DependencyMutex);
+	m_DependencyGroups.erase(dependencyGroup);
+}
+
+std::vector<DependencyGroup::Ptr> Checkable::GetDependencyGroups() const
+{
+	std::unique_lock lock(m_DependencyMutex);
+	return {m_DependencyGroups.begin(), m_DependencyGroups.end()};
 }
 
 std::vector<Dependency::Ptr> Checkable::GetDependencies() const
 {
 	std::unique_lock<std::mutex> lock(m_DependencyMutex);
-	return std::vector<Dependency::Ptr>(m_Dependencies.begin(), m_Dependencies.end());
+	std::vector<Dependency::Ptr> dependencies;
+	for (const auto& dependencyGroup : m_DependencyGroups) {
+		auto members(dependencyGroup->GetMembers(this));
+		dependencies.insert(dependencies.end(), members.begin(), members.end());
+	}
+
+	return dependencies;
+}
+
+bool Checkable::HasAnyDependencies() const
+{
+	std::unique_lock lock(m_DependencyMutex);
+	return !m_DependencyGroups.empty() || !m_ReverseDependencies.empty();
 }
 
 void Checkable::AddReverseDependency(const Dependency::Ptr& dep)
@@ -43,7 +61,7 @@ std::vector<Dependency::Ptr> Checkable::GetReverseDependencies() const
 	return std::vector<Dependency::Ptr>(m_ReverseDependencies.begin(), m_ReverseDependencies.end());
 }
 
-bool Checkable::IsReachable(DependencyType dt, Dependency::Ptr *failedDependency, int rstack) const
+bool Checkable::IsReachable(DependencyType dt, int rstack) const
 {
 	/* Anything greater than 256 causes recursion bus errors. */
 	int limit = 256;
@@ -55,66 +73,53 @@ bool Checkable::IsReachable(DependencyType dt, Dependency::Ptr *failedDependency
 		return false;
 	}
 
-	for (const Checkable::Ptr& checkable : GetParents()) {
-		if (!checkable->IsReachable(dt, failedDependency, rstack + 1))
-			return false;
-	}
-
 	/* implicit dependency on host if this is a service */
 	const auto *service = dynamic_cast<const Service *>(this);
 	if (service && (dt == DependencyState || dt == DependencyNotification)) {
 		Host::Ptr host = service->GetHost();
 
 		if (host && host->GetState() != HostUp && host->GetStateType() == StateTypeHard) {
-			if (failedDependency)
-				*failedDependency = nullptr;
-
 			return false;
 		}
 	}
 
-	auto deps = GetDependencies();
-
-	std::unordered_map<std::string, Dependency::Ptr> violated; // key: redundancy group, value: nullptr if satisfied, violating dependency otherwise
-
-	for (const Dependency::Ptr& dep : deps) {
-		std::string redundancy_group = dep->GetRedundancyGroup();
-
-		if (!dep->IsAvailable(dt)) {
-			if (redundancy_group.empty()) {
+	for (auto& dependencyGroup : GetDependencyGroups()) {
+		if (!(dependencyGroup->GetState(dt, rstack + 1) & DependencyGroup::State::ReachableOK)) {
+			if (dependencyGroup->IsRedundancyGroup()) { // For non-redundant groups, this should already be logged.
 				Log(LogDebug, "Checkable")
-					<< "Non-redundant dependency '" << dep->GetName() << "' failed for checkable '" << GetName() << "': Marking as unreachable.";
-
-				if (failedDependency)
-					*failedDependency = dep;
-
-				return false;
+					<< "All dependencies in redundancy group '" << dependencyGroup->GetName() << "' have failed for checkable '"
+					<< GetName() << "': Marking as unreachable.";
 			}
-
-			// tentatively mark this dependency group as failed unless it is already marked;
-			//  so it either passed before (don't overwrite) or already failed (so don't care)
-			// note that std::unordered_map::insert() will not overwrite an existing entry
-			violated.insert(std::make_pair(redundancy_group, dep));
-		} else if (!redundancy_group.empty()) {
-			violated[redundancy_group] = nullptr;
+			return false;
 		}
 	}
 
-	auto violator = std::find_if(violated.begin(), violated.end(), [](auto& v) { return v.second != nullptr; });
-	if (violator != violated.end()) {
-		Log(LogDebug, "Checkable")
-			<< "All dependencies in redundancy group '" << violator->first << "' have failed for checkable '" << GetName() << "': Marking as unreachable.";
+	return true;
+}
 
-		if (failedDependency)
-			*failedDependency = violator->second;
-
+/**
+ * Checks whether the last check result of this Checkable affects its child dependencies.
+ *
+ * @return bool - Returns true if the Checkable affects its child dependencies, otherwise false.
+ */
+bool Checkable::AffectsChildren() const
+{
+	auto cr(GetLastCheckResult());
+	if (!cr || IsStateOK(cr->GetState()) || !IsReachable()) {
+		// If there is no check result, the state is OK, or the Checkable is not reachable, we can't
+		// safely determine whether the Checkable affects its child dependencies.
 		return false;
 	}
 
-	if (failedDependency)
-		*failedDependency = nullptr;
+	for (auto& dep: GetReverseDependencies()) {
+		if (!dep->IsAvailable(DependencyState)) {
+			// If one of the child dependency is not available, then it's definitely due to the
+			// current Checkable state, so we don't need to verify the remaining ones.
+			return true;
+		}
+	}
 
-	return true;
+	return false;
 }
 
 std::set<Checkable::Ptr> Checkable::GetParents() const
@@ -145,6 +150,21 @@ std::set<Checkable::Ptr> Checkable::GetChildren() const
 	return parents;
 }
 
+/**
+ * Retrieve the total number of all the children of the current Checkable.
+ *
+ * Note, due to the max recursion limit of 256, the returned number may not reflect
+ * the actual total number of children involved in the dependency chain.
+ *
+ * @return int - Returns the total number of all the children of the current Checkable.
+ */
+size_t Checkable::GetAllChildrenCount() const
+{
+	std::set<Checkable::Ptr> children(GetChildren());
+	GetAllChildrenInternal(children, 0);
+	return children.size();
+}
+
 std::set<Checkable::Ptr> Checkable::GetAllChildren() const
 {
 	std::set<Checkable::Ptr> children = GetChildren();
@@ -154,22 +174,36 @@ std::set<Checkable::Ptr> Checkable::GetAllChildren() const
 	return children;
 }
 
+/**
+ * Retrieve all direct and indirect children of the current Checkable.
+ *
+ * Note, this function performs a recursive call chain traversing all the children of the current Checkable
+ * up to a certain limit (256). When that limit is reached, it will log a warning message and abort the operation.
+ *
+ * @param children - The set of children to be filled with all the children of the current Checkable.
+ * @param level - The current level of recursion.
+ */
 void Checkable::GetAllChildrenInternal(std::set<Checkable::Ptr>& children, int level) const
 {
-	if (level > 32)
-		return;
+	// The previous limit (32) doesn't seem to make sense, and appears to be some random number.
+	// So, this limit is set to 256 to match the limit in IsReachable().
+	if (level > 256) {
+		Log(LogWarning, "Checkable")
+			<< "Too many nested dependencies (>" << 256 << ") for checkable '" << GetName() << "': aborting traversal.";
+		return ;
+	}
 
 	std::set<Checkable::Ptr> localChildren;
 
 	for (const Checkable::Ptr& checkable : children) {
-		std::set<Checkable::Ptr> cChildren = checkable->GetChildren();
-
-		if (!cChildren.empty()) {
+		if (auto cChildren(checkable->GetChildren()); !cChildren.empty()) {
 			GetAllChildrenInternal(cChildren, level + 1);
 			localChildren.insert(cChildren.begin(), cChildren.end());
 		}
 
-		localChildren.insert(checkable);
+		if (level != 0) { // Recursion level 0 is the initiator, so checkable is already in the set.
+			localChildren.insert(checkable);
+		}
 	}
 
 	children.insert(localChildren.begin(), localChildren.end());

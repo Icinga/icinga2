@@ -57,6 +57,7 @@ enum FlappingStateFilter
 class CheckCommand;
 class EventCommand;
 class Dependency;
+class DependencyGroup;
 
 /**
  * An Icinga service.
@@ -77,10 +78,12 @@ public:
 	std::set<Checkable::Ptr> GetParents() const;
 	std::set<Checkable::Ptr> GetChildren() const;
 	std::set<Checkable::Ptr> GetAllChildren() const;
+	size_t GetAllChildrenCount() const;
 
 	void AddGroup(const String& name);
 
-	bool IsReachable(DependencyType dt = DependencyState, intrusive_ptr<Dependency> *failedDependency = nullptr, int rstack = 0) const;
+	bool IsReachable(DependencyType dt = DependencyState, int rstack = 0) const;
+	bool AffectsChildren() const;
 
 	AcknowledgementType GetAcknowledgement();
 
@@ -182,9 +185,11 @@ public:
 	bool IsFlapping() const;
 
 	/* Dependencies */
-	void AddDependency(const intrusive_ptr<Dependency>& dep);
-	void RemoveDependency(const intrusive_ptr<Dependency>& dep);
+	void AddDependencyGroup(const intrusive_ptr<DependencyGroup>& dependencyGroup);
+	void RemoveDependencyGroup(const intrusive_ptr<DependencyGroup>& dependencyGroup);
+	std::vector<intrusive_ptr<DependencyGroup>> GetDependencyGroups() const;
 	std::vector<intrusive_ptr<Dependency> > GetDependencies() const;
+	bool HasAnyDependencies() const;
 
 	void AddReverseDependency(const intrusive_ptr<Dependency>& dep);
 	void RemoveReverseDependency(const intrusive_ptr<Dependency>& dep);
@@ -244,7 +249,7 @@ private:
 
 	/* Dependencies */
 	mutable std::mutex m_DependencyMutex;
-	std::set<intrusive_ptr<Dependency> > m_Dependencies;
+	std::set<intrusive_ptr<DependencyGroup>> m_DependencyGroups;
 	std::set<intrusive_ptr<Dependency> > m_ReverseDependencies;
 
 	void GetAllChildrenInternal(std::set<Checkable::Ptr>& children, int level = 0) const;
