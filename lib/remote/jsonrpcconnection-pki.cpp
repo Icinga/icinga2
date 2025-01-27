@@ -17,6 +17,8 @@
 #include <openssl/asn1.h>
 #include <openssl/ssl.h>
 #include <openssl/x509.h>
+#include <openssl/x509_vfy.h>
+#include <time.h>
 
 using namespace icinga;
 
@@ -80,6 +82,8 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 
 	std::shared_ptr<X509> parsedRequestorCA;
 	X509* requestorCA = nullptr;
+	constexpr long handshakeVerifyErrorUnset = X509_V_OK;
+	long handshakeVerifyError = handshakeVerifyErrorUnset;
 
 	if (signedByCA) {
 		bool uptodate = IsCertUptodate(cert);
@@ -116,6 +120,35 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 				int days;
 
 				if (ASN1_TIME_diff(&days, nullptr, X509_get_notAfter(requestorCA), X509_get_notAfter(cacert.get())) && days > 0) {
+					uptodate = false;
+				}
+			}
+		}
+
+		if (uptodate) {
+			// There's a bug causing malformed certificates to be issued sometimes.
+			// The handshake chain verification fails with X509_V_ERR_CERT_SIGNATURE_FAILURE, but (luckily)
+			// the certificate sent via pki::RequestCertificate gets properly recognized by VerifyCertificate().
+			// The latter allows to self-heal the cluster by issuing a new certificate,
+			// despite the old one being "valid and uptodate".
+
+			if (cn == origin->FromClient->GetIdentity()) {
+				handshakeVerifyError = tlsConn.GetVerifyErrorCode();
+			} else {
+				Value hve;
+
+				if (params->Get("handshake_verify_error", &hve) && hve.IsNumber()) {
+					handshakeVerifyError = hve;
+				}
+			}
+
+			if (handshakeVerifyError == X509_V_ERR_CERT_SIGNATURE_FAILURE) {
+				// In the hypothetic case of a permanent failure to issue sane certificates,
+				// don't issue a new one on every re-connect:
+
+				time_t threshold = time(nullptr) - 10 * 60;
+
+				if (X509_cmp_time(X509_get_notBefore(cert.get()), &threshold) < 0) {
 					uptodate = false;
 				}
 			}
@@ -274,6 +307,10 @@ delayed_request:
 
 	if (requestorCA) {
 		request->Set("requestor_ca", CertificateToString(requestorCA));
+	}
+
+	if (handshakeVerifyError != handshakeVerifyErrorUnset) {
+		request->Set("handshake_verify_error", handshakeVerifyError);
 	}
 
 	Utility::SaveJsonFile(requestPath, 0600, request);
