@@ -1,10 +1,12 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "icinga/checkable.hpp"
 #include "icinga/downtime.hpp"
 #include "icinga/downtime-ti.cpp"
 #include "icinga/host.hpp"
 #include "icinga/scheduleddowntime.hpp"
 #include "remote/configobjectutility.hpp"
+#include "base/configobject.hpp"
 #include "base/configtype.hpp"
 #include "base/utility.hpp"
 #include "base/timer.hpp"
@@ -35,6 +37,22 @@ void Downtime::StaticInitialize()
 	ScriptGlobal::Set("Icinga.DowntimeNoChildren", "DowntimeNoChildren");
 	ScriptGlobal::Set("Icinga.DowntimeTriggeredChildren", "DowntimeTriggeredChildren");
 	ScriptGlobal::Set("Icinga.DowntimeNonTriggeredChildren", "DowntimeNonTriggeredChildren");
+
+	ConfigObject::OnActiveChanged.connect([](const ConfigObject::Ptr& object, const Value&) {
+			Type::Ptr type = object->GetReflectionType();
+
+			// Only execute on deactivated checkable objects.
+			if (object->IsActive() || !(type == Host::TypeInstance || type == Service::TypeInstance)) {
+				return;
+			}
+
+			auto checkable = dynamic_pointer_cast<Checkable>(object);
+			auto downtimes = checkable->GetDowntimes();
+
+			for (const Downtime::Ptr& downtime : downtimes) {
+				OnDowntimeRemoved(downtime);
+			}
+		});
 }
 
 String DowntimeNameComposer::MakeName(const String& shortName, const Object::Ptr& context) const
