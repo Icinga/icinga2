@@ -9,14 +9,17 @@ using namespace icinga;
 
 BOOST_AUTO_TEST_SUITE(icinga_dependencies)
 
-static Host::Ptr CreateHost(const std::string& name)
+static Host::Ptr CreateHost(const String& name, bool pushDependencyGroupsToRegistry = true)
 {
 	Host::Ptr host = new Host();
 	host->SetName(name);
+	if (pushDependencyGroupsToRegistry) {
+		host->PushDependencyGroupsToRegistry();
+	}
 	return host;
 }
 
-static Dependency::Ptr CreateDependency(Checkable::Ptr parent, Checkable::Ptr child, const std::string& name)
+static Dependency::Ptr CreateDependency(Checkable::Ptr parent, Checkable::Ptr child, const String& name)
 {
 	Dependency::Ptr dep = new Dependency();
 	dep->SetParent(parent);
@@ -25,33 +28,38 @@ static Dependency::Ptr CreateDependency(Checkable::Ptr parent, Checkable::Ptr ch
 	return dep;
 }
 
-static void RegisterDependency(Dependency::Ptr dep, const std::string& redundancyGroup)
+static void RegisterDependency(Dependency::Ptr dep, const String& redundancyGroup)
 {
 	dep->SetRedundancyGroup(redundancyGroup);
-	DependencyGroup::Register(dep);
+	dep->GetChild()->AddDependency(dep, true);
 	dep->GetParent()->AddReverseDependency(dep);
 }
 
-static void AssertCheckableRedundancyGroup(Checkable::Ptr checkable, int dependencyCount, int redundancyGroupCount, int memberCount)
+static void AssertCheckableRedundancyGroup(Checkable::Ptr checkable, int dependencyCount, int groupCount, int memberCount)
 {
 	BOOST_CHECK_MESSAGE(
 		dependencyCount == checkable->GetDependencies().size(),
 		"Dependency count mismatch for '" << checkable->GetName() << "' - expected=" << dependencyCount << "; got="
 			<< checkable->GetDependencies().size()
 	);
-	auto redundancyGroups(checkable->GetDependencyGroups());
+	auto dependencyGroups(checkable->GetDependencyGroups());
 	BOOST_CHECK_MESSAGE(
-		redundancyGroupCount == redundancyGroups.size(),
-		"Redundancy group count mismatch for '" << checkable->GetName() << "'" << " - expected=" << redundancyGroupCount
-			<< "; got=" << redundancyGroups.size()
+		groupCount == dependencyGroups.size(),
+		"Dependency group count mismatch for '" << checkable->GetName() << "' - expected=" << groupCount
+			<< "; got=" << dependencyGroups.size()
 	);
-	if (redundancyGroupCount > 0) {
-		BOOST_REQUIRE_MESSAGE(1 <= redundancyGroups.size(), "Checkable '" << checkable->GetName() << "' should have at least one redundancy group.");
+
+	for (auto& dependencyGroup : dependencyGroups) {
 		BOOST_CHECK_MESSAGE(
-			memberCount == redundancyGroups.begin()->get()->GetMemberCount(),
-			"Member count mismatch for '" << checkable->GetName() << "'" << " - expected=" << memberCount
-				<< "; got=" << redundancyGroups.begin()->get()->GetMemberCount()
+			memberCount == dependencyGroup->GetMemberCount(),
+			"Dependency group '" << dependencyGroup->GetName() << "' and Checkable '" << checkable->GetName()
+				<< "' member count mismatch - expected=" << memberCount << "; got="
+				<< dependencyGroup->GetMemberCount()
 		);
+	}
+
+	if (groupCount > 0) {
+		BOOST_REQUIRE_MESSAGE(!dependencyGroups.empty(), "Checkable '" << checkable->GetName() << "' should have at least one redundancy group.");
 	}
 }
 
@@ -106,19 +114,19 @@ BOOST_AUTO_TEST_CASE(multi_parent)
 	// It should still be unreachable, due to the duplicated dependency object above with ignore_soft_states set to false.
 	BOOST_CHECK(childHost->IsReachable() == false);
 	parentHost1->SetStateType(StateTypeHard);
-	DependencyGroup::Unregister(duplicateDep);
+	childHost->RemoveDependency(duplicateDep);
 
 	/* The only DNS server is DOWN.
 	 * Expected result: childHost is unreachable.
 	 */
-	DependencyGroup::Unregister(dep1); // Remove the dep and re-add it with a configured redundancy group.
+	childHost->RemoveDependency(dep1); // Remove the dep and re-add it with a configured redundancy group.
 	RegisterDependency(dep1, "DNS");
 	BOOST_CHECK(childHost->IsReachable() == false);
 
 	/* 1/2 DNS servers is DOWN.
 	 * Expected result: childHost is reachable.
 	 */
-	DependencyGroup::Unregister(dep2);
+	childHost->RemoveDependency(dep2);
 	RegisterDependency(dep2, "DNS");
 	BOOST_CHECK(childHost->IsReachable() == true);
 
@@ -132,7 +140,7 @@ BOOST_AUTO_TEST_CASE(multi_parent)
 	RegisterDependency(dep3, "");
 	// The grandparent is DOWN but the DNS redundancy group has to be still reachable.
 	BOOST_CHECK_EQUAL(true, childHost->IsReachable());
-	DependencyGroup::Unregister(dep3);
+	childHost->RemoveDependency(dep3);
 
 	/* Both DNS servers are DOWN.
 	 * Expected result: childHost is unreachable.
@@ -153,29 +161,72 @@ BOOST_AUTO_TEST_CASE(default_redundancy_group_registration_unregistration)
 
 	Dependency::Ptr depCB(CreateDependency(CreateHost("B"), childHostC, "depCB"));
 	RegisterDependency(depCB, "");
-	AssertCheckableRedundancyGroup(childHostC, 2, 1, 2);
-	BOOST_CHECK_EQUAL(1, DependencyGroup::GetRegistrySize());
+	AssertCheckableRedundancyGroup(childHostC, 2, 2, 1);
+	BOOST_CHECK_EQUAL(2, DependencyGroup::GetRegistrySize());
 
 	Checkable::Ptr childHostD(CreateHost("D"));
 	Dependency::Ptr depDA(CreateDependency(depCA->GetParent(), childHostD, "depDA"));
 	RegisterDependency(depDA, "");
-	AssertCheckableRedundancyGroup(childHostD, 1, 1, 1);
+	AssertCheckableRedundancyGroup(childHostD, 1, 1, 2);
 	BOOST_CHECK_EQUAL(2, DependencyGroup::GetRegistrySize());
 
 	Dependency::Ptr depDB(CreateDependency(depCB->GetParent(), childHostD, "depDB"));
 	RegisterDependency(depDB, "");
-	AssertCheckableRedundancyGroup(childHostD, 2, 1, 4);
-	AssertCheckableRedundancyGroup(childHostC, 2, 1, 4);
-	BOOST_CHECK_EQUAL(1, DependencyGroup::GetRegistrySize());
+	AssertCheckableRedundancyGroup(childHostD, 2, 2, 2);
+	AssertCheckableRedundancyGroup(childHostC, 2, 2, 2);
+	BOOST_TEST(childHostC->GetDependencyGroups() == childHostD->GetDependencyGroups(), boost::test_tools::per_element());
+	BOOST_CHECK_EQUAL(2, DependencyGroup::GetRegistrySize());
 
-	DependencyGroup::Unregister(depCA);
-	DependencyGroup::Unregister(depDA);
+	// This is an exact duplicate of depCA, but with a different dependency name.
+	Dependency::Ptr depCA2(CreateDependency(depCA->GetParent(), childHostC, "depCA2"));
+	// This is a duplicate of depCA, but with a different state filter.
+	Dependency::Ptr depCA3(CreateDependency(depCA->GetParent(), childHostC, "depCA3"));
+	depCA3->SetStateFilter(StateFilterUp, true);
+	// This is a duplicate of depCA, but with a different ignore_soft_states flag.
+	Dependency::Ptr depCA4(CreateDependency(depCA->GetParent(), childHostC, "depCA4"));
+	depCA4->SetIgnoreSoftStates(false, true);
+
+	for (auto& dependency : {depCA2, depCA3, depCA4}) {
+		bool isAnExactDuplicate = dependency == depCA2;
+		RegisterDependency(dependency, "");
+
+		if (isAnExactDuplicate) {
+			BOOST_TEST(childHostC->GetDependencyGroups() == childHostD->GetDependencyGroups(), boost::test_tools::per_element());
+		}
+
+		for (auto& dependencyGroup : childHostD->GetDependencyGroups()) {
+			if (dependencyGroup->PeekParentCheckableName() == depCA->GetParent()->GetName()) {
+				BOOST_CHECK_EQUAL(isAnExactDuplicate ? 3 : 1, dependencyGroup->GetMemberCount());
+			} else {
+				BOOST_CHECK_EQUAL(2, dependencyGroup->GetMemberCount());
+			}
+			BOOST_CHECK_EQUAL(2, childHostD->GetDependencies().size());
+		}
+
+		for (auto& dependencyGroup : childHostC->GetDependencyGroups()) {
+			if (dependencyGroup->PeekParentCheckableName() == depCA->GetParent()->GetName()) {
+				// If depCA2 is currently being processed, then the group should have 3 members, that's because
+				// depCA2 is an exact duplicate of depCA, and depCA shares the same group with depDA.
+				BOOST_CHECK_EQUAL(isAnExactDuplicate ? 3 : 2, dependencyGroup->GetMemberCount());
+			} else {
+				BOOST_CHECK_EQUAL(2, dependencyGroup->GetMemberCount());
+			}
+			// The 3 dependencies are depCA, depCB, and the current one from the loop.
+			BOOST_CHECK_EQUAL(3, childHostC->GetDependencies().size());
+		}
+		BOOST_CHECK_EQUAL(isAnExactDuplicate ? 2 : 3, DependencyGroup::GetRegistrySize());
+		childHostC->RemoveDependency(dependency);
+	}
+
+	childHostC->RemoveDependency(depCA);
+	childHostD->RemoveDependency(depDA);
 	AssertCheckableRedundancyGroup(childHostC, 1, 1, 2);
 	AssertCheckableRedundancyGroup(childHostD, 1, 1, 2);
+	BOOST_TEST(childHostC->GetDependencyGroups() == childHostD->GetDependencyGroups(), boost::test_tools::per_element());
 	BOOST_CHECK_EQUAL(1, DependencyGroup::GetRegistrySize());
 
-	DependencyGroup::Unregister(depCB);
-	DependencyGroup::Unregister(depDB);
+	childHostC->RemoveDependency(depCB);
+	childHostD->RemoveDependency(depDB);
 	AssertCheckableRedundancyGroup(childHostC, 0, 0, 0);
 	AssertCheckableRedundancyGroup(childHostD, 0, 0, 0);
 	BOOST_CHECK_EQUAL(0, DependencyGroup::GetRegistrySize());
@@ -206,31 +257,33 @@ BOOST_AUTO_TEST_CASE(simple_redundancy_group_registration_unregistration)
 	// Still 1 redundancy group, but there should be 4 members now, i.e. 2 for each child Checkable.
 	AssertCheckableRedundancyGroup(childHostC, 2, 1, 4);
 	AssertCheckableRedundancyGroup(childHostD, 2, 1, 4);
+	BOOST_TEST(childHostC->GetDependencyGroups() == childHostD->GetDependencyGroups(), boost::test_tools::per_element());
 	BOOST_CHECK_EQUAL(1, DependencyGroup::GetRegistrySize());
 
-	DependencyGroup::Unregister(depCA);
+	childHostC->RemoveDependency(depCA);
 	// After unregistering depCA, childHostC should have a new redundancy group with only depCB as member, and...
 	AssertCheckableRedundancyGroup(childHostC, 1, 1, 1);
 	// ...childHostD should still have the same redundancy group as before but also with only two members.
 	AssertCheckableRedundancyGroup(childHostD, 2, 1, 2);
 	BOOST_CHECK_EQUAL(2, DependencyGroup::GetRegistrySize());
 
-	DependencyGroup::Unregister(depDA);
+	childHostD->RemoveDependency(depDA);
 	// Nothing should have changed for childHostC, but childHostD should now have a fewer group member, i.e.
 	// both child hosts should have the same redundancy group with only depCB and depDB as member.
 	AssertCheckableRedundancyGroup(childHostC, 1, 1, 2);
 	AssertCheckableRedundancyGroup(childHostD, 1, 1, 2);
+	BOOST_TEST(childHostC->GetDependencyGroups() == childHostD->GetDependencyGroups(), boost::test_tools::per_element());
 	BOOST_CHECK_EQUAL(1, DependencyGroup::GetRegistrySize());
 
-	DependencyGroup::Register(depDA);
-	DependencyGroup::Unregister(depDB);
+	RegisterDependency(depDA, depDA->GetRedundancyGroup());
+	childHostD->RemoveDependency(depDB);
 	// Nothing should have changed for childHostC, but both should now have a separate group with only depCB and depDA as member.
 	AssertCheckableRedundancyGroup(childHostC, 1, 1, 1);
 	AssertCheckableRedundancyGroup(childHostD, 1, 1, 1);
 	BOOST_CHECK_EQUAL(2, DependencyGroup::GetRegistrySize());
 
-	DependencyGroup::Unregister(depCB);
-	DependencyGroup::Unregister(depDA);
+	childHostC->RemoveDependency(depCB);
+	childHostD->RemoveDependency(depDA);
 	AssertCheckableRedundancyGroup(childHostC, 0, 0, 0);
 	AssertCheckableRedundancyGroup(childHostD, 0, 0, 0);
 	BOOST_CHECK_EQUAL(0, DependencyGroup::GetRegistrySize());
@@ -248,6 +301,7 @@ BOOST_AUTO_TEST_CASE(mixed_redundancy_group_registration_unregsitration)
 	Dependency::Ptr depDA(CreateDependency(depCA->GetParent(), childHostD, "depDA"));
 	RegisterDependency(depDA, "redundant");
 	AssertCheckableRedundancyGroup(childHostD, 1, 1, 2);
+	BOOST_TEST(childHostC->GetDependencyGroups() == childHostD->GetDependencyGroups(), boost::test_tools::per_element());
 	BOOST_CHECK_EQUAL(1, DependencyGroup::GetRegistrySize());
 
 	Dependency::Ptr depCB(CreateDependency(CreateHost("B"), childHostC, "depCB"));
@@ -260,6 +314,7 @@ BOOST_AUTO_TEST_CASE(mixed_redundancy_group_registration_unregsitration)
 	RegisterDependency(depDB, "redundant");
 	AssertCheckableRedundancyGroup(childHostC, 2, 1, 4);
 	AssertCheckableRedundancyGroup(childHostD, 2, 1, 4);
+	BOOST_TEST(childHostC->GetDependencyGroups() == childHostD->GetDependencyGroups(), boost::test_tools::per_element());
 	BOOST_CHECK_EQUAL(1, DependencyGroup::GetRegistrySize());
 
 	Checkable::Ptr childHostE(CreateHost("childE"));
@@ -274,6 +329,8 @@ BOOST_AUTO_TEST_CASE(mixed_redundancy_group_registration_unregsitration)
 	AssertCheckableRedundancyGroup(childHostC, 2, 1, 6);
 	AssertCheckableRedundancyGroup(childHostD, 2, 1, 6);
 	AssertCheckableRedundancyGroup(childHostE, 2, 1, 6);
+	auto childHostCGroups(childHostC->GetDependencyGroups());
+	BOOST_TEST((childHostCGroups == childHostD->GetDependencyGroups() && childHostCGroups == childHostE->GetDependencyGroups()));
 	BOOST_CHECK_EQUAL(1, DependencyGroup::GetRegistrySize());
 
 	Dependency::Ptr depEZ(CreateDependency(CreateHost("Z"), childHostE, "depEZ"));
@@ -281,35 +338,40 @@ BOOST_AUTO_TEST_CASE(mixed_redundancy_group_registration_unregsitration)
 	// Child host E should have a new redundancy group with 3 members and the other two should still share the same group.
 	AssertCheckableRedundancyGroup(childHostC, 2, 1, 4);
 	AssertCheckableRedundancyGroup(childHostD, 2, 1, 4);
+	BOOST_TEST(childHostC->GetDependencyGroups() == childHostD->GetDependencyGroups(), boost::test_tools::per_element());
 	AssertCheckableRedundancyGroup(childHostE, 3, 1, 3);
 	BOOST_CHECK_EQUAL(2, DependencyGroup::GetRegistrySize());
 
-	DependencyGroup::Unregister(depEA);
+	childHostE->RemoveDependency(depEA);
 	AssertCheckableRedundancyGroup(childHostC, 2, 1, 4);
 	AssertCheckableRedundancyGroup(childHostD, 2, 1, 4);
+	BOOST_TEST(childHostC->GetDependencyGroups() == childHostD->GetDependencyGroups(), boost::test_tools::per_element());
 	AssertCheckableRedundancyGroup(childHostE, 2, 1, 2);
 	BOOST_CHECK_EQUAL(2, DependencyGroup::GetRegistrySize());
 
-	DependencyGroup::Register(depEA); // Re-register depEA and instead...
-	DependencyGroup::Unregister(depEZ); // ...unregister depEZ and check if all the hosts share the same group again.
+	RegisterDependency(depEA, depEA->GetRedundancyGroup()); // Re-register depEA and instead...
+	childHostE->RemoveDependency(depEZ); // ...unregister depEZ and check if all the hosts share the same group again.
 	// All 3 hosts share the same group again, and each host has 2 members, thus 6 members in total.
 	AssertCheckableRedundancyGroup(childHostC, 2, 1, 6);
 	AssertCheckableRedundancyGroup(childHostD, 2, 1, 6);
 	AssertCheckableRedundancyGroup(childHostE, 2, 1, 6);
+	childHostCGroups = childHostC->GetDependencyGroups();
+	BOOST_TEST((childHostCGroups == childHostD->GetDependencyGroups() && childHostCGroups == childHostE->GetDependencyGroups()));
 	BOOST_CHECK_EQUAL(1, DependencyGroup::GetRegistrySize());
 
-	DependencyGroup::Unregister(depCA);
-	DependencyGroup::Unregister(depDB);
-	DependencyGroup::Unregister(depEB);
+	childHostC->RemoveDependency(depCA);
+	childHostD->RemoveDependency(depDB);
+	childHostE->RemoveDependency(depEB);
+	// Child host C has now a separate group with only depCB as member, and child hosts D and E share the same group.
 	AssertCheckableRedundancyGroup(childHostC, 1, 1, 1);
 	AssertCheckableRedundancyGroup(childHostD, 1, 1, 2);
 	AssertCheckableRedundancyGroup(childHostE, 1, 1, 2);
-	// Child host C has now a separate group with only depCB as member, and child hosts D and E share the same group.
+	BOOST_TEST(childHostD->GetDependencyGroups() == childHostE->GetDependencyGroups(), boost::test_tools::per_element());
 	BOOST_CHECK_EQUAL(2, DependencyGroup::GetRegistrySize());
 
-	DependencyGroup::Unregister(depCB);
-	DependencyGroup::Unregister(depDA);
-	DependencyGroup::Unregister(depEA);
+	childHostC->RemoveDependency(depCB);
+	childHostD->RemoveDependency(depDA);
+	childHostE->RemoveDependency(depEA);
 	AssertCheckableRedundancyGroup(childHostC, 0, 0, 0);
 	AssertCheckableRedundancyGroup(childHostD, 0, 0, 0);
 	AssertCheckableRedundancyGroup(childHostE, 0, 0, 0);
