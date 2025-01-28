@@ -232,6 +232,7 @@ add_boost_test(base
     icinga_checkresult/service_flapping_notification
     icinga_checkresult/suppressed_notification
     icinga_dependencies/multi_parent
+    icinga_dependencies/push_dependency_groups_to_registry
     icinga_dependencies/default_redundancy_group_registration_unregistration
     icinga_dependencies/simple_redundancy_group_registration_unregistration
     icinga_dependencies/mixed_redundancy_group_registration_unregsitration
