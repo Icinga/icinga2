@@ -197,7 +197,7 @@ void Dependency::OnAllConfigLoaded()
 		// The reason for this inconsistency is simple, while Icinga DB doesn't need to know about every
 		// (un)registered dependencies on startup, we still need to track and notify it about each and every
 		// dependency change at runtime to keep the database consistent.
-		DependencyGroup::Register(this);
+		m_Child->AddDependency(this);
 		m_Parent->AddReverseDependency(this);
 	}
 }
@@ -210,14 +210,15 @@ void Dependency::Start(bool runtimeCreated)
 			previousGroups = m_Child->GetDependencyGroups();
 		}
 
-		DependencyGroup::Register(this);
+		// We need to directly refresh the global registry here only when the Checkable itself isn't created at runtime.
+		m_Child->AddDependency(this, m_Child->IsActive());
 		m_Parent->AddReverseDependency(this);
 
 		try {
 			DependencyCycleGraph graph;
 			AssertNoDependencyCycle(m_Parent, graph);
 		} catch (...) {
-			DependencyGroup::Unregister(this);
+			m_Child->RemoveDependency(this);
 			m_Parent->RemoveReverseDependency(this);
 			throw;
 		}
@@ -263,7 +264,7 @@ void Dependency::Stop(bool runtimeRemoved)
 		}
 	}
 
-	DependencyGroup::Unregister(this);
+	m_Child->RemoveDependency(this);
 	GetParent()->RemoveReverseDependency(this);
 
 	if (runtimeRemoved) {
