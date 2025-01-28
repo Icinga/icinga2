@@ -3,7 +3,6 @@
 #include "icinga/service.hpp"
 #include "icinga/dependency.hpp"
 #include "base/logger.hpp"
-#include <unordered_map>
 
 using namespace icinga;
 
@@ -15,22 +14,123 @@ using namespace icinga;
  */
 static constexpr int l_MaxDependencyRecursionLevel(256);
 
-void Checkable::AddDependencyGroup(const DependencyGroup::Ptr& dependencyGroup)
+/**
+ * Register all the dependency groups of the current Checkable to the global dependency group registry.
+ *
+ * Initially, each Checkable object tracks locally its own dependency groups on Icinga 2 startup, and once the start
+ * signal of that Checkable is emitted, it pushes all the local tracked dependency groups to the global registry.
+ * Once the global registry is populated with all the local dependency groups, this Checkable may not necessarily
+ * contain the exact same dependency groups as it did before, as identical groups are merged together in the registry,
+ * but it's guaranteed to have the same *number* of dependency groups as before.
+ */
+void Checkable::PushDependencyGroupsToRegistry()
 {
-	std::unique_lock lock(m_DependencyMutex);
-	m_DependencyGroups.insert(dependencyGroup);
-}
+	std::lock_guard lock(m_DependencyMutex);
+	if (!m_DependencyGroupsPushedToRegistry) {
+		m_DependencyGroupsPushedToRegistry = true;
 
-void Checkable::RemoveDependencyGroup(const DependencyGroup::Ptr& dependencyGroup)
-{
-	std::unique_lock lock(m_DependencyMutex);
-	m_DependencyGroups.erase(dependencyGroup);
+		decltype(m_DependencyGroups) dependencyGroups;
+		m_DependencyGroups.swap(dependencyGroups);
+
+		for (auto& dependencyGroup : dependencyGroups) {
+			m_DependencyGroups.emplace(DependencyGroup::Register(dependencyGroup));
+		}
+	}
 }
 
 std::vector<DependencyGroup::Ptr> Checkable::GetDependencyGroups() const
 {
 	std::lock_guard lock(m_DependencyMutex);
 	return {m_DependencyGroups.begin(), m_DependencyGroups.end()};
+}
+
+void Checkable::AddDependency(const Dependency::Ptr& dependency, bool refreshGlobalRegistry)
+{
+	std::lock_guard lock(m_DependencyMutex);
+	DependencyGroup::Ptr newGroup(new DependencyGroup(dependency->GetRedundancyGroup(), dependency));
+	if (auto it(m_DependencyGroups.find(newGroup)); it == m_DependencyGroups.end()) {
+		m_DependencyGroups.emplace(refreshGlobalRegistry ? DependencyGroup::Register(newGroup) : newGroup);
+	} else if (!refreshGlobalRegistry) {
+		// If we're not going to refresh the global registry, we just need to add the dependency to the existing group.
+		// Meaning, the dependency group itself isn't registered globally yet, so we don't need to re-register it.
+		(*it)->AddMember(dependency);
+	} else {
+		if (auto existingGroup(*it); existingGroup->HasIdenticalMember(dependency)) {
+			// There's already an identical member in the group and this is likely an exact duplicate of it,
+			// so it won't change the identity of the group after registration, i.e. regardless whether we're
+			// supposed to refresh the global registry or not it's identity will remain the same.
+			existingGroup->AddMember(dependency);
+		} else {
+			// We're going to either replace the existing group with "newGroup" or merge the two groups together.
+			// Either way, it's identity will change, so we need to decouple it from the current Checkable.
+			m_DependencyGroups.erase(it);
+
+			// We need to unregister the existing group from the global registry if we're the only member of it,
+			// as it's hash might change after adding the new dependency to it down below, and we want to re-register
+			// it afterwards. This way, we'll also be able to eliminate the possibility of having two identical groups
+			// in the registry that might occur due to the registration of the new dependency object below.
+			if (DependencyGroup::Unregister(existingGroup, this)) {
+				// The current Checkable is the only member of the group, so nothing to move around, just
+				// add the _duplicate_ dependency to the existing group. Duplicate in the sense that it's
+				// not identical to any of the existing members but similar enough to be part of the same
+				// group, i.e. same parent, maybe different period, state filter, etc.
+				existingGroup->AddMember(dependency);
+				m_DependencyGroups.emplace(DependencyGroup::Register(existingGroup));
+			} else {
+				// Obviously, the current Checkable is not the only member of the existing group, and it's going to
+				// have more members than the other child Checkables in that group after adding the new dependency
+				// to it. So, we need to move all the members this Checkable depends on to newGroup and leave the
+				// existing group as-is, i.e. it's identity won't change afterwards.
+				for (auto& member : existingGroup->GetMembers(this)) {
+					existingGroup->RemoveMember(member);
+					newGroup->AddMember(member);
+				}
+				m_DependencyGroups.emplace(DependencyGroup::Register(newGroup));
+			}
+		}
+	}
+}
+
+void Checkable::RemoveDependency(const Dependency::Ptr& dependency)
+{
+	std::lock_guard lock(m_DependencyMutex);
+	DependencyGroup::Ptr newGroup(new DependencyGroup(dependency->GetRedundancyGroup(), dependency));
+	if (auto it(m_DependencyGroups.find(newGroup)); it != m_DependencyGroups.end()) {
+		// Obviously, this method is concerned with removing a dependency from the current Checkable, but we've
+		// initiated a new group with the _to be removed_ dependency in it mainly to perform lookups in the set.
+		// Now, that we've found the existing group it's member of, we need to remove the dependency from it first.
+		newGroup->RemoveMember(dependency);
+
+		auto existingGroup(*it);
+		// We're going to either replace or re-register the existing group down below, so we need to decouple it.
+		// However, only after we've created another reference to it (see existingGroup above), so that we don't
+		// get a dangling pointer to it in case this was the only reference to it.
+		m_DependencyGroups.erase(it);
+
+		// This is a very similar case to the one in AddDependency, but we're going to remove the dependency
+		// from the group instead of adding it. Therefore, most of the reasoning given there apply here as well.
+		if (DependencyGroup::Unregister(existingGroup, this)) {
+			existingGroup->RemoveMember(dependency);
+			newGroup = existingGroup;
+		} else {
+			// The current Checkable is not the only member of the existing group, and it's going to have
+			// (more or less) fewer members than the other child Checkables within that group after unregistering the
+			// dependency from it. Meaning, in case the current Checkable have more than one identical dependency in
+			// the group, it'll end up having the very same dependency group as before, but with one less member.
+			// However, instead of determining such edge cases manually, we're taking the easy way out, i.e. just move
+			// all the members (except the one to be removed) to newGroup and re-register it in the global registry.
+			for (auto& member : existingGroup->GetMembers(this)) {
+				existingGroup->RemoveMember(member);
+				if (member != dependency) {
+					newGroup->AddMember(member);
+				}
+			}
+		}
+
+		if (newGroup->HasMembers()) {
+			m_DependencyGroups.emplace(DependencyGroup::Register(newGroup));
+		}
+	}
 }
 
 std::vector<Dependency::Ptr> Checkable::GetDependencies() const
@@ -216,4 +316,46 @@ void Checkable::GetAllChildrenInternal(std::set<Checkable::Ptr>& children, int l
 	}
 
 	children.insert(localChildren.begin(), localChildren.end());
+}
+
+/**
+ * Generate the hash of the provided dependency group.
+ *
+ * Note, the resulted hash is used to uniquely identify the dependency group on a per Checkable basis and not globally.
+ * Therefore, for redundancy groups, the hash is generated based on the group name, for non-redundant groups, on the
+ * parent Checkable name of its members.
+ *
+ * @param dependencyGroup The dependency group to generate the hash for.
+ *
+ * @return size_t - Returns the hash of the provided dependency group.
+ */
+size_t Checkable::HashDependencyGroup::operator()(const DependencyGroup::Ptr& dependencyGroup) const
+{
+	return std::hash<String>()(
+		dependencyGroup->IsRedundancyGroup() ? dependencyGroup->GetName() : dependencyGroup->PeekParentCheckableName()
+	);
+}
+
+/**
+ * Check the equality of the provided dependency groups.
+ *
+ * Please note that the equality check is based on criteria that uniquely identify the dependency group
+ * within a given Checkable only and aren't meant to be used globally.
+ *
+ * @param lhs The left-hand side dependency group to compare.
+ * @param rhs The right-hand side dependency group to compare.
+ *
+ * @return bool - Returns true if the provided dependency groups turned to be equal, otherwise false.
+ */
+bool Checkable::EqualDependencyGroups::operator()(const DependencyGroup::Ptr& lhs, const DependencyGroup::Ptr& rhs) const
+{
+	if (lhs->IsRedundancyGroup() != rhs->IsRedundancyGroup()) {
+		return false;
+	}
+
+	if (lhs->IsRedundancyGroup()) {
+		return lhs->GetName() == rhs->GetName();
+	}
+
+	return lhs->PeekParentCheckableName() == rhs->PeekParentCheckableName();
 }

@@ -185,9 +185,10 @@ public:
 	bool IsFlapping() const;
 
 	/* Dependencies */
-	void AddDependencyGroup(const intrusive_ptr<DependencyGroup>& dependencyGroup);
-	void RemoveDependencyGroup(const intrusive_ptr<DependencyGroup>& dependencyGroup);
+	void PushDependencyGroupsToRegistry();
 	std::vector<intrusive_ptr<DependencyGroup>> GetDependencyGroups() const;
+	void AddDependency(const intrusive_ptr<Dependency>& dependency, bool refreshGlobalRegistry = false);
+	void RemoveDependency(const intrusive_ptr<Dependency>& dependency);
 	std::vector<intrusive_ptr<Dependency> > GetDependencies() const;
 	bool HasAnyDependencies() const;
 
@@ -247,9 +248,20 @@ private:
 	std::set<Notification::Ptr> m_Notifications;
 	mutable std::mutex m_NotificationMutex;
 
+	struct HashDependencyGroup
+	{
+		size_t operator()(const intrusive_ptr<DependencyGroup>& dependencyGroup) const;
+	};
+
+	struct EqualDependencyGroups
+	{
+		bool operator()(const intrusive_ptr<DependencyGroup>& lhs, const intrusive_ptr<DependencyGroup>& rhs) const;
+	};
+
 	/* Dependencies */
 	mutable std::mutex m_DependencyMutex;
-	std::set<intrusive_ptr<DependencyGroup>> m_DependencyGroups;
+	bool m_DependencyGroupsPushedToRegistry{false};
+	std::unordered_set<intrusive_ptr<DependencyGroup>, HashDependencyGroup, EqualDependencyGroups> m_DependencyGroups;
 	std::set<intrusive_ptr<Dependency> > m_ReverseDependencies;
 
 	void GetAllChildrenInternal(std::set<Checkable::Ptr>& children, int level = 0) const;
