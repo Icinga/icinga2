@@ -9,10 +9,13 @@ using namespace icinga;
 
 BOOST_AUTO_TEST_SUITE(icinga_dependencies)
 
-static Host::Ptr CreateHost(const std::string& name)
+static Host::Ptr CreateHost(const std::string& name, bool pushDependencyGroupsToRegistry = true)
 {
 	Host::Ptr host = new Host();
 	host->SetName(name);
+	if (pushDependencyGroupsToRegistry) {
+		host->PushDependencyGroupsToRegistry();
+	}
 	return host;
 }
 
@@ -153,6 +156,53 @@ BOOST_AUTO_TEST_CASE(multi_parent)
 	parentHost2->SetStateRaw(ServiceCritical); // parent Host 2 DOWN
 
 	BOOST_CHECK(childHost->IsReachable() == false);
+}
+
+BOOST_AUTO_TEST_CASE(push_dependency_groups_to_registry)
+{
+	Checkable::Ptr childHostC(CreateHost("C", false));
+	Checkable::Ptr childHostD(CreateHost("D", false));
+	std::set<Dependency::Ptr> dependencies; // Keep track of all dependencies to avoid unexpected deletions.
+	for (auto& parent : {String("A"), String("B"), String("E")}) {
+		Dependency::Ptr depC(CreateDependency(CreateHost(parent), childHostC, "depC" + parent));
+		Dependency::Ptr depD(CreateDependency(depC->GetParent(), childHostD, "depD" + parent));
+		if (parent == "A") {
+			Dependency::Ptr depCA2(CreateDependency(depC->GetParent(), childHostC, "depCA2"));
+			childHostC->AddDependency(depCA2);
+			dependencies.emplace(depCA2);
+		} else {
+			depC->SetRedundancyGroup("redundant", true);
+			depD->SetRedundancyGroup("redundant", true);
+
+			if (parent == "B") { // Create an exact duplicate of depC, but with a different name.
+				Dependency::Ptr depCB2(CreateDependency(depC->GetParent(), childHostC, "depCB2"));
+				depCB2->SetRedundancyGroup("redundant", true);
+				childHostC->AddDependency(depCB2);
+				dependencies.emplace(depCB2);
+			}
+		}
+		childHostC->AddDependency(depC);
+		childHostD->AddDependency(depD);
+		dependencies.insert({depC, depD});
+	}
+
+	childHostC->PushDependencyGroupsToRegistry();
+	childHostD->PushDependencyGroupsToRegistry();
+
+	BOOST_TEST(ExtractGroups(childHostC) == ExtractGroups(childHostD), boost::test_tools::per_element());
+	BOOST_CHECK_EQUAL(2, DependencyGroup::GetRegistrySize());
+	for (auto& checkable : {childHostC, childHostD}) {
+		BOOST_CHECK_EQUAL(2, checkable->GetDependencyGroups().size());
+		for (auto& dependencyGroup : checkable->GetDependencyGroups()) {
+			if (dependencyGroup->IsRedundancyGroup()) {
+				BOOST_CHECK_EQUAL(5, dependencyGroup->GetDependenciesCount());
+				BOOST_CHECK_EQUAL(checkable == childHostC ? 5 : 3, checkable->GetDependencies().size());
+			} else {
+				BOOST_CHECK_EQUAL(3, dependencyGroup->GetDependenciesCount());
+				BOOST_CHECK_EQUAL(checkable == childHostC ? 5 : 3, checkable->GetDependencies().size());
+			}
+		}
+	}
 }
 
 BOOST_AUTO_TEST_CASE(default_redundancy_group_registration_unregistration)
