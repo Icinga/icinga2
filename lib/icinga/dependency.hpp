@@ -190,7 +190,7 @@ public:
 
 	State GetState(DependencyType dt = DependencyState, int rstack = 0) const;
 
-	static boost::signals2::signal<void (const Dependency::Ptr&, const std::vector<DependencyGroup::Ptr>&)> OnMembersChanged;
+	static boost::signals2::signal<void(const DependencyGroup::Ptr&, const Dependency::Ptr&)> OnMembersChanged;
 
 private:
 	void MoveMembersTo(const DependencyGroup::Ptr& other);

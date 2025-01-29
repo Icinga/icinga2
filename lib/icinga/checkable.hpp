@@ -187,8 +187,8 @@ public:
 	/* Dependencies */
 	void PushDependencyGroupsToRegistry();
 	std::vector<intrusive_ptr<DependencyGroup>> GetDependencyGroups() const;
-	void AddDependency(const intrusive_ptr<Dependency>& dependency, bool refreshGlobalRegistry = false);
-	void RemoveDependency(const intrusive_ptr<Dependency>& dependency);
+	intrusive_ptr<DependencyGroup> AddDependency(const intrusive_ptr<Dependency>& dependency, bool refreshGlobalRegistry = false);
+	intrusive_ptr<DependencyGroup> RemoveDependency(const intrusive_ptr<Dependency>& dependency);
 	std::vector<intrusive_ptr<Dependency> > GetDependencies() const;
 	bool HasAnyDependencies() const;
 

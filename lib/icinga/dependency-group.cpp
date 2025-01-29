@@ -6,7 +6,7 @@
 
 using namespace icinga;
 
-boost::signals2::signal<void (const Dependency::Ptr&, const std::vector<DependencyGroup::Ptr>&)> DependencyGroup::OnMembersChanged;
+boost::signals2::signal<void(const DependencyGroup::Ptr&, const Dependency::Ptr&)> DependencyGroup::OnMembersChanged;
 
 std::mutex DependencyGroup::m_RegistryMutex;
 DependencyGroup::RegistryType DependencyGroup::m_Registry;
