@@ -385,8 +385,8 @@ size_t Checkable::HashDependencyGroup::operator()(const DependencyGroup::Ptr& de
 bool Checkable::EqualDependencyGroups::operator()(const DependencyGroup::Ptr& lhs, const DependencyGroup::Ptr& rhs) const
 {
 	if (lhs->IsRedundancyGroup() != rhs->IsRedundancyGroup()) {
-        return false;
-    }
+		return false;
+	}
 
 	if (lhs->IsRedundancyGroup()) {
 		return lhs->GetName() == rhs->GetName();
