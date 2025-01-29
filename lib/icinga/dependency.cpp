@@ -205,13 +205,7 @@ void Dependency::OnAllConfigLoaded()
 void Dependency::Start(bool runtimeCreated)
 {
 	if (runtimeCreated) {
-		std::vector<DependencyGroup::Ptr> previousGroups;
-		if (!GetRedundancyGroup().IsEmpty()) {
-			previousGroups = m_Child->GetDependencyGroups();
-		}
-
-		// We need to directly refresh the global registry here only when the Checkable itself isn't created at runtime.
-		m_Child->AddDependency(this, m_Child->IsActive());
+		auto modifiedGroup(m_Child->AddDependency(this));
 		m_Parent->AddReverseDependency(this);
 
 		try {
@@ -227,18 +221,7 @@ void Dependency::Start(bool runtimeCreated)
 		// isn't active yet, it means that the Checkable is also created at runtime, and we don't need
 		// to notify Icinga DB, as the Checkable's OnVersionChanged signal will do that for us.
 		if (m_Child->IsActive()) {
-			std::vector<DependencyGroup::Ptr> outdatedGroups;
-			if (!previousGroups.empty()) {
-				auto newGroups(m_Child->GetDependencyGroups());
-				std::set_difference(
-					previousGroups.begin(),
-					previousGroups.end(),
-					newGroups.begin(),
-					newGroups.end(),
-					std::back_inserter(outdatedGroups)
-				);
-			}
-			DependencyGroup::OnMembersChanged(this, outdatedGroups);
+			DependencyGroup::OnMembersChanged(modifiedGroup, this);
 		}
 	}
 
@@ -249,36 +232,11 @@ void Dependency::Stop(bool runtimeRemoved)
 {
 	ObjectImpl<Dependency>::Stop(runtimeRemoved);
 
-	std::vector<DependencyGroup::Ptr> previousGroups;
-	std::set<DependencyGroup::Ptr> outdatedGroups;
-	if (runtimeRemoved && !GetRedundancyGroup().IsEmpty()) {
-		previousGroups = m_Child->GetDependencyGroups();
-		// Find the dependency group that this dependency is a member of, and add it to the outdated groups list.
-		// Otherwise, once the dependency is unregistered, we won't be able to identify the group that this dependency
-		// was member of anymore.
-		for (auto& dependencyGroup : previousGroups) {
-			if (dependencyGroup->HasIdenticalMember(this)) {
-				outdatedGroups.emplace(dependencyGroup);
-				break;
-			}
-		}
-	}
-
-	m_Child->RemoveDependency(this);
+	auto modifiedGroup(m_Child->RemoveDependency(this));
 	GetParent()->RemoveReverseDependency(this);
 
 	if (runtimeRemoved) {
-		if (!previousGroups.empty()) {
-			auto newGroups(m_Child->GetDependencyGroups());
-			std::set_difference(
-				previousGroups.begin(),
-				previousGroups.end(),
-				newGroups.begin(),
-				newGroups.end(),
-				std::inserter(outdatedGroups, outdatedGroups.end())
-			);
-		}
-		DependencyGroup::OnMembersChanged(this, {outdatedGroups.begin(), outdatedGroups.end()});
+		DependencyGroup::OnMembersChanged(modifiedGroup, this);
 	}
 }
 

@@ -44,16 +44,31 @@ std::vector<DependencyGroup::Ptr> Checkable::GetDependencyGroups() const
 	return {m_DependencyGroups.begin(), m_DependencyGroups.end()};
 }
 
-void Checkable::AddDependency(const Dependency::Ptr& dependency, bool refreshGlobalRegistry)
+/**
+ * Add the provided dependency to the current Checkable list of dependencies.
+ *
+ * Returns an existing dependency group that has been modified due to the addition of the new dependency object.
+ * Meaning, either the dependency groups identity has changed after adding the new dependency to it, or the provided
+ * dependency caused the creation of a new dependency group and decoupling from of the existing one. In the latter case,
+ * the returned value is the previously existing group that the current Checkable was member of.
+ *
+ * @param dependency The dependency to add.
+ *
+ * @return DependencyGroup::Ptr The dependency group that has been modified.
+ */
+DependencyGroup::Ptr Checkable::AddDependency(const Dependency::Ptr& dependency)
 {
 	std::lock_guard lock(m_DependencyMutex);
 	DependencyGroup::Ptr newGroup(new DependencyGroup(dependency->GetRedundancyGroup(), dependency));
 	if (auto it(m_DependencyGroups.find(newGroup)); it == m_DependencyGroups.end()) {
-		m_DependencyGroups.emplace(refreshGlobalRegistry ? DependencyGroup::Register(newGroup) : newGroup);
-	} else if (!refreshGlobalRegistry) {
+		// If the current Checkable is already started (all local dependency groups are already pushed
+		// to the global registry), we need to directly forward newGroup to the global register.
+		m_DependencyGroups.emplace(m_DependencyGroupsPushedToRegistry ? DependencyGroup::Register(newGroup) : newGroup);
+	} else if (!m_DependencyGroupsPushedToRegistry) {
 		// If we're not going to refresh the global registry, we just need to add the dependency to the existing group.
 		// Meaning, the dependency group itself isn't registered globally yet, so we don't need to re-register it.
 		(*it)->AddMember(dependency);
+		return *it;
 	} else {
 		if (auto existingGroup(*it); existingGroup->HasIdenticalMember(dependency)) {
 			// There's already an identical member in the group and this is likely an exact duplicate of it,
@@ -87,11 +102,30 @@ void Checkable::AddDependency(const Dependency::Ptr& dependency, bool refreshGlo
 				}
 				m_DependencyGroups.emplace(DependencyGroup::Register(newGroup));
 			}
+
+			// In both of the above cases, the identity of the existing group is going to probably change,
+			// so we'll need to clean up all the database entries/relations referencing its old identity.
+			return existingGroup;
 		}
 	}
+
+	return nullptr;
 }
 
-void Checkable::RemoveDependency(const Dependency::Ptr& dependency)
+/**
+ * Remove the provided dependency from the current Checkable list of dependencies.
+ *
+ * Removing a dependency from the current Checkable almost always involves refreshing the global registry as well,
+ * regardless of whether it's a runtime deletion or not. However, it is a bit cheaper/easier operation compared to
+ * manually identifying and merging the dependency groups.
+ *
+ * Returns the dependency group the provided dependency object was member of / is removed from, otherwise nullptr.
+ *
+ * @param dependency The dependency to remove.
+ *
+ * @return DependencyGroup::Ptr The dependency group the provided dependency object was removed from.
+ */
+DependencyGroup::Ptr Checkable::RemoveDependency(const Dependency::Ptr& dependency)
 {
 	std::lock_guard lock(m_DependencyMutex);
 	DependencyGroup::Ptr newGroup(new DependencyGroup(dependency->GetRedundancyGroup(), dependency));
@@ -130,7 +164,10 @@ void Checkable::RemoveDependency(const Dependency::Ptr& dependency)
 		if (newGroup->HasMembers()) {
 			m_DependencyGroups.emplace(DependencyGroup::Register(newGroup));
 		}
+		return existingGroup;
 	}
+
+	return nullptr;
 }
 
 std::vector<Dependency::Ptr> Checkable::GetDependencies() const
