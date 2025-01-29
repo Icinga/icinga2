@@ -45,15 +45,18 @@ static void AssertCheckableRedundancyGroup(Checkable::Ptr checkable, int depende
 		"Dependency group count mismatch for '" << checkable->GetName() << "' - expected=" << groupCount
 			<< "; got=" << dependencyGroups.size()
 	);
-	if (groupCount > 0) {
-		BOOST_REQUIRE_MESSAGE(!dependencyGroups.empty(), "Checkable '" << checkable->GetName() << "' should have at least one redundancy group.");
-		auto dependencyGroup(dependencyGroups.front());
+
+	for (auto& dependencyGroup : dependencyGroups) {
 		BOOST_CHECK_MESSAGE(
 			memberCount == dependencyGroup->GetMemberCount(),
 			"Dependency group '" << dependencyGroup->GetName() << "' and Checkable '" << checkable->GetName()
 				<< "' member count mismatch - expected=" << memberCount << "; got="
 				<< dependencyGroup->GetMemberCount()
 		);
+	}
+
+	if (groupCount > 0) {
+		BOOST_REQUIRE_MESSAGE(!dependencyGroups.empty(), "Checkable '" << checkable->GetName() << "' should have at least one redundancy group.");
 	}
 }
 
@@ -230,7 +233,20 @@ BOOST_AUTO_TEST_CASE(default_redundancy_group_registration_unregistration)
 	for (auto& dependency : {depCA2, depCA3, depCA4}) {
 		bool isAnExactDuplicate = dependency == depCA2;
 		RegisterDependency(dependency, "");
-		AssertCheckableRedundancyGroup(childHostD, 2, 2, 2);
+
+		if (isAnExactDuplicate) {
+			BOOST_TEST(childHostC->GetDependencyGroups() == childHostD->GetDependencyGroups(), boost::test_tools::per_element());
+		}
+
+		for (auto& dependencyGroup : childHostD->GetDependencyGroups()) {
+			if (dependencyGroup->PeekParentCheckableName() == depCA->GetParent()->GetName()) {
+				BOOST_CHECK_EQUAL(isAnExactDuplicate ? 3 : 1, dependencyGroup->GetMemberCount());
+			} else {
+				BOOST_CHECK_EQUAL(2, dependencyGroup->GetMemberCount());
+			}
+			BOOST_CHECK_EQUAL(2, childHostD->GetDependencies().size());
+		}
+
 		for (auto& dependencyGroup : childHostC->GetDependencyGroups()) {
 			if (dependencyGroup->PeekParentCheckableName() == depCA->GetParent()->GetName()) {
 				// If depCA2 is currently being processed, then the group should have 3 members, that's because
