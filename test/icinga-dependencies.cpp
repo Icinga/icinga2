@@ -13,6 +13,7 @@ static Host::Ptr CreateHost(const String& name)
 {
 	Host::Ptr host = new Host();
 	host->SetName(name);
+	host->SetActive(true, true);
 	return host;
 }
 
@@ -28,7 +29,7 @@ static Dependency::Ptr CreateDependency(Checkable::Ptr parent, Checkable::Ptr ch
 static void RegisterDependency(Dependency::Ptr dep, const String& redundancyGroup)
 {
 	dep->SetRedundancyGroup(redundancyGroup);
-	dep->GetChild()->AddDependency(dep, true);
+	dep->GetChild()->AddDependency(dep);
 	dep->GetParent()->AddReverseDependency(dep);
 }
 
