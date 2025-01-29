@@ -176,6 +176,24 @@ private:
 };
 
 /**
+ * Like AsioEvent, but additionally supports waiting for an event to be cleared
+ *
+ * @ingroup base
+ */
+class AsioSymmetricEvent
+{
+public:
+	AsioSymmetricEvent(boost::asio::io_context& io, bool init = false);
+
+	void Set();
+	void Clear();
+	void Wait(boost::asio::yield_context yc, bool desiredState = true);
+
+private:
+	AsioEvent m_IsTrue, m_IsFalse;
+};
+
+/**
  * I/O timeout emulator
  *
  * This class provides a workaround for Boost.ASIO's lack of built-in timeout support.
