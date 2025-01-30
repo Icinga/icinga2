@@ -93,7 +93,9 @@ static void InitSslContext(const Shared<boost::asio::ssl::context>::Ptr& context
 
 	flags |= SSL_OP_CIPHER_SERVER_PREFERENCE;
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#ifdef LIBRESSL_VERSION_NUMBER
+	flags |= SSL_OP_NO_CLIENT_RENEGOTIATION;
+#elif OPENSSL_VERSION_NUMBER < 0x10100000L
 	SSL_CTX_set_info_callback(sslContext, [](const SSL* ssl, int where, int) {
 		if (where & SSL_CB_HANDSHAKE_DONE) {
 			ssl->s3->flags |= SSL3_FLAGS_NO_RENEGOTIATE_CIPHERS;
