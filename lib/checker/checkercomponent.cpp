@@ -193,7 +193,7 @@ void CheckerComponent::CheckThreadProc()
 			if (nextCheck > 0) {
 				checkable->SetNextCheck(nextCheck);
 			} else {
-				Log(LogDebug, "CheckerComponent")
+				Log(LogInformation, "CheckerComponent")
 					<< "Checks for checkable '" << checkable->GetName() << "' are disabled. Rescheduling check.";
 
 				checkable->UpdateNextCheck();
