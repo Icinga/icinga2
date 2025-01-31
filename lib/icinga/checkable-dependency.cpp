@@ -314,7 +314,7 @@ size_t Checkable::GetAllChildrenCount() const
 
 std::set<Checkable::Ptr> Checkable::GetAllChildren() const
 {
-	std::set<Checkable::Ptr> children = GetChildren();
+	std::set<Checkable::Ptr> children;
 
 	GetAllChildrenInternal(children, 0);
 
@@ -327,10 +327,10 @@ std::set<Checkable::Ptr> Checkable::GetAllChildren() const
  * Note, this function performs a recursive call chain traversing all the children of the current Checkable
  * up to a certain limit (256). When that limit is reached, it will log a warning message and abort the operation.
  *
- * @param children - The set of children to be filled with all the children of the current Checkable.
+ * @param seenChildren - A container to store all the traversed children into.
  * @param level - The current level of recursion.
  */
-void Checkable::GetAllChildrenInternal(std::set<Checkable::Ptr>& children, int level) const
+void Checkable::GetAllChildrenInternal(std::set<Checkable::Ptr>& seenChildren, int level) const
 {
 	if (level > l_MaxDependencyRecursionLevel) {
 		Log(LogWarning, "Checkable")
@@ -338,20 +338,12 @@ void Checkable::GetAllChildrenInternal(std::set<Checkable::Ptr>& children, int l
 		return ;
 	}
 
-	std::set<Checkable::Ptr> localChildren;
-
-	for (const Checkable::Ptr& checkable : children) {
-		if (auto cChildren(checkable->GetChildren()); !cChildren.empty()) {
-			GetAllChildrenInternal(cChildren, level + 1);
-			localChildren.insert(cChildren.begin(), cChildren.end());
-		}
-
-		if (level != 0) { // Recursion level 0 is the initiator, so checkable is already in the set.
-			localChildren.insert(checkable);
+	for (const Checkable::Ptr& checkable : GetChildren()) {
+		if (seenChildren.find(checkable) == seenChildren.end()) {
+			seenChildren.emplace(checkable);
+			checkable->GetAllChildrenInternal(seenChildren, level + 1);
 		}
 	}
-
-	children.insert(localChildren.begin(), localChildren.end());
 }
 
 /**
