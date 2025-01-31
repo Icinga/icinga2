@@ -57,6 +57,7 @@ enum FlappingStateFilter
 class CheckCommand;
 class EventCommand;
 class Dependency;
+class DependencyGroup;
 
 /**
  * An Icinga service.
@@ -77,10 +78,12 @@ public:
 	std::set<Checkable::Ptr> GetParents() const;
 	std::set<Checkable::Ptr> GetChildren() const;
 	std::set<Checkable::Ptr> GetAllChildren() const;
+	size_t GetAllChildrenCount() const;
 
 	void AddGroup(const String& name);
 
-	bool IsReachable(DependencyType dt = DependencyState, intrusive_ptr<Dependency> *failedDependency = nullptr, int rstack = 0) const;
+	bool IsReachable(DependencyType dt = DependencyState, int rstack = 0) const;
+	bool AffectsChildren() const;
 
 	AcknowledgementType GetAcknowledgement();
 
@@ -182,9 +185,12 @@ public:
 	bool IsFlapping() const;
 
 	/* Dependencies */
-	void AddDependency(const intrusive_ptr<Dependency>& dep);
-	void RemoveDependency(const intrusive_ptr<Dependency>& dep);
+	void PushDependencyGroupsToRegistry();
+	std::vector<intrusive_ptr<DependencyGroup>> GetDependencyGroups() const;
+	intrusive_ptr<DependencyGroup> AddDependency(const intrusive_ptr<Dependency>& dependency);
+	intrusive_ptr<DependencyGroup> RemoveDependency(const intrusive_ptr<Dependency>& dependency);
 	std::vector<intrusive_ptr<Dependency> > GetDependencies() const;
+	bool HasAnyDependencies() const;
 
 	void AddReverseDependency(const intrusive_ptr<Dependency>& dep);
 	void RemoveReverseDependency(const intrusive_ptr<Dependency>& dep);
@@ -242,12 +248,22 @@ private:
 	std::set<Notification::Ptr> m_Notifications;
 	mutable std::mutex m_NotificationMutex;
 
+	struct HashDependencyGroup
+	{
+		size_t operator()(const intrusive_ptr<DependencyGroup>& dependencyGroup) const;
+	};
+
+	struct EqualDependencyGroups
+	{
+		bool operator()(const intrusive_ptr<DependencyGroup>& lhs, const intrusive_ptr<DependencyGroup>& rhs) const;
+	};
+
 	/* Dependencies */
 	mutable std::mutex m_DependencyMutex;
-	std::set<intrusive_ptr<Dependency> > m_Dependencies;
+	std::unordered_set<intrusive_ptr<DependencyGroup>, HashDependencyGroup, EqualDependencyGroups> m_DependencyGroups;
 	std::set<intrusive_ptr<Dependency> > m_ReverseDependencies;
 
-	void GetAllChildrenInternal(std::set<Checkable::Ptr>& children, int level = 0) const;
+	void GetAllChildrenInternal(std::set<Checkable::Ptr>& seenChildren, int level = 0) const;
 
 	/* Flapping */
 	static const std::map<String, int> m_FlappingStateFilterMap;

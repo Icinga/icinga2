@@ -15,7 +15,7 @@ using namespace icinga;
 
 REGISTER_TYPE(Dependency);
 
-bool Dependency::m_AssertNoCyclesForIndividualDeps = false;
+bool Dependency::m_CyclicReferenceForAllDependenciesAsserted = false;
 
 struct DependencyCycleNode
 {
@@ -108,7 +108,7 @@ void Dependency::AssertNoCycles()
 		AssertNoDependencyCycle(service, graph);
 	}
 
-	m_AssertNoCyclesForIndividualDeps = true;
+	m_CyclicReferenceForAllDependenciesAsserted = true;
 }
 
 String DependencyNameComposer::MakeName(const String& shortName, const Object::Ptr& context) const
@@ -188,28 +188,56 @@ void Dependency::OnAllConfigLoaded()
 	if (!m_Parent)
 		BOOST_THROW_EXCEPTION(ScriptError("Dependency '" + GetName() + "' references a parent host/service which doesn't exist.", GetDebugInfo()));
 
-	m_Child->AddDependency(this);
-	m_Parent->AddReverseDependency(this);
+	if (!m_CyclicReferenceForAllDependenciesAsserted) {
+		// Yes, this is rather a hack and introduces an inconsistent behaviour between file-based and runtime created
+		// dependencies. Specifically, file-based dependencies will be registered in here and checked for cyclic
+		// references in the context of config loading and validation, i.e. before starting even a single object,
+		// while runtime created dependencies will be registered and checked for cycles within the Start() method.
+		//
+		// The reason for this inconsistency is simple, while Icinga DB doesn't need to know about every
+		// (un)registered dependencies on startup, we still need to track and notify it about each and every
+		// dependency change at runtime to keep the database consistent.
+		m_Child->AddDependency(this);
+		m_Parent->AddReverseDependency(this);
+	}
+}
 
-	if (m_AssertNoCyclesForIndividualDeps) {
-		DependencyCycleGraph graph;
+void Dependency::Start(bool runtimeCreated)
+{
+	if (runtimeCreated) {
+		auto modifiedGroup(m_Child->AddDependency(this));
+		m_Parent->AddReverseDependency(this);
 
 		try {
+			DependencyCycleGraph graph;
 			AssertNoDependencyCycle(m_Parent, graph);
 		} catch (...) {
 			m_Child->RemoveDependency(this);
 			m_Parent->RemoveReverseDependency(this);
 			throw;
 		}
+
+		// Dependencies get activated before their parent Checkable objects, so if the child Checkable
+		// isn't active yet, it means that the Checkable is also created at runtime, and we don't need
+		// to notify Icinga DB, as the Checkable's OnVersionChanged signal will do that for us.
+		if (m_Child->IsActive()) {
+			DependencyGroup::OnMembersChanged(modifiedGroup, this);
+		}
 	}
+
+	ObjectImpl::Start(runtimeCreated);
 }
 
 void Dependency::Stop(bool runtimeRemoved)
 {
 	ObjectImpl<Dependency>::Stop(runtimeRemoved);
 
-	GetChild()->RemoveDependency(this);
+	auto modifiedGroup(m_Child->RemoveDependency(this));
 	GetParent()->RemoveReverseDependency(this);
+
+	if (runtimeRemoved) {
+		DependencyGroup::OnMembersChanged(modifiedGroup, this);
+	}
 }
 
 bool Dependency::IsAvailable(DependencyType dt) const
