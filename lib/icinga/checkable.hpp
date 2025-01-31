@@ -264,7 +264,7 @@ private:
 	std::unordered_set<intrusive_ptr<DependencyGroup>, HashDependencyGroup, EqualDependencyGroups> m_DependencyGroups;
 	std::set<intrusive_ptr<Dependency> > m_ReverseDependencies;
 
-	void GetAllChildrenInternal(std::set<Checkable::Ptr>& children, int level = 0) const;
+	void GetAllChildrenInternal(std::set<Checkable::Ptr>& seenChildren, int level = 0) const;
 
 	/* Flapping */
 	static const std::map<String, int> m_FlappingStateFilterMap;
