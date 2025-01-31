@@ -152,7 +152,9 @@ BOOST_AUTO_TEST_CASE(multi_parent)
 BOOST_AUTO_TEST_CASE(push_dependency_groups_to_registry)
 {
 	Checkable::Ptr childHostC(CreateHost("C"));
+	childHostC->SetActive(false, true);
 	Checkable::Ptr childHostD(CreateHost("D"));
+	childHostD->SetActive(false, true);
 	std::set<Dependency::Ptr> dependencies; // Keep track of all dependencies to avoid unexpected deletions.
 	for (auto& parent : {String("A"), String("B"), String("E")}) {
 		Dependency::Ptr depC(CreateDependency(CreateHost(parent), childHostC, "depC" + parent));
