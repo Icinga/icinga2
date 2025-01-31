@@ -22,6 +22,7 @@ set(remote_SOURCES
   consolehandler.cpp consolehandler.hpp
   createobjecthandler.cpp createobjecthandler.hpp
   deleteobjecthandler.cpp deleteobjecthandler.hpp
+  dependencygrouphandler.cpp dependencygrouphandler.hpp
   endpoint.cpp endpoint.hpp endpoint-ti.hpp
   eventqueue.cpp eventqueue.hpp
   eventshandler.cpp eventshandler.hpp

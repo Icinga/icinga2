@@ -5,6 +5,8 @@
 
 using namespace icinga;
 
+REGISTER_FUNCTION(Internal, DependencyGroupsSerializer, &DependencyGroup::SerializeAll, "");
+
 boost::signals2::signal<void(const Checkable::Ptr&, const DependencyGroup::Ptr&)> DependencyGroup::OnChildRegistered;
 boost::signals2::signal<void(const DependencyGroup::Ptr&, const std::vector<Dependency::Ptr>&, bool)> DependencyGroup::OnChildRemoved;
 
@@ -346,4 +348,51 @@ DependencyGroup::State DependencyGroup::GetState(const Checkable* child, Depende
 		// unavailable here as well as only reachable parents count towards the number of available parents.
 		return {reachable == dependencies.size(), available == dependencies.size()};
 	}
+}
+
+/**
+ * Serialize all dependency groups to an array.
+ *
+ * @return Array::Ptr - Returns an array containing all serialized dependency groups.
+ */
+Array::Ptr DependencyGroup::SerializeAll()
+{
+	std::lock_guard lock(m_RegistryMutex);
+	Array::Ptr result(new Array());
+	for (auto& group : m_Registry) {
+		Array::Ptr members{new Array()};
+		for (auto& [compositeKey, dependencies] : group->m_Members) {
+			const TimePeriod::Ptr& tp(std::get<1>(compositeKey));
+			Dictionary::Ptr parent{new Dictionary{
+				{"parent_name", std::get<0>(compositeKey)->GetName()},
+				{"time_period", tp ? tp->GetName() : ""},
+				{"state_filter", std::get<2>(compositeKey)},
+				{"ignore_soft_states", std::get<3>(compositeKey)},
+			}};
+
+			Array::Ptr children{new Array()};
+			for (auto it(dependencies.begin()); it != dependencies.end(); /* no increment*/) {
+				auto [begin, end] = dependencies.equal_range(it->first);
+				Array::Ptr checkableDependencies{new Array()};
+				std::for_each(begin, end, [&checkableDependencies](const auto& pair) {
+					checkableDependencies->Add(pair.second->GetName());
+				});
+
+				children->Add(Dictionary::Ptr(new Dictionary{
+					{"name", it->first->GetName()},
+					{"dependencies", checkableDependencies}
+				}));
+				it = end;
+			}
+			parent->Set("children", children);
+			members->Add(parent);
+		}
+
+		result->Add(Dictionary::Ptr{new Dictionary{
+			{"name", group->GetRedundancyGroupName()},
+			{"is_redundancy_group", group->IsRedundancyGroup()},
+			{"members", members}
+		}});
+	}
+	return result;
 }
