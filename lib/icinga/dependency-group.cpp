@@ -6,6 +6,8 @@
 
 using namespace icinga;
 
+REGISTER_FUNCTION(Internal, DependencyGroupsSerializer, &DependencyGroup::SerializeAll, "");
+
 boost::signals2::signal<void(const DependencyGroup::Ptr&, const Dependency::Ptr&)> DependencyGroup::OnMembersChanged;
 
 std::mutex DependencyGroup::m_RegistryMutex;
@@ -355,4 +357,50 @@ DependencyGroup::State DependencyGroup::GetState(DependencyType dt, int rstack) 
 	}
 
 	return state;
+}
+
+/**
+ * Serialize all dependency groups to an array.
+ *
+ * @return Array::Ptr - Returns an array containing all serialized dependency groups.
+ */
+Array::Ptr DependencyGroup::SerializeAll()
+{
+	std::lock_guard lock(m_RegistryMutex);
+	Array::Ptr result(new Array());
+	for (auto& group : m_Registry) {
+		Array::Ptr members{new Array()};
+		for (auto& [compositeKey, dependencies] : group->m_Members) {
+			Dictionary::Ptr parent{new Dictionary{
+				{"parent_name", std::get<0>(compositeKey)},
+				{"time_period", std::get<1>(compositeKey)},
+				{"state_filter", std::get<2>(compositeKey)},
+				{"ignore_soft_states", std::get<3>(compositeKey)},
+			}};
+
+			Array::Ptr children{new Array()};
+			for (auto it(dependencies.begin()); it != dependencies.end(); /* no increment*/) {
+				auto [begin, end] = dependencies.equal_range(it->first);
+				Array::Ptr checkableDependencies{new Array()};
+				std::for_each(begin, end, [&checkableDependencies](const auto& pair) {
+					checkableDependencies->Add(pair.second->GetName());
+				});
+
+				children->Add(Dictionary::Ptr(new Dictionary{
+					{"name", it->first->GetName()},
+					{"dependencies", checkableDependencies}
+				}));
+				it = end;
+			}
+			parent->Set("children", children);
+			members->Add(parent);
+		}
+
+		result->Add(Dictionary::Ptr{new Dictionary{
+			{"name", group->GetName()},
+			{"is_redundancy_group", group->IsRedundancyGroup()},
+			{"members", members}
+		}});
+	}
+	return result;
 }
