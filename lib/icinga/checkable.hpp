@@ -249,7 +249,7 @@ private:
 	std::set<intrusive_ptr<Dependency> > m_Dependencies;
 	std::set<intrusive_ptr<Dependency> > m_ReverseDependencies;
 
-	void GetAllChildrenInternal(std::set<Checkable::Ptr>& children, int level = 0) const;
+	void GetAllChildrenInternal(std::set<Checkable::Ptr>& seenChildren, int level = 0) const;
 
 	/* Flapping */
 	static const std::map<String, int> m_FlappingStateFilterMap;
