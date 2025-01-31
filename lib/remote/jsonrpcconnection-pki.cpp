@@ -286,14 +286,6 @@ delayed_request:
 	Log(LogInformation, "JsonRpcConnection")
 		<< "Certificate request for CN '" << cn << "' is pending. Waiting for approval.";
 
-	if (origin) {
-		auto client (origin->FromClient);
-
-		if (client && !client->GetEndpoint()) {
-			client->Disconnect();
-		}
-	}
-
 	return result;
 }
 
