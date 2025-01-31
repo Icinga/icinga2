@@ -5,6 +5,7 @@
 #include "remote/consolehandler.hpp"
 #include "remote/url.hpp"
 #include "base/configwriter.hpp"
+#include "base/logger.hpp"
 #include "base/serializer.hpp"
 #include "base/json.hpp"
 #include "base/console.hpp"
@@ -31,6 +32,7 @@
 #include <boost/beast/http/write.hpp>
 #include <iostream>
 #include <fstream>
+#include <utility>
 
 
 #ifdef HAVE_EDITLINE
@@ -661,6 +663,15 @@ Value ConsoleCommand::ExecuteScript(const String& session, const String& command
 
 		if (resultInfo->Get("code") >= 200 && resultInfo->Get("code") <= 299) {
 			result = resultInfo->Get("result");
+
+			Array::Ptr logs (resultInfo->Get("logs"));
+			ObjectLock oLock (logs);
+
+			for (auto& entry : logs) {
+				Dictionary::Ptr dict (std::move(entry));
+
+				Log(LogEntry{dict->Get("timestamp"), (LogSeverity)(int)dict->Get("severity"), dict->Get("facility"), dict->Get("message")});
+			}
 		} else {
 			String errorMessage = resultInfo->Get("status");
 
