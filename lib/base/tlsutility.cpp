@@ -983,21 +983,27 @@ String BinaryToHex(const unsigned char* data, size_t length) {
 	return output;
 }
 
-bool VerifyCertificate(const std::shared_ptr<X509> &caCertificate, const std::shared_ptr<X509> &certificate, const String& crlFile)
+bool VerifyCertificate(
+	const std::shared_ptr<X509>& caCertificate, const std::shared_ptr<X509>& certificate, const String& crlFile,
+	X509_STORE* (*mockX509_STORE_new)(),
+	int (*mockX509_STORE_add_cert)(X509_STORE*, X509*),
+	X509_STORE_CTX* (*mockX509_STORE_CTX_new)(),
+	int (*mockX509_STORE_CTX_init)(X509_STORE_CTX*, X509_STORE*, X509*, STACK_OF(X509)*)
+)
 {
-	X509_STORE *store = X509_STORE_new();
+	X509_STORE *store = mockX509_STORE_new();
 
 	if (!store)
 		return false;
 
-	X509_STORE_add_cert(store, caCertificate.get());
+	mockX509_STORE_add_cert(store, caCertificate.get());
 
 	if (!crlFile.IsEmpty()) {
 		AddCRLToSSLContext(store, crlFile);
 	}
 
-	X509_STORE_CTX *csc = X509_STORE_CTX_new();
-	X509_STORE_CTX_init(csc, store, certificate.get(), nullptr);
+	X509_STORE_CTX *csc = mockX509_STORE_CTX_new();
+	mockX509_STORE_CTX_init(csc, store, certificate.get(), nullptr);
 
 	int rc = X509_verify_cert(csc);
 
