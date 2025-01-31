@@ -1,4 +1,8 @@
-# Migration from Icinga 1.x <a id="migration"></a>
+# Migration from Icinga 1.x or Nagios <a id="migration"></a>
+
+!!! note
+
+    Icinga 1.x was originally a fork of Nagios. The information provided here also applies to Nagios.
 
 ## Configuration Migration <a id="configuration-migration"></a>
 
