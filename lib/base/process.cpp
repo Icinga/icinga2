@@ -580,7 +580,7 @@ Process::Arguments Process::PrepareCommand(const Value& command)
 	}
 
 #ifdef _WIN32
-	return command;
+	return "powershell.exe -nop -c " + Utility::EscapeCreateProcessArg(command);
 #else /* _WIN32 */
 	return { "sh", "-c", command };
 #endif
