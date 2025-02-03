@@ -793,12 +793,12 @@ void ApiListener::NewClientHandlerInternal(
 				if (client->async_fill(yc[ec]) == 0u) {
 					if (identity.IsEmpty()) {
 						Log(LogInformation, "ApiListener")
-							<< "No data received on new API connection " << conninfo << ". "
-							<< "Ensure that the remote endpoints are properly configured in a cluster setup.";
+							<< "No data received on new API connection " << conninfo << ": " << ec.message()
+							<< ". Ensure that the remote endpoints are properly configured in a cluster setup.";
 					} else {
 						Log(LogWarning, "ApiListener")
-							<< "No data received on new API connection " << conninfo << " for identity '" << identity << "'. "
-							<< "Ensure that the remote endpoints are properly configured in a cluster setup.";
+							<< "No data received on new API connection " << conninfo << " for identity '" << identity << "': " << ec.message()
+							<< ". Ensure that the remote endpoints are properly configured in a cluster setup.";
 					}
 
 					return;
