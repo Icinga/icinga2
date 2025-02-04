@@ -207,11 +207,12 @@ add_boost_test(base
     icinga_perfdata/normalize
     icinga_perfdata/uom
     icinga_perfdata/warncritminmax
-    icinga_perfdata/ignore_invalid_warn_crit_min_max
+    icinga_perfdata/ignore_warn_crit_ranges
     icinga_perfdata/invalid
     icinga_perfdata/multi
     icinga_perfdata/scientificnotation
     icinga_perfdata/parse_edgecases
+    icinga_perfdata/empty_warn_crit_min_max
     methods_pluginnotificationtask/truncate_long_output
     remote_configpackageutility/ValidateName
     remote_url/id_and_path
