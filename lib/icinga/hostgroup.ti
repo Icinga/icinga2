@@ -19,7 +19,7 @@ class HostGroup : CustomVarObject
 		}}}
 	};
 
-	[config, no_user_modify] array(name(HostGroup)) groups;
+	[config, no_user_modify, parent_affecting_logging] array(name(HostGroup)) groups;
 	[config] String notes;
 	[config] String notes_url;
 	[config] String action_url;
