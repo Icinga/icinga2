@@ -7,6 +7,26 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.14.5 (2025-02-06)
+
+This release fixes a regression introduced in 2.14.4 that caused the `icinga2 node setup`,
+`icinga2 node wizard`, and `icinga2 pki request` commands to fail if a certificate was
+requested from a node that has to forward the request to another node for signing.
+Additionally, it fixes a small bug in the performance data normalization and includes
+various documentation improvements.
+
+### Bug Fixes
+
+* Don't close anonymous connections before sending the response for a certificate request #10337
+* Performance data: Don't discard min/max values even if crit/warn thresholds aren’t given #10339
+
+### Documentation
+
+* Document the -X option for the mail-host-notification and mail-service-notification commands #10335
+* Include Nagios in the migration docs #10324
+* Remove RHEL 7 from installation instructions #10334
+* Add instructions for installing build dependencies on Windows Server #10336
+
 ## 2.14.4 (2025-01-23)
 
 This bugfix release is focused on improving HA cluster stability and easing
