@@ -5,11 +5,11 @@
 
 #include "config/i2-config.hpp"
 #include "config/expression.hpp"
+#include "base/atomic.hpp"
 #include "base/debuginfo.hpp"
 #include "base/shared-object.hpp"
 #include "base/type.hpp"
 #include <unordered_map>
-#include <atomic>
 
 namespace icinga
 {
@@ -104,7 +104,7 @@ private:
 	bool m_IgnoreOnError;
 	DebugInfo m_DebugInfo;
 	Dictionary::Ptr m_Scope;
-	std::atomic<bool> m_HasMatches;
+	Atomic<bool> m_HasMatches;
 
 	static TypeMap m_Types;
 	static RuleMap m_Rules;
