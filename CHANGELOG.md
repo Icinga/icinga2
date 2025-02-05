@@ -32,6 +32,7 @@ various documentation improvements.
 
 * Don't close anonymous connections before sending the response for a certificate request #10337
 * Performance data: Don't discard min/max values even if crit/warn thresholds aren’t given #10339
+* Fix a failing test case on systems `time_t` is only 32 bits #10343
 
 ### Documentation
 
