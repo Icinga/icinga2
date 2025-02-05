@@ -183,8 +183,12 @@ BOOST_AUTO_TEST_CASE(FormatDateTime) {
 	//
 	// These are expected to result in an error due to the intermediate struct tm not being able to represent these
 	// timestamps, so localtime_r() returns EOVERFLOW which makes the implementation throw an exception.
-	BOOST_CHECK_THROW(Utility::FormatDateTime("%Y", std::nextafter(time_t_limit::min(), 0)), posix_error);
-	BOOST_CHECK_THROW(Utility::FormatDateTime("%Y", std::nextafter(time_t_limit::max(), 0)), posix_error);
+	if constexpr (sizeof(time_t) > sizeof(int32_t)) {
+		BOOST_CHECK_THROW(Utility::FormatDateTime("%Y", std::nextafter(time_t_limit::min(), 0)), posix_error);
+		BOOST_CHECK_THROW(Utility::FormatDateTime("%Y", std::nextafter(time_t_limit::max(), 0)), posix_error);
+	} else {
+		BOOST_WARN_MESSAGE(false, "skipping test for struct tm overflow due to 32 bit time_t");
+	}
 
 	// Excessive format strings can result in something too large for the buffer, errors out to the empty string.
 	// Note: both returning the proper result or throwing an exception would be fine too, unfortunately, that's
@@ -205,8 +209,16 @@ BOOST_AUTO_TEST_CASE(FormatDateTime) {
 	}
 
 	// Out of range timestamps.
-	BOOST_CHECK_THROW(Utility::FormatDateTime("%Y", std::nextafter(time_t_limit::min(), -double_limit::infinity())), negative_overflow);
-	BOOST_CHECK_THROW(Utility::FormatDateTime("%Y", std::nextafter(time_t_limit::max(), +double_limit::infinity())), positive_overflow);
+	//
+	// At the limits of a 64 bit time_t, doubles can no longer represent each integer value, so a simple x+1 or x-1 can
+	// have x as the result, hence std::nextafter() is used to get the next representable value. However, around the
+	// limits of a 32 bit time_t, doubles still can represent decimal places and less than 1 is added or subtracted by
+	// std::nextafter() and casting back to time_t simply results in the limit again, so std::ceil()/std::floor() is
+	// used to round it to the next integer value that is actually out of range.
+	double negative_out_of_range = std::floor(std::nextafter(time_t_limit::min(), -double_limit::infinity()));
+	double positive_out_of_range = std::ceil(std::nextafter(time_t_limit::max(), +double_limit::infinity()));
+	BOOST_CHECK_THROW(Utility::FormatDateTime("%Y", negative_out_of_range), negative_overflow);
+	BOOST_CHECK_THROW(Utility::FormatDateTime("%Y", positive_out_of_range), positive_overflow);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
