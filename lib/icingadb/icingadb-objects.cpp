@@ -1326,29 +1326,15 @@ void IcingaDB::UpdateState(const Checkable::Ptr& checkable, StateUpdate mode)
 		m_Rcon->FireAndForgetQuery(std::move(streamadd), Prio::RuntimeStateStream, {0, 1});
 	}
 
-	UpdateDependenciesState(checkable, mode);
+	UpdateDependenciesState(checkable);
 }
 
 /**
  * Send dependencies state information of the given Checkable to Redis.
  *
- * For explicitly configured redundancy groups, the state information is always sent to Redis, regardless of the
- * mode parameter. The mode parameter loosely controls how and which states are sent to Redis for non-redundant
- * dependencies. The value of that parameter can be one of the following:
- *  - Volatile: Check each dependency object of the specified Checkable for its configuration before sending
- *    the state update. For instance, if the dependency is configured to ignore soft state changes, its state
- *    should not be different from the previous ones and will therefore not be sent to Redis.
- *  - RuntimeOnly: Performs an additional check to the one above and ignores dependency objects that are not within
- *    their time period. Once the dependencies pass all the necessary checks, these two mods only send the state
- *    information to the icinga:runtime:state Redis stream via XADD.
- *  - Full: Perform a full state update ignoring all the above mentioned checks. Additionally, set the same
- *    state information that is streamed into the pipeline to the Redis keys icinga:{dependency:edge,redundancygroup}:state
- *    as well.
- *
  * @param checkable The Checkable you want to send the dependencies state update for
- * @param mode The type of operation you want to perform (Volatile, RuntimeOnly, or Full)
  */
-void IcingaDB::UpdateDependenciesState(const Checkable::Ptr& checkable, StateUpdate mode) const
+void IcingaDB::UpdateDependenciesState(const Checkable::Ptr& checkable) const
 {
 	if (!m_Rcon || !m_Rcon->IsConnected()) {
 		return;
@@ -1373,7 +1359,6 @@ void IcingaDB::UpdateDependenciesState(const Checkable::Ptr& checkable, StateUpd
 		streamStates.emplace_back(std::move(xAdd));
 	});
 
-	auto now(Utility::GetTime());
 	for (auto& dependencyGroup : dependencyGroups) {
 		bool isRedundancyGroup(dependencyGroup->IsRedundancyGroup());
 		if (isRedundancyGroup && dependencyGroup->GetIcingaDBIdentifier().IsEmpty()) {
@@ -1386,12 +1371,6 @@ void IcingaDB::UpdateDependenciesState(const Checkable::Ptr& checkable, StateUpd
 		auto members(dependencyGroup->GetMembers(checkable.get()));
 		for (auto it(members.begin()); it != members.end(); /* no increment */) {
 			auto dep(*it);
-			if (auto tp(dep->GetPeriod()); !isRedundancyGroup && mode != StateUpdate::Full && tp && !tp->IsInside(now)) {
-				// When the dependency is outside its time period, and we're not performing a full
-				// state update, we don't need to send any updates as it should always be reachable.
-				continue;
-			}
-
 			auto stateAttrs(SerializeDependencyEdgeState(dependencyGroup, dep));
 			// Find all members that share the same parent starting from the iterator position ("it" inclusively),
 			// and merge their relevant state information into a single one.

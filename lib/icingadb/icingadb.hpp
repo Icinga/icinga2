@@ -105,7 +105,7 @@ private:
 			std::vector<Dictionary::Ptr>* runtimeUpdates);
 	void InsertObjectDependencies(const ConfigObject::Ptr& object, const String typeName, std::map<String, std::vector<String>>& hMSets,
 			std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate);
-	void UpdateDependenciesState(const Checkable::Ptr& checkable, StateUpdate mode) const;
+	void UpdateDependenciesState(const Checkable::Ptr& checkable) const;
 	void UpdateState(const Checkable::Ptr& checkable, StateUpdate mode);
 	void SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpdate);
 	void CreateConfigUpdate(const ConfigObject::Ptr& object, const String type, std::map<String, std::vector<String>>& hMSets,
