@@ -148,9 +148,10 @@ public:
 	using MembersMap = std::map<CompositeKeyType, MemberValueType>;
 
 	DependencyGroup(String name, const Dependency::Ptr& member);
+	DependencyGroup(String name, const std::set<Dependency::Ptr>& dependencies);
 
-	static DependencyGroup::Ptr Register(const DependencyGroup::Ptr& dependencyGroup);
-	static bool Unregister(const DependencyGroup::Ptr& dependencyGroup, const Checkable::Ptr& child);
+	static DependencyGroup::Ptr Register(const std::set<Dependency::Ptr>& dependencies, const Checkable::Ptr& child);
+	static std::set<Dependency::Ptr> Unregister(const DependencyGroup::Ptr& dependencyGroup, const Checkable::Ptr& child);
 	static size_t GetRegistrySize();
 
 	static CompositeKeyType MakeCompositeKeyFor(const Dependency::Ptr& dependency);

@@ -59,57 +59,21 @@ std::vector<DependencyGroup::Ptr> Checkable::GetDependencyGroups() const
 DependencyGroup::Ptr Checkable::AddDependency(const Dependency::Ptr& dependency)
 {
 	std::lock_guard lock(m_DependencyMutex);
+
 	DependencyGroup::Ptr newGroup(new DependencyGroup(dependency->GetRedundancyGroup(), dependency));
-	if (auto it(m_DependencyGroups.find(newGroup)); it == m_DependencyGroups.end()) {
-		// If the current Checkable is already started (all local dependency groups are already pushed
-		// to the global registry), we need to directly forward newGroup to the global register.
-		m_DependencyGroups.emplace(m_DependencyGroupsPushedToRegistry ? DependencyGroup::Register(newGroup) : newGroup);
-	} else if (!m_DependencyGroupsPushedToRegistry) {
-		// If we're not going to refresh the global registry, we just need to add the dependency to the existing group.
-		// Meaning, the dependency group itself isn't registered globally yet, so we don't need to re-register it.
-		(*it)->AddMember(dependency);
-		return *it;
-	} else {
-		if (auto existingGroup(*it); existingGroup->HasIdenticalMember(dependency)) {
-			// There's already an identical member in the group and this is likely an exact duplicate of it,
-			// so it won't change the identity of the group after registration, i.e. regardless whether we're
-			// supposed to refresh the global registry or not it's identity will remain the same.
-			existingGroup->AddMember(dependency);
-		} else {
-			// We're going to either replace the existing group with "newGroup" or merge the two groups together.
-			// Either way, it's identity will change, so we need to decouple it from the current Checkable.
-			m_DependencyGroups.erase(it);
+	auto it = m_DependencyGroups.find(newGroup);
 
-			// We need to unregister the existing group from the global registry if we're the only member of it,
-			// as it's hash might change after adding the new dependency to it down below, and we want to re-register
-			// it afterwards. This way, we'll also be able to eliminate the possibility of having two identical groups
-			// in the registry that might occur due to the registration of the new dependency object below.
-			if (DependencyGroup::Unregister(existingGroup, this)) {
-				// The current Checkable is the only member of the group, so nothing to move around, just
-				// add the _duplicate_ dependency to the existing group. Duplicate in the sense that it's
-				// not identical to any of the existing members but similar enough to be part of the same
-				// group, i.e. same parent, maybe different period, state filter, etc.
-				existingGroup->AddMember(dependency);
-				m_DependencyGroups.emplace(DependencyGroup::Register(existingGroup));
-			} else {
-				// Obviously, the current Checkable is not the only member of the existing group, and it's going to
-				// have more members than the other child Checkables in that group after adding the new dependency
-				// to it. So, we need to move all the members this Checkable depends on to newGroup and leave the
-				// existing group as-is, i.e. it's identity won't change afterwards.
-				for (auto& member : existingGroup->GetMembers(this)) {
-					existingGroup->RemoveMember(member);
-					newGroup->AddMember(member);
-				}
-				m_DependencyGroups.emplace(DependencyGroup::Register(newGroup));
-			}
-
-			// In both of the above cases, the identity of the existing group is going to probably change,
-			// so we'll need to clean up all the database entries/relations referencing its old identity.
-			return existingGroup;
-		}
+	std::set<Dependency::Ptr> dependencies;
+	if (it != m_DependencyGroups.end()) {
+		dependencies = DependencyGroup::Unregister(*it, this);
+		m_DependencyGroups.erase(it);
 	}
 
-	return nullptr;
+	dependencies.insert(dependency);
+
+	newGroup = DependencyGroup::Register(dependencies, this);
+	m_DependencyGroups.insert(newGroup);
+	return newGroup;
 }
 
 /**
@@ -128,46 +92,25 @@ DependencyGroup::Ptr Checkable::AddDependency(const Dependency::Ptr& dependency)
 DependencyGroup::Ptr Checkable::RemoveDependency(const Dependency::Ptr& dependency)
 {
 	std::lock_guard lock(m_DependencyMutex);
+
 	DependencyGroup::Ptr newGroup(new DependencyGroup(dependency->GetRedundancyGroup(), dependency));
-	if (auto it(m_DependencyGroups.find(newGroup)); it != m_DependencyGroups.end()) {
-		// Obviously, this method is concerned with removing a dependency from the current Checkable, but we've
-		// initiated a new group with the _to be removed_ dependency in it mainly to perform lookups in the set.
-		// Now, that we've found the existing group it's member of, we need to remove the dependency from it first.
-		newGroup->RemoveMember(dependency);
+	auto it = m_DependencyGroups.find(newGroup);
 
-		auto existingGroup(*it);
-		// We're going to either replace or re-register the existing group down below, so we need to decouple it.
-		// However, only after we've created another reference to it (see existingGroup above), so that we don't
-		// get a dangling pointer to it in case this was the only reference to it.
+	std::set<Dependency::Ptr> dependencies;
+	if (it != m_DependencyGroups.end()) {
+		dependencies = DependencyGroup::Unregister(*it, this);
 		m_DependencyGroups.erase(it);
-
-		// This is a very similar case to the one in AddDependency, but we're going to remove the dependency
-		// from the group instead of adding it. Therefore, most of the reasoning given there apply here as well.
-		if (DependencyGroup::Unregister(existingGroup, this)) {
-			existingGroup->RemoveMember(dependency);
-			newGroup = existingGroup;
-		} else {
-			// The current Checkable is not the only member of the existing group, and it's going to have
-			// (more or less) fewer members than the other child Checkables within that group after unregistering the
-			// dependency from it. Meaning, in case the current Checkable have more than one identical dependency in
-			// the group, it'll end up having the very same dependency group as before, but with one less member.
-			// However, instead of determining such edge cases manually, we're taking the easy way out, i.e. just move
-			// all the members (except the one to be removed) to newGroup and re-register it in the global registry.
-			for (auto& member : existingGroup->GetMembers(this)) {
-				existingGroup->RemoveMember(member);
-				if (member != dependency) {
-					newGroup->AddMember(member);
-				}
-			}
-		}
-
-		if (newGroup->HasMembers()) {
-			m_DependencyGroups.emplace(DependencyGroup::Register(newGroup));
-		}
-		return existingGroup;
 	}
 
-	return nullptr;
+	dependencies.erase(dependency);
+
+	if (dependencies.empty()) {
+		return nullptr;
+	}
+
+	newGroup = DependencyGroup::Register(dependencies, this);
+	m_DependencyGroups.insert(newGroup);
+	return newGroup;
 }
 
 std::vector<Dependency::Ptr> Checkable::GetDependencies() const

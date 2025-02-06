@@ -16,8 +16,12 @@ DependencyGroup::RegistryType DependencyGroup::m_Registry;
  *
  * @param dependencyGroup The dependency group to register.
  */
-DependencyGroup::Ptr DependencyGroup::Register(const DependencyGroup::Ptr& dependencyGroup)
+DependencyGroup::Ptr DependencyGroup::Register(const std::set<Dependency::Ptr>& dependencies, const Checkable::Ptr& child)
 {
+	// assumption: all dependencies belong to same redundancy group
+	String rg = dependencies.empty() ? "" : (*dependencies.begin())->GetRedundancyGroup();
+	DependencyGroup::Ptr dependencyGroup = new DependencyGroup(rg, dependencies);
+
 	std::lock_guard lock(m_RegistryMutex);
 	if (auto [it, inserted] = m_Registry.insert(dependencyGroup); !inserted) {
 		dependencyGroup->MoveMembersTo(*it);
@@ -37,21 +41,22 @@ DependencyGroup::Ptr DependencyGroup::Register(const DependencyGroup::Ptr& depen
  *
  * @return bool - Returns true if the provided dependency group has been successfully unregistered.
  */
-bool DependencyGroup::Unregister(const DependencyGroup::Ptr& dependencyGroup, const Checkable::Ptr& child)
+std::set<Dependency::Ptr> DependencyGroup::Unregister(const DependencyGroup::Ptr& dependencyGroup, const Checkable::Ptr& child)
 {
 	std::lock_guard lock(m_RegistryMutex);
 	if (auto it(m_Registry.find(dependencyGroup)); it != m_Registry.end()) {
 		auto existingGroup(*it);
-		// Make sure to never unregister a dependency group that is still referenced by another Checkable.
-		// Meaning, if the total number of members in the group is equal to the number of members the child Checkable
-		// depend on, then that child is the only member of the group, and we can safely unregister the group.
-		// Otherwise, just ignore the unregister request!
-		if (auto members(existingGroup->GetMembers(child.get())); members.size() == existingGroup->GetMemberCount()) {
-			m_Registry.erase(it);
-			return true;
+		auto v = existingGroup->GetMembers(child.get());
+		for (const auto& dependency : v) {
+			existingGroup->RemoveMember(dependency);
 		}
+		if (!existingGroup->HasMembers()) {
+			m_Registry.erase(it);
+			// TODO: signal?
+		}
+		return {v.begin(), v.end()};
 	}
-	return false;
+	return {};
 }
 
 /**
@@ -69,6 +74,14 @@ DependencyGroup::DependencyGroup(String name, const Dependency::Ptr& dependency)
 {
 	AddMember(dependency);
 }
+
+DependencyGroup::DependencyGroup(String name, const std::set<Dependency::Ptr>& dependencies): m_Name(std::move(name))
+{
+	for (const auto& dependency : dependencies) {
+		AddMember(dependency);
+	}
+}
+
 
 /**
  * Create a composite key for the provided dependency.
