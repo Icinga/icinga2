@@ -25,17 +25,17 @@ static constexpr int l_MaxDependencyRecursionLevel(256);
  */
 void Checkable::PushDependencyGroupsToRegistry()
 {
-	std::lock_guard lock(m_DependencyMutex);
-	if (!m_DependencyGroupsPushedToRegistry) {
-		m_DependencyGroupsPushedToRegistry = true;
-
-		decltype(m_DependencyGroups) dependencyGroups;
-		m_DependencyGroups.swap(dependencyGroups);
-
-		for (auto& dependencyGroup : dependencyGroups) {
-			m_DependencyGroups.emplace(DependencyGroup::Register(dependencyGroup));
-		}
-	}
+	// std::lock_guard lock(m_DependencyMutex);
+	// if (!m_DependencyGroupsPushedToRegistry) {
+	// 	m_DependencyGroupsPushedToRegistry = true;
+	//
+	// 	decltype(m_DependencyGroups) dependencyGroups;
+	// 	m_DependencyGroups.swap(dependencyGroups);
+	//
+	// 	for (auto& dependencyGroup : dependencyGroups) {
+	// 		m_DependencyGroups.emplace(DependencyGroup::Register(dependencyGroup));
+	// 	}
+	// }
 }
 
 std::vector<DependencyGroup::Ptr> Checkable::GetDependencyGroups() const
