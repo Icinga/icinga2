@@ -9,7 +9,7 @@ namespace icinga
 
 class NotificationComponent : ConfigObject
 {
-	activation_priority 200;
+	activation_priority -25;
 
 	[config] bool enable_ha (EnableHA) {
 		default {{{ return true; }}}

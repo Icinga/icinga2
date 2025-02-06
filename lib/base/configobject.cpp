@@ -598,10 +598,10 @@ void ConfigObject::StopObjects()
 			continue;
 
 		for (const ConfigObject::Ptr& object : dtype->GetObjects()) {
-#ifdef I2_DEBUG
 			Log(LogDebug, "ConfigObject")
-				<< "Deactivate() called for config object '" << object->GetName() << "' with type '" << type->GetName() << "'.";
-#endif /* I2_DEBUG */
+				<< "Deactivate() called for config object '" << object->GetName()
+				<< "' with type '" << type->GetName()
+				<< "and priority " << type->GetActivationPriority() << "'.";
 			object->Deactivate();
 		}
 	}
