@@ -223,7 +223,6 @@ void Checkable::GetAllChildrenInternal(std::set<Checkable::Ptr>& seenChildren, i
 
 	for (const Checkable::Ptr& checkable : GetChildren()) {
 		if (auto [_, inserted] = seenChildren.insert(checkable); inserted) {
-			seenChildren.emplace(checkable);
 			checkable->GetAllChildrenInternal(seenChildren, level + 1);
 		}
 	}
