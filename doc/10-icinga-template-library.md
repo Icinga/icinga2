@@ -767,7 +767,6 @@ Custom variables passed as [command parameters](03-monitoring-basics.md#command-
 
 Name                             | Description
 ---------------------------------|---------------------------------
-curl_extra_opts                  | **Optional.** Read options from an ini file.
 curl_vhost                       | **Optional.** The virtual host that should be sent in the "Host" header.
 curl_ip							 | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
 curl_port                        | **Optional.** The TCP port. Defaults to 80 when not using SSL, 443 otherwise.
@@ -814,6 +813,7 @@ curl_cookie_jar_file             | **Optional.** Path to a cookie jar file. Stor
 curl_warning                     | **Optional.** The warning threshold.
 curl_critical 	                 | **Optional.** The critical threshold.
 curl_timeout                     | **Optional.** Seconds before connection times out.
+curl_extra_opts                  | **Optional.** Read options from an ini file.
 
 
 ### icmp <a id="plugin-check-command-icmp"></a>
