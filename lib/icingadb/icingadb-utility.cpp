@@ -159,6 +159,57 @@ Dictionary::Ptr IcingaDB::SerializeVars(const Dictionary::Ptr& vars)
 	return res;
 }
 
+/**
+ * Serialize a dependency edge state for Icinga DB
+ *
+ * @param dependencyGroup The state of the group the dependency is part of.
+ * @param dep The dependency object to serialize.
+ *
+ * @return A dictionary with the serialized state.
+ */
+Dictionary::Ptr IcingaDB::SerializeDependencyEdgeState(const DependencyGroup::Ptr& dependencyGroup, const Dependency::Ptr& dep)
+{
+	return new Dictionary{
+		{
+			"id", HashValue(
+				Array::Ptr(new Array{
+					dependencyGroup->IsRedundancyGroup()
+						? dependencyGroup->GetIcingaDBIdentifier()
+						: dependencyGroup->GetCompositeKey(),
+					GetObjectIdentifier(dep->GetParent()),
+				})
+			)
+		},
+		{"environment_id", m_EnvironmentId},
+		{"failed", !dep->IsAvailable(DependencyState) || !dep->GetParent()->IsReachable()}
+	};
+}
+
+/**
+ * Serialize the provided redundancy group or its state attributes.
+ *
+ * @param redundancyGroup The redundancy group object to serialize.
+ * @param serializeState Whether to serialize the state of the redundancy group.
+ *
+ * @return A dictionary with the serialized redundancy group.
+ */
+Dictionary::Ptr IcingaDB::SerializeRedundancyGroup(const DependencyGroup::Ptr& redundancyGroup, bool serializeState)
+{
+	if (serializeState) {
+		auto state(redundancyGroup->GetState());
+		return new Dictionary{
+			{"id", redundancyGroup->GetIcingaDBIdentifier()},
+			{"environment_id", m_EnvironmentId},
+			{"redundancy_group_id", redundancyGroup->GetIcingaDBIdentifier()},
+			{"failed", !(state & DependencyGroup::State::ReachableOK)},
+			{"is_reachable", !(state & DependencyGroup::State::Unreachable)},
+			{"last_state_change", TimestampToMilliseconds(Utility::GetTime())},
+		};
+	}
+
+	return new Dictionary{{"environment_id", m_EnvironmentId}, {"display_name", redundancyGroup->GetName()}};
+}
+
 const char* IcingaDB::GetNotificationTypeByEnum(NotificationType type)
 {
 	switch (type) {
