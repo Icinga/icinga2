@@ -1066,6 +1066,7 @@ nscp_warn       | **Optional.** The warning threshold.
 nscp_crit       | **Optional.** The critical threshold.
 nscp_timeout    | **Optional.** The query timeout in seconds.
 nscp_showall    | **Optional.** Use with SERVICESTATE to see working services or PROCSTATE for running processes. Defaults to false.
+nscp_extra_opts | **Optional.** Read extra plugin options from an ini file.
 
 
 ### ntp_time <a id="plugin-check-command-ntp-time"></a>
