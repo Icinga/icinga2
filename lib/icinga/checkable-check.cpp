@@ -533,7 +533,7 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 	}
 
 	/* update reachability for child objects */
-	if ((stateChange || hardChange) && !children.empty())
+	if ((stateChange || hardChange) && !children.empty() && (IsStateOK(new_state) || AffectsChildren()))
 		OnReachabilityChanged(this, cr, children, origin);
 
 	return Result::Ok;
