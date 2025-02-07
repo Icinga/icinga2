@@ -186,6 +186,7 @@ public:
 	bool IsFlapping() const;
 
 	/* Dependencies */
+	void PushDependencyGroupsToRegistry();
 	std::vector<intrusive_ptr<DependencyGroup>> GetDependencyGroups() const;
 	void AddDependency(const intrusive_ptr<Dependency>& dependency);
 	void RemoveDependency(const intrusive_ptr<Dependency>& dependency);
@@ -250,6 +251,7 @@ private:
 
 	/* Dependencies */
 	mutable std::mutex m_DependencyMutex;
+	bool m_DependencyGroupsPushedToRegistry{false};
 	std::map<std::variant<Checkable*, String>, intrusive_ptr<DependencyGroup>> m_DependencyGroups;
 	std::set<intrusive_ptr<Dependency> > m_ReverseDependencies;
 
