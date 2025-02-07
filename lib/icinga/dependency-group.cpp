@@ -5,6 +5,9 @@
 
 using namespace icinga;
 
+boost::signals2::signal<void(const Checkable::Ptr& child, const DependencyGroup::Ptr&)> DependencyGroup::OnChildRegistered;
+boost::signals2::signal<void(const DependencyGroup::Ptr&, const std::vector<Dependency::Ptr>&)> DependencyGroup::OnChildRemoved;
+
 std::mutex DependencyGroup::m_RegistryMutex;
 DependencyGroup::RegistryType DependencyGroup::m_Registry;
 

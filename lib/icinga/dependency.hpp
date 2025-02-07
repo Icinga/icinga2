@@ -164,6 +164,9 @@ public:
 
 	State GetState(DependencyType dt = DependencyState, int rstack = 0) const;
 
+	static boost::signals2::signal<void(const Checkable::Ptr&, const DependencyGroup::Ptr&)> OnChildRegistered;
+	static boost::signals2::signal<void(const DependencyGroup::Ptr&, const std::vector<Dependency::Ptr>&)> OnChildRemoved;
+
 private:
 	void MoveDependenciesTo(const DependencyGroup::Ptr& dest);
 
