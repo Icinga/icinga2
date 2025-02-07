@@ -259,7 +259,7 @@ void Dependency::Stop(bool runtimeRemoved)
 {
 	ObjectImpl<Dependency>::Stop(runtimeRemoved);
 
-	GetChild()->RemoveDependency(this);
+	GetChild()->RemoveDependency(this, runtimeRemoved);
 	GetParent()->RemoveReverseDependency(this);
 }
 
