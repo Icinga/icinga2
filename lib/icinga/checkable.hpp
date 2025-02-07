@@ -189,6 +189,7 @@ public:
 	void RemoveDependencyGroup(const intrusive_ptr<DependencyGroup>& dependencyGroup);
 	std::vector<intrusive_ptr<DependencyGroup>> GetDependencyGroups() const;
 	std::vector<intrusive_ptr<Dependency> > GetDependencies() const;
+	bool HasAnyDependencies() const;
 
 	void AddReverseDependency(const intrusive_ptr<Dependency>& dep);
 	void RemoveReverseDependency(const intrusive_ptr<Dependency>& dep);
