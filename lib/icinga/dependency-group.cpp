@@ -5,6 +5,9 @@
 
 using namespace icinga;
 
+boost::signals2::signal<void(const Checkable::Ptr&, const DependencyGroup::Ptr&)> DependencyGroup::OnChildRegistered;
+boost::signals2::signal<void(const DependencyGroup::Ptr&, const std::vector<Dependency::Ptr>&, bool)> DependencyGroup::OnChildRemoved;
+
 std::mutex DependencyGroup::m_RegistryMutex;
 DependencyGroup::RegistryType DependencyGroup::m_Registry;
 
@@ -36,15 +39,15 @@ DependencyGroup::Ptr DependencyGroup::Register(const DependencyGroup::Ptr& depen
  * @param dependencyGroup The dependency group to unregister the child Checkable from.
  * @param child The child Checkable to detach from the dependency group.
  *
- * @return - Returns the dependency objects of the child Checkable that were member of the provided dependency group.
+ * @return - Returns the dependency objects of the child Checkable that were member of the provided dependency group
+ *           and a boolean indicating whether the dependency group has been erased from the global registry.
  */
-std::set<Dependency::Ptr> DependencyGroup::Unregister(const DependencyGroup::Ptr& dependencyGroup, const Checkable::Ptr& child)
+std::pair<std::set<Dependency::Ptr>, bool> DependencyGroup::Unregister(const DependencyGroup::Ptr& dependencyGroup, const Checkable::Ptr& child)
 {
 	std::lock_guard lock(m_RegistryMutex);
-	std::vector<Dependency::Ptr> dependencies;
 	if (auto it(m_Registry.find(dependencyGroup)); it != m_Registry.end()) {
-		const auto& existingGroup(*it);
-		dependencies = existingGroup->GetDependenciesForChild(child.get());
+		auto existingGroup(*it);
+		auto dependencies(existingGroup->GetDependenciesForChild(child.get()));
 
 		for (const auto& dependency : dependencies) {
 			existingGroup->RemoveDependency(dependency);
@@ -53,8 +56,9 @@ std::set<Dependency::Ptr> DependencyGroup::Unregister(const DependencyGroup::Ptr
 		if (existingGroup->IsEmpty()) {
 			m_Registry.erase(it);
 		}
+		return {{dependencies.begin(), dependencies.end()}, existingGroup->IsEmpty()};
 	}
-	return {dependencies.begin(), dependencies.end()};
+	return {{}, false};
 }
 
 /**
