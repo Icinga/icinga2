@@ -44,6 +44,12 @@ std::vector<Dependency::Ptr> Checkable::GetDependencies() const
 	return dependencies;
 }
 
+bool Checkable::HasAnyDependencies() const
+{
+	std::unique_lock lock(m_DependencyMutex);
+	return !m_DependencyGroups.empty() || !m_ReverseDependencies.empty();
+}
+
 void Checkable::AddReverseDependency(const Dependency::Ptr& dep)
 {
 	std::unique_lock<std::mutex> lock(m_DependencyMutex);
