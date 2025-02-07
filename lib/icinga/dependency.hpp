@@ -136,7 +136,7 @@ public:
 	DependencyGroup(String name, const std::set<Dependency::Ptr>& dependencies);
 
 	static DependencyGroup::Ptr Register(const DependencyGroup::Ptr& dependencyGroup);
-	static std::set<Dependency::Ptr> Unregister(const DependencyGroup::Ptr& dependencyGroup, const Checkable::Ptr& child);
+	static std::pair<std::set<Dependency::Ptr>, bool> Unregister(const DependencyGroup::Ptr& dependencyGroup, const Checkable::Ptr& child);
 	static size_t GetRegistrySize();
 
 	static CompositeKeyType MakeCompositeKeyFor(const Dependency::Ptr& dependency);
@@ -170,6 +170,9 @@ public:
 	};
 
 	State GetState(DependencyType dt = DependencyState, int rstack = 0) const;
+
+	static boost::signals2::signal<void(const Checkable::Ptr&, const DependencyGroup::Ptr&)> OnChildRegistered;
+	static boost::signals2::signal<void(const DependencyGroup::Ptr&, const std::vector<Dependency::Ptr>&, bool)> OnChildRemoved;
 
 private:
 	void CopyDependenciesTo(const DependencyGroup::Ptr& dest);

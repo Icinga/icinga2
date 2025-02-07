@@ -75,7 +75,7 @@ static std::variant<Checkable*, String> GetDependencyGroupKey(const Dependency::
  */
 void Checkable::AddDependency(const Dependency::Ptr& dependency)
 {
-	std::lock_guard lock(m_DependencyMutex);
+	std::unique_lock lock(m_DependencyMutex);
 
 	auto dependencyGroupKey(GetDependencyGroupKey(dependency));
 	if (!m_DependencyGroupsPushedToRegistry) {
@@ -88,27 +88,38 @@ void Checkable::AddDependency(const Dependency::Ptr& dependency)
 	}
 
 	std::set<Dependency::Ptr> dependencies;
+	bool removeGroup(false);
+
+	DependencyGroup::Ptr existingGroup;
 	if (auto it(m_DependencyGroups.find(dependencyGroupKey)); it != m_DependencyGroups.end()) {
-		dependencies = DependencyGroup::Unregister(it->second, this);
+		existingGroup = it->second;
+		std::tie(dependencies, removeGroup) = DependencyGroup::Unregister(existingGroup, this);
 		m_DependencyGroups.erase(it);
 	}
 
 	dependencies.emplace(dependency);
 
-	m_DependencyGroups.emplace(
-		dependencyGroupKey,
-		DependencyGroup::Register(new DependencyGroup(dependency->GetRedundancyGroup(), dependencies))
-	);
+	auto dependencyGroup(DependencyGroup::Register(new DependencyGroup(dependency->GetRedundancyGroup(), dependencies)));
+	m_DependencyGroups.emplace(dependencyGroupKey, dependencyGroup);
+
+	lock.unlock();
+
+	if (existingGroup) {
+		dependencies.erase(dependency);
+		DependencyGroup::OnChildRemoved(existingGroup, {dependencies.begin(), dependencies.end()}, removeGroup);
+	}
+	DependencyGroup::OnChildRegistered(this, dependencyGroup);
 }
 
 /**
  * Remove the provided dependency from the current Checkable list of dependencies.
  *
  * @param dependency The dependency to remove.
+ * @param runtimeRemoved Whether the given dependency object is being removed at runtime.
  */
-void Checkable::RemoveDependency(const Dependency::Ptr& dependency)
+void Checkable::RemoveDependency(const Dependency::Ptr& dependency, bool runtimeRemoved)
 {
-	std::lock_guard lock(m_DependencyMutex);
+	std::unique_lock lock(m_DependencyMutex);
 
 	auto dependencyGroupKey(GetDependencyGroupKey(dependency));
 	auto it = m_DependencyGroups.find(dependencyGroupKey);
@@ -116,15 +127,27 @@ void Checkable::RemoveDependency(const Dependency::Ptr& dependency)
 		return;
 	}
 
-	std::set<Dependency::Ptr> dependencies(DependencyGroup::Unregister(it->second, this));
+	DependencyGroup::Ptr existingGroup(it->second);
+	auto [dependencies, removeGroup] = DependencyGroup::Unregister(existingGroup, this);
+
 	m_DependencyGroups.erase(it);
 	dependencies.erase(dependency);
 
+	DependencyGroup::Ptr newDependencyGroup;
 	if (!dependencies.empty()) {
-		m_DependencyGroups.emplace(
-			dependencyGroupKey,
-			DependencyGroup::Register(new DependencyGroup(dependency->GetRedundancyGroup(), dependencies))
-		);
+		newDependencyGroup = DependencyGroup::Register(new DependencyGroup(dependency->GetRedundancyGroup(), dependencies));
+		m_DependencyGroups.emplace(dependencyGroupKey, newDependencyGroup);
+	}
+
+	lock.unlock();
+
+	if (runtimeRemoved) {
+		dependencies.emplace(dependency);
+		DependencyGroup::OnChildRemoved(existingGroup, {dependencies.begin(), dependencies.end()}, removeGroup);
+
+		if (newDependencyGroup) {
+			DependencyGroup::OnChildRegistered(this, newDependencyGroup);
+		}
 	}
 }
 
