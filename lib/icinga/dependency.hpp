@@ -149,6 +149,8 @@ public:
 	}
 
 	bool IsEmpty() const;
+	void AddDependency(const Dependency::Ptr& dependency);
+	void RemoveDependency(const Dependency::Ptr& dependency);
 	std::vector<Dependency::Ptr> GetDependenciesForChild(const Checkable* child) const;
 	size_t GetDependenciesCount() const;
 
@@ -166,9 +168,7 @@ public:
 
 	State GetState(DependencyType dt = DependencyState, int rstack = 0) const;
 
-protected:
-	void AddDependency(const Dependency::Ptr& dependency);
-	void RemoveDependency(const Dependency::Ptr& dependency);
+private:
 	void CopyDependenciesTo(const DependencyGroup::Ptr& dest);
 
 	struct Hash

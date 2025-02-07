@@ -3,7 +3,6 @@
 #include "icinga/service.hpp"
 #include "icinga/dependency.hpp"
 #include "base/logger.hpp"
-#include <unordered_map>
 
 using namespace icinga;
 
@@ -15,9 +14,34 @@ using namespace icinga;
  */
 static constexpr int l_MaxDependencyRecursionLevel(256);
 
+/**
+ * Register all the dependency groups of the current Checkable to the global dependency group registry.
+ *
+ * Initially, each Checkable object tracks locally its own dependency groups on Icinga 2 startup, and once the start
+ * signal of that Checkable is emitted, it pushes all the local tracked dependency groups to the global registry.
+ * Once the global registry is populated with all the local dependency groups, this Checkable may not necessarily
+ * contain the exact same dependency groups as it did before, as identical groups are merged together in the registry,
+ * but it's guaranteed to have the same *number* of dependency groups as before.
+ */
+void Checkable::PushDependencyGroupsToRegistry()
+{
+	std::lock_guard lock(m_DependencyMutex);
+	if (!m_DependencyGroupsPushedToRegistry) {
+		m_DependencyGroupsPushedToRegistry = true;
+
+		decltype(m_DependencyGroups) dependencyGroups;
+		m_DependencyGroups.swap(dependencyGroups);
+
+		for (auto& [dependencyGroupKey, dependencyGroup] : dependencyGroups) {
+			m_DependencyGroups.emplace(dependencyGroupKey, DependencyGroup::Register(dependencyGroup));
+		}
+	}
+}
+
 std::vector<DependencyGroup::Ptr> Checkable::GetDependencyGroups() const
 {
 	std::lock_guard lock(m_DependencyMutex);
+
 	std::vector<DependencyGroup::Ptr> dependencyGroups;
 	for (const auto& [_, dependencyGroup] : m_DependencyGroups) {
 		dependencyGroups.emplace_back(dependencyGroup);
@@ -54,6 +78,15 @@ void Checkable::AddDependency(const Dependency::Ptr& dependency)
 	std::lock_guard lock(m_DependencyMutex);
 
 	auto dependencyGroupKey(GetDependencyGroupKey(dependency));
+	if (!m_DependencyGroupsPushedToRegistry) {
+		auto& dependencyGroup = m_DependencyGroups[dependencyGroupKey];
+		if (!dependencyGroup) {
+			dependencyGroup = new DependencyGroup(dependency->GetRedundancyGroup());
+		}
+		dependencyGroup->AddDependency(dependency);
+		return;
+	}
+
 	std::set<Dependency::Ptr> dependencies;
 	if (auto it(m_DependencyGroups.find(dependencyGroupKey)); it != m_DependencyGroups.end()) {
 		dependencies = DependencyGroup::Unregister(it->second, this);

@@ -80,6 +80,8 @@ void Checkable::OnAllConfigLoaded()
 
 void Checkable::Start(bool runtimeCreated)
 {
+	PushDependencyGroupsToRegistry();
+
 	double now = Utility::GetTime();
 
 	{
