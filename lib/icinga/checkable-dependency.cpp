@@ -15,29 +15,91 @@ using namespace icinga;
  */
 static constexpr int l_MaxDependencyRecursionLevel(256);
 
-void Checkable::AddDependencyGroup(const DependencyGroup::Ptr& dependencyGroup)
-{
-	std::unique_lock lock(m_DependencyMutex);
-	m_DependencyGroups.insert(dependencyGroup);
-}
-
-void Checkable::RemoveDependencyGroup(const DependencyGroup::Ptr& dependencyGroup)
-{
-	std::unique_lock lock(m_DependencyMutex);
-	m_DependencyGroups.erase(dependencyGroup);
-}
-
 std::vector<DependencyGroup::Ptr> Checkable::GetDependencyGroups() const
 {
 	std::lock_guard lock(m_DependencyMutex);
-	return {m_DependencyGroups.begin(), m_DependencyGroups.end()};
+	std::vector<DependencyGroup::Ptr> dependencyGroups;
+	for (const auto& [_, dependencyGroup] : m_DependencyGroups) {
+		dependencyGroups.emplace_back(dependencyGroup);
+	}
+	return dependencyGroups;
+}
+
+/**
+ * Get the key for the provided dependency group.
+ *
+ * The key is either the parent Checkable object or the redundancy group name of the dependency object.
+ * This is used to uniquely identify the dependency group within a given Checkable object.
+ *
+ * @param dependency The dependency to get the key for.
+ *
+ * @return - Returns the key for the provided dependency group.
+ */
+static std::variant<Checkable*, String> GetDependencyGroupKey(const Dependency::Ptr& dependency)
+{
+	if (auto redundancyGroup(dependency->GetRedundancyGroup()); !redundancyGroup.IsEmpty()) {
+		return std::move(redundancyGroup);
+	}
+
+	return dependency->GetParent().get();
+}
+
+/**
+ * Add the provided dependency to the current Checkable list of dependencies.
+ *
+ * @param dependency The dependency to add.
+ */
+void Checkable::AddDependency(const Dependency::Ptr& dependency)
+{
+	std::lock_guard lock(m_DependencyMutex);
+
+	auto dependencyGroupKey(GetDependencyGroupKey(dependency));
+	std::set<Dependency::Ptr> dependencies;
+	if (auto it(m_DependencyGroups.find(dependencyGroupKey)); it != m_DependencyGroups.end()) {
+		dependencies = DependencyGroup::Unregister(it->second, this);
+		m_DependencyGroups.erase(it);
+	}
+
+	dependencies.emplace(dependency);
+
+	m_DependencyGroups.emplace(
+		dependencyGroupKey,
+		DependencyGroup::Register(new DependencyGroup(dependency->GetRedundancyGroup(), dependencies))
+	);
+}
+
+/**
+ * Remove the provided dependency from the current Checkable list of dependencies.
+ *
+ * @param dependency The dependency to remove.
+ */
+void Checkable::RemoveDependency(const Dependency::Ptr& dependency)
+{
+	std::lock_guard lock(m_DependencyMutex);
+
+	auto dependencyGroupKey(GetDependencyGroupKey(dependency));
+	auto it = m_DependencyGroups.find(dependencyGroupKey);
+	if (it == m_DependencyGroups.end()) {
+		return;
+	}
+
+	std::set<Dependency::Ptr> dependencies(DependencyGroup::Unregister(it->second, this));
+	m_DependencyGroups.erase(it);
+	dependencies.erase(dependency);
+
+	if (!dependencies.empty()) {
+		m_DependencyGroups.emplace(
+			dependencyGroupKey,
+			DependencyGroup::Register(new DependencyGroup(dependency->GetRedundancyGroup(), dependencies))
+		);
+	}
 }
 
 std::vector<Dependency::Ptr> Checkable::GetDependencies() const
 {
 	std::unique_lock<std::mutex> lock(m_DependencyMutex);
 	std::vector<Dependency::Ptr> dependencies;
-	for (const auto& dependencyGroup : m_DependencyGroups) {
+	for (const auto& [_, dependencyGroup] : m_DependencyGroups) {
 		auto tmpDependencies(dependencyGroup->GetDependenciesForChild(this));
 		dependencies.insert(dependencies.end(), tmpDependencies.begin(), tmpDependencies.end());
 	}

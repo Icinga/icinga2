@@ -8,9 +8,6 @@
 #include "icinga/i2-icinga.hpp"
 #include "icinga/dependency-ti.hpp"
 #include "icinga/timeperiod.hpp"
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/hashed_index.hpp>
-#include <boost/multi_index/mem_fun.hpp>
 #include <map>
 #include <tuple>
 #include <unordered_map>
@@ -136,9 +133,10 @@ public:
 	using MembersMap = std::map<CompositeKeyType, MemberValueType>;
 
 	explicit DependencyGroup(String name);
+	DependencyGroup(String name, const std::set<Dependency::Ptr>& dependencies);
 
-	static void Register(const Dependency::Ptr& dependency);
-	static void Unregister(const Dependency::Ptr& dependency);
+	static DependencyGroup::Ptr Register(const DependencyGroup::Ptr& dependencyGroup);
+	static std::set<Dependency::Ptr> Unregister(const DependencyGroup::Ptr& dependencyGroup, const Checkable::Ptr& child);
 	static size_t GetRegistrySize();
 
 	static CompositeKeyType MakeCompositeKeyFor(const Dependency::Ptr& dependency);
@@ -176,7 +174,29 @@ protected:
 	void RemoveDependency(const Dependency::Ptr& dependency);
 	void CopyDependenciesTo(const DependencyGroup::Ptr& dest);
 
-	static void RefreshRegistry(const Dependency::Ptr& dependency, bool unregister);
+	struct Hash
+	{
+		size_t operator()(const DependencyGroup::Ptr& dependencyGroup) const
+		{
+			size_t hash = 0;
+			for (const auto& [key, group] : dependencyGroup->m_Members) {
+				boost::hash_combine(hash, key);
+			}
+			return hash;
+		}
+	};
+
+	struct Equal
+	{
+		bool operator()(const DependencyGroup::Ptr& lhs, const DependencyGroup::Ptr& rhs) const
+		{
+			return std::equal(
+				lhs->m_Members.begin(), lhs->m_Members.end(),
+				rhs->m_Members.begin(), rhs->m_Members.end(),
+				[](const auto& l, const auto& r) { return l.first == r.first; }
+			);
+		}
+	};
 
 private:
 	mutable std::mutex m_Mutex;
@@ -184,25 +204,7 @@ private:
 	String m_RedundancyGroupName;
 	MembersMap m_Members;
 
-	using RegistryType = boost::multi_index_container<
-		DependencyGroup*, // The type of the elements stored in the container.
-		boost::multi_index::indexed_by<
-			// This unique index allows to search/erase dependency groups by their composite key in an efficient manner.
-			boost::multi_index::hashed_unique<
-				boost::multi_index::mem_fun<DependencyGroup, String, &DependencyGroup::GetCompositeKey>,
-				std::hash<String>
-			>,
-			// This non-unique index allows to search for dependency groups by their name, and reduces the overall
-			// runtime complexity. Without this index, we would have to iterate over all elements to find the one
-			// with the desired members and since containers don't allow erasing elements while iterating, we would
-			// have to copy each of them to a temporary container, and then erase and reinsert them back to the original
-			// container. This produces way too much overhead, and slows down the startup time of Icinga 2 significantly.
-			boost::multi_index::hashed_non_unique<
-				boost::multi_index::const_mem_fun<DependencyGroup, const String&, &DependencyGroup::GetName>,
-				std::hash<String>
-			>
-		>
-	>;
+	using RegistryType = std::unordered_set<DependencyGroup::Ptr, Hash, Equal>;
 
 	// The global registry of dependency groups.
 	static std::mutex m_RegistryMutex;

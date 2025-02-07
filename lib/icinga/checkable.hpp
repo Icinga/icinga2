@@ -18,6 +18,7 @@
 #include <cstdint>
 #include <functional>
 #include <limits>
+#include <variant>
 
 namespace icinga
 {
@@ -185,9 +186,9 @@ public:
 	bool IsFlapping() const;
 
 	/* Dependencies */
-	void AddDependencyGroup(const intrusive_ptr<DependencyGroup>& dependencyGroup);
-	void RemoveDependencyGroup(const intrusive_ptr<DependencyGroup>& dependencyGroup);
 	std::vector<intrusive_ptr<DependencyGroup>> GetDependencyGroups() const;
+	void AddDependency(const intrusive_ptr<Dependency>& dependency);
+	void RemoveDependency(const intrusive_ptr<Dependency>& dependency);
 	std::vector<intrusive_ptr<Dependency> > GetDependencies() const;
 	bool HasAnyDependencies() const;
 
@@ -249,7 +250,7 @@ private:
 
 	/* Dependencies */
 	mutable std::mutex m_DependencyMutex;
-	std::set<intrusive_ptr<DependencyGroup>> m_DependencyGroups;
+	std::map<std::variant<Checkable*, String>, intrusive_ptr<DependencyGroup>> m_DependencyGroups;
 	std::set<intrusive_ptr<Dependency> > m_ReverseDependencies;
 
 	void GetAllChildrenInternal(std::set<Checkable::Ptr>& seenChildren, int level = 0) const;
