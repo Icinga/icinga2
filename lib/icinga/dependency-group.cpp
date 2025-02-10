@@ -134,6 +134,20 @@ std::vector<Dependency::Ptr> DependencyGroup::GetDependenciesForChild(const Chec
 }
 
 /**
+ * Load all parent Checkables of the current dependency group.
+ *
+ * @param parents The set to load the parent Checkables into.
+ */
+void DependencyGroup::LoadParents(std::set<Checkable::Ptr>& parents) const
+{
+	std::lock_guard lock(m_Mutex);
+	for (auto& [compositeKey, children] : m_Members) {
+		ASSERT(!children.empty()); // We should never have an empty map for any given key at any given time.
+		parents.insert(std::get<0>(compositeKey));
+	}
+}
+
+/**
  * Retrieve the number of dependency objects in the current dependency group.
  *
  * This function mainly exists for optimization purposes, i.e. instead of getting a copy of the members and
