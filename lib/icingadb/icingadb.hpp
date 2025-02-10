@@ -102,7 +102,7 @@ private:
 	std::vector<String> GetTypeOverwriteKeys(const String& type);
 	std::vector<String> GetTypeDumpSignalKeys(const Type::Ptr& type);
 	void InsertCheckableDependencies(const Checkable::Ptr& checkable, std::map<String, RedisConnection::Query>& hMSets,
-			std::vector<Dictionary::Ptr>* runtimeUpdates);
+		std::vector<Dictionary::Ptr>* runtimeUpdates, const DependencyGroup::Ptr& onlyDependencyGroup = nullptr);
 	void InsertObjectDependencies(const ConfigObject::Ptr& object, const String typeName, std::map<String, std::vector<String>>& hMSets,
 			std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate);
 	void UpdateDependenciesState(const Checkable::Ptr& checkable) const;
@@ -115,6 +115,7 @@ private:
 	void AddObjectDataToRuntimeUpdates(std::vector<Dictionary::Ptr>& runtimeUpdates, const String& objectKey,
 			const String& redisKey, const Dictionary::Ptr& data);
 	void DeleteRelationship(const String& id, const String& redisKeyWithoutPrefix, bool hasChecksum = false);
+	void ExecuteRedisTransaction(std::map<String, RedisConnection::Query>& hMSets, const std::vector<Dictionary::Ptr>& runtimeUpdates) const;
 
 	void SendSentNotification(
 		const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::set<User::Ptr>& users,
@@ -139,6 +140,8 @@ private:
 	void SendCommandEnvChanged(const ConfigObject::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
 	void SendCommandArgumentsChanged(const ConfigObject::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
 	void SendCustomVarsChanged(const ConfigObject::Ptr& object, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
+	void SendDependencyGroupChildRegistered(const Checkable::Ptr& child, const DependencyGroup::Ptr& dependencyGroup);
+	void SendDependencyGroupChildRemoved(const DependencyGroup::Ptr& dependencyGroup, const std::vector<Dependency::Ptr>& dependencies);
 
 	void ForwardHistoryEntries();
 
@@ -185,6 +188,8 @@ private:
 	static void FlappingChangeHandler(const Checkable::Ptr& checkable, double changeTime);
 	static void NewCheckResultHandler(const Checkable::Ptr& checkable);
 	static void NextCheckUpdatedHandler(const Checkable::Ptr& checkable);
+	static void DependencyGroupChildRegisteredHandler(const Checkable::Ptr& child, const DependencyGroup::Ptr& dependencyGroup);
+	static void DependencyGroupChildRemovedHandler(const DependencyGroup::Ptr& dependencyGroup, const std::vector<Dependency::Ptr>& dependencies);
 	static void HostProblemChangedHandler(const Service::Ptr& service);
 	static void AcknowledgementSetHandler(const Checkable::Ptr& checkable, const String& author, const String& comment, AcknowledgementType type, bool persistent, double changeTime, double expiry);
 	static void AcknowledgementClearedHandler(const Checkable::Ptr& checkable, const String& removedBy, double changeTime);
