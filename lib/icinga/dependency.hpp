@@ -155,6 +155,7 @@ public:
 	void AddDependency(const Dependency::Ptr& dependency);
 	void RemoveDependency(const Dependency::Ptr& dependency);
 	std::vector<Dependency::Ptr> GetDependenciesForChild(const Checkable* child) const;
+	void LoadParents(std::set<Checkable::Ptr>& parents) const;
 	size_t GetDependenciesCount() const;
 
 	void SetIcingaDBIdentifier(const String& identifier);
