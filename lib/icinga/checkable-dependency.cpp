@@ -248,12 +248,8 @@ bool Checkable::AffectsChildren(const CheckResult::Ptr& cr) const
 std::set<Checkable::Ptr> Checkable::GetParents() const
 {
 	std::set<Checkable::Ptr> parents;
-
-	for (const Dependency::Ptr& dep : GetDependencies()) {
-		Checkable::Ptr parent = dep->GetParent();
-
-		if (parent && parent.get() != this)
-			parents.insert(parent);
+	for (auto& dependencyGroup : GetDependencyGroups()) {
+		dependencyGroup->LoadParents(parents);
 	}
 
 	return parents;
