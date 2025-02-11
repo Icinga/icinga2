@@ -135,6 +135,7 @@ deprecated			{ yylval->num = FADeprecated; return T_FIELD_ATTRIBUTE; }
 get_virtual			{ yylval->num = FAGetVirtual; return T_FIELD_ATTRIBUTE; }
 set_virtual			{ yylval->num = FASetVirtual; return T_FIELD_ATTRIBUTE; }
 signal_with_old_value			{ yylval->num = FASignalWithOldValue; return T_FIELD_ATTRIBUTE; }
+parent_affecting_logging		{ yylval->num = FAParentAffectingLogging; return T_FIELD_ATTRIBUTE; }
 virtual				{ yylval->num = FAGetVirtual | FASetVirtual; return T_FIELD_ATTRIBUTE; }
 navigation			{ return T_NAVIGATION; }
 validator			{ return T_VALIDATOR; }
