@@ -179,7 +179,7 @@ private:
 	{
 		size_t operator()(const DependencyGroup::Ptr& dependencyGroup) const
 		{
-			size_t hash = 0;
+			size_t hash = std::hash<String>{}(dependencyGroup->GetRedundancyGroupName());
 			for (const auto& [key, group] : dependencyGroup->m_Members) {
 				boost::hash_combine(hash, key);
 			}
@@ -191,6 +191,10 @@ private:
 	{
 		bool operator()(const DependencyGroup::Ptr& lhs, const DependencyGroup::Ptr& rhs) const
 		{
+			if (lhs->GetRedundancyGroupName() != rhs->GetRedundancyGroupName()) {
+				return false;
+			}
+
 			return std::equal(
 				lhs->m_Members.begin(), lhs->m_Members.end(),
 				rhs->m_Members.begin(), rhs->m_Members.end(),
