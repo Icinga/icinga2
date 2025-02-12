@@ -82,25 +82,6 @@ DependencyGroup::DependencyGroup(String name, const std::set<Dependency::Ptr>& d
 }
 
 /**
- * Create a composite key for the provided dependency.
- *
- * The composite key consists of all the properties of the provided dependency object that influence its availability.
- *
- * @param dependency The dependency object to create a composite key for.
- *
- * @return - Returns the composite key for the provided dependency.
- */
-DependencyGroup::CompositeKeyType DependencyGroup::MakeCompositeKeyFor(const Dependency::Ptr& dependency)
-{
-	return std::make_tuple(
-		dependency->GetParent().get(),
-		dependency->GetPeriod().get(),
-		dependency->GetStateFilter(),
-		dependency->GetIgnoreSoftStates()
-	);
-}
-
-/**
  * Check if the current dependency group is empty.
  *
  * @return bool - Returns true if the current dependency group has no members, otherwise false.
@@ -123,7 +104,7 @@ bool DependencyGroup::IsEmpty() const
 bool DependencyGroup::HasParentWithConfig(const Dependency::Ptr& dependency) const
 {
 	std::lock_guard lock(m_Mutex);
-	return m_Members.find(MakeCompositeKeyFor(dependency)) != m_Members.end();
+	return m_Members.find(Dependency::ParentConfig(dependency)) != m_Members.end();
 }
 
 /**
@@ -156,7 +137,7 @@ void DependencyGroup::LoadParents(std::set<Checkable::Ptr>& parents) const
     std::lock_guard lock(m_Mutex);
     for (auto& [compositeKey, children] : m_Members) {
 		ASSERT(!children.empty()); // We should never have an empty map for any given key at any given time.
-    	parents.insert(std::get<0>(compositeKey));
+		parents.insert(compositeKey.m_Parent);
     }
 }
 
@@ -186,11 +167,11 @@ size_t DependencyGroup::GetDependenciesCount() const
 void DependencyGroup::AddDependency(const Dependency::Ptr& dependency)
 {
 	std::lock_guard lock(m_Mutex);
-	auto compositeKey(MakeCompositeKeyFor(dependency));
-	if (auto it(m_Members.find(compositeKey)); it != m_Members.end()) {
+	Dependency::ParentConfig parentConfig (dependency);
+	if (auto it(m_Members.find(parentConfig)); it != m_Members.end()) {
 		it->second.emplace(dependency->GetChild().get(), dependency.get());
 	} else {
-		m_Members.emplace(compositeKey, MemberValueType{{dependency->GetChild().get(), dependency.get()}});
+		m_Members.emplace(parentConfig, MemberValueType{{dependency->GetChild().get(), dependency.get()}});
 	}
 }
 
@@ -202,7 +183,7 @@ void DependencyGroup::AddDependency(const Dependency::Ptr& dependency)
 void DependencyGroup::RemoveDependency(const Dependency::Ptr& dependency)
 {
 	std::lock_guard lock(m_Mutex);
-	if (auto it(m_Members.find(MakeCompositeKeyFor(dependency))); it != m_Members.end()) {
+	if (auto it(m_Members.find(Dependency::ParentConfig(dependency))); it != m_Members.end()) {
 		auto [begin, end] = it->second.equal_range(dependency->GetChild().get());
 		for (auto childrenIt(begin); childrenIt != end; ++childrenIt) {
 			if (childrenIt->second == dependency) {
@@ -337,19 +318,13 @@ DependencyGroup::State DependencyGroup::GetState(DependencyType dt, int rstack) 
 
 	size_t reachable = 0, available = 0;
 
-	for (auto& [_, dependencies] : members) {
-		ASSERT(!dependencies.empty());
-
-		// Dependencies are grouped by parent and all config attributes affecting their availability. Hence, only
-		// one dependency from the map entry has to be considered, all others will share the same state.
-		auto& [child, dependency] = *dependencies.begin();
-
-		if (dependency->GetParent()->IsReachable(dt, rstack)) {
+	for (auto& [parentConfig, _] : members) {
+		if (parentConfig.m_Parent->IsReachable(dt, rstack)) {
 			reachable++;
 
 			// Only reachable parents are considered for availability. If they are unreachable and checks are disabled,
 			// they could be incorrectly treated as available otherwise.
-			if (dependency->IsAvailable(dt)) {
+			if (parentConfig.IsAvailable()) {
 				available++;
 			}
 		}

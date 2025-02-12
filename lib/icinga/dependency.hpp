@@ -47,6 +47,35 @@ public:
 	void SetParent(intrusive_ptr<Checkable> parent);
 	void SetChild(intrusive_ptr<Checkable> child);
 
+	/**
+	 * Defines the key type of each dependency group members.
+	 *
+	 * This tuple consists of the dependency parent Checkable, the dependency time period (nullptr if not configured),
+	 * the state filter, and the ignore soft states flag. Each of these values influences the availability of the
+	 * dependency object, and thus used to group similar dependencies from different Checkables together.
+	 */
+	struct ParentConfig
+	{
+		Checkable::Ptr m_Parent;
+		TimePeriod::Ptr m_TimePeriod;
+		int m_StateFilter;
+		bool m_IgnoreSoftStates;
+
+		explicit ParentConfig(const Dependency&);
+		explicit ParentConfig(const Dependency::Ptr&);
+
+		bool operator==(const ParentConfig& other) const;
+		bool operator<(const ParentConfig& other) const;
+
+		bool IsAvailable() const;
+
+	private:
+		using TupleType = std::tuple<const Checkable::Ptr&, const TimePeriod::Ptr&, const int&, const bool&>;
+		TupleType AsTuple() const;
+
+		friend class std::hash<ParentConfig>;
+	};
+
 protected:
 	void OnConfigLoaded() override;
 	void OnAllConfigLoaded() override;
@@ -104,15 +133,6 @@ public:
 	DECLARE_PTR_TYPEDEFS(DependencyGroup);
 
 	/**
-	 * Defines the key type of each dependency group members.
-	 *
-	 * This tuple consists of the dependency parent Checkable, the dependency time period (nullptr if not configured),
-	 * the state filter, and the ignore soft states flag. Each of these values influences the availability of the
-	 * dependency object, and thus used to group similar dependencies from different Checkables together.
-	 */
-	using CompositeKeyType = std::tuple<Checkable*, TimePeriod*, int, bool>;
-
-	/**
 	 * Represents the value type of each dependency group members.
 	 *
 	 * It stores the dependency objects of any given Checkable that produce the same composite key (CompositeKeyType).
@@ -122,7 +142,7 @@ public:
 	 * (duplicates), we're using a multimap instead of a simple map here.
 	 */
 	using MemberValueType = std::unordered_multimap<const Checkable*, Dependency*>;
-	using MembersMap = std::map<CompositeKeyType, MemberValueType>;
+	using MembersMap = std::map<Dependency::ParentConfig, MemberValueType>;
 
 	explicit DependencyGroup(String name);
 	DependencyGroup(String name, const std::set<Dependency::Ptr>& dependencies);
@@ -130,8 +150,6 @@ public:
 	static DependencyGroup::Ptr Register(const DependencyGroup::Ptr& dependencyGroup);
 	static std::set<Dependency::Ptr> Unregister(const DependencyGroup::Ptr& dependencyGroup, const Checkable::Ptr& child);
 	static size_t GetRegistrySize();
-
-	static CompositeKeyType MakeCompositeKeyFor(const Dependency::Ptr& dependency);
 
 	/**
 	 * Check whether the current dependency group represents an explicitly configured redundancy group.
@@ -209,5 +227,17 @@ private:
 };
 
 }
+
+template<>
+struct std::hash<icinga::Dependency::ParentConfig>
+{
+	std::size_t operator()(const icinga::Dependency::ParentConfig&) const noexcept;
+};
+
+template<>
+struct boost::hash<icinga::Dependency::ParentConfig>
+{
+	std::size_t operator()(const icinga::Dependency::ParentConfig&) const noexcept;
+};
 
 #endif /* DEPENDENCY_H */

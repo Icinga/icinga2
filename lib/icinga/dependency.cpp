@@ -214,57 +214,14 @@ void Dependency::Stop(bool runtimeRemoved)
 
 bool Dependency::IsAvailable(DependencyType dt) const
 {
-	Checkable::Ptr parent = GetParent();
-
-	Host::Ptr parentHost;
-	Service::Ptr parentService;
-	tie(parentHost, parentService) = GetHostService(parent);
-
 	/* ignore if it's the same checkable object */
-	if (parent == GetChild()) {
+	if (GetParent() == GetChild()) {
 		Log(LogNotice, "Dependency")
-			<< "Dependency '" << GetName() << "' passed: Parent and child " << (parentService ? "service" : "host") << " are identical.";
+			<< "Dependency '" << GetName() << "' passed: Parent and child " << (GetParent()->GetReflectionType() == Host::TypeInstance ? "service" : "host") << " are identical.";
 		return true;
 	}
 
-	/* ignore pending  */
-	if (!parent->GetLastCheckResult()) {
-		Log(LogNotice, "Dependency")
-			<< "Dependency '" << GetName() << "' passed: Parent " << (parentService ? "service" : "host") << " '" << parent->GetName() << "' hasn't been checked yet.";
-		return true;
-	}
-
-	if (GetIgnoreSoftStates()) {
-		/* ignore soft states */
-		if (parent->GetStateType() == StateTypeSoft) {
-			Log(LogNotice, "Dependency")
-				<< "Dependency '" << GetName() << "' passed: Parent " << (parentService ? "service" : "host") << " '" << parent->GetName() << "' is in a soft state.";
-			return true;
-		}
-	} else {
-		Log(LogNotice, "Dependency")
-			<< "Dependency '" << GetName() << "' failed: Parent " << (parentService ? "service" : "host") << " '" << parent->GetName() << "' is in a soft state.";
-	}
-
-	int state;
-
-	if (parentService)
-		state = ServiceStateToFilter(parentService->GetState());
-	else
-		state = HostStateToFilter(parentHost->GetState());
-
-	/* check state */
-	if (state & GetStateFilter()) {
-		Log(LogNotice, "Dependency")
-			<< "Dependency '" << GetName() << "' passed: Parent " << (parentService ? "service" : "host") << " '" << parent->GetName() << "' matches state filter.";
-		return true;
-	}
-
-	/* ignore if not in time period */
-	TimePeriod::Ptr tp = GetPeriod();
-	if (tp && !tp->IsInside(Utility::GetTime())) {
-		Log(LogNotice, "Dependency")
-			<< "Dependency '" << GetName() << "' passed: Outside time period.";
+	if (ParentConfig(*this).IsAvailable()) {
 		return true;
 	}
 
@@ -278,10 +235,51 @@ bool Dependency::IsAvailable(DependencyType dt) const
 		return true;
 	}
 
-	Log(LogNotice, "Dependency")
-		<< "Dependency '" << GetName() << "' failed. Parent "
-		<< (parentService ? "service" : "host") << " '" << parent->GetName() << "' is "
-		<< (parentService ? Service::StateToString(parentService->GetState()) : Host::StateToString(parentHost->GetState()));
+	return false;
+}
+
+bool Dependency::ParentConfig::IsAvailable() const
+{
+	auto [host, service] = GetHostService(m_Parent);
+
+	/* ignore pending  */
+	if (!m_Parent->GetLastCheckResult()) {
+		// Log(LogNotice, "Dependency")
+		// << "Dependency '" << GetName() << "' passed: Parent " << (parentService ? "service" : "host") << " '" << m_Parent->GetName() << "' hasn't been checked yet.";
+		return true;
+	}
+
+	if (m_IgnoreSoftStates) {
+		/* ignore soft states */
+		if (m_Parent->GetStateType() == StateTypeSoft) {
+			// Log(LogNotice, "Dependency")
+			// << "Dependency '" << GetName() << "' passed: Parent " << (parentService ? "service" : "host") << " '" << m_Parent->GetName() << "' is in a soft state.";
+			return true;
+		}
+	} else {
+		// Log(LogNotice, "Dependency")
+		// << "Dependency '" << GetName() << "' failed: Parent " << (parentService ? "service" : "host") << " '" << m_Parent->GetName() << "' is in a soft state.";
+	}
+
+	/* check state */
+	int state = service ? ServiceStateToFilter(service->GetState()) : HostStateToFilter(host->GetState());
+	if (state & m_StateFilter) {
+		// Log(LogNotice, "Dependency")
+			// << "Dependency '" << GetName() << "' passed: Parent " << (parentService ? "service" : "host") << " '" << m_Parent->GetName() << "' matches state filter.";
+		return true;
+	}
+
+	/* ignore if not in time period */
+	if (m_TimePeriod && !m_TimePeriod->IsInside(Utility::GetTime())) {
+		// Log(LogNotice, "Dependency")
+			// << "Dependency '" << GetName() << "' passed: Outside time period.";
+		return true;
+	}
+
+	// Log(LogNotice, "Dependency")
+		// << "Dependency '" << GetName() << "' failed. Parent "
+		// << (parentService ? "service" : "host") << " '" << m_Parent->GetName() << "' is "
+		// << (parentService ? Service::StateToString(parentService->GetState()) : Host::StateToString(parentHost->GetState()));
 
 	return false;
 }
@@ -322,4 +320,40 @@ void Dependency::SetParent(intrusive_ptr<Checkable> parent)
 void Dependency::SetChild(intrusive_ptr<Checkable> child)
 {
 	m_Child = child;
+}
+
+Dependency::ParentConfig::ParentConfig(const Dependency& dependency)
+: m_Parent(dependency.GetParent())
+, m_TimePeriod(dependency.GetPeriod())
+, m_StateFilter(dependency.GetStateFilter())
+, m_IgnoreSoftStates(dependency.GetIgnoreSoftStates())
+{}
+
+Dependency::ParentConfig::ParentConfig(const Dependency::Ptr& dependency)
+: ParentConfig(*dependency)
+{}
+
+Dependency::ParentConfig::TupleType Dependency::ParentConfig::AsTuple() const
+{
+	return std::tie(m_Parent, m_TimePeriod, m_StateFilter, m_IgnoreSoftStates);
+}
+
+bool Dependency::ParentConfig::operator==(const ParentConfig& other) const
+{
+	return AsTuple() == other.AsTuple();
+}
+
+bool Dependency::ParentConfig::operator<(const ParentConfig& other) const
+{
+	return AsTuple() < other.AsTuple();
+}
+
+std::size_t std::hash<Dependency::ParentConfig>::operator()(const Dependency::ParentConfig& config) const noexcept
+{
+	return boost::hash<Dependency::ParentConfig::TupleType>{}(config.AsTuple());
+}
+
+std::size_t boost::hash<Dependency::ParentConfig>::operator()(const Dependency::ParentConfig& config) const noexcept
+{
+	return std::hash<Dependency::ParentConfig>{}(config);
 }
