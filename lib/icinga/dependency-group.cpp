@@ -322,26 +322,34 @@ DependencyGroup::State DependencyGroup::GetState(DependencyType dt, int rstack) 
 		members = m_Members;
 	}
 
-	State state{false /* Reachable */, false /* OK */};
-	for (auto& [_, children] : members) {
-		for (auto& [checkable, dependency] : children) {
-			state.Reachable = dependency->GetParent()->IsReachable(dt, rstack);
-			if (!state.Reachable && !IsRedundancyGroup()) {
-				return state;
-			}
+	size_t reachable = 0, available = 0;
 
-			if (state.Reachable) {
-				state.OK = dependency->IsAvailable(dt);
-				// If this is a redundancy group, and we have found one functional path, that's enough and we can return.
-				// Likewise, if this is a non-redundant dependency group, and we have found one non-functional path,
-				// we have to mark the group as failed and return.
-				if (state.OK == IsRedundancyGroup()) { // OK && IsRedundancyGroup() || !OK && !IsRedundancyGroup()
-					return state;
-				}
+	for (auto& [_, dependencies] : members) {
+		ASSERT(!dependencies.empty());
+
+		// Dependencies are grouped by parent and all config attributes affecting their availability. Hence, only
+		// one dependency from the map entry has to be considered, all others will share the same state.
+		if (auto& [_, dependency] = *dependencies.begin(); dependency->GetParent()->IsReachable(dt, rstack)) {
+			reachable++;
+
+			// Only reachable parents are considered for availability. If they are unreachable and checks are disabled,
+			// they could be incorrectly treated as available otherwise.
+			if (dependency->IsAvailable(dt)) {
+				available++;
 			}
-			break; // Move on to the next batch of group members (next composite key).
 		}
 	}
 
-	return state;
+	if (IsRedundancyGroup()) {
+		// The state of a redundancy group is determined by the best state of any parent. If any parent ist reachable,
+		// the redundancy group is reachable, analogously for availability. Note that an unreachable group cannot be
+		// available as reachable = 0 implies available = 0.
+		return {reachable > 0, available > 0};
+	} else {
+		// For dependencies without a redundancy group, members.size() will be 1 in almost all cases. It will only
+		// contain more elements if there are duplicate dependency config objects between two checkables. In this case,
+		// all of them have to be reachable or available as they don't provide redundancy. Note that unreachable implies
+		// unavailable here as well as only reachable parents count towards the number of available parents.
+		return {reachable >= members.size(), available == members.size()};
+	}
 }
