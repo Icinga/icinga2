@@ -167,8 +167,7 @@ void Checkable::FireSuppressedNotifications()
 				}
 			}
 
-			for (auto& dep : GetDependencies()) {
-				auto parent (dep->GetParent());
+			for (auto& parent : GetParents()) {
 				ObjectLock oLock (parent);
 
 				if (!parent->GetProblem() && parent->GetLastStateChange() >= threshold) {

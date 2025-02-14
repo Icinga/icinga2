@@ -19,6 +19,7 @@
 #include "icinga/command.hpp"
 #include "icinga/compatutility.hpp"
 #include "icinga/customvarobject.hpp"
+#include "icinga/dependency.hpp"
 #include "icinga/host.hpp"
 #include "icinga/service.hpp"
 #include "icinga/hostgroup.hpp"
@@ -94,8 +95,11 @@ void IcingaDB::ConfigStaticInitialize()
 		AcknowledgementClearedHandler(checkable, removedBy, changeTime);
 	});
 
-	Checkable::OnReachabilityChanged.connect([](const Checkable::Ptr&, const CheckResult::Ptr&, std::set<Checkable::Ptr> children, const MessageOrigin::Ptr&) {
-		IcingaDB::ReachabilityChangeHandler(children);
+	Checkable::OnReachabilityChanged.connect([](const Checkable::Ptr& checkable, const CheckResult::Ptr&, std::set<Checkable::Ptr>, const MessageOrigin::Ptr&) {
+		// Icinga DB Web needs to know about the reachability of all children, not just the direct ones.
+		// These might get updated with their next check result anyway, but we can't rely on that, since
+		// they might not be actively checked or have a very high check interval.
+		IcingaDB::ReachabilityChangeHandler(checkable->GetAllChildren());
 	});
 
 	/* triggered on create, update and delete objects */
@@ -105,6 +109,9 @@ void IcingaDB::ConfigStaticInitialize()
 	ConfigObject::OnVersionChanged.connect([](const ConfigObject::Ptr& object, const Value&) {
 		IcingaDB::VersionChangedHandler(object);
 	});
+
+	DependencyGroup::OnChildRegistered.connect(&IcingaDB::DependencyGroupChildRegisteredHandler);
+	DependencyGroup::OnChildRemoved.connect(&IcingaDB::DependencyGroupChildRemovedHandler);
 
 	/* downtime start */
 	Downtime::OnDowntimeTriggered.connect(&IcingaDB::DowntimeStartedHandler);
@@ -174,7 +181,7 @@ void IcingaDB::ConfigStaticInitialize()
 void IcingaDB::UpdateAllConfigObjects()
 {
 	m_Rcon->Sync();
-	m_Rcon->FireAndForgetQuery({"XADD", "icinga:schema", "MAXLEN", "1", "*", "version", "5"}, Prio::Heartbeat);
+	m_Rcon->FireAndForgetQuery({"XADD", "icinga:schema", "MAXLEN", "1", "*", "version", "6"}, Prio::Heartbeat);
 
 	Log(LogInformation, "IcingaDB") << "Starting initial config/status dump";
 	double startTime = Utility::GetTime();
@@ -203,10 +210,19 @@ void IcingaDB::UpdateAllConfigObjects()
 	m_Rcon->FireAndForgetQuery({"XADD", "icinga:dump", "MAXLEN", "1", "*", "key", "*", "state", "wip"}, Prio::Config);
 
 	const std::vector<String> globalKeys = {
-			m_PrefixConfigObject + "customvar",
-			m_PrefixConfigObject + "action:url",
-			m_PrefixConfigObject + "notes:url",
-			m_PrefixConfigObject + "icon:image",
+		m_PrefixConfigObject + "customvar",
+		m_PrefixConfigObject + "action:url",
+		m_PrefixConfigObject + "notes:url",
+		m_PrefixConfigObject + "icon:image",
+
+		// These keys aren't tied to a specific Checkable type but apply to both "Host" and "Service" types,
+		// and as such we've to make sure to clear them before we actually start dumping the actual objects.
+		// This allows us to wait on both types to be dumped before we send a config dump done signal for those keys.
+		m_PrefixConfigObject + "dependency:node",
+		m_PrefixConfigObject + "dependency:edge",
+		m_PrefixConfigObject + "dependency:edge:state",
+		m_PrefixConfigObject + "redundancygroup",
+		m_PrefixConfigObject + "redundancygroup:state",
 	};
 	DeleteKeys(m_Rcon, globalKeys, Prio::Config);
 	DeleteKeys(m_Rcon, {"icinga:nextupdate:host", "icinga:nextupdate:service"}, Prio::Config);
@@ -217,6 +233,7 @@ void IcingaDB::UpdateAllConfigObjects()
 		m_DumpedGlobals.ActionUrl.Reset();
 		m_DumpedGlobals.NotesUrl.Reset();
 		m_DumpedGlobals.IconImage.Reset();
+		m_DumpedGlobals.DependencyGroup.Reset();
 	});
 
 	upq.ParallelFor(types, false, [this](const Type::Ptr& type) {
@@ -788,6 +805,8 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			}
 		}
 
+		InsertCheckableDependencies(checkable, hMSets, runtimeUpdate ? &runtimeUpdates : nullptr);
+
 		return;
 	}
 
@@ -1122,6 +1141,219 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 }
 
 /**
+ * Inserts the dependency data for a Checkable object into the given Redis HMSETs and runtime updates.
+ *
+ * It builds the dependency graph of the provided Checkable and injects the flattened dependency data into the
+ * given HMSETs and runtime updates (if provided). The dependency data consists of the following Redis HMSETs:
+ * - `icinga:config:dependency:node`: Contains dependency node data representing each node in the dependency graph.
+ * - `icinga:config:dependency:edge`: Dependency edge information representing all edges/connectors between the nodes.
+ * - `icinga:config:redundancygroup`: Redundancy group data representing all redundancy groups in the graph (if any).
+ * - `icinga:config:redundancygroup:state`: State information for redundancy groups.
+ * - `icinga:config:dependency:edge:state`: State information for (each) dependency edge. Multiple edges may share the
+ *	 same state.
+ *
+ * If the `onlyDependencyGroup` parameter is set, only dependencies from this group are processed. This is useful
+ * when only a specific dependency group should be processed, e.g. during runtime updates. For initial config dumps,
+ * it shouldn't be necessary to set the `runtimeUpdates` and `onlyDependencyGroup` parameters.
+ *
+ * @param checkable The checkable object to extract dependencies from.
+ * @param hMSets The map of Redis HMSETs to insert the dependency data into.
+ * @param runtimeUpdates The vector of runtime updates to append the dependency data to.
+ * @param onlyDependencyGroup If set, only process dependency objects from this group.
+ */
+void IcingaDB::InsertCheckableDependencies(
+	const Checkable::Ptr& checkable,
+	std::map<String, RedisConnection::Query>& hMSets,
+	std::vector<Dictionary::Ptr>* runtimeUpdates,
+	const DependencyGroup::Ptr& onlyDependencyGroup
+)
+{
+	// Only generate a dependency node event if the Checkable is actually part of some dependency graph.
+	// That's, it either depends on other Checkables or others depend on it, and in both cases, we have
+	// to at least generate a dependency node entry for it.
+	if (!checkable->HasAnyDependencies()) {
+		return;
+	}
+
+	auto& hmsetDependencyNodes(hMSets[m_PrefixConfigObject + "dependency:node"]);
+	auto& hmsetDependencyEdges(hMSets[m_PrefixConfigObject + "dependency:edge"]);
+	auto& hmsetRedundancyGroups(hMSets[m_PrefixConfigObject + "redundancygroup"]);
+
+	// If this isn't a runtime update, we need to send initial state updates for the dependencies as well.
+	auto& hmsetDependenciesStates(hMSets[m_PrefixConfigObject + "dependency:edge:state"]);
+	auto& hmsetRedundancyGroupsStates(hMSets[m_PrefixConfigObject + "redundancygroup:state"]);
+
+	/**
+	 * This function is responsible for serializing the in memory represantation Checkable dependencies into Redis
+	 * HMSETs and runtime updates (if any) according to the Icinga DB schema. Here is a high-level breakdown of the
+	 * key operations performed by the following code blocks:
+	 *
+	 * 1. Generate Dependency Nodes:
+	 *	- First and foremost, it generates a dependency node entry for the Checkable object and inserts it into the
+	 *	  `hmsetDependencyNodes` HMSETs map and if set, the `runtimeUpdates` vector. Then, it proceeds to process the
+	 *	  Checkable dependency groups, and generates for each dependency group that's a redundancy group, a dependency
+	 *	  node entry. The serialized information depend on the Checkable type (Host or Service), so see the code for
+	 *	  more details. Note that non-redundant dependency groups are just placeholders and never get synced to Redis.
+	 *
+	 * Note: If `onlyDependencyGroup` is provided, it will only process that group; otherwise, it retrieves all
+	 * dependency groups using `checkable->GetDependencyGroups()`.
+	 *
+	 * 2. Process Dependency Group:
+	 *	- Processing a dependency group involves generating each and every dependency edges within that group and might
+	 *	  not be that easy and obvious to follow. The following is a simplified version of the performed operations and
+	 *	  don't cover all the edge cases:
+	 *
+	 *	- Redundancy Group Handling:
+	 *	  - If the dependency group is a redundancy group, it will serialize the redundancy group and its state and
+	 *		insert them into the `hmsetRedundancyGroups` and `hmsetRedundancyGroupsStates` maps accordingly. It will
+	 *		also create a dependency node entry for that group as described in the previous step. Next, it generates
+	 *		a dependency edge state entry shared by all its child Checkables. Note that since that very same redundancy
+	 *		group may be processed multiple times (referenced by multiple Checkables) during config dumps, those data
+	 *		only get generated only once. However, each Checkable that references that redundancy group will generate
+	 *		a dependency edge entry representing the connection between the Checkable and the redundancy group.
+	 *
+	 *	- Dependency Edges:
+	 *	  - For each dependency objects within the current dependency group, it will generate a dependency edge entry.
+	 *		The generated dependency edge "from_node_id" may vary depending on whether the dependency group is a
+	 *		redundancy group or not. If it's a redundancy group, the "from_node_id" will be the redundancy group ID;
+	 *		otherwise, it will be the current Checkable ID. However, the "to_node_id" value will always be the parent ID.
+	 */
+	auto [host, service] = GetHostService(checkable);
+	auto checkableId(GetObjectIdentifier(checkable));
+	{
+		Dictionary::Ptr data(new Dictionary{{"environment_id", m_EnvironmentId}, {"host_id", GetObjectIdentifier(host)}});
+		if (service) {
+			data->Set("service_id", checkableId);
+		}
+
+		hmsetDependencyNodes.emplace_back(checkableId);
+		hmsetDependencyNodes.emplace_back(JsonEncode(data));
+		if (runtimeUpdates) {
+			AddObjectDataToRuntimeUpdates(*runtimeUpdates, checkableId, m_PrefixConfigObject + "dependency:node", data);
+		}
+	}
+
+	std::vector<DependencyGroup::Ptr> dependencyGroups{onlyDependencyGroup};
+	if (!onlyDependencyGroup) {
+		dependencyGroups = checkable->GetDependencyGroups();
+	}
+
+	for (auto& dependencyGroup : dependencyGroups) {
+		String edgeFromNodeId(checkableId);
+		bool syncSharedEdgeState(false);
+
+		if (!dependencyGroup->IsRedundancyGroup()) {
+			syncSharedEdgeState = runtimeUpdates || m_DumpedGlobals.DependencyGroup.IsNew(dependencyGroup->GetCompositeKey());
+		} else {
+			auto redundancyGroupId(HashValue(new Array{m_EnvironmentId, dependencyGroup->GetCompositeKey()}));
+			dependencyGroup->SetIcingaDBIdentifier(redundancyGroupId);
+
+			edgeFromNodeId = redundancyGroupId;
+
+			// Sync redundancy group information only once unless it's a runtime update.
+			if (runtimeUpdates || m_DumpedGlobals.DependencyGroup.IsNew(redundancyGroupId)) {
+				syncSharedEdgeState = true;
+
+				Dictionary::Ptr groupData(new Dictionary{
+					{"environment_id", m_EnvironmentId},
+					{"display_name", dependencyGroup->GetRedundancyGroupName()},
+				});
+
+				hmsetRedundancyGroups.emplace_back(redundancyGroupId);
+				hmsetRedundancyGroups.emplace_back(JsonEncode(groupData));
+
+				Dictionary::Ptr nodeData(new Dictionary{
+					{"environment_id", m_EnvironmentId},
+					{"redundancy_group_id", redundancyGroupId},
+				});
+
+				hmsetDependencyNodes.emplace_back(redundancyGroupId);
+				hmsetDependencyNodes.emplace_back(JsonEncode(nodeData));
+
+				if (runtimeUpdates) {
+					AddObjectDataToRuntimeUpdates(*runtimeUpdates, redundancyGroupId, m_PrefixConfigObject + "redundancygroup", groupData);
+					AddObjectDataToRuntimeUpdates(*runtimeUpdates, redundancyGroupId, m_PrefixConfigObject + "dependency:node", nodeData);
+				}
+
+				auto stateAttrs(SerializeRedundancyGroupState(checkable, dependencyGroup));
+				hmsetRedundancyGroupsStates.emplace_back(redundancyGroupId);
+				hmsetRedundancyGroupsStates.emplace_back(JsonEncode(stateAttrs));
+
+				hmsetDependenciesStates.emplace_back(redundancyGroupId);
+				hmsetDependenciesStates.emplace_back(JsonEncode(new Dictionary{
+					{"id", redundancyGroupId},
+					{"environment_id", m_EnvironmentId},
+					{"failed", stateAttrs->Get("failed")},
+				}));
+			}
+
+			Dictionary::Ptr data(new Dictionary{
+				{"environment_id", m_EnvironmentId},
+				{"from_node_id", checkableId},
+				{"to_node_id", redundancyGroupId},
+				// All redundancy group members share the same state, thus use the group ID as a reference.
+				{"dependency_edge_state_id", redundancyGroupId},
+				{"display_name", dependencyGroup->GetRedundancyGroupName()},
+			});
+
+			auto edgeId(HashValue(new Array{checkableId, redundancyGroupId}));
+			hmsetDependencyEdges.emplace_back(edgeId);
+			hmsetDependencyEdges.emplace_back(JsonEncode(data));
+
+			if (runtimeUpdates) {
+				AddObjectDataToRuntimeUpdates(*runtimeUpdates, edgeId, m_PrefixConfigObject + "dependency:edge", data);
+			}
+		}
+
+		auto dependencies(dependencyGroup->GetDependenciesForChild(checkable.get()));
+		std::sort(dependencies.begin(), dependencies.end(), [](const Dependency::Ptr& lhs, const Dependency::Ptr& rhs) {
+			return lhs->GetParent() < rhs->GetParent();
+		});
+
+		for (auto it(dependencies.begin()); it != dependencies.end(); /* no increment */) {
+			auto dependency(*it);
+			auto parent(dependency->GetParent());
+			auto displayName(dependency->GetShortName());
+
+			Dictionary::Ptr edgeStateAttrs(SerializeDependencyEdgeState(dependencyGroup, dependency));
+
+			// All dependency objects that share the same parent Checkable are placed next to each other in the
+			// container. Thus, "it" will either point to the next dependency with a different parent or to the
+			// end of the container after the below loop. Typically, this case isn't that common to happen in
+			// production, and if it indeed does, then it's probably not intended by the user but Icinga 2 itself
+			// accepts such config anyway, and we should do the same, i.e., merge them into a single edge.
+			while (++it != dependencies.end() && (*it)->GetParent() == parent) {
+				displayName += ", " + (*it)->GetShortName();
+				if (syncSharedEdgeState && edgeStateAttrs->Get("failed") == false) {
+					edgeStateAttrs = SerializeDependencyEdgeState(dependencyGroup, *it);
+				}
+			}
+
+			Dictionary::Ptr data(new Dictionary{
+				{"environment_id", m_EnvironmentId},
+				{"from_node_id", edgeFromNodeId},
+				{"to_node_id", GetObjectIdentifier(parent)},
+				{"dependency_edge_state_id", edgeStateAttrs->Get("id")},
+				{"display_name", std::move(displayName)},
+			});
+
+			auto edgeId(HashValue(new Array{data->Get("from_node_id"), data->Get("to_node_id")}));
+			hmsetDependencyEdges.emplace_back(edgeId);
+			hmsetDependencyEdges.emplace_back(JsonEncode(data));
+
+			if (runtimeUpdates) {
+				AddObjectDataToRuntimeUpdates(*runtimeUpdates, edgeId, m_PrefixConfigObject + "dependency:edge", data);
+			}
+
+			if (syncSharedEdgeState) {
+				hmsetDependenciesStates.emplace_back(edgeStateAttrs->Get("id"));
+				hmsetDependenciesStates.emplace_back(JsonEncode(edgeStateAttrs));
+			}
+		}
+	}
+}
+
+/**
  * Update the state information of a checkable in Redis.
  *
  * What is updated exactly depends on the mode parameter:
@@ -1174,6 +1406,85 @@ void IcingaDB::UpdateState(const Checkable::Ptr& checkable, StateUpdate mode)
 		}
 
 		m_Rcon->FireAndForgetQuery(std::move(streamadd), Prio::RuntimeStateStream, {0, 1});
+
+		UpdateDependenciesState(checkable);
+	}
+}
+
+/**
+ * Send dependencies state information of the given Checkable to Redis.
+ *
+ * @param checkable The Checkable you want to send the dependencies state update for
+ */
+void IcingaDB::UpdateDependenciesState(const Checkable::Ptr& checkable) const
+{
+	if (!m_Rcon || !m_Rcon->IsConnected()) {
+		return;
+	}
+
+	auto dependencyGroups(checkable->GetDependencyGroups());
+	if (dependencyGroups.empty()) {
+		return;
+	}
+
+	RedisConnection::Queries streamStates;
+	auto addDependencyStateToStream([this, &streamStates](const String& redisKey, const Dictionary::Ptr& stateAttrs) {
+		RedisConnection::Query xAdd{
+			"XADD", "icinga:runtime:state", "MAXLEN", "~", "1000000", "*", "runtime_type", "upsert",
+			"redis_key", redisKey
+		};
+		ObjectLock olock(stateAttrs);
+		for (auto& [key, value] : stateAttrs) {
+			xAdd.emplace_back(key);
+			xAdd.emplace_back(IcingaToStreamValue(value));
+		}
+		streamStates.emplace_back(std::move(xAdd));
+	});
+
+	for (auto& dependencyGroup : dependencyGroups) {
+		bool isRedundancyGroup(dependencyGroup->IsRedundancyGroup());
+		if (isRedundancyGroup && dependencyGroup->GetIcingaDBIdentifier().IsEmpty()) {
+			// Way too soon! The Icinga DB hash will be set during the initial config dump, but this state
+			// update seems to occur way too early. So, we've to skip it for now and wait for the next one.
+			// The m_ConfigDumpInProgress flag is probably still set to true at this point!
+			continue;
+		}
+
+		auto dependencies(dependencyGroup->GetDependenciesForChild(checkable.get()));
+		std::sort(dependencies.begin(), dependencies.end(), [](const Dependency::Ptr& lhs, const Dependency::Ptr& rhs) {
+			return lhs->GetParent() < rhs->GetParent();
+		});
+		for (auto it(dependencies.begin()); it != dependencies.end(); /* no increment */) {
+			auto dependency(*it);
+
+			Dictionary::Ptr stateAttrs;
+			// Note: The following loop is intended to cover some possible special cases but may not occur in practice
+			// that often. That is, having two or more dependency objects that point to the same parent Checkable.
+			// So, traverse all those duplicates and merge their relevant state information into a single edge.
+			for (; it != dependencies.end() && (*it)->GetParent() == dependency->GetParent(); ++it) {
+				if (!stateAttrs || stateAttrs->Get("failed") == false) {
+					stateAttrs = SerializeDependencyEdgeState(dependencyGroup, *it);
+				}
+			}
+
+			addDependencyStateToStream(m_PrefixConfigObject + "dependency:edge:state", stateAttrs);
+		}
+
+		if (isRedundancyGroup) {
+			Dictionary::Ptr stateAttrs(SerializeRedundancyGroupState(checkable, dependencyGroup));
+
+			Dictionary::Ptr sharedGroupState(stateAttrs->ShallowClone());
+			sharedGroupState->Remove("redundancy_group_id");
+			sharedGroupState->Remove("is_reachable");
+			sharedGroupState->Remove("last_state_change");
+
+			addDependencyStateToStream(m_PrefixConfigObject + "redundancygroup:state", stateAttrs);
+			addDependencyStateToStream(m_PrefixConfigObject + "dependency:edge:state", sharedGroupState);
+		}
+	}
+
+	if (!streamStates.empty()) {
+		m_Rcon->FireAndForgetQueries(std::move(streamStates), Prio::RuntimeStateStream, {0, 1});
 	}
 }
 
@@ -1194,34 +1505,7 @@ void IcingaDB::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpd
 		UpdateState(checkable, runtimeUpdate ? StateUpdate::Full : StateUpdate::Volatile);
 	}
 
-	std::vector<std::vector<String> > transaction = {{"MULTI"}};
-
-	for (auto& kv : hMSets) {
-		if (!kv.second.empty()) {
-			kv.second.insert(kv.second.begin(), {"HMSET", kv.first});
-			transaction.emplace_back(std::move(kv.second));
-		}
-	}
-
-	for (auto& objectAttributes : runtimeUpdates) {
-		std::vector<String> xAdd({"XADD", "icinga:runtime", "MAXLEN", "~", "1000000", "*"});
-		ObjectLock olock(objectAttributes);
-
-		for (const Dictionary::Pair& kv : objectAttributes) {
-			String value = IcingaToStreamValue(kv.second);
-			if (!value.IsEmpty()) {
-				xAdd.emplace_back(kv.first);
-				xAdd.emplace_back(value);
-			}
-		}
-
-		transaction.emplace_back(std::move(xAdd));
-	}
-
-	if (transaction.size() > 1) {
-		transaction.push_back({"EXEC"});
-		m_Rcon->FireAndForgetQueries(std::move(transaction), Prio::Config, {1});
-	}
+	ExecuteRedisTransaction(hMSets, runtimeUpdates);
 
 	if (checkable) {
 		SendNextUpdate(checkable);
@@ -1307,6 +1591,11 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 		attributes->Set("is_volatile", checkable->GetVolatile());
 		attributes->Set("notes", checkable->GetNotes());
 		attributes->Set("icon_image_alt", checkable->GetIconImageAlt());
+
+		if (size_t affectedChildren (checkable->GetAllChildrenCount()); affectedChildren > 0) {
+			// Only set the Redis key if the Checkable has actually some child dependencies.
+			attributes->Set("affected_children", affectedChildren);
+		}
 
 		attributes->Set("checkcommand_id", GetObjectIdentifier(checkable->GetCheckCommand()));
 
@@ -2580,6 +2869,102 @@ void IcingaDB::SendCustomVarsChanged(const ConfigObject::Ptr& object, const Dict
 	}
 }
 
+void IcingaDB::SendDependencyGroupChildRegistered(const Checkable::Ptr& child, const DependencyGroup::Ptr& dependencyGroup)
+{
+	if (!m_Rcon || !m_Rcon->IsConnected()) {
+		return;
+	}
+
+	std::vector<Dictionary::Ptr> runtimeUpdates;
+	std::map<String, RedisConnection::Query> hMSets;
+	InsertCheckableDependencies(child, hMSets, &runtimeUpdates, dependencyGroup);
+	ExecuteRedisTransaction(hMSets, runtimeUpdates);
+
+	UpdateState(child, StateUpdate::Full);
+
+	std::set<Checkable::Ptr> parents;
+	dependencyGroup->LoadParents(parents);
+	for (const auto& parent : parents) {
+		// The affect{ed,s}_children might now have different outcome, so update the parent Checkable as well.
+		// The grandparent Checkable may still have wrong numbers of affected children, though it's not worth
+		// traversing the whole tree way up and sending config updates for each one of them, as the next Redis
+		// config dump is going to fix it anyway.
+		SendConfigUpdate(parent, true);
+	}
+}
+
+void IcingaDB::SendDependencyGroupChildRemoved(const DependencyGroup::Ptr& dependencyGroup, const std::vector<Dependency::Ptr>& dependencies)
+{
+	if (!m_Rcon || !m_Rcon->IsConnected() || dependencies.empty()) {
+		return;
+	}
+
+	RedisConnection::Queries hdels, xAdds;
+	auto deleteState([this, &hdels, &xAdds](const String& id, const String& redisKey) {
+		hdels.emplace_back(RedisConnection::Query{"HDEL", m_PrefixConfigObject + redisKey, id});
+		xAdds.emplace_back(RedisConnection::Query{
+			"XADD", "icinga:runtime:state", "MAXLEN", "~", "1000000", "*", "runtime_type", "delete",
+			"redis_key", m_PrefixConfigObject + redisKey, "id", id
+		});
+	});
+
+	Checkable::Ptr child;
+	std::set<Checkable*> detachedParents;
+	for (const auto& dependency : dependencies) {
+		child = dependency->GetChild(); // All dependencies have the same child.
+		const auto& parent(dependency->GetParent());
+		if (auto [_, inserted] = detachedParents.insert(dependency->GetParent().get()); inserted) {
+			String edgeId;
+			if (dependencyGroup->IsRedundancyGroup()) {
+				// If there are no other dependencies in the dependency group that connect the redundancy group with
+				// the parent Checkable, we've to remove the edge and its state accordingly.
+				if (dependencyGroup->IsEmpty() || !dependencyGroup->HasParentWithConfig(dependency)) {
+					auto id(HashValue(new Array{dependencyGroup->GetIcingaDBIdentifier(), GetObjectIdentifier(parent)}));
+					deleteState(id, "dependency:edge:state");
+					DeleteRelationship(id, "dependency:edge");
+				}
+
+				// Remove the connection from the child Checkable to the redundancy group.
+				edgeId = HashValue(new Array{GetObjectIdentifier(child), dependencyGroup->GetIcingaDBIdentifier()});
+			} else {
+				// Remove the edge between the parent and child Checkable linked through the removed dependency.
+				edgeId = HashValue(new Array{GetObjectIdentifier(child), GetObjectIdentifier(parent)});
+			}
+
+			DeleteRelationship(edgeId, "dependency:edge");
+
+			// The affect{ed,s}_children might now have different outcome, so update the parent Checkable as well.
+			// The grandparent Checkable may still have wrong numbers of affected children, though it's not worth
+			// traversing the whole tree way up and sending config updates for each one of them, as the next Redis
+			// config dump is going to fix it anyway.
+			SendConfigUpdate(parent, true);
+		}
+	}
+
+	if (dependencyGroup->IsRedundancyGroup() && dependencyGroup->IsEmpty()) {
+		String redundancyGroupId(dependencyGroup->GetIcingaDBIdentifier());
+		deleteState(redundancyGroupId, "dependency:edge:state");
+		deleteState(redundancyGroupId, "redundancygroup:state");
+
+		DeleteRelationship(redundancyGroupId, "dependency:node");
+		DeleteRelationship(redundancyGroupId, "redundancygroup");
+	} else if (dependencyGroup->IsEmpty()) {
+		// Note: The Icinga DB identifier of a non-redundant dependency group is used as the edge state ID
+		// and shared by all of its dependency objects. See also SerializeDependencyEdgeState() for details.
+		deleteState(dependencyGroup->GetIcingaDBIdentifier(), "dependency:edge:state");
+	}
+
+	if (!child->HasAnyDependencies()) {
+		// If the child Checkable has no parent and reverse dependencies, we can safely remove the dependency node.
+		DeleteRelationship(GetObjectIdentifier(child), "dependency:node");
+	}
+
+	if (!hdels.empty()) {
+		m_Rcon->FireAndForgetQueries(std::move(hdels), Prio::RuntimeStateSync);
+		m_Rcon->FireAndForgetQueries(std::move(xAdds), Prio::RuntimeStateStream, {0, 1});
+	}
+}
+
 Dictionary::Ptr IcingaDB::SerializeState(const Checkable::Ptr& checkable)
 {
 	Dictionary::Ptr attrs = new Dictionary();
@@ -2623,6 +3008,7 @@ Dictionary::Ptr IcingaDB::SerializeState(const Checkable::Ptr& checkable)
 	attrs->Set("check_attempt", checkable->GetCheckAttempt());
 
 	attrs->Set("is_active", checkable->IsActive());
+	attrs->Set("affects_children", checkable->AffectsChildren());
 
 	CheckResult::Ptr cr = checkable->GetLastCheckResult();
 
@@ -2856,6 +3242,20 @@ void IcingaDB::NextCheckUpdatedHandler(const Checkable::Ptr& checkable)
 	}
 }
 
+void IcingaDB::DependencyGroupChildRegisteredHandler(const Checkable::Ptr& child, const DependencyGroup::Ptr& dependencyGroup)
+{
+	for (const auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
+		rw->SendDependencyGroupChildRegistered(child, dependencyGroup);
+	}
+}
+
+void IcingaDB::DependencyGroupChildRemovedHandler(const DependencyGroup::Ptr& dependencyGroup, const std::vector<Dependency::Ptr>& dependencies)
+{
+	for (const auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
+		rw->SendDependencyGroupChildRemoved(dependencyGroup, dependencies);
+	}
+}
+
 void IcingaDB::HostProblemChangedHandler(const Service::Ptr& service) {
 	for (auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 		/* Host state changes affect is_handled and severity of services. */
@@ -2972,4 +3372,46 @@ void IcingaDB::DeleteRelationship(const String& id, const String& redisKeyWithou
 	});
 
 	m_Rcon->FireAndForgetQueries(queries, Prio::Config);
+}
+
+/**
+ * Execute the provided HMSET values and runtime updates in a single Redis transaction.
+ *
+ * The HMSETs should just contain the necessary key value pairs to be set in Redis, i.e, without the HMSET command
+ * itself. This function will then go through each of the map keys and prepend the HMSET command when transforming the
+ * map into valid Redis queries. Likewise, the runtime updates should just contain the key value pairs to be streamed
+ * to the icinga:runtime pipeline, and this function will generate a XADD query for each one of the vector elements.
+ * 
+ * @param hMSets A map of Redis keys and their respective HMSET values.
+ * @param runtimeUpdates A list of dictionaries to be sent to the icinga:runtime stream.
+ */
+void IcingaDB::ExecuteRedisTransaction(std::map<String, RedisConnection::Query>& hMSets, const std::vector<Dictionary::Ptr>& runtimeUpdates) const
+{
+	RedisConnection::Queries transaction{{"MULTI"}};
+	for (auto& [redisKey, query] : hMSets) {
+		if (!query.empty()) {
+			RedisConnection::Query hSet{"HMSET", redisKey};
+			hSet.insert(hSet.end(), std::make_move_iterator(query.begin()), std::make_move_iterator(query.end()));
+			transaction.emplace_back(std::move(hSet));
+		}
+	}
+
+	for (auto& attrs : runtimeUpdates) {
+		RedisConnection::Query xAdd{"XADD", "icinga:runtime", "MAXLEN", "~", "1000000", "*"};
+
+		ObjectLock olock(attrs);
+		for (auto& [key, value]: attrs) {
+			if (auto streamVal(IcingaToStreamValue(value)); !streamVal.IsEmpty()) {
+				xAdd.emplace_back(key);
+				xAdd.emplace_back(std::move(streamVal));
+			}
+		}
+
+		transaction.emplace_back(std::move(xAdd));
+	}
+
+	if (transaction.size() > 1) {
+		transaction.emplace_back(RedisConnection::Query{"EXEC"});
+		m_Rcon->FireAndForgetQueries(std::move(transaction), Prio::Config, {1});
+	}
 }
