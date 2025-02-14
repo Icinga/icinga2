@@ -206,7 +206,7 @@ bool Checkable::IsReachable(DependencyType dt, int rstack) const
 	}
 
 	for (auto& dependencyGroup : GetDependencyGroups()) {
-		if (auto state(dependencyGroup->GetState(dt, rstack + 1)); !state.Reachable || !state.OK) {
+		if (auto state(dependencyGroup->GetState(this, dt, rstack + 1)); !state.Reachable || !state.OK) {
 			Log(LogDebug, "Checkable")
 				<< "Dependency group '" << dependencyGroup->GetRedundancyGroupName() << "' have failed for checkable '"
 				<< GetName() << "': Marking as unreachable.";

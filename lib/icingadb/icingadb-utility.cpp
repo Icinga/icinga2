@@ -202,9 +202,9 @@ Dictionary::Ptr IcingaDB::SerializeDependencyEdgeState(const DependencyGroup::Pt
  *
  * @return A dictionary with the serialized redundancy group state.
  */
-Dictionary::Ptr IcingaDB::SerializeRedundancyGroupState(const DependencyGroup::Ptr& redundancyGroup)
+Dictionary::Ptr IcingaDB::SerializeRedundancyGroupState(const Checkable::Ptr& child, const DependencyGroup::Ptr& redundancyGroup)
 {
-	auto state(redundancyGroup->GetState());
+	auto state(redundancyGroup->GetState(child.get()));
 	return new Dictionary{
 		{"id", redundancyGroup->GetIcingaDBIdentifier()},
 		{"environment_id", m_EnvironmentId},

@@ -170,7 +170,7 @@ public:
 		bool OK; // Whether the dependency group is reachable and OK.
 	};
 
-	State GetState(DependencyType dt = DependencyState, int rstack = 0) const;
+	State GetState(const Checkable* child, DependencyType dt = DependencyState, int rstack = 0) const;
 
 	static boost::signals2::signal<void(const Checkable::Ptr&, const DependencyGroup::Ptr&)> OnChildRegistered;
 	static boost::signals2::signal<void(const DependencyGroup::Ptr&, const std::vector<Dependency::Ptr>&, bool)> OnChildRemoved;

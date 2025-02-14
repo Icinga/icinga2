@@ -311,29 +311,23 @@ String DependencyGroup::GetCompositeKey()
  * a dependency group may still be marked as failed even when it has reachable parent Checkables, but an unreachable
  * group has always a failed state.
  *
+ * @param child The child Checkable to evaluate the state for.
+ * @param dt The dependency type to evaluate the state for, defaults to DependencyState.
+ * @param rstack The recursion stack level to prevent infinite recursion, defaults to 0.
+ *
  * @return - Returns the state of the current dependency group.
  */
-DependencyGroup::State DependencyGroup::GetState(DependencyType dt, int rstack) const
+DependencyGroup::State DependencyGroup::GetState(const Checkable* child, DependencyType dt, int rstack) const
 {
-	MembersMap members;
-	{
-		// We don't want to hold the mutex lock for the entire evaluation, thus we just need to operate on a copy.
-		std::lock_guard lock(m_Mutex);
-		members = m_Members;
-	}
-
+	auto dependencies(GetDependenciesForChild(child));
 	size_t reachable = 0, available = 0;
 
-	for (auto& [_, dependencies] : members) {
-		ASSERT(!dependencies.empty());
-
-		// Dependencies are grouped by parent and all config attributes affecting their availability. Hence, only
-		// one dependency from the map entry has to be considered, all others will share the same state.
-		if (auto& [_, dependency] = *dependencies.begin(); dependency->GetParent()->IsReachable(dt, rstack)) {
+	for (const auto& dependency : dependencies) {
+		if (dependency->GetParent()->IsReachable(dt, rstack)) {
 			reachable++;
 
-			// Only reachable parents are considered for availability. If they are unreachable and checks are disabled,
-			// they could be incorrectly treated as available otherwise.
+			// Only reachable parents are considered for availability. If they are unreachable and checks are
+			// disabled, they could be incorrectly treated as available otherwise.
 			if (dependency->IsAvailable(dt)) {
 				available++;
 			}
@@ -346,10 +340,10 @@ DependencyGroup::State DependencyGroup::GetState(DependencyType dt, int rstack) 
 		// available as reachable = 0 implies available = 0.
 		return {reachable > 0, available > 0};
 	} else {
-		// For dependencies without a redundancy group, members.size() will be 1 in almost all cases. It will only
+		// For dependencies without a redundancy group, dependencies.size() will be 1 in almost all cases. It will only
 		// contain more elements if there are duplicate dependency config objects between two checkables. In this case,
 		// all of them have to be reachable or available as they don't provide redundancy. Note that unreachable implies
 		// unavailable here as well as only reachable parents count towards the number of available parents.
-		return {reachable >= members.size(), available == members.size()};
+		return {reachable == dependencies.size(), available == dependencies.size()};
 	}
 }

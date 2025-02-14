@@ -175,7 +175,7 @@ private:
 	static const char* GetNotificationTypeByEnum(NotificationType type);
 	static Dictionary::Ptr SerializeVars(const Dictionary::Ptr& vars);
 	static Dictionary::Ptr SerializeDependencyEdgeState(const DependencyGroup::Ptr& dependencyGroup, const Dependency::Ptr& dep);
-	static Dictionary::Ptr SerializeRedundancyGroupState(const DependencyGroup::Ptr& redundancyGroup);
+	static Dictionary::Ptr SerializeRedundancyGroupState(const Checkable::Ptr& child, const DependencyGroup::Ptr& redundancyGroup);
 
 	static String HashValue(const Value& value);
 	static String HashValue(const Value& value, const std::set<String>& propertiesBlacklist, bool propertiesWhitelist = false);
