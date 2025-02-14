@@ -226,9 +226,9 @@ bool Checkable::IsReachable(DependencyType dt, int rstack) const
  *
  * @return bool - Returns true if the Checkable affects its child dependencies, otherwise false.
  */
-bool Checkable::AffectsChildren(const CheckResult::Ptr& cr) const
+bool Checkable::AffectsChildren() const
 {
-	if (!cr || !IsReachable()) {
+	if (!GetLastCheckResult() || !IsReachable()) {
 		// If there is no check result, or the Checkable is not reachable, we can't safely determine whether
 		// the Checkable affects its child dependencies.
 		return false;

@@ -335,6 +335,10 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 
 	cr->SetVarsAfter(vars_after);
 
+	// Cache whether the previous state of this Checkable affects its children before overwriting the last check result.
+	// This will be used to determine whether the on reachability changed event should be triggered.
+	bool affectsPreviousStateChildren(AffectsChildren());
+
 	olock.Lock();
 
 	if (service) {
@@ -533,7 +537,7 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 	}
 
 	/* update reachability for child objects */
-	if ((stateChange || hardChange) && !children.empty() && (AffectsChildren(old_cr) || AffectsChildren(cr)))
+	if ((stateChange || hardChange) && !children.empty() && (affectsPreviousStateChildren || AffectsChildren()))
 		OnReachabilityChanged(this, cr, children, origin);
 
 	return Result::Ok;

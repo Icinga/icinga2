@@ -84,7 +84,7 @@ public:
 	void AddGroup(const String& name);
 
 	bool IsReachable(DependencyType dt = DependencyState, int rstack = 0) const;
-	bool AffectsChildren(const CheckResult::Ptr& cr) const;
+	bool AffectsChildren() const;
 
 	AcknowledgementType GetAcknowledgement();
 
