@@ -251,16 +251,24 @@ void Dependency::OnAllConfigLoaded()
 	// InitChildParentReferences() has to be called before.
 	VERIFY(m_Child && m_Parent);
 
-	m_Child->AddDependency(this);
+	// Icinga DB will implicitly send config updates for the parent Checkable to refresh its affects_children and
+	// affected_children columns when registering the dependency from the child Checkable. So, we need to register
+	// the dependency from the parent Checkable first, otherwise the config update of the parent Checkable will change
+	// nothing at all.
 	m_Parent->AddReverseDependency(this);
+	m_Child->AddDependency(this);
 }
 
 void Dependency::Stop(bool runtimeRemoved)
 {
 	ObjectImpl<Dependency>::Stop(runtimeRemoved);
 
-	GetChild()->RemoveDependency(this, runtimeRemoved);
+	// Icinga DB will implicitly send config updates for the parent Checkable to refresh its affects_children and
+	// affected_children columns when removing the dependency from the child Checkable. So, we need to remove the
+	// dependency from the parent Checkable first, otherwise the config update of the parent Checkable will change
+	// nothing at all.
 	GetParent()->RemoveReverseDependency(this);
+	GetChild()->RemoveDependency(this, runtimeRemoved);
 }
 
 bool Dependency::IsAvailable(DependencyType dt) const
