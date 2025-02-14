@@ -1210,7 +1210,7 @@ void IcingaDB::InsertCheckableDependencies(
 					// to the DependencyEdgeState HMSETs. The latter is shared by all child Checkables of the current
 					// redundancy group, and since they all depend on the redundancy group, the state of that group is
 					// basically the state of the dependency edges between the children and the redundancy group.
-					auto stateAttrs(SerializeRedundancyGroupState(dependencyGroup));
+					auto stateAttrs(SerializeRedundancyGroupState(checkable, dependencyGroup));
 					AddDataToHmSets(hMSets, RedisKey::RedundancyGroupState, redundancyGroupId, stateAttrs);
 					AddDataToHmSets(hMSets, RedisKey::DependencyEdgeState, redundancyGroupId, Dictionary::Ptr(new Dictionary{
 						{"id", redundancyGroupId},
@@ -1416,7 +1416,7 @@ void IcingaDB::UpdateDependenciesState(const Checkable::Ptr& checkable, const De
 		}
 
 		if (isRedundancyGroup) {
-			Dictionary::Ptr stateAttrs(SerializeRedundancyGroupState(dependencyGroup));
+			Dictionary::Ptr stateAttrs(SerializeRedundancyGroupState(checkable, dependencyGroup));
 
 			Dictionary::Ptr sharedGroupState(stateAttrs->ShallowClone());
 			sharedGroupState->Remove("redundancy_group_id");
