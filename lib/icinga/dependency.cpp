@@ -188,20 +188,19 @@ void Dependency::OnAllConfigLoaded()
 	if (!m_Parent)
 		BOOST_THROW_EXCEPTION(ScriptError("Dependency '" + GetName() + "' references a parent host/service which doesn't exist.", GetDebugInfo()));
 
-	m_Child->AddDependency(this);
-	m_Parent->AddReverseDependency(this);
-
 	if (m_AssertNoCyclesForIndividualDeps) {
 		DependencyCycleGraph graph;
+		graph.Stack.emplace_back(m_Child);
+		graph.Stack.emplace_back(this);
 
-		try {
-			AssertNoDependencyCycle(m_Parent, graph);
-		} catch (...) {
-			m_Child->RemoveDependency(this);
-			m_Parent->RemoveReverseDependency(this);
-			throw;
-		}
+		auto& node = graph.Nodes[m_Child];
+		node.Visited = true;
+		node.OnStack = true;
+		AssertNoDependencyCycle(m_Parent, graph);
 	}
+
+	m_Child->AddDependency(this);
+	m_Parent->AddReverseDependency(this);
 }
 
 void Dependency::Stop(bool runtimeRemoved)
