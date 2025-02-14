@@ -1275,7 +1275,7 @@ void IcingaDB::InsertCheckableDependencies(
 					AddObjectDataToRuntimeUpdates(*runtimeUpdates, redundancyGroupId, m_PrefixConfigObject + "dependency:node", nodeData);
 				}
 
-				auto stateAttrs(SerializeRedundancyGroupState(dependencyGroup));
+				auto stateAttrs(SerializeRedundancyGroupState(checkable, dependencyGroup));
 				hmsetRedundancyGroupsStates.emplace_back(redundancyGroupId);
 				hmsetRedundancyGroupsStates.emplace_back(JsonEncode(stateAttrs));
 
@@ -1471,7 +1471,7 @@ void IcingaDB::UpdateDependenciesState(const Checkable::Ptr& checkable) const
 		}
 
 		if (isRedundancyGroup) {
-			Dictionary::Ptr stateAttrs(SerializeRedundancyGroupState(dependencyGroup));
+			Dictionary::Ptr stateAttrs(SerializeRedundancyGroupState(checkable, dependencyGroup));
 
 			Dictionary::Ptr sharedGroupState(stateAttrs->ShallowClone());
 			sharedGroupState->Remove("redundancy_group_id");
