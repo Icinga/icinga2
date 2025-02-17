@@ -81,16 +81,16 @@ class Dependency : CustomVarObject < DependencyNameComposer
 
 	[config, no_user_modify] String redundancy_group;
 
-	[config, navigation] name(TimePeriod) period (PeriodRaw) {
+	[config, no_user_modify, navigation] name(TimePeriod) period (PeriodRaw) {
 		navigate {{{
 			return TimePeriod::GetByName(GetPeriodRaw());
 		}}}
 	};
 
-	[config] array(Value) states;
+	[config, no_user_modify] array(Value) states;
 	[no_user_view, no_user_modify] int state_filter_real (StateFilter);
 
-	[config] bool ignore_soft_states {
+	[config, no_user_modify] bool ignore_soft_states {
 		default {{{ return true; }}}
 	};
 
