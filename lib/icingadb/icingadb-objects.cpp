@@ -1414,6 +1414,7 @@ void IcingaDB::UpdateDependenciesState(const Checkable::Ptr& checkable) const
 		streamStates.emplace_back(std::move(xAdd));
 	});
 
+	std::map<String, RedisConnection::Query> hMSets;
 	for (auto& dependencyGroup : dependencyGroups) {
 		bool isRedundancyGroup(dependencyGroup->IsRedundancyGroup());
 		if (isRedundancyGroup && dependencyGroup->GetIcingaDBIdentifier().IsEmpty()) {
@@ -1441,6 +1442,7 @@ void IcingaDB::UpdateDependenciesState(const Checkable::Ptr& checkable) const
 			}
 
 			addDependencyStateToStream(m_PrefixConfigObject + "dependency:edge:state", stateAttrs);
+			AddDataToHmSets(hMSets, RedisKey::DependencyEdgeState, stateAttrs->Get("id"), stateAttrs);
 		}
 
 		if (isRedundancyGroup) {
@@ -1453,10 +1455,20 @@ void IcingaDB::UpdateDependenciesState(const Checkable::Ptr& checkable) const
 
 			addDependencyStateToStream(m_PrefixConfigObject + "redundancygroup:state", stateAttrs);
 			addDependencyStateToStream(m_PrefixConfigObject + "dependency:edge:state", sharedGroupState);
+			AddDataToHmSets(hMSets, RedisKey::RedundancyGroupState, dependencyGroup->GetIcingaDBIdentifier(), stateAttrs);
+			AddDataToHmSets(hMSets, RedisKey::DependencyEdgeState, dependencyGroup->GetIcingaDBIdentifier(), sharedGroupState);
 		}
 	}
 
 	if (!streamStates.empty()) {
+		RedisConnection::Queries queries;
+		for (auto& [redisKey, query] : hMSets) {
+			RedisConnection::Query hSet{"HSET", redisKey};
+			hSet.insert(hSet.end(), std::make_move_iterator(query.begin()), std::make_move_iterator(query.end()));
+			queries.emplace_back(std::move(hSet));
+		}
+
+		m_Rcon->FireAndForgetQueries(std::move(queries), Prio::RuntimeStateSync);
 		m_Rcon->FireAndForgetQueries(std::move(streamStates), Prio::RuntimeStateStream, {0, 1});
 	}
 }
