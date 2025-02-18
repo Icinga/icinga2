@@ -1,58 +1,19 @@
 /* Icinga 2 | (c) 2021 Icinga GmbH | GPLv2+ */
 
 #include "base/tlsutility.hpp"
+#include "base/utility.hpp"
+#include "remote/pkiutility.hpp"
+#include "test/remote-certificate-fixture.hpp"
 #include <BoostTestTargetConfig.h>
+#include <openssl/evp.h>
+#include <openssl/x509.h>
+#include <array>
 #include <functional>
 #include <memory>
-#include <openssl/asn1.h>
-#include <openssl/bn.h>
-#include <openssl/evp.h>
-#include <openssl/obj_mac.h>
-#include <openssl/rsa.h>
-#include <openssl/x509.h>
 #include <utility>
 #include <vector>
 
 using namespace icinga;
-
-static EVP_PKEY* GenKeypair()
-{
-	InitializeOpenSSL();
-
-	auto e (BN_new());
-	BOOST_REQUIRE(e);
-
-	auto rsa (RSA_new());
-	BOOST_REQUIRE(rsa);
-
-	auto key (EVP_PKEY_new());
-	BOOST_REQUIRE(key);
-
-	BOOST_REQUIRE(BN_set_word(e, RSA_F4));
-	BOOST_REQUIRE(RSA_generate_key_ex(rsa, 4096, e, nullptr));
-	BOOST_REQUIRE(EVP_PKEY_assign_RSA(key, rsa));
-
-	return key;
-}
-
-static std::shared_ptr<X509> MakeCert(const char* issuer, EVP_PKEY* signer, const char* subject, EVP_PKEY* pubkey, std::function<void(ASN1_TIME*, ASN1_TIME*)> setTimes)
-{
-	auto cert (X509_new());
-	BOOST_REQUIRE(cert);
-
-	auto serial (BN_new());
-	BOOST_REQUIRE(serial);
-
-	BOOST_REQUIRE(X509_set_version(cert, 0x2));
-	BOOST_REQUIRE(BN_to_ASN1_INTEGER(serial, X509_get_serialNumber(cert)));
-	BOOST_REQUIRE(X509_NAME_add_entry_by_NID(X509_get_issuer_name(cert), NID_commonName, MBSTRING_ASC, (unsigned char*)issuer, -1, -1, 0));
-	setTimes(X509_get_notBefore(cert), X509_get_notAfter(cert));
-	BOOST_REQUIRE(X509_NAME_add_entry_by_NID(X509_get_subject_name(cert), NID_commonName, MBSTRING_ASC, (unsigned char*)subject, -1, -1, 0));
-	BOOST_REQUIRE(X509_set_pubkey(cert, pubkey));
-	BOOST_REQUIRE(X509_sign(cert, signer, EVP_sha256()));
-
-	return std::shared_ptr<X509>(cert, X509_free);
-}
 
 static const long l_2016 = 1480000000; // Thu Nov 24 15:06:40 UTC 2016
 static const long l_2017 = 1490000000; // Mon Mar 20 08:53:20 UTC 2017
@@ -85,71 +46,220 @@ BOOST_AUTO_TEST_CASE(sha1)
 	}
 }
 
-BOOST_AUTO_TEST_CASE(iscauptodate_ok)
+static String GetOpenSSLError()
 {
-	auto key (GenKeypair());
-
-	BOOST_CHECK(IsCaUptodate(MakeCert("Icinga CA", key, "Icinga CA", key, [](ASN1_TIME* notBefore, ASN1_TIME* notAfter) {
-		BOOST_REQUIRE(X509_gmtime_adj(notBefore, 0));
-		BOOST_REQUIRE(X509_gmtime_adj(notAfter, LEAF_VALID_FOR + 60 * 60));
-	}).get()));
+	std::array<char, 256> errBuf;
+	ERR_error_string_n(ERR_get_error(), errBuf.data(), errBuf.size());
+	return {errBuf.data()};
 }
 
-BOOST_AUTO_TEST_CASE(iscauptodate_expiring)
+static std::shared_ptr<EVP_PKEY> GetRsaPrivateKey(const String& keyfile)
 {
-	auto key (GenKeypair());
+	std::shared_ptr<BIO> cakeybio(BIO_new_file(keyfile.CStr(), "r"), BIO_free);
+	BOOST_REQUIRE_MESSAGE(cakeybio, "BIO_new_file() for private key from '" << keyfile << "': " << GetOpenSSLError());
 
-	BOOST_CHECK(!IsCaUptodate(MakeCert("Icinga CA", key, "Icinga CA", key, [](ASN1_TIME* notBefore, ASN1_TIME* notAfter) {
-		BOOST_REQUIRE(X509_gmtime_adj(notBefore, 0));
-		BOOST_REQUIRE(X509_gmtime_adj(notAfter, LEAF_VALID_FOR - 60 * 60));
-	}).get()));
+	RSA* rsa = PEM_read_bio_RSAPrivateKey(cakeybio.get(), nullptr, nullptr, nullptr);
+	BOOST_REQUIRE_MESSAGE(rsa, "PEM read bio RSA key from private key file '" << keyfile << "': " << GetOpenSSLError());
+	BOOST_CHECK_EQUAL(1, RSA_check_key(rsa)); // 1 == valid, 0 == invalid
+
+	std::shared_ptr<EVP_PKEY> rsaKey(EVP_PKEY_new(), EVP_PKEY_free);
+	EVP_PKEY_assign_RSA(rsaKey.get(), rsa);
+	BOOST_CHECK_EQUAL(EVP_PKEY_RSA, EVP_PKEY_id(rsaKey.get()));
+
+	return rsaKey;
 }
 
-BOOST_AUTO_TEST_CASE(iscertuptodate_ok)
+/**
+ * Creates a new certificate based on an existing one, with modified validity period.
+ *
+ * @param cert The existing certificate to base the new one on.
+ * @param validFrom The start time of the new certificate's validity period (in seconds).
+ * @param validFor The duration of the new certificate's validity period (in seconds).
+ * @param caCert Whether the new certificate should be a CA certificate.
+ *
+ * @returns A shared pointer to the newly created X509 certificate.
+ */
+static auto NewCertFromExisting(const std::shared_ptr<X509>& cert, long validFrom, long validFor, bool caCert = false)
 {
-	BOOST_CHECK(IsCertUptodate(MakeCert("Icinga CA", GenKeypair(), "example.com", GenKeypair(), [](ASN1_TIME* notBefore, ASN1_TIME* notAfter) {
-		time_t epoch = 0;
-		BOOST_REQUIRE(X509_time_adj(notBefore, l_2017, &epoch));
-		BOOST_REQUIRE(X509_gmtime_adj(notAfter, RENEW_THRESHOLD + 60 * 60));
-	})));
+	std::shared_ptr<EVP_PKEY> caPubKey(X509_get_pubkey(cert.get()), EVP_PKEY_free);
+	return CreateCertIcingaCA(caPubKey.get(), X509_get_subject_name(cert.get()), validFrom, validFor, caCert);
 }
 
-BOOST_AUTO_TEST_CASE(iscertuptodate_expiring)
+/**
+ * Creates an ASN1_TIME object representing the current time plus the specified number of seconds.
+ *
+ * @param seconds The number of seconds to add to the current time.
+ * @returns A shared pointer to the ASN1_TIME object.
+ */
+static std::shared_ptr<ASN1_TIME> MakeASN1TimeFrom(long seconds)
 {
-	BOOST_CHECK(!IsCertUptodate(MakeCert("Icinga CA", GenKeypair(), "example.com", GenKeypair(), [](ASN1_TIME* notBefore, ASN1_TIME* notAfter) {
-		time_t epoch = 0;
-		BOOST_REQUIRE(X509_time_adj(notBefore, l_2017, &epoch));
-		BOOST_REQUIRE(X509_gmtime_adj(notAfter, RENEW_THRESHOLD - 60 * 60));
-	})));
+	auto now = time(nullptr);
+	return {X509_time_adj_ex(nullptr, 0, seconds, &now), ASN1_TIME_free};
 }
 
-BOOST_AUTO_TEST_CASE(iscertuptodate_old)
+/**
+ * Formats an ASN1_TIME object as a human-readable string.
+ *
+ * @param t The ASN1_TIME object to format.
+ *
+ * @returns A string representation of the ASN1_TIME object.
+ */
+static std::string FormatAsn1Time(const ASN1_TIME* t)
 {
-	BOOST_CHECK(!IsCertUptodate(MakeCert("Icinga CA", GenKeypair(), "example.com", GenKeypair(), [](ASN1_TIME* notBefore, ASN1_TIME* notAfter) {
-		time_t epoch = 0;
-		BOOST_REQUIRE(X509_time_adj(notBefore, l_2016, &epoch));
-		BOOST_REQUIRE(X509_gmtime_adj(notAfter, RENEW_THRESHOLD + 60 * 60));
-	})));
+	std::shared_ptr<BIO> bio(BIO_new(BIO_s_mem()), BIO_free);
+	BOOST_REQUIRE_MESSAGE(bio, "BIO_new(BIO_s_mem()): " << GetOpenSSLError());
+	ASN1_TIME_print(bio.get(), t);
+	char *data;
+	long len = BIO_get_mem_data(bio.get(), &data);
+	std::string result(data, data + len);
+	return result;
 }
 
-BOOST_AUTO_TEST_CASE(VerifyCertificate_revalidate)
+BOOST_FIXTURE_TEST_CASE(create_verify_ca, CertificateFixture)
 {
-	X509_NAME *caSubject = X509_NAME_new();
-	X509_NAME_add_entry_by_txt(caSubject, "CN", MBSTRING_ASC, (const unsigned char*)"Icinga CA", -1, -1, 0);
+	auto cacert(GetX509Certificate(m_CaDir.string()+"/ca.crt"));
+	if constexpr (OPENSSL_VERSION_NUMBER >= 0x10100000L) {
+		// OpenSSL 1.1.x provides https://www.openssl.org/docs/man1.1.0/man3/X509_check_ca.html
+		BOOST_CHECK(IsCa(cacert));
+	} else {
+		BOOST_CHECK_THROW(IsCa(cacert), std::invalid_argument);
+	}
+	BOOST_CHECK(VerifyCertificate(cacert, cacert, String())); // Self-signed CA!
+	BOOST_CHECK(IsCaUptodate(cacert.get())); // Is CA up-to-date after its creation?
+	auto validUntil = MakeASN1TimeFrom(ROOT_VALID_FOR);
+	BOOST_CHECK_MESSAGE(0 >= Asn1TimeCompare(X509_get_notAfter(cacert.get()), validUntil.get()),
+		"CA should expire within " << std::quoted(FormatAsn1Time(validUntil.get()))
+		<< ", notAfter: " << std::quoted(FormatAsn1Time(X509_get_notAfter(cacert.get()))));
 
-	auto signingCaKey = GenKeypair();
-	auto signingCaCert = CreateCert(signingCaKey, caSubject, caSubject, signingCaKey, true);
+	// Set the CA certificate to expire in 100 days, i.e. less than the LEAF_VALID_FOR threshold of 397 days.
+	cacert = NewCertFromExisting(cacert, 0, 100*24*60*60, true);
+	BOOST_CHECK(!IsCaUptodate(cacert.get())); // Is CA outdated now?
 
-	X509_NAME *leafSubject = X509_NAME_new();
-	X509_NAME_add_entry_by_txt(leafSubject, "CN", MBSTRING_ASC, (const unsigned char*)"Leaf Certificate", -1, -1, 0);
-	auto leafKey = GenKeypair();
-	auto leafCert = CreateCert(leafKey, leafSubject, caSubject, signingCaKey, false);
-	BOOST_CHECK(VerifyCertificate(signingCaCert, leafCert, ""));
+	cacert = NewCertFromExisting(cacert, 0, LEAF_VALID_FOR-1, true);
+	BOOST_CHECK(!IsCaUptodate(cacert.get())); // Still outdated, as it's less than LEAF_VALID_FOR.
+}
 
-	// Create a second CA with a different key, the leaf certificate is supposed to fail validation against that CA.
-	auto otherCaKey = GenKeypair();
-	auto otherCaCert = CreateCert(otherCaKey, caSubject, caSubject, otherCaKey, true);
-	BOOST_CHECK_THROW(VerifyCertificate(otherCaCert, leafCert, ""), openssl_error);
+BOOST_FIXTURE_TEST_CASE(create_verify_leaf_certs, CertificateFixture)
+{
+	String caDir = m_CaDir.string();
+	String certsDir = m_CertsDir.string();
+
+	auto caprivatekey(GetRsaPrivateKey(caDir+"/ca.key"));
+	auto cacert(GetX509Certificate(caDir+"/ca.crt"));
+	BOOST_CHECK(IsCaUptodate(cacert.get()));
+	BOOST_CHECK_EQUAL(1, X509_verify(cacert.get(), caprivatekey.get())); // 1 == equal, 0 == unequal, -1 == error
+
+	auto certInfo = EnsureCertFor("example.com", true); // Generates example.com.{key,csr,crt} files.
+
+	auto cert(GetX509Certificate(certInfo.crtFile));
+	if constexpr (OPENSSL_VERSION_NUMBER >= 0x10100000L) {
+		BOOST_CHECK(!IsCa(cert));
+	} else {
+		BOOST_CHECK_THROW(IsCa(cert), std::invalid_argument);
+	}
+	BOOST_CHECK(IsCertUptodate(cert)); // Is leaf up-to-date after its creation?
+	BOOST_CHECK(VerifyCertificate(cacert, cert, String())); // Signed by our CA?
+	auto validUntil = MakeASN1TimeFrom(LEAF_VALID_FOR);
+	BOOST_CHECK_MESSAGE(0 >= Asn1TimeCompare(X509_get_notAfter(cert.get()), validUntil.get()),
+		"Leaf certificate should expire within " << std::quoted(FormatAsn1Time(validUntil.get()))
+		<< ", notAfter: " << std::quoted(FormatAsn1Time(X509_get_notAfter(cert.get()))));
+
+	// Set the certificate to expire in 20 days, i.e. less than the RENEW_THRESHOLD of 30 days.
+	cert = NewCertFromExisting(cert, 0, 20*24*60*60);
+	BOOST_CHECK(!IsCertUptodate(cert));
+	BOOST_CHECK(VerifyCertificate(cacert, cert, String())); // Verification should still work.
+
+	// Check whether expired certificates are correctly detected and verification fails.
+	cert = NewCertFromExisting(cert, -LEAF_VALID_FOR, -10*24*60*60); // Expire 10 days ago!
+	validUntil = MakeASN1TimeFrom(-10*24*60*60);
+	BOOST_CHECK_MESSAGE(0 >= Asn1TimeCompare(X509_get_notAfter(cert.get()), validUntil.get()), // Is certificate indeed expired?
+		"Leaf certificate should have expired on " << std::quoted(FormatAsn1Time(validUntil.get()))
+		<< ", notAfter: " << std::quoted(FormatAsn1Time(X509_get_notAfter(cert.get()))));
+	BOOST_CHECK(!IsCertUptodate(cert)); // It's already expired, so definitely not up-to-date.
+	auto assertForCertHasExpired = [](const openssl_error& e) {
+		const unsigned long* opensslCode = boost::get_error_info<errinfo_openssl_error>(e);
+		BOOST_REQUIRE(opensslCode);
+		BOOST_REQUIRE_EQUAL(*opensslCode, X509_V_ERR_CERT_HAS_EXPIRED);
+		return *opensslCode == X509_V_ERR_CERT_HAS_EXPIRED;
+	};
+	BOOST_CHECK_EXCEPTION(VerifyCertificate(cacert, cert, String()), openssl_error, assertForCertHasExpired);
+
+	// Set the certificate validity start date to 2016, all certificates created before 2017 are considered outdated.
+	cert = NewCertFromExisting(cert, -(time(nullptr)-l_2016), LEAF_VALID_FOR);
+	BOOST_CHECK(!IsCertUptodate(cert));
+	// ... but verification should still work, as the certificate is still valid.
+	BOOST_CHECK(VerifyCertificate(cacert, cert, String()));
+
+	// Reset the certificate validity start date to the least acceptable value, i.e. 2017.
+	cert = NewCertFromExisting(cert, -(time(nullptr)-l_2017), LEAF_VALID_FOR);
+	BOOST_CHECK(IsCertUptodate(cert));
+	BOOST_CHECK(VerifyCertificate(cacert, cert, String()));
+
+	cacert = NewCertFromExisting(cacert, -LEAF_VALID_FOR, -10*24*60*60, true); // Expire the CA 10 days ago.
+	BOOST_CHECK_EQUAL(1, X509_verify(cacert.get(), caprivatekey.get())); // 1 == equal, 0 == unequal, -1 == error
+	BOOST_CHECK(!IsCaUptodate(cacert.get()));
+	BOOST_CHECK_EXCEPTION(VerifyCertificate(cacert, cert, String()), openssl_error, assertForCertHasExpired);
+
+	// Generate a new CA certificate to simulate a renewal and check whether verification still works.
+	auto newCACert = NewCertFromExisting(cacert, 0, ROOT_VALID_FOR, true);
+	BOOST_REQUIRE(newCACert);
+	BOOST_CHECK_EQUAL(1, X509_verify(newCACert.get(), caprivatekey.get())); // 1 == equal, 0 == unequal, -1 == error
+	BOOST_CHECK(IsCaUptodate(newCACert.get()));
+	BOOST_CHECK(VerifyCertificate(newCACert, newCACert, String()));
+	BOOST_CHECK(VerifyCertificate(newCACert, cert, String()));
+	auto assertIMMorDZSSC = [](const openssl_error& e) { // IMM = Issuer Mismatch, DZSSC = Depth Zero Self-Signed Cert
+		const unsigned long* opensslCode = boost::get_error_info<errinfo_openssl_error>(e);
+		BOOST_REQUIRE(opensslCode);
+#ifdef LIBRESSL_VERSION_NUMBER
+		BOOST_REQUIRE_EQUAL(*opensslCode, X509_V_ERR_SUBJECT_ISSUER_MISMATCH);
+		return *opensslCode == X509_V_ERR_SUBJECT_ISSUER_MISMATCH;
+#else
+		BOOST_REQUIRE_EQUAL(*opensslCode, X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT);
+		return *opensslCode == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT;
+#endif
+	};
+	//... but verifying the new CA with the old CA or vice versa should fail.
+	BOOST_CHECK_EXCEPTION(VerifyCertificate(cacert, newCACert, String()), openssl_error, assertIMMorDZSSC);
+	BOOST_CHECK_EXCEPTION(VerifyCertificate(newCACert, cacert, String()), openssl_error, assertIMMorDZSSC);
+
+	cacert = newCACert;
+	cert = NewCertFromExisting(cert, 0, LEAF_VALID_FOR);
+	BOOST_CHECK(IsCertUptodate(cert));
+	BOOST_CHECK(VerifyCertificate(cacert, cert, String()));
+
+	// Remove the previously generated CA before regenerating a new one, PkiUtility::NewCa() would fail otherwise.
+	Utility::Remove(caDir+"/ca.crt");
+	Utility::Remove(caDir+"/ca.key");
+	BOOST_CHECK_EQUAL(0, PkiUtility::NewCa());
+
+	newCACert = GetX509Certificate(caDir+"/ca.crt");
+	auto newCAPrivateKey = GetRsaPrivateKey(caDir+"/ca.key");
+	BOOST_REQUIRE(newCACert);
+	BOOST_CHECK_NE(0, ASN1_INTEGER_cmp(X509_get_serialNumber(cacert.get()), X509_get_serialNumber(newCACert.get())));
+	// 1 == equal, 0 == unequal but same type, -1 == different types (e.g. RSA vs. EC) and -2 == unsupported op.
+	BOOST_CHECK_NE(1, EVP_PKEY_cmp(X509_get_pubkey(cacert.get()), X509_get_pubkey(newCACert.get())));
+
+	BOOST_CHECK_MESSAGE(1 == X509_verify(newCACert.get(), newCAPrivateKey.get()), "Failed to verify new CA certificate: " << GetOpenSSLError());
+	BOOST_CHECK_MESSAGE(1 > X509_verify(newCACert.get(), caprivatekey.get()), "New CA certificate should not be verifiable with the old private key");
+	BOOST_CHECK_MESSAGE(1 > X509_verify(cacert.get(), newCAPrivateKey.get()), "Old CA certificate should not be verifiable with the new private key");
+
+	BOOST_CHECK(IsCaUptodate(newCACert.get()));
+	BOOST_CHECK(VerifyCertificate(newCACert, newCACert, String())); // Self-signed CA!
+	auto assertSignatureFailure = [](const openssl_error& e) {
+		const unsigned long* opensslCode = boost::get_error_info<errinfo_openssl_error>(e);
+		BOOST_REQUIRE(opensslCode);
+		BOOST_REQUIRE_EQUAL(*opensslCode, X509_V_ERR_CERT_SIGNATURE_FAILURE);
+		return *opensslCode == X509_V_ERR_CERT_SIGNATURE_FAILURE;
+	};
+	// Verification should fail because the leaf certificate was signed by the old CA.
+	BOOST_CHECK_EXCEPTION(VerifyCertificate(newCACert, cert, String()), openssl_error, assertSignatureFailure);
+
+	// Renew the leaf certificate and check whether verification works with the new CA.
+	auto newCert = NewCertFromExisting(cert, 0, LEAF_VALID_FOR, false);
+	BOOST_CHECK(IsCertUptodate(newCert));
+	BOOST_CHECK(VerifyCertificate(newCACert, newCert, String()));
+	// Verification should fail because the new leaf certificate was signed by the newly generated CA.
+	BOOST_CHECK_EXCEPTION(VerifyCertificate(cacert, newCert, String()), openssl_error, assertSignatureFailure);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

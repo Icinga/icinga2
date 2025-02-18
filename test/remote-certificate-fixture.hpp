@@ -45,7 +45,7 @@ struct CertificateFixture : ConfigurationDataDirFixture
 		fs::rename(m_DataDir / "certs", m_PersistentCertsDir / "certs");
 	}
 
-	[[nodiscard]] auto EnsureCertFor(const std::string& name) const
+	[[nodiscard]] auto EnsureCertFor(const std::string& name, bool overrideExisting = false) const
 	{
 		struct Cert
 		{
@@ -59,7 +59,7 @@ struct CertificateFixture : ConfigurationDataDirFixture
 		cert.keyFile = (m_CertsDir / (name + ".key")).string();
 		cert.csrFile = (m_CertsDir / (name + ".csr")).string();
 
-		if (!Utility::PathExists(cert.crtFile)) {
+		if (overrideExisting || !Utility::PathExists(cert.crtFile)) {
 			PkiUtility::NewCert(name, cert.keyFile, cert.csrFile, "");
 			PkiUtility::SignCsr(cert.csrFile, cert.crtFile);
 		}
