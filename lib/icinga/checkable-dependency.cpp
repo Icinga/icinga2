@@ -26,15 +26,12 @@ static constexpr int l_MaxDependencyRecursionLevel(256);
 void Checkable::PushDependencyGroupsToRegistry()
 {
 	std::lock_guard lock(m_DependencyMutex);
-	if (!m_DependencyGroupsPushedToRegistry) {
-		m_DependencyGroupsPushedToRegistry = true;
-
-		decltype(m_DependencyGroups) dependencyGroups;
-		m_DependencyGroups.swap(dependencyGroups);
-
-		for (auto& [dependencyGroupKey, dependencyGroup] : dependencyGroups) {
-			m_DependencyGroups.emplace(dependencyGroupKey, DependencyGroup::Register(dependencyGroup));
+	if (m_PendingDependencies != nullptr) {
+		for (const auto &[key, dependencies] : *m_PendingDependencies) {
+			String redundancyGroup = std::holds_alternative<String>(key) ? std::get<String>(key) : "";
+			m_DependencyGroups.emplace(key, DependencyGroup::Register(new DependencyGroup(redundancyGroup, dependencies)));
 		}
+		m_PendingDependencies.reset();
 	}
 }
 
@@ -78,12 +75,8 @@ void Checkable::AddDependency(const Dependency::Ptr& dependency)
 	std::unique_lock lock(m_DependencyMutex);
 
 	auto dependencyGroupKey(GetDependencyGroupKey(dependency));
-	if (!m_DependencyGroupsPushedToRegistry) {
-		auto& dependencyGroup = m_DependencyGroups[dependencyGroupKey];
-		if (!dependencyGroup) {
-			dependencyGroup = new DependencyGroup(dependency->GetRedundancyGroup());
-		}
-		dependencyGroup->AddDependency(dependency);
+	if (m_PendingDependencies != nullptr) {
+		(*m_PendingDependencies)[dependencyGroupKey].emplace(dependency);
 		return;
 	}
 
