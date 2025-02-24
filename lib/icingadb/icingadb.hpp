@@ -210,6 +210,9 @@ private:
 	static void CommandArgumentsChangedHandler(const ConfigObject::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
 	static void CustomVarsChangedHandler(const ConfigObject::Ptr& object, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
 
+	static void ExecuteRedisTransaction(const RedisConnection::Ptr& rcon, std::map<String, RedisConnection::Query>& hMSets,
+		const std::vector<Dictionary::Ptr>& runtimeUpdates);
+
 	void AssertOnWorkQueue();
 
 	void ExceptionHandler(boost::exception_ptr exp);
