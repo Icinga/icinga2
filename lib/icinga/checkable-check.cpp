@@ -71,9 +71,11 @@ void Checkable::UpdateNextCheck(const MessageOrigin::Ptr& origin)
 	double lastCheck = GetLastCheck();
 
 	Log(LogDebug, "Checkable")
+		<< std::fixed << std::setprecision(0)
 		<< "Update checkable '" << GetName() << "' with check interval '" << GetCheckInterval()
 		<< "' from last check time at " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", (lastCheck < 0 ? 0 : lastCheck))
-		<< " (" << GetLastCheck() << ") to next check time at " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", nextCheck) << " (" << nextCheck << ").";
+		<< " (" << lastCheck << ") to next check time at "
+		<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", nextCheck) << " (" << nextCheck << ").";
 
 	SetNextCheck(nextCheck, false, origin);
 }
