@@ -57,6 +57,7 @@ BOOST_AUTO_TEST_CASE(host_not_flapping)
 	host->SetEnableFlapping(true);
 	host->SetMaxCheckAttempts(5);
 	host->SetActive(true);
+	host->PushDependencyGroupsToRegistry();
 
 	// Host otherwise is soft down
 	host->SetState(HostUp);
@@ -101,6 +102,7 @@ BOOST_AUTO_TEST_CASE(host_flapping)
 	host->SetEnableFlapping(true);
 	host->SetMaxCheckAttempts(5);
 	host->SetActive(true);
+	host->PushDependencyGroupsToRegistry();
 
 	Utility::SetTime(0);
 
@@ -136,6 +138,7 @@ BOOST_AUTO_TEST_CASE(host_flapping_recover)
 	host->SetEnableFlapping(true);
 	host->SetMaxCheckAttempts(5);
 	host->SetActive(true);
+	host->PushDependencyGroupsToRegistry();
 
 	// Host otherwise is soft down
 	host->SetState(HostUp);
@@ -196,6 +199,7 @@ BOOST_AUTO_TEST_CASE(host_flapping_docs_example)
 	host->SetEnableFlapping(true);
 	host->SetMaxCheckAttempts(5);
 	host->SetActive(true);
+	host->PushDependencyGroupsToRegistry();
 
 	// Host otherwise is soft down
 	host->SetState(HostUp);

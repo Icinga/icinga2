@@ -40,6 +40,7 @@ std::vector<DependencyGroup::Ptr> Checkable::GetDependencyGroups() const
 	std::lock_guard lock(m_DependencyMutex);
 
 	std::vector<DependencyGroup::Ptr> dependencyGroups;
+	VERIFY(m_PendingDependencies == nullptr);
 	for (const auto& [_, dependencyGroup] : m_DependencyGroups) {
 		dependencyGroups.emplace_back(dependencyGroup);
 	}
@@ -82,6 +83,7 @@ void Checkable::AddDependency(const Dependency::Ptr& dependency)
 
 	std::set<Dependency::Ptr> dependencies;
 	DependencyGroup::Ptr existingGroup;
+	VERIFY(m_PendingDependencies == nullptr);
 	if (auto it(m_DependencyGroups.find(dependencyGroupKey)); it != m_DependencyGroups.end()) {
 		existingGroup = it->second;
 		dependencies = DependencyGroup::Unregister(existingGroup, this);
@@ -113,6 +115,7 @@ void Checkable::RemoveDependency(const Dependency::Ptr& dependency, bool runtime
 	std::unique_lock lock(m_DependencyMutex);
 
 	auto dependencyGroupKey(GetDependencyGroupKey(dependency));
+	VERIFY(m_PendingDependencies == nullptr);
 	auto it = m_DependencyGroups.find(dependencyGroupKey);
 	if (it == m_DependencyGroups.end()) {
 		return;
@@ -147,6 +150,7 @@ std::vector<Dependency::Ptr> Checkable::GetDependencies(bool includePending) con
 	std::unique_lock<std::mutex> lock(m_DependencyMutex);
 	std::vector<Dependency::Ptr> dependencies;
 
+	VERIFY(includePending || m_PendingDependencies == nullptr);
 	if (includePending && m_PendingDependencies != nullptr) {
 		for (const auto& [group, groupDeps] : *m_PendingDependencies) {
 			dependencies.insert(dependencies.end(), groupDeps.begin(), groupDeps.end());
@@ -163,6 +167,7 @@ std::vector<Dependency::Ptr> Checkable::GetDependencies(bool includePending) con
 bool Checkable::HasAnyDependencies() const
 {
 	std::unique_lock lock(m_DependencyMutex);
+	VERIFY(m_PendingDependencies == nullptr);
 	return !m_DependencyGroups.empty() || !m_ReverseDependencies.empty();
 }
 
