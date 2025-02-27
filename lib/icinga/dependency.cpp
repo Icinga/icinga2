@@ -7,109 +7,119 @@
 #include "base/initialize.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
-#include <map>
 #include <sstream>
+#include <unordered_map>
 #include <utility>
 
 using namespace icinga;
 
 REGISTER_TYPE(Dependency);
 
-bool Dependency::m_AssertNoCyclesForIndividualDeps = false;
-
-struct DependencyCycleNode
+class DependencyCycleChecker
 {
-	bool Visited = false;
-	bool OnStack = false;
-};
+	struct Node
+	{
+		bool m_Visited = false;
+		bool m_OnStack = false;
+		std::vector<Dependency::Ptr> m_ExtraDependencies;
+	};
 
-struct DependencyStackFrame
-{
-	ConfigObject::Ptr Node;
-	bool Implicit;
+	std::unordered_map<Checkable::Ptr, Node> m_Nodes;
+	std::vector<std::variant<Dependency::Ptr, Service::Ptr>> m_Stack;
 
-	inline DependencyStackFrame(ConfigObject::Ptr node, bool implicit = false) : Node(std::move(node)), Implicit(implicit)
-	{ }
-};
+public:
+	void AddExtraDependency(Dependency::Ptr dependency)
+	{
+		auto& node = m_Nodes[dependency->GetChild()];
+		node.m_ExtraDependencies.push_back(std::move(dependency));
+	}
 
-struct DependencyCycleGraph
-{
-	std::map<Checkable::Ptr, DependencyCycleNode> Nodes;
-	std::vector<DependencyStackFrame> Stack;
-};
+	void AssertNoCycle(const Checkable::Ptr& checkable)
+	{
+		auto& node = m_Nodes[checkable];
 
-static void AssertNoDependencyCycle(const Checkable::Ptr& checkable, DependencyCycleGraph& graph, bool implicit = false);
+		Log(LogInformation, "DependencyCycleChecker") << m_Stack.size() << " " << checkable->GetName();
 
-static void AssertNoParentDependencyCycle(const Checkable::Ptr& parent, DependencyCycleGraph& graph, bool implicit)
-{
-	if (graph.Nodes[parent].OnStack) {
-		std::ostringstream oss;
-		oss << "Dependency cycle:\n";
+		if (node.m_OnStack) {
+			std::ostringstream s;
+			s << "Dependency cycle:";
+			for (const auto& obj : m_Stack) {
+				Checkable::Ptr child, parent;
+				Dependency::Ptr dependency;
 
-		for (auto& frame : graph.Stack) {
-			oss << frame.Node->GetReflectionType()->GetName() << " '" << frame.Node->GetName() << "'";
+				if (std::holds_alternative<Dependency::Ptr>(obj)) {
+					dependency = std::get<Dependency::Ptr>(obj);
+					parent = dependency->GetParent();
+					child = dependency->GetChild();
+				} else {
+					const auto& service = std::get<Service::Ptr>(obj);
+					parent = service->GetHost();
+					child = service;
+				}
 
-			if (frame.Implicit) {
-				oss << " (implicit)";
+				s << "\n\t- "
+					<< child->GetReflectionType()->GetName() << " " << std::quoted(std::string(child->GetName()))
+					<< " depends on "
+					<< parent->GetReflectionType()->GetName() << " " << std::quoted(std::string(parent->GetName()));
+				if (dependency) {
+					s << " (Dependency " << std::quoted(std::string(dependency->GetName())) << ")";
+				} else {
+					s << " (implicit)";
+				}
 			}
-
-			oss << "\n-> ";
+			BOOST_THROW_EXCEPTION(ScriptError(s.str()));
 		}
 
-		oss << parent->GetReflectionType()->GetName() << " '" << parent->GetName() << "'";
+		if (node.m_Visited) {
+			return;
+		}
+		node.m_Visited = true;
 
-		if (implicit) {
-			oss << " (implicit)";
+		node.m_OnStack = true;
+
+		// Implicit dependency of each service to its host
+		if (auto service (dynamic_pointer_cast<Service>(checkable)); service) {
+			m_Stack.emplace_back(service);
+			AssertNoCycle(service->GetHost());
+			m_Stack.pop_back();
 		}
 
-		BOOST_THROW_EXCEPTION(ScriptError(oss.str()));
-	}
-
-	AssertNoDependencyCycle(parent, graph, implicit);
-}
-
-static void AssertNoDependencyCycle(const Checkable::Ptr& checkable, DependencyCycleGraph& graph, bool implicit)
-{
-	auto& node (graph.Nodes[checkable]);
-
-	if (!node.Visited) {
-		node.Visited = true;
-		node.OnStack = true;
-		graph.Stack.emplace_back(checkable, implicit);
-
-		for (auto& dep : checkable->GetDependencies()) {
-			graph.Stack.emplace_back(dep);
-			AssertNoParentDependencyCycle(dep->GetParent(), graph, false);
-			graph.Stack.pop_back();
+		// Explicitly configured dependency objects
+		for (const auto& dep : checkable->GetDependencies(/* includePending = */ true)) {
+			m_Stack.emplace_back(dep);
+			AssertNoCycle(dep->GetParent());
+			m_Stack.pop_back();
 		}
 
-		{
-			auto service (dynamic_pointer_cast<Service>(checkable));
-
-			if (service) {
-				AssertNoParentDependencyCycle(service->GetHost(), graph, true);
-			}
+		// Additional dependencies to consider
+		for (const auto& dep : node.m_ExtraDependencies) {
+			m_Stack.emplace_back(dep);
+			AssertNoCycle(dep->GetParent());
+			m_Stack.pop_back();
 		}
 
-		graph.Stack.pop_back();
-		node.OnStack = false;
+		node.m_OnStack = false;
 	}
-}
+};
 
-void Dependency::AssertNoCycles()
-{
-	DependencyCycleGraph graph;
+INITIALIZE_ONCE([] {
+	dynamic_cast<ConfigType*>(Dependency::TypeInstance.get())->OnBulkConfigLoaded.connect([](const std::vector<ConfigObject::Ptr>& objects) {
+		DependencyCycleChecker checker;
 
-	for (auto& host : ConfigType::GetObjectsByType<Host>()) {
-		AssertNoDependencyCycle(host, graph);
-	}
+		for (const ConfigObject::Ptr& object : objects) {
+			Dependency::Ptr dependency = dynamic_pointer_cast<Dependency>(object);
+			VERIFY(dependency != nullptr);
+			dependency->InitChildParentReferences();
+			checker.AddExtraDependency(dependency);
+		}
 
-	for (auto& service : ConfigType::GetObjectsByType<Service>()) {
-		AssertNoDependencyCycle(service, graph);
-	}
+		for (const ConfigObject::Ptr& object : objects) {
+			checker.AssertNoCycle(dynamic_pointer_cast<Dependency>(object)->GetParent());
+		}
 
-	m_AssertNoCyclesForIndividualDeps = true;
-}
+		Log(LogInformation, "Dependency") << "OnBulkConfigLoaded(<" << objects.size() << " objects>)";
+	});
+});
 
 String DependencyNameComposer::MakeName(const String& shortName, const Object::Ptr& context) const
 {
@@ -160,10 +170,8 @@ void Dependency::OnConfigLoaded()
 	SetStateFilter(FilterArrayToInt(GetStates(), Notification::GetStateFilterMap(), defaultFilter));
 }
 
-void Dependency::OnAllConfigLoaded()
+void Dependency::InitChildParentReferences()
 {
-	ObjectImpl<Dependency>::OnAllConfigLoaded();
-
 	Host::Ptr childHost = Host::GetByName(GetChildHostName());
 
 	if (childHost) {
@@ -187,17 +195,11 @@ void Dependency::OnAllConfigLoaded()
 
 	if (!m_Parent)
 		BOOST_THROW_EXCEPTION(ScriptError("Dependency '" + GetName() + "' references a parent host/service which doesn't exist.", GetDebugInfo()));
+}
 
-	if (m_AssertNoCyclesForIndividualDeps) {
-		DependencyCycleGraph graph;
-		graph.Stack.emplace_back(m_Child);
-		graph.Stack.emplace_back(this);
-
-		auto& node = graph.Nodes[m_Child];
-		node.Visited = true;
-		node.OnStack = true;
-		AssertNoDependencyCycle(m_Parent, graph);
-	}
+void Dependency::OnAllConfigLoaded()
+{
+	ObjectImpl<Dependency>::OnAllConfigLoaded();
 
 	// Icinga DB will implicitly send config updates for the parent Checkable to refresh its affects_children and
 	// affected_children columns when registering the dependency from the child Checkable. So, we need to register
