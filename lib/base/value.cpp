@@ -11,7 +11,9 @@ template class boost::variant<boost::blank, double, bool, String, Object::Ptr>;
 template const double& Value::Get<double>() const;
 template const bool& Value::Get<bool>() const;
 template const String& Value::Get<String>() const;
+template String&& Value::Get<String>();
 template const Object::Ptr& Value::Get<Object::Ptr>() const;
+template Object::Ptr&& Value::Get<Object::Ptr>();
 
 const Value icinga::Empty;
 

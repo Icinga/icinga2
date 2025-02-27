@@ -140,6 +140,12 @@ public:
 		return boost::get<T>(m_Value);
 	}
 
+	template<typename T>
+	T&& Get()
+	{
+		return boost::get<T>(std::move(m_Value));
+	}
+
 private:
 	boost::variant<boost::blank, double, bool, String, Object::Ptr> m_Value;
 };
