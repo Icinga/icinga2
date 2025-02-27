@@ -499,6 +499,23 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 			auto items (itemsByType.find(type.get()));
 
 			if (items != itemsByType.end()) {
+				auto configType = dynamic_cast<ConfigType*>(type.get());
+
+				// Skip the call if no handlers are connected (signal::empty()) or there are no items (vector::empty()).
+				if (configType && !configType->BeforeOnAllConfigLoaded.empty() && !items->second.empty()) {
+					// Call the signal in the WorkQueue so that if an exception is thrown, it is caught by the WorkQueue
+					// and then reported like any other config validation error.
+					upq.Enqueue([&configType, &items]() {
+						configType->BeforeOnAllConfigLoaded(ConfigItems(items->second));
+					});
+
+					upq.Join();
+
+					if (upq.HasExceptions()) {
+						return false;
+					}
+				}
+
 				upq.ParallelFor(items->second, [&notified_items](const ItemPair& ip) {
 					const ConfigItem::Ptr& item = ip.first;
 
@@ -525,6 +542,10 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 				});
 
 				upq.Join();
+
+				if (upq.HasExceptions()) {
+					return false;
+				}
 			}
 		}
 
@@ -533,9 +554,6 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 			Log(LogDebug, "configitem")
 				<< "Sent OnAllConfigLoaded to " << notified_items << " items of type '" << type->GetName() << "'.";
 #endif /* I2_DEBUG */
-
-		if (upq.HasExceptions())
-			return false;
 
 		notified_items = 0;
 		for (auto loadDep : type->GetLoadDependencies()) {
