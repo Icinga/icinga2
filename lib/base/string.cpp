@@ -47,7 +47,7 @@ String::String(Value&& other)
 String& String::operator=(Value&& other)
 {
 	if (other.IsString())
-		m_Data = std::move(other.Get<String>());
+		*this = std::move(other.Get<String>()); // Will atomically bind to the move assignment operator below.
 	else
 		*this = static_cast<String>(other);
 
