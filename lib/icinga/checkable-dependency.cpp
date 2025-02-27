@@ -142,10 +142,17 @@ void Checkable::RemoveDependency(const Dependency::Ptr& dependency, bool runtime
 	}
 }
 
-std::vector<Dependency::Ptr> Checkable::GetDependencies() const
+std::vector<Dependency::Ptr> Checkable::GetDependencies(bool includePending) const
 {
 	std::unique_lock<std::mutex> lock(m_DependencyMutex);
 	std::vector<Dependency::Ptr> dependencies;
+
+	if (includePending && m_PendingDependencies != nullptr) {
+		for (const auto& [group, groupDeps] : *m_PendingDependencies) {
+			dependencies.insert(dependencies.end(), groupDeps.begin(), groupDeps.end());
+		}
+	}
+
 	for (const auto& [_, dependencyGroup] : m_DependencyGroups) {
 		auto tmpDependencies(dependencyGroup->GetDependenciesForChild(this));
 		dependencies.insert(dependencies.end(), tmpDependencies.begin(), tmpDependencies.end());

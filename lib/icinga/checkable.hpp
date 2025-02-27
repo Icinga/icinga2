@@ -190,7 +190,7 @@ public:
 	std::vector<intrusive_ptr<DependencyGroup>> GetDependencyGroups() const;
 	void AddDependency(const intrusive_ptr<Dependency>& dependency);
 	void RemoveDependency(const intrusive_ptr<Dependency>& dependency, bool runtimeRemoved = false);
-	std::vector<intrusive_ptr<Dependency> > GetDependencies() const;
+	std::vector<intrusive_ptr<Dependency> > GetDependencies(bool includePending = false) const;
 	bool HasAnyDependencies() const;
 
 	void AddReverseDependency(const intrusive_ptr<Dependency>& dep);
