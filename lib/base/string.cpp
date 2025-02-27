@@ -33,7 +33,7 @@ String::String(const String& other)
 	: m_Data(other)
 { }
 
-String::String(String&& other)
+String::String(String&& other) noexcept
 	: m_Data(std::move(other.m_Data))
 { }
 
@@ -66,7 +66,7 @@ String& String::operator=(const String& rhs)
 	return *this;
 }
 
-String& String::operator=(String&& rhs)
+String& String::operator=(String&& rhs) noexcept
 {
 	m_Data = std::move(rhs.m_Data);
 	return *this;
