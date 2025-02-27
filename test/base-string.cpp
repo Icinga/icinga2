@@ -1,6 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/string.hpp"
+#include "base/value.hpp"
 #include <vector>
 #include <BoostTestTargetConfig.h>
 
@@ -124,6 +125,22 @@ BOOST_AUTO_TEST_CASE(vector_move)
 	// If the string was moved, the location of its underlying data buffer should not have changed.
 	void *newAddr = vec[0].GetData().data();
 	BOOST_CHECK_EQUAL(oldAddr, newAddr);
+}
+
+// Test that the move constructor of icinga::String actually moves the underlying std::string out of a Value instance.
+// The constructor overload is only available on non-Windows platforms though, so we need to skip the test on Windows.
+BOOST_AUTO_TEST_CASE(move_string_out_of_Value_type)
+{
+#ifndef _MSC_VER
+	Value value("Icinga 2");
+	String other = value.Get<String>(); // We didn't request a move, so this should just copy the string.
+	BOOST_CHECK_EQUAL("Icinga 2", value.Get<String>());
+	BOOST_CHECK_EQUAL("Icinga 2", other);
+
+	String newStr = std::move(value);
+	BOOST_CHECK_EQUAL("", value.Get<String>());
+	BOOST_CHECK_EQUAL(newStr, "Icinga 2");
+#endif /* _MSC_VER */
 }
 
 BOOST_AUTO_TEST_SUITE_END()
