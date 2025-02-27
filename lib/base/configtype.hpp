@@ -9,6 +9,7 @@
 #include "base/dictionary.hpp"
 #include <shared_mutex>
 #include <unordered_map>
+#include <boost/signals2.hpp>
 
 namespace icinga
 {
@@ -47,6 +48,8 @@ for (const auto& object : objects) {
 	}
 
 	int GetObjectCount() const;
+
+	boost::signals2::signal<void (const std::vector<intrusive_ptr<ConfigObject>>&)> OnBulkConfigLoaded;
 
 private:
 	typedef std::unordered_map<String, intrusive_ptr<ConfigObject> > ObjectMap;

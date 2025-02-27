@@ -499,6 +499,20 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 			auto items (itemsByType.find(type.get()));
 
 			if (items != itemsByType.end()) {
+				if (auto configType = dynamic_cast<ConfigType*>(type.get()); configType) {
+					upq.Enqueue([&items, &configType]() {
+						std::vector<ConfigObject::Ptr> objects;
+						objects.reserve(items->second.size());
+						for (const auto& [item, _] : items->second) {
+							if (item->m_Object) {
+								objects.emplace_back(item->m_Object);
+							}
+						}
+						configType->OnBulkConfigLoaded(objects);
+					});
+					upq.Join();
+				}
+
 				upq.ParallelFor(items->second, [&notified_items](const ItemPair& ip) {
 					const ConfigItem::Ptr& item = ip.first;
 
