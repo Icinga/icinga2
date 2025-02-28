@@ -1357,8 +1357,10 @@ void IcingaDB::UpdateState(const Checkable::Ptr& checkable, StateUpdate mode)
  *
  * @param checkable The Checkable you want to send the dependencies state update for
  * @param onlyDependencyGroup If set, send state updates only for this dependency group and its dependencies.
+ * @param seenGroups A container to track already processed DependencyGroups to avoid duplicate state updates.
  */
-void IcingaDB::UpdateDependenciesState(const Checkable::Ptr& checkable, const DependencyGroup::Ptr& onlyDependencyGroup) const
+void IcingaDB::UpdateDependenciesState(const Checkable::Ptr& checkable, const DependencyGroup::Ptr& onlyDependencyGroup,
+	std::set<DependencyGroup*>* seenGroups) const
 {
 	if (!m_Rcon || !m_Rcon->IsConnected()) {
 		return;
@@ -1393,6 +1395,18 @@ void IcingaDB::UpdateDependenciesState(const Checkable::Ptr& checkable, const De
 			// Way too soon! The Icinga DB hash will be set during the initial config dump, but this state
 			// update seems to occur way too early. So, we've to skip it for now and wait for the next one.
 			// The m_ConfigDumpInProgress flag is probably still set to true at this point!
+			continue;
+		}
+
+		if (seenGroups && !seenGroups->insert(dependencyGroup.get()).second) {
+			// Usually, if the seenGroups set is provided, IcingaDB is triggering a runtime state update for ALL
+			// children of a given initiator Checkable (parent). In such cases, we may end up with lots of useless
+			// state updates as all the children of a non-redundant group a) share the same entry in the database b)
+			// it doesn't matter which child triggers the state update first all the subsequent updates are just useless.
+			//
+			// Likewise, for redundancy groups, all children of a redundancy group share the same set of parents
+			// and thus the resulting state information would be the same from each child Checkable perspective.
+			// So, serializing the redundancy group state information only once is sufficient.
 			continue;
 		}
 
@@ -3096,9 +3110,10 @@ void IcingaDB::StateChangeHandler(const ConfigObject::Ptr& object, const CheckRe
 void IcingaDB::ReachabilityChangeHandler(const std::set<Checkable::Ptr>& children)
 {
 	for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
+		std::set<DependencyGroup*> seenGroups;
 		for (auto& checkable : children) {
 			rw->UpdateState(checkable, StateUpdate::Full);
-			rw->UpdateDependenciesState(checkable);
+			rw->UpdateDependenciesState(checkable, nullptr, &seenGroups);
 		}
 	}
 }
