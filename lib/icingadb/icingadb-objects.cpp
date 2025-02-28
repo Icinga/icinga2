@@ -1355,8 +1355,10 @@ void IcingaDB::UpdateState(const Checkable::Ptr& checkable, StateUpdate mode)
  *
  * @param checkable The Checkable you want to send the dependencies state update for
  * @param dependencyGroup The DependencyGroup to send the state update for.
+ * @param seenGroups A container to track already processed DependencyGroups to avoid duplicate state updates.
  */
-void IcingaDB::UpdateDependenciesState(const Checkable::Ptr& checkable, const DependencyGroup::Ptr& dependencyGroup) const
+void IcingaDB::UpdateDependenciesState(const Checkable::Ptr& checkable, const DependencyGroup::Ptr& dependencyGroup,
+	std::set<DependencyGroup*>* seenGroups) const
 {
 	if (!m_Rcon || !m_Rcon->IsConnected()) {
 		return;
@@ -1395,6 +1397,21 @@ void IcingaDB::UpdateDependenciesState(const Checkable::Ptr& checkable, const De
 		}
 
 		auto dependencies(dependencyGroup->GetDependenciesForChild(checkable.get()));
+		// Don't track dependency groups that are not shared between multiple children, i.e., its only child is the
+		// current Checkable object and there won't be any state updates for it triggered by another child. This will
+		// help to avoid the memory overhead of the seenGroups set in a very big environment.
+		if (seenGroups && !seenGroups->insert(dependencyGroup.get()).second) {
+			// Usually, if the seenGroups set is provided, IcingaDB is triggering a runtime state update for ALL
+			// children of a given initiator Checkable (parent). In such cases, we may end up with lots of useless
+			// state updates as all the children of a non-redundant group a) share the same entry in the database b)
+			// it doesn't matter which child triggers the state update first all the subsequent updates are just useless.
+			//
+			// Likewise, for redundancy groups, all children of a redundancy group share the same set of parents
+			// and thus the resulting state information would be the same from each child Checkable perspective.
+			// So, serializing the redundancy group state information only once is sufficient.
+			continue;
+		}
+
 		std::sort(dependencies.begin(), dependencies.end(), [](const Dependency::Ptr& lhs, const Dependency::Ptr& rhs) {
 			return lhs->GetParent() < rhs->GetParent();
 		});
@@ -3093,10 +3110,11 @@ void IcingaDB::StateChangeHandler(const ConfigObject::Ptr& object, const CheckRe
 
 void IcingaDB::ReachabilityChangeHandler(const std::set<Checkable::Ptr>& children)
 {
+	std::set<DependencyGroup*> seenGroups;
 	for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 		for (auto& checkable : children) {
 			rw->UpdateState(checkable, StateUpdate::Full);
-			rw->UpdateDependenciesState(checkable);
+			rw->UpdateDependenciesState(checkable, nullptr, &seenGroups);
 		}
 	}
 }
