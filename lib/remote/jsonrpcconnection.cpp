@@ -118,6 +118,8 @@ void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 
 			MessageHandler(message);
 
+			std::this_thread::sleep_for(2 * (ch::steady_clock::now() - processingStarted));
+
 			if (m_Endpoint) {
 				m_Endpoint->AddInputTimes(readFinished - readStarted, cpuBoundDuration, processingStarted);
 			}
