@@ -143,7 +143,7 @@ private:
 	Dictionary::Ptr SerializeState(const Checkable::Ptr& checkable);
 
 	/* Stats */
-	Dictionary::Ptr GetStats();
+	static Dictionary::Ptr GetStats();
 
 	/* utilities */
 	static String FormatCheckSumBinary(const String& str);
