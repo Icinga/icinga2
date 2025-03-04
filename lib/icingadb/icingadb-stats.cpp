@@ -12,43 +12,16 @@ using namespace icinga;
 
 Dictionary::Ptr IcingaDB::GetStats()
 {
-	Dictionary::Ptr stats = new Dictionary();
+	Dictionary::Ptr status = new Dictionary();
+	IcingaApplication::StatsFunc(status, nullptr);
 
-	//TODO: Figure out if more stats can be useful here.
-	Namespace::Ptr statsFunctions = ScriptGlobal::Get("StatsFunctions", &Empty);
-
-	if (!statsFunctions)
-		Dictionary::Ptr();
-
-	ObjectLock olock(statsFunctions);
-
-	for (auto& kv : statsFunctions)
-	{
-		Function::Ptr func = kv.second.Val;
-
-		if (!func)
-			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid status function name."));
-
-		Dictionary::Ptr status = new Dictionary();
-		Array::Ptr perfdata = new Array();
-		func->Invoke({ status, perfdata });
-
-		stats->Set(kv.first, new Dictionary({
-			{ "status", status },
-			{ "perfdata", Serialize(perfdata, FAState) }
-		}));
-	}
-
-	typedef Dictionary::Ptr DP;
-	DP app = DP(DP(DP(stats->Get("IcingaApplication"))->Get("status"))->Get("icingaapplication"))->Get("app");
-
+	Dictionary::Ptr app(Dictionary::Ptr(status->Get("icingaapplication"))->Get("app"));
 	app->Set("program_start", TimestampToMilliseconds(Application::GetStartTime()));
 
-	auto localEndpoint (Endpoint::GetLocalEndpoint());
-	if (localEndpoint) {
+	if (auto localEndpoint(Endpoint::GetLocalEndpoint()); localEndpoint) {
 		app->Set("endpoint_id", GetObjectIdentifier(localEndpoint));
 	}
 
-	return stats;
+	return new Dictionary{{ "IcingaApplication", new Dictionary{{"status", status}}}};
 }
 
