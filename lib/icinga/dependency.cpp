@@ -9,7 +9,9 @@
 #include "base/exception.hpp"
 #include <map>
 #include <sstream>
+#include <unordered_map>
 #include <utility>
+#include <variant>
 
 using namespace icinga;
 
@@ -17,95 +19,111 @@ REGISTER_TYPE(Dependency);
 
 bool Dependency::m_AssertNoCyclesForIndividualDeps = false;
 
-struct DependencyCycleNode
+/**
+ * Helper class to search for cycles in the dependency graph.
+ *
+ * State is stored inside the class and no synchronization is done,
+ * hence instances of this class must not be used concurrently.
+ */
+class DependencyCycleChecker
 {
-	bool Visited = false;
-	bool OnStack = false;
-};
+	struct Node
+	{
+		bool Visited = false;
+		bool OnStack = false;
+	};
 
-struct DependencyStackFrame
-{
-	ConfigObject::Ptr Node;
-	bool Implicit;
+	std::unordered_map<Checkable::Ptr, Node> m_Nodes;
 
-	inline DependencyStackFrame(ConfigObject::Ptr node, bool implicit = false) : Node(std::move(node)), Implicit(implicit)
-	{ }
-};
+	// Stack representing the path currently visited by AssertNoCycle(). Dependency::Ptr represents an edge from its
+	// child to parent, Service::Ptr represents the implicit dependency of that service to its host.
+	std::vector<std::variant<Dependency::Ptr, Service::Ptr>> m_Stack;
 
-struct DependencyCycleGraph
-{
-	std::map<Checkable::Ptr, DependencyCycleNode> Nodes;
-	std::vector<DependencyStackFrame> Stack;
-};
+public:
+	/**
+	 * Searches the dependency graph for cycles and throws an exception if one is found.
+	 *
+	 * Only the part of the graph that's reachable from the starting node when traversing dependencies towards the
+	 * parents is searched. In order to check that there are no cycles in the whole dependency graph, this method
+	 * has to be called for every checkable. For this, the method can be called on the same DependencyCycleChecker
+	 * instance multiple times, in which case parts of the graph aren't searched twice. However, if the graph structure
+	 * changes, a new DependencyCycleChecker instance must be used.
+	 *
+	 * @param checkable Starting node for the cycle search.
+	 * @throws ScriptError A dependency cycle was found.
+	 */
+	void AssertNoCycle(const Checkable::Ptr& checkable)
+	{
+		auto& node = m_Nodes[checkable];
 
-static void AssertNoDependencyCycle(const Checkable::Ptr& checkable, DependencyCycleGraph& graph, bool implicit = false);
+		if (node.OnStack) {
+			std::ostringstream s;
+			s << "Dependency cycle:";
+			for (const auto& obj : m_Stack) {
+				Checkable::Ptr child, parent;
+				Dependency::Ptr dependency;
 
-static void AssertNoParentDependencyCycle(const Checkable::Ptr& parent, DependencyCycleGraph& graph, bool implicit)
-{
-	if (graph.Nodes[parent].OnStack) {
-		std::ostringstream oss;
-		oss << "Dependency cycle:\n";
+				if (std::holds_alternative<Dependency::Ptr>(obj)) {
+					dependency = std::get<Dependency::Ptr>(obj);
+					parent = dependency->GetParent();
+					child = dependency->GetChild();
+				} else {
+					const auto& service = std::get<Service::Ptr>(obj);
+					parent = service->GetHost();
+					child = service;
+				}
 
-		for (auto& frame : graph.Stack) {
-			oss << frame.Node->GetReflectionType()->GetName() << " '" << frame.Node->GetName() << "'";
-
-			if (frame.Implicit) {
-				oss << " (implicit)";
+				auto quoted = [](const String& str) { return std::quoted(str.GetData()); };
+				s << "\n\t- " << child->GetReflectionType()->GetName() << " " << quoted(child->GetName()) << " depends on ";
+				if (child == parent) {
+					s << "itself";
+				} else {
+					s << parent->GetReflectionType()->GetName() << " " << quoted(parent->GetName());
+				}
+				if (dependency) {
+					s << " (Dependency " << quoted(dependency->GetShortName()) << " " << dependency->GetDebugInfo() << ")";
+				} else {
+					s << " (implicit)";
+				}
 			}
-
-			oss << "\n-> ";
+			BOOST_THROW_EXCEPTION(ScriptError(s.str()));
 		}
 
-		oss << parent->GetReflectionType()->GetName() << " '" << parent->GetName() << "'";
-
-		if (implicit) {
-			oss << " (implicit)";
+		if (node.Visited) {
+			return;
 		}
-
-		BOOST_THROW_EXCEPTION(ScriptError(oss.str()));
-	}
-
-	AssertNoDependencyCycle(parent, graph, implicit);
-}
-
-static void AssertNoDependencyCycle(const Checkable::Ptr& checkable, DependencyCycleGraph& graph, bool implicit)
-{
-	auto& node (graph.Nodes[checkable]);
-
-	if (!node.Visited) {
 		node.Visited = true;
+
 		node.OnStack = true;
-		graph.Stack.emplace_back(checkable, implicit);
 
-		for (auto& dep : checkable->GetDependencies()) {
-			graph.Stack.emplace_back(dep);
-			AssertNoParentDependencyCycle(dep->GetParent(), graph, false);
-			graph.Stack.pop_back();
+		// Implicit dependency of each service to its host
+		if (auto service (dynamic_pointer_cast<Service>(checkable)); service) {
+			m_Stack.emplace_back(service);
+			AssertNoCycle(service->GetHost());
+			m_Stack.pop_back();
 		}
 
-		{
-			auto service (dynamic_pointer_cast<Service>(checkable));
-
-			if (service) {
-				AssertNoParentDependencyCycle(service->GetHost(), graph, true);
-			}
+		// Explicitly configured dependency objects
+		for (const auto& dep : checkable->GetDependencies()) {
+			m_Stack.emplace_back(dep);
+			AssertNoCycle(dep->GetParent());
+			m_Stack.pop_back();
 		}
 
-		graph.Stack.pop_back();
 		node.OnStack = false;
 	}
-}
+};
 
 void Dependency::AssertNoCycles()
 {
-	DependencyCycleGraph graph;
+	DependencyCycleChecker checker;
 
 	for (auto& host : ConfigType::GetObjectsByType<Host>()) {
-		AssertNoDependencyCycle(host, graph);
+		checker.AssertNoCycle(host);
 	}
 
 	for (auto& service : ConfigType::GetObjectsByType<Service>()) {
-		AssertNoDependencyCycle(service, graph);
+		checker.AssertNoCycle(service);
 	}
 
 	m_AssertNoCyclesForIndividualDeps = true;
@@ -192,10 +210,10 @@ void Dependency::OnAllConfigLoaded()
 	m_Parent->AddReverseDependency(this);
 
 	if (m_AssertNoCyclesForIndividualDeps) {
-		DependencyCycleGraph graph;
+		DependencyCycleChecker checker;
 
 		try {
-			AssertNoDependencyCycle(m_Parent, graph);
+			checker.AssertNoCycle(m_Parent);
 		} catch (...) {
 			m_Child->RemoveDependency(this);
 			m_Parent->RemoveReverseDependency(this);
