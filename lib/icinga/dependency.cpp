@@ -17,7 +17,12 @@ using namespace icinga;
 
 REGISTER_TYPE(Dependency);
 
-bool Dependency::m_AssertNoCyclesForIndividualDeps = false;
+INITIALIZE_ONCE(Dependency::StaticInitialize);
+
+void Dependency::StaticInitialize()
+{
+	dynamic_cast<ConfigType*>(Dependency::TypeInstance.get())->BeforeOnAllConfigLoaded.connect(&BeforeOnAllConfigLoadedHandler);
+}
 
 /**
  * Helper class to search for cycles in the dependency graph.
@@ -31,6 +36,7 @@ class DependencyCycleChecker
 	{
 		bool Visited = false;
 		bool OnStack = false;
+		std::vector<Dependency::Ptr> ExtraDependencies;
 	};
 
 	// std::hash is only implemented starting from Boost 1.74, use a (ordered) map as fallback.
@@ -46,6 +52,19 @@ class DependencyCycleChecker
 	std::vector<std::variant<Dependency::Ptr, Service::Ptr>> m_Stack;
 
 public:
+	/**
+	 * Add a dependency to this DependencyCycleChecker that will be considered by AssertNoCycle() in addition to
+	 * dependencies already registered to the checkables. This allows checking if additional dependencies would cause
+	 * a cycle before actually registering them to the checkables.
+	 *
+	 * @param dependency Dependency to additionally consider during the cycle search.
+	 */
+	void AddExtraDependency(Dependency::Ptr dependency)
+	{
+		auto& node = m_Nodes[dependency->GetChild()];
+		node.ExtraDependencies.emplace_back(std::move(dependency));
+	}
+
 	/**
 	 * Searches the dependency graph for cycles and throws an exception if one is found.
 	 *
@@ -113,23 +132,45 @@ public:
 			m_Stack.pop_back();
 		}
 
+		// Additional dependencies to consider
+		for (const auto& dep : node.ExtraDependencies) {
+			m_Stack.emplace_back(dep);
+			AssertNoCycle(dep->GetParent());
+			m_Stack.pop_back();
+		}
+
 		node.OnStack = false;
 	}
 };
 
-void Dependency::AssertNoCycles()
+/**
+ * Checks that adding these new dependencies to the configuration does not introduce any cycles.
+ *
+ * This is done as an optimization: cycles are checked once for all dependencies in a batch of config objects instead
+ * of individually per dependency in Dependency::OnAllConfigLoaded(). For runtime updates, this function may still be
+ * called for single objects.
+ *
+ * @param objects Dependency objects added to the running configuration.
+ */
+void Dependency::BeforeOnAllConfigLoadedHandler(const std::vector<ConfigObject::Ptr>& objects)
 {
 	DependencyCycleChecker checker;
 
-	for (auto& host : ConfigType::GetObjectsByType<Host>()) {
-		checker.AssertNoCycle(host);
+	// Resolve parent/child names to Checkable::Ptr and temporarily add the edges to the checker.
+	// The dependencies are later registered to the checkables by Dependency::OnAllConfigLoaded().
+	for (const ConfigObject::Ptr& object : objects) {
+		Dependency::Ptr dependency = dynamic_pointer_cast<Dependency>(object);
+		VERIFY(dependency != nullptr);
+		dependency->InitChildParentReferences();
+		checker.AddExtraDependency(std::move(dependency));
 	}
 
-	for (auto& service : ConfigType::GetObjectsByType<Service>()) {
-		checker.AssertNoCycle(service);
+	// It's sufficient to search for cycles starting from newly added dependencies only: if a newly added dependency is
+	// part of a cycle, that cycle is reachable from both the child and the parent of that dependency. The cycle search
+	// is started from the parent as a slight optimization as that will traverse fewer edges if there is no cycle.
+	for (const ConfigObject::Ptr& object : objects) {
+		checker.AssertNoCycle(dynamic_pointer_cast<Dependency>(object)->GetParent());
 	}
-
-	m_AssertNoCyclesForIndividualDeps = true;
 }
 
 String DependencyNameComposer::MakeName(const String& shortName, const Object::Ptr& context) const
@@ -181,10 +222,8 @@ void Dependency::OnConfigLoaded()
 	SetStateFilter(FilterArrayToInt(GetStates(), Notification::GetStateFilterMap(), defaultFilter));
 }
 
-void Dependency::OnAllConfigLoaded()
+void Dependency::InitChildParentReferences()
 {
-	ObjectImpl<Dependency>::OnAllConfigLoaded();
-
 	Host::Ptr childHost = Host::GetByName(GetChildHostName());
 
 	if (childHost) {
@@ -208,21 +247,17 @@ void Dependency::OnAllConfigLoaded()
 
 	if (!m_Parent)
 		BOOST_THROW_EXCEPTION(ScriptError("Dependency '" + GetName() + "' references a parent host/service which doesn't exist.", GetDebugInfo()));
+}
+
+void Dependency::OnAllConfigLoaded()
+{
+	ObjectImpl<Dependency>::OnAllConfigLoaded();
+
+	// InitChildParentReferences() has to be called before.
+	VERIFY(m_Child && m_Parent);
 
 	m_Child->AddDependency(this);
 	m_Parent->AddReverseDependency(this);
-
-	if (m_AssertNoCyclesForIndividualDeps) {
-		DependencyCycleChecker checker;
-
-		try {
-			checker.AssertNoCycle(m_Parent);
-		} catch (...) {
-			m_Child->RemoveDependency(this);
-			m_Parent->RemoveReverseDependency(this);
-			throw;
-		}
-	}
 }
 
 void Dependency::Stop(bool runtimeRemoved)
