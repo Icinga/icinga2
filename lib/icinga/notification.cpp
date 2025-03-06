@@ -223,6 +223,30 @@ void Notification::ResetNotificationNumber()
 	SetNotificationNumber(0);
 }
 
+/**
+ * Check whether the given notification type is a Recovery or FlappingEnd notification and the Checkable object
+ * has already recovered.
+ *
+ * For the latter case, if the Checkable has recovered while it was in a Flapping state, the recovery notification
+ * will be silently discarded and leave some internal states of the Notification object that depend on it in an
+ * inconsistent state. So, use this helper function whether to reset one of these states.
+ *
+ * @param checkable The checkable object the notification is for
+ * @param cr The current check result passed to the notification
+ * @param type The requested notification type
+ *
+ * @return bool
+ */
+static bool IsRecoveryOrFlappingEndAndCheckableIsOK(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, NotificationType type)
+{
+	if (type == NotificationRecovery) {
+		return true;
+	}
+
+	// Check whether missed the Checkable recovery because of its Flapping state.
+	return type == NotificationFlappingEnd && cr && checkable->IsStateOK(cr->GetState());
+}
+
 void Notification::BeginExecuteNotification(NotificationType type, const CheckResult::Ptr& cr, bool force, bool reminder, const String& author, const String& text)
 {
 	String notificationName = GetName();
@@ -389,7 +413,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 
 		if (type == NotificationProblem && GetInterval() <= 0)
 			SetNoMoreNotifications(true);
-		else if (type != NotificationCustom)
+		else if (IsRecoveryOrFlappingEndAndCheckableIsOK(checkable, cr, type))
 			SetNoMoreNotifications(false);
 
 		if (type == NotificationProblem && GetInterval() > 0)
