@@ -165,6 +165,7 @@ add_boost_test(base
     base_string/replace
     base_string/index
     base_string/find
+    base_string/vector_move
     base_timer/construct
     base_timer/interval
     base_timer/invoke
