@@ -16,10 +16,15 @@
 #include <utility>
 #include <vector>
 #include <stdexcept>
+#include <boost/context/fixedsize_stack.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/spawn.hpp>
+
+#if BOOST_VERSION >= 108700
+#	include <boost/asio/detached.hpp>
+#endif // BOOST_VERSION >= 108700
 
 namespace icinga
 {
@@ -102,6 +107,10 @@ public:
 	static void SpawnCoroutine(Handler& h, Function f) {
 
 		boost::asio::spawn(h,
+#if BOOST_VERSION >= 108700
+			std::allocator_arg,
+			boost::context::fixedsize_stack(GetCoroutineStackSize()),
+#endif // BOOST_VERSION >= 108700
 			[f](boost::asio::yield_context yc) {
 
 				try {
@@ -119,7 +128,11 @@ public:
 					throw;
 				}
 			},
+#if BOOST_VERSION >= 108700
+			boost::asio::detached
+#else // BOOST_VERSION >= 108700
 			boost::coroutines::attributes(GetCoroutineStackSize()) // Set a pre-defined stack size.
+#endif // BOOST_VERSION >= 108700
 		);
 	}
 
