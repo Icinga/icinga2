@@ -34,6 +34,7 @@ install_if_not_exists(icinga2/conf.d/notifications.conf ${ICINGA2_CONFIGDIR}/con
 install_if_not_exists(icinga2/conf.d/templates.conf ${ICINGA2_CONFIGDIR}/conf.d)
 install_if_not_exists(icinga2/conf.d/timeperiods.conf ${ICINGA2_CONFIGDIR}/conf.d)
 install_if_not_exists(icinga2/conf.d/users.conf ${ICINGA2_CONFIGDIR}/conf.d)
+install_if_not_exists(icinga2/features-available/accesslog.conf ${ICINGA2_CONFIGDIR}/features-available)
 install_if_not_exists(icinga2/features-available/api.conf ${ICINGA2_CONFIGDIR}/features-available)
 install_if_not_exists(icinga2/features-available/debuglog.conf ${ICINGA2_CONFIGDIR}/features-available)
 install_if_not_exists(icinga2/features-available/mainlog.conf ${ICINGA2_CONFIGDIR}/features-available)
