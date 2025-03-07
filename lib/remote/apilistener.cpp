@@ -707,18 +707,14 @@ void ApiListener::NewClientHandlerInternal(
 		return;
 	}
 
-	bool willBeShutDown = false;
+	Defer shutdownSslConn ([&sslConn, &yc]() {
+		// Ignore the error, but do not throw an exception being swallowed at all cost.
+		// https://github.com/Icinga/icinga2/issues/7351
+		boost::system::error_code ec;
 
-	Defer shutDownIfNeeded ([&sslConn, &willBeShutDown, &yc]() {
-		if (!willBeShutDown) {
-			// Ignore the error, but do not throw an exception being swallowed at all cost.
-			// https://github.com/Icinga/icinga2/issues/7351
-			boost::system::error_code ec;
-
-			// Using async_shutdown() instead of AsioTlsStream::GracefulDisconnect() as this whole function
-			// is already guarded by a timeout based on the connect timeout.
-			sslConn.async_shutdown(yc[ec]);
-		}
+		// Using async_shutdown() instead of AsioTlsStream::GracefulDisconnect() as this whole function
+		// is already guarded by a timeout based on the connect timeout.
+		sslConn.async_shutdown(yc[ec]);
 	});
 
 	std::shared_ptr<X509> cert (sslConn.GetPeerCertificate());
@@ -831,7 +827,7 @@ void ApiListener::NewClientHandlerInternal(
 		}
 	} catch (const boost::system::system_error& systemError) {
 		if (systemError.code() == boost::asio::error::operation_aborted) {
-			shutDownIfNeeded.Cancel();
+			shutdownSslConn.Cancel();
 		}
 
 		throw;
@@ -867,8 +863,7 @@ void ApiListener::NewClientHandlerInternal(
 
 		if (aclient) {
 			aclient->Start();
-
-			willBeShutDown = true;
+			shutdownSslConn.Cancel();
 		}
 	} else {
 		Log(LogNotice, "ApiListener", "New HTTP client");
@@ -876,8 +871,7 @@ void ApiListener::NewClientHandlerInternal(
 		HttpServerConnection::Ptr aclient = new HttpServerConnection(identity, verify_ok, client);
 		AddHttpClient(aclient);
 		aclient->Start();
-
-		willBeShutDown = true;
+		shutdownSslConn.Cancel();
 	}
 }
 
