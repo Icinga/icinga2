@@ -377,8 +377,6 @@ void RedisConnection::Connect(asio::yield_context& yc)
 			}
 
 			break;
-		} catch (const boost::coroutines::detail::forced_unwind&) {
-			throw;
 		} catch (const std::exception& ex) {
 			Log(LogCritical, "IcingaDB")
 				<< "Cannot connect to " << m_Host << ":" << m_Port << ": " << ex.what();
@@ -408,16 +406,9 @@ void RedisConnection::ReadLoop(asio::yield_context& yc)
 						for (auto i (item.Amount); i; --i) {
 							ReadOne(yc);
 						}
-					} catch (const boost::coroutines::detail::forced_unwind&) {
-						throw;
 					} catch (const std::exception& ex) {
 						Log(LogCritical, "IcingaDB")
 							<< "Error during receiving the response to a query which has been fired and forgotten: " << ex.what();
-
-						continue;
-					} catch (...) {
-						Log(LogCritical, "IcingaDB")
-							<< "Error during receiving the response to a query which has been fired and forgotten";
 
 						continue;
 					}
@@ -432,9 +423,7 @@ void RedisConnection::ReadLoop(asio::yield_context& yc)
 
 						try {
 							reply = ReadOne(yc);
-						} catch (const boost::coroutines::detail::forced_unwind&) {
-							throw;
-						} catch (...) {
+						} catch (const std::exception&) {
 							promise.set_exception(std::current_exception());
 
 							continue;
@@ -455,9 +444,7 @@ void RedisConnection::ReadLoop(asio::yield_context& yc)
 						for (auto i (item.Amount); i; --i) {
 							try {
 								replies.emplace_back(ReadOne(yc));
-							} catch (const boost::coroutines::detail::forced_unwind&) {
-								throw;
-							} catch (...) {
+							} catch (const std::exception&) {
 								promise.set_exception(std::current_exception());
 								break;
 							}
@@ -551,18 +538,10 @@ void RedisConnection::WriteItem(boost::asio::yield_context& yc, RedisConnection:
 
 		try {
 			WriteOne(item, yc);
-		} catch (const boost::coroutines::detail::forced_unwind&) {
-			throw;
 		} catch (const std::exception& ex) {
 			Log msg (LogCritical, "IcingaDB", "Error during sending query");
 			LogQuery(item, msg);
 			msg << " which has been fired and forgotten: " << ex.what();
-
-			return;
-		} catch (...) {
-			Log msg (LogCritical, "IcingaDB", "Error during sending query");
-			LogQuery(item, msg);
-			msg << " which has been fired and forgotten";
 
 			return;
 		}
@@ -587,18 +566,10 @@ void RedisConnection::WriteItem(boost::asio::yield_context& yc, RedisConnection:
 				WriteOne(query, yc);
 				++i;
 			}
-		} catch (const boost::coroutines::detail::forced_unwind&) {
-			throw;
 		} catch (const std::exception& ex) {
 			Log msg (LogCritical, "IcingaDB", "Error during sending query");
 			LogQuery(item[i], msg);
 			msg << " which has been fired and forgotten: " << ex.what();
-
-			return;
-		} catch (...) {
-			Log msg (LogCritical, "IcingaDB", "Error during sending query");
-			LogQuery(item[i], msg);
-			msg << " which has been fired and forgotten";
 
 			return;
 		}
@@ -618,9 +589,7 @@ void RedisConnection::WriteItem(boost::asio::yield_context& yc, RedisConnection:
 
 		try {
 			WriteOne(item.first, yc);
-		} catch (const boost::coroutines::detail::forced_unwind&) {
-			throw;
-		} catch (...) {
+		} catch (const std::exception&) {
 			item.second.set_exception(std::current_exception());
 
 			return;
@@ -645,9 +614,7 @@ void RedisConnection::WriteItem(boost::asio::yield_context& yc, RedisConnection:
 			for (auto& query : item.first) {
 				WriteOne(query, yc);
 			}
-		} catch (const boost::coroutines::detail::forced_unwind&) {
-			throw;
-		} catch (...) {
+		} catch (const std::exception&) {
 			item.second.set_exception(std::current_exception());
 
 			return;

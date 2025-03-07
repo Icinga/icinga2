@@ -106,14 +106,17 @@ public:
 
 				try {
 					f(yc);
-				} catch (const boost::coroutines::detail::forced_unwind &) {
-					// Required for proper stack unwinding when coroutines are destroyed.
-					// https://github.com/boostorg/coroutine/issues/39
-					throw;
 				} catch (const std::exception& ex) {
 					Log(LogCritical, "IoEngine") << "Exception in coroutine: " << DiagnosticInformation(ex);
 				} catch (...) {
-					Log(LogCritical, "IoEngine", "Exception in coroutine!");
+					try {
+						Log(LogCritical, "IoEngine", "Exception in coroutine!");
+					} catch (...) {
+					}
+
+					// Required for proper stack unwinding when coroutines are destroyed.
+					// https://github.com/boostorg/coroutine/issues/39
+					throw;
 				}
 			},
 			boost::coroutines::attributes(GetCoroutineStackSize()) // Set a pre-defined stack size.
