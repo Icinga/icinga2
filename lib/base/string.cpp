@@ -33,7 +33,7 @@ String::String(const String& other)
 	: m_Data(other)
 { }
 
-String::String(String&& other)
+String::String(String&& other) noexcept
 	: m_Data(std::move(other.m_Data))
 { }
 
@@ -47,7 +47,7 @@ String::String(Value&& other)
 String& String::operator=(Value&& other)
 {
 	if (other.IsString())
-		m_Data = std::move(other.Get<String>());
+		*this = std::move(other.Get<String>()); // Will atomically bind to the move assignment operator below.
 	else
 		*this = static_cast<String>(other);
 
@@ -66,7 +66,7 @@ String& String::operator=(const String& rhs)
 	return *this;
 }
 
-String& String::operator=(String&& rhs)
+String& String::operator=(String&& rhs) noexcept
 {
 	m_Data = std::move(rhs.m_Data);
 	return *this;

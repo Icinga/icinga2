@@ -140,14 +140,24 @@ public:
 		return boost::get<T>(m_Value);
 	}
 
+	template<typename T>
+	T& Get()
+	{
+		return boost::get<T>(m_Value);
+	}
+
 private:
 	boost::variant<boost::blank, double, bool, String, Object::Ptr> m_Value;
 };
 
 extern template const double& Value::Get<double>() const;
+extern template double& Value::Get<double>();
 extern template const bool& Value::Get<bool>() const;
+extern template bool& Value::Get<bool>();
 extern template const String& Value::Get<String>() const;
+extern template String& Value::Get<String>();
 extern template const Object::Ptr& Value::Get<Object::Ptr>() const;
+extern template Object::Ptr& Value::Get<Object::Ptr>();
 
 extern const Value Empty;
 
