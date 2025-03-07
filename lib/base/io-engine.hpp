@@ -12,6 +12,7 @@
 #include <atomic>
 #include <exception>
 #include <memory>
+#include <mutex>
 #include <thread>
 #include <utility>
 #include <vector>
@@ -19,6 +20,7 @@
 #include <boost/exception/all.hpp>
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/io_context.hpp>
+#include <boost/asio/io_context_strand.hpp>
 #include <boost/asio/spawn.hpp>
 
 namespace icinga
@@ -32,36 +34,41 @@ namespace icinga
 class CpuBoundWork
 {
 public:
-	CpuBoundWork(boost::asio::yield_context yc);
+	CpuBoundWork(boost::asio::yield_context yc, boost::asio::io_context::strand&);
 	CpuBoundWork(const CpuBoundWork&) = delete;
 	CpuBoundWork(CpuBoundWork&&) = delete;
 	CpuBoundWork& operator=(const CpuBoundWork&) = delete;
 	CpuBoundWork& operator=(CpuBoundWork&&) = delete;
-	~CpuBoundWork();
+
+	inline ~CpuBoundWork()
+	{
+		Done();
+	}
 
 	void Done();
 
 private:
+	static bool TryAcquireSlot();
+
 	bool m_Done;
 };
 
 /**
- * Scope break for CPU-bound work done in an I/O thread
+ * Condition variable which doesn't block I/O threads
  *
  * @ingroup base
  */
-class IoBoundWorkSlot
+class AsioConditionVariable
 {
 public:
-	IoBoundWorkSlot(boost::asio::yield_context yc);
-	IoBoundWorkSlot(const IoBoundWorkSlot&) = delete;
-	IoBoundWorkSlot(IoBoundWorkSlot&&) = delete;
-	IoBoundWorkSlot& operator=(const IoBoundWorkSlot&) = delete;
-	IoBoundWorkSlot& operator=(IoBoundWorkSlot&&) = delete;
-	~IoBoundWorkSlot();
+	AsioConditionVariable(boost::asio::io_context& io);
+
+	void Wait(boost::asio::yield_context yc);
+	bool NotifyOne();
+	size_t NotifyAll();
 
 private:
-	boost::asio::yield_context yc;
+	boost::asio::deadline_timer m_Timer;
 };
 
 /**
@@ -72,7 +79,6 @@ private:
 class IoEngine
 {
 	friend CpuBoundWork;
-	friend IoBoundWorkSlot;
 
 public:
 	IoEngine(const IoEngine&) = delete;
@@ -137,7 +143,10 @@ private:
 	boost::asio::executor_work_guard<boost::asio::io_context::executor_type> m_KeepAlive;
 	std::vector<std::thread> m_Threads;
 	boost::asio::deadline_timer m_AlreadyExpiredTimer;
+
 	std::atomic_int_fast32_t m_CpuBoundSemaphore;
+	std::mutex m_CpuBoundWaitingMutex;
+	std::vector<std::pair<boost::asio::io_context::strand, Shared<AsioConditionVariable>::Ptr>> m_CpuBoundWaiting;
 };
 
 class TerminateIoThread : public std::exception
@@ -145,14 +154,14 @@ class TerminateIoThread : public std::exception
 };
 
 /**
- * Condition variable which doesn't block I/O threads
+ * Awaitable flag which doesn't block I/O threads, inspired by threading.Event from Python
  *
  * @ingroup base
  */
-class AsioConditionVariable
+class AsioEvent
 {
 public:
-	AsioConditionVariable(boost::asio::io_context& io, bool init = false);
+	AsioEvent(boost::asio::io_context& io, bool init = false);
 
 	void Set();
 	void Clear();
