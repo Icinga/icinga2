@@ -1,6 +1,7 @@
 /* Icinga 2 | (c) 2021 Icinga GmbH | GPLv2+ */
 
 #include "base/tlsutility.hpp"
+#include "base-tlsutility-certs.hpp"
 #include <BoostTestTargetConfig.h>
 #include <functional>
 #include <memory>
@@ -130,6 +131,74 @@ BOOST_AUTO_TEST_CASE(iscertuptodate_old)
 		BOOST_REQUIRE(X509_time_adj(notBefore, l_2016, &epoch));
 		BOOST_REQUIRE(X509_gmtime_adj(notAfter, RENEW_THRESHOLD + 60 * 60));
 	})));
+}
+
+BOOST_AUTO_TEST_CASE(verifycertificate_ok)
+{
+	BOOST_CHECK(VerifyCertificate(
+		StringToCertificate(l_IcingaCa), StringToCertificate(l_ExampleCrt), String()
+	));
+}
+
+BOOST_AUTO_TEST_CASE(verifycertificate_leafexpired)
+{
+	BOOST_CHECK_THROW(VerifyCertificate(
+		StringToCertificate(l_IcingaCa), StringToCertificate(l_ExpiredCrt), String()
+	), openssl_error);
+}
+
+BOOST_AUTO_TEST_CASE(verifycertificate_caexpired)
+{
+	BOOST_CHECK_THROW(VerifyCertificate(
+		StringToCertificate(l_ExpiredCa), StringToCertificate(l_ExpiredCaLeaf), String()
+	), openssl_error);
+}
+
+BOOST_AUTO_TEST_CASE(verifycertificate_sigmismatch)
+{
+	BOOST_CHECK_THROW(VerifyCertificate(
+		StringToCertificate(l_IcingaCa2), StringToCertificate(l_ExampleCrt), String()
+	), openssl_error);
+}
+
+BOOST_AUTO_TEST_CASE(verifycertificate_X509_STORE_new)
+{
+	BOOST_CHECK(!VerifyCertificate(
+		StringToCertificate(l_IcingaCa), StringToCertificate(l_ExampleCrt), String(),
+		[] { return (X509_STORE*)nullptr; }
+	));
+}
+
+BOOST_AUTO_TEST_CASE(verifycertificate_X509_STORE_add_cert)
+{
+	BOOST_CHECK_THROW(VerifyCertificate(
+		StringToCertificate(l_IcingaCa2), StringToCertificate(l_ExampleCrt), String(),
+		X509_STORE_new,
+		[](X509_STORE*, X509*) { return 0; }
+	), openssl_error);
+}
+
+BOOST_AUTO_TEST_CASE(verifycertificate_X509_STORE_CTX_new)
+{
+	if constexpr (OPENSSL_VERSION_NUMBER < 0x30000000) {
+		// These OpenSSL versions don't handle a nullptr X509_STORE_CTX* gracefully: they simply crash
+		return;
+	}
+
+	BOOST_CHECK(!VerifyCertificate(
+		StringToCertificate(l_IcingaCa2), StringToCertificate(l_ExampleCrt), String(),
+		X509_STORE_new, X509_STORE_add_cert,
+		[] { return (X509_STORE_CTX*)nullptr; }
+	));
+}
+
+BOOST_AUTO_TEST_CASE(verifycertificate_X509_STORE_CTX_init)
+{
+	BOOST_CHECK(!VerifyCertificate(
+		StringToCertificate(l_IcingaCa2), StringToCertificate(l_ExampleCrt), String(),
+		X509_STORE_new, X509_STORE_add_cert, X509_STORE_CTX_new,
+		[](X509_STORE_CTX*, X509_STORE*, X509*, STACK_OF(X509)*) { return 0; }
+	));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
