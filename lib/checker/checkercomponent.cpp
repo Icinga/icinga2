@@ -196,10 +196,11 @@ void CheckerComponent::CheckThreadProc()
 		csi = GetCheckableScheduleInfo(checkable);
 
 		Log(LogDebug, "CheckerComponent")
+			<< std::fixed << std::setprecision(0)
 			<< "Scheduling info for checkable '" << checkable->GetName() << "' ("
 			<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", checkable->GetNextCheck()) << "): Object '"
 			<< csi.Object->GetName() << "', Next Check: "
-			<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", csi.NextCheck) << "(" << csi.NextCheck << ").";
+			<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", csi.NextCheck) << " (" << csi.NextCheck << ").";
 
 		m_PendingCheckables.insert(csi);
 
