@@ -41,6 +41,24 @@ bool UnbufferedAsioTlsStream::IsVerifyOK()
 }
 
 /**
+ * Returns an error code for situations where IsVerifyOK() returns false.
+ *
+ * @return See SSL_get_verify_result(3)
+ */
+long UnbufferedAsioTlsStream::GetVerifyErrorCode()
+{
+	if (!SSL_is_init_finished(native_handle())) {
+		return HandshakeNotCompleted;
+	}
+
+	if (GetPeerCertificate() == nullptr) {
+		return NoPeerCertificate;
+	}
+
+	return SSL_get_verify_result(native_handle());
+}
+
+/**
  * Returns a human-readable error string for situations where IsVerifyOK() returns false.
  *
  * If the handshake was completed and a peer certificate was provided,
@@ -50,16 +68,16 @@ bool UnbufferedAsioTlsStream::IsVerifyOK()
  */
 String UnbufferedAsioTlsStream::GetVerifyError()
 {
-	if (!SSL_is_init_finished(native_handle())) {
-		return "handshake not completed";
-	}
+	auto err (GetVerifyErrorCode());
 
-	if (GetPeerCertificate() == nullptr) {
-		return "no peer certificate provided";
+	switch (err) {
+		case HandshakeNotCompleted:
+			return "handshake not completed";
+		case NoPeerCertificate:
+			return "no peer certificate provided";
 	}
 
 	std::ostringstream buf;
-	long err = SSL_get_verify_result(native_handle());
 	buf << "code " << err << ": " << X509_verify_cert_error_string(err);
 	return buf.str();
 }
