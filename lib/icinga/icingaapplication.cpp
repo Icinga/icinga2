@@ -48,7 +48,7 @@ void IcingaApplication::StaticInitialize()
 
 	ScriptGlobal::Set("NodeName", node_name);
 
-	ScriptGlobal::Set("ReloadTimeout", 300);
+	ScriptGlobal::Set("ReloadTimeout", 30 * 60);
 	ScriptGlobal::Set("MaxConcurrentChecks", 512);
 
 	Namespace::Ptr systemNS = ScriptGlobal::Get("System");
