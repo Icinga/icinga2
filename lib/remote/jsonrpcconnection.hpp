@@ -54,6 +54,11 @@ public:
 	Shared<AsioTlsStream>::Ptr GetStream() const;
 	ConnectionRole GetRole() const;
 
+	auto GetPendingOutgoingMessages() const noexcept
+	{
+		return m_PendingOutgoingMessages.load();
+	}
+
 	void Disconnect();
 
 	void SendMessage(const Dictionary::Ptr& request);
@@ -76,6 +81,7 @@ private:
 	boost::asio::io_context::strand m_IoStrand;
 	std::vector<String> m_OutgoingMessagesQueue;
 	AsioConditionVariable m_OutgoingMessagesQueued;
+	Atomic<decltype(m_OutgoingMessagesQueue)::size_type, std::memory_order_relaxed> m_PendingOutgoingMessages {0};
 	AsioConditionVariable m_WriterDone;
 	Atomic<bool> m_ShuttingDown;
 	boost::asio::deadline_timer m_CheckLivenessTimer, m_HeartbeatTimer;
