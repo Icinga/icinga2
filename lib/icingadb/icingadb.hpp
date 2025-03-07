@@ -48,7 +48,7 @@ public:
 
 	inline RedisConnection::Ptr GetConnection()
 	{
-		return m_RconLocked.load();
+		return m_RconLocked.load(m_FieldsMutex);
 	}
 
 	template<class T>
