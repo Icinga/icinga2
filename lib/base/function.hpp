@@ -27,8 +27,9 @@ public:
 
 	template<typename F>
 	Function(const String& name, F function, const std::vector<String>& args = std::vector<String>(),
+		bool hasClosedThis = false, Value closedThis = Value(),
 		bool side_effect_free = false, bool deprecated = false)
-		: Function(name, WrapFunction(function), args, side_effect_free, deprecated)
+		: Function(name, WrapFunction(function), args, hasClosedThis, std::move(closedThis), side_effect_free, deprecated)
 	{ }
 
 	Value Invoke(const std::vector<Value>& arguments = std::vector<Value>());
@@ -50,8 +51,11 @@ public:
 
 private:
 	Callback m_Callback;
+	bool m_HasClosedThis;
+	Value m_ClosedThis;
 
 	Function(const String& name, Callback function, const std::vector<String>& args,
+		bool hasClosedThis, Value closedThis,
 		bool side_effect_free, bool deprecated);
 };
 
