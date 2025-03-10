@@ -117,7 +117,7 @@ BOOST_AUTO_TEST_CASE(vector_move)
 
 	void *oldAddr = vec[0].GetData().data();
 	// Sanity check that the data buffer is actually allocated outside the icinga::String instance.
-	BOOST_CHECK(!(&vec[0] <= oldAddr && oldAddr < &vec[1]));
+	BOOST_CHECK(!(vec.data() <= oldAddr && oldAddr < vec.data() + vec.size()));
 
 	// Force the vector to grow.
 	vec.reserve(vec.capacity() + 1);
