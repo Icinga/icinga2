@@ -33,7 +33,7 @@ case "$DISTRO" in
       {boost,libedit,mariadb1\*,ncurses,openssl,postgresql,systemd}-devel
     ;;
 
-  debian:*|ubuntu:*)
+  *debian:*|ubuntu:*)
     apt-get update
     DEBIAN_FRONTEND=noninteractive apt-get install --no-install-{recommends,suggests} -y bison \
       ccache cmake flex g++ lib{boost-all,edit,mariadb,ncurses,pq,ssl,systemd}-dev ninja-build tzdata
