@@ -389,7 +389,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 
 		if (type == NotificationProblem && GetInterval() <= 0)
 			SetNoMoreNotifications(true);
-		else if (type != NotificationCustom)
+		else if (type == NotificationRecovery)
 			SetNoMoreNotifications(false);
 
 		if (type == NotificationProblem && GetInterval() > 0)
