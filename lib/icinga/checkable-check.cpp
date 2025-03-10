@@ -104,10 +104,8 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 	VERIFY(cr);
 	VERIFY(producer);
 
-	{
-		ObjectLock olock(this);
-		m_CheckRunning = false;
-	}
+	ObjectLock olock(this);
+	m_CheckRunning = false;
 
 	double now = Utility::GetTime();
 
@@ -168,8 +166,6 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 	// Cache whether the previous state of this Checkable affects its children before overwriting the last check result.
 	// This will be used to determine whether the on reachability changed event should be triggered.
 	bool affectsPreviousStateChildren(reachable && AffectsChildren());
-
-	ObjectLock olock(this);
 
 	CheckResult::Ptr old_cr = GetLastCheckResult();
 	ServiceState old_state = GetStateRaw();
@@ -333,8 +329,6 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 	if (is_volatile && IsStateOK(old_state) && IsStateOK(new_state))
 		send_notification = false; /* Don't send notifications for volatile OK -> OK changes. */
 
-	olock.Unlock();
-
 	if (remove_acknowledgement_comments)
 		RemoveAckComments(String(), cr->GetExecutionEnd());
 
@@ -350,25 +344,14 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 
 	cr->SetVarsAfter(vars_after);
 
-	olock.Lock();
-
+	bool problem_change = false;
 	if (service) {
 		SetLastCheckResult(cr);
 	} else {
 		bool wasProblem = GetProblem();
-
 		SetLastCheckResult(cr);
-
-		if (GetProblem() != wasProblem) {
-			auto services = host->GetServices();
-			olock.Unlock();
-			for (auto& service : services) {
-				Service::OnHostProblemChanged(service, cr, origin);
-			}
-			olock.Lock();
-		}
+		problem_change = GetProblem() != wasProblem;
 	}
-
 	bool was_flapping = IsFlapping();
 
 	UpdateFlappingStatus(cr->GetState());
@@ -399,8 +382,6 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 		}
 	}
 
-	olock.Unlock();
-
 #ifdef I2_DEBUG /* I2_DEBUG */
 	Log(LogDebug, "Checkable")
 		<< "Flapping: Checkable " << GetName()
@@ -410,36 +391,6 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 		<< " threshold high: " << GetFlappingThresholdHigh()
 		<< "% current: " << GetFlappingCurrent() << "%.";
 #endif /* I2_DEBUG */
-
-	if (recovery) {
-		for (auto& child : children) {
-			if (child->GetProblem() && child->GetEnableActiveChecks()) {
-				auto nextCheck (now + Utility::Random() % 60);
-
-				ObjectLock oLock (child);
-
-				if (nextCheck < child->GetNextCheck()) {
-					child->SetNextCheck(nextCheck);
-				}
-			}
-		}
-	}
-
-	if (stateChange) {
-		/* reschedule direct parents */
-		for (const Checkable::Ptr& parent : GetParents()) {
-			if (parent.get() == this)
-				continue;
-
-			if (!parent->GetEnableActiveChecks())
-				continue;
-
-			if (parent->GetNextCheck() >= now + parent->GetRetryInterval()) {
-				ObjectLock olock(parent);
-				parent->SetNextCheck(now);
-			}
-		}
-	}
 
 	OnNewCheckResult(this, cr, origin);
 
@@ -521,7 +472,6 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 		 * stash them into a notification types bitmask for maybe re-sending later.
 		 */
 
-		ObjectLock olock (this);
 		int suppressed_types_before (GetSuppressedNotifications());
 		int suppressed_types_after (suppressed_types_before | suppressed_types);
 
@@ -550,6 +500,44 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 	/* update reachability for child objects */
 	if ((stateChange || hardChange) && !children.empty() && (affectsPreviousStateChildren || AffectsChildren()))
 		OnReachabilityChanged(this, cr, children, origin);
+
+	olock->Unlock();
+	if (!service && problem_change) {
+		auto services = host->GetServices();
+		for (auto& service : services) {
+			Service::OnHostProblemChanged(service, cr, origin);
+		}
+	}
+
+	if (recovery) {
+		for (auto& child : children) {
+			if (child->GetProblem() && child->GetEnableActiveChecks()) {
+				auto nextCheck (now + Utility::Random() % 60);
+
+				ObjectLock oLock (child);
+
+				if (nextCheck < child->GetNextCheck()) {
+					child->SetNextCheck(nextCheck);
+				}
+			}
+		}
+	}
+
+	if (stateChange) {
+		/* reschedule direct parents */
+		for (const Checkable::Ptr& parent : GetParents()) {
+			if (parent.get() == this)
+				continue;
+
+			if (!parent->GetEnableActiveChecks())
+				continue;
+
+			if (parent->GetNextCheck() >= now + parent->GetRetryInterval()) {
+				ObjectLock olock(parent);
+				parent->SetNextCheck(now);
+			}
+		}
+	}
 
 	return Result::Ok;
 }
