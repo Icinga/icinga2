@@ -4,7 +4,7 @@ set -exo pipefail
 export PATH="/usr/lib/ccache:/usr/lib64/ccache:$PATH"
 export CCACHE_DIR=/icinga2/ccache
 export CTEST_OUTPUT_ON_FAILURE=1
-CMAKE_OPTS=''
+CMAKE_OPTS=()
 
 case "$DISTRO" in
   amazonlinux:2)
@@ -24,7 +24,7 @@ case "$DISTRO" in
 
     ln -vs /usr/bin/cmake3 /usr/local/bin/cmake
     ln -vs /usr/bin/ninja-build /usr/local/bin/ninja
-    CMAKE_OPTS='-DBOOST_INCLUDEDIR=/boost_1_69_0 -DBOOST_LIBRARYDIR=/boost_1_69_0/stage/lib'
+    CMAKE_OPTS+=(-DBOOST_{INCLUDEDIR=/boost_1_69_0,LIBRARYDIR=/boost_1_69_0/stage/lib})
     export LD_LIBRARY_PATH=/boost_1_69_0/stage/lib
     ;;
 
@@ -76,7 +76,7 @@ cmake \
   -DUSE_SYSTEMD=ON \
   -DICINGA2_USER=$(id -un) \
   -DICINGA2_GROUP=$(id -gn) \
-  $CMAKE_OPTS ..
+  "${CMAKE_OPTS[@]}" ..
 
 ninja -v
 
