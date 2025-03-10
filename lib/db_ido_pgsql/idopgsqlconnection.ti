@@ -9,7 +9,7 @@ namespace icinga
 
 class IdoPgsqlConnection : DbConnection
 {
-	activation_priority 100;
+	activation_priority -50;
 
 	[config] String host {
 		default {{{ return "localhost"; }}}

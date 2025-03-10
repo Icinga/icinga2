@@ -11,6 +11,8 @@ namespace icinga
 
 class User : CustomVarObject
 {
+	activation_priority -5;
+
 	[config] String display_name {
 		get {{{
 			String displayName = m_DisplayName.load();

@@ -78,6 +78,10 @@ void CheckerComponent::Stop(bool runtimeRemoved)
 	{
 		std::unique_lock<std::mutex> lock(m_Mutex);
 		m_Stopped = true;
+		if (!runtimeRemoved) {
+			m_IdleCheckables.clear();
+			m_PendingCheckables.clear();
+		}
 		m_CV.notify_all();
 	}
 

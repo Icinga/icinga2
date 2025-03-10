@@ -10,7 +10,7 @@ namespace icinga
 
 class IcingaDB : ConfigObject
 {
-	activation_priority 100;
+	activation_priority -50;
 
 	[config] String host {
 		default {{{ return "127.0.0.1"; }}}
