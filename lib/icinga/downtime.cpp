@@ -42,7 +42,10 @@ void Downtime::StaticInitialize()
 			Type::Ptr type = object->GetReflectionType();
 
 			// Only execute on deactivated checkable objects.
-			if (object->IsActive() || !(type == Host::TypeInstance || type == Service::TypeInstance)) {
+			if (object->IsActive()
+			    || !(type == Host::TypeInstance || type == Service::TypeInstance)
+				|| !object->GetExtension("ConfigObjectDeleted")
+			) {
 				return;
 			}
 
