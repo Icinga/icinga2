@@ -113,6 +113,7 @@ BOOST_AUTO_TEST_CASE(vector_move)
 		// copied even by the move constructor. Using sizeof() ensures that the string is long enough so that it must
 		// be allocated separately and can be used to test for the desired move to happen.
 		std::string(sizeof(String) + 1, 'A'),
+		"Icinga 2",
 	};
 
 	void *oldAddr = vec[0].GetData().data();
