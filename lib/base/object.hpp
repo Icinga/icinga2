@@ -5,6 +5,7 @@
 
 #include "base/i2-base.hpp"
 #include "base/debug.hpp"
+#include "base/intrusive-ptr.hpp"
 #include <boost/smart_ptr/intrusive_ptr.hpp>
 #include <atomic>
 #include <cstddef>
