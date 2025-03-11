@@ -35,7 +35,7 @@ void FileLogger::Start(bool runtimeCreated)
 
 	ObjectImpl<FileLogger>::Start(runtimeCreated);
 
-	Log(LogInformation, "FileLogger")
+	Log(LogInformation, GetReflectionType()->GetName())
 		<< "'" << GetName() << "' started.";
 }
 
