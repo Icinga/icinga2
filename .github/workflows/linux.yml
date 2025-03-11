@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   linux:
-    name: ${{ matrix.distro }}
+    name: ${{ matrix.distro }}${{ matrix.platform != 'linux/amd64' && format(' ({0})', matrix.platform) || '' }}
     runs-on: ubuntu-latest
 
     strategy:
@@ -49,6 +49,15 @@ jobs:
           - ubuntu:24.04
           - ubuntu:24.10
 
+        platform:
+          - linux/amd64
+
+        include:
+          - distro: debian:11
+            platform: linux/386
+          - distro: debian:12
+            platform: linux/386
+
     steps:
       - name: Checkout HEAD
         uses: actions/checkout@v3
@@ -62,4 +71,4 @@ jobs:
       - name: Build
         run: >-
           docker run --rm -v "$(pwd):/icinga2" -e DISTRO=${{ matrix.distro }}
-          ${{ matrix.distro }} /icinga2/.github/workflows/linux.bash
+          --platform ${{ matrix.platform }} ${{ matrix.distro }} /icinga2/.github/workflows/linux.bash
