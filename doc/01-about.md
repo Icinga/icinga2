@@ -1,6 +1,6 @@
 # About Icinga 2 <a id="about-icinga2"></a>
 
-## What is Icinga 2?  <a id="what-is-icinga2"></a>
+## What is Icinga 2? <a id="what-is-icinga2"></a>
 
 [Icinga](https://icinga.com/products/) is a monitoring system which checks
 the availability of your network resources, notifies users of outages, and generates
