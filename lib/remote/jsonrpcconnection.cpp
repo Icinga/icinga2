@@ -66,6 +66,8 @@ void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 		return ch::duration_cast<ch::milliseconds>(d).count();
 	});
 
+	AtomicDuration::Clock::time_point processingStarted;
+
 	m_Stream->next_layer().SetSeen(&m_Seen);
 
 	while (!m_ShuttingDown) {
@@ -96,12 +98,20 @@ void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 			// Cache the elapsed time to acquire a CPU semaphore used to detect extremely heavy workloads.
 			cpuBoundDuration = ch::steady_clock::now() - start;
 
+			if (m_Endpoint) {
+				processingStarted = AtomicDuration::Clock::now();
+			}
+
 			Dictionary::Ptr message = JsonRpc::DecodeMessage(jsonString);
 			if (String method = message->Get("method"); !method.IsEmpty()) {
 				rpcMethod = std::move(method);
 			}
 
 			MessageHandler(message);
+
+			if (m_Endpoint) {
+				m_Endpoint->AddInputTimes(cpuBoundDuration, AtomicDuration::Clock::now() - processingStarted);
+			}
 
 			l_TaskStats.InsertValue(Utility::GetTime(), 1);
 
