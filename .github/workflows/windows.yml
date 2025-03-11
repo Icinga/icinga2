@@ -5,7 +5,15 @@ on:
     branches:
       - master
       - 'support/*'
-  pull_request: {}
+    paths-ignore:
+      - 'doc/**'
+      - CHANGELOG.md
+      - ICINGA2_VERSION
+  pull_request:
+    paths-ignore:
+      - 'doc/**'
+      - CHANGELOG.md
+      - ICINGA2_VERSION
 
 concurrency:
   group: windows-${{ github.event_name == 'push' && github.sha || github.ref }}
