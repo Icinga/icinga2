@@ -78,7 +78,7 @@ cmake \
   -DICINGA2_GROUP=$(id -gn) \
   $CMAKE_OPTS ..
 
-ninja
+ninja -v
 
 ninja test
 ninja install
