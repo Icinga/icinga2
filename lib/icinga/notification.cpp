@@ -520,7 +520,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 	}
 
 	/* if this was a recovery notification, reset all notified users */
-	if (type == NotificationRecovery)
+	if (IsRecoveryOrFlappingEndAndCheckableIsOK(checkable, cr, type))
 		notifiedProblemUsers->Clear();
 
 	/* used in db_ido for notification history */
