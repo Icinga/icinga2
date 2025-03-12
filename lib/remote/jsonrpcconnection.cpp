@@ -212,7 +212,7 @@ void JsonRpcConnection::SendMessage(const Dictionary::Ptr& message)
 
 	Ptr keepAlive (this);
 
-	m_IoStrand.post([this, keepAlive, message]() { SendMessageInternal(message); });
+	boost::asio::post(m_IoStrand, [this, keepAlive, message] { SendMessageInternal(message); });
 }
 
 void JsonRpcConnection::SendRawMessage(const String& message)
@@ -223,7 +223,7 @@ void JsonRpcConnection::SendRawMessage(const String& message)
 
 	Ptr keepAlive (this);
 
-	m_IoStrand.post([this, keepAlive, message]() {
+	boost::asio::post(m_IoStrand, [this, keepAlive, message] {
 		if (m_ShuttingDown) {
 			return;
 		}
