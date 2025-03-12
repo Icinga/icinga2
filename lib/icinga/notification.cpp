@@ -365,7 +365,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 			 */
 			{
 				ObjectLock olock(this);
-				if (type == NotificationRecovery && GetInterval() <= 0)
+				if (GetInterval() <= 0 && IsRecoveryOrFlappingEndAndCheckableIsOK(checkable, cr, type))
 					SetNoMoreNotifications(false);
 			}
 
