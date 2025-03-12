@@ -257,14 +257,17 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 		<< "notifications of type '" << notificationTypeName
 		<< "' for notification object '" << notificationName << "'.";
 
-	if (type == NotificationRecovery) {
+	Checkable::Ptr checkable = GetCheckable();
+
+	// Clear the last notified problem state per user if we're sending a recovery notification or if we're sending a
+	// flapping end notification and the checkable is already in an OK state. This is necessary since we might have
+	// missed the recovery notification due to the flapping state.
+	if (IsRecoveryOrFlappingEndAndCheckableIsOK(checkable, cr, type)) {
 		auto states (GetLastNotifiedStatePerUser());
 
 		states->Clear();
 		OnLastNotifiedStatePerUserCleared(this, nullptr);
 	}
-
-	Checkable::Ptr checkable = GetCheckable();
 
 	if (!force) {
 		TimePeriod::Ptr tp = GetPeriod();
