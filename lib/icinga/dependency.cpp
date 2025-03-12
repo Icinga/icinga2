@@ -9,106 +9,163 @@
 #include "base/exception.hpp"
 #include <map>
 #include <sstream>
+#include <unordered_map>
 #include <utility>
+#include <variant>
 
 using namespace icinga;
 
 REGISTER_TYPE(Dependency);
 
-bool Dependency::m_AssertNoCyclesForIndividualDeps = false;
+INITIALIZE_ONCE(&Dependency::StaticInitialize);
 
-struct DependencyCycleNode
+void Dependency::StaticInitialize()
 {
-	bool Visited = false;
-	bool OnStack = false;
-};
-
-struct DependencyStackFrame
-{
-	ConfigObject::Ptr Node;
-	bool Implicit;
-
-	inline DependencyStackFrame(ConfigObject::Ptr node, bool implicit = false) : Node(std::move(node)), Implicit(implicit)
-	{ }
-};
-
-struct DependencyCycleGraph
-{
-	std::map<Checkable::Ptr, DependencyCycleNode> Nodes;
-	std::vector<DependencyStackFrame> Stack;
-};
-
-static void AssertNoDependencyCycle(const Checkable::Ptr& checkable, DependencyCycleGraph& graph, bool implicit = false);
-
-static void AssertNoParentDependencyCycle(const Checkable::Ptr& parent, DependencyCycleGraph& graph, bool implicit)
-{
-	if (graph.Nodes[parent].OnStack) {
-		std::ostringstream oss;
-		oss << "Dependency cycle:\n";
-
-		for (auto& frame : graph.Stack) {
-			oss << frame.Node->GetReflectionType()->GetName() << " '" << frame.Node->GetName() << "'";
-
-			if (frame.Implicit) {
-				oss << " (implicit)";
-			}
-
-			oss << "\n-> ";
-		}
-
-		oss << parent->GetReflectionType()->GetName() << " '" << parent->GetName() << "'";
-
-		if (implicit) {
-			oss << " (implicit)";
-		}
-
-		BOOST_THROW_EXCEPTION(ScriptError(oss.str()));
-	}
-
-	AssertNoDependencyCycle(parent, graph, implicit);
+	ConfigType::Get<Dependency>()->BeforeOnAllConfigLoaded.connect(&BeforeOnAllConfigLoadedHandler);
 }
 
-static void AssertNoDependencyCycle(const Checkable::Ptr& checkable, DependencyCycleGraph& graph, bool implicit)
+/**
+ * Helper class to search for cycles in the dependency graph.
+ *
+ * State is stored inside the class and no synchronization is done,
+ * hence instances of this class must not be used concurrently.
+ */
+class DependencyCycleChecker
 {
-	auto& node (graph.Nodes[checkable]);
+	struct Node
+	{
+		bool Visited = false;
+		bool OnStack = false;
+		std::vector<Dependency::Ptr> ExtraDependencies;
+	};
 
-	if (!node.Visited) {
-		node.Visited = true;
-		node.OnStack = true;
-		graph.Stack.emplace_back(checkable, implicit);
+	std::unordered_map<Checkable::Ptr, Node> m_Nodes;
 
-		for (auto& dep : checkable->GetDependencies()) {
-			graph.Stack.emplace_back(dep);
-			AssertNoParentDependencyCycle(dep->GetParent(), graph, false);
-			graph.Stack.pop_back();
-		}
+	// Stack representing the path currently visited by AssertNoCycle(). Dependency::Ptr represents an edge from its
+	// child to parent, Service::Ptr represents the implicit dependency of that service to its host.
+	std::vector<std::variant<Dependency::Ptr, Service::Ptr>> m_Stack;
 
-		{
-			auto service (dynamic_pointer_cast<Service>(checkable));
+public:
+	/**
+	 * Add a dependency to this DependencyCycleChecker that will be considered by AssertNoCycle() in addition to
+	 * dependencies already registered to the checkables. This allows checking if additional dependencies would cause
+	 * a cycle before actually registering them to the checkables.
+	 *
+	 * @param dependency Dependency to additionally consider during the cycle search.
+	 */
+	void AddExtraDependency(Dependency::Ptr dependency)
+	{
+		auto& node = m_Nodes[dependency->GetChild()];
+		node.ExtraDependencies.emplace_back(std::move(dependency));
+	}
 
-			if (service) {
-				AssertNoParentDependencyCycle(service->GetHost(), graph, true);
+	/**
+	 * Searches the dependency graph for cycles and throws an exception if one is found.
+	 *
+	 * Only the part of the graph that's reachable from the starting node when traversing dependencies towards the
+	 * parents is searched. In order to check that there are no cycles in the whole dependency graph, this method
+	 * has to be called for every checkable. For this, the method can be called on the same DependencyCycleChecker
+	 * instance multiple times, in which case parts of the graph aren't searched twice. However, if the graph structure
+	 * changes, a new DependencyCycleChecker instance must be used.
+	 *
+	 * @param checkable Starting node for the cycle search.
+	 * @throws ScriptError A dependency cycle was found.
+	 */
+	void AssertNoCycle(const Checkable::Ptr& checkable)
+	{
+		auto& node = m_Nodes[checkable];
+
+		if (node.OnStack) {
+			std::ostringstream s;
+			s << "Dependency cycle:";
+			for (const auto& obj : m_Stack) {
+				Checkable::Ptr child, parent;
+				Dependency::Ptr dependency;
+
+				if (std::holds_alternative<Dependency::Ptr>(obj)) {
+					dependency = std::get<Dependency::Ptr>(obj);
+					parent = dependency->GetParent();
+					child = dependency->GetChild();
+				} else {
+					const auto& service = std::get<Service::Ptr>(obj);
+					parent = service->GetHost();
+					child = service;
+				}
+
+				auto quoted = [](const String& str) { return std::quoted(str.GetData()); };
+				s << "\n\t- " << child->GetReflectionType()->GetName() << " " << quoted(child->GetName()) << " depends on ";
+				if (child == parent) {
+					s << "itself";
+				} else {
+					s << parent->GetReflectionType()->GetName() << " " << quoted(parent->GetName());
+				}
+				if (dependency) {
+					s << " (Dependency " << quoted(dependency->GetShortName()) << " " << dependency->GetDebugInfo() << ")";
+				} else {
+					s << " (implicit)";
+				}
 			}
+			BOOST_THROW_EXCEPTION(ScriptError(s.str()));
 		}
 
-		graph.Stack.pop_back();
+		if (node.Visited) {
+			return;
+		}
+		node.Visited = true;
+
+		node.OnStack = true;
+
+		// Implicit dependency of each service to its host
+		if (auto service (dynamic_pointer_cast<Service>(checkable)); service) {
+			m_Stack.emplace_back(service);
+			AssertNoCycle(service->GetHost());
+			m_Stack.pop_back();
+		}
+
+		// Explicitly configured dependency objects
+		for (const auto& dep : checkable->GetDependencies()) {
+			m_Stack.emplace_back(dep);
+			AssertNoCycle(dep->GetParent());
+			m_Stack.pop_back();
+		}
+
+		// Additional dependencies to consider
+		for (const auto& dep : node.ExtraDependencies) {
+			m_Stack.emplace_back(dep);
+			AssertNoCycle(dep->GetParent());
+			m_Stack.pop_back();
+		}
+
 		node.OnStack = false;
 	}
-}
+};
 
-void Dependency::AssertNoCycles()
+/**
+ * Checks that adding these new dependencies to the configuration does not introduce any cycles.
+ *
+ * This is done as an optimization: cycles are checked once for all dependencies in a batch of config objects instead
+ * of individually per dependency in Dependency::OnAllConfigLoaded(). For runtime updates, this function may still be
+ * called for single objects.
+ *
+ * @param items Config items containing Dependency objects added to the running configuration.
+ */
+void Dependency::BeforeOnAllConfigLoadedHandler(const ConfigItems& items)
 {
-	DependencyCycleGraph graph;
+	DependencyCycleChecker checker;
 
-	for (auto& host : ConfigType::GetObjectsByType<Host>()) {
-		AssertNoDependencyCycle(host, graph);
-	}
+	// Resolve parent/child names to Checkable::Ptr and temporarily add the edges to the checker.
+	// The dependencies are later registered to the checkables by Dependency::OnAllConfigLoaded().
+	items.ForEachObject<Dependency>([&checker](Dependency::Ptr dependency) {
+		dependency->InitChildParentReferences();
+		checker.AddExtraDependency(std::move(dependency));
+	});
 
-	for (auto& service : ConfigType::GetObjectsByType<Service>()) {
-		AssertNoDependencyCycle(service, graph);
-	}
-
-	m_AssertNoCyclesForIndividualDeps = true;
+	// It's sufficient to search for cycles starting from newly added dependencies only: if a newly added dependency is
+	// part of a cycle, that cycle is reachable from both the child and the parent of that dependency. The cycle search
+	// is started from the parent as a slight optimization as that will traverse fewer edges if there is no cycle.
+	items.ForEachObject<Dependency>([&checker](const Dependency::Ptr& dependency) {
+		checker.AssertNoCycle(dependency->GetParent());
+	});
 }
 
 String DependencyNameComposer::MakeName(const String& shortName, const Object::Ptr& context) const
@@ -160,10 +217,8 @@ void Dependency::OnConfigLoaded()
 	SetStateFilter(FilterArrayToInt(GetStates(), Notification::GetStateFilterMap(), defaultFilter));
 }
 
-void Dependency::OnAllConfigLoaded()
+void Dependency::InitChildParentReferences()
 {
-	ObjectImpl<Dependency>::OnAllConfigLoaded();
-
 	Host::Ptr childHost = Host::GetByName(GetChildHostName());
 
 	if (childHost) {
@@ -187,21 +242,17 @@ void Dependency::OnAllConfigLoaded()
 
 	if (!m_Parent)
 		BOOST_THROW_EXCEPTION(ScriptError("Dependency '" + GetName() + "' references a parent host/service which doesn't exist.", GetDebugInfo()));
+}
+
+void Dependency::OnAllConfigLoaded()
+{
+	ObjectImpl<Dependency>::OnAllConfigLoaded();
+
+	// InitChildParentReferences() has to be called before.
+	VERIFY(m_Child && m_Parent);
 
 	m_Child->AddDependency(this);
 	m_Parent->AddReverseDependency(this);
-
-	if (m_AssertNoCyclesForIndividualDeps) {
-		DependencyCycleGraph graph;
-
-		try {
-			AssertNoDependencyCycle(m_Parent, graph);
-		} catch (...) {
-			m_Child->RemoveDependency(this);
-			m_Parent->RemoveReverseDependency(this);
-			throw;
-		}
-	}
 }
 
 void Dependency::Stop(bool runtimeRemoved)

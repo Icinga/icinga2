@@ -256,17 +256,6 @@ bool DaemonUtility::LoadConfigFiles(const std::vector<std::string>& configs,
 	upq.SetName("DaemonUtility::LoadConfigFiles");
 	bool result = ConfigItem::CommitItems(ascope.GetContext(), upq, newItems);
 
-	if (result) {
-		try {
-			Dependency::AssertNoCycles();
-		} catch (...) {
-			Log(LogCritical, "config")
-				<< DiagnosticInformation(boost::current_exception(), false);
-
-			result = false;
-		}
-	}
-
 	if (!result) {
 		ConfigCompilerContext::GetInstance()->CancelObjectsFile();
 		return false;

@@ -4,6 +4,7 @@
 #define SHARED_H
 
 #include "base/atomic.hpp"
+#include "base/intrusive-ptr.hpp"
 #include <boost/smart_ptr/intrusive_ptr.hpp>
 #include <cstdint>
 #include <utility>

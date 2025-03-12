@@ -38,6 +38,7 @@ set(base_SOURCES
   filelogger.cpp filelogger.hpp filelogger-ti.hpp
   function.cpp function.hpp function-ti.hpp function-script.cpp functionwrapper.hpp
   initialize.cpp initialize.hpp
+  intrusive-ptr.hpp
   io-engine.cpp io-engine.hpp
   journaldlogger.cpp journaldlogger.hpp journaldlogger-ti.hpp
   json.cpp json.hpp json-script.cpp
