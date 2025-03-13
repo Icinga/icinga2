@@ -46,17 +46,18 @@ std::pair<std::set<Dependency::Ptr>, bool> DependencyGroup::Unregister(const Dep
 {
 	std::lock_guard lock(m_RegistryMutex);
 	if (auto it(m_Registry.find(dependencyGroup)); it != m_Registry.end()) {
-		auto existingGroup(*it);
+		auto& existingGroup(*it);
 		auto dependencies(existingGroup->GetDependenciesForChild(child.get()));
 
 		for (const auto& dependency : dependencies) {
 			existingGroup->RemoveDependency(dependency);
 		}
 
-		if (existingGroup->IsEmpty()) {
+		bool remove = !existingGroup->HasChildren();
+		if (remove) {
 			m_Registry.erase(it);
 		}
-		return {{dependencies.begin(), dependencies.end()}, existingGroup->IsEmpty()};
+		return {{dependencies.begin(), dependencies.end()}, remove};
 	}
 	return {{}, false};
 }
@@ -72,14 +73,11 @@ size_t DependencyGroup::GetRegistrySize()
 	return m_Registry.size();
 }
 
-DependencyGroup::DependencyGroup(String name): m_RedundancyGroupName(std::move(name))
-{
-}
-
-DependencyGroup::DependencyGroup(String name, const std::set<Dependency::Ptr>& dependencies): m_RedundancyGroupName(std::move(name))
+DependencyGroup::DependencyGroup(String name, const std::set<Dependency::Ptr>& dependencies)
+	: m_RedundancyGroupName(std::move(name))
 {
 	for (const auto& dependency : dependencies) {
-		AddDependency(dependency);
+		m_Members[MakeCompositeKeyFor(dependency)].emplace(dependency->GetChild().get(), dependency.get());
 	}
 }
 
@@ -103,14 +101,14 @@ DependencyGroup::CompositeKeyType DependencyGroup::MakeCompositeKeyFor(const Dep
 }
 
 /**
- * Check if the current dependency group is empty.
+ * Check if the current dependency has any children.
  *
- * @return bool - Returns true if the current dependency group has no members, otherwise false.
+ * @return bool - Returns true if the current dependency group has children, otherwise false.
  */
-bool DependencyGroup::IsEmpty() const
+bool DependencyGroup::HasChildren() const
 {
 	std::lock_guard lock(m_Mutex);
-	return m_Members.empty();
+	return std::any_of(m_Members.begin(), m_Members.end(), [](const auto& pair) { return !pair.second.empty(); });
 }
 
 /**
@@ -142,7 +140,6 @@ void DependencyGroup::LoadParents(std::set<Checkable::Ptr>& parents) const
 {
 	std::lock_guard lock(m_Mutex);
 	for (auto& [compositeKey, children] : m_Members) {
-		ASSERT(!children.empty()); // We should never have an empty map for any given key at any given time.
 		parents.insert(std::get<0>(compositeKey));
 	}
 }
@@ -174,11 +171,12 @@ void DependencyGroup::AddDependency(const Dependency::Ptr& dependency)
 {
 	std::lock_guard lock(m_Mutex);
 	auto compositeKey(MakeCompositeKeyFor(dependency));
-	if (auto it(m_Members.find(compositeKey)); it != m_Members.end()) {
-		it->second.emplace(dependency->GetChild().get(), dependency.get());
-	} else {
-		m_Members.emplace(compositeKey, MemberValueType{{dependency->GetChild().get(), dependency.get()}});
-	}
+	auto it = m_Members.find(compositeKey);
+
+	// The dependency must be compatible with the group, i.e. its parent config must be known in the group already.
+	VERIFY(it != m_Members.end());
+
+	it->second.emplace(dependency->GetChild().get(), dependency.get());
 }
 
 /**
@@ -196,10 +194,6 @@ void DependencyGroup::RemoveDependency(const Dependency::Ptr& dependency)
 				// This will also remove the child Checkable from the multimap container
 				// entirely if this was the last child of it.
 				it->second.erase(childrenIt);
-				// If the composite key has no more children left, we can remove it entirely as well.
-				if (it->second.empty()) {
-					m_Members.erase(it);
-				}
 				return;
 			}
 		}
