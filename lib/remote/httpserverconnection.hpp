@@ -4,6 +4,7 @@
 #define HTTPSERVERCONNECTION_H
 
 #include "remote/apiuser.hpp"
+#include "base/io-engine.hpp"
 #include "base/string.hpp"
 #include "base/tlsstream.hpp"
 #include <memory>
@@ -40,6 +41,7 @@ private:
 	boost::asio::io_context::strand m_IoStrand;
 	bool m_ShuttingDown;
 	bool m_HasStartedStreaming;
+	CpuBoundWork* m_HandlingRequest = nullptr;
 	boost::asio::deadline_timer m_CheckLivenessTimer;
 
 	HttpServerConnection(const String& identity, bool authenticated, const Shared<AsioTlsStream>::Ptr& stream, boost::asio::io_context& io);
