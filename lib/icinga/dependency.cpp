@@ -123,7 +123,7 @@ public:
 		}
 
 		// Explicitly configured dependency objects
-		for (const auto& dep : checkable->GetDependencies()) {
+		for (const auto& dep : checkable->GetDependencies(/* includePending = */ true)) {
 			m_Stack.emplace_back(dep);
 			AssertNoCycle(dep->GetParent());
 			m_Stack.pop_back();

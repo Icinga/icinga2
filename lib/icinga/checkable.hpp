@@ -190,7 +190,7 @@ public:
 	std::vector<intrusive_ptr<DependencyGroup>> GetDependencyGroups() const;
 	void AddDependency(const intrusive_ptr<Dependency>& dependency);
 	void RemoveDependency(const intrusive_ptr<Dependency>& dependency, bool runtimeRemoved = false);
-	std::vector<intrusive_ptr<Dependency> > GetDependencies() const;
+	std::vector<intrusive_ptr<Dependency> > GetDependencies(bool includePending = false) const;
 	bool HasAnyDependencies() const;
 
 	void AddReverseDependency(const intrusive_ptr<Dependency>& dep);
@@ -251,9 +251,19 @@ private:
 
 	/* Dependencies */
 	mutable std::mutex m_DependencyMutex;
-	bool m_DependencyGroupsPushedToRegistry{false};
 	std::map<std::variant<Checkable*, String>, intrusive_ptr<DependencyGroup>> m_DependencyGroups;
 	std::set<intrusive_ptr<Dependency> > m_ReverseDependencies;
+	/**
+	 * Registering a checkable to its parent DependencyGroups is delayed during config loading until all dependencies
+	 * were registered on the checkable. m_PendingDependencies is used to temporarily store the dependencies until then.
+	 * It is a pointer type for two reasons:
+	 * 1. The field is no longer needed after the DependencyGroups were registered, having it as a pointer reduces the
+	 *    overhead from sizeof(std::map<>) to sizeof(std::map<>*).
+	 * 2. It allows the field to also be used as a flag: the delayed group registration is only done until it is reset
+	 *    to nullptr.
+	 */
+	std::unique_ptr<std::map<std::variant<Checkable*, String>, std::set<intrusive_ptr<Dependency>>>>
+		m_PendingDependencies {std::make_unique<decltype(m_PendingDependencies)::element_type>()};
 
 	void GetAllChildrenInternal(std::set<Checkable::Ptr>& seenChildren, int level = 0) const;
 
