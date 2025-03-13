@@ -132,7 +132,6 @@ public:
 	using MemberValueType = std::unordered_multimap<const Checkable*, Dependency*>;
 	using MembersMap = std::map<CompositeKeyType, MemberValueType>;
 
-	explicit DependencyGroup(String name);
 	DependencyGroup(String name, const std::set<Dependency::Ptr>& dependencies);
 
 	static DependencyGroup::Ptr Register(const DependencyGroup::Ptr& dependencyGroup);
@@ -151,7 +150,7 @@ public:
 		return !m_RedundancyGroupName.IsEmpty();
 	}
 
-	bool IsEmpty() const;
+	bool HasChildren() const;
 	void AddDependency(const Dependency::Ptr& dependency);
 	void RemoveDependency(const Dependency::Ptr& dependency);
 	std::vector<Dependency::Ptr> GetDependenciesForChild(const Checkable* child) const;
