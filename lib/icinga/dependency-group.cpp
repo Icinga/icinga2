@@ -138,7 +138,6 @@ std::vector<Dependency::Ptr> DependencyGroup::GetDependenciesForChild(const Chec
  */
 void DependencyGroup::LoadParents(std::set<Checkable::Ptr>& parents) const
 {
-	std::lock_guard lock(m_Mutex);
 	for (auto& [compositeKey, children] : m_Members) {
 		parents.insert(std::get<0>(compositeKey));
 	}
@@ -203,7 +202,7 @@ void DependencyGroup::RemoveDependency(const Dependency::Ptr& dependency)
 /**
  * Copy the dependency objects of the current dependency group to the provided dependency group (destination).
  *
- * @param dest The dependency group to move the dependencies to.
+ * @param dest The dependency group to copy the dependencies to.
  */
 void DependencyGroup::CopyDependenciesTo(const DependencyGroup::Ptr& dest)
 {
@@ -274,12 +273,9 @@ String DependencyGroup::GetCompositeKey()
 	// not achievable using pointers.
 	using StringTuple = std::tuple<String, String, int, bool>;
 	std::vector<StringTuple> compositeKeys;
-	{
-		std::lock_guard lock(m_Mutex);
-		for (auto& [compositeKey, _] : m_Members) {
-			auto [parent, tp, stateFilter, ignoreSoftStates] = compositeKey;
-			compositeKeys.emplace_back(parent->GetName(), tp ? tp->GetName() : "", stateFilter, ignoreSoftStates);
-		}
+	for (auto& [compositeKey, _] : m_Members) {
+		auto [parent, tp, stateFilter, ignoreSoftStates] = compositeKey;
+		compositeKeys.emplace_back(parent->GetName(), tp ? tp->GetName() : "", stateFilter, ignoreSoftStates);
 	}
 
 	// IMPORTANT: The order of the composite keys must be sorted to ensure the deterministic hash value.
@@ -287,11 +283,10 @@ String DependencyGroup::GetCompositeKey()
 
 	Array::Ptr data(new Array{GetRedundancyGroupName()});
 	for (auto& compositeKey : compositeKeys) {
-		auto [parent, tp, stateFilter, ignoreSoftStates] = compositeKey;
-		data->Add(std::move(parent));
-		data->Add(std::move(tp));
-		data->Add(stateFilter);
-		data->Add(ignoreSoftStates);
+		// std::apply is used to unpack the composite key tuple and add its elements to the data array.
+		// It's like manually expanding the tuple into x variables and then adding them one by one to the array.
+		// See https://en.cppreference.com/w/cpp/language/fold for more information.
+		std::apply([&data](auto&&... args) { (data->Add(std::move(args)), ...); }, std::move(compositeKey));
 	}
 
 	return PackObject(data);
