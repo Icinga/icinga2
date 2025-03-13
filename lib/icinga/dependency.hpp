@@ -163,12 +163,7 @@ public:
 	const String& GetRedundancyGroupName() const;
 	String GetCompositeKey();
 
-	struct State
-	{
-		bool Reachable; // Whether the dependency group is reachable.
-		bool OK; // Whether the dependency group is reachable and OK.
-	};
-
+	enum class State { Ok, Failed, Unreachable };
 	State GetState(const Checkable* child, DependencyType dt = DependencyState, int rstack = 0) const;
 
 	static boost::signals2::signal<void(const Checkable::Ptr&, const DependencyGroup::Ptr&)> OnChildRegistered;

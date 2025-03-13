@@ -325,14 +325,24 @@ DependencyGroup::State DependencyGroup::GetState(const Checkable* child, Depende
 
 	if (IsRedundancyGroup()) {
 		// The state of a redundancy group is determined by the best state of any parent. If any parent ist reachable,
-		// the redundancy group is reachable, analogously for availability. Note that an unreachable group cannot be
-		// available as reachable = 0 implies available = 0.
-		return {reachable > 0, available > 0};
+		// the redundancy group is reachable, analogously for availability.
+		if (reachable == 0) {
+			return State::Unreachable;
+		} else if (available == 0) {
+			return State::Failed;
+		} else {
+			return State::Ok;
+		}
 	} else {
 		// For dependencies without a redundancy group, dependencies.size() will be 1 in almost all cases. It will only
 		// contain more elements if there are duplicate dependency config objects between two checkables. In this case,
-		// all of them have to be reachable or available as they don't provide redundancy. Note that unreachable implies
-		// unavailable here as well as only reachable parents count towards the number of available parents.
-		return {reachable == dependencies.size(), available == dependencies.size()};
+		// all of them have to be reachable/available as they don't provide redundancy.
+		if (reachable < dependencies.size()) {
+			return State::Unreachable;
+		} else if (available < dependencies.size()) {
+			return State::Failed;
+		} else {
+			return State::Ok;
+		}
 	}
 }

@@ -213,8 +213,8 @@ Dictionary::Ptr IcingaDB::SerializeRedundancyGroupState(const Checkable::Ptr& ch
 		{"id", redundancyGroup->GetIcingaDBIdentifier()},
 		{"environment_id", m_EnvironmentId},
 		{"redundancy_group_id", redundancyGroup->GetIcingaDBIdentifier()},
-		{"failed", !state.Reachable || !state.OK},
-		{"is_reachable", state.Reachable},
+		{"failed", state != DependencyGroup::State::Ok},
+		{"is_reachable", state != DependencyGroup::State::Unreachable},
 		{"last_state_change", TimestampToMilliseconds(Utility::GetTime())},
 	};
 }
