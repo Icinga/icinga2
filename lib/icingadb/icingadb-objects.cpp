@@ -1962,10 +1962,14 @@ void IcingaDB::SendRemovedDowntime(const Downtime::Ptr& downtime)
 		"scheduled_end_time", Convert::ToString(TimestampToMilliseconds(downtime->GetEndTime())),
 		"has_been_cancelled", Convert::ToString((unsigned short)downtime->GetWasCancelled()),
 		"trigger_time", Convert::ToString(TimestampToMilliseconds(downtime->GetTriggerTime())),
-		"cancel_time", Convert::ToString(TimestampToMilliseconds(downtime->GetRemoveTime())),
 		"event_id", CalcEventID("downtime_end", downtime),
 		"event_type", "downtime_end"
 	});
+
+	if (downtime->GetWasCancelled()) {
+		xAdd.emplace_back("cancel_time");
+		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(downtime->GetRemoveTime())));
+	}
 
 	if (service) {
 		xAdd.emplace_back("object_type");
