@@ -642,7 +642,9 @@ static const auto l_AppVersionInt (([]() -> unsigned long {
 })());
 
 static const auto l_MyCapabilities (
-	(uint_fast64_t)ApiCapabilities::ExecuteArbitraryCommand | (uint_fast64_t)ApiCapabilities::IfwApiCheckCommand
+	(uint_fast64_t)ApiCapabilities::ExecuteArbitraryCommand
+	| (uint_fast64_t)ApiCapabilities::IfwApiCheckCommand
+	| (uint_fast64_t)ApiCapabilities::ExecuteNotificationCommand
 );
 
 /**
