@@ -23,6 +23,9 @@ public:
 
 	static String FormatTimestamp(double ts);
 
+	void ValidateHostTagsTemplate(const Lazy<Dictionary::Ptr> &lvalue, const ValidationUtils &utils) override;
+	void ValidateServiceTagsTemplate(const Lazy<Dictionary::Ptr> &lvalue, const ValidationUtils &utils) override;
+
 protected:
 	void OnConfigLoaded() override;
 	void Resume() override;
@@ -37,6 +40,7 @@ private:
 	std::mutex m_DataBufferMutex;
 
 	void AddCheckResult(const Dictionary::Ptr& fields, const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
+	void AddTemplateTags(const Dictionary::Ptr& fields, const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 
 	void StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type);
 	void StateChangeHandlerInternal(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type);
