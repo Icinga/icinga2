@@ -1087,7 +1087,9 @@ bool Process::DoEvents()
 				Log(LogWarning, "Process")
 					<< "Couldn't kill the process group " << m_PID << " (" << PrettyPrintArguments(m_Arguments)
 					<< "): [errno " << error << "] " << strerror(error);
-				could_not_kill = true;
+				if (error != ESRCH) {
+					could_not_kill = true;
+				}
 			}
 #endif /* _WIN32 */
 
