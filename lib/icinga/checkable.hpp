@@ -99,7 +99,7 @@ public:
 	long GetSchedulingOffset();
 	void SetSchedulingOffset(long offset);
 
-	void UpdateNextCheck(const MessageOrigin::Ptr& origin = nullptr);
+	void UpdateNextCheck(const MessageOrigin::Ptr& origin = nullptr, bool suppressEvents = false);
 
 	bool HasBeenChecked() const;
 	virtual bool IsStateOK(ServiceState state) const = 0;
