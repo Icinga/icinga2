@@ -10,7 +10,7 @@ namespace icinga
 
 class ExternalCommandListener : ConfigObject
 {
-	activation_priority 100;
+	activation_priority 350;
 
 	[config] String command_path {
 		default {{{ return Configuration::InitRunDir + "/cmd/icinga2.cmd"; }}}
