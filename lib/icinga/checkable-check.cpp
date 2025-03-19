@@ -120,8 +120,19 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 	if (cr->GetExecutionEnd() == 0)
 		cr->SetExecutionEnd(now);
 
-	if (!origin || origin->IsLocal())
+	std::shared_lock<std::shared_mutex> delayCheckerStop;
+
+	if (!origin || origin->IsLocal()) {
+		delayCheckerStop = decltype(delayCheckerStop)(m_LocalCheckResultMutex, std::try_to_lock);
+
+		if (!delayCheckerStop) {
+			// Discard the check result not to delay the current reload.
+			// We'll re-run the check immediately after the reload.
+			return Result::CheckableInactive;
+		}
+
 		cr->SetSchedulingSource(IcingaApplication::GetInstance()->GetNodeName());
+	}
 
 	Endpoint::Ptr command_endpoint = GetCommandEndpoint();
 

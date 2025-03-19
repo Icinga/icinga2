@@ -24,6 +24,8 @@ const std::map<String, int> Checkable::m_FlappingStateFilterMap ({
 	{"Down", FlappingStateFilterCritical},
 });
 
+std::shared_mutex Checkable::m_LocalCheckResultMutex;
+
 boost::signals2::signal<void (const Checkable::Ptr&, const String&, const String&, AcknowledgementType, bool, bool, double, double, const MessageOrigin::Ptr&)> Checkable::OnAcknowledgementSet;
 boost::signals2::signal<void (const Checkable::Ptr&, const String&, double, const MessageOrigin::Ptr&)> Checkable::OnAcknowledgementCleared;
 boost::signals2::signal<void (const Checkable::Ptr&, double)> Checkable::OnFlappingChange;
@@ -41,6 +43,8 @@ void Checkable::StaticInitialize()
 	Downtime::OnDowntimeTriggered.connect([](const Downtime::Ptr& downtime) { Checkable::NotifyFlexibleDowntimeStart(downtime); });
 	/* fixed/flexible downtime end */
 	Downtime::OnDowntimeRemoved.connect([](const Downtime::Ptr& downtime) { Checkable::NotifyDowntimeEnd(downtime); });
+
+	m_LocalCheckResultMutex.lock(); // As long as no CheckerComponent is active
 }
 
 Checkable::Checkable()

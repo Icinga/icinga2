@@ -22,6 +22,8 @@ REGISTER_TYPE(CheckerComponent);
 
 REGISTER_STATSFUNCTION(CheckerComponent, &CheckerComponent::StatsFunc);
 
+Atomic<uint_fast8_t> CheckerComponent::m_ActiveInstances (0);
+
 void CheckerComponent::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
 	DictionaryData nodes;
@@ -65,6 +67,10 @@ void CheckerComponent::Start(bool runtimeCreated)
 		<< "'" << GetName() << "' started.";
 
 
+	if (++m_ActiveInstances == 1u) {
+		Checkable::m_LocalCheckResultMutex.unlock();
+	}
+
 	m_Thread = std::thread([this]() { CheckThreadProc(); });
 
 	m_ResultTimer = Timer::Create();
@@ -75,6 +81,12 @@ void CheckerComponent::Start(bool runtimeCreated)
 
 void CheckerComponent::Stop(bool runtimeRemoved)
 {
+	// If this is the last deactivating CheckerComponent, ...
+	if (!--m_ActiveInstances) {
+		// ... wait for all local check results to be processed.
+		Checkable::m_LocalCheckResultMutex.lock();
+	}
+
 	{
 		std::unique_lock<std::mutex> lock(m_Mutex);
 		m_Stopped = true;

@@ -5,6 +5,7 @@
 
 #include "checker/checkercomponent-ti.hpp"
 #include "icinga/service.hpp"
+#include "base/atomic.hpp"
 #include "base/configobject.hpp"
 #include "base/timer.hpp"
 #include "base/utility.hpp"
@@ -12,6 +13,7 @@
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/key_extractors.hpp>
 #include <condition_variable>
+#include <cstdint>
 #include <mutex>
 #include <thread>
 
@@ -69,6 +71,8 @@ public:
 	unsigned long GetPendingCheckables();
 
 private:
+	static Atomic<uint_fast8_t> m_ActiveInstances;
+
 	std::mutex m_Mutex;
 	std::condition_variable m_CV;
 	bool m_Stopped{false};

@@ -18,6 +18,7 @@
 #include <cstdint>
 #include <functional>
 #include <limits>
+#include <shared_mutex>
 
 namespace icinga
 {
@@ -57,6 +58,7 @@ enum FlappingStateFilter
 class CheckCommand;
 class EventCommand;
 class Dependency;
+class CheckerComponent;
 
 /**
  * An Icinga service.
@@ -65,6 +67,8 @@ class Dependency;
  */
 class Checkable : public ObjectImpl<Checkable>
 {
+	friend CheckerComponent;
+
 public:
 	DECLARE_OBJECT(Checkable);
 	DECLARE_OBJECTNAME(Checkable);
@@ -220,6 +224,7 @@ private:
 	static std::mutex m_StatsMutex;
 	static int m_PendingChecks;
 	static std::condition_variable m_PendingChecksCV;
+	static std::shared_mutex m_LocalCheckResultMutex;
 
 	/* Downtimes */
 	std::set<Downtime::Ptr> m_Downtimes;
