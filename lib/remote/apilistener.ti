@@ -12,7 +12,7 @@ namespace icinga
 
 class ApiListener : ConfigObject
 {
-	activation_priority 50;
+	activation_priority 250;
 
 	[config, deprecated] String cert_path;
 	[config, deprecated] String key_path;
