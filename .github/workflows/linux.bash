@@ -4,12 +4,12 @@ set -exo pipefail
 export PATH="/usr/lib/ccache:/usr/lib64/ccache:$PATH"
 export CCACHE_DIR=/icinga2/ccache
 export CTEST_OUTPUT_ON_FAILURE=1
-CMAKE_OPTS=''
+CMAKE_OPTS=()
 
 case "$DISTRO" in
   amazonlinux:2)
     amazon-linux-extras install -y epel
-    yum install -y bison ccache cmake3 gcc-c++ flex ninja-build \
+    yum install -y bison ccache cmake3 gcc-c++ flex ninja-build system-rpm-config \
       {libedit,mariadb,ncurses,openssl,postgresql,systemd}-devel
 
     yum install -y bzip2 tar wget
@@ -24,28 +24,30 @@ case "$DISTRO" in
 
     ln -vs /usr/bin/cmake3 /usr/local/bin/cmake
     ln -vs /usr/bin/ninja-build /usr/local/bin/ninja
-    CMAKE_OPTS='-DBOOST_INCLUDEDIR=/boost_1_69_0 -DBOOST_LIBRARYDIR=/boost_1_69_0/stage/lib'
+    CMAKE_OPTS+=(-DBOOST_{INCLUDEDIR=/boost_1_69_0,LIBRARYDIR=/boost_1_69_0/stage/lib})
     export LD_LIBRARY_PATH=/boost_1_69_0/stage/lib
     ;;
 
   amazonlinux:20*)
-    dnf install -y bison cmake flex gcc-c++ ninja-build \
+    dnf install -y amazon-rpm-config bison cmake flex gcc-c++ ninja-build \
       {boost,libedit,mariadb1\*,ncurses,openssl,postgresql,systemd}-devel
     ;;
 
   debian:*|ubuntu:*)
     apt-get update
-    DEBIAN_FRONTEND=noninteractive apt-get install --no-install-{recommends,suggests} -y bison \
-      ccache cmake flex g++ lib{boost-all,edit,mariadb,ncurses,pq,ssl,systemd}-dev ninja-build tzdata
+    DEBIAN_FRONTEND=noninteractive apt-get install --no-install-{recommends,suggests} -y \
+      bison ccache cmake dpkg-dev flex g++ ninja-build tzdata \
+      lib{boost-all,edit,mariadb,ncurses,pq,ssl,systemd}-dev
     ;;
 
   fedora:*)
-    dnf install -y bison ccache cmake flex gcc-c++ ninja-build \
+    dnf install -y bison ccache cmake flex gcc-c++ ninja-build redhat-rpm-config \
       {boost,libedit,mariadb,ncurses,openssl,postgresql,systemd}-devel
     ;;
 
   *suse*)
-    zypper in -y bison ccache cmake flex gcc-c++ ninja {lib{edit,mariadb,openssl},ncurses,postgresql,systemd}-devel \
+    zypper in -y bison ccache cmake flex gcc-c++ ninja rpm-config-SUSE \
+      {lib{edit,mariadb,openssl},ncurses,postgresql,systemd}-devel \
       libboost_{context,coroutine,filesystem,iostreams,program_options,regex,system,test,thread}-devel
     ;;
 
@@ -61,8 +63,19 @@ case "$DISTRO" in
         ;;
     esac
 
-    dnf install -y bison ccache cmake gcc-c++ flex ninja-build \
+    dnf install -y bison ccache cmake gcc-c++ flex ninja-build redhat-rpm-config \
       {boost,libedit,mariadb,ncurses,openssl,postgresql,systemd}-devel
+    ;;
+esac
+
+case "$DISTRO" in
+  debian:*|ubuntu:*)
+    CMAKE_OPTS+=(-DICINGA2_LTO_BUILD=ON)
+    source <(dpkg-buildflags --export=sh)
+    ;;
+  *)
+    CMAKE_OPTS+=(-DCMAKE_{C,CXX}_FLAGS="$(rpm -E '%{optflags} %{?march_flag}')")
+    export LDFLAGS="$(rpm -E '%{?build_ldflags}')"
     ;;
 esac
 
@@ -71,12 +84,12 @@ cd /icinga2/build
 
 cmake \
   -GNinja \
-  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_BUILD_TYPE=RelWithDebInfo \
   -DICINGA2_UNITY_BUILD=ON \
   -DUSE_SYSTEMD=ON \
   -DICINGA2_USER=$(id -un) \
   -DICINGA2_GROUP=$(id -gn) \
-  $CMAKE_OPTS ..
+  "${CMAKE_OPTS[@]}" ..
 
 ninja -v
 
