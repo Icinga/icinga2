@@ -38,11 +38,9 @@ public:
 	Dictionary::Ptr WaitForEvent(void *client, double timeout = 5);
 
 	static std::vector<EventQueue::Ptr> GetQueuesForType(const String& type);
-	static void UnregisterIfUnused(const String& name, const EventQueue::Ptr& queue);
 
 	static EventQueue::Ptr GetByName(const String& name);
 	static void Register(const String& name, const EventQueue::Ptr& function);
-	static void Unregister(const String& name);
 
 private:
 	String m_Name;

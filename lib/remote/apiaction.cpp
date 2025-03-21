@@ -29,11 +29,6 @@ void ApiAction::Register(const String& name, const ApiAction::Ptr& action)
 	ApiActionRegistry::GetInstance()->Register(name, action);
 }
 
-void ApiAction::Unregister(const String& name)
-{
-	ApiActionRegistry::GetInstance()->Unregister(name);
-}
-
 ApiActionRegistry *ApiActionRegistry::GetInstance()
 {
 	return Singleton<ApiActionRegistry>::GetInstance();
