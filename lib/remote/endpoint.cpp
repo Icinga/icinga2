@@ -136,3 +136,15 @@ double Endpoint::GetBytesReceivedPerSecond() const
 {
 	return m_BytesReceived.CalculateRate(Utility::GetTime(), 60);
 }
+
+Dictionary::Ptr Endpoint::GetMessagesReceivedPerType() const
+{
+	Dictionary::Ptr result = new Dictionary();
+	ObjectLock oLock (result);
+	std::shared_lock sLock (m_MessageCountersMutex);
+
+	for (auto& [afunc, kv] : m_MessageCounters)
+		result->Set(kv.first, kv.second.load());
+
+	return result;
+}
