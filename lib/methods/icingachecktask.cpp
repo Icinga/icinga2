@@ -127,6 +127,10 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	double messagesReceivedPerSecond = 0;
 	double bytesSentPerSecond = 0;
 	double bytesReceivedPerSecond = 0;
+	double secondsAwaitingMessages = 0;
+	double secondsReadingMessages = 0;
+	double secondsAwaitingSemaphore = 0;
+	double secondsProcessingMessages = 0;
 
 	for (const Endpoint::Ptr& endpoint : endpoints)
 	{
@@ -140,6 +144,10 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 		messagesReceivedPerSecond += endpoint->GetMessagesReceivedPerSecond();
 		bytesSentPerSecond += endpoint->GetBytesSentPerSecond();
 		bytesReceivedPerSecond += endpoint->GetBytesReceivedPerSecond();
+		secondsAwaitingMessages += endpoint->GetSecondsAwaitingMessages();
+		secondsReadingMessages += endpoint->GetSecondsReadingMessages();
+		secondsAwaitingSemaphore += endpoint->GetSecondsAwaitingSemaphore();
+		secondsProcessingMessages += endpoint->GetSecondsProcessingMessages();
 	}
 
 	perfdata->Add(new PerfdataValue("last_messages_sent", lastMessageSent));
@@ -148,6 +156,10 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	perfdata->Add(new PerfdataValue("sum_messages_received_per_second", messagesReceivedPerSecond));
 	perfdata->Add(new PerfdataValue("sum_bytes_sent_per_second", bytesSentPerSecond));
 	perfdata->Add(new PerfdataValue("sum_bytes_received_per_second", bytesReceivedPerSecond));
+	perfdata->Add(new PerfdataValue("sum_seconds_awaiting_messages", secondsAwaitingMessages, true));
+	perfdata->Add(new PerfdataValue("sum_seconds_reading_messages", secondsReadingMessages, true));
+	perfdata->Add(new PerfdataValue("sum_seconds_awaiting_semaphore", secondsAwaitingSemaphore, true));
+	perfdata->Add(new PerfdataValue("sum_seconds_processing_messages", secondsProcessingMessages, true));
 
 	cr->SetPerformanceData(perfdata);
 	ServiceState state = ServiceOK;
