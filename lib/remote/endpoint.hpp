@@ -5,8 +5,13 @@
 
 #include "remote/i2-remote.hpp"
 #include "remote/endpoint-ti.hpp"
+#include "base/atomic.hpp"
 #include "base/ringbuffer.hpp"
+#include <cstdint>
 #include <set>
+#include <shared_mutex>
+#include <unordered_map>
+#include <utility>
 
 namespace icinga
 {
@@ -21,6 +26,8 @@ class Zone;
  */
 class Endpoint final : public ObjectImpl<Endpoint>
 {
+	friend JsonRpcConnection;
+
 public:
 	DECLARE_OBJECT(Endpoint);
 	DECLARE_OBJECTNAME(Endpoint);
@@ -49,6 +56,8 @@ public:
 	double GetBytesSentPerSecond() const override;
 	double GetBytesReceivedPerSecond() const override;
 
+	Dictionary::Ptr GetMessagesReceivedPerType() const override;
+
 protected:
 	void OnAllConfigLoaded() override;
 
@@ -61,6 +70,9 @@ private:
 	mutable RingBuffer m_MessagesReceived{60};
 	mutable RingBuffer m_BytesSent{60};
 	mutable RingBuffer m_BytesReceived{60};
+
+	mutable std::shared_mutex m_MessageCountersMutex;
+	std::unordered_map<Object::Ptr, std::pair<String, Atomic<uintmax_t, std::memory_order_relaxed>>> m_MessageCounters;
 };
 
 }
