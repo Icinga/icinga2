@@ -17,7 +17,7 @@ BOOST_AUTO_TEST_CASE(timeout_run)
 	boost::asio::io_context::strand strand (io);
 	int called = 0;
 
-	boost::asio::spawn(strand, [&](boost::asio::yield_context yc) {
+	IoEngine::SpawnCoroutine(strand, [&](boost::asio::yield_context yc) {
 		boost::asio::deadline_timer timer (io);
 
 		Timeout timeout (strand, boost::posix_time::millisec(300), [&called] { ++called; });
@@ -44,7 +44,7 @@ BOOST_AUTO_TEST_CASE(timeout_cancelled)
 	boost::asio::io_context::strand strand (io);
 	int called = 0;
 
-	boost::asio::spawn(strand, [&](boost::asio::yield_context yc) {
+	IoEngine::SpawnCoroutine(strand, [&](boost::asio::yield_context yc) {
 		boost::asio::deadline_timer timer (io);
 		Timeout timeout (strand, boost::posix_time::millisec(300), [&called] { ++called; });
 
@@ -71,7 +71,7 @@ BOOST_AUTO_TEST_CASE(timeout_scope)
 	boost::asio::io_context::strand strand (io);
 	int called = 0;
 
-	boost::asio::spawn(strand, [&](boost::asio::yield_context yc) {
+	IoEngine::SpawnCoroutine(strand, [&](boost::asio::yield_context yc) {
 		boost::asio::deadline_timer timer (io);
 
 		{
@@ -100,7 +100,7 @@ BOOST_AUTO_TEST_CASE(timeout_due_cancelled)
 	boost::asio::io_context::strand strand (io);
 	int called = 0;
 
-	boost::asio::spawn(strand, [&](boost::asio::yield_context yc) {
+	IoEngine::SpawnCoroutine(strand, [&](boost::asio::yield_context yc) {
 		boost::asio::deadline_timer timer (io);
 		Timeout timeout (strand, boost::posix_time::millisec(300), [&called] { ++called; });
 
@@ -131,7 +131,7 @@ BOOST_AUTO_TEST_CASE(timeout_due_scope)
 	boost::asio::io_context::strand strand (io);
 	int called = 0;
 
-	boost::asio::spawn(strand, [&](boost::asio::yield_context yc) {
+	IoEngine::SpawnCoroutine(strand, [&](boost::asio::yield_context yc) {
 		boost::asio::deadline_timer timer (io);
 
 		{
