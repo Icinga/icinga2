@@ -494,7 +494,7 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 				<< "Scheduling downtime for child object " << child->GetName();
 
 			Downtime::Ptr childDowntime = Downtime::AddDowntime(child, author, comment, startTime, endTime,
-				fixed, trigger, duration);
+				fixed, trigger, duration, String(), String(), downtimeName);
 			String childDowntimeName = childDowntime->GetName();
 
 			Log(LogNotice, "ApiActions")
