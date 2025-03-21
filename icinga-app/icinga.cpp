@@ -903,6 +903,10 @@ static VOID WINAPI ServiceMain(DWORD argc, LPSTR *argv)
 */
 int main(int argc, char **argv)
 {
+#ifdef _WIN32
+	(void)SetPriorityClass(GetCurrentProcess(), BELOW_NORMAL_PRIORITY_CLASS);
+#endif /* _WIN32 */
+
 #ifndef _WIN32
 	String keepFDs = Utility::GetFromEnvironment("ICINGA2_KEEP_FDS");
 	if (keepFDs.IsEmpty()) {
