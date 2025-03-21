@@ -351,6 +351,25 @@ void JsonRpcConnection::MessageHandler(const Dictionary::Ptr& message)
 			Log(LogNotice, "JsonRpcConnection")
 				<< "Call to non-existent function '" << method << "' from endpoint '" << m_Identity << "'.";
 		} else {
+			if (m_Endpoint) {
+				std::shared_lock sLock (m_Endpoint->m_MessageCountersMutex);
+				auto& mc (m_Endpoint->m_MessageCounters);
+				auto it (mc.find(afunc)); // Lookup by pointer is faster than by string
+
+				if (it == mc.end()) {
+					sLock.unlock();
+					std::unique_lock uLock (m_Endpoint->m_MessageCountersMutex);
+
+					if (it = mc.find(afunc); it == mc.end()) {
+						mc.emplace(afunc, std::pair(method, 1));
+					} else {
+						++it->second.second;
+					}
+				} else {
+					++it->second.second;
+				}
+			}
+
 			Dictionary::Ptr params = message->Get("params");
 			if (params)
 				resultMessage->Set("result", afunc->Invoke(origin, params));
