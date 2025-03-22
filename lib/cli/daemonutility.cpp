@@ -254,7 +254,7 @@ bool DaemonUtility::LoadConfigFiles(const std::vector<std::string>& configs,
 
 	WorkQueue upq(25000, Configuration::Concurrency);
 	upq.SetName("DaemonUtility::LoadConfigFiles");
-	bool result = ConfigItem::CommitItems(ascope.GetContext(), upq, newItems);
+	bool result = ConfigItem::CommitItems(ascope.GetContext(), upq, newItems, false, true);
 
 	if (!result) {
 		ConfigCompilerContext::GetInstance()->CancelObjectsFile();
