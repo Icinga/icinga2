@@ -111,16 +111,16 @@ private:
 	void DeleteKeys(const RedisConnection::Ptr& conn, const std::vector<String>& keys, RedisConnection::QueryPriority priority);
 	std::vector<String> GetTypeOverwriteKeys(const String& type);
 	std::vector<String> GetTypeDumpSignalKeys(const Type::Ptr& type);
-	void InsertCheckableDependencies(const Checkable::Ptr& checkable, std::map<String, RedisConnection::Query>& hMSets,
+	void InsertCheckableDependencies(const Checkable::Ptr& checkable, std::map<RedisConnection::QueryArg, RedisConnection::Query>& hMSets,
 		std::vector<Dictionary::Ptr>* runtimeUpdates, const DependencyGroup::Ptr& onlyDependencyGroup = nullptr);
-	void InsertObjectDependencies(const ConfigObject::Ptr& object, const String typeName, std::map<String, std::vector<String>>& hMSets,
-			std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate);
+	void InsertObjectDependencies(const ConfigObject::Ptr& object, const String typeName,
+		std::map<RedisConnection::QueryArg, RedisConnection::Query>& hMSets, std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate);
 	void UpdateDependenciesState(const Checkable::Ptr& checkable, const DependencyGroup::Ptr& onlyDependencyGroup = nullptr,
 		std::set<DependencyGroup*>* seenGroups = nullptr) const;
 	void UpdateState(const Checkable::Ptr& checkable, StateUpdate mode);
 	void SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpdate);
-	void CreateConfigUpdate(const ConfigObject::Ptr& object, const String type, std::map<String, std::vector<String>>& hMSets,
-			std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate);
+	void CreateConfigUpdate(const ConfigObject::Ptr& object, const String type,
+		std::map<RedisConnection::QueryArg, RedisConnection::Query>& hMSets, std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate);
 	void SendConfigDelete(const ConfigObject::Ptr& object);
 	void SendStateChange(const ConfigObject::Ptr& object, const CheckResult::Ptr& cr, StateType type);
 	void AddObjectDataToRuntimeUpdates(std::vector<Dictionary::Ptr>& runtimeUpdates,
@@ -128,7 +128,7 @@ private:
 	void DeleteRelationship(const String& id, const String& redisKeyWithoutPrefix, bool hasChecksum = false);
 	void DeleteRelationship(const String& id, RedisKey redisKey, bool hasChecksum = false);
 	void DeleteState(const String& id, RedisKey redisKey, bool hasChecksum = false) const;
-	void AddDataToHmSets(std::map<String, RedisConnection::Query>& hMSets, RedisKey redisKey, const String& id, const Dictionary::Ptr& data) const;
+	void AddDataToHmSets(std::map<RedisConnection::QueryArg, RedisConnection::Query>& hMSets, RedisKey redisKey, const String& id, const Dictionary::Ptr& data) const;
 
 	void SendSentNotification(
 		const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::set<User::Ptr>& users,
@@ -221,8 +221,8 @@ private:
 	static void CommandArgumentsChangedHandler(const ConfigObject::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
 	static void CustomVarsChangedHandler(const ConfigObject::Ptr& object, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
 
-	static void ExecuteRedisTransaction(const RedisConnection::Ptr& rcon, std::map<String, RedisConnection::Query>& hMSets,
-		const std::vector<Dictionary::Ptr>& runtimeUpdates);
+	static void ExecuteRedisTransaction(const RedisConnection::Ptr& rcon,
+		std::map<RedisConnection::QueryArg, RedisConnection::Query>& hMSets, const std::vector<Dictionary::Ptr>& runtimeUpdates);
 
 	void AssertOnWorkQueue();
 
