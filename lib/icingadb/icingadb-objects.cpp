@@ -710,12 +710,12 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			auto id (HashValue(new Array({m_EnvironmentId, actionUrl})));
 
 			if (runtimeUpdate || m_DumpedGlobals.ActionUrl.IsNew(id)) {
-				actionUrls.emplace_back(std::move(id));
+				actionUrls.emplace_back(id);
 				Dictionary::Ptr data = new Dictionary({{"environment_id", m_EnvironmentId}, {"action_url", actionUrl}});
 				actionUrls.emplace_back(JsonEncode(data));
 
 				if (runtimeUpdate) {
-					AddObjectDataToRuntimeUpdates(runtimeUpdates, actionUrls.at(actionUrls.size() - 2u), m_PrefixConfigObject + "action:url", data);
+					AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + "action:url", data);
 				}
 			}
 		}
@@ -725,12 +725,12 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			auto id (HashValue(new Array({m_EnvironmentId, notesUrl})));
 
 			if (runtimeUpdate || m_DumpedGlobals.NotesUrl.IsNew(id)) {
-				notesUrls.emplace_back(std::move(id));
+				notesUrls.emplace_back(id);
 				Dictionary::Ptr data = new Dictionary({{"environment_id", m_EnvironmentId}, {"notes_url", notesUrl}});
 				notesUrls.emplace_back(JsonEncode(data));
 
 				if (runtimeUpdate) {
-					AddObjectDataToRuntimeUpdates(runtimeUpdates, notesUrls.at(notesUrls.size() - 2u), m_PrefixConfigObject + "notes:url", data);
+					AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + "notes:url", data);
 				}
 			}
 		}
@@ -740,12 +740,12 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			auto id (HashValue(new Array({m_EnvironmentId, iconImage})));
 
 			if (runtimeUpdate || m_DumpedGlobals.IconImage.IsNew(id)) {
-				iconImages.emplace_back(std::move(id));
+				iconImages.emplace_back(id);
 				Dictionary::Ptr data = new Dictionary({{"environment_id", m_EnvironmentId}, {"icon_image", iconImage}});
 				iconImages.emplace_back(JsonEncode(data));
 
 				if (runtimeUpdate) {
-					AddObjectDataToRuntimeUpdates(runtimeUpdates, iconImages.at(iconImages.size() - 2u), m_PrefixConfigObject + "icon:image", data);
+					AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + "icon:image", data);
 				}
 			}
 		}

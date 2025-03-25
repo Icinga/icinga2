@@ -99,10 +99,14 @@ void LogQuery(RedisConnection::Query& query, Log& msg)
 			break;
 		}
 
-		if (arg.GetLength() > 64) {
-			msg << " '" << arg.SubStr(0, 61) << "...'";
+		if (auto str (std::get_if<String>(&arg)); str) {
+			if (str->GetLength() > 64) {
+				msg << " '" << str->SubStr(0, 61) << "...'";
+			} else {
+				msg << " '" << *str << '\'';
+			}
 		} else {
-			msg << " '" << arg << '\'';
+			msg << " '" << std::get<const char*>(arg) << '\'';
 		}
 	}
 }

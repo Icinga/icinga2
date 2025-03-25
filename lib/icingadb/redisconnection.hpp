@@ -39,6 +39,7 @@
 #include <set>
 #include <stdexcept>
 #include <utility>
+#include <variant>
 #include <vector>
 
 namespace icinga
@@ -53,7 +54,7 @@ namespace icinga
 	public:
 		DECLARE_PTR_TYPEDEFS(RedisConnection);
 
-		typedef std::vector<String> Query;
+		typedef std::vector<std::variant<const char*, String>> Query;
 		typedef std::vector<Query> Queries;
 		typedef Value Reply;
 		typedef std::vector<Reply> Replies;
@@ -667,7 +668,12 @@ void RedisConnection::WriteRESP(AsyncWriteStream& stream, const Query& query, bo
 	msg << "*" << query.size() << "\r\n";
 
 	for (auto& arg : query) {
-		msg << "$" << arg.GetLength() << "\r\n" << arg << "\r\n";
+		if (auto str (std::get_if<String>(&arg)); str) {
+			msg << "$" << str->GetLength() << "\r\n" << *str << "\r\n";
+		} else {
+			auto cstr (std::get<const char*>(arg));
+			msg << "$" << strlen(cstr) << "\r\n" << cstr << "\r\n";
+		}
 	}
 
 	asio::async_write(stream, writeBuffer, yc);
