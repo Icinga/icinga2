@@ -11,6 +11,7 @@
 #include <functional>
 #include <string>
 #include <iosfwd>
+#include <variant>
 
 namespace icinga {
 
@@ -45,6 +46,7 @@ public:
 	String(String::SizeType n, char c);
 	String(const String& other);
 	String(String&& other) noexcept;
+	String(std::variant<const char*, String>&& data);
 
 #ifndef _MSC_VER
 	String(Value&& other);
