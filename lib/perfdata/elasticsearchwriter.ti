@@ -29,6 +29,9 @@ class ElasticsearchWriter : ConfigObject
 	[config] bool enable_tls {
 		default {{{ return false; }}}
 	};
+
+	[config] Dictionary::Ptr host_tags_template;
+	[config] Dictionary::Ptr service_tags_template;
 	[config] bool insecure_noverify {
 		default {{{ return false; }}}
 	};
@@ -44,6 +47,21 @@ class ElasticsearchWriter : ConfigObject
 	};
 	[config] bool enable_ha {
 		default {{{ return false; }}}
+	};
+};
+
+validator ElasticsearchWriter {
+	Dictionary host_tags_template {
+		String "*";
+		Array "*" {
+			String "*";
+		};
+	};
+	Dictionary service_tags_template {
+		String "*";
+		Array "*" {
+			String "*";
+		};
 	};
 };
 
