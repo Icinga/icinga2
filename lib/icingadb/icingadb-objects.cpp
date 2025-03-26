@@ -3383,10 +3383,12 @@ void IcingaDB::DeleteState(const String& id, RedisKey redisKey, bool hasChecksum
 	hdels.emplace_back(RedisConnection::Query{"HDEL", m_PrefixConfigObject + redisKeyWithoutPrefix, id});
 
 	m_Rcon->FireAndForgetQueries(std::move(hdels), Prio::RuntimeStateSync);
-	m_Rcon->FireAndForgetQueries({{
+	// TODO: This is currently purposefully commented out due to how Icinga DB (Go) handles runtime state
+	//       upsert and delete events. See https://github.com/Icinga/icingadb/pull/894 for more details.
+	/*m_Rcon->FireAndForgetQueries({{
 		"XADD", "icinga:runtime:state", "MAXLEN", "~", "1000000", "*",
 		"redis_key", m_PrefixConfigObject + redisKeyWithoutPrefix, "id", id, "runtime_type", "delete"
-	}}, Prio::RuntimeStateStream, {0, 1});
+	}}, Prio::RuntimeStateStream, {0, 1});*/
 }
 
 /**
