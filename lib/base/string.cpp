@@ -37,15 +37,6 @@ String::String(String&& other) noexcept
 	: m_Data(std::move(other.m_Data))
 { }
 
-String::String(std::variant<const char*, String>&& data)
-{
-	if (auto str (std::get_if<String>(&data)); str) {
-		m_Data = std::move(str->m_Data);
-	} else {
-		m_Data = std::get<const char*>(data);
-	}
-}
-
 #ifndef _MSC_VER
 String::String(Value&& other)
 {
