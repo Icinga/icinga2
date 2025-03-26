@@ -159,6 +159,66 @@ Dictionary::Ptr IcingaDB::SerializeVars(const Dictionary::Ptr& vars)
 	return res;
 }
 
+/**
+ * Serialize a dependency edge state for Icinga DB
+ *
+ * @param dependencyGroup The state of the group the dependency is part of.
+ * @param dep The dependency object to serialize.
+ *
+ * @return A dictionary with the serialized state.
+ */
+Dictionary::Ptr IcingaDB::SerializeDependencyEdgeState(const DependencyGroup::Ptr& dependencyGroup, const Dependency::Ptr& dep)
+{
+	String edgeStateId;
+	// The edge state ID is computed a bit differently depending on whether this is for a redundancy group or not.
+	// For redundancy groups, the state ID is supposed to represent the connection state between the redundancy group
+	// and the parent Checkable of the given dependency. Hence, the outcome will always be different for each parent
+	// Checkable of the redundancy group.
+	if (dependencyGroup->IsRedundancyGroup()) {
+		edgeStateId = HashValue(new Array{
+			dependencyGroup->GetIcingaDBIdentifier(),
+			GetObjectIdentifier(dep->GetParent()),
+		});
+	} else if (dependencyGroup->GetIcingaDBIdentifier().IsEmpty()) {
+		// For non-redundant dependency groups, on the other hand, all dependency objects within that group will
+		// always have the same parent Checkable. Likewise, the state ID will be always the same as well it doesn't
+		// matter which dependency object is used to compute it. Therefore, it's sufficient to compute it only once
+		// and all the other dependency objects can reuse the cached state ID.
+		edgeStateId = HashValue(new Array{dependencyGroup->GetCompositeKey(), GetObjectIdentifier(dep->GetParent())});
+		dependencyGroup->SetIcingaDBIdentifier(edgeStateId);
+	} else {
+		// Use the already computed state ID for the dependency group.
+		edgeStateId = dependencyGroup->GetIcingaDBIdentifier();
+	}
+
+	return new Dictionary{
+		{"id", std::move(edgeStateId)},
+		{"environment_id", m_EnvironmentId},
+		{"failed", !dep->IsAvailable(DependencyState) || !dep->GetParent()->IsReachable()}
+	};
+}
+
+/**
+ * Serialize the provided redundancy group state attributes.
+ *
+ * @param child The child checkable object to serialize the state for.
+ * @param redundancyGroup The redundancy group object to serialize the state for.
+ *
+ * @return A dictionary with the serialized redundancy group state.
+ */
+Dictionary::Ptr IcingaDB::SerializeRedundancyGroupState(const Checkable::Ptr& child, const DependencyGroup::Ptr& redundancyGroup)
+{
+	auto state(redundancyGroup->GetState(child.get()));
+	return new Dictionary{
+		{"id", redundancyGroup->GetIcingaDBIdentifier()},
+		{"environment_id", m_EnvironmentId},
+		{"redundancy_group_id", redundancyGroup->GetIcingaDBIdentifier()},
+		{"failed", state != DependencyGroup::State::Ok},
+		{"is_reachable", state != DependencyGroup::State::Unreachable},
+		{"last_state_change", TimestampToMilliseconds(Utility::GetTime())},
+	};
+}
+
 const char* IcingaDB::GetNotificationTypeByEnum(NotificationType type)
 {
 	switch (type) {
