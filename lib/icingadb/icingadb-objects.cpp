@@ -402,7 +402,15 @@ void IcingaDB::UpdateAllConfigObjects()
 			upqObjectType.Enqueue([&]() {
 				for (auto& hMSet : source.second) {
 					for (decltype(hMSet.size()) i = 0, stop = hMSet.size() - 1u; i < stop; i += 2u) {
-						dest.emplace(std::move(hMSet[i]), std::move(hMSet[i + 1u]));
+						auto variantToString = [](std::variant<const char*, String> v) {
+							if (auto str (std::get_if<String>(&v)); str) {
+								return std::move(*str);
+							}
+
+							return std::get<const char*>(v);
+						};
+
+						dest.emplace(variantToString(std::move(hMSet[i])), variantToString(std::move(hMSet[i + 1u])));
 					}
 
 					hMSet.clear();
