@@ -1,0 +1,118 @@
+# The Build and Publish Container Image workflow builds container images and
+# pushes them to both GitHub Container Registry (GHCR) and Docker Hub.
+# It sets up QEMU and Docker Buildx for cross-platform builds,
+# and builds the container images using the Containerfile.
+# Upon pushes to the main branch or when releases are published,
+# it logs into GHCR and Docker Hub using credentials from GitHub secrets,
+# tags and pushes the images to both registries,
+# and generates and pushes signed build provenance attestations to each registry.
+# The workflow also triggers for pull requests to the main branch, verifying only the image build.
+
+name: Build and Publish Container Image
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  release:
+    types:
+      - published
+
+env:
+  # The variable ${{ github.repository }} is not suitable for container image names in our case because
+  # they must be lowercase, and our organization name is Icinga.
+  # Since our repository names are already lowercase, no additional modifications are necessary.
+  IMAGE_NAME: icinga/${{ github.event.repository.name }}
+
+jobs:
+  build-and-publish-container-image:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
+
+    steps:
+      - name: Extract metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          # This will generate tags and labels for both the GHCR image and Docker Hub image.
+          images: |
+            # GitHub Container Registry
+            ghcr.io/${{ env.IMAGE_NAME }}
+            # Docker Hub
+            ${{ env.IMAGE_NAME }}
+          labels: |
+            org.opencontainers.image.documentation=https://icinga.com/docs/icinga-db
+            org.opencontainers.image.vendor=Icinga GmbH
+          tags: |
+            type=edge
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            # Update the `latest` tag only on the default branch to ensure it represents the most current release when
+            # releasing from multiple branches.
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Container image
+        id: build-and-push
+        uses: docker/build-push-action@v6
+        with:
+          file: ./Containerfile
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'pull_request' }}
+          # The tags generated in the metadata step include tags for both Docker Hub and GHCR image names,
+          # allowing the build and push action to build and push images to both registries.
+          tags: ${{ steps.meta.outputs.tags }}
+          # Keep the .git to allow including the commit in the --version output, see also:
+          # https://docs.docker.com/build/building/context/#keep-git-directory
+          build-args: |
+            BUILDKIT_CONTEXT_KEEP_GIT_DIR=1
+
+      - name: Generate artifact attestation for GitHub Container Registry
+        if: github.event_name != 'pull_request'
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: ghcr.io/${{ env.IMAGE_NAME }}
+          subject-digest: ${{ steps.build-and-push.outputs.digest }}
+          push-to-registry: true
+
+      - name: Generate artifact attestation for Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: actions/attest-build-provenance@v2
+        with:
+          # According to the documentation [^1],
+          # "index.docker.io" should be used as the registry portion of the image name when pushing to Docker Hub.
+          #
+          # [^1]: https://github.com/actions/attest-build-provenance?tab=readme-ov-file#container-image
+          subject-name: index.docker.io/${{ env.IMAGE_NAME }}
+          subject-digest: ${{ steps.build-and-push.outputs.digest }}
+          push-to-registry: true
