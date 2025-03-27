@@ -402,7 +402,7 @@ void IcingaDB::UpdateAllConfigObjects()
 			upqObjectType.Enqueue([&]() {
 				for (auto& hMSet : source.second) {
 					for (decltype(hMSet.size()) i = 0, stop = hMSet.size() - 1u; i < stop; i += 2u) {
-						//dest.emplace(std::move(hMSet[i]), std::move(hMSet[i + 1u]));
+						dest.emplace(std::move(hMSet[i]), std::move(hMSet[i + 1u]));
 					}
 
 					hMSet.clear();
