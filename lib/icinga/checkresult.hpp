@@ -5,6 +5,7 @@
 
 #include "icinga/i2-icinga.hpp"
 #include "icinga/checkresult-ti.hpp"
+#include <utility>
 
 namespace icinga
 {
@@ -15,9 +16,11 @@ namespace icinga
  *
  * @ingroup icinga
  */
-class CheckResultProducer
+class CheckResultProducer : virtual public Object
 {
 public:
+	DECLARE_PTR_TYPEDEFS(CheckResultProducer);
+
 	/**
 	 * Requests to delay the producer shutdown (if any) for a CheckResult to be processed.
 	 *
@@ -41,8 +44,15 @@ class CheckResult final : public ObjectImpl<CheckResult>
 public:
 	DECLARE_OBJECT(CheckResult);
 
+	CheckResult(CheckResultProducer::Ptr producer) : m_Producer(std::move(producer))
+	{
+	}
+
 	double CalculateExecutionTime() const;
 	double CalculateLatency() const;
+
+private:
+	CheckResultProducer::Ptr m_Producer;
 };
 
 }
