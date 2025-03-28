@@ -60,6 +60,7 @@ void CheckerComponent::OnConfigLoaded()
 void CheckerComponent::Start(bool runtimeCreated)
 {
 	ObjectImpl<CheckerComponent>::Start(runtimeCreated);
+	Checkable::m_LocalCRMutex.ModifyState([](auto& desired) { ++desired.m_ActiveCheckerComponents; });
 
 	Log(LogInformation, "CheckerComponent")
 		<< "'" << GetName() << "' started.";
@@ -79,6 +80,15 @@ void CheckerComponent::Stop(bool runtimeRemoved)
 		std::unique_lock<std::mutex> lock(m_Mutex);
 		m_Stopped = true;
 		m_CV.notify_all();
+	}
+
+	auto lcrm (Checkable::m_LocalCRMutex.ModifyState([](auto& desired) { --desired.m_ActiveCheckerComponents; }));
+
+	// If this is the last deactivating CheckerComponent, ...
+	if (!lcrm.m_ActiveCheckerComponents) {
+		// ... wait for all local check results to be processed.
+		std::unique_lock lock (Checkable::m_LocalCRMutex.m_Mutex);
+		m_CV.wait(lock, [] { return !Checkable::m_LocalCRMutex.m_State.load().m_ProcessingCheckResults; });
 	}
 
 	m_ResultTimer->Stop(true);

@@ -57,6 +57,7 @@ enum FlappingStateFilter
 class CheckCommand;
 class EventCommand;
 class Dependency;
+class CheckerComponent;
 
 /**
  * An Icinga service.
@@ -65,6 +66,8 @@ class Dependency;
  */
 class Checkable : public ObjectImpl<Checkable>
 {
+	friend CheckerComponent;
+
 public:
 	DECLARE_OBJECT(Checkable);
 	DECLARE_OBJECTNAME(Checkable);
@@ -213,6 +216,35 @@ protected:
 	void OnAllConfigLoaded() override;
 
 private:
+	struct LocalCRMutex
+	{
+		struct State
+		{
+			uint32_t m_ActiveCheckerComponents = 0;
+			uint32_t m_ProcessingCheckResults = 0;
+		};
+
+		std::mutex m_Mutex;
+		std::condition_variable m_CV;
+		Atomic<State> m_State {State{}};
+
+		template<class F>
+		State ModifyState(const F& func)
+		{
+			auto expected (m_State.load());
+			decltype(expected) desired;
+
+			do {
+				desired = expected;
+				func(desired);
+			} while (!m_State.compare_exchange_weak(expected, desired));
+
+			return desired;
+		}
+	};
+
+	static LocalCRMutex m_LocalCRMutex;
+
 	mutable std::mutex m_CheckableMutex;
 	bool m_CheckRunning{false};
 	long m_SchedulingOffset;

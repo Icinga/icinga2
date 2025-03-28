@@ -9,6 +9,7 @@
 #include "icinga/clusterevents.hpp"
 #include "remote/messageorigin.hpp"
 #include "remote/apilistener.hpp"
+#include "base/defer.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
 #include "base/convert.hpp"
@@ -120,8 +121,36 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 	if (cr->GetExecutionEnd() == 0)
 		cr->SetExecutionEnd(now);
 
-	if (!origin || origin->IsLocal())
+	Defer releaseLocalCRMutex;
+
+	if (!origin || origin->IsLocal()) {
+		auto expected (m_LocalCRMutex.m_State.load());
+		decltype(expected) desired;
+
+		do {
+			if (!expected.m_ActiveCheckerComponents) {
+				// Discard the check result to not delay the current reload.
+				// We'll re-run the check immediately after the reload.
+				releaseLocalCRMutex.Cancel();
+				return Result::CheckableInactive;
+			}
+
+			desired = expected;
+			++desired.m_ProcessingCheckResults;
+
+			if (!releaseLocalCRMutex) {
+				releaseLocalCRMutex.SetFunc([] {
+					auto lcrm (m_LocalCRMutex.ModifyState([](auto& desired) { --desired.m_ProcessingCheckResults; }));
+
+					if (!lcrm.m_ProcessingCheckResults) {
+						m_LocalCRMutex.m_CV.notify_all();
+					}
+				});
+			}
+		} while (!m_LocalCRMutex.m_State.compare_exchange_weak(expected, desired));
+
 		cr->SetSchedulingSource(IcingaApplication::GetInstance()->GetNodeName());
+	}
 
 	Endpoint::Ptr command_endpoint = GetCommandEndpoint();
 
