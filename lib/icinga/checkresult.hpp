@@ -38,6 +38,16 @@ public:
 	virtual void unlock_shared() noexcept = 0;
 };
 
+class TestCheckResultProducer : public CheckResultProducer
+{
+public:
+	bool try_lock_shared() noexcept override;
+	void unlock_shared() noexcept override;
+};
+
+// TODO: revert this before merging!
+typedef TestCheckResultProducer TodoCheckResultProducer;
+
 /**
  * A check result.
  *
@@ -47,6 +57,10 @@ class CheckResult final : public ObjectImpl<CheckResult>
 {
 public:
 	DECLARE_OBJECT(CheckResult);
+
+	CheckResult() : CheckResult(new TodoCheckResultProducer())
+	{
+	}
 
 	CheckResult(CheckResultProducer::Ptr producer) : m_Producer(std::move(producer))
 	{
@@ -119,13 +133,6 @@ public:
 
 private:
 	static Ptr m_Instance;
-};
-
-class TestCheckResultProducer : public CheckResultProducer
-{
-public:
-	bool try_lock_shared() noexcept override;
-	void unlock_shared() noexcept override;
 };
 
 }
