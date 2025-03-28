@@ -60,6 +60,7 @@ void CheckerComponent::OnConfigLoaded()
 void CheckerComponent::Start(bool runtimeCreated)
 {
 	ObjectImpl<CheckerComponent>::Start(runtimeCreated);
+	CheckResultProducerComponent::Start();
 
 	Log(LogInformation, "CheckerComponent")
 		<< "'" << GetName() << "' started.";
@@ -81,6 +82,7 @@ void CheckerComponent::Stop(bool runtimeRemoved)
 		m_CV.notify_all();
 	}
 
+	CheckResultProducerComponent::Stop();
 	m_ResultTimer->Stop(true);
 	m_Thread.join();
 
@@ -232,7 +234,7 @@ void CheckerComponent::ExecuteCheckHelper(const Checkable::Ptr& checkable)
 	try {
 		checkable->ExecuteCheck();
 	} catch (const std::exception& ex) {
-		CheckResult::Ptr cr = new CheckResult();
+		CheckResult::Ptr cr = new CheckResult(this);
 		cr->SetState(ServiceUnknown);
 
 		String output = "Exception occurred while checking '" + checkable->GetName() + "': " + DiagnosticInformation(ex);
