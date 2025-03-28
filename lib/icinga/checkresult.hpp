@@ -55,6 +55,27 @@ private:
 	CheckResultProducer::Ptr m_Producer;
 };
 
+template<>
+struct TypeHelper<CheckResult, false>
+{
+	static ObjectFactory GetFactory();
+
+private:
+	static Object::Ptr Factory(const std::vector<Value>&);
+};
+
+class DslCheckResultProducer : public CheckResultProducer
+{
+	friend TypeHelper<CheckResult, false>;
+
+public:
+	bool try_lock_shared() noexcept override;
+	void unlock_shared() noexcept override;
+
+private:
+	static Ptr m_Instance;
+};
+
 }
 
 #endif /* CHECKRESULT_H */

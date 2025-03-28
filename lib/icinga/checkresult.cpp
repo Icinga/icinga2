@@ -32,3 +32,24 @@ double CheckResult::CalculateLatency() const
 
 	return latency;
 }
+
+ObjectFactory TypeHelper<CheckResult, false>::GetFactory()
+{
+	return &Factory;
+}
+
+Object::Ptr TypeHelper<CheckResult, false>::Factory(const std::vector<Value>&)
+{
+	return new CheckResult(DslCheckResultProducer::m_Instance);
+}
+
+bool DslCheckResultProducer::try_lock_shared() noexcept
+{
+	return false;
+}
+
+void DslCheckResultProducer::unlock_shared() noexcept
+{
+}
+
+CheckResultProducer::Ptr DslCheckResultProducer::m_Instance = new DslCheckResultProducer();
