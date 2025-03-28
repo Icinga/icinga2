@@ -48,6 +48,11 @@ public:
 	{
 	}
 
+	const CheckResultProducer::Ptr& GetProducer() const noexcept
+	{
+		return m_Producer;
+	}
+
 	double CalculateExecutionTime() const;
 	double CalculateLatency() const;
 
