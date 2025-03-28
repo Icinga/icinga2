@@ -3,8 +3,12 @@
 #ifndef CHECKRESULT_H
 #define CHECKRESULT_H
 
+#include "base/atomic.hpp"
 #include "icinga/i2-icinga.hpp"
 #include "icinga/checkresult-ti.hpp"
+#include <condition_variable>
+#include <cstdint>
+#include <mutex>
 #include <utility>
 
 namespace icinga
@@ -58,6 +62,42 @@ public:
 
 private:
 	CheckResultProducer::Ptr m_Producer;
+};
+
+class CheckResultProducerComponent : public CheckResultProducer
+{
+public:
+	bool try_lock_shared() noexcept override;
+	void unlock_shared() noexcept override;
+
+protected:
+	void Start();
+	void Stop();
+
+private:
+	struct State
+	{
+		uint32_t m_InstanceIsActive = 0;
+		uint32_t m_ProcessingCheckResults = 0;
+	};
+
+	Atomic<State> m_State {State{}};
+	std::mutex m_Mutex;
+	std::condition_variable m_CV;
+
+	template<class F>
+	State ModifyState(const F& func)
+	{
+		auto expected (m_State.load());
+		decltype(expected) desired;
+
+		do {
+			desired = expected;
+			func(desired);
+		} while (!m_State.compare_exchange_weak(expected, desired));
+
+		return desired;
+	}
 };
 
 template<>

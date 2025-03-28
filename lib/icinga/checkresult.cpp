@@ -33,6 +33,51 @@ double CheckResult::CalculateLatency() const
 	return latency;
 }
 
+bool CheckResultProducerComponent::try_lock_shared() noexcept
+{
+	auto expected (m_State.load());
+	decltype(expected) desired;
+
+	do {
+		if (!expected.m_InstanceIsActive) {
+			return false;
+		}
+
+		desired = expected;
+		++desired.m_ProcessingCheckResults;
+	} while (!m_State.compare_exchange_weak(expected, desired));
+
+	return true;
+}
+
+void CheckResultProducerComponent::unlock_shared() noexcept
+{
+	auto state (ModifyState([](auto& desired) { --desired.m_ProcessingCheckResults; }));
+
+	if (!state.m_ProcessingCheckResults) {
+		m_CV.notify_all();
+	}
+}
+
+/**
+ * Allow processing check results.
+ */
+void CheckResultProducerComponent::Start()
+{
+	ModifyState([](auto& desired) { desired.m_InstanceIsActive = 1; });
+}
+
+/**
+ * Disallow processing new check results, wait for all currently processed ones to finish.
+ */
+void CheckResultProducerComponent::Stop()
+{
+	ModifyState([](auto& desired) { desired.m_InstanceIsActive = 0; });
+
+	std::unique_lock lock (m_Mutex);
+	m_CV.wait(lock, [this] { return !m_State.load().m_ProcessingCheckResults; });
+}
+
 ObjectFactory TypeHelper<CheckResult, false>::GetFactory()
 {
 	return &Factory;
