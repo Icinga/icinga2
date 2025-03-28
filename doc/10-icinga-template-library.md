@@ -434,6 +434,7 @@ disk\_units               | **Optional.** Choose bytes, kB, MB, GB, TB.
 disk\_exclude\_type       | **Optional.** Ignore all filesystems of indicated type. Multiple regular expression strings must be defined as array. Defaults to "none", "tmpfs", "sysfs", "proc", "configfs", "devtmpfs", "devfs", "mtmfs", "tracefs", "cgroup", "fuse.\*" (only Monitoring Plugins support this so far), "fuse.gvfsd-fuse", "fuse.gvfs-fuse-daemon", "fuse.sshfs", "fdescfs", "overlay", "nsfs", "squashfs".
 disk\_include\_type       | **Optional.** Check only filesystems of indicated type. Multiple regular expression strings must be defined as array.
 disk\_inode\_perfdata     | **Optional.** Display inode usage in perfdata
+disk\_np\_inode\_perfdata | **Optional.** Enable performance data for inode-based statistics (nagios-plugins)
 disk\_extra\_opts         | **Optional.** Read extra plugin options from an ini file.
 
 ### disk_smb <a id="plugin-check-command-disk-smb"></a>
