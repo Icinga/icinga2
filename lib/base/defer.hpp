@@ -41,6 +41,11 @@ public:
 		}
 	}
 
+	operator bool() const noexcept
+	{
+		return (bool)m_Func;
+	}
+
 	inline void SetFunc(std::function<void()> func)
 	{
 		m_Func = std::move(func);
