@@ -27,7 +27,7 @@ BOOST_AUTO_TEST_CASE(multi_parent)
 	parentHost1->SetAuthority(true);
 	parentHost1->SetStateRaw(ServiceCritical);
 	parentHost1->SetStateType(StateTypeHard);
-	parentHost1->SetLastCheckResult(new CheckResult());
+	parentHost1->SetLastCheckResult(new CheckResult(new TestCheckResultProducer()));
 
 	Host::Ptr parentHost2 = new Host();
 	parentHost2->SetActive(true);
@@ -36,7 +36,7 @@ BOOST_AUTO_TEST_CASE(multi_parent)
 	parentHost2->SetAuthority(true);
 	parentHost2->SetStateRaw(ServiceOK);
 	parentHost2->SetStateType(StateTypeHard);
-	parentHost2->SetLastCheckResult(new CheckResult());
+	parentHost2->SetLastCheckResult(new CheckResult(new TestCheckResultProducer()));
 
 	Host::Ptr childHost = new Host();
 	childHost->SetActive(true);

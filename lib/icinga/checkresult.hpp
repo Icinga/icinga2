@@ -81,6 +81,13 @@ private:
 	static Ptr m_Instance;
 };
 
+class TestCheckResultProducer : public CheckResultProducer
+{
+public:
+	bool try_lock_shared() noexcept override;
+	void unlock_shared() noexcept override;
+};
+
 }
 
 #endif /* CHECKRESULT_H */

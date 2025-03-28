@@ -53,3 +53,12 @@ void DslCheckResultProducer::unlock_shared() noexcept
 }
 
 CheckResultProducer::Ptr DslCheckResultProducer::m_Instance = new DslCheckResultProducer();
+
+bool TestCheckResultProducer::try_lock_shared() noexcept
+{
+	return true;
+}
+
+void TestCheckResultProducer::unlock_shared() noexcept
+{
+}

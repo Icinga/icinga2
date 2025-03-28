@@ -15,7 +15,7 @@ BOOST_AUTO_TEST_SUITE(icinga_checkresult)
 
 static CheckResult::Ptr MakeCheckResult(ServiceState state)
 {
-	CheckResult::Ptr cr = new CheckResult();
+	CheckResult::Ptr cr = new CheckResult(new TestCheckResultProducer());
 
 	cr->SetState(state);
 
