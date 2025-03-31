@@ -111,39 +111,40 @@ Host::Ptr Service::GetHost() const
  * sort by severity. It is therefore easier to keep them seperated here. */
 int Service::GetSeverity() const
 {
-	int severity;
-
 	ObjectLock olock(this);
 	ServiceState state = GetStateRaw();
 
 	if (!HasBeenChecked()) {
-		severity = 16;
-	} else if (state == ServiceOK) {
-		severity = 0;
-	} else {
-		if (state == ServiceWarning) {
-			severity = 32;
-		} else if (state == ServiceUnknown) {
-			severity = 64;
-		} else if (state == ServiceCritical) {
-			severity = 128;
-		} else {
-			severity = 256;
-		}
-
-		Host::Ptr host = GetHost();
-		ObjectLock hlock (host);
-		if (host->GetState() != HostUp) {
-			severity += 1024;
-		} else if (IsAcknowledged()) {
-			severity += 512;
-		} else if (IsInDowntime()) {
-			severity += 256;
-		} else {
-			severity += 2048;
-		}
-		hlock.Unlock();
+		return 16;
 	}
+	if (state == ServiceOK) {
+		return 0;
+	}
+
+	int severity = 0;
+
+	if (state == ServiceWarning) {
+		severity = 32;
+	} else if (state == ServiceUnknown) {
+		severity = 64;
+	} else if (state == ServiceCritical) {
+		severity = 128;
+	} else {
+		severity = 256;
+	}
+
+	Host::Ptr host = GetHost();
+	ObjectLock hlock (host);
+	if (host->GetState() != HostUp) {
+		severity += 1024;
+	} else if (IsAcknowledged()) {
+		severity += 512;
+	} else if (IsInDowntime()) {
+		severity += 256;
+	} else {
+		severity += 2048;
+	}
+	hlock.Unlock();
 
 	olock.Unlock();
 
