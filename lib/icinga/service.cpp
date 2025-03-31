@@ -139,13 +139,12 @@ int Service::GetSeverity() const
 		ObjectLock hlock (host);
 		if (host->GetState() != HostUp) {
 			severity += 1024;
+		} else if (IsAcknowledged()) {
+			severity += 512;
+		} else if (IsInDowntime()) {
+			severity += 256;
 		} else {
-			if (IsAcknowledged())
-				severity += 512;
-			else if (IsInDowntime())
-				severity += 256;
-			else
-				severity += 2048;
+			severity += 2048;
 		}
 		hlock.Unlock();
 	}
