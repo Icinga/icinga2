@@ -35,6 +35,13 @@ public:
 	virtual void unlock_shared() noexcept = 0;
 };
 
+class UnitTestCRP : public CheckResultProducer
+{
+public:
+	bool try_lock_shared() noexcept override;
+	void unlock_shared() noexcept override;
+};
+
 struct CrpComponentState
 {
 	uint32_t InstanceIsActive = 0;
