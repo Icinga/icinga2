@@ -196,8 +196,6 @@ int Host::GetSeverity() const
 		severity += 2048;
 	}
 
-	olock.Unlock();
-
 	return severity;
 
 }
