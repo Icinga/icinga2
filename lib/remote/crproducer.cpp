@@ -4,6 +4,15 @@
 
 using namespace icinga;
 
+bool UnitTestCRP::try_lock_shared() noexcept
+{
+	return true;
+}
+
+void UnitTestCRP::unlock_shared() noexcept
+{
+}
+
 bool CheckResultProducerComponent::try_lock_shared() noexcept
 {
 	auto state (ModifyState(
