@@ -180,18 +180,14 @@ int Host::GetSeverity() const
 		return 0;
 	}
 
-	int severity = 0;
-
-	if (IsReachable()) {
-		severity = 64;
-	} else {
-		severity = 32;
-	}
+	int severity = 32; // DOWN
 
 	if (IsAcknowledged()) {
 		severity += 512;
 	} else if (IsInDowntime()) {
 		severity += 256;
+	} else if (!IsReachable()) {
+		severity += 1024;
 	} else {
 		severity += 2048;
 	}

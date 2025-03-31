@@ -133,14 +133,12 @@ int Service::GetSeverity() const
 		severity = 256;
 	}
 
-	Host::Ptr host = GetHost();
-	ObjectLock hlock (host);
-	if (host->GetState() != HostUp) {
-		severity += 1024;
-	} else if (IsAcknowledged()) {
+	if (IsAcknowledged()) {
 		severity += 512;
 	} else if (IsInDowntime()) {
 		severity += 256;
+	} else if (!IsReachable()) {
+		severity += 1024;
 	} else {
 		severity += 2048;
 	}
