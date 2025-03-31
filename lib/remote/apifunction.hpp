@@ -25,7 +25,12 @@ public:
 
 	typedef std::function<Value(const MessageOrigin::Ptr& origin, const Dictionary::Ptr&)> Callback;
 
-	ApiFunction(Callback function);
+	ApiFunction(const char* name, Callback function);
+
+	const char* GetName() const noexcept
+	{
+		return m_Name;
+	}
 
 	Value Invoke(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& arguments);
 
@@ -33,6 +38,7 @@ public:
 	static void Register(const String& name, const ApiFunction::Ptr& function);
 
 private:
+	const char* m_Name;
 	Callback m_Callback;
 };
 
@@ -49,7 +55,7 @@ public:
 
 #define REGISTER_APIFUNCTION(name, ns, callback) \
 	INITIALIZE_ONCE([]() { \
-		ApiFunction::Ptr func = new ApiFunction(callback); \
+		ApiFunction::Ptr func = new ApiFunction(#ns "::" #name, callback); \
 		ApiFunctionRegistry::GetInstance()->Register(#ns "::" #name, func); \
 	})
 
