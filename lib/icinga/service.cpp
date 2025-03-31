@@ -144,9 +144,6 @@ int Service::GetSeverity() const
 	} else {
 		severity += 2048;
 	}
-	hlock.Unlock();
-
-	olock.Unlock();
 
 	return severity;
 }
