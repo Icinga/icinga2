@@ -121,18 +121,14 @@ int Service::GetSeverity() const
 	} else if (state == ServiceOK) {
 		severity = 0;
 	} else {
-		switch (state) {
-			case ServiceWarning:
-				severity = 32;
-				break;
-			case ServiceUnknown:
-				severity = 64;
-				break;
-			case ServiceCritical:
-				severity = 128;
-				break;
-			default:
-				severity = 256;
+		if (state == ServiceWarning) {
+			severity = 32;
+		} else if (state == ServiceUnknown) {
+			severity = 64;
+		} else if (state == ServiceCritical) {
+			severity = 128;
+		} else {
+			severity = 256;
 		}
 
 		Host::Ptr host = GetHost();
