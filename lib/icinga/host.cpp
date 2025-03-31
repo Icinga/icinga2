@@ -197,7 +197,6 @@ int Host::GetSeverity() const
 	}
 
 	return severity;
-
 }
 
 bool Host::IsStateOK(ServiceState state) const
