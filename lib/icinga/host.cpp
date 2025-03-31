@@ -180,17 +180,19 @@ int Host::GetSeverity() const
 	} else if (state == HostUp) {
 		severity = 0;
 	} else {
-		if (IsReachable())
+		if (IsReachable()) {
 			severity = 64;
-		else
+		} else {
 			severity = 32;
+		}
 
-		if (IsAcknowledged())
+		if (IsAcknowledged()) {
 			severity += 512;
-		else if (IsInDowntime())
+		} else if (IsInDowntime()) {
 			severity += 256;
-		else
+		} else {
 			severity += 2048;
+		}
 	}
 
 	olock.Unlock();
