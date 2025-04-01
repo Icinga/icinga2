@@ -149,3 +149,16 @@ double Endpoint::GetBytesReceivedPerSecond() const
 {
 	return m_BytesReceived.CalculateRate(Utility::GetTime(), 60);
 }
+
+Dictionary::Ptr Endpoint::GetMessagesReceivedPerType() const
+{
+	DictionaryData result;
+
+	for (auto& [afunc, cnt] : m_MessageCounters) {
+		if (auto v (cnt.load(std::memory_order_relaxed)); v) {
+			result.emplace_back(afunc->GetName(), v);
+		}
+	}
+
+	return new Dictionary(std::move(result));
+}
