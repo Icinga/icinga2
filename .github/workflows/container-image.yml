@@ -58,7 +58,7 @@ jobs:
             type=semver,pattern={{major}}
             # Update the `latest` tag only on the default branch to ensure it represents the most current release when
             # releasing from multiple branches.
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,event=tag,value=latest,enable={{is_default_branch}}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
