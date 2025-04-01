@@ -5,12 +5,16 @@
 
 #include "remote/i2-remote.hpp"
 #include "remote/endpoint-ti.hpp"
+#include "base/atomic.hpp"
 #include "base/ringbuffer.hpp"
+#include <cstdint>
 #include <set>
+#include <unordered_map>
 
 namespace icinga
 {
 
+class ApiFunction;
 class JsonRpcConnection;
 class Zone;
 
@@ -28,6 +32,8 @@ public:
 	static boost::signals2::signal<void(const Endpoint::Ptr&, const intrusive_ptr<JsonRpcConnection>&)> OnConnected;
 	static boost::signals2::signal<void(const Endpoint::Ptr&, const intrusive_ptr<JsonRpcConnection>&)> OnDisconnected;
 
+	Endpoint();
+
 	void AddClient(const intrusive_ptr<JsonRpcConnection>& client);
 	void RemoveClient(const intrusive_ptr<JsonRpcConnection>& client);
 	std::set<intrusive_ptr<JsonRpcConnection> > GetClients() const;
@@ -42,6 +48,7 @@ public:
 
 	void AddMessageSent(int bytes);
 	void AddMessageReceived(int bytes);
+	void AddMessageReceived(const intrusive_ptr<ApiFunction>& method);
 
 	double GetMessagesSentPerSecond() const override;
 	double GetMessagesReceivedPerSecond() const override;
@@ -56,6 +63,7 @@ private:
 	mutable std::mutex m_ClientsLock;
 	std::set<intrusive_ptr<JsonRpcConnection> > m_Clients;
 	intrusive_ptr<Zone> m_Zone;
+	std::unordered_map<intrusive_ptr<ApiFunction>, Atomic<uint_fast64_t>> m_MessageCounters;
 
 	mutable RingBuffer m_MessagesSent{60};
 	mutable RingBuffer m_MessagesReceived{60};

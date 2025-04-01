@@ -2,6 +2,7 @@
 
 #include "remote/endpoint.hpp"
 #include "remote/endpoint-ti.cpp"
+#include "remote/apifunction.hpp"
 #include "remote/apilistener.hpp"
 #include "remote/jsonrpcconnection.hpp"
 #include "remote/zone.hpp"
@@ -33,6 +34,13 @@ void Endpoint::SetCachedZone(const Zone::Ptr& zone)
 			+ "' is in more than one zone.", GetDebugInfo()));
 
 	m_Zone = zone;
+}
+
+Endpoint::Endpoint()
+{
+	for (auto& [name, afunc] : ApiFunctionRegistry::GetInstance()->GetItems()) {
+		m_MessageCounters.emplace(afunc, 0);
+	}
 }
 
 void Endpoint::AddClient(const JsonRpcConnection::Ptr& client)
@@ -115,6 +123,11 @@ void Endpoint::AddMessageReceived(int bytes)
 	m_MessagesReceived.InsertValue(time, 1);
 	m_BytesReceived.InsertValue(time, bytes);
 	SetLastMessageReceived(time);
+}
+
+void Endpoint::AddMessageReceived(const intrusive_ptr<ApiFunction>& method)
+{
+	m_MessageCounters.at(method).fetch_add(1, std::memory_order_relaxed);
 }
 
 double Endpoint::GetMessagesSentPerSecond() const
