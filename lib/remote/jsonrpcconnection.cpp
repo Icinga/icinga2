@@ -351,6 +351,10 @@ void JsonRpcConnection::MessageHandler(const Dictionary::Ptr& message)
 			Log(LogNotice, "JsonRpcConnection")
 				<< "Call to non-existent function '" << method << "' from endpoint '" << m_Identity << "'.";
 		} else {
+			if (m_Endpoint) {
+				m_Endpoint->AddMessageReceived(afunc);
+			}
+
 			Dictionary::Ptr params = message->Get("params");
 			if (params)
 				resultMessage->Set("result", afunc->Invoke(origin, params));
