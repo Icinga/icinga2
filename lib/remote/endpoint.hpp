@@ -56,6 +56,8 @@ public:
 	double GetBytesSentPerSecond() const override;
 	double GetBytesReceivedPerSecond() const override;
 
+	Dictionary::Ptr GetMessagesReceivedPerType() const override;
+
 protected:
 	void OnAllConfigLoaded() override;
 
