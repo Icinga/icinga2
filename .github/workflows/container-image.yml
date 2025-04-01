@@ -103,7 +103,7 @@ jobs:
         with:
           subject-name: ghcr.io/${{ env.IMAGE_NAME }}
           subject-digest: ${{ steps.build-and-push.outputs.digest }}
-          push-to-registry: true
+          push-to-registry: false
 
       - name: Generate artifact attestation for Docker Hub
         if: github.event_name != 'pull_request'
@@ -115,4 +115,4 @@ jobs:
           # [^1]: https://github.com/actions/attest-build-provenance?tab=readme-ov-file#container-image
           subject-name: index.docker.io/${{ env.IMAGE_NAME }}
           subject-digest: ${{ steps.build-and-push.outputs.digest }}
-          push-to-registry: true
+          push-to-registry: false
