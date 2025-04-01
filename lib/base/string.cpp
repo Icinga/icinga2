@@ -333,9 +333,19 @@ String icinga::operator+(const String& lhs, const char *rhs)
 	return lhs.GetData() + rhs;
 }
 
+String icinga::operator+(String&& lhs, const char *rhs)
+{
+	return std::move(lhs.GetData()) + rhs;
+}
+
 String icinga::operator+(const char *lhs, const String& rhs)
 {
 	return lhs + rhs.GetData();
+}
+
+String icinga::operator+(const char *lhs, String&& rhs)
+{
+	return lhs + std::move(rhs.GetData());
 }
 
 bool icinga::operator==(const String& lhs, const String& rhs)
