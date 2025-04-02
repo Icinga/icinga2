@@ -21,6 +21,10 @@ String::String(const char *data)
 	: m_Data(data)
 { }
 
+String::String(const std::string_view& data)
+	: m_Data(data)
+{ }
+
 String::String(std::string data)
 	: m_Data(std::move(data))
 { }

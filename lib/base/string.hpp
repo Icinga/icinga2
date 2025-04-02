@@ -42,6 +42,7 @@ public:
 
 	String() = default;
 	String(const char *data);
+	String(const std::string_view& data);
 	String(std::string data);
 	String(String::SizeType n, char c);
 	String(const String& other);
