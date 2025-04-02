@@ -13,7 +13,8 @@
 namespace icinga
 {
 
-typedef std::function<void (double, const std::vector<String>& arguments)> ExternalCommandCallback;
+typedef std::function<void(const CheckResultProducer::Ptr&, double, const std::vector<String>& arguments)> ExternalCommandCallback;
+typedef std::function<void(double, const std::vector<String>& arguments)> ExternalCommandCallbackLite;
 
 struct ExternalCommandInfo
 {
@@ -158,6 +159,7 @@ private:
 	static void ChangeCustomCommandVarInternal(const Command::Ptr& command, const String& name, const Value& value);
 
 	static void RegisterCommand(const String& command, const ExternalCommandCallback& callback, size_t minArgs = 0, size_t maxArgs = UINT_MAX);
+	static void RegisterCommand(const String& command, const ExternalCommandCallbackLite& callback, size_t minArgs = 0, size_t maxArgs = UINT_MAX);
 	static void RegisterCommands();
 
 	static std::mutex& GetMutex();
