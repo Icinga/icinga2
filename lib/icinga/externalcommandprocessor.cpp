@@ -274,7 +274,7 @@ void ExternalCommandProcessor::ExecuteFromFile(const String& line, std::deque< s
 	}
 }
 
-void ExternalCommandProcessor::ProcessHostCheckResult(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::ProcessHostCheckResult(const CheckResultProducer::Ptr& producer, double time, const std::vector<String>& arguments)
 {
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
@@ -318,10 +318,10 @@ void ExternalCommandProcessor::ProcessHostCheckResult(double time, const std::ve
 	Log(LogNotice, "ExternalCommandProcessor")
 		<< "Processing passive check result for host '" << arguments[0] << "'";
 
-	host->ProcessCheckResult(result);
+	host->ProcessCheckResult(result, producer);
 }
 
-void ExternalCommandProcessor::ProcessServiceCheckResult(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::ProcessServiceCheckResult(const CheckResultProducer::Ptr& producer, double time, const std::vector<String>& arguments)
 {
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
@@ -356,7 +356,7 @@ void ExternalCommandProcessor::ProcessServiceCheckResult(double time, const std:
 	Log(LogNotice, "ExternalCommandProcessor")
 		<< "Processing passive check result for service '" << arguments[1] << "'";
 
-	service->ProcessCheckResult(result);
+	service->ProcessCheckResult(result, producer);
 }
 
 void ExternalCommandProcessor::ScheduleHostCheck(double, const std::vector<String>& arguments)
