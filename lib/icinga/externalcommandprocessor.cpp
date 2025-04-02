@@ -115,6 +115,16 @@ void ExternalCommandProcessor::RegisterCommand(const String& command, const Exte
 	GetCommands()[command] = eci;
 }
 
+void ExternalCommandProcessor::RegisterCommand(const String& command, const ExternalCommandCallbackLite& callback, size_t minArgs, size_t maxArgs)
+{
+	RegisterCommand(
+		command,
+		[callback](const CheckResultProducer::Ptr&, double time, const std::vector<String>& args) { callback(time, args); },
+		minArgs,
+		maxArgs
+	);
+}
+
 void ExternalCommandProcessor::RegisterCommands()
 {
 	RegisterCommand("PROCESS_HOST_CHECK_RESULT", &ExternalCommandProcessor::ProcessHostCheckResult, 3);
