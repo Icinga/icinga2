@@ -551,7 +551,7 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 	return Result::Ok;
 }
 
-void Checkable::ExecuteRemoteCheck(const Dictionary::Ptr& resolvedMacros)
+void Checkable::ExecuteRemoteCheck(const ApiListener::Ptr& listener, const Dictionary::Ptr& resolvedMacros)
 {
 	CONTEXT("Executing remote check for object '" << GetName() << "'");
 
@@ -562,7 +562,7 @@ void Checkable::ExecuteRemoteCheck(const Dictionary::Ptr& resolvedMacros)
 	cr->SetScheduleStart(scheduled_start);
 	cr->SetExecutionStart(before_check);
 
-	GetCheckCommand()->Execute(this, cr, resolvedMacros, true);
+	GetCheckCommand()->Execute(this, cr, listener, resolvedMacros, true);
 }
 
 void Checkable::ExecuteCheck(const CheckResultProducer::Ptr& producer)
