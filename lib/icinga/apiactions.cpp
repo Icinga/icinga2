@@ -126,7 +126,8 @@ Dictionary::Ptr ApiActions::ProcessCheckResult(const ConfigObject::Ptr& object,
 	if (params->Contains("ttl"))
 		cr->SetTtl(HttpUtility::GetLastParameter(params, "ttl"));
 
-	Result result = checkable->ProcessCheckResult(cr);
+	Result result = checkable->ProcessCheckResult(cr, ApiListener::GetInstance());
+
 	switch (result) {
 		case Result::Ok:
 			return ApiActions::CreateResult(200, "Successfully processed check result for object '" + checkable->GetName() + "'.");

@@ -2,7 +2,11 @@
 
 #pragma once
 
+#include "base/atomic.hpp"
 #include "base/object.hpp"
+#include <condition_variable>
+#include <cstdint>
+#include <mutex>
 
 namespace icinga
 {
@@ -29,6 +33,34 @@ public:
 	 * Releases one semaphore slot acquired for CheckResult processing.
 	 */
 	virtual void unlock_shared() noexcept = 0;
+};
+
+struct CrpComponentState
+{
+	uint32_t InstanceIsActive = 0;
+	uint32_t ProcessingCheckResults = 0;
+};
+
+class CheckResultProducerComponent : public CheckResultProducer
+{
+public:
+	bool try_lock_shared() noexcept override;
+	void unlock_shared() noexcept override;
+
+protected:
+	void Start();
+	void Stop();
+
+private:
+	Atomic<CrpComponentState> m_State {CrpComponentState{}};
+	std::mutex m_Mutex;
+	std::condition_variable m_CV;
+
+	template<class C, class M>
+	CrpComponentState ModifyState(const C& cond, const M& mod);
+
+	template<class M>
+	CrpComponentState ModifyState(const M& mod);
 };
 
 }

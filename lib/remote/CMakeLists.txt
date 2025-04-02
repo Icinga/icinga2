@@ -13,7 +13,7 @@ set(remote_SOURCES
   apilistener.cpp apilistener.hpp apilistener-ti.hpp apilistener-configsync.cpp apilistener-filesync.cpp
   apilistener-authority.cpp
   apiuser.cpp apiuser.hpp apiuser-ti.hpp
-  crproducer.hpp
+  crproducer.cpp crproducer.hpp
   configfileshandler.cpp configfileshandler.hpp
   configobjectslock.cpp configobjectslock.hpp
   configobjectutility.cpp configobjectutility.hpp

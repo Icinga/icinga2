@@ -8,6 +8,7 @@
 #include "base/configobject.hpp"
 #include "base/timer.hpp"
 #include "base/utility.hpp"
+#include "remote/crproducer.hpp"
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/key_extractors.hpp>
@@ -46,7 +47,7 @@ struct CheckableNextCheckExtractor
 /**
  * @ingroup checker
  */
-class CheckerComponent final : public ObjectImpl<CheckerComponent>
+class CheckerComponent final : public ObjectImpl<CheckerComponent>, public CheckResultProducerComponent
 {
 public:
 	DECLARE_OBJECT(CheckerComponent);
