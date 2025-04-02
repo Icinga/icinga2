@@ -170,33 +170,29 @@ HostState Host::GetLastHardState() const
  * sort by severity. It is therefore easier to keep them seperated here. */
 int Host::GetSeverity() const
 {
-	int severity = 0;
-
 	ObjectLock olock(this);
 	HostState state = GetState();
 
 	if (!HasBeenChecked()) {
-		severity = 16;
-	} else if (state == HostUp) {
-		severity = 0;
-	} else {
-		if (IsReachable())
-			severity = 64;
-		else
-			severity = 32;
-
-		if (IsAcknowledged())
-			severity += 512;
-		else if (IsInDowntime())
-			severity += 256;
-		else
-			severity += 2048;
+		return 16;
+	}
+	if (state == HostUp) {
+		return 0;
 	}
 
-	olock.Unlock();
+	int severity = 32; // DOWN
+
+	if (IsAcknowledged()) {
+		severity += 512;
+	} else if (IsInDowntime()) {
+		severity += 256;
+	} else if (!IsReachable()) {
+		severity += 1024;
+	} else {
+		severity += 2048;
+	}
 
 	return severity;
-
 }
 
 bool Host::IsStateOK(ServiceState state) const
