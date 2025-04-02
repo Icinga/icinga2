@@ -60,6 +60,7 @@ void CheckerComponent::OnConfigLoaded()
 void CheckerComponent::Start(bool runtimeCreated)
 {
 	ObjectImpl<CheckerComponent>::Start(runtimeCreated);
+	CheckResultProducerComponent::Start();
 
 	Log(LogInformation, "CheckerComponent")
 		<< "'" << GetName() << "' started.";
@@ -81,6 +82,7 @@ void CheckerComponent::Stop(bool runtimeRemoved)
 		m_CV.notify_all();
 	}
 
+	CheckResultProducerComponent::Stop();
 	m_ResultTimer->Stop(true);
 	m_Thread.join();
 
@@ -244,7 +246,7 @@ void CheckerComponent::ExecuteCheckHelper(const Checkable::Ptr& checkable)
 		cr->SetExecutionStart(now);
 		cr->SetExecutionEnd(now);
 
-		checkable->ProcessCheckResult(cr);
+		checkable->ProcessCheckResult(cr, this);
 
 		Log(LogCritical, "checker", output);
 	}

@@ -32,6 +32,7 @@ void ExternalCommandListener::StatsFunc(const Dictionary::Ptr& status, const Arr
 void ExternalCommandListener::Start(bool runtimeCreated)
 {
 	ObjectImpl<ExternalCommandListener>::Start(runtimeCreated);
+	CheckResultProducerComponent::Start();
 
 	Log(LogInformation, "ExternalCommandListener")
 		<< "'" << GetName() << "' started.";
@@ -50,6 +51,8 @@ void ExternalCommandListener::Start(bool runtimeCreated)
  */
 void ExternalCommandListener::Stop(bool runtimeRemoved)
 {
+	CheckResultProducerComponent::Stop();
+
 	Log(LogInformation, "ExternalCommandListener")
 		<< "'" << GetName() << "' stopped.";
 
