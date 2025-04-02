@@ -790,7 +790,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object, cons
 			Defer resetCheckCommandOverride([]() {
 				CheckCommand::ExecuteOverride = nullptr;
 			});
-			cmd->Execute(checkable, cr, execMacros, false);
+			cmd->Execute(checkable, cr, listener, execMacros, false);
 		}
 	} else if (command_type == "EventCommand") {
 		EventCommand::Ptr cmd = GetSingleObjectByNameUsingPermissions(EventCommand::GetTypeName(), resolved_command, ActionsHandler::AuthenticatedApiUser);
