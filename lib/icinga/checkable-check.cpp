@@ -14,6 +14,7 @@
 #include "base/convert.hpp"
 #include "base/utility.hpp"
 #include "base/context.hpp"
+#include <shared_mutex>
 
 using namespace icinga;
 
@@ -94,7 +95,7 @@ double Checkable::GetLastCheck() const
 	return schedule_end;
 }
 
-Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrigin::Ptr& origin)
+Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const CheckResultProducer::Ptr& producer, const MessageOrigin::Ptr& origin)
 {
 	using Result = Checkable::ProcessingResult;
 
@@ -104,6 +105,9 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 	}
 
 	if (!cr)
+		return Result::NoCheckResult;
+
+	if (!producer)
 		return Result::NoCheckResult;
 
 	double now = Utility::GetTime();
@@ -132,6 +136,14 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 		/* override check source if command_endpoint was defined */
 		if (command_endpoint && !GetExtension("agent_check"))
 			cr->SetCheckSource(command_endpoint->GetName());
+	}
+
+	std::shared_lock producerLock (*producer, std::try_to_lock);
+
+	if (!producerLock) {
+		// Discard the check result to not delay the current reload.
+		// We'll re-run the check immediately after the reload.
+		return Result::CheckableInactive;
 	}
 
 	/* agent checks go through the api */

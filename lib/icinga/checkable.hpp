@@ -12,6 +12,7 @@
 #include "icinga/notification.hpp"
 #include "icinga/comment.hpp"
 #include "icinga/downtime.hpp"
+#include "remote/crproducer.hpp"
 #include "remote/endpoint.hpp"
 #include "remote/messageorigin.hpp"
 #include <condition_variable>
@@ -119,7 +120,8 @@ public:
 		CheckableInactive,
 		NewerCheckResultPresent,
 	};
-	ProcessingResult ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrigin::Ptr& origin = nullptr);
+
+	ProcessingResult ProcessCheckResult(const CheckResult::Ptr& cr, const CheckResultProducer::Ptr& producer, const MessageOrigin::Ptr& origin = nullptr);
 
 	Endpoint::Ptr GetCommandEndpoint() const;
 
