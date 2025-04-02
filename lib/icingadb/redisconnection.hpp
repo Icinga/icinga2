@@ -36,9 +36,11 @@
 #include <future>
 #include <map>
 #include <memory>
+#include <optional>
 #include <queue>
 #include <set>
 #include <stdexcept>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -54,7 +56,57 @@ namespace icinga
 	public:
 		DECLARE_PTR_TYPEDEFS(RedisConnection);
 
-		typedef String QueryArg;
+		/**
+		 * A Redis query argument. Either owned String, borrowed std::string_view or hardcoded const char[].
+		 * Allows mixing these types in a single query transparently, not requiring any conversions.
+		 *
+		 * @ingroup icingadb
+		 */
+		class QueryArg : public std::string_view // operator<=> and std::hash for map keys
+		{
+		public:
+			explicit QueryArg(std::string_view data) : std::string_view(data)
+			{
+			}
+
+			QueryArg(const char* data) : std::string_view(data)
+			{
+			}
+
+			QueryArg(String data);
+
+			QueryArg(const QueryArg& other)
+			{
+				*this = other;
+			}
+
+			QueryArg(QueryArg&& other)
+			{
+				*this = std::move(other);
+			}
+
+			QueryArg& operator=(const QueryArg& rhs);
+			QueryArg& operator=(QueryArg&& rhs);
+
+			explicit operator String() const
+			{
+				return String(begin(), end());
+			}
+
+		private:
+			std::optional<String> m_Data;
+
+			void UpdateViewFromData()
+			{
+				*static_cast<std::string_view*>(this) = std::string_view(m_Data->CStr(), m_Data->GetLength());
+			}
+
+			void UpdateViewFromOtherView(const QueryArg& other)
+			{
+				*static_cast<std::string_view*>(this) = static_cast<const std::string_view&>(other);
+			}
+		};
+
 		typedef std::vector<QueryArg> Query;
 		typedef std::vector<Query> Queries;
 		typedef Value Reply;
@@ -666,7 +718,7 @@ void RedisConnection::WriteRESP(AsyncWriteStream& stream, const Query& query, bo
 	msg << "*" << query.size() << "\r\n";
 
 	for (auto& arg : query) {
-		msg << "$" << arg.GetLength() << "\r\n" << arg << "\r\n";
+		msg << "$" << arg.length() << "\r\n" << arg << "\r\n";
 	}
 
 	asio::async_write(stream, writeBuffer, yc);

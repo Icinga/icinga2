@@ -29,6 +29,37 @@
 using namespace icinga;
 namespace asio = boost::asio;
 
+RedisConnection::QueryArg::QueryArg(String data) : m_Data(std::move(data))
+{
+	UpdateViewFromData();
+}
+
+RedisConnection::QueryArg& RedisConnection::QueryArg::operator=(const QueryArg& rhs)
+{
+	m_Data = rhs.m_Data;
+
+	if (m_Data) {
+		UpdateViewFromData();
+	} else {
+		UpdateViewFromOtherView(rhs);
+	}
+
+	return *this;
+}
+
+RedisConnection::QueryArg& RedisConnection::QueryArg::operator=(QueryArg&& rhs)
+{
+	if (rhs.m_Data) {
+		m_Data = std::move(rhs.m_Data);
+		UpdateViewFromData();
+		static_cast<std::string_view&>(rhs) = std::string_view();
+	} else {
+		UpdateViewFromOtherView(rhs);
+	}
+
+	return *this;
+}
+
 boost::regex RedisConnection::m_ErrAuth ("\\AERR AUTH ");
 
 RedisConnection::RedisConnection(const String& host, int port, const String& path, const String& username, const String& password, int db,
@@ -100,8 +131,8 @@ void LogQuery(RedisConnection::Query& query, Log& msg)
 			break;
 		}
 
-		if (arg.GetLength() > 64) {
-			msg << " '" << arg.SubStr(0, 61) << "...'";
+		if (arg.length() > 64) {
+			msg << " '" << arg.substr(0, 61) << "...'";
 		} else {
 			msg << " '" << arg << '\'';
 		}

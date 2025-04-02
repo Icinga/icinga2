@@ -697,7 +697,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 				actionUrls.emplace_back(JsonEncode(data));
 
 				if (runtimeUpdate) {
-					AddObjectDataToRuntimeUpdates(runtimeUpdates, actionUrls.at(actionUrls.size() - 2u), m_PrefixConfigObject + "action:url", data);
+					AddObjectDataToRuntimeUpdates(runtimeUpdates, (String)actionUrls.at(actionUrls.size() - 2u), m_PrefixConfigObject + "action:url", data);
 				}
 			}
 		}
@@ -712,7 +712,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 				notesUrls.emplace_back(JsonEncode(data));
 
 				if (runtimeUpdate) {
-					AddObjectDataToRuntimeUpdates(runtimeUpdates, notesUrls.at(notesUrls.size() - 2u), m_PrefixConfigObject + "notes:url", data);
+					AddObjectDataToRuntimeUpdates(runtimeUpdates, (String)notesUrls.at(notesUrls.size() - 2u), m_PrefixConfigObject + "notes:url", data);
 				}
 			}
 		}
@@ -727,7 +727,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 				iconImages.emplace_back(JsonEncode(data));
 
 				if (runtimeUpdate) {
-					AddObjectDataToRuntimeUpdates(runtimeUpdates, iconImages.at(iconImages.size() - 2u), m_PrefixConfigObject + "icon:image", data);
+					AddObjectDataToRuntimeUpdates(runtimeUpdates, (String)iconImages.at(iconImages.size() - 2u), m_PrefixConfigObject + "icon:image", data);
 				}
 			}
 		}
