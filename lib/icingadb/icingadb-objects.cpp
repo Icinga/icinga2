@@ -402,7 +402,15 @@ void IcingaDB::UpdateAllConfigObjects()
 			upqObjectType.Enqueue([&]() {
 				for (auto& hMSet : source.second) {
 					for (decltype(hMSet.size()) i = 0, stop = hMSet.size() - 1u; i < stop; i += 2u) {
-						dest.emplace(std::move(hMSet[i]), std::move(hMSet[i + 1u]));
+						auto variantToString = [](RedisConnection::QueryArg v) -> String {
+							if (auto str (std::get_if<String>(&v.GetData())); str) {
+								return std::move(*str);
+							}
+
+							return std::get<std::string_view>(v.GetData());
+						};
+
+						dest.emplace(variantToString(std::move(hMSet[i])), variantToString(std::move(hMSet[i + 1u])));
 					}
 
 					hMSet.clear();
@@ -710,12 +718,12 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			auto id (HashValue(new Array({m_EnvironmentId, actionUrl})));
 
 			if (runtimeUpdate || m_DumpedGlobals.ActionUrl.IsNew(id)) {
-				actionUrls.emplace_back(std::move(id));
+				actionUrls.emplace_back(id);
 				Dictionary::Ptr data = new Dictionary({{"environment_id", m_EnvironmentId}, {"action_url", actionUrl}});
 				actionUrls.emplace_back(JsonEncode(data));
 
 				if (runtimeUpdate) {
-					AddObjectDataToRuntimeUpdates(runtimeUpdates, actionUrls.at(actionUrls.size() - 2u), m_PrefixConfigObject + "action:url", data);
+					AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + "action:url", data);
 				}
 			}
 		}
@@ -725,12 +733,12 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			auto id (HashValue(new Array({m_EnvironmentId, notesUrl})));
 
 			if (runtimeUpdate || m_DumpedGlobals.NotesUrl.IsNew(id)) {
-				notesUrls.emplace_back(std::move(id));
+				notesUrls.emplace_back(id);
 				Dictionary::Ptr data = new Dictionary({{"environment_id", m_EnvironmentId}, {"notes_url", notesUrl}});
 				notesUrls.emplace_back(JsonEncode(data));
 
 				if (runtimeUpdate) {
-					AddObjectDataToRuntimeUpdates(runtimeUpdates, notesUrls.at(notesUrls.size() - 2u), m_PrefixConfigObject + "notes:url", data);
+					AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + "notes:url", data);
 				}
 			}
 		}
@@ -740,12 +748,12 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			auto id (HashValue(new Array({m_EnvironmentId, iconImage})));
 
 			if (runtimeUpdate || m_DumpedGlobals.IconImage.IsNew(id)) {
-				iconImages.emplace_back(std::move(id));
+				iconImages.emplace_back(id);
 				Dictionary::Ptr data = new Dictionary({{"environment_id", m_EnvironmentId}, {"icon_image", iconImage}});
 				iconImages.emplace_back(JsonEncode(data));
 
 				if (runtimeUpdate) {
-					AddObjectDataToRuntimeUpdates(runtimeUpdates, iconImages.at(iconImages.size() - 2u), m_PrefixConfigObject + "icon:image", data);
+					AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + "icon:image", data);
 				}
 			}
 		}
