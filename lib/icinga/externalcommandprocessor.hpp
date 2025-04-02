@@ -5,6 +5,7 @@
 
 #include "icinga/i2-icinga.hpp"
 #include "icinga/command.hpp"
+#include "remote/crproducer.hpp"
 #include "base/string.hpp"
 #include <boost/signals2.hpp>
 #include <vector>
@@ -33,8 +34,8 @@ private:
 
 	static void ExecuteFromFile(const String& line, std::deque< std::vector<String> >& file_queue);
 
-	static void ProcessHostCheckResult(double time, const std::vector<String>& arguments);
-	static void ProcessServiceCheckResult(double time, const std::vector<String>& arguments);
+	static void ProcessHostCheckResult(const CheckResultProducer::Ptr& producer, double time, const std::vector<String>& arguments);
+	static void ProcessServiceCheckResult(const CheckResultProducer::Ptr& producer, double time, const std::vector<String>& arguments);
 	static void ScheduleHostCheck(double time, const std::vector<String>& arguments);
 	static void ScheduleForcedHostCheck(double time, const std::vector<String>& arguments);
 	static void ScheduleSvcCheck(double time, const std::vector<String>& arguments);
