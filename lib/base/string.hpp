@@ -10,6 +10,7 @@
 #include <boost/utility/string_view.hpp>
 #include <functional>
 #include <string>
+#include <string_view>
 #include <iosfwd>
 
 namespace icinga {
@@ -75,6 +76,7 @@ public:
 
 	operator const std::string&() const;
 	operator boost::beast::string_view() const;
+	operator std::string_view() const;
 
 	const char *CStr() const;
 

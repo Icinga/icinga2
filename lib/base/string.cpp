@@ -139,6 +139,16 @@ String::operator boost::beast::string_view() const
 	return boost::beast::string_view(m_Data);
 }
 
+/**
+ * Conversion function to std::string_view.
+ *
+ * @return An std::string_view representing this string.
+ */
+String::operator std::string_view() const
+{
+	return std::string_view(m_Data);
+}
+
 const char *String::CStr() const
 {
 	return m_Data.c_str();
