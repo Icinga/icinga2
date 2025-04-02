@@ -12,6 +12,7 @@
 #include "icinga/notification.hpp"
 #include "icinga/comment.hpp"
 #include "icinga/downtime.hpp"
+#include "remote/apilistener.hpp"
 #include "remote/crproducer.hpp"
 #include "remote/endpoint.hpp"
 #include "remote/messageorigin.hpp"
@@ -111,7 +112,7 @@ public:
 
 	static void UpdateStatistics(const CheckResult::Ptr& cr, CheckableType type);
 
-	void ExecuteRemoteCheck(const Dictionary::Ptr& resolvedMacros = nullptr);
+	void ExecuteRemoteCheck(const ApiListener::Ptr& listener, const Dictionary::Ptr& resolvedMacros = nullptr);
 	void ExecuteCheck(const CheckResultProducer::Ptr& producer);
 
 	enum class ProcessingResult
