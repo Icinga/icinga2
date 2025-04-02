@@ -565,7 +565,7 @@ void Checkable::ExecuteRemoteCheck(const Dictionary::Ptr& resolvedMacros)
 	GetCheckCommand()->Execute(this, cr, resolvedMacros, true);
 }
 
-void Checkable::ExecuteCheck()
+void Checkable::ExecuteCheck(const CheckResultProducer::Ptr& producer)
 {
 	CONTEXT("Executing check for object '" << GetName() << "'");
 
@@ -606,10 +606,10 @@ void Checkable::ExecuteCheck()
 	bool local = !endpoint || endpoint == Endpoint::GetLocalEndpoint();
 
 	if (local) {
-		GetCheckCommand()->Execute(this, cr, nullptr, false);
+		GetCheckCommand()->Execute(this, cr, producer, nullptr, false);
 	} else {
 		Dictionary::Ptr macros = new Dictionary();
-		GetCheckCommand()->Execute(this, cr, macros, false);
+		GetCheckCommand()->Execute(this, cr, producer, macros, false);
 
 		if (endpoint->GetConnected()) {
 			/* perform check on remote endpoint */
@@ -670,7 +670,7 @@ void Checkable::ExecuteCheck()
 
 			cr->SetOutput(output);
 
-			ProcessCheckResult(cr);
+			ProcessCheckResult(cr, producer);
 		}
 
 		{

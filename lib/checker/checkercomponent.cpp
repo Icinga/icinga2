@@ -232,7 +232,7 @@ void CheckerComponent::CheckThreadProc()
 void CheckerComponent::ExecuteCheckHelper(const Checkable::Ptr& checkable)
 {
 	try {
-		checkable->ExecuteCheck();
+		checkable->ExecuteCheck(this);
 	} catch (const std::exception& ex) {
 		CheckResult::Ptr cr = new CheckResult();
 		cr->SetState(ServiceUnknown);

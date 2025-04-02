@@ -112,7 +112,8 @@ public:
 	static void UpdateStatistics(const CheckResult::Ptr& cr, CheckableType type);
 
 	void ExecuteRemoteCheck(const Dictionary::Ptr& resolvedMacros = nullptr);
-	void ExecuteCheck();
+	void ExecuteCheck(const CheckResultProducer::Ptr& producer);
+
 	enum class ProcessingResult
 	{
 		Ok,
