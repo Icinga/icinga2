@@ -27,6 +27,14 @@ env:
   # Since our repository names are already lowercase, no additional modifications are necessary.
   IMAGE_NAME: icinga/${{ github.event.repository.name }}
 
+  # The LATEST variable determines if the current release tag is the greatest tag overall.
+  # If true, the container image will be tagged as 'latest' when pushed to the container registries.
+  LATEST: false
+
+  # The LATEST_MAJOR variable determines if the current release tag is the greatest within its major version.
+  # If true, the container image will be tagged with the major version (e.g., '1') when pushed to the registries.
+  LATEST_MAJOR: false
+
 jobs:
   build-and-publish-container-image:
     runs-on: ubuntu-latest
@@ -46,6 +54,41 @@ jobs:
           # Switch to fetch-tags: true once https://github.com/actions/checkout/issues/1467 is fixed.
           fetch-depth: 0
 
+      # Updates env.LATEST and env.LATEST_MAJOR based on
+      # whether the current release tag is the greatest overall and/or
+      # within its major version.
+      - name: Prepare metadata (release tags)
+        if: github.event_name == 'release' && github.event.action == 'published'
+        run: |
+          # Retrieve the greatest existing tag in the repository by sorting tags in descending order.
+          # Options used:
+          # * --sort=-v:refname sorts tags as versions, placing the highest version at the top.
+          # * -c 'versionsort.suffix=-' ensures that pre-release tags (e.g., 1.0.0-rc1) are sorted correctly,
+          #   so they are not considered greater than their corresponding final release (e.g., 1.0.0).
+          # Intentionally not using head -1 to prevent potential broken pipe errors.
+          greatest_tag=$(git -c 'versionsort.suffix=-' tag --list --sort=-v:refname | awk 'NR==1')
+
+          if [ "${{ github.ref_name }}" = "$greatest_tag" ]; then
+            echo "The current tag ${{ github.ref_name }} is the greatest overall. Tagging as 'latest'."
+
+            # Update environment variable to enable tagging as 'latest'.
+            echo "LATEST=true" >> "$GITHUB_ENV"
+          else
+            echo "The current tag ${{ github.ref_name }} is not the greatest overall compared to $greatest_tag. Not tagging as 'latest'."
+          fi
+
+
+          major_version=$(echo ${{ github.ref_name }} | cut -d. -f1)
+          greatest_major=$(git -c 'versionsort.suffix=-' tag --list "${major_version}.*" --sort=-v:refname | awk 'NR==1')
+          if [ "${{ github.ref_name }}" = "$greatest_major" ]; then
+            echo "The current tag ${{ github.ref_name }} is the greatest within its major version. Tagging with major version ${major_version#v}."
+
+            # Update environment variable to enable tagging with major version.
+            echo "LATEST_MAJOR=true" >> "$GITHUB_ENV"
+          else
+            echo "The current tag ${{ github.ref_name }} is not the greatest within its major version compared to $greatest_major. Not tagging with major version ${major_version#v}."
+          fi
+
       - name: Extract metadata (tags, labels)
         id: meta
         uses: docker/metadata-action@v5
@@ -59,14 +102,16 @@ jobs:
           labels: |
             org.opencontainers.image.documentation=https://icinga.com/docs/icinga-db
             org.opencontainers.image.vendor=Icinga GmbH
+          flavor: |
+            # Disable automatic 'latest' tagging as our custom logic is used to
+            # determine when to apply the 'latest' tag.
+            latest=false
           tags: |
             type=edge
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-            # Update the `latest` tag only on the default branch to ensure it represents the most current release when
-            # releasing from multiple branches.
-            type=raw,event=tag,value=latest,enable={{is_default_branch}}
+            type=semver,pattern={{major}},enable=${{ env.LATEST_MAJOR }}
+            type=raw,value=latest,enable=${{ env.LATEST }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
