@@ -34,7 +34,7 @@ public:
 
 	LivestatusQuery(const std::vector<String>& lines, const String& compat_log_path);
 
-	bool Execute(const Stream::Ptr& stream);
+	bool Execute(const CheckResultProducer::Ptr& producer, const Stream::Ptr& stream);
 
 	static int GetExternalCommands();
 

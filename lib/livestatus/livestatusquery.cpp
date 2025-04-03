@@ -621,7 +621,7 @@ void LivestatusQuery::PrintFixed16(const Stream::Ptr& stream, int code, const St
 	}
 }
 
-bool LivestatusQuery::Execute(const Stream::Ptr& stream)
+bool LivestatusQuery::Execute(const CheckResultProducer::Ptr& producer, const Stream::Ptr& stream)
 {
 	try {
 		Log(LogNotice, "LivestatusQuery")
@@ -630,7 +630,7 @@ bool LivestatusQuery::Execute(const Stream::Ptr& stream)
 		if (m_Verb == "GET")
 			ExecuteGetHelper(stream);
 		else if (m_Verb == "COMMAND")
-			ExecuteCommandHelper(stream);
+			ExecuteCommandHelper(producer, stream);
 		else if (m_Verb == "ERROR")
 			ExecuteErrorHelper(stream);
 		else
