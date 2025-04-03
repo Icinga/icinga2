@@ -1226,11 +1226,12 @@ bool ApiListener::RelayMessageOne(const Zone::Ptr& targetZone, const MessageOrig
 	ASSERT(targetZone);
 
 	Zone::Ptr localZone = Zone::GetLocalZone();
+	auto parentZone (localZone->GetParent());
 
 	/* only relay the message to a) the same local zone, b) the parent zone and c) direct child zones. Exception is a global zone. */
 	if (!targetZone->GetGlobal() &&
 		targetZone != localZone &&
-		targetZone != localZone->GetParent() &&
+		targetZone != parentZone &&
 		targetZone->GetParent() != localZone) {
 		return true;
 	}
@@ -1309,11 +1310,25 @@ bool ApiListener::RelayMessageOne(const Zone::Ptr& targetZone, const MessageOrig
 			bool isMaster = (currentZoneMaster == localEndpoint);
 
 			if (!isMaster && targetEndpoint != currentZoneMaster) {
+				if (currentTargetZone == parentZone) {
+					if (m_CurrentParentEndpoint.exchange(currentZoneMaster.get()) != currentZoneMaster.get()) {
+						Log(LogInformation, "ApiListener") << "Relaying messages for parent Zone '"
+							<< parentZone->GetName() << "' to Endpoint '" << currentZoneMaster->GetName() << "'";
+					}
+				}
+
 				skippedEndpoints.push_back(targetEndpoint);
 				continue;
 			}
 
 			relayed = true;
+
+			if (currentTargetZone == parentZone) {
+				if (m_CurrentParentEndpoint.exchange(targetEndpoint.get()) != targetEndpoint.get()) {
+					Log(LogInformation, "ApiListener") << "Relaying messages for parent Zone '"
+						<< parentZone->GetName() << "' to Endpoint '" << targetEndpoint->GetName() << "'";
+				}
+			}
 
 			SyncSendMessage(targetEndpoint, message);
 		}

@@ -8,6 +8,7 @@
 #include "remote/httpserverconnection.hpp"
 #include "remote/endpoint.hpp"
 #include "remote/messageorigin.hpp"
+#include "base/atomic.hpp"
 #include "base/configobject.hpp"
 #include "base/process.hpp"
 #include "base/shared.hpp"
@@ -177,6 +178,7 @@ private:
 	Timer::Ptr m_RenewOwnCertTimer;
 
 	Endpoint::Ptr m_LocalEndpoint;
+	Atomic<Endpoint*> m_CurrentParentEndpoint {nullptr};
 
 	static ApiListener::Ptr m_Instance;
 	static std::atomic<bool> m_UpdatedObjectAuthority;
