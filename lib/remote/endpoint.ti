@@ -55,6 +55,10 @@ class Endpoint : ConfigObject
 		get;
 	};
 
+	[no_user_modify, no_storage] double seconds_awaiting_messages {
+		get;
+	};
+
 	[no_user_modify, no_storage] double seconds_reading_messages {
 		get;
 	};
