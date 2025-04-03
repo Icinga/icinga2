@@ -15,8 +15,6 @@ case "$DISTRO" in
     apk add bison boost-dev ccache cmake flex g++ libedit-dev libressl-dev ninja-build tzdata
     ln -vs /usr/lib/ninja-build/bin/ninja /usr/local/bin/ninja
 
-    CMAKE_OPTS="-DUSE_SYSTEMD=OFF -DICINGA2_WITH_MYSQL=OFF -DICINGA2_WITH_PGSQL=OFF"
-
     # This test fails due to some glibc/musl mismatch regarding timezone PST/PDT.
     # - https://www.openwall.com/lists/musl/2024/03/05/2
     # - https://gitlab.alpinelinux.org/alpine/aports/-/blob/b3ea02e2251451f9511086e1970f21eb640097f7/community/icinga2/disable-failing-tests.patch
@@ -85,6 +83,9 @@ case "$DISTRO" in
 esac
 
 case "$DISTRO" in
+  alpine:*)
+    CMAKE_OPTS+=(-DUSE_SYSTEMD=OFF -DICINGA2_WITH_MYSQL=OFF -DICINGA2_WITH_PGSQL=OFF)
+    ;;
   debian:*|ubuntu:*)
     CMAKE_OPTS+=(-DICINGA2_LTO_BUILD=ON)
     source <(dpkg-buildflags --export=sh)
