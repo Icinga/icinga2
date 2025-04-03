@@ -25,8 +25,8 @@ struct ExternalCommandInfo
 
 class ExternalCommandProcessor {
 public:
-	static void Execute(const String& line);
-	static void Execute(double time, const String& command, const std::vector<String>& arguments);
+	static void Execute(const CheckResultProducer::Ptr& producer, const String& line);
+	static void Execute(const CheckResultProducer::Ptr& producer, double time, const String& command, const std::vector<String>& arguments);
 
 	static boost::signals2::signal<void(double, const String&, const std::vector<String>&)> OnNewExternalCommand;
 
