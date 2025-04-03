@@ -38,6 +38,14 @@ jobs:
       id-token: write
 
     steps:
+      # Explicitly using the checkout action (instead of relying on docker/build-push-action to do it implicitly)
+      # because we need to fetch all tags.
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Switch to fetch-tags: true once https://github.com/actions/checkout/issues/1467 is fixed.
+          fetch-depth: 0
+
       - name: Extract metadata (tags, labels)
         id: meta
         uses: docker/metadata-action@v5
@@ -85,6 +93,7 @@ jobs:
         id: build-and-push
         uses: docker/build-push-action@v6
         with:
+          context: .
           file: ./Containerfile
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64,linux/arm64
@@ -92,10 +101,6 @@ jobs:
           # The tags generated in the metadata step include tags for both Docker Hub and GHCR image names,
           # allowing the build and push action to build and push images to both registries.
           tags: ${{ steps.meta.outputs.tags }}
-          # Keep the .git to allow including the commit in the --version output, see also:
-          # https://docs.docker.com/build/building/context/#keep-git-directory
-          build-args: |
-            BUILDKIT_CONTEXT_KEEP_GIT_DIR=1
 
       - name: Generate artifact attestation for GitHub Container Registry
         if: github.event_name != 'pull_request'
