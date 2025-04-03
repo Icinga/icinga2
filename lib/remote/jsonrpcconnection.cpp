@@ -66,7 +66,7 @@ void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 		return ch::duration_cast<ch::milliseconds>(d).count();
 	});
 
-	AtomicDuration::Clock::time_point readStart, readEnd, processingStart;
+	AtomicDuration::Clock::time_point waitStart, waitEnd, readStart, readEnd, processingStart;
 
 	m_Stream->next_layer().SetSeen(&m_Seen);
 
@@ -77,7 +77,9 @@ void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 			if (m_Endpoint) {
 				// Only once we receive at least one byte, we know there must be a message to read.
 				if (!m_Stream->in_avail()) {
+					waitStart = AtomicDuration::Clock::now();
 					m_Stream->async_fill(yc);
+					waitEnd = AtomicDuration::Clock::now();
 				}
 
 				// Only then we can start measuring the time it takes to read it.
@@ -124,7 +126,7 @@ void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 			MessageHandler(message);
 
 			if (m_Endpoint) {
-				m_Endpoint->AddInputTimes(readEnd - readStart, cpuBoundDuration, AtomicDuration::Clock::now() - processingStart);
+				m_Endpoint->AddInputTimes(waitEnd - waitStart, readEnd - readStart, cpuBoundDuration, AtomicDuration::Clock::now() - processingStart);
 			}
 
 			l_TaskStats.InsertValue(Utility::GetTime(), 1);

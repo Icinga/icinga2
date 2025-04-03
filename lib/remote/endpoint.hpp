@@ -44,8 +44,9 @@ public:
 	void AddMessageSent(int bytes);
 	void AddMessageReceived(int bytes);
 
-	void AddInputTimes(const AtomicDuration::Clock::duration& readTime, const AtomicDuration::Clock::duration& semaphoreTime, const AtomicDuration::Clock::duration& processTime)
+	void AddInputTimes(const AtomicDuration::Clock::duration& waitTime, const AtomicDuration::Clock::duration& readTime, const AtomicDuration::Clock::duration& semaphoreTime, const AtomicDuration::Clock::duration& processTime)
 	{
+		m_InputWaitTime += waitTime;
 		m_InputReadTime += readTime;
 		m_InputSemaphoreTime += semaphoreTime;
 		m_InputProcessTime += processTime;
@@ -74,6 +75,7 @@ private:
 	mutable RingBuffer m_BytesSent{60};
 	mutable RingBuffer m_BytesReceived{60};
 
+	AtomicDuration m_InputWaitTime;
 	AtomicDuration m_InputReadTime;
 	AtomicDuration m_InputSemaphoreTime;
 	AtomicDuration m_InputProcessTime;
