@@ -1,17 +1,12 @@
 # Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+
 
-cmake_minimum_required(VERSION 2.8.12)
+# Funny but yes, pining this specific CMake version isn't due to AL2 but Ubuntu 20.04.
+cmake_minimum_required(VERSION 3.16.3)
 set(BOOST_MIN_VERSION "1.66.0")
 
-if("${CMAKE_VERSION}" VERSION_LESS "3.8") # SLES 12.5
-  if(NOT MSVC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
-  endif()
-else()
-  set(CMAKE_CXX_STANDARD 17)
-  set(CMAKE_CXX_STANDARD_REQUIRED ON)
-  set(CMAKE_CXX_EXTENSIONS OFF)
-endif()
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 project(icinga2)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
