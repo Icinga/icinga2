@@ -5,6 +5,7 @@
 
 #include "livestatus/filter.hpp"
 #include "livestatus/aggregator.hpp"
+#include "remote/crproducer.hpp"
 #include "base/object.hpp"
 #include "base/array.hpp"
 #include "base/stream.hpp"
@@ -76,7 +77,7 @@ private:
 	static String QuoteStringPython(const String& str);
 
 	void ExecuteGetHelper(const Stream::Ptr& stream);
-	void ExecuteCommandHelper(const Stream::Ptr& stream);
+	void ExecuteCommandHelper(const CheckResultProducer::Ptr& producer, const Stream::Ptr& stream);
 	void ExecuteErrorHelper(const Stream::Ptr& stream);
 
 	void SendResponse(const Stream::Ptr& stream, int code, const String& data);
