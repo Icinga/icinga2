@@ -931,7 +931,7 @@ void ExternalCommandProcessor::DisableHostgroupPassiveSvcChecks(double, const st
 	}
 }
 
-void ExternalCommandProcessor::ProcessFile(double, const std::vector<String>& arguments)
+void ExternalCommandProcessor::ProcessFile(const CheckResultProducer::Ptr& producer, double, const std::vector<String>& arguments)
 {
 	std::deque< std::vector<String> > file_queue;
 	file_queue.push_back(arguments);
@@ -956,7 +956,7 @@ void ExternalCommandProcessor::ProcessFile(double, const std::vector<String>& ar
 				Log(LogNotice, "compat")
 					<< "Executing external command: " << line;
 
-				ExecuteFromFile(line, file_queue);
+				ExecuteFromFile(producer, line, file_queue);
 			} catch (const std::exception& ex) {
 				Log(LogWarning, "ExternalCommandProcessor")
 					<< "External command failed: " << DiagnosticInformation(ex);
