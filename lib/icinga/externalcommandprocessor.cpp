@@ -247,7 +247,7 @@ void ExternalCommandProcessor::RegisterCommands()
 	RegisterCommand("DISABLE_SERVICEGROUP_SVC_NOTIFICATIONS", &ExternalCommandProcessor::DisableServicegroupSvcNotifications, 1);
 }
 
-void ExternalCommandProcessor::ExecuteFromFile(const String& line, std::deque< std::vector<String> >& file_queue)
+void ExternalCommandProcessor::ExecuteFromFile(const CheckResultProducer::Ptr& producer, const String& line, std::deque<std::vector<String>>& file_queue)
 {
 	if (line.IsEmpty())
 		return;
@@ -280,7 +280,7 @@ void ExternalCommandProcessor::ExecuteFromFile(const String& line, std::deque< s
 			<< "Enqueing external command file " << argvExtra[0];
 		file_queue.push_back(argvExtra);
 	} else {
-		Execute(ts, argv[0], argvExtra);
+		Execute(producer, ts, argv[0], argvExtra);
 	}
 }
 
