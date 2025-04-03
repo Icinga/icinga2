@@ -38,7 +38,9 @@
 #include <queue>
 #include <set>
 #include <stdexcept>
+#include <string_view>
 #include <utility>
+#include <variant>
 #include <vector>
 
 namespace icinga
@@ -53,7 +55,39 @@ namespace icinga
 	public:
 		DECLARE_PTR_TYPEDEFS(RedisConnection);
 
-		typedef std::vector<String> Query;
+		/**
+		 * A Redis query argument. Either owned String, borrowed std::string_view or hardcoded const char[].
+		 * Allows mixing these types in a single query transparently, not requiring any conversions.
+		 *
+		 * @ingroup icingadb
+		 */
+		class QueryArg
+		{
+		public:
+			explicit QueryArg(std::string_view data) : m_Data(data)
+			{
+			}
+
+			QueryArg(String data): m_Data(std::move(data))
+			{
+			}
+
+			QueryArg(const char* data) : m_Data(std::string_view(data))
+			{
+			}
+
+			explicit operator std::string_view() const;
+
+			std::variant<std::string_view, String>& GetData()
+			{
+				return m_Data;
+			}
+
+		private:
+			std::variant<std::string_view, String> m_Data;
+		};
+
+		typedef std::vector<QueryArg> Query;
 		typedef std::vector<Query> Queries;
 		typedef Value Reply;
 		typedef std::vector<Reply> Replies;
@@ -667,7 +701,9 @@ void RedisConnection::WriteRESP(AsyncWriteStream& stream, const Query& query, bo
 	msg << "*" << query.size() << "\r\n";
 
 	for (auto& arg : query) {
-		msg << "$" << arg.GetLength() << "\r\n" << arg << "\r\n";
+		std::string_view sv (arg);
+
+		msg << "$" << sv.length() << "\r\n" << sv << "\r\n";
 	}
 
 	asio::async_write(stream, writeBuffer, yc);
