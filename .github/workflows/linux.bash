@@ -1,12 +1,28 @@
 #!/bin/bash
 set -exo pipefail
 
-export PATH="/usr/lib/ccache:/usr/lib64/ccache:$PATH"
+export PATH="/usr/lib/ccache/bin:/usr/lib/ccache:/usr/lib64/ccache:$PATH"
 export CCACHE_DIR=/icinga2/ccache
 export CTEST_OUTPUT_ON_FAILURE=1
 CMAKE_OPTS=()
 
 case "$DISTRO" in
+  alpine:*)
+    # Packages inspired by the Alpine package, just
+    # - LibreSSL instead of OpenSSL 3 and
+    # - no MariaDB or libpq as they depend on OpenSSL.
+    # https://gitlab.alpinelinux.org/alpine/aports/-/blob/master/community/icinga2/APKBUILD
+    apk add bison boost-dev ccache cmake flex g++ libedit-dev libressl-dev ninja-build tzdata
+    ln -vs /usr/lib/ninja-build/bin/ninja /usr/local/bin/ninja
+
+    CMAKE_OPTS="-DUSE_SYSTEMD=OFF -DICINGA2_WITH_MYSQL=OFF -DICINGA2_WITH_PGSQL=OFF"
+
+    # This test fails due to some glibc/musl mismatch regarding timezone PST/PDT.
+    # - https://www.openwall.com/lists/musl/2024/03/05/2
+    # - https://gitlab.alpinelinux.org/alpine/aports/-/blob/b3ea02e2251451f9511086e1970f21eb640097f7/community/icinga2/disable-failing-tests.patch
+    sed -i '/icinga_legacytimeperiod\/dst$/d' /icinga2/test/CMakeLists.txt
+    ;;
+
   amazonlinux:2)
     amazon-linux-extras install -y epel
     yum install -y bison ccache cmake3 gcc-c++ flex ninja-build system-rpm-config \
