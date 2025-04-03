@@ -13,6 +13,10 @@ if(NOT CMAKE_BUILD_TYPE)
     FORCE)
 endif()
 
+# Include symbols in executables so that function names can be printed in stack traces, for example in crash dumps.
+set(CMAKE_ENABLE_EXPORTS ON) # Added in CMake 3.4
+set(CMAKE_EXECUTABLE_ENABLE_EXPORTS ON) # Added in CMake 3.27 and supersedes the above one.
+
 option(ICINGA2_WITH_MYSQL "Build the MySQL IDO module" ON)
 option(ICINGA2_WITH_PGSQL "Build the PostgreSQL IDO module" ON)
 option(ICINGA2_WITH_CHECKER "Build the checker module" ON)
