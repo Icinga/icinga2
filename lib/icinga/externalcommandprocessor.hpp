@@ -33,7 +33,7 @@ public:
 private:
 	ExternalCommandProcessor();
 
-	static void ExecuteFromFile(const String& line, std::deque< std::vector<String> >& file_queue);
+	static void ExecuteFromFile(const CheckResultProducer::Ptr& producer, const String& line, std::deque<std::vector<String>>& file_queue);
 
 	static void ProcessHostCheckResult(const CheckResultProducer::Ptr& producer, double time, const std::vector<String>& arguments);
 	static void ProcessServiceCheckResult(const CheckResultProducer::Ptr& producer, double time, const std::vector<String>& arguments);
