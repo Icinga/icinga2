@@ -27,7 +27,7 @@ using namespace icinga;
 
 boost::signals2::signal<void(double, const String&, const std::vector<String>&)> ExternalCommandProcessor::OnNewExternalCommand;
 
-void ExternalCommandProcessor::Execute(const String& line)
+void ExternalCommandProcessor::Execute(const CheckResultProducer::Ptr& producer, const String& line)
 {
 	if (line.IsEmpty())
 		return;
@@ -54,10 +54,10 @@ void ExternalCommandProcessor::Execute(const String& line)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing arguments in command: " + line));
 
 	std::vector<String> argvExtra(argv.begin() + 1, argv.end());
-	Execute(ts, argv[0], argvExtra);
+	Execute(producer, ts, argv[0], argvExtra);
 }
 
-void ExternalCommandProcessor::Execute(double time, const String& command, const std::vector<String>& arguments)
+void ExternalCommandProcessor::Execute(const CheckResultProducer::Ptr& producer, double time, const String& command, const std::vector<String>& arguments)
 {
 	ExternalCommandInfo eci;
 
@@ -102,7 +102,7 @@ void ExternalCommandProcessor::Execute(double time, const String& command, const
 
 	OnNewExternalCommand(time, command, realArguments);
 
-	eci.Callback(time, realArguments);
+	eci.Callback(producer, time, realArguments);
 }
 
 void ExternalCommandProcessor::RegisterCommand(const String& command, const ExternalCommandCallback& callback, size_t minArgs, size_t maxArgs)
