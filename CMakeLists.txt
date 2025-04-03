@@ -18,6 +18,15 @@ if(NOT CMAKE_BUILD_TYPE)
     FORCE)
 endif()
 
+# CMake 3.4 introduced a new policy [^1] which prevents from automatically adding the compiler flags
+# needed for exporting the symbols of the executables and libraries without the `ENABLE_EXPORTS` property.
+# So, by defining this variable, CMake will restore the previous behaviour by automatically add the
+# `ENABLE_EXPORTS` property to all targets.
+#
+# [1]: https://cmake.org/cmake/help/latest/policy/CMP0065.html
+set(CMAKE_ENABLE_EXPORTS ON) # Added in CMake 3.4
+set(CMAKE_EXECUTABLE_ENABLE_EXPORTS ON) # Added in CMake 3.27 and supersedes the above one.
+
 if(WIN32)
   set(ICINGA2_MASTER OFF)
 else()
