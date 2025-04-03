@@ -69,7 +69,7 @@ private:
 	static void DisableServicegroupPassiveSvcChecks(double time, const std::vector<String>& arguments);
 	static void EnableHostgroupPassiveSvcChecks(double time, const std::vector<String>& arguments);
 	static void DisableHostgroupPassiveSvcChecks(double time, const std::vector<String>& arguments);
-	static void ProcessFile(double time, const std::vector<String>& arguments);
+	static void ProcessFile(const CheckResultProducer::Ptr& producer, double time, const std::vector<String>& arguments);
 	static void ScheduleSvcDowntime(double time, const std::vector<String>& arguments);
 	static void DelSvcDowntime(double time, const std::vector<String>& arguments);
 	static void ScheduleHostDowntime(double time, const std::vector<String>& arguments);
