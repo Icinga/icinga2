@@ -39,7 +39,7 @@ set(icinga_SOURCES
   comment.cpp comment.hpp comment-ti.hpp
   compatutility.cpp compatutility.hpp
   customvarobject.cpp customvarobject.hpp customvarobject-ti.hpp
-  dependency.cpp dependency.hpp dependency-ti.hpp dependency-apply.cpp
+  dependency.cpp dependency-group.cpp dependency.hpp dependency-ti.hpp dependency-apply.cpp
   downtime.cpp downtime.hpp downtime-ti.hpp
   envresolver.cpp envresolver.hpp
   eventcommand.cpp eventcommand.hpp eventcommand-ti.hpp

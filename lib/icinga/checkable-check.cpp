@@ -154,6 +154,10 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 	bool reachable = IsReachable();
 	bool notification_reachable = IsReachable(DependencyNotification);
 
+	// Cache whether the previous state of this Checkable affects its children before overwriting the last check result.
+	// This will be used to determine whether the on reachability changed event should be triggered.
+	bool affectsPreviousStateChildren(reachable && AffectsChildren());
+
 	ObjectLock olock(this);
 
 	CheckResult::Ptr old_cr = GetLastCheckResult();
@@ -533,7 +537,7 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 	}
 
 	/* update reachability for child objects */
-	if ((stateChange || hardChange) && !children.empty())
+	if ((stateChange || hardChange) && !children.empty() && (affectsPreviousStateChildren || AffectsChildren()))
 		OnReachabilityChanged(this, cr, children, origin);
 
 	return Result::Ok;
