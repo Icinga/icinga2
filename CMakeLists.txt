@@ -1,17 +1,12 @@
 # Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+
 
-cmake_minimum_required(VERSION 2.8.12)
+# CMake 3.8 is required, CMake policy compatibility was verified up to 3.17.
+cmake_minimum_required(VERSION 3.8...3.17)
 set(BOOST_MIN_VERSION "1.66.0")
 
-if("${CMAKE_VERSION}" VERSION_LESS "3.8") # SLES 12.5
-  if(NOT MSVC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
-  endif()
-else()
-  set(CMAKE_CXX_STANDARD 17)
-  set(CMAKE_CXX_STANDARD_REQUIRED ON)
-  set(CMAKE_CXX_EXTENSIONS OFF)
-endif()
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 project(icinga2)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
@@ -22,6 +17,10 @@ if(NOT CMAKE_BUILD_TYPE)
     "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
     FORCE)
 endif()
+
+# Include symbols in executables so that function names can be printed in stack traces, for example in crash dumps.
+set(CMAKE_ENABLE_EXPORTS ON) # Added in CMake 3.4
+set(CMAKE_EXECUTABLE_ENABLE_EXPORTS ON) # Added in CMake 3.27 and supersedes the above one.
 
 if(WIN32)
   set(ICINGA2_MASTER OFF)
@@ -235,7 +234,6 @@ if(WIN32)
   list(APPEND base_DEPS ws2_32 dbghelp shlwapi msi)
 endif()
 
-set(CMAKE_MACOSX_RPATH 1)
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH};${CMAKE_INSTALL_FULL_LIBDIR}/icinga2")
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
