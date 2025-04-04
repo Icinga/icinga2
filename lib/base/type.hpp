@@ -103,6 +103,7 @@ public:
 
 	virtual const std::unordered_set<Type*>& GetLoadDependencies() const;
 	virtual int GetActivationPriority() const;
+	virtual int GetDeactivationPriority() const;
 
 	typedef std::function<void (const Object::Ptr&, const Value&)> AttributeHandler;
 	virtual void RegisterAttributeHandler(int fieldId, const AttributeHandler& callback);
