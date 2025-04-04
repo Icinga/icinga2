@@ -41,16 +41,6 @@ int CARemoveCommand::GetMinArguments() const
 }
 
 /**
- * Impersonate as Icinga user.
- *
- * @return impersonate level
- */
-ImpersonationLevel CARemoveCommand::GetImpersonationLevel() const
-{
-	return ImpersonateIcinga;
-}
-
-/**
  * The entry point for the "ca remove" CLI command.
  *
  * @returns An exit status.
