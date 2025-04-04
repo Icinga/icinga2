@@ -1,17 +1,12 @@
 # Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+
 
-cmake_minimum_required(VERSION 2.8.12)
+# Funny but yes, pining this specific CMake version isn't due to AL2 but Ubuntu 20.04.
+cmake_minimum_required(VERSION 3.16.3)
 set(BOOST_MIN_VERSION "1.66.0")
 
-if("${CMAKE_VERSION}" VERSION_LESS "3.8") # SLES 12.5
-  if(NOT MSVC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
-  endif()
-else()
-  set(CMAKE_CXX_STANDARD 17)
-  set(CMAKE_CXX_STANDARD_REQUIRED ON)
-  set(CMAKE_CXX_EXTENSIONS OFF)
-endif()
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 project(icinga2)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
@@ -22,6 +17,15 @@ if(NOT CMAKE_BUILD_TYPE)
     "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
     FORCE)
 endif()
+
+# CMake 3.4 introduced a new policy [^1] which prevents from automatically adding the compiler flags
+# needed for exporting the symbols of the executables and libraries without the `ENABLE_EXPORTS` property.
+# So, by defining this variable, CMake will restore the previous behaviour by automatically add the
+# `ENABLE_EXPORTS` property to all targets.
+#
+# [1]: https://cmake.org/cmake/help/latest/policy/CMP0065.html
+set(CMAKE_ENABLE_EXPORTS ON) # Added in CMake 3.4
+set(CMAKE_EXECUTABLE_ENABLE_EXPORTS ON) # Added in CMake 3.27 and supersedes the above one.
 
 if(WIN32)
   set(ICINGA2_MASTER OFF)
@@ -235,7 +239,6 @@ if(WIN32)
   list(APPEND base_DEPS ws2_32 dbghelp shlwapi msi)
 endif()
 
-set(CMAKE_MACOSX_RPATH 1)
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH};${CMAKE_INSTALL_FULL_LIBDIR}/icinga2")
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
