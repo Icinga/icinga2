@@ -452,8 +452,15 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 	/* ObjectImpl */
 	m_Header << "template<>" << std::endl
-		<< "class ObjectImpl<" << klass.Name << ">"
-		<< " : public " << (klass.Parent.empty() ? "Object" : klass.Parent) << std::endl
+		<< "class ObjectImpl<" << klass.Name << "> : ";
+
+	if (klass.Parent.empty()) {
+		m_Header << "virtual public Object";
+	} else {
+		m_Header << "public " << klass.Parent;
+	}
+
+	m_Header << std::endl
 		<< "{" << std::endl
 		<< "public:" << std::endl
 		<< "\t" << "DECLARE_PTR_TYPEDEFS(ObjectImpl<" << klass.Name << ">);" << std::endl << std::endl;

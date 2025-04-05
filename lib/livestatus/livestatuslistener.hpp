@@ -7,6 +7,7 @@
 #include "livestatus/livestatuslistener-ti.hpp"
 #include "livestatus/livestatusquery.hpp"
 #include "base/socket.hpp"
+#include "remote/crproducer.hpp"
 #include <thread>
 
 using namespace icinga;
@@ -17,7 +18,7 @@ namespace icinga
 /**
  * @ingroup livestatus
  */
-class LivestatusListener final : public ObjectImpl<LivestatusListener>
+class LivestatusListener final : public ObjectImpl<LivestatusListener>, public CheckResultProducerComponent
 {
 public:
 	DECLARE_OBJECT(LivestatusListener);

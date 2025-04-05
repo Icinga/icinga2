@@ -239,6 +239,8 @@ void ApiListener::OnAllConfigLoaded()
  */
 void ApiListener::Start(bool runtimeCreated)
 {
+	CheckResultProducerComponent::Start();
+
 	Log(LogInformation, "ApiListener")
 		<< "'" << GetName() << "' started.";
 
@@ -368,6 +370,7 @@ void ApiListener::Stop(bool runtimeDeleted)
 	m_Timer->Stop(true);
 	m_RenewOwnCertTimer->Stop(true);
 
+	CheckResultProducerComponent::Stop();
 	ObjectImpl<ApiListener>::Stop(runtimeDeleted);
 
 	Log(LogInformation, "ApiListener")
