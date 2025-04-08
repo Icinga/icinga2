@@ -5957,42 +5957,43 @@ Custom variables passed as [command parameters](03-monitoring-basics.md#command-
 
 Name                      | Description
 --------------------------|--------------
-ssl_cert_address              | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
-ssl_cert_port                 | **Optional.** TCP port number (default: 443).
-ssl_cert_proxy                | **Optional.** Proxy server to use for connecting to the host. Sets http_proxy and the s_client -proxy option.
-ssl_cert_file                 | **Optional.** Local file path. Works only if `ssl_cert_address` is set to "localhost".
-ssl_cert_warn                 | **Optional.** Minimum number of days a certificate has to be valid.
-ssl_cert_critical             | **Optional.** Minimum number of days a certificate has to be valid to issue a critical status.
-ssl_cert_maximum_validity     | **Optional.** Maximum number of days a certificate is allowed to be valid (default: 397)
-ssl_cert_cn                   | **Optional.** Pattern to match the CN or AltName of the certificate.
-ssl_cert_issuer               | **Optional.** Pattern to match the issuer of the certificate.
-ssl_cert_org                  | **Optional.** Pattern to match the organization of the certificate.
-ssl_cert_email                | **Optional.** Pattern to match the email address contained in the certificate.
-ssl_cert_serial               | **Optional.** Pattern to match the serial number.
-ssl_cert_noauth               | **Optional.** Ignore authority warnings (expiration only)
-ssl_cert_match_host           | **Optional.** Match CN with the host name.
-ssl_cert_selfsigned           | **Optional.** Allow self-signed certificate.
-ssl_cert_sni                  | **Optional.** Sets the TLS SNI (Server Name Indication) extension.
-ssl_cert_timeout              | **Optional.** Seconds before connection times out (default: 15)
-ssl_cert_protocol             | **Optional.** Use the specific protocol {http,smtp,pop3,imap,ftp,xmpp,irc,ldap} (default: http).
-ssl_cert_http_url             | **Optional.** HTTP Request URL (default: /)
-ssl_cert_clientcert           | **Optional.** Use client certificate to authenticate.
-ssl_cert_clientpass           | **Optional.** Set passphrase for client certificate.
-ssl_cert_ssllabs              | **Optional.** SSL Labs assessment
-ssl_cert_ssllabs_nocache      | **Optional.** Forces a new check by SSL Labs
-ssl_cert_rootcert             | **Optional.** Root certificate or directory to be used for certificate validation.
-ssl_cert_ignore_signature     | **Optional.** Do not check if the certificate was signed with SHA1 od MD5.
-ssl_cert_ssl_version          | **Optional.** Force specific SSL version out of {ssl2,ssl3,tls1,tls1_1,tls1_2}.
-ssl_cert_disable_ssl_versions | **Optional.** Disable specific SSL versions out of {ssl2,ssl3,tls1,tls1_1,tls1_2}. Multiple versions can be given as array.
-ssl_cert_cipher               | **Optional.** Cipher selection: force {ecdsa,rsa} authentication.
-ssl_cert_ignore_expiration    | **Optional.** Ignore expiration date.
-ssl_cert_ignore_host_cn       | **Optional.** Do not complain if the CN does not match.
-ssl_cert_ignore_ocsp          | **Optional.** Do not check revocation with OCSP.
-ssl_cert_ignore_ocsp_errors   | **Optional.** Continue if the OCSP status cannot be checked.
-ssl_cert_ignore_ocsp_timeout  | **Optional.** Ignore OCSP result when timeout occurs while checking.
-ssl_cert_ignore_sct           | **Optional.** Do not check for signed certificate timestamps.
-ssl_cert_ignore_tls_renegotiation  | **Optional.** Do not check for renegotiation.
-ssl_cert_dane                 | **Optional.** Verify that valid DANE records exist ({211,301,302,311,312} or empty string).
+ssl_cert_address                        | **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
+ssl_cert_port                           | **Optional.** TCP port number (default: 443).
+ssl_cert_proxy                          | **Optional.** Proxy server to use for connecting to the host. Sets http_proxy and the s_client -proxy option.
+ssl_cert_file                           | **Optional.** Local file path. Works only if `ssl_cert_address` is set to "localhost".
+ssl_cert_warn                           | **Optional.** Minimum number of days a certificate has to be valid.
+ssl_cert_critical                       | **Optional.** Minimum number of days a certificate has to be valid to issue a critical status.
+ssl_cert_maximum_validity               | **Optional.** Maximum number of days a certificate is allowed to be valid (default: 397)
+ssl_cert_ignore_maximum_validity        | **Optional.** Ignore the certificate maximum validity
+ssl_cert_cn                             | **Optional.** Pattern to match the CN or AltName of the certificate.
+ssl_cert_issuer                         | **Optional.** Pattern to match the issuer of the certificate.
+ssl_cert_org                            | **Optional.** Pattern to match the organization of the certificate.
+ssl_cert_email                          | **Optional.** Pattern to match the email address contained in the certificate.
+ssl_cert_serial                         | **Optional.** Pattern to match the serial number.
+ssl_cert_noauth                         | **Optional.** Ignore authority warnings (expiration only)
+ssl_cert_match_host                     | **Optional.** Match CN with the host name.
+ssl_cert_selfsigned                     | **Optional.** Allow self-signed certificate.
+ssl_cert_sni                            | **Optional.** Sets the TLS SNI (Server Name Indication) extension.
+ssl_cert_timeout                        | **Optional.** Seconds before connection times out (default: 15)
+ssl_cert_protocol                       | **Optional.** Use the specific protocol {http,smtp,pop3,imap,ftp,xmpp,irc,ldap} (default: http).
+ssl_cert_http_url                       | **Optional.** HTTP Request URL (default: /)
+ssl_cert_clientcert                     | **Optional.** Use client certificate to authenticate.
+ssl_cert_clientpass                     | **Optional.** Set passphrase for client certificate.
+ssl_cert_ssllabs                        | **Optional.** SSL Labs assessment
+ssl_cert_ssllabs_nocache                | **Optional.** Forces a new check by SSL Labs
+ssl_cert_rootcert                       | **Optional.** Root certificate or directory to be used for certificate validation.
+ssl_cert_ignore_signature               | **Optional.** Do not check if the certificate was signed with SHA1 od MD5.
+ssl_cert_ssl_version                    | **Optional.** Force specific SSL version out of {ssl2,ssl3,tls1,tls1_1,tls1_2}.
+ssl_cert_disable_ssl_versions           | **Optional.** Disable specific SSL versions out of {ssl2,ssl3,tls1,tls1_1,tls1_2}. Multiple versions can be given as array.
+ssl_cert_cipher                         | **Optional.** Cipher selection: force {ecdsa,rsa} authentication.
+ssl_cert_ignore_expiration              | **Optional.** Ignore expiration date.
+ssl_cert_ignore_host_cn                 | **Optional.** Do not complain if the CN does not match.
+ssl_cert_ignore_ocsp                    | **Optional.** Do not check revocation with OCSP.
+ssl_cert_ignore_ocsp_errors             | **Optional.** Continue if the OCSP status cannot be checked.
+ssl_cert_ignore_ocsp_timeout            | **Optional.** Ignore OCSP result when timeout occurs while checking.
+ssl_cert_ignore_sct                     | **Optional.** Do not check for signed certificate timestamps.
+ssl_cert_ignore_tls_renegotiation       | **Optional.** Do not check for renegotiation.
+ssl_cert_dane                           | **Optional.** Verify that valid DANE records exist ({211,301,302,311,312} or empty string).
 
 
 #### jmx4perl <a id="plugin-contrib-command-jmx4perl"></a>
