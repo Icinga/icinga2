@@ -164,7 +164,6 @@ CMAKE_OPTS+=(
 "${SCL_ENABLE_GCC[@]}" cmake \
   -GNinja \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-  -DICINGA2_UNITY_BUILD=ON \
   -DUSE_SYSTEMD=ON \
   -DICINGA2_USER=$(id -un) \
   -DICINGA2_GROUP=$(id -gn) \
