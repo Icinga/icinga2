@@ -52,6 +52,7 @@ long Checkable::GetSchedulingOffset()
 void Checkable::UpdateNextCheck(const MessageOrigin::Ptr& origin)
 {
 	double interval;
+	double nextCheck;
 
 	if (GetStateType() == StateTypeSoft && GetLastCheckResult() != nullptr)
 		interval = GetRetryInterval();
@@ -67,12 +68,19 @@ void Checkable::UpdateNextCheck(const MessageOrigin::Ptr& origin)
 	if (adj != 0.0)
 		adj = std::min(0.5 + fmod(GetSchedulingOffset(), interval * 5) / 100.0, adj);
 
-	double nextCheck = now - adj + interval;
+	double lastCheckScheduleStart = GetLastCheckScheduleStart();
+
+	if (interval > 1)
+		nextCheck = std::max(lastCheckScheduleStart - adj + interval, now + 0.5 + adj);
+	else
+		nextCheck = now - adj + interval;
+
 	double lastCheck = GetLastCheck();
 
 	Log(LogDebug, "Checkable")
 		<< "Update checkable '" << GetName() << "' with check interval '" << GetCheckInterval()
-		<< "' from last check time at " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", (lastCheck < 0 ? 0 : lastCheck))
+		<< "' from last check schedule start time at " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", (lastCheckScheduleStart < 0 ? 0 : lastCheckScheduleStart))
+		<< "' and last check time at " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", (lastCheck < 0 ? 0 : lastCheck))
 		<< " (" << GetLastCheck() << ") to next check time at " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", nextCheck) << " (" << nextCheck << ").";
 
 	SetNextCheck(nextCheck, false, origin);
@@ -92,6 +100,17 @@ double Checkable::GetLastCheck() const
 		schedule_end = cr->GetScheduleEnd();
 
 	return schedule_end;
+}
+
+double Checkable::GetLastCheckScheduleStart() const
+{
+	CheckResult::Ptr cr = GetLastCheckResult();
+	double schedule_start = -1;
+
+	if (cr)
+		schedule_start = cr->GetScheduleStart();
+
+	return schedule_start;
 }
 
 Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrigin::Ptr& origin)
