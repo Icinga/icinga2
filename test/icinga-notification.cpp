@@ -56,12 +56,13 @@ struct DuplicateDueToFilterHelper
 	{
 		auto calledBefore (called);
 
-		s->SetStateRaw(state, true);
+		CheckResult::Ptr cr(new CheckResult());
+		cr->SetState(state, true);
 		Application::GetTP().Start();
 
 		n->BeginExecuteNotification(
 			state == ServiceOK ? NotificationRecovery : NotificationProblem,
-			nullptr, false, false, "", ""
+			cr, false, false, "", ""
 		);
 
 		Application::GetTP().Stop();

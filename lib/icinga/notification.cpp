@@ -347,19 +347,16 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 
 		/* Check state filters for problem notifications. Recovery notifications will be filtered away later. */
 		if (type == NotificationProblem) {
-			Host::Ptr host;
-			Service::Ptr service;
-			tie(host, service) = GetHostService(checkable);
-
 			unsigned long fstate;
 			String stateStr;
 
-			if (service) {
-				fstate = ServiceStateToFilter(service->GetState());
-				stateStr = NotificationServiceStateToString(service->GetState());
+			if (checkable->GetReflectionType() == Service::TypeInstance) {
+				fstate = ServiceStateToFilter(cr->GetState());
+				stateStr = NotificationServiceStateToString(cr->GetState());
 			} else {
-				fstate = HostStateToFilter(host->GetState());
-				stateStr = NotificationHostStateToString(host->GetState());
+				auto hostState(Host::CalculateState(cr->GetState()));
+				fstate = HostStateToFilter(hostState);
+				stateStr = NotificationHostStateToString(hostState);
 			}
 
 			Log(LogDebug, "Notification")
@@ -449,11 +446,13 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 		}
 
 		if (type == NotificationProblem && !reminder && !checkable->GetVolatile()) {
-			auto [host, service] = GetHostService(checkable);
-			uint_fast8_t state = service ? service->GetState() : host->GetState();
-
-			if (state == (uint_fast8_t)GetLastNotifiedStatePerUser()->Get(userName)) {
-				auto stateStr (service ? NotificationServiceStateToString(service->GetState()) : NotificationHostStateToString(host->GetState()));
+			if (static_cast<uint_fast8_t>(cr->GetState()) == (uint_fast8_t)GetLastNotifiedStatePerUser()->Get(userName)) {
+				String stateStr;
+				if (checkable->GetReflectionType() == Service::TypeInstance) {
+					stateStr = NotificationServiceStateToString(cr->GetState());
+				} else {
+					stateStr = NotificationHostStateToString(Host::CalculateState(cr->GetState()));
+				}
 
 				Log(LogNotice, "Notification")
 					<< "Notification object '" << notificationName << "': We already notified user '" << userName << "' for a " << stateStr
@@ -478,10 +477,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 		allNotifiedUsers.insert(user);
 
 		if (type == NotificationProblem) {
-			auto [host, service] = GetHostService(checkable);
-			uint_fast8_t state = service ? service->GetState() : host->GetState();
-
-			if (state != (uint_fast8_t)GetLastNotifiedStatePerUser()->Get(userName)) {
+			if (uint_fast8_t state(cr->GetState()); state != (uint_fast8_t)GetLastNotifiedStatePerUser()->Get(userName)) {
 				GetLastNotifiedStatePerUser()->Set(userName, state);
 				OnLastNotifiedStatePerUserUpdated(this, userName, state, nullptr);
 			}
