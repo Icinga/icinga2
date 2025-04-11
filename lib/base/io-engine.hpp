@@ -105,35 +105,32 @@ public:
 
 	template <typename Handler, typename Function>
 	static void SpawnCoroutine(Handler& h, Function f) {
-
-		boost::asio::spawn(h,
-#if BOOST_VERSION >= 108700
-			std::allocator_arg,
-			boost::context::fixedsize_stack(GetCoroutineStackSize()),
-#endif // BOOST_VERSION >= 108700
-			[f](boost::asio::yield_context yc) {
-
+		auto wrapper = [f](boost::asio::yield_context yc) {
+			try {
+				f(yc);
+			} catch (const std::exception& ex) {
+				Log(LogCritical, "IoEngine") << "Exception in coroutine: " << DiagnosticInformation(ex);
+			} catch (...) {
 				try {
-					f(yc);
-				} catch (const std::exception& ex) {
-					Log(LogCritical, "IoEngine") << "Exception in coroutine: " << DiagnosticInformation(ex);
+					Log(LogCritical, "IoEngine", "Exception in coroutine!");
 				} catch (...) {
-					try {
-						Log(LogCritical, "IoEngine", "Exception in coroutine!");
-					} catch (...) {
-					}
-
-					// Required for proper stack unwinding when coroutines are destroyed.
-					// https://github.com/boostorg/coroutine/issues/39
-					throw;
 				}
-			},
+
+				// Required for proper stack unwinding when coroutines are destroyed.
+				// https://github.com/boostorg/coroutine/issues/39
+				throw;
+			}
+		};
+
 #if BOOST_VERSION >= 108700
+		boost::asio::spawn(h,
+			std::allocator_arg, boost::context::fixedsize_stack(GetCoroutineStackSize()),
+			std::move(wrapper),
 			boost::asio::detached
-#else // BOOST_VERSION >= 108700
-			boost::coroutines::attributes(GetCoroutineStackSize()) // Set a pre-defined stack size.
-#endif // BOOST_VERSION >= 108700
 		);
+#else // BOOST_VERSION >= 108700
+		boost::asio::spawn(h, std::move(wrapper), boost::coroutines::attributes(GetCoroutineStackSize()));
+#endif // BOOST_VERSION >= 108700
 	}
 
 	static inline
