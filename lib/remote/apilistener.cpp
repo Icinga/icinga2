@@ -439,7 +439,7 @@ bool ApiListener::AddListener(const String& node, const String& service)
 
 	try {
 		tcp::resolver resolver (io);
-		auto result (resolver.resolve(node.CStr(), service.CStr(), tcp::resolver::passive));
+		auto result (resolver.resolve(node.GetData(), service.GetData(), tcp::resolver::passive));
 		auto current (result.begin());
 
 		for (;;) {

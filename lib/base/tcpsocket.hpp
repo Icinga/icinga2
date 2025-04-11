@@ -41,7 +41,7 @@ void Connect(Socket& socket, const String& node, const String& service)
 	using boost::asio::ip::tcp;
 
 	tcp::resolver resolver (IoEngine::Get().GetIoContext());
-	auto result (resolver.resolve(node.CStr(), service.CStr()));
+	auto result (resolver.resolve(node.GetData(), service.GetData()));
 	auto current (result.begin());
 
 	for (;;) {
@@ -71,7 +71,7 @@ void Connect(Socket& socket, const String& node, const String& service, boost::a
 	using boost::asio::ip::tcp;
 
 	tcp::resolver resolver (IoEngine::Get().GetIoContext());
-	auto result (resolver.async_resolve(node.CStr(), service.CStr(), yc));
+	auto result (resolver.async_resolve(node.GetData(), service.GetData(), yc));
 	auto current (result.begin());
 
 	for (;;) {
