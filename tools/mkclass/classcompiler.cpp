@@ -407,6 +407,16 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		<< "\t" << "return " << klass.ActivationPriority << ";" << std::endl
 		<< "}" << std::endl << std::endl;
 
+	// Provide an override for the deactivation priority only if it's explicitly provided, otherwise the
+	// default implementation of this will fall back to the activation priority of that type instead.
+	if (klass.DeactivationPriority != INT_MAX) {
+		m_Header << "\t" << "int GetDeactivationPriority() const override;" << std::endl;
+		m_Impl << "int TypeImpl<" << klass.Name << ">::GetDeactivationPriority() const" << std::endl
+			<< "{" << std::endl
+			<< "\t" << "return " << klass.DeactivationPriority << ";" << std::endl
+			<< "}" << std::endl << std::endl;
+	}
+
 	/* RegisterAttributeHandler */
 	m_Header << "public:" << std::endl
 			<< "\t" << "void RegisterAttributeHandler(int fieldId, const Type::AttributeHandler& callback) override;" << std::endl;

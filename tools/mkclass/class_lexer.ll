@@ -118,7 +118,7 @@ class				{ return T_CLASS; }
 namespace			{ return T_NAMESPACE; }
 code				{ return T_CODE; }
 load_after			{ return T_LOAD_AFTER; }
-activation_priority	{ return T_ACTIVATION_PRIORITY; }
+(activation_priority|deactivation_priority) { yylval->fieldAttributeMask = strcmp(yytext, "activation_priority") == 0 ? FAActivationPriority : FADeactivationPriority; return T_ACTIVATION_DEACTIVATION_PRIORITY; }
 library				{ return T_LIBRARY; }
 abstract			{ yylval->num = TAAbstract; return T_CLASS_ATTRIBUTE; }
 vararg_constructor		{ yylval->num = TAVarArgConstructor; return T_CLASS_ATTRIBUTE; }
