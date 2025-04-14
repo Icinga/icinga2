@@ -5,6 +5,7 @@
 #include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
 #include "config/configcompiler.hpp"
+#include "base/benchmark.hpp"
 #include "base/configtype.hpp"
 #include "base/configwriter.hpp"
 #include "base/scriptglobal.hpp"
@@ -139,12 +140,18 @@ bool ConsoleHandler::ExecuteScriptHelper(boost::beast::http::request<boost::beas
 		frame.Self = lsf.Locals;
 		frame.Sandboxed = sandboxed;
 
+		Benchmark<> benchmark;
+		benchmark.Start();
+
 		exprResult = expr->Evaluate(frame);
+
+		auto duration (benchmark.Stop());
 
 		resultInfo = new Dictionary({
 			{ "code", 200 },
 			{ "status", "Executed successfully." },
-			{ "result", Serialize(exprResult, 0) }
+			{ "result", Serialize(exprResult, 0) },
+			{ "duration", duration }
 		});
 	} catch (const ScriptError& ex) {
 		DebugInfo di = ex.GetDebugInfo();
