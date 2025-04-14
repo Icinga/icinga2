@@ -89,6 +89,8 @@ bool ActionsHandler::HandleRequest(
 		verbose = HttpUtility::GetLastParameter(params, "verbose");
 
 	for (const ConfigObject::Ptr& obj : objs) {
+		ObjectLock oLock (obj);
+
 		try {
 			results.emplace_back(action->Invoke(obj, params));
 		} catch (const std::exception& ex) {
