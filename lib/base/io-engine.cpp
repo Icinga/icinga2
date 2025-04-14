@@ -124,26 +124,48 @@ void IoEngine::RunEventLoop()
 	}
 }
 
-AsioConditionVariable::AsioConditionVariable(boost::asio::io_context& io, bool init)
+AsioEvent::AsioEvent(boost::asio::io_context& io, bool init)
 	: m_Timer(io)
 {
 	m_Timer.expires_at(init ? boost::posix_time::neg_infin : boost::posix_time::pos_infin);
 }
 
-void AsioConditionVariable::Set()
+void AsioEvent::Set()
 {
 	m_Timer.expires_at(boost::posix_time::neg_infin);
 }
 
-void AsioConditionVariable::Clear()
+void AsioEvent::Clear()
 {
 	m_Timer.expires_at(boost::posix_time::pos_infin);
 }
 
-void AsioConditionVariable::Wait(boost::asio::yield_context yc)
+void AsioEvent::Wait(boost::asio::yield_context yc)
 {
 	boost::system::error_code ec;
 	m_Timer.async_wait(yc[ec]);
+}
+
+AsioSymmetricEvent::AsioSymmetricEvent(boost::asio::io_context& io, bool init)
+	: m_IsTrue(io, init), m_IsFalse(io, !init)
+{
+}
+
+void AsioSymmetricEvent::Set()
+{
+	m_IsTrue.Set();
+	m_IsFalse.Clear();
+}
+
+void AsioSymmetricEvent::Clear()
+{
+	m_IsTrue.Clear();
+	m_IsFalse.Set();
+}
+
+void AsioSymmetricEvent::Wait(boost::asio::yield_context yc, bool desiredState)
+{
+	(desiredState ? m_IsTrue : m_IsFalse).Wait(std::move(yc));
 }
 
 /**
