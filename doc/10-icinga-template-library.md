@@ -871,6 +871,7 @@ imap_ssl              | **Optional.** Use SSL for the connection.
 imap_warning          | **Optional.** Response time to result in warning status (seconds).
 imap_critical         | **Optional.** Response time to result in critical status (seconds).
 imap_timeout          | **Optional.** Seconds before connection times out (default: 10).
+imap_sni              | **Optional.** Enable SSL/TLS hostname extension support (SNI).
 imap_ipv4             | **Optional.** Use IPv4 connection. Defaults to false.
 imap_ipv6             | **Optional.** Use IPv6 connection. Defaults to false.
 imap_extra_opts       | **Optional.** Read extra plugin options from an ini file.
@@ -1242,6 +1243,7 @@ pop_ssl              | **Optional.** Use SSL for the connection.
 pop_warning          | **Optional.** Response time to result in warning status (seconds).
 pop_critical         | **Optional.** Response time to result in critical status (seconds).
 pop_timeout          | **Optional.** Seconds before connection times out (default: 10).
+pop_sni              | **Optional.** Enable SSL/TLS hostname extension support (SNI).
 pop_ipv4             | **Optional.** Use IPv4 connection. Defaults to false.
 pop_ipv6             | **Optional.** Use IPv6 connection. Defaults to false.
 pop_extra_opts       | **Optional.** Read extra plugin options from an ini file.
@@ -1349,6 +1351,7 @@ simap_ssl              | **Optional.** Use SSL for the connection.
 simap_warning          | **Optional.** Response time to result in warning status (seconds).
 simap_critical         | **Optional.** Response time to result in critical status (seconds).
 simap_timeout          | **Optional.** Seconds before connection times out (default: 10).
+simap_sni              | **Optional.** Enable SSL/TLS hostname extension support (SNI).
 simap_ipv4             | **Optional.** Use IPv4 connection. Defaults to false.
 simap_ipv6             | **Optional.** Use IPv6 connection. Defaults to false.
 simap_extra_opts       | **Optional.** Read extra plugin options from an ini file.
@@ -1506,6 +1509,7 @@ spop_ssl              | **Optional.** Use SSL for the connection.
 spop_warning          | **Optional.** Response time to result in warning status (seconds).
 spop_critical         | **Optional.** Response time to result in critical status (seconds).
 spop_timeout          | **Optional.** Seconds before connection times out (default: 10).
+spop_sni              | **Optional.** Enable SSL/TLS hostname extension support (SNI).
 spop_ipv4             | **Optional.** Use IPv4 connection. Defaults to false.
 spop_ipv6             | **Optional.** Use IPv6 connection. Defaults to false.
 spop_extra_opts       | **Optional.** Read extra plugin options from an ini file.
