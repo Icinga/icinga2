@@ -68,6 +68,11 @@ typedef SeenStream<boost::asio::ssl::stream<boost::asio::ip::tcp::socket>> AsioT
 class UnbufferedAsioTlsStream : public AsioTcpTlsStream
 {
 public:
+	// SSL_get_verify_result() doesn't return negative values YET, but it might in the future.
+	// Better safe with a margin than sorry with a collision.
+	static constexpr long HandshakeNotCompleted = -42;
+	static constexpr long NoPeerCertificate = -43;
+
 	inline
 	UnbufferedAsioTlsStream(UnbufferedAsioTlsStreamParams& init)
 		: AsioTcpTlsStream(init.IoContext, init.SslContext), m_Hostname(init.Hostname)
@@ -75,6 +80,7 @@ public:
 	}
 
 	bool IsVerifyOK();
+	long GetVerifyErrorCode();
 	String GetVerifyError();
 	std::shared_ptr<X509> GetPeerCertificate();
 
