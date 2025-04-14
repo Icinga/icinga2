@@ -642,7 +642,9 @@ static const auto l_AppVersionInt (([]() -> unsigned long {
 })());
 
 static const auto l_MyCapabilities (
-	(uint_fast64_t)ApiCapabilities::ExecuteArbitraryCommand | (uint_fast64_t)ApiCapabilities::IfwApiCheckCommand
+	(uint_fast64_t)ApiCapabilities::ExecuteArbitraryCommand
+	| (uint_fast64_t)ApiCapabilities::IfwApiCheckCommand
+	| (uint_fast64_t)ApiCapabilities::HostChildrenInheritObjectAuthority
 );
 
 /**
@@ -848,11 +850,22 @@ void ApiListener::NewClientHandlerInternal(
 		JsonRpcConnection::Ptr aclient = new JsonRpcConnection(identity, verify_ok, client, role);
 
 		if (endpoint) {
-			endpoint->AddClient(aclient);
+			const auto reuniteCluster ([this, endpoint](const JsonRpcConnection::Ptr& aclient) {
+				endpoint->AddClient(aclient);
 
-			Utility::QueueAsyncCallback([this, aclient, endpoint]() {
-				SyncClient(aclient, endpoint, true);
+				Utility::QueueAsyncCallback([this, aclient, endpoint] {
+					SyncClient(aclient, endpoint, true);
+				});
 			});
+
+			if (endpoint->GetZone() == Zone::GetLocalZone()) {
+				// Nodes in the same zone, which do teamwork, must know each other's capabilities in advance.
+				// Hence, we delay everything else until they're told us via an icinga::Hello message.
+				// Even v2.12 nodes send this message at the beginning, so we're safe.
+				aclient->OnNextHello.connect(reuniteCluster);
+			} else {
+				reuniteCluster(aclient);
+			}
 		} else if (!AddAnonymousClient(aclient)) {
 			Log(LogNotice, "ApiListener")
 				<< "Ignoring anonymous JSON-RPC connection " << conninfo
@@ -1819,6 +1832,10 @@ Value ApiListener::HelloAPIHandler(const MessageOrigin::Ptr& origin, const Dicti
 					}
 				}
 			}
+
+			decltype(client->OnNextHello) listeners;
+			std::swap(client->OnNextHello, listeners);
+			listeners(client);
 		}
 	}
 
