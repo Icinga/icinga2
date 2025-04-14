@@ -177,6 +177,14 @@ add_boost_test(base
     base_tlsutility/iscertuptodate_ok
     base_tlsutility/iscertuptodate_expiring
     base_tlsutility/iscertuptodate_old
+    base_tlsutility/verifycertificate_ok
+    base_tlsutility/verifycertificate_leafexpired
+    base_tlsutility/verifycertificate_caexpired
+    base_tlsutility/verifycertificate_sigmismatch
+    base_tlsutility/verifycertificate_X509_STORE_new
+    base_tlsutility/verifycertificate_X509_STORE_add_cert
+    base_tlsutility/verifycertificate_X509_STORE_CTX_new
+    base_tlsutility/verifycertificate_X509_STORE_CTX_init
     base_utility/parse_version
     base_utility/compare_version
     base_utility/comparepasswords_works
