@@ -24,13 +24,20 @@ bool ServiceGroup::EvaluateObjectRule(const Service::Ptr& service, const ConfigI
 
 	CONTEXT("Evaluating rule for group '" << groupName << "'");
 
-	Host::Ptr host = service->GetHost();
+	ScriptFrame frame (false);
 
-	ScriptFrame frame(true);
-	if (group->GetScope())
-		group->GetScope()->CopyTo(frame.Locals);
-	frame.Locals->Set("host", host);
-	frame.Locals->Set("service", service);
+	if (group->GetScope()) {
+		frame.Locals = new Dictionary();
+
+		if (group->GetScope()) {
+			group->GetScope()->CopyTo(frame.Locals);
+		}
+
+		service->GetFrozenLocalsForApply()->CopyTo(frame.Locals);
+		frame.Locals->Freeze();
+	} else {
+		frame.Locals = service->GetFrozenLocalsForApply();
+	}
 
 	if (!group->GetFilter()->Evaluate(frame).GetValue().ToBool())
 		return false;
