@@ -191,7 +191,7 @@ find_package(OpenSSL REQUIRED)
 include_directories(SYSTEM ${OPENSSL_INCLUDE_DIR})
 
 set(base_DEPS ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES})
-set(base_OBJS $<TARGET_OBJECTS:mmatch> $<TARGET_OBJECTS:socketpair> $<TARGET_OBJECTS:base>)
+set(base_OBJS $<TARGET_OBJECTS:mmatch> $<TARGET_OBJECTS:socketpair> $<TARGET_OBJECTS:crypt_blowfish> $<TARGET_OBJECTS:base>)
 
 # JSON
 find_package(JSON)
