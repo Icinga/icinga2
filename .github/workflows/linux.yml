@@ -67,7 +67,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Restore/backup ccache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ccache
           key: ccache/${{ matrix.distro }}
