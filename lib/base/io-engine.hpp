@@ -105,7 +105,7 @@ public:
 
 	template <typename Handler, typename Function>
 	static void SpawnCoroutine(Handler& h, Function f) {
-		auto wrapper = [f](boost::asio::yield_context yc) {
+		auto wrapper = [f = std::move(f)](boost::asio::yield_context yc) {
 			try {
 				f(yc);
 			} catch (const std::exception& ex) {
