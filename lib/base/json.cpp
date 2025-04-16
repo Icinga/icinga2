@@ -18,6 +18,84 @@
 
 using namespace icinga;
 
+// The following code is a specialization of the nlohmann::adl_serializer<> for our Value type.
+// This allows us to serialize Icinga Values directly into JSON objects using the nlohmann::json library.
+// The specialization is defined within the nlohmann namespace, which is where the library expects it to be.
+namespace nlohmann
+{
+	template<>
+	struct adl_serializer<Value>
+	{
+		/**
+		 * Serializes an Icinga Value into a JSON object.
+		 *
+		 * @note This function is used by the JSON library to serialize the value.
+		 *
+		 * @param j The JSON object to serialize the value into.
+		 * @param value The value to serialize.
+		 */
+		static void to_json(json& j, const Value& value)
+		{
+			switch (value.GetType()) {
+				case ValueNumber:
+					if (auto ll(static_cast<long long>(value)); ll == value) {
+						j = ll;
+					} else {
+						j = value.Get<double>();
+					}
+					break;
+				case ValueBoolean:
+					j = value.ToBool();
+					break;
+				case ValueString:
+					j = Utility::ValidateUTF8(value.Get<String>());
+					break;
+				case ValueObject:
+				{
+					const Object::Ptr& obj = value.Get<Object::Ptr>();
+					if (obj->GetReflectionType() == Namespace::TypeInstance) {
+						ObjectLock olock(obj);
+						auto nsJson(json::object());
+						for (const auto& [key, value] : static_pointer_cast<Namespace>(obj)) {
+							nsJson[Utility::ValidateUTF8(key)] = value.Val;
+						}
+						j = std::move(nsJson);
+					} else if (obj->GetReflectionType() == Dictionary::TypeInstance) {
+						ObjectLock olock(obj);
+						auto dictJson(json::object());
+						for (const auto& [key, value] : static_pointer_cast<Dictionary>(obj)) {
+							dictJson[Utility::ValidateUTF8(key)] = value;
+						}
+						j = std::move(dictJson);
+					} else if (obj->GetReflectionType() == Array::TypeInstance) {
+						ObjectLock olock(obj);
+						auto arrJson(json::array());
+						for (const Value& v : static_pointer_cast<Array>(obj)) {
+							arrJson.emplace_back(v);
+						}
+						j = std::move(arrJson);
+					} else { // Some other non-serializable object type!
+						j = obj->ToString();
+					}
+					break;
+				}
+				case ValueEmpty:
+					j = nullptr;
+					break;
+				default:
+					VERIFY(!"Invalid variant type.");
+			}
+		}
+
+		// Deserializing JSON objects into Icinga Values is not supported here.
+		// For JSON deserialization, use the JsonSax class instead.
+		static void from_json(const json&, Value&)
+		{
+			throw std::runtime_error("JSON#from_json is not supported for icinga::Value");
+		}
+	};
+} // namespace nlohmann
+
 class JsonSax : public nlohmann::json_sax<nlohmann::json>
 {
 public:
@@ -45,165 +123,13 @@ private:
 	void FillCurrentTarget(Value value);
 };
 
-const char l_Null[] = "null";
-const char l_False[] = "false";
-const char l_True[] = "true";
-const char l_Indent[] = "    ";
-
-// https://github.com/nlohmann/json/issues/1512
-template<bool prettyPrint>
-class JsonEncoder
-{
-public:
-	void Null();
-	void Boolean(bool value);
-	void NumberFloat(double value);
-	void Strng(String value);
-	void StartObject();
-	void Key(String value);
-	void EndObject();
-	void StartArray();
-	void EndArray();
-
-	String GetResult();
-
-private:
-	std::vector<char> m_Result;
-	String m_CurrentKey;
-	std::stack<std::bitset<2>> m_CurrentSubtree;
-
-	void AppendChar(char c);
-
-	template<class Iterator>
-	void AppendChars(Iterator begin, Iterator end);
-
-	void AppendJson(nlohmann::json json);
-
-	void BeforeItem();
-
-	void FinishContainer(char terminator);
-};
-
-template<bool prettyPrint>
-void Encode(JsonEncoder<prettyPrint>& stateMachine, const Value& value);
-
-template<bool prettyPrint>
-inline
-void EncodeNamespace(JsonEncoder<prettyPrint>& stateMachine, const Namespace::Ptr& ns)
-{
-	stateMachine.StartObject();
-
-	ObjectLock olock(ns);
-	for (const Namespace::Pair& kv : ns) {
-		stateMachine.Key(Utility::ValidateUTF8(kv.first));
-		Encode(stateMachine, kv.second.Val);
-	}
-
-	stateMachine.EndObject();
-}
-
-template<bool prettyPrint>
-inline
-void EncodeDictionary(JsonEncoder<prettyPrint>& stateMachine, const Dictionary::Ptr& dict)
-{
-	stateMachine.StartObject();
-
-	ObjectLock olock(dict);
-	for (const Dictionary::Pair& kv : dict) {
-		stateMachine.Key(Utility::ValidateUTF8(kv.first));
-		Encode(stateMachine, kv.second);
-	}
-
-	stateMachine.EndObject();
-}
-
-template<bool prettyPrint>
-inline
-void EncodeArray(JsonEncoder<prettyPrint>& stateMachine, const Array::Ptr& arr)
-{
-	stateMachine.StartArray();
-
-	ObjectLock olock(arr);
-	for (const Value& value : arr) {
-		Encode(stateMachine, value);
-	}
-
-	stateMachine.EndArray();
-}
-
-template<bool prettyPrint>
-void Encode(JsonEncoder<prettyPrint>& stateMachine, const Value& value)
-{
-	switch (value.GetType()) {
-		case ValueNumber:
-			stateMachine.NumberFloat(value.Get<double>());
-			break;
-
-		case ValueBoolean:
-			stateMachine.Boolean(value.ToBool());
-			break;
-
-		case ValueString:
-			stateMachine.Strng(Utility::ValidateUTF8(value.Get<String>()));
-			break;
-
-		case ValueObject:
-			{
-				const Object::Ptr& obj = value.Get<Object::Ptr>();
-
-				{
-					Namespace::Ptr ns = dynamic_pointer_cast<Namespace>(obj);
-					if (ns) {
-						EncodeNamespace(stateMachine, ns);
-						break;
-					}
-				}
-
-				{
-					Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(obj);
-					if (dict) {
-						EncodeDictionary(stateMachine, dict);
-						break;
-					}
-				}
-
-				{
-					Array::Ptr arr = dynamic_pointer_cast<Array>(obj);
-					if (arr) {
-						EncodeArray(stateMachine, arr);
-						break;
-					}
-				}
-
-				// obj is most likely a function => "Object of type 'Function'"
-				Encode(stateMachine, obj->ToString());
-				break;
-			}
-
-		case ValueEmpty:
-			stateMachine.Null();
-			break;
-
-		default:
-			VERIFY(!"Invalid variant type.");
-	}
-}
+// The number of spaces to use for indentation in pretty-printed JSON.
+static constexpr unsigned int l_JsonIndentSize = 4;
 
 String icinga::JsonEncode(const Value& value, bool pretty_print)
 {
-	if (pretty_print) {
-		JsonEncoder<true> stateMachine;
-
-		Encode(stateMachine, value);
-
-		return stateMachine.GetResult() + "\n";
-	} else {
-		JsonEncoder<false> stateMachine;
-
-		Encode(stateMachine, value);
-
-		return stateMachine.GetResult();
-	}
+	nlohmann::json json(value);
+	return json.dump(pretty_print ? l_JsonIndentSize : -1, ' ', true);
 }
 
 Value icinga::JsonDecode(const String& data)
@@ -348,178 +274,4 @@ void JsonSax::FillCurrentTarget(Value value)
 			node.second->Add(value);
 		}
 	}
-}
-
-template<bool prettyPrint>
-inline
-void JsonEncoder<prettyPrint>::Null()
-{
-	BeforeItem();
-	AppendChars((const char*)l_Null, (const char*)l_Null + 4);
-}
-
-template<bool prettyPrint>
-inline
-void JsonEncoder<prettyPrint>::Boolean(bool value)
-{
-	BeforeItem();
-
-	if (value) {
-		AppendChars((const char*)l_True, (const char*)l_True + 4);
-	} else {
-		AppendChars((const char*)l_False, (const char*)l_False + 5);
-	}
-}
-
-template<bool prettyPrint>
-inline
-void JsonEncoder<prettyPrint>::NumberFloat(double value)
-{
-	BeforeItem();
-
-	// Make sure 0.0 is serialized as 0, so e.g. Icinga DB can parse it as int.
-	if (value < 0) {
-		long long i = value;
-
-		if (i == value) {
-			AppendJson(i);
-		} else {
-			AppendJson(value);
-		}
-	} else {
-		unsigned long long i = value;
-
-		if (i == value) {
-			AppendJson(i);
-		} else {
-			AppendJson(value);
-		}
-	}
-}
-
-template<bool prettyPrint>
-inline
-void JsonEncoder<prettyPrint>::Strng(String value)
-{
-	BeforeItem();
-	AppendJson(std::move(value));
-}
-
-template<bool prettyPrint>
-inline
-void JsonEncoder<prettyPrint>::StartObject()
-{
-	BeforeItem();
-	AppendChar('{');
-
-	m_CurrentSubtree.push(2);
-}
-
-template<bool prettyPrint>
-inline
-void JsonEncoder<prettyPrint>::Key(String value)
-{
-	m_CurrentKey = std::move(value);
-}
-
-template<bool prettyPrint>
-inline
-void JsonEncoder<prettyPrint>::EndObject()
-{
-	FinishContainer('}');
-}
-
-template<bool prettyPrint>
-inline
-void JsonEncoder<prettyPrint>::StartArray()
-{
-	BeforeItem();
-	AppendChar('[');
-
-	m_CurrentSubtree.push(0);
-}
-
-template<bool prettyPrint>
-inline
-void JsonEncoder<prettyPrint>::EndArray()
-{
-	FinishContainer(']');
-}
-
-template<bool prettyPrint>
-inline
-String JsonEncoder<prettyPrint>::GetResult()
-{
-	return String(m_Result.begin(), m_Result.end());
-}
-
-template<bool prettyPrint>
-inline
-void JsonEncoder<prettyPrint>::AppendChar(char c)
-{
-	m_Result.emplace_back(c);
-}
-
-template<bool prettyPrint>
-template<class Iterator>
-inline
-void JsonEncoder<prettyPrint>::AppendChars(Iterator begin, Iterator end)
-{
-	m_Result.insert(m_Result.end(), begin, end);
-}
-
-template<bool prettyPrint>
-inline
-void JsonEncoder<prettyPrint>::AppendJson(nlohmann::json json)
-{
-	nlohmann::detail::serializer<nlohmann::json>(nlohmann::detail::output_adapter<char>(m_Result), ' ').dump(std::move(json), prettyPrint, true, 0);
-}
-
-template<bool prettyPrint>
-inline
-void JsonEncoder<prettyPrint>::BeforeItem()
-{
-	if (!m_CurrentSubtree.empty()) {
-		auto& node (m_CurrentSubtree.top());
-
-		if (node[0]) {
-			AppendChar(',');
-		} else {
-			node[0] = true;
-		}
-
-		if (prettyPrint) {
-			AppendChar('\n');
-
-			for (auto i (m_CurrentSubtree.size()); i; --i) {
-				AppendChars((const char*)l_Indent, (const char*)l_Indent + 4);
-			}
-		}
-
-		if (node[1]) {
-			AppendJson(std::move(m_CurrentKey));
-			AppendChar(':');
-
-			if (prettyPrint) {
-				AppendChar(' ');
-			}
-		}
-	}
-}
-
-template<bool prettyPrint>
-inline
-void JsonEncoder<prettyPrint>::FinishContainer(char terminator)
-{
-	if (prettyPrint && m_CurrentSubtree.top()[0]) {
-		AppendChar('\n');
-
-		for (auto i (m_CurrentSubtree.size() - 1u); i; --i) {
-			AppendChars((const char*)l_Indent, (const char*)l_Indent + 4);
-		}
-	}
-
-	AppendChar(terminator);
-
-	m_CurrentSubtree.pop();
 }

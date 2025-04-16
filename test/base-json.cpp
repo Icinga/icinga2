@@ -39,10 +39,10 @@ BOOST_AUTO_TEST_CASE(encode)
     "string": "LF\nTAB\tAUml\u00e4Ill\ufffd",
     "true": true,
     "uint": 23
-}
-)EOF");
+})EOF");
 
-	BOOST_CHECK(JsonEncode(input, true) == output);
+	auto got(JsonEncode(input, true));
+	BOOST_CHECK_MESSAGE(output == got, "expected=" << output << "\ngot=" << got);
 
 	boost::algorithm::replace_all(output, " ", "");
 	boost::algorithm::replace_all(output, "Objectoftype'Function'", "Object of type 'Function'");
