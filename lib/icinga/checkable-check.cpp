@@ -344,14 +344,21 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 
 	cr->SetVarsAfter(vars_after);
 
-	bool problem_change = false;
 	if (service) {
 		SetLastCheckResult(cr);
 	} else {
 		bool wasProblem = GetProblem();
+
 		SetLastCheckResult(cr);
-		problem_change = GetProblem() != wasProblem;
+
+		if (GetProblem() != wasProblem) {
+			auto services = host->GetServices();
+			for (auto& service : services) {
+				Service::OnHostProblemChanged(service, cr, origin);
+			}
+		}
 	}
+
 	bool was_flapping = IsFlapping();
 
 	UpdateFlappingStatus(cr->GetState());
@@ -501,13 +508,7 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 	if ((stateChange || hardChange) && !children.empty() && (affectsPreviousStateChildren || AffectsChildren()))
 		OnReachabilityChanged(this, cr, children, origin);
 
-	olock->Unlock();
-	if (!service && problem_change) {
-		auto services = host->GetServices();
-		for (auto& service : services) {
-			Service::OnHostProblemChanged(service, cr, origin);
-		}
-	}
+	olock.Unlock();
 
 	if (recovery) {
 		for (auto& child : children) {
