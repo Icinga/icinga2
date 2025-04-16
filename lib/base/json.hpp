@@ -12,6 +12,7 @@ class String;
 class Value;
 
 String JsonEncode(const Value& value, bool pretty_print = false);
+void JsonEncode(const Value& value, std::ostream& os, bool pretty_print = false);
 Value JsonDecode(const String& data);
 
 }

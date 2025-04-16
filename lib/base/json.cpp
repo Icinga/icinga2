@@ -132,6 +132,20 @@ String icinga::JsonEncode(const Value& value, bool pretty_print)
 	return json.dump(pretty_print ? l_JsonIndentSize : -1, ' ', true);
 }
 
+/**
+ * Serializes an Icinga Value into a JSON object and writes it to the given output stream.
+ *
+ * @param value The value to be JSON serialized.
+ * @param os The output stream to write the JSON data to.
+ * @param pretty_print Whether to pretty print the JSON data.
+ */
+void icinga::JsonEncode(const Value& value, std::ostream& os, bool pretty_print)
+{
+	using namespace nlohmann;
+	detail::serializer<json> s(nlohmann::detail::output_adapter(os), ' ', json::error_handler_t::strict);
+	s.dump(json(value), pretty_print, true, pretty_print ? l_JsonIndentSize : 0);
+}
+
 Value icinga::JsonDecode(const String& data)
 {
 	String sanitized (Utility::ValidateUTF8(data));
