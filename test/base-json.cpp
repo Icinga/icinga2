@@ -44,6 +44,10 @@ BOOST_AUTO_TEST_CASE(encode)
 	auto got(JsonEncode(input, true));
 	BOOST_CHECK_MESSAGE(output == got, "expected=" << output << "\ngot=" << got);
 
+	std::ostringstream oss;
+	JsonEncode(input, oss, true);
+	BOOST_CHECK_MESSAGE(oss.str() == output, "expected=" << output << "\ngot=" << oss.str());
+
 	boost::algorithm::replace_all(output, " ", "");
 	boost::algorithm::replace_all(output, "Objectoftype'Function'", "Object of type 'Function'");
 	boost::algorithm::replace_all(output, "\n", "");
