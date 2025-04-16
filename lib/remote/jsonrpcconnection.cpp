@@ -40,7 +40,7 @@ JsonRpcConnection::JsonRpcConnection(const String& identity, bool authenticated,
 	: m_Identity(identity), m_Authenticated(authenticated), m_Stream(stream), m_Role(role),
 	m_Timestamp(Utility::GetTime()), m_Seen(Utility::GetTime()), m_IoStrand(io),
 	m_OutgoingMessagesQueued(io), m_WriterDone(io), m_ShuttingDown(false),
-	m_CheckLivenessTimer(io), m_HeartbeatTimer(io)
+	m_CheckLivenessTimer(io), m_HeartbeatTimer(io), m_ConfirmationTimer(io)
 {
 	if (authenticated)
 		m_Endpoint = Endpoint::GetByName(identity);
@@ -202,6 +202,31 @@ Shared<AsioTlsStream>::Ptr JsonRpcConnection::GetStream() const
 ConnectionRole JsonRpcConnection::GetRole() const
 {
 	return m_Role;
+}
+
+bool JsonRpcConnection::IsConnectionConfirmed() const
+{
+	return m_Confirmed;
+}
+
+void JsonRpcConnection::WaitForConfirmation(boost::asio::yield_context yc)
+{
+	// TODO: Set proper timeout in proper place
+	m_ConfirmationTimer.expires_from_now(boost::posix_time::milliseconds(1000));
+
+	boost::system::error_code ec;
+	m_ConfirmationTimer.async_wait(yc[ec]);
+}
+
+void JsonRpcConnection::ConfirmConnection()
+{
+	m_Confirmed = true;
+	m_ConfirmationTimer.expires_at(boost::posix_time::neg_infin);
+}
+
+void JsonRpcConnection::AbortConnection()
+{
+	m_ConfirmationTimer.expires_at(boost::posix_time::neg_infin);
 }
 
 void JsonRpcConnection::SendMessage(const Dictionary::Ptr& message)
@@ -391,7 +416,7 @@ void JsonRpcConnection::CheckLiveness(boost::asio::yield_context yc)
 {
 	boost::system::error_code ec;
 
-	if (!m_Authenticated) {
+	if (!m_Endpoint) {
 		/* Anonymous connections are normally only used for requesting a certificate and are closed after this request
 		 * is received. However, the request is only sent if the child has successfully verified the certificate of its
 		 * parent so that it is an authenticated connection from its perspective. In case this verification fails, both

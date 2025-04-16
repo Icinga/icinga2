@@ -774,7 +774,8 @@ void ApiListener::NewClientHandlerInternal(
 				{ "method", "icinga::Hello" },
 				{ "params", new Dictionary({
 					{ "version", (double)l_AppVersionInt },
-					{ "capabilities", (double)l_MyCapabilities }
+					{ "capabilities", (double)l_MyCapabilities },
+					{ "confirm", endpoint ? true : false }
 				}) }
 			}), yc);
 
@@ -813,7 +814,8 @@ void ApiListener::NewClientHandlerInternal(
 					{ "method", "icinga::Hello" },
 					{ "params", new Dictionary({
 						{ "version", (double)l_AppVersionInt },
-						{ "capabilities", (double)l_MyCapabilities }
+						{ "capabilities", (double)l_MyCapabilities },
+						{ "confirm", endpoint ? true : false }
 					}) }
 				}), yc);
 
@@ -845,8 +847,25 @@ void ApiListener::NewClientHandlerInternal(
 		}
 
 		JsonRpcConnection::Ptr aclient = new JsonRpcConnection(identity, verify_ok, client, role);
+		if (aclient) {
+			aclient->Start();
+			shutdownSslConn.Cancel();
+			Log(LogDebug, "ApiListener") << "aclient->Start();";
+		}
 
 		if (endpoint) {
+			try {
+				aclient->WaitForConfirmation(yc);
+				if (!aclient->IsConnectionConfirmed()) {
+					Log(LogCritical, "ApiListener")
+						<< "Failed to get confirmation via \"icinga::Hello\" in time.";
+					return;
+				}
+			} catch (boost::system::system_error& ec) {
+				Log(LogCritical, "ApiListener") << "Error while waiting for the client confirmation: " << ec.what();
+			}
+			
+			Log(LogDebug, "ApiListener") << "endpoint->AddClient(aclient);";
 			endpoint->AddClient(aclient);
 
 			Utility::QueueAsyncCallback([this, aclient, endpoint]() {
@@ -860,10 +879,6 @@ void ApiListener::NewClientHandlerInternal(
 			aclient = nullptr;
 		}
 
-		if (aclient) {
-			aclient->Start();
-			shutdownSslConn.Cancel();
-		}
 	} else {
 		Log(LogNotice, "ApiListener", "New HTTP client");
 
@@ -1795,6 +1810,15 @@ Value ApiListener::HelloAPIHandler(const MessageOrigin::Ptr& origin, const Dicti
 				endpoint->SetIcingaVersion(nodeVersion);
 				endpoint->SetCapabilities((double)params->Get("capabilities"));
 
+				Value confirm = params->Get("confirm");
+				if (confirm.IsEmpty() || confirm.IsBoolean() && confirm.Get<bool>()) {
+					client->ConfirmConnection();
+					Log(LogInformation, "ApiListener") << "Client '" << endpoint->GetName() << "' confirmed connection";
+				} else {
+					client->AbortConnection();
+					Log(LogWarning, "ApiListener") << "Client '" << endpoint->GetName() << "' denied connection";
+				}
+				
 				if (nodeVersion == 0u) {
 					nodeVersion = 21200;
 				}

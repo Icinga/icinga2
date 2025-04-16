@@ -54,6 +54,11 @@ public:
 	Shared<AsioTlsStream>::Ptr GetStream() const;
 	ConnectionRole GetRole() const;
 
+	bool IsConnectionConfirmed() const;
+	void WaitForConfirmation(boost::asio::yield_context yc);
+	void ConfirmConnection();
+	void AbortConnection();
+
 	void Disconnect();
 
 	void SendMessage(const Dictionary::Ptr& request);
@@ -68,6 +73,7 @@ public:
 private:
 	String m_Identity;
 	bool m_Authenticated;
+	bool m_Confirmed = false;
 	Endpoint::Ptr m_Endpoint;
 	Shared<AsioTlsStream>::Ptr m_Stream;
 	ConnectionRole m_Role;
@@ -78,7 +84,7 @@ private:
 	AsioConditionVariable m_OutgoingMessagesQueued;
 	AsioConditionVariable m_WriterDone;
 	Atomic<bool> m_ShuttingDown;
-	boost::asio::deadline_timer m_CheckLivenessTimer, m_HeartbeatTimer;
+	boost::asio::deadline_timer m_CheckLivenessTimer, m_HeartbeatTimer, m_ConfirmationTimer;
 
 	JsonRpcConnection(const String& identity, bool authenticated, const Shared<AsioTlsStream>::Ptr& stream, ConnectionRole role, boost::asio::io_context& io);
 

@@ -6,6 +6,7 @@
 #include "remote/i2-remote.hpp"
 #include "remote/endpoint-ti.hpp"
 #include "base/ringbuffer.hpp"
+#include "base/io-engine.hpp"
 #include <set>
 
 namespace icinga
