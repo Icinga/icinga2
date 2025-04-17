@@ -47,6 +47,7 @@ void LivestatusListener::StatsFunc(const Dictionary::Ptr& status, const Array::P
 void LivestatusListener::Start(bool runtimeCreated)
 {
 	ObjectImpl<LivestatusListener>::Start(runtimeCreated);
+	CheckResultProducerComponent::Start();
 
 	Log(LogInformation, "LivestatusListener")
 		<< "'" << GetName() << "' started.";
@@ -112,6 +113,7 @@ void LivestatusListener::Stop(bool runtimeRemoved)
 		<< "'" << GetName() << "' stopped.";
 
 	m_Listener->Close();
+	CheckResultProducerComponent::Stop();
 
 	if (m_Thread.joinable())
 		m_Thread.join();
@@ -191,7 +193,7 @@ void LivestatusListener::ClientHandler(const Socket::Ptr& client)
 			break;
 
 		LivestatusQuery::Ptr query = new LivestatusQuery(lines, GetCompatLogPath());
-		if (!query->Execute(stream))
+		if (!query->Execute(this, stream))
 			break;
 	}
 

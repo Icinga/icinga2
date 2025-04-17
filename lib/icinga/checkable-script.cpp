@@ -9,18 +9,18 @@
 
 using namespace icinga;
 
-static void CheckableProcessCheckResult(const CheckResult::Ptr& cr)
+static void CheckableProcessCheckResult(const CheckResult::Ptr& cr, const CheckResultProducer::Ptr& producer)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Checkable::Ptr self = vframe->Self;
 	REQUIRE_NOT_NULL(self);
-	self->ProcessCheckResult(cr);
+	self->ProcessCheckResult(cr, producer);
 }
 
 Object::Ptr Checkable::GetPrototype()
 {
 	static Dictionary::Ptr prototype = new Dictionary({
-		{ "process_check_result", new Function("Checkable#process_check_result", CheckableProcessCheckResult, { "cr" }, false) }
+		{ "process_check_result", new Function("Checkable#process_check_result", CheckableProcessCheckResult, { "cr", "producer" }, false) }
 	});
 
 	return prototype;
