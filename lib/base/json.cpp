@@ -142,7 +142,7 @@ String icinga::JsonEncode(const Value& value, bool pretty_print)
 void icinga::JsonEncode(const Value& value, std::ostream& os, bool pretty_print)
 {
 	using namespace nlohmann;
-	detail::serializer<json> s(nlohmann::detail::output_adapter(os), ' ', json::error_handler_t::strict);
+	detail::serializer<json> s(detail::output_adapter<char>(os), ' ', json::error_handler_t::strict);
 	s.dump(json(value), pretty_print, true, pretty_print ? l_JsonIndentSize : 0);
 }
 
