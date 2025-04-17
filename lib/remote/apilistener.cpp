@@ -757,7 +757,8 @@ void ApiListener::NewClientHandlerInternal(
 		if (!verify_ok) {
 			log << " (certificate validation failed: " << verifyError << ")";
 		} else if (!endpoint) {
-			log << " (no Endpoint object found for identity)";
+			log << " (no Endpoint object found for identity. Closing Connection.)";
+			return;
 		}
 	} else {
 		Log(LogInformation, "ApiListener")
