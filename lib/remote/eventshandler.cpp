@@ -9,9 +9,9 @@
 #include "base/io-engine.hpp"
 #include "base/objectlock.hpp"
 #include "base/json.hpp"
-#include <boost/asio/buffer.hpp>
 #include <boost/asio/write.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <boost/asio/streambuf.hpp>
 #include <map>
 #include <set>
 
@@ -110,21 +110,18 @@ bool EventsHandler::HandleRequest(
 	http::async_write(stream, response, yc);
 	stream.async_flush(yc);
 
-	asio::const_buffer newLine ("\n", 1);
+	asio::streambuf eventsBuf;
+	std::ostream eventsOS(&eventsBuf);
 
 	for (;;) {
-		auto event (subscriber.GetInbox()->Shift(yc));
+		if (auto event(subscriber.GetInbox()->Shift(yc)); event) {
+			JsonEncode(event, eventsOS);
+			// Put a newline at the end of each event to render them on a separate line.
+			eventsOS << '\n';
 
-		if (event) {
-			String body = JsonEncode(event);
-
-			boost::algorithm::replace_all(body, "\n", "");
-
-			asio::const_buffer payload (body.CStr(), body.GetLength());
-
-			asio::async_write(stream, payload, yc);
-			asio::async_write(stream, newLine, yc);
+			asio::async_write(stream, eventsBuf, yc);
 			stream.async_flush(yc);
+			eventsBuf.consume(eventsBuf.size()); // Remove already sent data from the buffer.
 		} else if (server.Disconnected()) {
 			return true;
 		}
