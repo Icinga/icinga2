@@ -391,6 +391,19 @@ String icinga::JsonEncode(const Value& value, bool pretty_print)
 	}
 }
 
+/**
+ * Serializes an Icinga Value into a JSON object and writes it to the given output stream.
+ *
+ * @param value The value to be JSON serialized.
+ * @param os The output stream to write the JSON data to.
+ * @param prettify Whether to pretty print the serialized JSON.
+ */
+void icinga::JsonEncode(const Value& value, std::ostream& os, bool prettify)
+{
+	JsonEncoder encoder(os, prettify);
+	encoder.Encode(value);
+}
+
 Value icinga::JsonDecode(const String& data)
 {
 	String sanitized (Utility::ValidateUTF8(data));
