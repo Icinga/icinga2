@@ -792,17 +792,18 @@ The most common benefits:
 
 #### Unity Builds <a id="development-develop-builds-unity-builds"></a>
 
-Another thing you should be aware of: Unity builds on and off.
+You should be aware that by default unity builds are enabled. You can turn them
+off by setting the `ICINGA2_UNITY_BUILD` CMake option to `OFF`.
 
 Typically, we already use caching mechanisms to reduce recompile time with ccache.
 For release builds, there's always a new build needed as the difference is huge compared
 to a previous (major) release.
 
-Therefore we've invented the Unity builds, which basically concatenates all source files
-into one big library source code file. The compiler then doesn't need to load the many small
-files but compiles and links this huge one.
+Unity builds basically concatenate all source files into one big library source code file.
+The compiler then doesn't need to load many small files, each with all of their includes,
+but compiles and links only a few huge ones.
 
-Unity builds require more memory which is why you should disable them for development
+However, unity builds require more memory which is why you should disable them for development
 builds in small sized VMs (Linux, Windows) and also Docker containers.
 
 There's a couple of header files which are included everywhere. If you touch/edit them,
