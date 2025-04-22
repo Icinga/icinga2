@@ -741,7 +741,7 @@ perfdata       | Performance data related, including Graphite, Elastic, etc.
 db\_ido        | IDO database abstraction layer.
 db\_ido\_mysql | IDO database driver for MySQL.
 db\_ido\_pgsql | IDO database driver for PgSQL.
-mysql\_shin    | Library stub for linking against the MySQL client libraries.
+mysql\_shim    | Library stub for linking against the MySQL client libraries.
 pgsql\_shim    | Library stub for linking against the PgSQL client libraries.
 
 #### Class Compiler <a id="development-develop-design-patterns-class-compiler"></a>
@@ -1228,7 +1228,7 @@ every second.
 
 Avoid log messages which could irritate the user. During
 implementation, developers can change log levels to better
-see what's going one, but remember to change this back to `debug`
+see what's going on, but remember to change this back to `debug`
 or remove it entirely.
 
 
@@ -2262,7 +2262,7 @@ cmake .. -DCMAKE_INSTALL_PREFIX=/tmp/icinga2
 
 ### CMake Variables <a id="development-package-builds-cmake-variables"></a>
 
-In addition to `CMAKE_INSTALL_PREFIX` here are most of the supported Icinga-specific cmake variables.
+In addition to `CMAKE_INSTALL_PREFIX` here are most of the supported Icinga-specific CMake variables.
 
 For all variables regarding defaults paths on in CMake, see
 [GNUInstallDirs](https://cmake.org/cmake/help/latest/module/GNUInstallDirs.html).
