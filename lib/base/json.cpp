@@ -18,6 +18,191 @@
 
 using namespace icinga;
 
+constexpr uint8_t JsonEncoder::m_IndentSize;
+
+/**
+ * Emits JSON token(s) based on the provided control flag.
+ *
+ * This function handles various control flags that dictate how the JSON structure should be encoded,
+ * and it manages the context stack to ensure proper nesting of JSON objects and arrays.
+ *
+ * @param flag The control flag indicating the types of JSON structure to encode.
+ */
+void JsonEncoder::EncodeImpl(Ctrls flag)
+{
+	switch (flag) {
+		case BeginObject:
+			m_CtxStack.push(Ctx{CtxType::Object, 0});
+			Indent();
+			m_Writer->write_characters(m_Pretty ? "{\n" : "{", m_Pretty ? 2 : 1);
+			return;
+		case EndObject:
+			// Ensure that we are indeed in an object context before closing it.
+			ASSERT(!m_CtxStack.empty() && m_CtxStack.top().type == CtxType::Object);
+			m_CtxStack.pop();
+			UnIndent();
+			m_Writer->write_character('}');
+			return;
+		case BeginArray:
+			m_CtxStack.push(Ctx{CtxType::Array, 0});
+			Indent();
+			m_Writer->write_characters(m_Pretty ? "[\n" : "[", m_Pretty ? 2 : 1);
+			return;
+		case EndArray:
+			// Ensure that we are indeed in an array context before closing it.
+			ASSERT(!m_CtxStack.empty() && m_CtxStack.top().type == CtxType::Array);
+			m_CtxStack.pop();
+			UnIndent();
+			m_Writer->write_character(']');
+			return;
+		case EmptyObject:
+			m_Writer->write_characters("{}", 2);
+			return;
+		case EmptyArray:
+			m_Writer->write_characters("[]", 2);
+			return;
+		case Comma:
+			m_Writer->write_characters(",\n", m_Pretty ? 2 : 1);
+			return;
+		case NewLine:
+			m_Writer->write_character('\n');
+			return;
+		case Flush: {
+			while (!m_CtxStack.empty()) {
+				if (m_CtxStack.top().type == CtxType::Object) {
+					EncodeImpl(EndObject);
+				} else if (m_CtxStack.top().type == CtxType::Array) {
+					EncodeImpl(EndArray);
+				}
+				m_CtxStack.pop();
+			}
+			return;
+		}
+		default:
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid JSON encoding flag."));
+	}
+}
+
+/**
+ * Encodes the given value into JSON and writes it to the configured output stream.
+ *
+ * This function is specialized for the @c Value type and recursively encodes each
+ * and every concrete type it represents.
+ *
+ * @param value The value to be JSON serialized.
+ */
+void JsonEncoder::EncodeImpl(const Value& value)
+{
+	switch (value.GetType()) {
+		case ValueEmpty:
+			m_Writer->write_characters("null", 4);
+			return;
+		case ValueBoolean:
+			if (value.ToBool()) {
+				m_Writer->write_characters("true", 4);
+			} else {
+				m_Writer->write_characters("false", 5);
+			}
+			return;
+		case ValueString:
+			EncodeValidatedJson(Utility::ValidateUTF8(value.Get<String>()));
+			return;
+		case ValueNumber:
+			if (auto ll(static_cast<long long>(value)); ll == value) {
+				EncodeValidatedJson(ll);
+			} else {
+				EncodeValidatedJson(value.Get<double>());
+			}
+			return;
+		case ValueObject: {
+			const Object::Ptr& obj = value.Get<Object::Ptr>();
+			if (obj->GetReflectionType() == Namespace::TypeInstance) {
+				static constexpr auto extractor = [](const NamespaceValue& v) -> const Value& { return v.Val; };
+				EncodeObject(static_pointer_cast<Namespace>(obj), extractor);
+			} else if (obj->GetReflectionType() == Dictionary::TypeInstance) {
+				static constexpr auto extractor = [](const Value& v) -> const Value& { return v; };
+				EncodeObject(static_pointer_cast<Dictionary>(obj), extractor);
+			} else if (obj->GetReflectionType() == Array::TypeInstance) {
+				if (auto arr(static_pointer_cast<Array>(obj)); arr->GetLength() == 0) {
+					EncodeImpl(EmptyArray);
+				} else {
+					ObjectLock olock(arr);
+					auto begin(arr->Begin());
+					auto end(arr->End());
+					olock.Unlock();
+
+					EncodeImpl(BeginArray);
+					for (auto it(begin); it != end; ++it) {
+						EncodeItem(*it);
+					}
+					EncodeImpl(EndArray);
+				}
+			} else {
+				// Some other non-serializable object type!
+				EncodeValidatedJson(Utility::ValidateUTF8(obj->ToString()));
+			}
+			return;
+		}
+		default:
+			VERIFY(!"Invalid variant type.");
+	}
+}
+
+/**
+ * Encodes an item into the currently open JSON array.
+ *
+ * This is used to incrementally build a JSON array by adding items to it one by one.
+ * Calling this function outside an array context will result in an exception being thrown.
+ *
+ * @param item The item to be encoded into the JSON array.
+ */
+void JsonEncoder::EncodeItem(const Value& item)
+{
+	if (m_CtxStack.empty() || m_CtxStack.top().type != CtxType::Array) {
+		BOOST_THROW_EXCEPTION(std::logic_error("Cannot encode item outside an array context."));
+	}
+
+	writeCommaIfNeededAndIndentStr();
+	EncodeImpl(item);
+	incrementCtxElements();
+}
+
+void JsonEncoder::writeCommaIfNeededAndIndentStr()
+{
+	if (!m_CtxStack.empty() && m_CtxStack.top().count > 0) {
+		EncodeImpl(Comma);
+	}
+	if (m_Pretty) {
+		m_Writer->write_characters(m_IndentStr.c_str(), m_Indent);
+	}
+}
+
+void JsonEncoder::incrementCtxElements()
+{
+	if (!m_CtxStack.empty()) {
+		m_CtxStack.top().count++;
+	}
+}
+
+void JsonEncoder::Indent()
+{
+	if (m_Pretty) {
+		m_Indent += m_IndentSize;
+		if (m_IndentStr.size() < m_Indent) {
+			m_IndentStr.resize(m_IndentStr.size() * 2, ' ');
+		}
+	}
+}
+
+void JsonEncoder::UnIndent()
+{
+	if (m_Pretty) {
+		m_Indent -= m_IndentSize;
+		m_Writer->write_character('\n');
+		m_Writer->write_characters(m_IndentStr.c_str(), m_Indent);
+	}
+}
+
 class JsonSax : public nlohmann::json_sax<nlohmann::json>
 {
 public:
