@@ -167,6 +167,7 @@ private:
 };
 
 String JsonEncode(const Value& value, bool pretty_print = false);
+void JsonEncode(const Value& value, std::ostream& os, bool prettify = false);
 Value JsonDecode(const String& data);
 
 }
