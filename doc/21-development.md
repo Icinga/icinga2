@@ -683,7 +683,7 @@ these tools:
 - vim
 - CLion (macOS, Linux)
 - MS Visual Studio (Windows)
-- Atom
+- Emacs
 
 Editors differ on the functionality. The more helpers you get for C++ development,
 the faster your development workflow will be.
