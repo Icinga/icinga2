@@ -746,7 +746,7 @@ pgsql\_shim    | Library stub for linking against the PgSQL client libraries.
 
 #### Class Compiler <a id="development-develop-design-patterns-class-compiler"></a>
 
-Another thing you will recognize are the `.ti` files which are compiled
+Something else you might notice are the `.ti` files which are compiled
 by our own class compiler into actual source code. The meta language allows
 developers to easily add object attributes and specify their behaviour.
 
