@@ -517,13 +517,8 @@ BOOST_AUTO_TEST_CASE(dst)
 				day, "01:30-02:30",
 				{make_tm("2021-03-14 01:00:00 PST")},
 				{make_tm("2021-03-14 01:59:59 PST")},
-#ifndef _WIN32
 				// As 02:30 does not exist on this day, it is parsed as if it was 02:30 PST which is actually 03:30 PDT.
 				Segment("2021-03-14 01:30:00 PST", "2021-03-14 03:30:00 PDT"),
-#else
-				// Windows interpretes 02:30 as 01:30 PST, so it is an empty segment.
-				boost::none,
-#endif
 			});
 		}
 
@@ -533,14 +528,9 @@ BOOST_AUTO_TEST_CASE(dst)
 				day, "02:30-03:30",
 				{make_tm("2021-03-14 01:00:00 PST")},
 				{make_tm("2021-03-14 03:00:00 PDT")},
-#ifndef _WIN32
 				// As 02:30 does not exist on this day, it is parsed as if it was 02:30 PST which is actually 03:30 PDT.
 				// Therefore, the result is a segment from 03:30 PDT to 03:30 PDT with a duration of 0, i.e. no segment.
 				boost::none,
-#else
-				// Windows parses non-existing 02:30 as 01:30 PST, resulting in an 1 hour segment.
-				Segment("2021-03-14 01:30:00 PST", "2021-03-14 03:30:00 PDT"),
-#endif
 			});
 		}
 
@@ -549,13 +539,8 @@ BOOST_AUTO_TEST_CASE(dst)
 			day, "02:15-03:45",
 			{make_tm("2021-03-14 01:00:00 PST")},
 			{make_tm("2021-03-14 03:30:00 PDT")},
-#ifndef _WIN32
 			// As 02:15 does not exist on this day, it is parsed as if it was 02:15 PST which is actually 03:15 PDT.
 			Segment("2021-03-14 03:15:00 PDT", "2021-03-14 03:45:00 PDT"),
-#else
-			// Windows interprets 02:15 as 01:15 PST though.
-			Segment("2021-03-14 01:15:00 PST", "2021-03-14 03:45:00 PDT"),
-#endif
 		});
 
 		// range after DST change
@@ -587,7 +572,6 @@ BOOST_AUTO_TEST_CASE(dst)
 
 		if (day.find("sunday") == std::string::npos) { // skip for non-absolute day specs (would find another sunday)
 			// range existing twice during DST change (first instance)
-#ifndef _WIN32
 			tests.push_back(TestData{
 				day, "01:15-01:45",
 				{make_tm("2021-11-07 01:00:00 PDT")},
@@ -595,15 +579,6 @@ BOOST_AUTO_TEST_CASE(dst)
 				// Duplicate times are interpreted as the first occurrence.
 				Segment("2021-11-07 01:15:00 PDT", "2021-11-07 01:45:00 PDT"),
 			});
-#else
-			tests.push_back(TestData{
-				day, "01:15-01:45",
-				{make_tm("2021-11-07 01:00:00 PDT")},
-				{make_tm("2021-11-07 01:30:00 PST")},
-				// However, Windows always uses the second occurrence.
-				Segment("2021-11-07 01:15:00 PST", "2021-11-07 01:45:00 PST"),
-			});
-#endif
 		}
 
 		if (day.find("sunday") == std::string::npos) { // skip for non-absolute day specs (would find another sunday)
@@ -612,13 +587,8 @@ BOOST_AUTO_TEST_CASE(dst)
 				day, "01:15-01:45",
 				{make_tm("2021-11-07 01:00:00 PST")},
 				{make_tm("2021-11-07 01:30:00 PST")},
-#ifndef _WIN32
 				// Interpreted as the first occurrence, so it's in the past.
 				boost::none,
-#else
-				// On Windows, it's the second occurrence, so it's still in the present/future and is found.
-				Segment("2021-11-07 01:15:00 PST", "2021-11-07 01:45:00 PST"),
-#endif
 			});
 		}
 
@@ -644,13 +614,8 @@ BOOST_AUTO_TEST_CASE(dst)
 			day, "00:30-01:30",
 			{make_tm("2021-11-07 00:00:00 PDT")},
 			{make_tm("2021-11-07 01:00:00 PDT")},
-#ifndef _WIN32
 			// Both times are interpreted as the first instance on that day (i.e both PDT).
 			Segment("2021-11-07 00:30:00 PDT", "2021-11-07 01:30:00 PDT")
-#else
-			// Windows interprets duplicate times as the second instance (i.e. both PST).
-			Segment("2021-11-07 00:30:00 PDT", "2021-11-07 01:30:00 PST")
-#endif
 		});
 
 		// range beginning during duplicate DST hour (first instance)
@@ -658,18 +623,12 @@ BOOST_AUTO_TEST_CASE(dst)
 			day, "01:30-02:30",
 			{make_tm("2021-11-07 01:00:00 PDT")},
 			{make_tm("2021-11-07 02:00:00 PST")},
-#ifndef _WIN32
 			// 01:30 is interpreted as the first occurrence (PDT) but since there's no 02:30 PDT, it's PST.
 			Segment("2021-11-07 01:30:00 PDT", "2021-11-07 02:30:00 PST")
-#else
-			// Windows interprets both as PST though.
-			Segment("2021-11-07 01:30:00 PST", "2021-11-07 02:30:00 PST")
-#endif
 		});
 
 		if (day.find("sunday") == std::string::npos) { // skip for non-absolute day specs (would find another sunday)
 			// range ending during duplicate DST hour (second instance)
-#ifndef _WIN32
 			tests.push_back(TestData{
 				day, "00:30-01:30",
 				{make_tm("2021-11-07 00:00:00 PST")},
@@ -678,15 +637,6 @@ BOOST_AUTO_TEST_CASE(dst)
 				// 01:00 PST (02:00 PDT) is after the segment.
 				boost::none,
 			});
-#else
-			tests.push_back(TestData{
-				day, "00:30-01:30",
-				{make_tm("2021-11-07 00:00:00 PDT")},
-				{make_tm("2021-11-07 01:00:00 PST")},
-				// As Windows interprets the end as PST, it's still in the future and the segment is found.
-				Segment("2021-11-07 00:30:00 PDT", "2021-11-07 01:30:00 PST"),
-			});
-#endif
 		}
 
 		// range beginning during duplicate DST hour (second instance)
@@ -694,13 +644,8 @@ BOOST_AUTO_TEST_CASE(dst)
 			day, "01:30-02:30",
 			{make_tm("2021-11-07 01:00:00 PDT")},
 			{make_tm("2021-11-07 02:00:00 PST")},
-#ifndef _WIN32
 			// As 01:30 always refers to the first occurrence (PDT), this is actually a 2 hour segment.
 			Segment("2021-11-07 01:30:00 PDT", "2021-11-07 02:30:00 PST"),
-#else
-			// On Windows, it refers t the second occurrence (PST), therefore it's an 1 hour segment.
-			Segment("2021-11-07 01:30:00 PST", "2021-11-07 02:30:00 PST"),
-#endif
 		});
 	}
 
