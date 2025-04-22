@@ -18,6 +18,142 @@
 
 using namespace icinga;
 
+constexpr uint8_t JsonEncoder::m_IndentSize;
+
+/**
+ * Encodes the given flag into JSON and writes it to the configured output stream.
+ *
+ * This function handles the opening and closing of JSON objects and arrays based on the provided flag.
+ * It adjusts the indentation level and writes appropriate characters to the output stream and supports
+ * both pretty-printed and compact JSON formats based on the @c m_Pretty member variable.
+ *
+ * If @c EmptyObj flag is set, it writes an empty object "{}", and likewise if both @c EmptyArr
+ * flag is set, it writes an empty array "[]".
+ *
+ * @param flag The flag indicating whether to begin or end an object or array.
+ */
+void JsonEncoder::EncodeImpl(JsonEncodingFlags flag)
+{
+	if (m_Pretty) {
+		if (flag == JsonEncodingFlags::EndObject || flag == JsonEncodingFlags::EndArray) {
+			m_Indent -= m_IndentSize; // Exiting an object or array scope decreases the indentation level.
+			m_Writer->write_character('\n');
+			m_Writer->write_characters(m_IndentStr.c_str(), m_Indent);
+		} else if (flag == JsonEncodingFlags::BeginObject || flag == JsonEncodingFlags::BeginArray) {
+			m_Indent += m_IndentSize; // Entering an object or array scope increases the indentation level.
+			if (m_IndentStr.size() < m_Indent) {
+				m_IndentStr.resize(m_IndentStr.size() * 2, ' ');
+			}
+		}
+	}
+
+	switch (flag) {
+		case JsonEncodingFlags::BeginObject:
+			m_Writer->write_characters(m_Pretty ? "{\n" : "{", m_Pretty ? 2 : 1);
+			return;;
+		case JsonEncodingFlags::EndObject:
+			m_Writer->write_character('}');
+			return;
+		case JsonEncodingFlags::BeginArray:
+			m_Writer->write_characters(m_Pretty ? "[\n" : "[", m_Pretty ? 2 : 1);
+			return;
+		case JsonEncodingFlags::EndArray:
+			m_Writer->write_character(']');
+			return;
+		case JsonEncodingFlags::EmptyObject:
+			m_Writer->write_characters("{}", 2);
+			return;
+		case JsonEncodingFlags::EmptyArray:
+			m_Writer->write_characters("[]", 2);
+			return;
+		case JsonEncodingFlags::NewLine:
+			m_Writer->write_character('\n');
+			return;
+		default:
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid JSON encoding flag."));
+	}
+}
+
+/**
+ * Encodes the given value into JSON and writes it to the configured output stream.
+ *
+ * This function is specialized for the @c Value type and recursively encodes each
+ * and every concrete type it represents.
+ *
+ * @param value The value to be JSON serialized.
+ */
+void JsonEncoder::EncodeImpl(const Value& value)
+{
+	switch (value.GetType()) {
+		case ValueEmpty:
+			m_Writer->write_characters("null", 4);
+			return;
+		case ValueBoolean:
+			if (value.ToBool()) {
+				m_Writer->write_characters("true", 4);
+			} else {
+				m_Writer->write_characters("false", 5);
+			}
+			return;
+		case ValueString:
+			EncodeValidatedJson(Utility::ValidateUTF8(value.Get<String>()));
+			return;
+		case ValueNumber:
+			if (auto ll(static_cast<long long>(value)); ll == value) {
+				EncodeValidatedJson(ll);
+			} else {
+				EncodeValidatedJson(value.Get<double>());
+			}
+			return;
+		case ValueObject: {
+			const Object::Ptr& obj = value.Get<Object::Ptr>();
+			if (obj->GetReflectionType() == Namespace::TypeInstance) {
+				if (auto ns(static_pointer_cast<Namespace>(obj)); ns->GetLength() == 0) {
+					EncodeImpl(JsonEncodingFlags::EmptyObject); // Write an empty object "{}"
+				} else {
+					static constexpr auto extractor = [](const NamespaceValue& v) -> const Value& { return v.Val; };
+					EncodeObject(ns, extractor);
+				}
+			} else if (obj->GetReflectionType() == Dictionary::TypeInstance) {
+				if (auto dict(static_pointer_cast<Dictionary>(obj)); dict->GetLength() == 0) {
+					EncodeImpl(JsonEncodingFlags::EmptyObject); // Write an empty object "{}"
+				} else {
+					static constexpr auto extractor = [](const Value& v) -> const Value& { return v; };
+					EncodeObject(dict, extractor);
+				}
+			} else if (obj->GetReflectionType() == Array::TypeInstance) {
+				auto arr(static_pointer_cast<Array>(obj));
+				ObjectLock olock(arr);
+				auto begin(arr->Begin());
+				auto end(arr->End());
+				olock.Unlock();
+
+				if (arr->GetLength() == 0) {
+					EncodeImpl(JsonEncodingFlags::EmptyArray); // Write an empty array "[]"
+				} else {
+					EncodeImpl(JsonEncodingFlags::BeginArray);
+					for (auto it(begin); it != end; ++it) {
+						if (it != begin) {
+							m_Writer->write_characters(m_Pretty ? ",\n" : ",", m_Pretty ? 2 : 1);
+						}
+						if (m_Pretty) {
+							m_Writer->write_characters(m_IndentStr.c_str(), m_Indent);
+						}
+						EncodeImpl(*it);
+					}
+					EncodeImpl(JsonEncodingFlags::EndArray);
+				}
+			} else {
+				// Some other non-serializable object type!
+				EncodeValidatedJson(Utility::ValidateUTF8(obj->ToString()));
+			}
+			return;
+		}
+		default:
+			VERIFY(!"Invalid variant type.");
+	}
+}
+
 class JsonSax : public nlohmann::json_sax<nlohmann::json>
 {
 public:
