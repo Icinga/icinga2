@@ -4,10 +4,13 @@
 #include "base/function.hpp"
 #include "base/namespace.hpp"
 #include "base/array.hpp"
+#include "base/generator.hpp"
 #include "base/objectlock.hpp"
 #include "base/json.hpp"
 #include <boost/algorithm/string/replace.hpp>
 #include <BoostTestTargetConfig.h>
+#include <limits>
+#include <cmath>
 
 using namespace icinga;
 
@@ -15,26 +18,51 @@ BOOST_AUTO_TEST_SUITE(base_json)
 
 BOOST_AUTO_TEST_CASE(encode)
 {
+	auto generate = []() -> std::optional<Value> {
+		static int count = 0;
+		if (++count == 4) {
+			count = 0;
+			return std::nullopt;
+		}
+		return Value(count);
+	};
+
 	Dictionary::Ptr input (new Dictionary({
 		{ "array", new Array({ new Namespace() }) },
 		{ "false", false },
-		{ "float", -1.25 },
+		// Use double max value to test JSON encoding of large numbers and trigger boost numeric_cast exceptions
+		{ "max_double", std::numeric_limits<double>::max() },
+		// Test the maximum number that can be exact represented by a double is 2^64-2048.
+		{ "max_int_in_double", std::nextafter(std::pow(2, 64), 0.0) },
+		{ "float", -1.25f },
+		{ "float_without_fraction", 23.0f },
 		{ "fx", new Function("<test>", []() {}) },
 		{ "int", -42 },
 		{ "null", Value() },
 		{ "string", "LF\nTAB\tAUml\xC3\xA4Ill\xC3" },
 		{ "true", true },
-		{ "uint", 23u }
+		{ "uint", 23u },
+		{ "generator", new ValueGenerator(generate) },
+		{ "empty_generator", new ValueGenerator([]() -> std::optional<Value> { return std::nullopt; }) },
 	}));
 
 	String output (R"EOF({
     "array": [
         {}
     ],
+    "empty_generator": [],
     "false": false,
     "float": -1.25,
+    "float_without_fraction": 23,
     "fx": "Object of type 'Function'",
+    "generator": [
+        1,
+        2,
+        3
+    ],
     "int": -42,
+    "max_double": 1.7976931348623157e+308,
+    "max_int_in_double": 18446744073709549568,
     "null": null,
     "string": "LF\nTAB\tAUml\u00e4Ill\ufffd",
     "true": true,
@@ -42,7 +70,12 @@ BOOST_AUTO_TEST_CASE(encode)
 }
 )EOF");
 
-	BOOST_CHECK(JsonEncode(input, true) == output);
+	auto got(JsonEncode(input, true));
+	BOOST_CHECK_EQUAL(output, got);
+
+	std::ostringstream oss;
+	JsonEncode(input, oss, true);
+	BOOST_CHECK_EQUAL(output, oss.str());
 
 	boost::algorithm::replace_all(output, " ", "");
 	boost::algorithm::replace_all(output, "Objectoftype'Function'", "Object of type 'Function'");

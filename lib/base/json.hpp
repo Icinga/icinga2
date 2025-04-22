@@ -107,7 +107,8 @@ private:
 	nlohmann::detail::output_adapter_t<char> m_Writer;
 };
 
-String JsonEncode(const Value& value, bool pretty_print = false);
+String JsonEncode(const Value& value, bool prettify = false);
+void JsonEncode(const Value& value, std::ostream& os, bool prettify = false);
 Value JsonDecode(const String& data);
 
 }
