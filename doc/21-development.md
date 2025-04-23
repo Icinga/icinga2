@@ -267,73 +267,130 @@ $3 = std::vector of length 11, capacity 16 = {{static NPos = 1844674407370955161
 
 ### Core Dump <a id="development-debug-core-dump"></a>
 
-When the Icinga 2 daemon crashes with a `SIGSEGV` signal
-a core dump file should be written. This will help
-developers to analyze and fix the problem.
+When the Icinga 2 daemon is terminated by `SIGSEGV` or `SIGABRT`, a core dump file
+should be written. This will help developers to analyze and fix the problem.
 
-#### Core Dump File Size Limit <a id="development-debug-core-dump-limit"></a>
+#### Core Dump Kernel Pattern <a id="development-debug-core-dump-format"></a>
 
-This requires setting the core dump file size to `unlimited`.
+Core dumps are generated according to the format specified in
+`/proc/sys/kernel/core_pattern`. This can either be a path relative to the
+directory the program was started in, an absolute path or a pipe to a different
+program.
 
+For more information see the [core(5)](https://man7.org/linux/man-pages/man5/core.5.html) man page.
 
-##### Systemd
+#### Systemd Coredumpctl <a id="development-debug-core-dump-systemd"></a>
 
+Most distributions offer systemd's coredumpctl either by default or as a package.
+Distributions that offer it by default include RHEL and SLES, on others like
+Debian or Ubuntu it can be installed via the `systemd-coredump` package.
+When set up correctly, `core_pattern` will look something like this:
 ```
-systemctl edit icinga2.service
-
-[Service]
-...
-LimitCORE=infinity
-
-systemctl daemon-reload
-
-systemctl restart icinga2
-```
-
-##### Init Script
-
-```
-vim /etc/init.d/icinga2
-...
-ulimit -c unlimited
-
-service icinga2 restart
+# cat /proc/sys/kernel/core_pattern
+|/usr/lib/systemd/systemd-coredump %P %u %g %s %t %c %h`
 ```
 
-##### Verify
+You can look at the generated core dumps with the `coredumpctl list` command.
+You can show information, including a stack trace using
+`coredumpctl show icinga2 -1` and retrieve the actual core dump file with
+`coredumpctl dump icinga2 -1 --output <file>`.
 
-Verify that the Icinga 2 process core file size limit is set to `unlimited`.
+For further information on how to configure and use coredumpctl, read the man pages
+[coredumpctl(1)](https://man7.org/linux/man-pages/man1/coredumpctl.1.html) and
+[coredump.conf(5)](https://man7.org/linux/man-pages/man5/coredump.conf.5.html).
 
+#### Ubuntu Apport <a id="development-debug-core-dump-apport"></a>
+
+Ubuntu uses their own application `apport` to record core dumps. When it is
+enabled, your `core_pattern` will look like this:
 ```
-for pid in $(pidof icinga2); do cat /proc/$pid/limits; done
-
-...
-Max core file size        unlimited            unlimited            bytes
+# cat /proc/sys/kernel/core_pattern
+|/usr/share/apport/apport -p%p -s%s -c%c -d%d -P%P -u%u -g%g -- %E
 ```
 
+Apport is unsuitable for development work, because by default it only works
+with Ubuntu packages and it has a rather complicated interface for retrieving
+the core dump. So unless you rely on Apport for some other workflow, systemd's
+coredumpctl is a much better option and is available on Ubuntu in the
+`systemd-coredump` package that can replace Apport on your system with no
+further setup required.
 
-#### Core Dump Kernel Format <a id="development-debug-core-dump-format"></a>
+If you still want to use Apport however, to set it up to work with unpackaged programs,
+add the following (create the file if it doesn't exist) to `/etc/apport/settings`:
+```
+[main]
+unpackaged=true
+```
+and restart Apport:
+```
+systemctl restart apport.service
+```
 
-The Icinga 2 daemon runs with the SUID bit set. Therefore you need
-to explicitly enable core dumps for SUID on Linux.
+When the program crashes you can then find an Apport crash report in `/var/crash/`
+that you can read with the interactive `apport-cli` command. To extract the core
+dump you run `apport-unpack /var/crash/<crash-file> <output-dir>` which then
+saves a `<outputdir>/CoreDump` file that contains the actual core dump.
+
+#### Directly to a File <a id="development-debug-core-dump-direct"></a>
+
+If coredumpctl is not available, simply writing the core dump directly to a file
+is also sufficient. You can set up your `core_pattern` to write a file to a
+suitable path:
 
 ```bash
-sysctl -w fs.suid_dumpable=2
-```
-
-Adjust the coredump kernel format and file location on Linux:
-
-```bash
-sysctl -w kernel.core_pattern=/var/lib/cores/core.%e.%p
-
+sysctl -w kernel.core_pattern=/var/lib/cores/core.%e.%p.%h.%t
 install -m 1777 -d /var/lib/cores
 ```
 
-MacOS:
+If you want to make this setting permanent you can also add a file to
+`/etc/sysctl.d`, named something like `80-coredumps.conf`:
+```
+kernel.core_pattern = /var/lib/cores/core.%e.%p.%h.%t
+```
+
+This will create core dump files in `/var/lib/cores` where `%e` is the truncated
+name of the program, `%p` is the programs PID, `%h` is the hostname, and `%t` a
+timestamp.
+
+Note that unlike the other methods this requires the core size limit to be set
+for the process. When starting Icinga 2 via systemd you can set it to unlimited
+by adding the following to `/etc/systemd/system/icinga2.service.d/limits.conf`:
+```
+[Service]
+LimitCORE=infinity
+```
+
+Then reload and restart icinga:
+```bash
+systemctl daemon-reload
+systemctl restart icinga2.service
+```
+
+Alternatively you edit and reload in one step:
+```bash
+systemctl edit --drop-in=limits icinga2.service`
+```
+
+When using an init script or starting manually, you need to run `ulimit -c unlimited`
+before starting the program:
+```bash
+ulimit -c unlimited
+./icinga2 daemon
+```
+
+To verify that the limit has been set to `unlimited` run the following:
+```bash
+for pid in $(pidof icinga2); do cat /proc/$pid/limits; done
+```
+And look for the line:
+```
+Max core file size        unlimited            unlimited            bytes
+```
+
+#### MacOS <a id="development-debug-core-dump-macos"></a>
 
 ```bash
 sysctl -w kern.corefile=/cores/core.%P
-
 chmod 777 /cores
 ```
 
