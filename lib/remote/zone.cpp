@@ -125,10 +125,10 @@ bool Zone::IsGlobal() const
 	return GetGlobal();
 }
 
-bool Zone::IsSingleInstance() const
+bool Zone::IsHACluster() const
 {
-	Array::Ptr endpoints = GetEndpointsRaw();
-	return !endpoints || endpoints->GetLength() < 2;
+	auto endpoints = GetEndpointsRaw();
+	return endpoints && endpoints->GetLength() >= 2;
 }
 
 Zone::Ptr Zone::GetLocalZone()
