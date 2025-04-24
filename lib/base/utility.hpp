@@ -185,6 +185,9 @@ public:
 		return in.SubStr(0, maxLength - sha1HexLength - strlen(trunc)) + trunc + SHA1(in);
 	}
 
+	static time_t NormalizeTm(tm *t);
+	static time_t TmToTimestamp(const tm *t);
+
 private:
 	Utility();
 

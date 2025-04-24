@@ -13,23 +13,12 @@ using namespace icinga;
 
 REGISTER_FUNCTION_NONCONST(Internal, LegacyTimePeriod, &LegacyTimePeriod::ScriptFunc, "tp:begin:end");
 
-/**
- * Returns the same as mktime() but does not modify its argument and takes a const pointer.
- *
- * @param t struct tm to convert to time_t
- * @return time_t representing the timestamp given by t
- */
-static time_t mktime_const(const tm *t) {
-	tm copy = *t;
-	return mktime(&copy);
-}
-
 bool LegacyTimePeriod::IsInTimeRange(const tm *begin, const tm *end, int stride, const tm *reference)
 {
 	time_t tsbegin, tsend, tsref;
-	tsbegin = mktime_const(begin);
-	tsend = mktime_const(end);
-	tsref = mktime_const(reference);
+	tsbegin = Utility::TmToTimestamp(begin);
+	tsend = Utility::TmToTimestamp(end);
+	tsref = Utility::TmToTimestamp(reference);
 
 	if (tsref < tsbegin || tsref >= tsend)
 		return false;
@@ -85,7 +74,7 @@ void LegacyTimePeriod::FindNthWeekday(int wday, int n, tm *reference)
 		t.tm_sec = 0;
 		t.tm_isdst = -1;
 
-		mktime(&t);
+		Utility::NormalizeTm(&t);
 
 		if (t.tm_wday == wday) {
 			seen++;
@@ -398,8 +387,8 @@ bool LegacyTimePeriod::IsInDayDefinition(const String& daydef, const tm *referen
 	ParseTimeRange(daydef, &begin, &end, &stride, reference);
 
 	Log(LogDebug, "LegacyTimePeriod")
-		<< "ParseTimeRange: '" << daydef << "' => " << mktime(&begin)
-		<< " -> " << mktime(&end) << ", stride: " << stride;
+		<< "ParseTimeRange: '" << daydef << "' => " << Utility::TmToTimestamp(&begin)
+		<< " -> " << Utility::TmToTimestamp(&end) << ", stride: " << stride;
 
 	return IsInTimeRange(&begin, &end, stride, reference);
 }
@@ -448,8 +437,8 @@ Dictionary::Ptr LegacyTimePeriod::ProcessTimeRange(const String& timestamp, cons
 	ProcessTimeRangeRaw(timestamp, reference, &begin, &end);
 
 	return new Dictionary({
-		{ "begin", (long)mktime(&begin) },
-		{ "end", (long)mktime(&end) }
+		{ "begin", (long)Utility::TmToTimestamp(&begin) },
+		{ "end", (long)Utility::TmToTimestamp(&end) }
 	});
 }
 
@@ -480,13 +469,13 @@ Dictionary::Ptr LegacyTimePeriod::FindRunningSegment(const String& daydef, const
 	time_t tsend, tsiter, tsref;
 	int stride;
 
-	tsref = mktime_const(reference);
+	tsref = Utility::TmToTimestamp(reference);
 
 	ParseTimeRange(daydef, &begin, &end, &stride, reference);
 
 	iter = begin;
 
-	tsend = mktime(&end);
+	tsend = Utility::NormalizeTm(&end);
 
 	do {
 		if (IsInTimeRange(&begin, &end, stride, &iter)) {
@@ -518,7 +507,7 @@ Dictionary::Ptr LegacyTimePeriod::FindRunningSegment(const String& daydef, const
 		iter.tm_hour = 0;
 		iter.tm_min = 0;
 		iter.tm_sec = 0;
-		tsiter = mktime(&iter);
+		tsiter = Utility::NormalizeTm(&iter);
 	} while (tsiter < tsend);
 
 	return nullptr;
@@ -538,13 +527,13 @@ Dictionary::Ptr LegacyTimePeriod::FindNextSegment(const String& daydef, const St
 			ref.tm_mday++;
 		}
 
-		tsref = mktime(&ref);
+		tsref = Utility::NormalizeTm(&ref);
 
 		ParseTimeRange(daydef, &begin, &end, &stride, &ref);
 
 		iter = begin;
 
-		tsend = mktime(&end);
+		tsend = Utility::NormalizeTm(&end);
 
 		do {
 			if (IsInTimeRange(&begin, &end, stride, &iter)) {
@@ -575,7 +564,7 @@ Dictionary::Ptr LegacyTimePeriod::FindNextSegment(const String& daydef, const St
 			iter.tm_hour = 0;
 			iter.tm_min = 0;
 			iter.tm_sec = 0;
-			tsiter = mktime(&iter);
+			tsiter = Utility::NormalizeTm(&iter);
 		} while (tsiter < tsend);
 	}
 
@@ -607,17 +596,17 @@ Array::Ptr LegacyTimePeriod::ScriptFunc(const TimePeriod::Ptr& tp, double begin,
 			t->tm_isdst = -1;
 
 			// Normalize fields using mktime.
-			mktime(t);
+			Utility::NormalizeTm(t);
 
 			// Reset tm_isdst so that future calls figure out the correct time zone after setting tm_hour/tm_min/tm_sec.
 			t->tm_isdst = -1;
 		};
 
-		for (tm reference = tm_begin; mktime_const(&reference) <= end; advance_to_next_day(&reference)) {
+		for (tm reference = tm_begin; Utility::TmToTimestamp(&reference) <= end; advance_to_next_day(&reference)) {
 
 #ifdef I2_DEBUG
 			Log(LogDebug, "LegacyTimePeriod")
-				<< "Checking reference time " << mktime_const(&reference);
+				<< "Checking reference time " << Utility::TmToTimestamp(&reference);
 #endif /* I2_DEBUG */
 
 			ObjectLock olock(ranges);
