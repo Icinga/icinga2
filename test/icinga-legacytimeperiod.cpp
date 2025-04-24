@@ -16,51 +16,7 @@ using namespace icinga;
 
 BOOST_AUTO_TEST_SUITE(icinga_legacytimeperiod);
 
-struct GlobalTimezoneFixture
-{
-	char *tz;
-
-	GlobalTimezoneFixture(const char *fixed_tz = "")
-	{
-		tz = getenv("TZ");
-#ifdef _WIN32
-		_putenv_s("TZ", fixed_tz == "" ? "UTC" : fixed_tz);
-#else
-		setenv("TZ", fixed_tz, 1);
-#endif
-		tzset();
-	}
-
-	~GlobalTimezoneFixture()
-	{
-#ifdef _WIN32
-		if (tz)
-			_putenv_s("TZ", tz);
-		else
-			_putenv_s("TZ", "");
-#else
-		if (tz)
-			setenv("TZ", tz, 1);
-		else
-			unsetenv("TZ");
-#endif
-		tzset();
-	}
-};
-
 BOOST_GLOBAL_FIXTURE(GlobalTimezoneFixture);
-
-// DST changes in America/Los_Angeles:
-// 2021-03-14: 01:59:59 PST (UTC-8) -> 03:00:00 PDT (UTC-7)
-// 2021-11-07: 01:59:59 PDT (UTC-7) -> 01:00:00 PST (UTC-8)
-#ifndef _WIN32
-static const char *dst_test_timezone = "America/Los_Angeles";
-#else /* _WIN32 */
-// Tests are using pacific time because Windows only really supports timezones following US DST rules with the TZ
-// environment variable. Format is "[Standard TZ][negative UTC offset][DST TZ]".
-// https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/tzset?view=msvc-160#remarks
-static const char *dst_test_timezone = "PST8PDT";
-#endif /* _WIN32 */
 
 BOOST_AUTO_TEST_CASE(simple)
 {
@@ -523,7 +479,7 @@ std::ostream& operator<<(std::ostream& o, const boost::optional<Segment>& s)
 
 BOOST_AUTO_TEST_CASE(dst)
 {
-	GlobalTimezoneFixture tz(dst_test_timezone);
+	GlobalTimezoneFixture tz(GlobalTimezoneFixture::TestTimezoneWithDST);
 
 	// Self-tests for helper functions
 	BOOST_CHECK_EQUAL(make_tm("2021-11-07 02:30:00").tm_isdst, -1);
@@ -802,7 +758,7 @@ BOOST_AUTO_TEST_CASE(dst)
 // This tests checks that TimePeriod::IsInside() always returns true for a 24x7 period, even around DST changes.
 BOOST_AUTO_TEST_CASE(dst_isinside)
 {
-	GlobalTimezoneFixture tz(dst_test_timezone);
+	GlobalTimezoneFixture tz(GlobalTimezoneFixture::TestTimezoneWithDST);
 
 	Function::Ptr update = new Function("LegacyTimePeriod", LegacyTimePeriod::ScriptFunc, {"tp", "begin", "end"});
 	Dictionary::Ptr ranges = new Dictionary({
