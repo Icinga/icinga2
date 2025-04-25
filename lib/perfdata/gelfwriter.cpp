@@ -268,18 +268,6 @@ void GelfWriter::CheckResultHandler(const Checkable::Ptr& checkable, const Check
 	if (IsPaused())
 		return;
 
-	m_WorkQueue.Enqueue([this, checkable, cr]() { CheckResultHandlerInternal(checkable, cr); });
-}
-
-void GelfWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
-{
-	AssertOnWorkQueue();
-
-	CONTEXT("GELF Processing check result for '" << checkable->GetName() << "'");
-
-	Log(LogDebug, "GelfWriter")
-		<< "Processing check result for '" << checkable->GetName() << "'";
-
 	Host::Ptr host;
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
@@ -359,29 +347,21 @@ void GelfWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable, con
 		}
 	}
 
-	SendLogMessage(checkable, ComposeGelfMessage(fields, GetSource(), cr->GetExecutionEnd()));
-}
+	m_WorkQueue.Enqueue([this, checkable, fields = std::move(fields), ts = cr->GetExecutionEnd()]() {
+		CONTEXT("GELF Processing check result for '" << checkable->GetName() << "'");
 
-void GelfWriter::NotificationToUserHandler(const Checkable::Ptr& checkable, NotificationType notificationType,
-	CheckResult::Ptr const& cr, const String& author, const String& commentText, const String& commandName)
-{
-	if (IsPaused())
-		return;
+		Log(LogDebug, "GelfWriter")
+			<< "Processing check result for '" << checkable->GetName() << "'";
 
-	m_WorkQueue.Enqueue([this, checkable, notificationType, cr, author, commentText, commandName]() {
-		NotificationToUserHandlerInternal(checkable, notificationType, cr, author, commentText, commandName);
+		SendLogMessage(checkable, ComposeGelfMessage(fields, GetSource(), ts));
 	});
 }
 
-void GelfWriter::NotificationToUserHandlerInternal(const Checkable::Ptr& checkable, NotificationType notificationType,
-	CheckResult::Ptr const& cr, const String& author, const String& commentText, const String& commandName)
+void GelfWriter::NotificationToUserHandler(const Checkable::Ptr& checkable, NotificationType notificationType,
+	const CheckResult::Ptr& cr, const String& author, const String& commentText, const String& commandName)
 {
-	AssertOnWorkQueue();
-
-	CONTEXT("GELF Processing notification to all users '" << checkable->GetName() << "'");
-
-	Log(LogDebug, "GelfWriter")
-		<< "Processing notification for '" << checkable->GetName() << "'";
+	if (IsPaused())
+		return;
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -423,25 +403,20 @@ void GelfWriter::NotificationToUserHandlerInternal(const Checkable::Ptr& checkab
 	fields->Set("_comment", authorComment);
 	fields->Set("_check_command", checkable->GetCheckCommand()->GetName());
 
-	SendLogMessage(checkable, ComposeGelfMessage(fields, GetSource(), ts));
+	m_WorkQueue.Enqueue([this, checkable, ts, fields = std::move(fields)]() {
+		CONTEXT("GELF Processing notification to all users '" << checkable->GetName() << "'");
+
+		Log(LogDebug, "GelfWriter")
+			<< "Processing notification for '" << checkable->GetName() << "'";
+
+		SendLogMessage(checkable, ComposeGelfMessage(fields, GetSource(), ts));
+	});
 }
 
 void GelfWriter::StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
 {
 	if (IsPaused())
 		return;
-
-	m_WorkQueue.Enqueue([this, checkable, cr]() { StateChangeHandlerInternal(checkable, cr); });
-}
-
-void GelfWriter::StateChangeHandlerInternal(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
-{
-	AssertOnWorkQueue();
-
-	CONTEXT("GELF Processing state change '" << checkable->GetName() << "'");
-
-	Log(LogDebug, "GelfWriter")
-		<< "Processing state change for '" << checkable->GetName() << "'";
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -470,7 +445,14 @@ void GelfWriter::StateChangeHandlerInternal(const Checkable::Ptr& checkable, con
 	fields->Set("full_message", cr->GetOutput());
 	fields->Set("_check_source", cr->GetCheckSource());
 
-	SendLogMessage(checkable, ComposeGelfMessage(fields, GetSource(), cr->GetExecutionEnd()));
+	m_WorkQueue.Enqueue([this, checkable, fields = std::move(fields), ts = cr->GetExecutionEnd()]() {
+		CONTEXT("GELF Processing state change '" << checkable->GetName() << "'");
+
+		Log(LogDebug, "GelfWriter")
+			<< "Processing state change for '" << checkable->GetName() << "'";
+
+		SendLogMessage(checkable, ComposeGelfMessage(fields, GetSource(), ts));
+	});
 }
 
 String GelfWriter::ComposeGelfMessage(const Dictionary::Ptr& fields, const String& source, double ts)
@@ -484,6 +466,8 @@ String GelfWriter::ComposeGelfMessage(const Dictionary::Ptr& fields, const Strin
 
 void GelfWriter::SendLogMessage(const Checkable::Ptr& checkable, const String& gelfMessage)
 {
+	AssertOnWorkQueue();
+
 	std::ostringstream msgbuf;
 	msgbuf << gelfMessage;
 	msgbuf << '\0';

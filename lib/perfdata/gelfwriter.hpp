@@ -40,13 +40,9 @@ private:
 	Timer::Ptr m_ReconnectTimer;
 
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
-	void CheckResultHandlerInternal(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
-	void NotificationToUserHandler(const Checkable::Ptr& checkable, NotificationType notificationType,
-		const CheckResult::Ptr& cr, const String& author, const String& commentText, const String& commandName);
-	void NotificationToUserHandlerInternal(const Checkable::Ptr& checkable, NotificationType notification_type,
-		const CheckResult::Ptr& cr, const String& author, const String& comment_text, const String& command_name);
+	void NotificationToUserHandler(const Checkable::Ptr& checkable, NotificationType notificationType, const CheckResult::Ptr& cr,
+		const String& author, const String& commentText, const String& commandName);
 	void StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
-	void StateChangeHandlerInternal(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 
 	String ComposeGelfMessage(const Dictionary::Ptr& fields, const String& source, double ts);
 	void SendLogMessage(const Checkable::Ptr& checkable, const String& gelfMessage);
