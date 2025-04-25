@@ -29,7 +29,7 @@ public:
 	bool CanAccessObject(const ConfigObject::Ptr& object);
 	bool IsChildOf(const Zone::Ptr& zone);
 	bool IsGlobal() const;
-	bool IsSingleInstance() const;
+	bool IsHACluster() const;
 
 	static Zone::Ptr GetLocalZone();
 

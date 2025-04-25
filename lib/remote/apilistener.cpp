@@ -1927,11 +1927,7 @@ void ApiListener::ValidateTlsHandshakeTimeout(const Lazy<double>& lvalue, const 
 bool ApiListener::IsHACluster()
 {
 	Zone::Ptr zone = Zone::GetLocalZone();
-
-	if (!zone)
-		return false;
-
-	return zone->IsSingleInstance();
+	return zone && zone->IsHACluster();
 }
 
 /* Provide a helper function for zone origin name. */
