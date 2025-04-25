@@ -57,6 +57,7 @@ add_boost_test(types
 
 set(base_test_SOURCES
   icingaapplication-fixture.cpp
+  utils.cpp
   base-array.cpp
   base-base64.cpp
   base-convert.cpp

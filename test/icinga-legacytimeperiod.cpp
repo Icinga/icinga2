@@ -2,6 +2,7 @@
 
 #include "base/utility.hpp"
 #include "icinga/legacytimeperiod.hpp"
+#include "test/utils.hpp"
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/date_time/posix_time/ptime.hpp>
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
@@ -469,35 +470,6 @@ BOOST_AUTO_TEST_CASE(advanced)
 	AdvancedHelper("09:00:01-30:00", {{2014, 9, 24}, {9, 0, 1}}, {{2014, 9, 25}, {6, 0, 0}});
 	AdvancedHelper("09:00-30:00:02", {{2014, 9, 24}, {9, 0, 0}}, {{2014, 9, 25}, {6, 0, 2}});
 	AdvancedHelper("09:00:03-30:00:04", {{2014, 9, 24}, {9, 0, 3}}, {{2014, 9, 25}, {6, 0, 4}});
-}
-
-tm make_tm(std::string s)
-{
-	int dst = -1;
-	size_t l = strlen("YYYY-MM-DD HH:MM:SS");
-	if (s.size() > l) {
-		std::string zone = s.substr(l);
-		if (zone == " PST") {
-			dst = 0;
-		} else if (zone == " PDT") {
-			dst = 1;
-		} else {
-			// tests should only use PST/PDT (for now)
-			BOOST_CHECK_MESSAGE(false, "invalid or unknown time time: " << zone);
-		}
-	}
-
-	std::tm t = {};
-#if defined(__GNUC__) && __GNUC__ < 5
-	// GCC did not implement std::get_time() until version 5
-	strptime(s.c_str(), "%Y-%m-%d %H:%M:%S", &t);
-#else /* defined(__GNUC__) && __GNUC__ < 5 */
-	std::istringstream stream(s);
-	stream >> std::get_time(&t, "%Y-%m-%d %H:%M:%S");
-#endif /* defined(__GNUC__) && __GNUC__ < 5 */
-	t.tm_isdst = dst;
-
-	return t;
 }
 
 time_t make_time_t(const tm* t)
