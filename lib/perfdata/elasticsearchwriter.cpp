@@ -272,22 +272,12 @@ void ElasticsearchWriter::InternalCheckResultHandler(const Checkable::Ptr& check
 	fields->Set("max_check_attempts", checkable->GetMaxCheckAttempts());
 
 	fields->Set("reachable", checkable->IsReachable());
+	fields->Set("check_command", checkable->GetCheckCommand()->GetName());
 
-	CheckCommand::Ptr commandObj = checkable->GetCheckCommand();
-
-	if (commandObj)
-		fields->Set("check_command", commandObj->GetName());
-
-	double ts = Utility::GetTime();
-
-	if (cr) {
-		AddCheckResult(fields, checkable, cr);
-		ts = cr->GetExecutionEnd();
-	}
-
+	AddCheckResult(fields, checkable, cr);
 	AddTemplateTags(fields, checkable, cr);
 
-	Enqueue(checkable, "checkresult", fields, ts);
+	Enqueue(checkable, "checkresult", fields, cr->GetExecutionEnd());
 }
 
 void ElasticsearchWriter::StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type)
@@ -325,21 +315,12 @@ void ElasticsearchWriter::StateChangeHandlerInternal(const Checkable::Ptr& check
 		fields->Set("last_hard_state", host->GetLastHardState());
 	}
 
-	CheckCommand::Ptr commandObj = checkable->GetCheckCommand();
+	fields->Set("check_command", checkable->GetCheckCommand()->GetName());
 
-	if (commandObj)
-		fields->Set("check_command", commandObj->GetName());
-
-	double ts = Utility::GetTime();
-
-	if (cr) {
-		AddCheckResult(fields, checkable, cr);
-		ts = cr->GetExecutionEnd();
-	}
-
+	AddCheckResult(fields, checkable, cr);
 	AddTemplateTags(fields, checkable, cr);
 
-	Enqueue(checkable, "statechange", fields, ts);
+	Enqueue(checkable, "statechange", fields, cr->GetExecutionEnd());
 }
 
 void ElasticsearchWriter::NotificationSentToAllUsersHandler(const Notification::Ptr& notification,
@@ -396,11 +377,7 @@ void ElasticsearchWriter::NotificationSentToAllUsersHandlerInternal(const Notifi
 	fields->Set("notification_type", notificationTypeString);
 	fields->Set("author", author);
 	fields->Set("text", text);
-
-	CheckCommand::Ptr commandObj = checkable->GetCheckCommand();
-
-	if (commandObj)
-		fields->Set("check_command", commandObj->GetName());
+	fields->Set("check_command", checkable->GetCheckCommand()->GetName());
 
 	double ts = Utility::GetTime();
 

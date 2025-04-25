@@ -306,22 +306,15 @@ void GelfWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable, con
 	fields->Set("_reachable", checkable->IsReachable());
 
 	CheckCommand::Ptr checkCommand = checkable->GetCheckCommand();
+	fields->Set("_check_command", checkCommand->GetName());
 
-	if (checkCommand)
-		fields->Set("_check_command", checkCommand->GetName());
+	fields->Set("_latency", cr->CalculateLatency());
+	fields->Set("_execution_time", cr->CalculateExecutionTime());
+	fields->Set("short_message", CompatUtility::GetCheckResultOutput(cr));
+	fields->Set("full_message", cr->GetOutput());
+	fields->Set("_check_source", cr->GetCheckSource());
 
-	double ts = Utility::GetTime();
-
-	if (cr) {
-		fields->Set("_latency", cr->CalculateLatency());
-		fields->Set("_execution_time", cr->CalculateExecutionTime());
-		fields->Set("short_message", CompatUtility::GetCheckResultOutput(cr));
-		fields->Set("full_message", cr->GetOutput());
-		fields->Set("_check_source", cr->GetCheckSource());
-		ts = cr->GetExecutionEnd();
-	}
-
-	if (cr && GetEnableSendPerfdata()) {
+	if (GetEnableSendPerfdata()) {
 		Array::Ptr perfdata = cr->GetPerformanceData();
 
 		if (perfdata) {
@@ -366,7 +359,7 @@ void GelfWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable, con
 		}
 	}
 
-	SendLogMessage(checkable, ComposeGelfMessage(fields, GetSource(), ts));
+	SendLogMessage(checkable, ComposeGelfMessage(fields, GetSource(), cr->GetExecutionEnd()));
 }
 
 void GelfWriter::NotificationToUserHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
@@ -430,11 +423,7 @@ void GelfWriter::NotificationToUserHandlerInternal(const Notification::Ptr& noti
 	fields->Set("_command", commandName);
 	fields->Set("_notification_type", notificationTypeString);
 	fields->Set("_comment", authorComment);
-
-	CheckCommand::Ptr commandObj = checkable->GetCheckCommand();
-
-	if (commandObj)
-		fields->Set("_check_command", commandObj->GetName());
+	fields->Set("_check_command", checkable->GetCheckCommand()->GetName());
 
 	SendLogMessage(checkable, ComposeGelfMessage(fields, GetSource(), ts));
 }
@@ -478,21 +467,12 @@ void GelfWriter::StateChangeHandlerInternal(const Checkable::Ptr& checkable, con
 		fields->Set("_last_hard_state", host->GetLastHardState());
 	}
 
-	CheckCommand::Ptr commandObj = checkable->GetCheckCommand();
+	fields->Set("_check_command", checkable->GetCheckCommand()->GetName());
+	fields->Set("short_message", CompatUtility::GetCheckResultOutput(cr));
+	fields->Set("full_message", cr->GetOutput());
+	fields->Set("_check_source", cr->GetCheckSource());
 
-	if (commandObj)
-		fields->Set("_check_command", commandObj->GetName());
-
-	double ts = Utility::GetTime();
-
-	if (cr) {
-		fields->Set("short_message", CompatUtility::GetCheckResultOutput(cr));
-		fields->Set("full_message", cr->GetOutput());
-		fields->Set("_check_source", cr->GetCheckSource());
-		ts = cr->GetExecutionEnd();
-	}
-
-	SendLogMessage(checkable, ComposeGelfMessage(fields, GetSource(), ts));
+	SendLogMessage(checkable, ComposeGelfMessage(fields, GetSource(), cr->GetExecutionEnd()));
 }
 
 String GelfWriter::ComposeGelfMessage(const Dictionary::Ptr& fields, const String& source, double ts)
