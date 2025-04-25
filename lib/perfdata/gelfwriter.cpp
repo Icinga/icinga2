@@ -268,18 +268,6 @@ void GelfWriter::CheckResultHandler(const Checkable::Ptr& checkable, const Check
 	if (IsPaused())
 		return;
 
-	m_WorkQueue.Enqueue([this, checkable, cr]() { CheckResultHandlerInternal(checkable, cr); });
-}
-
-void GelfWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
-{
-	AssertOnWorkQueue();
-
-	CONTEXT("GELF Processing check result for '" << checkable->GetName() << "'");
-
-	Log(LogDebug, "GelfWriter")
-		<< "Processing check result for '" << checkable->GetName() << "'";
-
 	Host::Ptr host;
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
@@ -308,80 +296,72 @@ void GelfWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable, con
 	CheckCommand::Ptr checkCommand = checkable->GetCheckCommand();
 	fields->Set("_check_command", checkCommand->GetName());
 
-	fields->Set("_latency", cr->CalculateLatency());
-	fields->Set("_execution_time", cr->CalculateExecutionTime());
-	fields->Set("short_message", CompatUtility::GetCheckResultOutput(cr));
-	fields->Set("full_message", cr->GetOutput());
-	fields->Set("_check_source", cr->GetCheckSource());
+	m_WorkQueue.Enqueue([this, checkable, cr, fields = std::move(fields)]() {
+		CONTEXT("GELF Processing check result for '" << checkable->GetName() << "'");
 
-	if (GetEnableSendPerfdata()) {
-		Array::Ptr perfdata = cr->GetPerformanceData();
+		Log(LogDebug, "GelfWriter")
+			<< "Processing check result for '" << checkable->GetName() << "'";
 
-		if (perfdata) {
-			ObjectLock olock(perfdata);
-			for (const Value& val : perfdata) {
-				PerfdataValue::Ptr pdv;
+		fields->Set("_latency", cr->CalculateLatency());
+		fields->Set("_execution_time", cr->CalculateExecutionTime());
+		fields->Set("short_message", CompatUtility::GetCheckResultOutput(cr));
+		fields->Set("full_message", cr->GetOutput());
+		fields->Set("_check_source", cr->GetCheckSource());
 
-				if (val.IsObjectType<PerfdataValue>())
-					pdv = val;
-				else {
-					try {
-						pdv = PerfdataValue::Parse(val);
-					} catch (const std::exception&) {
-						Log(LogWarning, "GelfWriter")
-							<< "Ignoring invalid perfdata for checkable '"
-							<< checkable->GetName() << "' and command '"
-							<< checkCommand->GetName() << "' with value: " << val;
-						continue;
+		if (GetEnableSendPerfdata()) {
+			Array::Ptr perfdata = cr->GetPerformanceData();
+
+			if (perfdata) {
+				ObjectLock olock(perfdata);
+				for (const Value& val : perfdata) {
+					PerfdataValue::Ptr pdv;
+
+					if (val.IsObjectType<PerfdataValue>())
+						pdv = val;
+					else {
+						try {
+							pdv = PerfdataValue::Parse(val);
+						} catch (const std::exception&) {
+							Log(LogWarning, "GelfWriter")
+								<< "Ignoring invalid perfdata for checkable '"
+								<< checkable->GetName() << "' and command '"
+								<< checkable->GetCheckCommand()->GetName() << "' with value: " << val;
+							continue;
+						}
 					}
+
+					String escaped_key = pdv->GetLabel();
+					boost::replace_all(escaped_key, " ", "_");
+					boost::replace_all(escaped_key, ".", "_");
+					boost::replace_all(escaped_key, "\\", "_");
+					boost::algorithm::replace_all(escaped_key, "::", ".");
+
+					fields->Set("_" + escaped_key, pdv->GetValue());
+
+					if (!pdv->GetMin().IsEmpty())
+						fields->Set("_" + escaped_key + "_min", pdv->GetMin());
+					if (!pdv->GetMax().IsEmpty())
+						fields->Set("_" + escaped_key + "_max", pdv->GetMax());
+					if (!pdv->GetWarn().IsEmpty())
+						fields->Set("_" + escaped_key + "_warn", pdv->GetWarn());
+					if (!pdv->GetCrit().IsEmpty())
+						fields->Set("_" + escaped_key + "_crit", pdv->GetCrit());
+
+					if (!pdv->GetUnit().IsEmpty())
+						fields->Set("_" + escaped_key + "_unit", pdv->GetUnit());
 				}
-
-				String escaped_key = pdv->GetLabel();
-				boost::replace_all(escaped_key, " ", "_");
-				boost::replace_all(escaped_key, ".", "_");
-				boost::replace_all(escaped_key, "\\", "_");
-				boost::algorithm::replace_all(escaped_key, "::", ".");
-
-				fields->Set("_" + escaped_key, pdv->GetValue());
-
-				if (!pdv->GetMin().IsEmpty())
-					fields->Set("_" + escaped_key + "_min", pdv->GetMin());
-				if (!pdv->GetMax().IsEmpty())
-					fields->Set("_" + escaped_key + "_max", pdv->GetMax());
-				if (!pdv->GetWarn().IsEmpty())
-					fields->Set("_" + escaped_key + "_warn", pdv->GetWarn());
-				if (!pdv->GetCrit().IsEmpty())
-					fields->Set("_" + escaped_key + "_crit", pdv->GetCrit());
-
-				if (!pdv->GetUnit().IsEmpty())
-					fields->Set("_" + escaped_key + "_unit", pdv->GetUnit());
 			}
 		}
-	}
 
-	SendLogMessage(checkable, ComposeGelfMessage(fields, GetSource(), cr->GetExecutionEnd()));
-}
-
-void GelfWriter::NotificationToUserHandler(const Checkable::Ptr& checkable, NotificationType notificationType,
-	CheckResult::Ptr const& cr, const String& author, const String& commentText, const String& commandName)
-{
-	if (IsPaused())
-		return;
-
-	m_WorkQueue.Enqueue([this, checkable, notificationType, cr, author, commentText, commandName]() {
-		NotificationToUserHandlerInternal(checkable, notificationType, cr, author, commentText, commandName);
+		SendLogMessage(checkable, ComposeGelfMessage(fields, GetSource(), cr->GetExecutionEnd()));
 	});
 }
 
-void GelfWriter::NotificationToUserHandlerInternal(const Checkable::Ptr& checkable, NotificationType notificationType,
-	CheckResult::Ptr const& cr, const String& author, const String& commentText, const String& commandName)
+void GelfWriter::NotificationToUserHandler(const Checkable::Ptr& checkable, NotificationType notificationType,
+	const CheckResult::Ptr& cr, const String& author, const String& commentText, const String& commandName)
 {
-	AssertOnWorkQueue();
-
-	CONTEXT("GELF Processing notification to all users '" << checkable->GetName() << "'");
-
-	Log(LogDebug, "GelfWriter")
-		<< "Processing notification for '" << checkable->GetName() << "'";
+	if (IsPaused())
+		return;
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -423,25 +403,20 @@ void GelfWriter::NotificationToUserHandlerInternal(const Checkable::Ptr& checkab
 	fields->Set("_comment", authorComment);
 	fields->Set("_check_command", checkable->GetCheckCommand()->GetName());
 
-	SendLogMessage(checkable, ComposeGelfMessage(fields, GetSource(), ts));
+	m_WorkQueue.Enqueue([this, checkable, ts, fields = std::move(fields)]() {
+		CONTEXT("GELF Processing notification to all users '" << checkable->GetName() << "'");
+
+		Log(LogDebug, "GelfWriter")
+			<< "Processing notification for '" << checkable->GetName() << "'";
+
+		SendLogMessage(checkable, ComposeGelfMessage(fields, GetSource(), ts));
+	});
 }
 
 void GelfWriter::StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
 {
 	if (IsPaused())
 		return;
-
-	m_WorkQueue.Enqueue([this, checkable, cr]() { StateChangeHandlerInternal(checkable, cr); });
-}
-
-void GelfWriter::StateChangeHandlerInternal(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
-{
-	AssertOnWorkQueue();
-
-	CONTEXT("GELF Processing state change '" << checkable->GetName() << "'");
-
-	Log(LogDebug, "GelfWriter")
-		<< "Processing state change for '" << checkable->GetName() << "'";
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -470,7 +445,14 @@ void GelfWriter::StateChangeHandlerInternal(const Checkable::Ptr& checkable, con
 	fields->Set("full_message", cr->GetOutput());
 	fields->Set("_check_source", cr->GetCheckSource());
 
-	SendLogMessage(checkable, ComposeGelfMessage(fields, GetSource(), cr->GetExecutionEnd()));
+	m_WorkQueue.Enqueue([this, checkable, fields = std::move(fields), ts = cr->GetExecutionEnd()]() {
+		CONTEXT("GELF Processing state change '" << checkable->GetName() << "'");
+
+		Log(LogDebug, "GelfWriter")
+			<< "Processing state change for '" << checkable->GetName() << "'";
+
+		SendLogMessage(checkable, ComposeGelfMessage(fields, GetSource(), ts));
+	});
 }
 
 String GelfWriter::ComposeGelfMessage(const Dictionary::Ptr& fields, const String& source, double ts)
@@ -484,6 +466,8 @@ String GelfWriter::ComposeGelfMessage(const Dictionary::Ptr& fields, const Strin
 
 void GelfWriter::SendLogMessage(const Checkable::Ptr& checkable, const String& gelfMessage)
 {
+	AssertOnWorkQueue();
+
 	std::ostringstream msgbuf;
 	msgbuf << gelfMessage;
 	msgbuf << '\0';
