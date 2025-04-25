@@ -23,13 +23,8 @@ tm make_tm(std::string s)
     }
 
     std::tm t = {};
-#if defined(__GNUC__) && __GNUC__ < 5
-    // GCC did not implement std::get_time() until version 5
-    strptime(s.c_str(), "%Y-%m-%d %H:%M:%S", &t);
-#else /* defined(__GNUC__) && __GNUC__ < 5 */
     std::istringstream stream(s);
     stream >> std::get_time(&t, "%Y-%m-%d %H:%M:%S");
-#endif /* defined(__GNUC__) && __GNUC__ < 5 */
     t.tm_isdst = dst;
 
     return t;
