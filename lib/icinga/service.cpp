@@ -56,8 +56,6 @@ void Service::OnAllConfigLoaded()
 	if (m_Host)
 		m_Host->AddService(this);
 
-	ServiceGroup::EvaluateObjectRules(this);
-
 	Array::Ptr groups = GetGroups();
 
 	if (groups) {
@@ -76,6 +74,9 @@ void Service::OnAllConfigLoaded()
 
 void Service::CreateChildObjects(const Type::Ptr& childType)
 {
+	if (childType == ServiceGroup::TypeInstance)
+		ServiceGroup::EvaluateObjectRules(this);
+
 	if (childType == ScheduledDowntime::TypeInstance)
 		ScheduledDowntime::EvaluateApplyRules(this);
 
