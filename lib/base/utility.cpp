@@ -1973,25 +1973,6 @@ bool Utility::ComparePasswords(const String& enteredPassword, const String& actu
  */
 time_t Utility::NormalizeTm(tm *t)
 {
-	// If tm_isdst already specifies the timezone (0 or 1), just use the mktime() behavior.
-	if (t->tm_isdst >= 0) {
-		return mktime(t);
-	}
-
-	const tm copy = *t;
-
-	t->tm_isdst = 1;
-	time_t result = mktime(t);
-	if (result != -1 && t->tm_isdst == 1) {
-		return result;
-	}
-
-	// Restore the original input. mktime() can (and does) change more fields than just tm_isdst by converting from
-	// daylight saving time to standard time (it moves the contents by (typically) an hour, which can move across
-	// days/weeks/months/years changing all other fields).
-	*t = copy;
-
-	t->tm_isdst = 0;
 	return mktime(t);
 }
 
@@ -2004,5 +1985,5 @@ time_t Utility::NormalizeTm(tm *t)
 time_t Utility::TmToTimestamp(const tm *t)
 {
 	tm copy = *t;
-	return NormalizeTm(&copy);
+	return mktime(&copy);
 }

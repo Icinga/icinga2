@@ -1,11 +1,7 @@
 name: Linux
 
 on:
-  push:
-    branches:
-      - master
-      - 'support/*'
-  pull_request: {}
+  - push
 
 concurrency:
   group: linux-${{ github.event_name == 'push' && github.sha || github.ref }}
