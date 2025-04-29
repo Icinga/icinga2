@@ -913,16 +913,17 @@ tests the current system load average.
 
 Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
-Name            | Description
-----------------|--------------
-load_wload1     | **Optional.** The 1-minute warning threshold. Defaults to 5.
-load_wload5     | **Optional.** The 5-minute warning threshold. Defaults to 4.
-load_wload15    | **Optional.** The 15-minute warning threshold. Defaults to 3.
-load_cload1     | **Optional.** The 1-minute critical threshold. Defaults to 10.
-load_cload5     | **Optional.** The 5-minute critical threshold. Defaults to 6.
-load_cload15    | **Optional.** The 15-minute critical threshold. Defaults to 4.
-load_percpu     | **Optional.** Divide the load averages by the number of CPUs (when possible). Defaults to false.
-load_extra_opts | **Optional.** Read extra plugin options from an ini file.
+Name               | Description
+-------------------|--------------
+load_wload1        | **Optional.** The 1-minute warning threshold. Defaults to 5.
+load_wload5        | **Optional.** The 5-minute warning threshold. Defaults to 4.
+load_wload15       | **Optional.** The 15-minute warning threshold. Defaults to 3.
+load_cload1        | **Optional.** The 1-minute critical threshold. Defaults to 10.
+load_cload5        | **Optional.** The 5-minute critical threshold. Defaults to 6.
+load_cload15       | **Optional.** The 15-minute critical threshold. Defaults to 4.
+load_percpu        | **Optional.** Divide the load averages by the number of CPUs (when possible). Defaults to false.
+load_procs_to_show | **Optional.** Number of processes to show when printing the top consuming processes. (Default value is 0)
+load_extra_opts    | **Optional.** Read extra plugin options from an ini file.
 
 ### mailq <a id="plugin-check-command-mailq"></a>
 
