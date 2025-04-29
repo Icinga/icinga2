@@ -11,7 +11,7 @@ namespace icinga
 class ApiUser : ConfigObject
 {
 	/* No show config */
-	[config, no_user_view] String password;
+	[deprecated, config, no_user_view] String password;
 	[no_user_view, no_user_modify] String hashed_password;
 	[deprecated, config, no_user_view] String password_hash;
 	[config] String client_cn (ClientCN);
