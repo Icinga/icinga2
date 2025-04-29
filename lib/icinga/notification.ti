@@ -22,6 +22,8 @@ class Notification : CustomVarObject < NotificationNameComposer
 {
 	load_after Host;
 	load_after Service;
+	load_after User;
+	load_after UserGroup;
 
 	[config, protected, required, navigation] name(NotificationCommand) command (CommandRaw) {
 		navigate {{{
