@@ -248,8 +248,16 @@ if(TERMCAP_FOUND)
   include_directories(SYSTEM ${TERMCAP_INCLUDE_DIR})
 endif()
 
+include(CheckFunctionExists)
+
 if(WIN32)
   list(APPEND base_DEPS ws2_32 dbghelp shlwapi msi)
+else()
+  check_function_exists(crypt HAVE_CRYPT_IN_LIBC)
+  if(NOT HAVE_CRYPT_IN_LIBC)
+    find_library(CRYPT_LIBRARIES NAMES crypt)
+    list(APPEND base_DEPS ${CRYPT_LIBRARIES})
+  endif()
 endif()
 
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH};${CMAKE_INSTALL_FULL_LIBDIR}/icinga2")
@@ -372,7 +380,6 @@ set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/Bin/${CMAKE_BUILD_TYPE} CACHE PATH "
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/Bin/${CMAKE_BUILD_TYPE} CACHE PATH "Executable output path")
 
 include(CheckSymbolExists)
-include(CheckFunctionExists)
 include(CheckLibraryExists)
 include(CheckIncludeFileCXX)
 
