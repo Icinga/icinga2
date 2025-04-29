@@ -300,6 +300,137 @@ void Application::SetArgV(char **argv)
 	m_ArgV = argv;
 }
 
+#ifndef _WIN32
+/**
+ * Checks if one of the given signals is pending.
+ *
+ * This encapsulates most of the nastiness of POSIX and un-POSIX (i.e. MacOS and OpenBSD)
+ * signal handling so the rest of the code can remain sane.
+ *
+ * However on OpenBSD and MacOS the returned siginfo_t structure does only contain one
+ * valid field, which is .si_signo. Especially when checking against the pid using .si_pid
+ * it has to be taken into account that on these operating systems it will always be zero.
+ *
+ * If wait is given as false or a zero duration, the function will return immediately.
+ * If wait is given as true, the function will wait for the signal until it is received.
+ *
+ * @param signal The signals to check
+ * @param wait Whether the function should wait for a signal and if yes, how long
+ * @return A struct containing the signal id and pid of the sender
+ */
+std::optional<siginfo_t> Application::GetPendingSignal(std::initializer_list<int> signals,
+	std::variant<bool, std::chrono::microseconds> wait)
+{
+	sigset_t sigSet;
+	sigemptyset(&sigSet);
+	for(auto signal : signals){
+		sigaddset(&sigSet, signal);
+	}
+
+	int ret = 0;
+	siginfo_t info{};
+
+	if (wait == decltype(wait)(0us) || wait == decltype(wait)(false)) {
+#if defined(__APPLE__) || defined(__OpenBSD__)
+		sigset_t pendingSigs;
+		sigpending(&pendingSigs);
+		ret = -1;
+		for(auto signal : signals){
+			if (sigismember(&pendingSigs, signal)) {
+				ret = sigwait(&sigSet, &info.si_signo);
+				VERIFY(ret != EINVAL);
+				break;
+			};
+		}
+#else
+		timespec ts{};
+		ret = sigtimedwait(&sigSet, &info, &ts);
+		VERIFY(ret != -1 || errno != EINVAL);
+#endif
+	} else {
+		if (wait != decltype(wait)(true)) {
+			itimerval tv{};
+			tv.it_value.tv_sec = std::get<std::chrono::microseconds>(wait).count() / 1000000;
+			tv.it_value.tv_usec = std::get<std::chrono::microseconds>(wait).count() % 1000000;
+			ret = setitimer(ITIMER_REAL, &tv, nullptr);
+			VERIFY(ret != -1);
+			sigaddset(&sigSet, SIGALRM);
+		}
+
+#if defined(__APPLE__) || defined(__OpenBSD__)
+		ret = sigwait(&sigSet, &info.si_signo);
+		VERIFY(ret != EINVAL);
+#else
+		do{
+			ret = sigwaitinfo(&sigSet, &info);
+			VERIFY(ret != -1 || errno != EINVAL);
+			// sigwaitinfo can be interrupted by other signal handlers (see signal(7))
+		} while (ret == -1 && errno == EINTR);
+#endif
+	}
+
+	if (ret == -1 || info.si_signo == SIGALRM) {
+		return std::nullopt;
+	}
+
+	return info;
+}
+
+/**
+ * Checks if the given signal is pending.
+ *
+ * @param signal The signal id of the signal to check
+ * @param wait Whether the function should wait for a signal and if yes, how long
+ * @return A std::optional containing a siginfo_t if one of the signals was received
+ */
+std::optional<siginfo_t> Application::GetPendingSignal(int signal,
+	std::variant<bool, std::chrono::microseconds> wait)
+{
+	return Application::GetPendingSignal({signal}, wait);
+}
+
+/**
+ * Seamless worker's signal handlers
+ */
+void Application::WorkerSignalHandler(std::chrono::microseconds timeout)
+{
+	auto sig = GetPendingSignal({SIGUSR1, SIGUSR2, SIGTERM, SIGINT}, timeout);
+	if (!sig){
+		return;
+	}
+
+	switch(sig->si_signo){
+		case SIGUSR1:
+			if (sig->si_pid == 0 || sig->si_pid == getppid()) {
+				Log(LogInformation, "Application")
+					<< "Received USR1 signal, reopening application logs.";
+
+				RequestReopenLogs();
+			} else {
+				Log(LogWarning, "Application")
+					<< "Received USR1 from unknown pid: " << sig->si_pid;
+			}
+			break;
+		case SIGUSR2:
+			Log(LogWarning, "Application")
+				<< "Received superfluous USR2";
+			break;
+		case SIGINT:
+		case SIGTERM:
+			if (sig->si_pid == 0 || sig->si_pid == getppid()) {
+				// The umbrella process requested our termination
+				RequestShutdown();
+			} else {
+				Log(LogCritical, "Application")
+					<< "Received " << strsignal(sig->si_signo) << " from unknown pid: " << sig->si_pid;
+			}
+			break;
+		default:
+			VERIFY(!"Error: Unhandled Signal");
+	}
+}
+#endif /* _WIN32 */
+
 /**
  * Processes events for registered sockets and timers and calls whatever
  * handlers have been set up for these events.
@@ -325,9 +456,6 @@ void Application::RunEventLoop()
 			(void)kill(m_UmbrellaProcess, SIGHUP);
 #endif /* _WIN32 */
 		} else {
-			/* Watches for changes to the system time. Adjusts timers if necessary. */
-			Utility::Sleep(2.5);
-
 			if (m_RequestReopenLogs) {
 				Log(LogNotice, "Application", "Reopening log files");
 				m_RequestReopenLogs = false;
@@ -337,6 +465,7 @@ void Application::RunEventLoop()
 			double now = Utility::GetTime();
 			double timeDiff = lastLoop - now;
 
+			// Watches for changes to the system time. Adjusts timers if necessary.
 			if (std::fabs(timeDiff) > 15) {
 				/* We made a significant jump in time. */
 				Log(LogInformation, "Application")
@@ -349,6 +478,11 @@ void Application::RunEventLoop()
 
 			lastLoop = now;
 		}
+#ifndef _WIN32
+		WorkerSignalHandler(2500ms);
+#else
+		Utility::Sleep(2.5);
+#endif /* _WIN32 */
 	}
 
 	Log(LogInformation, "Application", "Shutting down...");
@@ -707,20 +841,6 @@ void Application::AttachDebugger(const String& filename, bool interactive)
 }
 
 /**
- * Signal handler for SIGUSR1. This signal causes Icinga to re-open
- * its log files and is mainly for use by logrotate.
- *
- * @param - The signal number.
- */
-void Application::SigUsr1Handler(int)
-{
-	Log(LogInformation, "Application")
-		<< "Received USR1 signal, reopening application logs.";
-
-	RequestReopenLogs();
-}
-
-/**
  * Signal handler for SIGABRT. Helps with debugging ASSERT()s.
  *
  * @param - The signal number.
@@ -995,13 +1115,7 @@ void Application::InstallExceptionHandlers()
  */
 int Application::Run()
 {
-#ifndef _WIN32
-	struct sigaction sa;
-	memset(&sa, 0, sizeof(sa));
-	sa.sa_handler = &Application::SigUsr1Handler;
-	sa.sa_flags = SA_RESTART;
-	sigaction(SIGUSR1, &sa, nullptr);
-#else /* _WIN32 */
+#ifdef _WIN32
 	SetConsoleCtrlHandler(&Application::CtrlHandler, TRUE);
 #endif /* _WIN32 */
 
