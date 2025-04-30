@@ -37,6 +37,11 @@ set(base_SOURCES
   fifo.cpp fifo.hpp
   filelogger.cpp filelogger.hpp filelogger-ti.hpp
   function.cpp function.hpp function-ti.hpp function-script.cpp functionwrapper.hpp
+  generator.cpp generator.hpp generator-script.cpp
+  generator-array.cpp generator-array.hpp
+  generator-filter.cpp generator-filter.hpp
+  generator-map.cpp generator-map.hpp
+  generator-unique.cpp generator-unique.hpp
   initialize.cpp initialize.hpp
   intrusive-ptr.hpp
   io-engine.cpp io-engine.hpp
