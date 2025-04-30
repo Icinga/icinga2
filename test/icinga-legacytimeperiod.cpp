@@ -2,6 +2,7 @@
 
 #include "base/utility.hpp"
 #include "icinga/legacytimeperiod.hpp"
+#include "test/utils.hpp"
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/date_time/posix_time/ptime.hpp>
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
@@ -15,51 +16,7 @@ using namespace icinga;
 
 BOOST_AUTO_TEST_SUITE(icinga_legacytimeperiod);
 
-struct GlobalTimezoneFixture
-{
-	char *tz;
-
-	GlobalTimezoneFixture(const char *fixed_tz = "")
-	{
-		tz = getenv("TZ");
-#ifdef _WIN32
-		_putenv_s("TZ", fixed_tz == "" ? "UTC" : fixed_tz);
-#else
-		setenv("TZ", fixed_tz, 1);
-#endif
-		tzset();
-	}
-
-	~GlobalTimezoneFixture()
-	{
-#ifdef _WIN32
-		if (tz)
-			_putenv_s("TZ", tz);
-		else
-			_putenv_s("TZ", "");
-#else
-		if (tz)
-			setenv("TZ", tz, 1);
-		else
-			unsetenv("TZ");
-#endif
-		tzset();
-	}
-};
-
 BOOST_GLOBAL_FIXTURE(GlobalTimezoneFixture);
-
-// DST changes in America/Los_Angeles:
-// 2021-03-14: 01:59:59 PST (UTC-8) -> 03:00:00 PDT (UTC-7)
-// 2021-11-07: 01:59:59 PDT (UTC-7) -> 01:00:00 PST (UTC-8)
-#ifndef _WIN32
-static const char *dst_test_timezone = "America/Los_Angeles";
-#else /* _WIN32 */
-// Tests are using pacific time because Windows only really supports timezones following US DST rules with the TZ
-// environment variable. Format is "[Standard TZ][negative UTC offset][DST TZ]".
-// https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/tzset?view=msvc-160#remarks
-static const char *dst_test_timezone = "PST8PDT";
-#endif /* _WIN32 */
 
 BOOST_AUTO_TEST_CASE(simple)
 {
@@ -471,35 +428,6 @@ BOOST_AUTO_TEST_CASE(advanced)
 	AdvancedHelper("09:00:03-30:00:04", {{2014, 9, 24}, {9, 0, 3}}, {{2014, 9, 25}, {6, 0, 4}});
 }
 
-tm make_tm(std::string s)
-{
-	int dst = -1;
-	size_t l = strlen("YYYY-MM-DD HH:MM:SS");
-	if (s.size() > l) {
-		std::string zone = s.substr(l);
-		if (zone == " PST") {
-			dst = 0;
-		} else if (zone == " PDT") {
-			dst = 1;
-		} else {
-			// tests should only use PST/PDT (for now)
-			BOOST_CHECK_MESSAGE(false, "invalid or unknown time time: " << zone);
-		}
-	}
-
-	std::tm t = {};
-#if defined(__GNUC__) && __GNUC__ < 5
-	// GCC did not implement std::get_time() until version 5
-	strptime(s.c_str(), "%Y-%m-%d %H:%M:%S", &t);
-#else /* defined(__GNUC__) && __GNUC__ < 5 */
-	std::istringstream stream(s);
-	stream >> std::get_time(&t, "%Y-%m-%d %H:%M:%S");
-#endif /* defined(__GNUC__) && __GNUC__ < 5 */
-	t.tm_isdst = dst;
-
-	return t;
-}
-
 time_t make_time_t(const tm* t)
 {
 	tm copy = *t;
@@ -551,7 +479,7 @@ std::ostream& operator<<(std::ostream& o, const boost::optional<Segment>& s)
 
 BOOST_AUTO_TEST_CASE(dst)
 {
-	GlobalTimezoneFixture tz(dst_test_timezone);
+	GlobalTimezoneFixture tz(GlobalTimezoneFixture::TestTimezoneWithDST);
 
 	// Self-tests for helper functions
 	BOOST_CHECK_EQUAL(make_tm("2021-11-07 02:30:00").tm_isdst, -1);
@@ -589,13 +517,8 @@ BOOST_AUTO_TEST_CASE(dst)
 				day, "01:30-02:30",
 				{make_tm("2021-03-14 01:00:00 PST")},
 				{make_tm("2021-03-14 01:59:59 PST")},
-#ifndef _WIN32
 				// As 02:30 does not exist on this day, it is parsed as if it was 02:30 PST which is actually 03:30 PDT.
 				Segment("2021-03-14 01:30:00 PST", "2021-03-14 03:30:00 PDT"),
-#else
-				// Windows interpretes 02:30 as 01:30 PST, so it is an empty segment.
-				boost::none,
-#endif
 			});
 		}
 
@@ -605,14 +528,9 @@ BOOST_AUTO_TEST_CASE(dst)
 				day, "02:30-03:30",
 				{make_tm("2021-03-14 01:00:00 PST")},
 				{make_tm("2021-03-14 03:00:00 PDT")},
-#ifndef _WIN32
 				// As 02:30 does not exist on this day, it is parsed as if it was 02:30 PST which is actually 03:30 PDT.
 				// Therefore, the result is a segment from 03:30 PDT to 03:30 PDT with a duration of 0, i.e. no segment.
 				boost::none,
-#else
-				// Windows parses non-existing 02:30 as 01:30 PST, resulting in an 1 hour segment.
-				Segment("2021-03-14 01:30:00 PST", "2021-03-14 03:30:00 PDT"),
-#endif
 			});
 		}
 
@@ -621,13 +539,8 @@ BOOST_AUTO_TEST_CASE(dst)
 			day, "02:15-03:45",
 			{make_tm("2021-03-14 01:00:00 PST")},
 			{make_tm("2021-03-14 03:30:00 PDT")},
-#ifndef _WIN32
 			// As 02:15 does not exist on this day, it is parsed as if it was 02:15 PST which is actually 03:15 PDT.
 			Segment("2021-03-14 03:15:00 PDT", "2021-03-14 03:45:00 PDT"),
-#else
-			// Windows interprets 02:15 as 01:15 PST though.
-			Segment("2021-03-14 01:15:00 PST", "2021-03-14 03:45:00 PDT"),
-#endif
 		});
 
 		// range after DST change
@@ -659,7 +572,6 @@ BOOST_AUTO_TEST_CASE(dst)
 
 		if (day.find("sunday") == std::string::npos) { // skip for non-absolute day specs (would find another sunday)
 			// range existing twice during DST change (first instance)
-#ifndef _WIN32
 			tests.push_back(TestData{
 				day, "01:15-01:45",
 				{make_tm("2021-11-07 01:00:00 PDT")},
@@ -667,15 +579,6 @@ BOOST_AUTO_TEST_CASE(dst)
 				// Duplicate times are interpreted as the first occurrence.
 				Segment("2021-11-07 01:15:00 PDT", "2021-11-07 01:45:00 PDT"),
 			});
-#else
-			tests.push_back(TestData{
-				day, "01:15-01:45",
-				{make_tm("2021-11-07 01:00:00 PDT")},
-				{make_tm("2021-11-07 01:30:00 PST")},
-				// However, Windows always uses the second occurrence.
-				Segment("2021-11-07 01:15:00 PST", "2021-11-07 01:45:00 PST"),
-			});
-#endif
 		}
 
 		if (day.find("sunday") == std::string::npos) { // skip for non-absolute day specs (would find another sunday)
@@ -684,13 +587,8 @@ BOOST_AUTO_TEST_CASE(dst)
 				day, "01:15-01:45",
 				{make_tm("2021-11-07 01:00:00 PST")},
 				{make_tm("2021-11-07 01:30:00 PST")},
-#ifndef _WIN32
 				// Interpreted as the first occurrence, so it's in the past.
 				boost::none,
-#else
-				// On Windows, it's the second occurrence, so it's still in the present/future and is found.
-				Segment("2021-11-07 01:15:00 PST", "2021-11-07 01:45:00 PST"),
-#endif
 			});
 		}
 
@@ -716,13 +614,8 @@ BOOST_AUTO_TEST_CASE(dst)
 			day, "00:30-01:30",
 			{make_tm("2021-11-07 00:00:00 PDT")},
 			{make_tm("2021-11-07 01:00:00 PDT")},
-#ifndef _WIN32
 			// Both times are interpreted as the first instance on that day (i.e both PDT).
 			Segment("2021-11-07 00:30:00 PDT", "2021-11-07 01:30:00 PDT")
-#else
-			// Windows interprets duplicate times as the second instance (i.e. both PST).
-			Segment("2021-11-07 00:30:00 PDT", "2021-11-07 01:30:00 PST")
-#endif
 		});
 
 		// range beginning during duplicate DST hour (first instance)
@@ -730,18 +623,12 @@ BOOST_AUTO_TEST_CASE(dst)
 			day, "01:30-02:30",
 			{make_tm("2021-11-07 01:00:00 PDT")},
 			{make_tm("2021-11-07 02:00:00 PST")},
-#ifndef _WIN32
 			// 01:30 is interpreted as the first occurrence (PDT) but since there's no 02:30 PDT, it's PST.
 			Segment("2021-11-07 01:30:00 PDT", "2021-11-07 02:30:00 PST")
-#else
-			// Windows interprets both as PST though.
-			Segment("2021-11-07 01:30:00 PST", "2021-11-07 02:30:00 PST")
-#endif
 		});
 
 		if (day.find("sunday") == std::string::npos) { // skip for non-absolute day specs (would find another sunday)
 			// range ending during duplicate DST hour (second instance)
-#ifndef _WIN32
 			tests.push_back(TestData{
 				day, "00:30-01:30",
 				{make_tm("2021-11-07 00:00:00 PST")},
@@ -750,15 +637,6 @@ BOOST_AUTO_TEST_CASE(dst)
 				// 01:00 PST (02:00 PDT) is after the segment.
 				boost::none,
 			});
-#else
-			tests.push_back(TestData{
-				day, "00:30-01:30",
-				{make_tm("2021-11-07 00:00:00 PDT")},
-				{make_tm("2021-11-07 01:00:00 PST")},
-				// As Windows interprets the end as PST, it's still in the future and the segment is found.
-				Segment("2021-11-07 00:30:00 PDT", "2021-11-07 01:30:00 PST"),
-			});
-#endif
 		}
 
 		// range beginning during duplicate DST hour (second instance)
@@ -766,13 +644,8 @@ BOOST_AUTO_TEST_CASE(dst)
 			day, "01:30-02:30",
 			{make_tm("2021-11-07 01:00:00 PDT")},
 			{make_tm("2021-11-07 02:00:00 PST")},
-#ifndef _WIN32
 			// As 01:30 always refers to the first occurrence (PDT), this is actually a 2 hour segment.
 			Segment("2021-11-07 01:30:00 PDT", "2021-11-07 02:30:00 PST"),
-#else
-			// On Windows, it refers t the second occurrence (PST), therefore it's an 1 hour segment.
-			Segment("2021-11-07 01:30:00 PST", "2021-11-07 02:30:00 PST"),
-#endif
 		});
 	}
 
@@ -830,7 +703,7 @@ BOOST_AUTO_TEST_CASE(dst)
 // This tests checks that TimePeriod::IsInside() always returns true for a 24x7 period, even around DST changes.
 BOOST_AUTO_TEST_CASE(dst_isinside)
 {
-	GlobalTimezoneFixture tz(dst_test_timezone);
+	GlobalTimezoneFixture tz(GlobalTimezoneFixture::TestTimezoneWithDST);
 
 	Function::Ptr update = new Function("LegacyTimePeriod", LegacyTimePeriod::ScriptFunc, {"tp", "begin", "end"});
 	Dictionary::Ptr ranges = new Dictionary({

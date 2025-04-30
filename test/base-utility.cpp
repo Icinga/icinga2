@@ -1,6 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/utility.hpp"
+#include "test/utils.hpp"
 #include <chrono>
 #include <BoostTestTargetConfig.h>
 
@@ -228,6 +229,88 @@ BOOST_AUTO_TEST_CASE(FormatDateTime) {
 	double positive_out_of_range = std::ceil(std::nextafter(time_t_limit::max(), +double_limit::infinity()));
 	BOOST_CHECK_THROW(Utility::FormatDateTime("%Y", negative_out_of_range), negative_overflow);
 	BOOST_CHECK_THROW(Utility::FormatDateTime("%Y", positive_out_of_range), positive_overflow);
+}
+
+BOOST_AUTO_TEST_CASE(NormalizeTm)
+{
+	GlobalTimezoneFixture tz(GlobalTimezoneFixture::TestTimezoneWithDST);
+
+	auto normalize = [](const std::string_view& input) {
+		tm t = make_tm(std::string(input));
+		return Utility::NormalizeTm(&t);
+	};
+
+	auto is_dst = [](const std::string_view& input) {
+		tm t = make_tm(std::string(input));
+		Utility::NormalizeTm(&t);
+		BOOST_CHECK_GE(t.tm_isdst, 0);
+		return t.tm_isdst > 0;
+	};
+
+	// The whole day 2021-01-01 uses PST (24h day)
+	BOOST_CHECK(!is_dst("2021-01-01 10:00:00"));
+	BOOST_CHECK_EQUAL(normalize("2021-01-01 10:00:00"), 1609524000);
+	BOOST_CHECK_EQUAL(normalize("2021-01-01 10:00:00 PST"), 1609524000);
+	BOOST_CHECK_EQUAL(normalize("2021-01-01 11:00:00 PDT"), 1609524000); // normalized to 10:00 PST
+	BOOST_CHECK_EQUAL(normalize("2021-01-02 00:00:00") - normalize("2021-01-01 00:00:00"), 24*60*60);
+
+	// The whole day 2021-07-01 uses PDT (24h day)
+	BOOST_CHECK(is_dst("2021-07-01 10:00:00"));
+	BOOST_CHECK_EQUAL(normalize("2021-07-01 10:00:00"), 1625158800);
+	BOOST_CHECK_EQUAL(normalize("2021-07-01 10:00:00 PDT"), 1625158800);
+	BOOST_CHECK_EQUAL(normalize("2021-07-01 09:00:00 PST"), 1625158800); // normalized to 10:00 PDT
+	BOOST_CHECK_EQUAL(normalize("2021-07-02 00:00:00") - normalize("2021-07-01 00:00:00"), 24*60*60);
+
+	// On 2021-03-14, PST changes to PDT (23h day)
+	BOOST_CHECK(!is_dst("2021-03-14 00:00:00"));
+	BOOST_CHECK(is_dst("2021-03-14 23:59:59"));
+	BOOST_CHECK_EQUAL(normalize("2021-03-15 00:00:00") - normalize("2021-03-14 00:00:00"), 23*60*60);
+
+	BOOST_CHECK_EQUAL(normalize("2021-03-14 01:59:59 PST"), 1615715999);
+	// The following three times do not exist on that day in that timezone.
+	// They are interpreted as UTC-8, which is the offset of PST.
+	BOOST_CHECK_EQUAL(normalize("2021-03-14 02:00:00 PST"), 1615716000);
+	BOOST_CHECK_EQUAL(normalize("2021-03-14 02:30:00 PST"), 1615717800);
+	BOOST_CHECK_EQUAL(normalize("2021-03-14 03:00:00 PST"), 1615719600);
+
+	BOOST_CHECK_EQUAL(normalize("2021-03-14 03:00:00 PDT"), 1615716000);
+	// The following three times do not exist on that day in that timezone.
+	// They are interpreted as UTC-7, which is the offset of PDT.
+	BOOST_CHECK_EQUAL(normalize("2021-03-14 01:59:59 PDT"), 1615712399);
+	BOOST_CHECK_EQUAL(normalize("2021-03-14 02:00:00 PDT"), 1615712400);
+	BOOST_CHECK_EQUAL(normalize("2021-03-14 02:30:00 PDT"), 1615714200);
+
+	BOOST_CHECK_EQUAL(normalize("2021-03-14 01:59:59"), 1615715999);
+	BOOST_CHECK_EQUAL(normalize("2021-03-14 03:00:00"), 1615716000);
+	// The following two times don't exist on that day, they are within the hour that is skipped.
+	// They are interpreted as UTC-8 (offset of PST) and then normalized to PDT.
+	BOOST_CHECK_EQUAL(normalize("2021-03-14 02:00:00"), 1615716000);
+	BOOST_CHECK_EQUAL(normalize("2021-03-14 02:30:00"), 1615717800);
+
+	// On 2021-11-07, PDT changes to PST (25h day)
+	BOOST_CHECK(is_dst("2021-11-07 00:00:00"));
+	BOOST_CHECK(!is_dst("2021-11-07 23:59:59"));
+	BOOST_CHECK_EQUAL(normalize("2021-11-08 00:00:00") - normalize("2021-11-07 00:00:00"), 25*60*60);
+
+	BOOST_CHECK_EQUAL(normalize("2021-11-07 00:59:59 PDT"), 1636271999);
+	BOOST_CHECK_EQUAL(normalize("2021-11-07 01:00:00 PDT"), 1636272000);
+	BOOST_CHECK_EQUAL(normalize("2021-11-07 01:30:00 PDT"), 1636273800);
+	BOOST_CHECK_EQUAL(normalize("2021-11-07 01:59:59 PDT"), 1636275599);
+	// The following time does not exist on that day in that timezone, it's interpreted as 01:00:00 PST.
+	BOOST_CHECK_EQUAL(normalize("2021-11-07 02:00:00 PDT"), 1636275600);
+
+	// The following time does not exist on that day in that timezone, it's interpreted as 01:59:59 PDT.
+	BOOST_CHECK_EQUAL(normalize("2021-11-07 00:59:59 PST"), 1636275599);
+	BOOST_CHECK_EQUAL(normalize("2021-11-07 01:00:00 PST"), 1636275600);
+	BOOST_CHECK_EQUAL(normalize("2021-11-07 01:30:00 PST"), 1636277400);
+	BOOST_CHECK_EQUAL(normalize("2021-11-07 01:59:59 PST"), 1636279199);
+	BOOST_CHECK_EQUAL(normalize("2021-11-07 02:00:00 PST"), 1636279200);
+
+	BOOST_CHECK_EQUAL(normalize("2021-11-07 00:59:59"), 1636271999); // unambiguous: PDT
+	BOOST_CHECK_EQUAL(normalize("2021-11-07 01:00:00"), 1636272000); // exists twice, interpreted as PDT
+	BOOST_CHECK_EQUAL(normalize("2021-11-07 01:30:00"), 1636273800); // exists twice, interpreted as PDT
+	BOOST_CHECK_EQUAL(normalize("2021-11-07 01:59:59"), 1636275599); // exists twice, interpreted as PDT
+	BOOST_CHECK_EQUAL(normalize("2021-11-07 02:00:00"), 1636279200); // unambiguous: PST
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -1958,3 +1958,51 @@ bool Utility::ComparePasswords(const String& enteredPassword, const String& actu
 
 	return result;
 }
+
+/**
+ * Normalizes the given struct tm like mktime() from libc does with some exception for DST handling: If the given time
+ * exists twice on a day, the instance in the DST timezone is picked. If the time does not actually exist on a day, it's
+ * interpreted using the UTC offset of the standard timezone and then normalized.
+ *
+ * This is done in order to provide consistent behavior across operating systems. Historically, Icinga 2 just relied on
+ * whatever mktime() of the operating system did and this function mimics what glibc does as that's what most systems
+ * use.
+ *
+ * @param t tm struct to be normalized
+ * @return time_t representing the timestamp given by t
+ */
+time_t Utility::NormalizeTm(tm *t)
+{
+	// If tm_isdst already specifies the timezone (0 or 1), just use the mktime() behavior.
+	if (t->tm_isdst >= 0) {
+		return mktime(t);
+	}
+
+	const tm copy = *t;
+
+	t->tm_isdst = 1;
+	time_t result = mktime(t);
+	if (result != -1 && t->tm_isdst == 1) {
+		return result;
+	}
+
+	// Restore the original input. mktime() can (and does) change more fields than just tm_isdst by converting from
+	// daylight saving time to standard time (it moves the contents by (typically) an hour, which can move across
+	// days/weeks/months/years changing all other fields).
+	*t = copy;
+
+	t->tm_isdst = 0;
+	return mktime(t);
+}
+
+/**
+ * Returns the same as NormalizeTm() but takes a const pointer as argument and thus does not modify it.
+ *
+ * @param t struct tm to convert to time_t
+ * @return time_t representing the timestamp given by t
+ */
+time_t Utility::TmToTimestamp(const tm *t)
+{
+	tm copy = *t;
+	return NormalizeTm(&copy);
+}

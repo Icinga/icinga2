@@ -57,6 +57,7 @@ add_boost_test(types
 
 set(base_test_SOURCES
   icingaapplication-fixture.cpp
+  utils.cpp
   base-array.cpp
   base-base64.cpp
   base-convert.cpp
@@ -185,6 +186,7 @@ add_boost_test(base
     base_utility/EscapeCreateProcessArg
     base_utility/TruncateUsingHash
     base_utility/FormatDateTime
+    base_utility/NormalizeTm
     base_value/scalar
     base_value/convert
     base_value/format
