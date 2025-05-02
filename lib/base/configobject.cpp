@@ -586,7 +586,7 @@ void ConfigObject::StopObjects()
 	std::vector<Type::Ptr> types = Type::GetAllTypes();
 
 	std::sort(types.begin(), types.end(), [](const Type::Ptr& a, const Type::Ptr& b) {
-		if (a->GetActivationPriority() > b->GetActivationPriority())
+		if (a->GetDeactivationPriority() > b->GetDeactivationPriority())
 			return true;
 		return false;
 	});
