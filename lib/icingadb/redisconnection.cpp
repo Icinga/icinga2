@@ -41,11 +41,11 @@ RedisConnection::RedisConnection(const String& host, int port, const String& pat
 RedisConnection::RedisConnection(boost::asio::io_context& io, String host, int port, String path, String username, String password,
 	int db, bool useTls, bool insecure, String certPath, String keyPath, String caPath, String crlPath,
 	String tlsProtocolmin, String cipherList, double connectTimeout, DebugInfo di, const RedisConnection::Ptr& parent)
-	: m_Host(std::move(host)), m_Port(port), m_Path(std::move(path)), m_Username(std::move(username)), m_Password(std::move(password)),
+	: m_Path(std::move(path)), m_Host(std::move(host)), m_Port(port), m_Username(std::move(username)), m_Password(std::move(password)),
 	  m_DbIndex(db), m_CertPath(std::move(certPath)), m_KeyPath(std::move(keyPath)), m_Insecure(insecure),
 	  m_CaPath(std::move(caPath)), m_CrlPath(std::move(crlPath)), m_TlsProtocolmin(std::move(tlsProtocolmin)),
-	  m_CipherList(std::move(cipherList)), m_ConnectTimeout(connectTimeout), m_DebugInfo(std::move(di)), m_Connecting(false), m_Connected(false),
-	  m_Started(false), m_Strand(io), m_QueuedWrites(io), m_QueuedReads(io), m_LogStatsTimer(io), m_Parent(parent)
+	  m_CipherList(std::move(cipherList)), m_ConnectTimeout(connectTimeout), m_DebugInfo(std::move(di)), m_Strand(io),
+	  m_Connecting(false), m_Connected(false), m_Started(false), m_QueuedWrites(io), m_QueuedReads(io), m_LogStatsTimer(io), m_Parent(parent)
 {
 	if (useTls && m_Path.IsEmpty()) {
 		UpdateTLSContext();
@@ -224,7 +224,7 @@ void RedisConnection::EnqueueCallback(const std::function<void(boost::asio::yiel
 	auto ctime (Utility::GetTime());
 
 	asio::post(m_Strand, [this, callback, priority, ctime]() {
-		m_Queues.Writes[priority].emplace(WriteQueueItem{nullptr, nullptr, nullptr, nullptr, callback, ctime});
+		m_Queues.Writes[priority].emplace(WriteQueueItem{nullptr, nullptr, nullptr, nullptr, callback, ctime, QueryAffects{}});
 		m_QueuedWrites.Set();
 	});
 }

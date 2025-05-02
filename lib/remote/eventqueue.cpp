@@ -44,8 +44,7 @@ void EventQueue::ProcessEvent(const Dictionary::Ptr& event)
 
 	std::unique_lock<std::mutex> lock(m_Mutex);
 
-	typedef std::pair<void *const, std::deque<Dictionary::Ptr> > kv_pair;
-	for (kv_pair& kv : m_Events) {
+	for (auto& kv : m_Events) {
 		kv.second.push_back(event);
 	}
 
@@ -108,8 +107,7 @@ std::vector<EventQueue::Ptr> EventQueue::GetQueuesForType(const String& type)
 
 	std::vector<EventQueue::Ptr> availQueues;
 
-	typedef std::pair<String, EventQueue::Ptr> kv_pair;
-	for (const kv_pair& kv : queues) {
+	for (auto& kv : queues) {
 		if (kv.second->CanProcessEvent(type))
 			availQueues.push_back(kv.second);
 	}
