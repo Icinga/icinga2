@@ -60,7 +60,7 @@ public:
 		const MessageOrigin::Ptr& origin = nullptr);
 
 	static void RemoveDowntime(const String& id, bool includeChildren, DowntimeRemovalReason removalReason,
-		const String& removedBy = "", const MessageOrigin::Ptr& origin = nullptr);
+		const String& removedBy = "");
 
 	void RegisterChild(const Downtime::Ptr& downtime);
 	void UnregisterChild(const Downtime::Ptr& downtime);

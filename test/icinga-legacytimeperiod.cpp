@@ -396,7 +396,6 @@ void AdvancedHelper(const char *timestamp, DateTime from, DateTime to)
 
 BOOST_AUTO_TEST_CASE(advanced)
 {
-	tm tm_beg, tm_end, tm_ref;
 	String timestamp;
 	boost::posix_time::ptime begin;
 	boost::posix_time::ptime end;

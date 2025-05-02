@@ -28,21 +28,18 @@ public:
 private:
 	void HandleGet(
 		const ApiUser::Ptr& user,
-		boost::beast::http::request<boost::beast::http::string_body>& request,
 		const Url::Ptr& url,
 		boost::beast::http::response<boost::beast::http::string_body>& response,
 		const Dictionary::Ptr& params
 	);
 	void HandlePost(
 		const ApiUser::Ptr& user,
-		boost::beast::http::request<boost::beast::http::string_body>& request,
 		const Url::Ptr& url,
 		boost::beast::http::response<boost::beast::http::string_body>& response,
 		const Dictionary::Ptr& params
 	);
 	void HandleDelete(
 		const ApiUser::Ptr& user,
-		boost::beast::http::request<boost::beast::http::string_body>& request,
 		const Url::Ptr& url,
 		boost::beast::http::response<boost::beast::http::string_body>& response,
 		const Dictionary::Ptr& params
