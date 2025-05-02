@@ -17,7 +17,7 @@ class TypeTargetProvider final : public TargetProvider
 public:
 	DECLARE_PTR_TYPEDEFS(TypeTargetProvider);
 
-	void FindTargets(const String& type,
+	void FindTargets([[maybe_unused]] const String& type,
 		const std::function<void (const Value&)>& addTarget) const override
 	{
 		for (const Type::Ptr& target : Type::GetAllTypes()) {
@@ -25,7 +25,7 @@ public:
 		}
 	}
 
-	Value GetTargetByName(const String& type, const String& name) const override
+	Value GetTargetByName([[maybe_unused]] const String& type, const String& name) const override
 	{
 		Type::Ptr ptype = Type::GetByName(name);
 
@@ -40,21 +40,21 @@ public:
 		return type == "Type";
 	}
 
-	String GetPluralName(const String& type) const override
+	String GetPluralName([[maybe_unused]] const String& type) const override
 	{
 		return "types";
 	}
 };
 
 bool TypeQueryHandler::HandleRequest(
-	AsioTlsStream& stream,
+	AsioTlsStream&,
 	const ApiUser::Ptr& user,
 	boost::beast::http::request<boost::beast::http::string_body>& request,
 	const Url::Ptr& url,
 	boost::beast::http::response<boost::beast::http::string_body>& response,
 	const Dictionary::Ptr& params,
-	boost::asio::yield_context& yc,
-	HttpServerConnection& server
+	boost::asio::yield_context&,
+	HttpServerConnection&
 )
 {
 	namespace http = boost::beast::http;
