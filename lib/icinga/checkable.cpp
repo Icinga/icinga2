@@ -78,6 +78,42 @@ void Checkable::OnAllConfigLoaded()
 	}
 }
 
+Dictionary::Ptr Checkable::MakeLocalsForApply()
+{
+	static const DictionaryData hotFunctions = ([]() -> DictionaryData {
+		DictionaryData hotFunctions;
+		Namespace::Ptr systemNS = ScriptGlobal::Get("System");
+
+		for (auto fname : { "regex", "match", "cidr_match" }) {
+			hotFunctions.emplace_back(fname, systemNS->Get(fname));
+		}
+
+		return hotFunctions;
+	})();
+
+	/* `match(host.vars.foo, "*bar*")` as an AST:
+	 *
+	 * FunctionCallExpression
+	 *   |- m_FName = VariableExpression
+	 *   |              |- m_Variable = "match"
+	 *   |              \- m_Imports = [
+	 *   |                   IndexerExpression // globals.System
+	 *   |                     |- m_Operand1 = GetScopeExpression
+	 *   |                     |                 \- m_ScopeSpec = ScopeGlobal
+	 *   |                     \- m_Operand2 = LiteralExpression
+	 *   |                                       \- m_Value = "System"
+	 *   |                   ...
+	 *   |                 ]
+	 *   \- m_Args = ...
+	 *
+	 * Instead of looking up "match" in ScriptFrame#Locals, ScriptFrame#Self and
+	 * finally in globals.System (implies looking up "System" in globals first)
+	 * while locking all respective mutexes (see VariableExpression#GetReference()),
+	 * place match() and the other "hot functions" above directly in ScriptFrame#Locals.
+	 */
+	return new Dictionary(hotFunctions);
+}
+
 void Checkable::Start(bool runtimeCreated)
 {
 	PushDependencyGroupsToRegistry();
@@ -321,4 +357,14 @@ void Checkable::CleanDeadlinedExecutions(const Timer * const&)
 			}
 		}
 	}
+}
+
+Dictionary::Ptr Checkable::GetFrozenLocalsForApply()
+{
+	if (!m_FrozenLocalsForApply) {
+		m_FrozenLocalsForApply = MakeLocalsForApply();
+		m_FrozenLocalsForApply->Freeze();
+	}
+
+	return m_FrozenLocalsForApply;
 }
