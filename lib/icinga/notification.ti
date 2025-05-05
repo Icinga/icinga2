@@ -13,8 +13,8 @@ code {{{
 class NotificationNameComposer : public NameComposer
 {
 public:
-	virtual String MakeName(const String& shortName, const Object::Ptr& context) const;
-	virtual Dictionary::Ptr ParseName(const String& name) const;
+	virtual String MakeName(const String& shortName, const Object::Ptr& context) const override;
+	virtual Dictionary::Ptr ParseName(const String& name) const override;
 };
 }}}
 
