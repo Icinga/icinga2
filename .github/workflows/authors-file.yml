@@ -21,7 +21,7 @@ jobs:
           git add AUTHORS
           git log --format='format:%aN <%aE>' "$(
             git merge-base HEAD^1 HEAD^2
-          )..HEAD^2" >> AUTHORS
+          )..HEAD^2" | grep -vEe '^dependabot\[bot] ' >> AUTHORS
           sort -uo AUTHORS AUTHORS
           git diff AUTHORS >> AUTHORS.diff
 
