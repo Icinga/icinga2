@@ -39,7 +39,7 @@ case "$DISTRO" in
 
   amazonlinux:20*)
     dnf install -y amazon-rpm-config bison cmake flex gcc-c++ ninja-build \
-      {boost,libedit,mariadb1\*,ncurses,openssl,postgresql,systemd}-devel
+      {boost,libedit,mariadb-connector-c,ncurses,openssl,postgresql,systemd}-devel
     ;;
 
   debian:*|ubuntu:*)
