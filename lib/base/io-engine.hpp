@@ -158,14 +158,14 @@ class TerminateIoThread : public std::exception
 };
 
 /**
- * Condition variable which doesn't block I/O threads
+ * Awaitable flag which doesn't block I/O threads, inspired by threading.Event from Python
  *
  * @ingroup base
  */
-class AsioConditionVariable
+class AsioEvent
 {
 public:
-	AsioConditionVariable(boost::asio::io_context& io, bool init = false);
+	AsioEvent(boost::asio::io_context& io, bool init = false);
 
 	void Set();
 	void Clear();
@@ -173,6 +173,24 @@ public:
 
 private:
 	boost::asio::deadline_timer m_Timer;
+};
+
+/**
+ * Like AsioEvent, but additionally supports waiting for an event to be cleared
+ *
+ * @ingroup base
+ */
+class AsioSymmetricEvent
+{
+public:
+	AsioSymmetricEvent(boost::asio::io_context& io, bool init = false);
+
+	void Set();
+	void Clear();
+	void Wait(boost::asio::yield_context yc, bool desiredState = true);
+
+private:
+	AsioEvent m_IsTrue, m_IsFalse;
 };
 
 /**
