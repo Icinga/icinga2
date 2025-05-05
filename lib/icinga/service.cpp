@@ -65,7 +65,7 @@ void Service::OnAllConfigLoaded()
 
 		ObjectLock olock(groups);
 
-		for (const String& name : groups) {
+		for (String name : groups) {
 			ServiceGroup::Ptr sg = ServiceGroup::GetByName(name);
 
 			if (sg)

@@ -33,7 +33,7 @@ void User::OnAllConfigLoaded()
 
 		ObjectLock olock(groups);
 
-		for (const String& name : groups) {
+		for (String name : groups) {
 			UserGroup::Ptr ug = UserGroup::GetByName(name);
 
 			if (ug)
@@ -51,7 +51,7 @@ void User::Stop(bool runtimeRemoved)
 	if (groups) {
 		ObjectLock olock(groups);
 
-		for (const String& name : groups) {
+		for (String name : groups) {
 			UserGroup::Ptr ug = UserGroup::GetByName(name);
 
 			if (ug)
