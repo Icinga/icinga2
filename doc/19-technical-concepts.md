@@ -204,7 +204,7 @@ You can read the full story [here](https://github.com/Icinga/icinga2/issues/7309
 
 With 2.11 you'll now see 3 processes:
 
-- The umbrella process which takes care about signal handling and process spawning/stopping
+- The umbrella process which takes care of signal handling and process spawning/stopping
 - The main process with the check scheduler, notifications, etc.
 - The execution helper process
 
