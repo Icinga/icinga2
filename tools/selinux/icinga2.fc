@@ -7,6 +7,12 @@
 /etc/icinga2/scripts(/.*)?	 --	gen_context(system_u:object_r:nagios_notification_plugin_exec_t,s0)
 
 /usr/sbin/icinga2		--	gen_context(system_u:object_r:icinga2_exec_t,s0)
+# Since Fedora 42 the /usr/sbin/ directory was merged into /usr/bin/ and the sbin dir is still there but
+# it is just a symlink to /usr/bin/. However, they seem to have backported all the related SELinux changes
+# to Fedora 41 and broke our policy even on Fedora 41. So, use both paths here and either one is guaranteed
+# to work on all supported systems.
+/usr/bin/icinga2		--	gen_context(system_u:object_r:icinga2_exec_t,s0)
+
 /usr/lib/icinga2/sbin/icinga2		--	gen_context(system_u:object_r:icinga2_exec_t,s0)
 /usr/lib/icinga2/safe-reload           --      gen_context(system_u:object_r:icinga2_exec_t,s0)
 
