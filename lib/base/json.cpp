@@ -68,7 +68,7 @@ public:
 	String GetResult();
 
 private:
-	std::vector<char> m_Result;
+	std::string m_Result;
 	String m_CurrentKey;
 	std::stack<std::bitset<2>> m_CurrentSubtree;
 
@@ -450,14 +450,14 @@ template<bool prettyPrint>
 inline
 String JsonEncoder<prettyPrint>::GetResult()
 {
-	return String(m_Result.begin(), m_Result.end());
+	return std::move(m_Result);
 }
 
 template<bool prettyPrint>
 inline
 void JsonEncoder<prettyPrint>::AppendChar(char c)
 {
-	m_Result.emplace_back(c);
+	m_Result.push_back(c);
 }
 
 template<bool prettyPrint>
