@@ -472,7 +472,8 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 
 		if (type == NotificationProblem && !reminder && !checkable->GetVolatile()) {
 			auto [host, service] = GetHostService(checkable);
-			uint_fast8_t state = service ? service->GetState() : host->GetState();
+			uint_fast8_t state = service ? static_cast<uint_fast8_t>(service->GetState())
+				: static_cast<uint_fast8_t>(host->GetState());
 
 			if (state == (uint_fast8_t)GetLastNotifiedStatePerUser()->Get(userName)) {
 				auto stateStr (service ? NotificationServiceStateToString(service->GetState()) : NotificationHostStateToString(host->GetState()));
@@ -501,7 +502,8 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 
 		if (type == NotificationProblem) {
 			auto [host, service] = GetHostService(checkable);
-			uint_fast8_t state = service ? service->GetState() : host->GetState();
+			uint_fast8_t state = service ? static_cast<uint_fast8_t>(service->GetState())
+				: static_cast<uint_fast8_t>(host->GetState());
 
 			if (state != (uint_fast8_t)GetLastNotifiedStatePerUser()->Get(userName)) {
 				GetLastNotifiedStatePerUser()->Set(userName, state);
