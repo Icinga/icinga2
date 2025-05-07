@@ -173,11 +173,8 @@ add_boost_test(base
     base_timer/invoke
     base_timer/scope
     base_tlsutility/sha1
-    base_tlsutility/iscauptodate_ok
-    base_tlsutility/iscauptodate_expiring
-    base_tlsutility/iscertuptodate_ok
-    base_tlsutility/iscertuptodate_expiring
-    base_tlsutility/iscertuptodate_old
+    base_tlsutility/create_verify_ca
+    base_tlsutility/create_verify_leaf_certs
     base_utility/parse_version
     base_utility/compare_version
     base_utility/comparepasswords_works
