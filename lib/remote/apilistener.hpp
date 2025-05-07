@@ -4,6 +4,7 @@
 #define APILISTENER_H
 
 #include "remote/apilistener-ti.hpp"
+#include "remote/crproducer.hpp"
 #include "remote/jsonrpcconnection.hpp"
 #include "remote/httpserverconnection.hpp"
 #include "remote/endpoint.hpp"
@@ -74,7 +75,7 @@ enum class ApiCapabilities : uint_fast64_t
 /**
 * @ingroup remote
 */
-class ApiListener final : public ObjectImpl<ApiListener>
+class ApiListener final : public ObjectImpl<ApiListener>, public CheckResultProducerComponent
 {
 public:
 	DECLARE_OBJECT(ApiListener);

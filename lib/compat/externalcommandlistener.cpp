@@ -32,6 +32,7 @@ void ExternalCommandListener::StatsFunc(const Dictionary::Ptr& status, const Arr
 void ExternalCommandListener::Start(bool runtimeCreated)
 {
 	ObjectImpl<ExternalCommandListener>::Start(runtimeCreated);
+	CheckResultProducerComponent::Start();
 
 	Log(LogInformation, "ExternalCommandListener")
 		<< "'" << GetName() << "' started.";
@@ -50,6 +51,8 @@ void ExternalCommandListener::Start(bool runtimeCreated)
  */
 void ExternalCommandListener::Stop(bool runtimeRemoved)
 {
+	CheckResultProducerComponent::Stop();
+
 	Log(LogInformation, "ExternalCommandListener")
 		<< "'" << GetName() << "' stopped.";
 
@@ -136,7 +139,7 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 					Log(LogInformation, "ExternalCommandListener")
 						<< "Executing external command: " << command;
 
-					ExternalCommandProcessor::Execute(command);
+					ExternalCommandProcessor::Execute(this, command);
 				} catch (const std::exception& ex) {
 					Log(LogWarning, "ExternalCommandListener")
 						<< "External command failed: " << DiagnosticInformation(ex, false);
