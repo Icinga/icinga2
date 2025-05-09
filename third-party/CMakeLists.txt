@@ -3,8 +3,4 @@
 
 add_subdirectory(mmatch)
 
-if(UNIX OR CYGWIN)
-  add_subdirectory(execvpe)
-endif()
-
 add_subdirectory(socketpair)
