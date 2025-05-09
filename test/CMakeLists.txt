@@ -268,6 +268,7 @@ add_boost_test(base
     icinga_perfdata/multi
     icinga_perfdata/scientificnotation
     icinga_perfdata/parse_edgecases
+    icinga_perfdata/counter_value
     icinga_perfdata/empty_warn_crit_min_max
     methods_pluginnotificationtask/truncate_long_output
     remote_configpackageutility/ValidateName
