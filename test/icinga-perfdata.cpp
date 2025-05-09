@@ -417,4 +417,12 @@ BOOST_AUTO_TEST_CASE(parse_edgecases)
 	BOOST_CHECK_EQUAL(pv->GetUnit(), "bytes");
 }
 
+BOOST_AUTO_TEST_CASE(counter_value)
+{
+	PerfdataValue::Ptr pv = PerfdataValue::Parse("test=42c");
+	BOOST_CHECK(pv);
+	BOOST_CHECK_EQUAL(pv->GetValue(), 42);
+	BOOST_CHECK(pv->GetCounter());
+}
+
 BOOST_AUTO_TEST_SUITE_END()
