@@ -13,18 +13,18 @@ options.
 
 ```
 # icinga2
-icinga2 - The Icinga 2 network monitoring daemon (version: v2.11.0)
+icinga2 - The Icinga 2 network monitoring daemon (version: v2.14.4)
 
 Usage:
   icinga2 <command> [<arguments>]
 
 Supported commands:
   * api setup (setup for API)
-  * ca list (lists all certificate signing requests)
-  * ca restore (restores a removed certificate request)
+  * ca list (lists pending certificate signing requests)
   * ca remove (removes an outstanding certificate request)
+  * ca restore (restores a removed certificate request)
   * ca sign (signs an outstanding certificate request)
-  * console (Icinga debug console)
+  * console (Icinga console)
   * daemon (starts Icinga 2)
   * feature disable (disables specified feature)
   * feature enable (enables specified feature)
@@ -48,8 +48,6 @@ Global options:
   --color                   use VT100 color codes even when stdout is not a
                             terminal
   -D [ --define ] arg       define a constant
-  -a [ --app ] arg          application library name (default: icinga)
-  -l [ --library ] arg      load a library
   -I [ --include ] arg      add include search directory
   -x [ --log-level ] arg    specify the log level for the console log.
                             The valid value is either debug, notice,
@@ -57,6 +55,8 @@ Global options:
   -X [ --script-debugger ]  whether to enable the script debugger
 
 Report bugs at <https://github.com/Icinga/icinga2>
+Get support: <https://icinga.com/support/>
+Documentation: <https://icinga.com/docs/>
 Icinga home page: <https://icinga.com/>
 ```
 
@@ -102,18 +102,6 @@ source /etc/bash-completion.d/icinga2
 
 ## Icinga 2 CLI Global Options <a id="cli-commands-global-options"></a>
 
-### Application Type
-
-By default the `icinga2` binary loads the `icinga` library. A different application type
-can be specified with the `--app` command-line option.
-Note: This is not needed by the average Icinga user, only developers.
-
-### Libraries
-
-Instead of loading libraries using the [`library` config directive](17-language-reference.md#library)
-you can also use the `--library` command-line option.
-Note: This is not needed by the average Icinga user, only developers.
-
 ### Constants
 
 [Global constants](17-language-reference.md#constants) can be set using the `--define` command-line option.
@@ -144,7 +132,7 @@ Provides helper functions to enable and setup the
 
 ```
 # icinga2 api setup --help
-icinga2 - The Icinga 2 network monitoring daemon (version: v2.11.0)
+icinga2 - The Icinga 2 network monitoring daemon (version: v2.14.4)
 
 Usage:
   icinga2 api setup [<arguments>]
@@ -176,20 +164,20 @@ Icinga home page: <https://icinga.com/>
 
 List and manage incoming certificate signing requests. More details
 can be found in the [signing methods](06-distributed-monitoring.md#distributed-monitoring-setup-sign-certificates-master)
-chapter. This CLI command is available since v2.8.
+chapter.
 
 ```
 # icinga2 ca --help
-icinga2 - The Icinga 2 network monitoring daemon (version: v2.11.0)
+icinga2 - The Icinga 2 network monitoring daemon (version: v2.14.4)
 
 Usage:
   icinga2 <command> [<arguments>]
 
 Supported commands:
-  * ca list (lists all certificate signing requests)
-  * ca sign (signs an outstanding certificate request)
-  * ca restore (restores a removed certificate request)
+  * ca list (lists pending certificate signing requests)
   * ca remove (removes an outstanding certificate request)
+  * ca restore (restores a removed certificate request)
+  * ca sign (signs an outstanding certificate request)
 
 Global options:
   -h [ --help ]             show this help message
@@ -197,8 +185,6 @@ Global options:
   --color                   use VT100 color codes even when stdout is not a
                             terminal
   -D [ --define ] arg       define a constant
-  -a [ --app ] arg          application library name (default: icinga)
-  -l [ --library ] arg      load a library
   -I [ --include ] arg      add include search directory
   -x [ --log-level ] arg    specify the log level for the console log.
                             The valid value is either debug, notice,
@@ -206,6 +192,8 @@ Global options:
   -X [ --script-debugger ]  whether to enable the script debugger
 
 Report bugs at <https://github.com/Icinga/icinga2>
+Get support: <https://icinga.com/support/>
+Documentation: <https://icinga.com/docs/>
 Icinga home page: <https://icinga.com/>
 ```
 
@@ -213,8 +201,8 @@ Icinga home page: <https://icinga.com/>
 ### CLI command: Ca List <a id="cli-command-ca-list"></a>
 
 ```
-icinga2 ca list --help
-icinga2 - The Icinga 2 network monitoring daemon (version: v2.11.0)
+# icinga2 ca list --help
+icinga2 - The Icinga 2 network monitoring daemon (version: v2.14.4)
 
 Usage:
   icinga2 ca list [<arguments>]
@@ -249,11 +237,14 @@ Icinga home page: <https://icinga.com/>
 ## CLI command: Console <a id="cli-command-console"></a>
 
 The CLI command `console` can be used to debug and evaluate Icinga 2 config expressions,
-e.g. to test [functions](17-language-reference.md#functions) in your local sandbox.
+e.g., to test [functions](17-language-reference.md#functions) in your local sandbox.
+
+This command can be executed by any user and does not require access to the Icinga 2 configuration.
 
 ```
-$ icinga2 console
-Icinga 2 (version: v2.11.0)
+# icinga2 console
+Icinga 2 (version: v2.14.4)
+Type $help to view available commands.
 <1> => function test(name) {
 <1> ..   log("Hello " + name)
 <1> .. }
@@ -268,7 +259,7 @@ Further usage examples can be found in the [library reference](18-library-refere
 
 ```
 # icinga2 console --help
-icinga2 - The Icinga 2 network monitoring daemon (version: v2.11.0)
+icinga2 - The Icinga 2 network monitoring daemon (version: v2.14.4)
 
 Usage:
   icinga2 console [<arguments>]
@@ -281,8 +272,6 @@ Global options:
   --color                   use VT100 color codes even when stdout is not a
                             terminal
   -D [ --define ] arg       define a constant
-  -a [ --app ] arg          application library name (default: icinga)
-  -l [ --library ] arg      load a library
   -I [ --include ] arg      add include search directory
   -x [ --log-level ] arg    specify the log level for the console log.
                             The valid value is either debug, notice,
@@ -297,11 +286,13 @@ Command options:
   --sandbox                 enable sandbox mode
 
 Report bugs at <https://github.com/Icinga/icinga2>
+Get support: <https://icinga.com/support/>
+Documentation: <https://icinga.com/docs/>
 Icinga home page: <https://icinga.com/>
 ```
 
 
-On operating systems without the `libedit` library installed there is no
+On operating systems without the `libedit` library installed, there is no
 support for line-editing or a command history. However you can
 use the `rlwrap` program if you require those features:
 
@@ -311,7 +302,7 @@ rlwrap icinga2 console
 
 The debug console can be used to connect to a running Icinga 2 instance using
 the [REST API](12-icinga2-api.md#icinga2-api). [API permissions](12-icinga2-api.md#icinga2-api-permissions)
-are required for executing config expressions and auto-completion.
+for `console` are required for executing config expressions and auto-completion.
 
 > **Note**
 >
@@ -323,20 +314,20 @@ are required for executing config expressions and auto-completion.
 
 You can specify the API URL using the `--connect` parameter.
 
-Although the password can be specified there process arguments on UNIX platforms are
-usually visible to other users (e.g. through `ps`). In order to securely specify the
-user credentials the debug console supports two environment variables:
+Although the password can be specified there, process arguments are usually
+visible to other users (e.g. through `ps`). In order to securely specify the
+user credentials, the debug console supports two environment variables:
 
   Environment variable | Description
   ---------------------|-------------
   ICINGA2_API_USERNAME | The API username.
   ICINGA2_API_PASSWORD | The API password.
 
-Here's an example:
+Here is an example:
 
 ```
 $ ICINGA2_API_PASSWORD=icinga icinga2 console --connect 'https://root@localhost:5665/'
-Icinga 2 (version: v2.11.0)
+Icinga 2 (version: v2.14.4)
 <1> =>
 ```
 
@@ -383,7 +374,7 @@ The `--syntax-only` option can be used in combination with `--eval` or `--file`
 to check a script for syntax errors. In this mode the script is parsed to identify
 syntax errors but not evaluated.
 
-Here's an example that retrieves the command that was used by Icinga to check the `icinga2-agent1.localdomain` host:
+Here is an example that retrieves the command that was used by Icinga to check the `icinga2-agent1.localdomain` host:
 
 ```
 $ ICINGA2_API_PASSWORD=icinga icinga2 console --connect 'https://root@localhost:5665/' --eval 'get_host("icinga2-agent1.localdomain").last_check_result.command' | python -m json.tool
@@ -405,7 +396,7 @@ Furthermore it allows to run the [configuration validation](11-cli-commands.md#c
 
 ```
 # icinga2 daemon --help
-icinga2 - The Icinga 2 network monitoring daemon (version: v2.11.0)
+icinga2 - The Icinga 2 network monitoring daemon (version: v2.14.4)
 
 Usage:
   icinga2 daemon [<arguments>]
@@ -418,8 +409,6 @@ Global options:
   --color                   use VT100 color codes even when stdout is not a
                             terminal
   -D [ --define ] arg       define a constant
-  -a [ --app ] arg          application library name (default: icinga)
-  -l [ --library ] arg      load a library
   -I [ --include ] arg      add include search directory
   -x [ --log-level ] arg    specify the log level for the console log.
                             The valid value is either debug, notice,
@@ -430,7 +419,8 @@ Command options:
   -c [ --config ] arg       parse a configuration file
   -z [ --no-config ]        start without a configuration file
   -C [ --validate ]         exit after validating the configuration
-  --dump-objects            write icinga2.debug cache file for icinga2 object list
+  --dump-objects            write icinga2.debug cache file for icinga2 object
+                            list
   -e [ --errorlog ] arg     log fatal errors to the specified log file (only
                             works in combination with --daemonize or
                             --close-stdio)
@@ -438,6 +428,8 @@ Command options:
   --close-stdio             do not log to stdout (or stderr) after startup
 
 Report bugs at <https://github.com/Icinga/icinga2>
+Get support: <https://icinga.com/support/>
+Documentation: <https://icinga.com/docs/>
 Icinga home page: <https://icinga.com/>
 ```
 
@@ -476,8 +468,8 @@ The `feature list` command shows which features are currently enabled:
 
 ```
 # icinga2 feature list
-Disabled features: compatlog debuglog gelf ido-pgsql influxdb livestatus opentsdb perfdata statusdata syslog
-Enabled features: api checker command graphite ido-mysql mainlog notification
+Disabled features: debuglog elasticsearch gelf ido-mysql ido-pgsql influxdb influxdb2 journald opentsdb perfdata syslog
+Enabled features: api checker graphite icingadb mainlog notification
 ```
 
 ## CLI command: Node <a id="cli-command-node"></a>
@@ -529,7 +521,7 @@ More information can be found in the [troubleshooting](15-troubleshooting.md#tro
 
 ```
 # icinga2 object --help
-icinga2 - The Icinga 2 network monitoring daemon (version: v2.11.0)
+icinga2 - The Icinga 2 network monitoring daemon (version: v2.14.4)
 
 Usage:
   icinga2 <command> [<arguments>]
@@ -543,8 +535,6 @@ Global options:
   --color                   use VT100 color codes even when stdout is not a
                             terminal
   -D [ --define ] arg       define a constant
-  -a [ --app ] arg          application library name (default: icinga)
-  -l [ --library ] arg      load a library
   -I [ --include ] arg      add include search directory
   -x [ --log-level ] arg    specify the log level for the console log.
                             The valid value is either debug, notice,
@@ -552,6 +542,8 @@ Global options:
   -X [ --script-debugger ]  whether to enable the script debugger
 
 Report bugs at <https://github.com/Icinga/icinga2>
+Get support: <https://icinga.com/support/>
+Documentation: <https://icinga.com/docs/>
 Icinga home page: <https://icinga.com/>
 ```
 
@@ -571,7 +563,7 @@ You will need them in the [distributed monitoring chapter](06-distributed-monito
 
 ```
 # icinga2 pki --help
-icinga2 - The Icinga 2 network monitoring daemon (version: v2.12.0)
+icinga2 - The Icinga 2 network monitoring daemon (version: v2.14.4)
 
 Usage:
   icinga2 <command> [<arguments>]
@@ -591,8 +583,6 @@ Global options:
   --color                   use VT100 color codes even when stdout is not a
                             terminal
   -D [ --define ] arg       define a constant
-  -a [ --app ] arg          application library name (default: icinga)
-  -l [ --library ] arg      load a library
   -I [ --include ] arg      add include search directory
   -x [ --log-level ] arg    specify the log level for the console log.
                             The valid value is either debug, notice,
@@ -600,6 +590,8 @@ Global options:
   -X [ --script-debugger ]  whether to enable the script debugger
 
 Report bugs at <https://github.com/Icinga/icinga2>
+Get support: <https://icinga.com/support/>
+Documentation: <https://icinga.com/docs/>
 Icinga home page: <https://icinga.com/>
 ```
 
@@ -609,7 +601,7 @@ Lists all configured variables (constants) in a similar fashion like [object lis
 
 ```
 # icinga2 variable --help
-icinga2 - The Icinga 2 network monitoring daemon (version: v2.11.0)
+icinga2 - The Icinga 2 network monitoring daemon (version: v2.14.4)
 
 Usage:
   icinga2 <command> [<arguments>]
@@ -624,8 +616,6 @@ Global options:
   --color                   use VT100 color codes even when stdout is not a
                             terminal
   -D [ --define ] arg       define a constant
-  -a [ --app ] arg          application library name (default: icinga)
-  -l [ --library ] arg      load a library
   -I [ --include ] arg      add include search directory
   -x [ --log-level ] arg    specify the log level for the console log.
                             The valid value is either debug, notice,
@@ -633,6 +623,8 @@ Global options:
   -X [ --script-debugger ]  whether to enable the script debugger
 
 Report bugs at <https://github.com/Icinga/icinga2>
+Get support: <https://icinga.com/support/>
+Documentation: <https://icinga.com/docs/>
 Icinga home page: <https://icinga.com/>
 ```
 
@@ -651,8 +643,8 @@ You can view a list of enabled and disabled features:
 
 ```
 # icinga2 feature list
-Disabled features: api command compatlog debuglog graphite icingastatus ido-mysql ido-pgsql livestatus notification perfdata statusdata syslog
-Enabled features: checker mainlog notification
+Disabled features: debuglog elasticsearch gelf ido-mysql ido-pgsql influxdb influxdb2 journald opentsdb perfdata syslog
+Enabled features: api checker graphite icingadb mainlog notification
 ```
 
 Using the `icinga2 feature enable` command you can enable features:
@@ -675,10 +667,9 @@ restart Icinga 2. You will need to restart Icinga 2 using the init script
 after enabling or disabling features.
 
 
-
 ## Configuration Validation <a id="config-validation"></a>
 
-Once you've edited the configuration files make sure to tell Icinga 2 to validate
+Once you have edited the configuration, make sure to tell Icinga 2 to validate
 the configuration changes. Icinga 2 will log any configuration error including
 a hint on the file, the line number and the affected configuration line itself.
 
@@ -716,12 +707,12 @@ to read the [troubleshooting](15-troubleshooting.md#troubleshooting) chapter.
 You can also use the [CLI command](11-cli-commands.md#cli-command-object) `icinga2 object list`
 after validation passes to analyze object attributes, inheritance or created
 objects by apply rules.
-Find more on troubleshooting with `object list` in [this chapter](15-troubleshooting.md#troubleshooting-list-configuration-objects).
+Find more on troubleshooting with `icinga2 object list` in [this chapter](15-troubleshooting.md#troubleshooting-list-configuration-objects).
 
 
 ## Reload on Configuration Changes <a id="config-change-reload"></a>
 
-Every time you have changed your configuration you should first tell Icinga 2
+Every time you have changed your configuration, you should first tell Icinga 2
 to [validate](11-cli-commands.md#config-validation). If there are no validation errors, you can
 safely reload the Icinga 2 daemon.
 
