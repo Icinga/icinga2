@@ -285,6 +285,19 @@ BOOST_AUTO_TEST_CASE(uom)
 
 	str = pv->Format();
 	BOOST_CHECK_EQUAL(str, "test=1W");
+
+	pv = PerfdataValue::Parse("test=42c");
+	BOOST_CHECK(pv);
+	BOOST_CHECK_EQUAL(pv->GetValue(), 42);
+	BOOST_CHECK(pv->GetCounter());
+	BOOST_CHECK_EQUAL(pv->GetUnit(), "");
+	BOOST_CHECK_EQUAL(pv->GetCrit(), Empty);
+	BOOST_CHECK_EQUAL(pv->GetWarn(), Empty);
+	BOOST_CHECK_EQUAL(pv->GetMin(), Empty);
+	BOOST_CHECK_EQUAL(pv->GetMax(), Empty);
+
+	str = pv->Format();
+	BOOST_CHECK_EQUAL(str, "test=42c");
 }
 
 BOOST_AUTO_TEST_CASE(warncritminmax)
