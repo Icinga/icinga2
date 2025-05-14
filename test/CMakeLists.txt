@@ -178,6 +178,7 @@ add_boost_test(base
     base_tlsutility/iscertuptodate_ok
     base_tlsutility/iscertuptodate_expiring
     base_tlsutility/iscertuptodate_old
+    base_tlsutility/VerifyCertificate_revalidate
     base_utility/parse_version
     base_utility/compare_version
     base_utility/comparepasswords_works
