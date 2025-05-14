@@ -860,19 +860,42 @@ String RandomString(int length)
 
 bool VerifyCertificate(const std::shared_ptr<X509> &caCertificate, const std::shared_ptr<X509> &certificate, const String& crlFile)
 {
+	return VerifyCertificate(caCertificate.get(), certificate.get(), crlFile);
+}
+
+bool VerifyCertificate(X509* caCertificate, X509* certificate, const String& crlFile)
+{
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+	/*
+	 * OpenSSL older than version 1.1.0 stored a valid flag in the struct behind X509* which leads to certain validation
+	 * steps to be skipped on subsequent verification operations. If a certificate is verified multiple times with a
+	 * different configuration, for example with different trust anchors, this can result in the certificate
+	 * incorrectly being treated as valid.
+	 *
+	 * This issue is worked around by serializing and deserializing the certificate which creates a new struct instance
+	 * with the valid flag cleared, hence performing the full validation.
+	 *
+	 * The flag in question was removed in OpenSSL 1.1.0, so this extra step isn't necessary for more recent versions:
+	 * https://github.com/openssl/openssl/commit/0e76014e584ba78ef1d6ecb4572391ef61c4fb51
+	 */
+	std::shared_ptr<X509> copy = StringToCertificate(CertificateToString(certificate));
+	VERIFY(copy.get() != certificate);
+	certificate = copy.get();
+#endif
+
 	std::unique_ptr<X509_STORE, decltype(&X509_STORE_free)> store{X509_STORE_new(), &X509_STORE_free};
 
 	if (!store)
 		return false;
 
-	X509_STORE_add_cert(store.get(), caCertificate.get());
+	X509_STORE_add_cert(store.get(), caCertificate);
 
 	if (!crlFile.IsEmpty()) {
 		AddCRLToSSLContext(store.get(), crlFile);
 	}
 
 	std::unique_ptr<X509_STORE_CTX, decltype(&X509_STORE_CTX_free)> csc{X509_STORE_CTX_new(), &X509_STORE_CTX_free};
-	X509_STORE_CTX_init(csc.get(), store.get(), certificate.get(), nullptr);
+	X509_STORE_CTX_init(csc.get(), store.get(), certificate, nullptr);
 
 	int rc = X509_verify_cert(csc.get());
 

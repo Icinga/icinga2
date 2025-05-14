@@ -21,6 +21,7 @@ set(base_test_SOURCES
   base-string.cpp
   base-timer.cpp
   base-type.cpp
+  base-tlsutility.cpp
   base-utility.cpp
   base-value.cpp
   config-ops.cpp
@@ -109,6 +110,7 @@ add_boost_test(base
     base_type/assign
     base_type/byname
     base_type/instantiate
+    base_tlsutility/VerifyCertificate_revalidate
     base_utility/parse_version
     base_utility/compare_version
     base_utility/comparepasswords_works
