@@ -149,7 +149,6 @@ private:
 	boost::asio::io_context m_IoContext;
 	boost::asio::executor_work_guard<boost::asio::io_context::executor_type> m_KeepAlive;
 	std::vector<std::thread> m_Threads;
-	boost::asio::deadline_timer m_AlreadyExpiredTimer;
 
 	std::atomic_uint_fast32_t m_CpuBoundSemaphore;
 	std::mutex m_CpuBoundWaitingMutex;
