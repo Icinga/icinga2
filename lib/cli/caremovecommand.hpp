@@ -21,7 +21,6 @@ public:
 	String GetDescription() const override;
 	String GetShortDescription() const override;
 	int GetMinArguments() const override;
-	ImpersonationLevel GetImpersonationLevel() const override;
 	int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const override;
 };
 
