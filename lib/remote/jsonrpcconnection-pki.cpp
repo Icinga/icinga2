@@ -277,14 +277,14 @@ delayed_request:
 			decltype(fs::file_size({})) total = 0;
 			boost::system::error_code ec;
 
-			for (fs::directory_iterator dirIt (fs::path(requestDir.GetData())), dirEnd; !ec && dirIt != dirEnd; dirIt.increment(ec)) {
+			fs::directory_iterator dirIt(fs::path(requestDir), ec);
+			fs::directory_iterator dirEnd;
+			for (; !ec && dirIt != dirEnd; dirIt.increment(ec)) {
 				boost::system::error_code ec;
 				auto stats (dirIt->symlink_status(ec));
 
 				if (!ec && fs::is_regular_file(stats)) {
-					auto size (fs::file_size(dirIt->path(), ec));
-
-					if (!ec) {
+					if (auto size(fs::file_size(dirIt->path(), ec)); !ec) {
 						total += size;
 					}
 				}
