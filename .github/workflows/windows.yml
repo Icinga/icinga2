@@ -46,3 +46,12 @@ jobs:
           if ($LastExitCode -ne 0) { throw "Error during build" }
           & powershell.exe .\tools\win32\test.ps1
           if ($LastExitCode -ne 0) { throw "Error during test" }
+
+      - name: Show Log Files
+        if: ${{ always() }}
+        run: |
+          foreach ($file in Get-ChildItem -Recurse -Filter "*.log") {
+            Write-Host "::group::$($file.FullName)"
+            Get-Content $file.FullName
+            Write-Host "::endgroup::"
+          }
