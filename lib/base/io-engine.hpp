@@ -176,6 +176,26 @@ private:
 };
 
 /**
+ * Like AsioEvent, which only allows waiting for an event to be set, but additionally supports waiting for clearing
+ *
+ * @ingroup base
+ */
+class AsioDualEvent
+{
+public:
+	AsioDualEvent(boost::asio::io_context& io, bool init = false);
+
+	void Set();
+	void Clear();
+
+	void WaitForSet(boost::asio::yield_context yc);
+	void WaitForClear(boost::asio::yield_context yc);
+
+private:
+	AsioEvent m_IsTrue, m_IsFalse;
+};
+
+/**
  * I/O timeout emulator
  *
  * This class provides a workaround for Boost.ASIO's lack of built-in timeout support.

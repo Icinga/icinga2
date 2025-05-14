@@ -146,6 +146,33 @@ void AsioEvent::Wait(boost::asio::yield_context yc)
 	m_Timer.async_wait(yc[ec]);
 }
 
+AsioDualEvent::AsioDualEvent(boost::asio::io_context& io, bool init)
+	: m_IsTrue(io, init), m_IsFalse(io, !init)
+{
+}
+
+void AsioDualEvent::Set()
+{
+	m_IsTrue.Set();
+	m_IsFalse.Clear();
+}
+
+void AsioDualEvent::Clear()
+{
+	m_IsTrue.Clear();
+	m_IsFalse.Set();
+}
+
+void AsioDualEvent::WaitForSet(boost::asio::yield_context yc)
+{
+	m_IsTrue.Wait(std::move(yc));
+}
+
+void AsioDualEvent::WaitForClear(boost::asio::yield_context yc)
+{
+	m_IsFalse.Wait(std::move(yc));
+}
+
 /**
  * Cancels any pending timeout callback.
  *
