@@ -983,27 +983,24 @@ String BinaryToHex(const unsigned char* data, size_t length) {
 
 bool VerifyCertificate(const std::shared_ptr<X509> &caCertificate, const std::shared_ptr<X509> &certificate, const String& crlFile)
 {
-	X509_STORE *store = X509_STORE_new();
+	std::unique_ptr<X509_STORE, decltype(&X509_STORE_free)> store{X509_STORE_new(), &X509_STORE_free};
 
 	if (!store)
 		return false;
 
-	X509_STORE_add_cert(store, caCertificate.get());
+	X509_STORE_add_cert(store.get(), caCertificate.get());
 
 	if (!crlFile.IsEmpty()) {
-		AddCRLToSSLContext(store, crlFile);
+		AddCRLToSSLContext(store.get(), crlFile);
 	}
 
-	X509_STORE_CTX *csc = X509_STORE_CTX_new();
-	X509_STORE_CTX_init(csc, store, certificate.get(), nullptr);
+	std::unique_ptr<X509_STORE_CTX, decltype(&X509_STORE_CTX_free)> csc{X509_STORE_CTX_new(), &X509_STORE_CTX_free};
+	X509_STORE_CTX_init(csc.get(), store.get(), certificate.get(), nullptr);
 
-	int rc = X509_verify_cert(csc);
-
-	X509_STORE_CTX_free(csc);
-	X509_STORE_free(store);
+	int rc = X509_verify_cert(csc.get());
 
 	if (rc == 0) {
-		int err = X509_STORE_CTX_get_error(csc);
+		int err = X509_STORE_CTX_get_error(csc.get());
 
 		BOOST_THROW_EXCEPTION(openssl_error()
 			<< boost::errinfo_api_function("X509_verify_cert")
