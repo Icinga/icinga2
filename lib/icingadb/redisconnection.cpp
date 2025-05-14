@@ -302,12 +302,6 @@ void RedisConnection::Connect(asio::yield_context& yc)
 
 	boost::asio::deadline_timer timer (m_Strand.context());
 
-	auto waitForReadLoop ([this, &yc]() {
-		while (!m_Queues.FutureResponseActions.empty()) {
-			IoEngine::YieldCurrentCoroutine(yc);
-		}
-	});
-
 	for (;;) {
 		try {
 			if (m_Path.IsEmpty()) {
@@ -339,7 +333,7 @@ void RedisConnection::Connect(asio::yield_context& yc)
 					}
 
 					Handshake(conn, yc);
-					waitForReadLoop();
+					m_QueuedReads.WaitForClear(yc);
 					m_TlsConn = std::move(conn);
 				} else {
 					Log(m_Parent ? LogNotice : LogInformation, "IcingaDB")
@@ -350,7 +344,7 @@ void RedisConnection::Connect(asio::yield_context& yc)
 
 					icinga::Connect(conn->next_layer(), m_Host, Convert::ToString(m_Port), yc);
 					Handshake(conn, yc);
-					waitForReadLoop();
+					m_QueuedReads.WaitForClear(yc);
 					m_TcpConn = std::move(conn);
 				}
 			} else {
@@ -362,7 +356,7 @@ void RedisConnection::Connect(asio::yield_context& yc)
 
 				conn->next_layer().async_connect(Unix::endpoint(m_Path.CStr()), yc);
 				Handshake(conn, yc);
-				waitForReadLoop();
+				m_QueuedReads.WaitForClear(yc);
 				m_UnixConn = std::move(conn);
 			}
 
@@ -394,7 +388,7 @@ void RedisConnection::Connect(asio::yield_context& yc)
 void RedisConnection::ReadLoop(asio::yield_context& yc)
 {
 	for (;;) {
-		m_QueuedReads.Wait(yc);
+		m_QueuedReads.WaitForSet(yc);
 
 		while (!m_Queues.FutureResponseActions.empty()) {
 			auto item (std::move(m_Queues.FutureResponseActions.front()));
