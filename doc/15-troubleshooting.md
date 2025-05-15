@@ -236,63 +236,9 @@ curl -k -s -S -i -u root:icinga -H 'Accept: application/json' \
 
 ## Icinga starts/restarts/reloads very slowly
 
-### Try swapping out the allocator
+Optimise apply rules and group assign conditions.
 
-Icinga performs a lot of memory allocations, especially during startup.
-Swapping out the allocator may increase the startup performance.
-The following instructions assume you run Linux and systemd.
-
-On RHEL or derivates add the EPEL repository first (if not already done).
-Let your package manager search for package names containing "jemalloc".
-Pick preferably one named "libjemalloc" followed by a number,
-just "jemalloc" otherwise, and install it.
-
-Run `ldconfig -p |grep libjemalloc`. It should print something similar to:
-
-```
-	libjemalloc.so.2 (libc6,x86-64) => /lib/x86_64-linux-gnu/libjemalloc.so.2
-```
-
-I.e. a relative file name followed by an absolute one. Remember the latter.
-
-Measure how long Icinga needs to load its config without and with libjemalloc:
-
-```bash
-time icinga2 daemon -C
-
-time env LD_PRELOAD=/lib/x86_64-linux-gnu/libjemalloc.so.2 icinga2 daemon -C
-```
-
-Replace `/lib/x86_64-linux-gnu/libjemalloc.so.2` with the absolute path
-you actually got from `ldconfig -p`!
-
-Please do us a favor and share your results
-[with us](https://community.icinga.com/t/icinga-reloads-config-slowly-try-jemalloc/11032).
-
-If it's faster with libjemalloc, do the following to persist the change.
-
-Run `systemctl edit icinga2.service`. This will open an editor.
-Add the following, save the file and close the editor.
-
-```
-[Service]
-Environment=LD_PRELOAD=/lib/x86_64-linux-gnu/libjemalloc.so.2
-```
-
-Replace `/lib/x86_64-linux-gnu/libjemalloc.so.2` with the absolute path
-you actually got from `ldconfig -p`!
-
-Restart Icinga. Verify whether your changes took effect and enjoy the speed:
-
-```
-# lsof -p `cat /var/run/icinga2/icinga2.pid` |grep libjemalloc
-icinga2 7764 nagios  mem    REG                8,5   744776 2631636 /usr/lib/x86_64-linux-gnu/libjemalloc.so.2
-#
-```
-
-### Optimise apply rules and group assign conditions
-
-#### Remove actually unused apply rules
+### Remove actually unused apply rules
 
 If `icinga2 daemon -C` warns you like shown below and the respective apply rule
 should indeed create no objects, consider removing it. At least comment it out.
@@ -307,7 +253,7 @@ but you can disable apply rules (temporarily or permanently).
 Same for `assign where` conditions in groups. In this case removing just
 the `assign where` line(s) is enough if you'd like to keep the group itself.
 
-#### Avoid creating single objects via apply rules
+### Avoid creating single objects via apply rules
 
 If possible, replace constructs like the immediately following with the below one.
 
@@ -339,7 +285,7 @@ object Host "firewall" {
 }
 ```
 
-#### Reduce `assign where` filter complexity
+### Reduce `assign where` filter complexity
 
 If neither removals, nor flat objects, nor Icinga v2.13.6+
 are an option, at least keep the filter as simple as possible.
