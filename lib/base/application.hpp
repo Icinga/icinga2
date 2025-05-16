@@ -12,9 +12,14 @@
 #include <cstdint>
 #include <iosfwd>
 #include <type_traits>
+#include <chrono>
+#include <optional>
+#include <variant>
 
 namespace icinga
 {
+
+using namespace std::literals::chrono_literals;
 
 class ThreadPool;
 
@@ -63,6 +68,11 @@ public:
 
 #ifndef _WIN32
 	static void SetUmbrellaProcess(pid_t pid);
+
+	static std::optional<siginfo_t> GetPendingSignal(std::initializer_list<int> signals,
+		std::variant<bool, std::chrono::microseconds> wait = 0us);
+	static std::optional<siginfo_t> GetPendingSignal(int signal,
+		std::variant<bool, std::chrono::microseconds> wait = 0us);
 #endif /* _WIN32 */
 
 	static bool IsShuttingDown();
@@ -157,8 +167,8 @@ private:
 	static void DisplayBugMessage(std::ostream& os);
 
 	static void SigAbrtHandler(int signum);
-	static void SigUsr1Handler(int signum);
 	static void ExceptionHandler();
+	static void WorkerSignalHandler(std::chrono::microseconds timeout);
 
 	static String GetCrashReportFilename();
 
