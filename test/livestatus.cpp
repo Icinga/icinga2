@@ -15,7 +15,7 @@ String LivestatusQueryHelper(const std::vector<String>& lines)
 	std::stringstream stream;
 	StdioStream::Ptr sstream = new StdioStream(&stream, false);
 
-	query->Execute(sstream);
+	query->Execute(new UnitTestCRP(), sstream);
 
 	String output;
 	String result;

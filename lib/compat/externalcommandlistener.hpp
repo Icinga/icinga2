@@ -7,6 +7,7 @@
 #include "base/objectlock.hpp"
 #include "base/timer.hpp"
 #include "base/utility.hpp"
+#include "remote/crproducer.hpp"
 #include <thread>
 #include <iostream>
 
@@ -16,7 +17,7 @@ namespace icinga
 /**
  * @ingroup compat
  */
-class ExternalCommandListener final : public ObjectImpl<ExternalCommandListener>
+class ExternalCommandListener final : public ObjectImpl<ExternalCommandListener>, public CheckResultProducerComponent
 {
 public:
 	DECLARE_OBJECT(ExternalCommandListener);
