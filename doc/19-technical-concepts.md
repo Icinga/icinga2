@@ -625,11 +625,11 @@ The algorithm works like this:
 * If there's two endpoints, but only us seeing ourselves and the application start is less than 60 seconds in the past, do nothing (wait for cluster reconnect to take place, grace period).
 * Sort the collected endpoints by name.
 * Iterate over all config types and their respective objects
- * Ignore !active objects
- * Ignore objects which are !HARunOnce. This means, they can run multiple times in a zone and don't need an authority update.
- * If this instance doesn't have a local zone, set authority to true. This is for non-clustered standalone environments where everything belongs to this instance.
- * Calculate the object authority based on the connected endpoint names.
- * Set the authority (true or false)
+    * Ignore !active objects
+    * Ignore objects which are !HARunOnce. This means, they can run multiple times in a zone and don't need an authority update.
+    * If this instance doesn't have a local zone, set authority to true. This is for non-clustered standalone environments where everything belongs to this instance.
+    * Calculate the object authority based on the connected endpoint names.
+    * Set the authority (true or false)
 
 The object authority calculation works "offline" without any message exchange.
 Each instance alculates the SDBM hash of the config object name, puts that in contrast
