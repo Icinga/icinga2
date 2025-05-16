@@ -15,6 +15,7 @@
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/io_context_strand.hpp>
 #include <boost/asio/spawn.hpp>
+#include <boost/signals2.hpp>
 
 namespace icinga
 {
@@ -58,6 +59,9 @@ public:
 
 	void SendMessage(const Dictionary::Ptr& request);
 	void SendRawMessage(const String& request);
+
+	// On remote icinga::Hello, this signal is emitted and all handlers are removed from it, atomically.
+	boost::signals2::signal<void(const Ptr&)> OnNextHello;
 
 	static Value HeartbeatAPIHandler(const intrusive_ptr<MessageOrigin>& origin, const Dictionary::Ptr& params);
 
