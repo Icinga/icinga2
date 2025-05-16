@@ -30,6 +30,8 @@ jobs:
     steps:
       - name: Checkout HEAD
         uses: actions/checkout@v1
+        with:
+          fetch-depth: 0
 
       - name: Build tools
         run: |
