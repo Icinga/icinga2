@@ -773,6 +773,14 @@ static int SetupService(bool install, int argc, char **argv)
 			return 1;
 		}
 
+		SERVICE_DELAYED_AUTO_START_INFO sdDASI = { TRUE };
+		if (!ChangeServiceConfig2(schService, SERVICE_CONFIG_DELAYED_AUTO_START_INFO, &sdDASI)) {
+			printf("ChangeServiceConfig2 failed (%d)\n", GetLastError());
+			CloseServiceHandle(schService);
+			CloseServiceHandle(schSCManager);
+			return 1;
+		}
+
 		if (!StartService(schService, 0, nullptr)) {
 			printf("StartService failed (%d)\n", GetLastError());
 			CloseServiceHandle(schService);
