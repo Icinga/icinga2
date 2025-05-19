@@ -624,12 +624,16 @@ void Checkable::ExecuteCheck()
 			if (service)
 				params->Set("service", service->GetShortName());
 
+			double checkTimeout = GetCheckCommand()->GetTimeout();
+
 			/*
 			 * If the host/service object specifies the 'check_timeout' attribute,
 			 * forward this to the remote endpoint to limit the command execution time.
 			 */
-			if (!GetCheckTimeout().IsEmpty())
-				params->Set("check_timeout", GetCheckTimeout());
+			if (auto ckCheckTimeout(GetCheckTimeout()); !ckCheckTimeout.IsEmpty()) {
+				checkTimeout = Convert::ToDouble(ckCheckTimeout);
+				params->Set("check_timeout", ckCheckTimeout);
+			}
 
 			params->Set("macros", macros);
 
@@ -642,7 +646,7 @@ void Checkable::ExecuteCheck()
 			 * a check result from the remote instance. The check will be re-scheduled
 			 * using the proper check interval once we've received a check result.
 			 */
-			SetNextCheck(Utility::GetTime() + GetCheckCommand()->GetTimeout() + 30);
+			SetNextCheck(Utility::GetTime() + checkTimeout + 30);
 
 		/*
 		 * Let the user know that there was a problem with the check if
