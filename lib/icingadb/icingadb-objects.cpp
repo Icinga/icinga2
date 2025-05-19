@@ -271,12 +271,12 @@ void IcingaDB::UpdateAllConfigObjects()
 		String configObject = m_PrefixConfigObject + lcType;
 
 		// Skimmed away attributes and checksums HMSETs' keys and values by Redis key.
-		std::map<String, std::vector<std::vector<String>>> ourContentRaw {{configCheckSum, {}}, {configObject, {}}};
+		std::map<String, RedisConnection::Queries> ourContentRaw {{configCheckSum, {}}, {configObject, {}}};
 		std::mutex ourContentMutex;
 
 		upqObjectType.ParallelFor(objectChunks, [&](decltype(objectChunks)::const_reference chunk) {
-			std::map<String, std::vector<String>> hMSets;
-			std::vector<String> hostZAdds = {"ZADD", "icinga:nextupdate:host"}, serviceZAdds = {"ZADD", "icinga:nextupdate:service"};
+			std::map<String, RedisConnection::Query> hMSets;
+			RedisConnection::Query hostZAdds = {"ZADD", "icinga:nextupdate:host"}, serviceZAdds = {"ZADD", "icinga:nextupdate:service"};
 
 			auto skimObjects ([&]() {
 				std::lock_guard<std::mutex> l (ourContentMutex);
@@ -342,7 +342,7 @@ void IcingaDB::UpdateAllConfigObjects()
 					zAdds->emplace_back(GetObjectIdentifier(checkable));
 
 					if (zAdds->size() >= 102u) {
-						std::vector<String> header (zAdds->begin(), zAdds->begin() + 2u);
+						RedisConnection::Query header (zAdds->begin(), zAdds->begin() + 2u);
 
 						rcon->FireAndForgetQuery(std::move(*zAdds), Prio::CheckResult);
 
@@ -383,7 +383,15 @@ void IcingaDB::UpdateAllConfigObjects()
 			upqObjectType.Enqueue([&]() {
 				for (auto& hMSet : source.second) {
 					for (decltype(hMSet.size()) i = 0, stop = hMSet.size() - 1u; i < stop; i += 2u) {
-						dest.emplace(std::move(hMSet[i]), std::move(hMSet[i + 1u]));
+						auto variantToString = [](RedisConnection::QueryArg v) -> String {
+							if (auto str (std::get_if<String>(&v.GetData())); str) {
+								return std::move(*str);
+							}
+
+							return std::get<std::string_view>(v.GetData());
+						};
+
+						dest.emplace(variantToString(std::move(hMSet[i])), variantToString(std::move(hMSet[i + 1u])));
 					}
 
 					hMSet.clear();
@@ -398,7 +406,7 @@ void IcingaDB::UpdateAllConfigObjects()
 
 		auto& ourCheckSums (ourContent[configCheckSum]);
 		auto& ourObjects (ourContent[configObject]);
-		std::vector<String> setChecksum, setObject, delChecksum, delObject;
+		RedisConnection::Query setChecksum, setObject, delChecksum, delObject;
 
 		auto redisCurrent (redisCheckSums.begin());
 		auto redisEnd (redisCheckSums.end());
@@ -411,12 +419,12 @@ void IcingaDB::UpdateAllConfigObjects()
 			setChecksum.insert(setChecksum.begin(), {"HMSET", configCheckSum});
 			setObject.insert(setObject.begin(), {"HMSET", configObject});
 
-			std::vector<std::vector<String>> transaction;
+			RedisConnection::Queries transaction;
 
-			transaction.emplace_back(std::vector<String>{"MULTI"});
+			transaction.emplace_back(RedisConnection::Query{"MULTI"});
 			transaction.emplace_back(std::move(setChecksum));
 			transaction.emplace_back(std::move(setObject));
-			transaction.emplace_back(std::vector<String>{"EXEC"});
+			transaction.emplace_back(RedisConnection::Query{"EXEC"});
 
 			setChecksum.clear();
 			setObject.clear();
@@ -430,12 +438,12 @@ void IcingaDB::UpdateAllConfigObjects()
 			delChecksum.insert(delChecksum.begin(), {"HDEL", configCheckSum});
 			delObject.insert(delObject.begin(), {"HDEL", configObject});
 
-			std::vector<std::vector<String>> transaction;
+			RedisConnection::Queries transaction;
 
-			transaction.emplace_back(std::vector<String>{"MULTI"});
+			transaction.emplace_back(RedisConnection::Query{"MULTI"});
 			transaction.emplace_back(std::move(delChecksum));
 			transaction.emplace_back(std::move(delObject));
-			transaction.emplace_back(std::vector<String>{"EXEC"});
+			transaction.emplace_back(RedisConnection::Query{"EXEC"});
 
 			delChecksum.clear();
 			delObject.clear();
@@ -563,7 +571,7 @@ std::vector<std::vector<intrusive_ptr<ConfigObject>>> IcingaDB::ChunkObjects(std
 }
 
 void IcingaDB::DeleteKeys(const RedisConnection::Ptr& conn, const std::vector<String>& keys, RedisConnection::QueryPriority priority) {
-	std::vector<String> query = {"DEL"};
+	RedisConnection::Query query = {"DEL"};
 	for (auto& key : keys) {
 		query.emplace_back(key);
 	}
@@ -635,7 +643,7 @@ static ConfigObject::Ptr GetObjectByName(const String& name)
 	return ConfigObject::GetObject<ConfigType>(name);
 }
 
-void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const String typeName, std::map<String, std::vector<String>>& hMSets,
+void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const String typeName, std::map<String, RedisConnection::Query>& hMSets,
 		std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate)
 {
 	String objectKey = GetObjectIdentifier(object);
@@ -691,12 +699,12 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			auto id (HashValue(new Array({m_EnvironmentId, actionUrl})));
 
 			if (runtimeUpdate || m_DumpedGlobals.ActionUrl.IsNew(id)) {
-				actionUrls.emplace_back(std::move(id));
+				actionUrls.emplace_back(id);
 				Dictionary::Ptr data = new Dictionary({{"environment_id", m_EnvironmentId}, {"action_url", actionUrl}});
 				actionUrls.emplace_back(JsonEncode(data));
 
 				if (runtimeUpdate) {
-					AddObjectDataToRuntimeUpdates(runtimeUpdates, actionUrls.at(actionUrls.size() - 2u), m_PrefixConfigObject + "action:url", data);
+					AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + "action:url", data);
 				}
 			}
 		}
@@ -706,12 +714,12 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			auto id (HashValue(new Array({m_EnvironmentId, notesUrl})));
 
 			if (runtimeUpdate || m_DumpedGlobals.NotesUrl.IsNew(id)) {
-				notesUrls.emplace_back(std::move(id));
+				notesUrls.emplace_back(id);
 				Dictionary::Ptr data = new Dictionary({{"environment_id", m_EnvironmentId}, {"notes_url", notesUrl}});
 				notesUrls.emplace_back(JsonEncode(data));
 
 				if (runtimeUpdate) {
-					AddObjectDataToRuntimeUpdates(runtimeUpdates, notesUrls.at(notesUrls.size() - 2u), m_PrefixConfigObject + "notes:url", data);
+					AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + "notes:url", data);
 				}
 			}
 		}
@@ -721,12 +729,12 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			auto id (HashValue(new Array({m_EnvironmentId, iconImage})));
 
 			if (runtimeUpdate || m_DumpedGlobals.IconImage.IsNew(id)) {
-				iconImages.emplace_back(std::move(id));
+				iconImages.emplace_back(id);
 				Dictionary::Ptr data = new Dictionary({{"environment_id", m_EnvironmentId}, {"icon_image", iconImage}});
 				iconImages.emplace_back(JsonEncode(data));
 
 				if (runtimeUpdate) {
-					AddObjectDataToRuntimeUpdates(runtimeUpdates, iconImages.at(iconImages.size() - 2u), m_PrefixConfigObject + "icon:image", data);
+					AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + "icon:image", data);
 				}
 			}
 		}
@@ -1333,7 +1341,7 @@ void IcingaDB::UpdateState(const Checkable::Ptr& checkable, StateUpdate mode)
 	if (mode & StateUpdate::RuntimeOnly) {
 		ObjectLock olock(stateAttrs);
 
-		std::vector<String> streamadd({
+		RedisConnection::Query streamadd({
 			"XADD", "icinga:runtime:state", "MAXLEN", "~", "1000000", "*",
 			"runtime_type", "upsert",
 			"redis_key", redisStateKey,
@@ -1466,7 +1474,7 @@ void IcingaDB::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpd
 
 	String typeName = GetLowerCaseTypeNameDB(object);
 
-	std::map<String, std::vector<String>> hMSets;
+	std::map<String, RedisConnection::Query> hMSets;
 	std::vector<Dictionary::Ptr> runtimeUpdates;
 
 	CreateConfigUpdate(object, typeName, hMSets, runtimeUpdates, runtimeUpdate);
@@ -1806,7 +1814,7 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
  * icinga:config:object:downtime) need to be prepended. There is nothing to indicate success or failure.
  */
 void
-IcingaDB::CreateConfigUpdate(const ConfigObject::Ptr& object, const String typeName, std::map<String, std::vector<String>>& hMSets,
+IcingaDB::CreateConfigUpdate(const ConfigObject::Ptr& object, const String typeName, std::map<String, RedisConnection::Query>& hMSets,
 								std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate)
 {
 	/* TODO: This isn't essentially correct as we don't keep track of config objects ourselves. This would avoid duplicated config updates at startup.
@@ -1969,7 +1977,7 @@ void IcingaDB::SendStateChange(const ConfigObject::Ptr& object, const CheckResul
 	Array::Ptr rawId = new Array({m_EnvironmentId, object->GetName()});
 	rawId->Add(eventTs);
 
-	std::vector<String> xAdd ({
+	RedisConnection::Query xAdd ({
 		"XADD", "icinga:history:stream:state", "*",
 		"id", HashValue(rawId),
 		"environment_id", m_EnvironmentId,
@@ -2053,7 +2061,7 @@ void IcingaDB::SendSentNotification(
 
 	auto notificationHistoryId (HashValue(rawId));
 
-	std::vector<String> xAdd ({
+	RedisConnection::Query xAdd ({
 		"XADD", "icinga:history:stream:notification", "*",
 		"id", notificationHistoryId,
 		"environment_id", m_EnvironmentId,
@@ -2117,7 +2125,7 @@ void IcingaDB::SendStartedDowntime(const Downtime::Ptr& downtime)
 	/* Update checkable state as in_downtime may have changed. */
 	UpdateState(checkable, StateUpdate::Full);
 
-	std::vector<String> xAdd ({
+	RedisConnection::Query xAdd ({
 		"XADD", "icinga:history:stream:downtime", "*",
 		"downtime_id", GetObjectIdentifier(downtime),
 		"environment_id", m_EnvironmentId,
@@ -2206,7 +2214,7 @@ void IcingaDB::SendRemovedDowntime(const Downtime::Ptr& downtime)
 	/* Update checkable state as in_downtime may have changed. */
 	UpdateState(checkable, StateUpdate::Full);
 
-	std::vector<String> xAdd ({
+	RedisConnection::Query xAdd ({
 		"XADD", "icinga:history:stream:downtime", "*",
 		"downtime_id", GetObjectIdentifier(downtime),
 		"environment_id", m_EnvironmentId,
@@ -2292,7 +2300,7 @@ void IcingaDB::SendAddedComment(const Comment::Ptr& comment)
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	std::vector<String> xAdd ({
+	RedisConnection::Query xAdd ({
 		"XADD", "icinga:history:stream:comment", "*",
 		"comment_id", GetObjectIdentifier(comment),
 		"environment_id", m_EnvironmentId,
@@ -2364,7 +2372,7 @@ void IcingaDB::SendRemovedComment(const Comment::Ptr& comment)
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	std::vector<String> xAdd ({
+	RedisConnection::Query xAdd ({
 		"XADD", "icinga:history:stream:comment", "*",
 		"comment_id", GetObjectIdentifier(comment),
 		"environment_id", m_EnvironmentId,
@@ -2427,7 +2435,7 @@ void IcingaDB::SendFlappingChange(const Checkable::Ptr& checkable, double change
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	std::vector<String> xAdd ({
+	RedisConnection::Query xAdd ({
 		"XADD", "icinga:history:stream:flapping", "*",
 		"environment_id", m_EnvironmentId,
 		"host_id", GetObjectIdentifier(host),
@@ -2522,7 +2530,7 @@ void IcingaDB::SendAcknowledgementSet(const Checkable::Ptr& checkable, const Str
 	/* Update checkable state as is_acknowledged may have changed. */
 	UpdateState(checkable, StateUpdate::Full);
 
-	std::vector<String> xAdd ({
+	RedisConnection::Query xAdd ({
 		"XADD", "icinga:history:stream:acknowledgement", "*",
 		"environment_id", m_EnvironmentId,
 		"host_id", GetObjectIdentifier(host),
@@ -2580,7 +2588,7 @@ void IcingaDB::SendAcknowledgementCleared(const Checkable::Ptr& checkable, const
 	/* Update checkable state as is_acknowledged may have changed. */
 	UpdateState(checkable, StateUpdate::Full);
 
-	std::vector<String> xAdd ({
+	RedisConnection::Query xAdd ({
 		"XADD", "icinga:history:stream:acknowledgement", "*",
 		"environment_id", m_EnvironmentId,
 		"host_id", GetObjectIdentifier(host),
@@ -3330,7 +3338,7 @@ void IcingaDB::DeleteRelationship(const String& id, const String& redisKeyWithou
 
 	String redisKey = m_PrefixConfigObject + redisKeyWithoutPrefix;
 
-	std::vector<std::vector<String>> queries;
+	RedisConnection::Queries queries;
 
 	if (hasChecksum) {
 		queries.push_back({"HDEL", m_PrefixConfigCheckSum + redisKeyWithoutPrefix, id});
