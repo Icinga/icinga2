@@ -622,7 +622,8 @@ The algorithm works like this:
 
 * Determine whether this instance is assigned to a local zone and endpoint.
 * Collects all endpoints in this zone if they are connected.
-* If there's two endpoints, but only us seeing ourselves and the application start is less than 60 seconds in the past, do nothing (wait for cluster reconnect to take place, grace period).
+* If there's two endpoints, but only us seeing ourselves and the application start is less than
+  30 seconds in the past, do nothing (wait for cluster reconnect to take place, grace period).
 * Sort the collected endpoints by name.
 * Iterate over all config types and their respective objects
     * Ignore !active objects
