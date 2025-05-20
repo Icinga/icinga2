@@ -340,6 +340,20 @@ Add `linux_netdev` check command. #9045
 * Several code quality improvements. #8815 #9106 #9250
   #9508 #9517 #9537 #9594 #9605 #9606 #9641 #9658 #9702 #9717 #9738
 
+## 2.13.12 (2025-05-27)
+
+This security release fixes a critical issue in the certificate renewal logic in Icinga 2, which
+might incorrectly renew an invalid certificate. However, only nodes with access to the Icinga CA
+private key running with OpenSSL older than version 1.1.0 (released in 2016) are vulnerable. So this
+typically affects Icinga 2 masters running on operating systems like RHEL 7 and Amazon Linux 2.
+
+* CVE-2025-48057: Prevent invalid certificates from being renewed with OpenSSL older than v1.1.0.
+* Fix use-after-free in VerifyCertificate(): Additionally, a use-after-free was found in the same
+  function which is fixed as well, but in case it is triggered, typically only a wrong error code
+  may be shown in a log message.
+* Windows: Update OpenSSL shipped on Windows to v3.0.16.
+* Fix a failing test case on systems `time_t` is only 32 bits #10344.
+
 ## 2.13.11 (2025-01-23)
 
 This bugfix release addresses several crashes,
