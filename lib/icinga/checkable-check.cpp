@@ -100,13 +100,12 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 {
 	using Result = Checkable::ProcessingResult;
 
+	VERIFY(cr);
+
 	{
 		ObjectLock olock(this);
 		m_CheckRunning = false;
 	}
-
-	if (!cr)
-		return Result::NoCheckResult;
 
 	double now = Utility::GetTime();
 
