@@ -322,3 +322,9 @@ void Checkable::CleanDeadlinedExecutions(const Timer * const&)
 		}
 	}
 }
+
+String Checkable::StateTypeToString(StateType type)
+{
+	return type == StateTypeSoft ? "SOFT" : "HARD";
+}
+

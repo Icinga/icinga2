@@ -106,6 +106,8 @@ public:
 
 	void UpdateNextCheck(const MessageOrigin::Ptr& origin = nullptr);
 
+	static String StateTypeToString(StateType type);
+
 	bool HasBeenChecked() const;
 	virtual bool IsStateOK(ServiceState state) const = 0;
 
