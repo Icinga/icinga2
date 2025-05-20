@@ -2047,8 +2047,9 @@ void IcingaDB::SendSentNotification(
 	auto usersAmount (users.size());
 	auto sendTs (TimestampToMilliseconds(sendTime));
 
+	auto notificationTypeStr(GetNotificationTypeByEnum(type));
 	Array::Ptr rawId = new Array({m_EnvironmentId, notification->GetName()});
-	rawId->Add(GetNotificationTypeByEnum(type));
+	rawId->Add(notificationTypeStr);
 	rawId->Add(sendTs);
 
 	auto notificationHistoryId (HashValue(rawId));
@@ -2059,7 +2060,7 @@ void IcingaDB::SendSentNotification(
 		"environment_id", m_EnvironmentId,
 		"notification_id", GetObjectIdentifier(notification),
 		"host_id", GetObjectIdentifier(host),
-		"type", Convert::ToString(type),
+		"type", notificationTypeStr,
 		"state", Convert::ToString(cr ? service ? Convert::ToLong(cr->GetState()) : Convert::ToLong(Host::CalculateState(cr->GetState())) : 99),
 		"previous_hard_state", Convert::ToString(cr ? service ? Convert::ToLong(cr->GetPreviousHardState()) : Convert::ToLong(Host::CalculateState(cr->GetPreviousHardState())) : 99),
 		"author", Utility::ValidateUTF8(author),
