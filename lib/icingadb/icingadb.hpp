@@ -173,6 +173,7 @@ private:
 
 	static String GetObjectIdentifier(const ConfigObject::Ptr& object);
 	static String CalcEventID(const char* eventType, const ConfigObject::Ptr& object, double eventTime = 0, NotificationType nt = NotificationType(0));
+	static int StatesOrTypesFilterToRedisValue(int filter, bool isStatesFilter);
 	static const char* GetNotificationTypeByEnum(NotificationType type);
 	static String CommentTypeToString(CommentType type);
 	static Dictionary::Ptr SerializeVars(const Dictionary::Ptr& vars);
