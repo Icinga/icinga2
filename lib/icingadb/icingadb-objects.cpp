@@ -1684,7 +1684,7 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 
 		attributes->Set("author", comment->GetAuthor());
 		attributes->Set("text", comment->GetText());
-		attributes->Set("entry_type", comment->GetEntryType());
+		attributes->Set("entry_type", IcingaDB::CommentTypeToString(comment->GetEntryType()));
 		attributes->Set("entry_time", TimestampToMilliseconds(comment->GetEntryTime()));
 		attributes->Set("is_persistent", comment->GetPersistent());
 		attributes->Set("is_sticky", comment->GetSticky());
@@ -2300,7 +2300,7 @@ void IcingaDB::SendAddedComment(const Comment::Ptr& comment)
 		"entry_time", Convert::ToString(TimestampToMilliseconds(comment->GetEntryTime())),
 		"author", Utility::ValidateUTF8(comment->GetAuthor()),
 		"comment", Utility::ValidateUTF8(comment->GetText()),
-		"entry_type", Convert::ToString(comment->GetEntryType()),
+		"entry_type", IcingaDB::CommentTypeToString(comment->GetEntryType()),
 		"is_persistent", Convert::ToString((unsigned short)comment->GetPersistent()),
 		"is_sticky", Convert::ToString((unsigned short)comment->GetSticky()),
 		"event_id", CalcEventID("comment_add", comment),
@@ -2372,7 +2372,7 @@ void IcingaDB::SendRemovedComment(const Comment::Ptr& comment)
 		"entry_time", Convert::ToString(TimestampToMilliseconds(comment->GetEntryTime())),
 		"author", Utility::ValidateUTF8(comment->GetAuthor()),
 		"comment", Utility::ValidateUTF8(comment->GetText()),
-		"entry_type", Convert::ToString(comment->GetEntryType()),
+		"entry_type", IcingaDB::CommentTypeToString(comment->GetEntryType()),
 		"is_persistent", Convert::ToString((unsigned short)comment->GetPersistent()),
 		"is_sticky", Convert::ToString((unsigned short)comment->GetSticky()),
 		"event_id", CalcEventID("comment_remove", comment),
