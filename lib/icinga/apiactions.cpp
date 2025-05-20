@@ -130,8 +130,6 @@ Dictionary::Ptr ApiActions::ProcessCheckResult(const ConfigObject::Ptr& object,
 	switch (result) {
 		case Result::Ok:
 			return ApiActions::CreateResult(200, "Successfully processed check result for object '" + checkable->GetName() + "'.");
-		case Result::NoCheckResult:
-			return ApiActions::CreateResult(400, "Could not process check result for object '" + checkable->GetName() + "' because no check result was passed.");
 		case Result::CheckableInactive:
 			return ApiActions::CreateResult(503, "Could not process check result for object '" + checkable->GetName() + "' because the object is inactive.");
 		case Result::NewerCheckResultPresent:

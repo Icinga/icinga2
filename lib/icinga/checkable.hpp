@@ -119,7 +119,6 @@ public:
 	enum class ProcessingResult
 	{
 		Ok,
-		NoCheckResult,
 		CheckableInactive,
 		NewerCheckResultPresent,
 	};
