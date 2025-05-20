@@ -1052,6 +1052,21 @@ Thanks to all contributors:
 * Metrics
   * OpenTSDB-Writer: Remove incorrect space causing missing tag error #8245
 
+## 2.12.12 (2025-05-27)
+
+This security release fixes a critical issue in the certificate renewal logic in Icinga 2, which
+might incorrectly renew an invalid certificate. However, only nodes with access to the Icinga CA
+private key running with OpenSSL older than version 1.1.0 (released in 2016) are vulnerable. So this
+typically affects Icinga 2 masters running on operating systems like RHEL 7 and Amazon Linux 2.
+
+* CVE-2025-48057: Prevent invalid certificates from being renewed with OpenSSL older than v1.1.0.
+* Fix use-after-free in VerifyCertificate(): Additionally, a use-after-free was found in the same
+  function which is fixed as well, but in case it is triggered, typically only a wrong error code
+  may be shown in a log message.
+* Windows: Update OpenSSL shipped on Windows to v3.0.16. #10455
+* Windows: Fix unknown ctest(1) `--log_level` argument. #10453
+* Don't require to build .msi as admin. #10454
+
 ## 2.12.11 (2024-11-12)
 
 This security release fixes a TLS certificate validation bypass.
