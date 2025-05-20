@@ -3018,7 +3018,9 @@ Dictionary::Ptr IcingaDB::SerializeState(const Checkable::Ptr& checkable)
 	attrs->Set("is_reachable", checkable->IsReachable());
 	attrs->Set("is_flapping", checkable->IsFlapping());
 
-	attrs->Set("is_acknowledged", checkable->GetAcknowledgement());
+	attrs->Set("is_acknowledged", checkable->IsAcknowledged());
+	attrs->Set("is_sticky_acknowledgement", checkable->GetAcknowledgement() == AcknowledgementSticky);
+
 	if (checkable->IsAcknowledged()) {
 		Timestamp entry = 0;
 		Comment::Ptr AckComment;
