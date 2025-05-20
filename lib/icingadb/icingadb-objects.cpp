@@ -1624,8 +1624,8 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 		attributes->Set("email", user->GetEmail());
 		attributes->Set("pager", user->GetPager());
 		attributes->Set("notifications_enabled", user->GetEnableNotifications());
-		attributes->Set("states", user->GetStates());
-		attributes->Set("types", user->GetTypes());
+		attributes->Set("states", StateFilterToRedisValue(user->GetStateFilter()));
+		attributes->Set("types", TypeFilterToRedisValue(user->GetTypeFilter()));
 
 		if (user->GetPeriod())
 			attributes->Set("timeperiod_id", GetObjectIdentifier(user->GetPeriod()));
@@ -1673,8 +1673,8 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 		}
 
 		attributes->Set("notification_interval", std::max(0.0, std::round(notification->GetInterval())));
-		attributes->Set("states", notification->GetStates());
-		attributes->Set("types", notification->GetTypes());
+		attributes->Set("states", StateFilterToRedisValue(notification->GetStateFilter()));
+		attributes->Set("types", TypeFilterToRedisValue(notification->GetTypeFilter()));
 
 		return true;
 	}

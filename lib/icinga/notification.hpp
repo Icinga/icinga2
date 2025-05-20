@@ -29,7 +29,9 @@ enum NotificationFilter
 	StateFilterUnknown = 8,
 
 	StateFilterUp = 16,
-	StateFilterDown = 32
+	StateFilterDown = 32,
+
+	StateFilterAll = StateFilterOK | StateFilterWarning | StateFilterCritical | StateFilterUnknown | StateFilterUp | StateFilterDown,
 };
 
 /**
@@ -47,7 +49,11 @@ enum NotificationType
 	NotificationProblem = 32,
 	NotificationRecovery = 64,
 	NotificationFlappingStart = 128,
-	NotificationFlappingEnd = 256
+	NotificationFlappingEnd = 256,
+
+	NotificationTypeAll = NotificationDowntimeStart | NotificationDowntimeEnd | NotificationDowntimeRemoved |
+		NotificationCustom | NotificationAcknowledgement | NotificationProblem | NotificationRecovery |
+		NotificationFlappingStart | NotificationFlappingEnd,
 };
 
 class NotificationCommand;

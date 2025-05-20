@@ -219,6 +219,35 @@ Dictionary::Ptr IcingaDB::SerializeRedundancyGroupState(const Checkable::Ptr& ch
 	};
 }
 
+/**
+ * Converts the given filter to its Redis value representation.
+ *
+ * Within the Icinga 2 code base, if the states filter bitsets are set to -1, the filter will match on all states.
+ * However, since sending -1 to Redis would crash the Icinga DB daemon, as the "states" field is of type uint8, so
+ * the primary purpose of this function is to make sure that no values outside the valid range of 0-255 are sent to Redis.
+ *
+ * @param filter The filter to convert.
+ */
+int IcingaDB::StateFilterToRedisValue(int filter)
+{
+	return filter & StateFilterAll;
+}
+
+/**
+ * Converts the given filter to its Redis value representation.
+ *
+ * Within the Icinga 2 code base, if the types filter bitsets are set to -1, the filter will match on all types.
+ * However, since sending -1 to Redis would crash the Icinga DB daemon, as the "types" field is of type uint16, so
+ * the primary purpose of this function is to make sure that no values outside the "types" field's valid range are
+ * sent to Redis.
+ *
+ * @param filter The filter to convert.
+ */
+int IcingaDB::TypeFilterToRedisValue(int filter)
+{
+	return filter & NotificationTypeAll;
+}
+
 const char* IcingaDB::GetNotificationTypeByEnum(NotificationType type)
 {
 	switch (type) {
