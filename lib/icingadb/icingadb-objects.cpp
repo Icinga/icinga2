@@ -1974,7 +1974,7 @@ void IcingaDB::SendStateChange(const ConfigObject::Ptr& object, const CheckResul
 		"id", HashValue(rawId),
 		"environment_id", m_EnvironmentId,
 		"host_id", GetObjectIdentifier(host),
-		"state_type", Convert::ToString(type),
+		"state_type", Checkable::StateTypeToString(type).ToLower(),
 		"soft_state", Convert::ToString(cr ? service ? Convert::ToLong(cr->GetState()) : Convert::ToLong(Host::CalculateState(cr->GetState())) : 99),
 		"hard_state", Convert::ToString(hard_state),
 		"check_attempt", Convert::ToString(checkable->GetCheckAttempt()),
@@ -2954,7 +2954,7 @@ Dictionary::Ptr IcingaDB::SerializeState(const Checkable::Ptr& checkable)
 	 */
 	attrs->Set("id", id);
 	attrs->Set("environment_id", m_EnvironmentId);
-	attrs->Set("state_type", checkable->HasBeenChecked() ? checkable->GetStateType() : StateTypeHard);
+	attrs->Set("state_type", Checkable::StateTypeToString(checkable->HasBeenChecked() ? checkable->GetStateType() : StateTypeHard).ToLower());
 
 	// TODO: last_hard/soft_state should be "previous".
 	if (service) {
