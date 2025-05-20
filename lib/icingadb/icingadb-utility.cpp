@@ -245,6 +245,21 @@ const char* IcingaDB::GetNotificationTypeByEnum(NotificationType type)
 	VERIFY(!"Invalid notification type.");
 }
 
+/**
+ * Converts the given comment type to its string representation.
+ *
+ * @ingroup icinga
+ */
+String IcingaDB::CommentTypeToString(CommentType type)
+{
+	switch (type) {
+		case CommentUser: return "comment";
+		case CommentAcknowledgement: return "ack";
+		default:
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid comment type specified"));
+	}
+}
+
 static const std::set<String> propertiesBlacklistEmpty;
 
 String IcingaDB::HashValue(const Value& value)

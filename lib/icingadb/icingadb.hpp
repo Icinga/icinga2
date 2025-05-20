@@ -174,6 +174,7 @@ private:
 	static String GetObjectIdentifier(const ConfigObject::Ptr& object);
 	static String CalcEventID(const char* eventType, const ConfigObject::Ptr& object, double eventTime = 0, NotificationType nt = NotificationType(0));
 	static const char* GetNotificationTypeByEnum(NotificationType type);
+	static String CommentTypeToString(CommentType type);
 	static Dictionary::Ptr SerializeVars(const Dictionary::Ptr& vars);
 	static Dictionary::Ptr SerializeDependencyEdgeState(const DependencyGroup::Ptr& dependencyGroup, const Dependency::Ptr& dep);
 	static Dictionary::Ptr SerializeRedundancyGroupState(const Checkable::Ptr& child, const DependencyGroup::Ptr& redundancyGroup);
