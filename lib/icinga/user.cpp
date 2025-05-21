@@ -12,6 +12,21 @@ using namespace icinga;
 
 REGISTER_TYPE(User);
 
+INITIALIZE_ONCE(&User::StaticInitialize);
+
+void User::StaticInitialize()
+{
+	// Since the types and states attributes are user configurable and allowed to change at runtime, we need to
+	// hook into the OnTypesChanged and OnStatesChanged signals to update the actual filter bitsets whenever these
+	// attributes change. Otherwise, the filter bitsets would be stale and not reflect their current state.
+	OnTypesChanged.connect([](const User::Ptr& user, const MessageOrigin::Ptr&) {
+		user->SetTypeFilter(FilterArrayToInt(user->GetTypes(), Notification::GetTypeFilterMap(), ~0));
+	});
+	OnStatesChanged.connect([](const User::Ptr& user, const MessageOrigin::Ptr&) {
+		user->SetStateFilter(FilterArrayToInt(user->GetStates(), Notification::GetStateFilterMap(), ~0));
+	});
+}
+
 void User::OnConfigLoaded()
 {
 	ObjectImpl<User>::OnConfigLoaded();
