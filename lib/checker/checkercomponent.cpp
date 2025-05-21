@@ -223,11 +223,6 @@ void CheckerComponent::CheckThreadProc()
 
 		lock.unlock();
 
-		if (forced) {
-			ObjectLock olock(checkable);
-			checkable->SetForceNextCheck(false);
-		}
-
 		Log(LogDebug, "CheckerComponent")
 			<< "Executing check for '" << checkable->GetName() << "'";
 
@@ -265,6 +260,13 @@ void CheckerComponent::ExecuteCheckHelper(const Checkable::Ptr& checkable)
 		checkable->ProcessCheckResult(cr);
 
 		Log(LogCritical, "checker", output);
+	}
+
+	{
+		ObjectLock oLock (checkable);
+		if (checkable->GetForceNextCheck()) {
+			checkable->SetForceNextCheck(false);
+		}
 	}
 
 	Checkable::DecreasePendingChecks();
