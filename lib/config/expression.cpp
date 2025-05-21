@@ -63,7 +63,7 @@ ExpressionResult Expression::Evaluate(ScriptFrame& frame, DebugHint *dhint) cons
 	}
 }
 
-bool Expression::GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint) const
+bool Expression::GetReference(ScriptFrame&, [[maybe_unused]] bool init_dict, [[maybe_unused]] Value* parent, [[maybe_unused]] String* index, DebugHint**) const
 {
 	return false;
 }
@@ -89,7 +89,7 @@ LiteralExpression::LiteralExpression(Value value)
 	: m_Value(std::move(value))
 { }
 
-ExpressionResult LiteralExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+ExpressionResult LiteralExpression::DoEvaluate(ScriptFrame&, DebugHint*) const
 {
 	return m_Value;
 }
@@ -108,7 +108,7 @@ VariableExpression::VariableExpression(String variable, std::vector<Expression::
 	m_Imports.push_back(MakeIndexer(ScopeGlobal, "Icinga").release());
 }
 
-ExpressionResult VariableExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+ExpressionResult VariableExpression::DoEvaluate(ScriptFrame& frame, DebugHint*) const
 {
 	Value value;
 
@@ -122,7 +122,7 @@ ExpressionResult VariableExpression::DoEvaluate(ScriptFrame& frame, DebugHint *d
 		return ScriptGlobal::Get(m_Variable);
 }
 
-bool VariableExpression::GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint) const
+bool VariableExpression::GetReference(ScriptFrame& frame, [[maybe_unused]] bool init_dict, Value *parent, String *index, DebugHint **dhint) const
 {
 	*index = m_Variable;
 
@@ -163,7 +163,7 @@ ExpressionResult RefExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint)
 	return new Reference(parent, index);
 }
 
-ExpressionResult DerefExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+ExpressionResult DerefExpression::DoEvaluate(ScriptFrame& frame, DebugHint*) const
 {
 	ExpressionResult operand = m_Operand->Evaluate(frame);
 	CHECK_RESULT(operand);
@@ -177,7 +177,7 @@ ExpressionResult DerefExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhin
 	return ref->Get();
 }
 
-bool DerefExpression::GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint) const
+bool DerefExpression::GetReference(ScriptFrame& frame, [[maybe_unused]] bool init_dict, Value *parent, String *index, DebugHint**) const
 {
 	ExpressionResult operand = m_Operand->Evaluate(frame);
 	if (operand.GetCode() != ResultOK)
@@ -190,7 +190,7 @@ bool DerefExpression::GetReference(ScriptFrame& frame, bool init_dict, Value *pa
 	return true;
 }
 
-ExpressionResult NegateExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+ExpressionResult NegateExpression::DoEvaluate(ScriptFrame& frame, DebugHint*) const
 {
 	ExpressionResult operand = m_Operand->Evaluate(frame);
 	CHECK_RESULT(operand);
@@ -198,7 +198,7 @@ ExpressionResult NegateExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhi
 	return ~(long)operand.GetValue();
 }
 
-ExpressionResult LogicalNegateExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+ExpressionResult LogicalNegateExpression::DoEvaluate(ScriptFrame& frame, DebugHint*) const
 {
 	ExpressionResult operand = m_Operand->Evaluate(frame);
 	CHECK_RESULT(operand);
@@ -206,7 +206,7 @@ ExpressionResult LogicalNegateExpression::DoEvaluate(ScriptFrame& frame, DebugHi
 	return !operand.GetValue().ToBool();
 }
 
-ExpressionResult AddExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+ExpressionResult AddExpression::DoEvaluate(ScriptFrame& frame, DebugHint*) const
 {
 	ExpressionResult operand1 = m_Operand1->Evaluate(frame);
 	CHECK_RESULT(operand1);
@@ -217,7 +217,7 @@ ExpressionResult AddExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint)
 	return operand1.GetValue() + operand2.GetValue();
 }
 
-ExpressionResult SubtractExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+ExpressionResult SubtractExpression::DoEvaluate(ScriptFrame& frame, DebugHint*) const
 {
 	ExpressionResult operand1 = m_Operand1->Evaluate(frame);
 	CHECK_RESULT(operand1);
@@ -228,7 +228,7 @@ ExpressionResult SubtractExpression::DoEvaluate(ScriptFrame& frame, DebugHint *d
 	return operand1.GetValue() - operand2.GetValue();
 }
 
-ExpressionResult MultiplyExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+ExpressionResult MultiplyExpression::DoEvaluate(ScriptFrame& frame, DebugHint*) const
 {
 	ExpressionResult operand1 = m_Operand1->Evaluate(frame);
 	CHECK_RESULT(operand1);
@@ -239,7 +239,7 @@ ExpressionResult MultiplyExpression::DoEvaluate(ScriptFrame& frame, DebugHint *d
 	return operand1.GetValue() * operand2.GetValue();
 }
 
-ExpressionResult DivideExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+ExpressionResult DivideExpression::DoEvaluate(ScriptFrame& frame, DebugHint*) const
 {
 	ExpressionResult operand1 = m_Operand1->Evaluate(frame);
 	CHECK_RESULT(operand1);
@@ -250,7 +250,7 @@ ExpressionResult DivideExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhi
 	return operand1.GetValue() / operand2.GetValue();
 }
 
-ExpressionResult ModuloExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+ExpressionResult ModuloExpression::DoEvaluate(ScriptFrame& frame, DebugHint*) const
 {
 	ExpressionResult operand1 = m_Operand1->Evaluate(frame);
 	CHECK_RESULT(operand1);
@@ -261,7 +261,7 @@ ExpressionResult ModuloExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhi
 	return operand1.GetValue() % operand2.GetValue();
 }
 
-ExpressionResult XorExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+ExpressionResult XorExpression::DoEvaluate(ScriptFrame& frame, DebugHint*) const
 {
 	ExpressionResult operand1 = m_Operand1->Evaluate(frame);
 	CHECK_RESULT(operand1);
@@ -272,7 +272,7 @@ ExpressionResult XorExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint)
 	return operand1.GetValue() ^ operand2.GetValue();
 }
 
-ExpressionResult BinaryAndExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+ExpressionResult BinaryAndExpression::DoEvaluate(ScriptFrame& frame, DebugHint*) const
 {
 	ExpressionResult operand1 = m_Operand1->Evaluate(frame);
 	CHECK_RESULT(operand1);
@@ -283,7 +283,7 @@ ExpressionResult BinaryAndExpression::DoEvaluate(ScriptFrame& frame, DebugHint *
 	return operand1.GetValue() & operand2.GetValue();
 }
 
-ExpressionResult BinaryOrExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+ExpressionResult BinaryOrExpression::DoEvaluate(ScriptFrame& frame, DebugHint*) const
 {
 	ExpressionResult operand1 = m_Operand1->Evaluate(frame);
 	CHECK_RESULT(operand1);
@@ -294,7 +294,7 @@ ExpressionResult BinaryOrExpression::DoEvaluate(ScriptFrame& frame, DebugHint *d
 	return operand1.GetValue() | operand2.GetValue();
 }
 
-ExpressionResult ShiftLeftExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+ExpressionResult ShiftLeftExpression::DoEvaluate(ScriptFrame& frame, DebugHint*) const
 {
 	ExpressionResult operand1 = m_Operand1->Evaluate(frame);
 	CHECK_RESULT(operand1);
@@ -305,7 +305,7 @@ ExpressionResult ShiftLeftExpression::DoEvaluate(ScriptFrame& frame, DebugHint *
 	return operand1.GetValue() << operand2.GetValue();
 }
 
-ExpressionResult ShiftRightExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+ExpressionResult ShiftRightExpression::DoEvaluate(ScriptFrame& frame, DebugHint*) const
 {
 	ExpressionResult operand1 = m_Operand1->Evaluate(frame);
 	CHECK_RESULT(operand1);
@@ -316,7 +316,7 @@ ExpressionResult ShiftRightExpression::DoEvaluate(ScriptFrame& frame, DebugHint 
 	return operand1.GetValue() >> operand2.GetValue();
 }
 
-ExpressionResult EqualExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+ExpressionResult EqualExpression::DoEvaluate(ScriptFrame& frame, DebugHint*) const
 {
 	ExpressionResult operand1 = m_Operand1->Evaluate(frame);
 	CHECK_RESULT(operand1);
@@ -327,7 +327,7 @@ ExpressionResult EqualExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhin
 	return operand1.GetValue() == operand2.GetValue();
 }
 
-ExpressionResult NotEqualExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+ExpressionResult NotEqualExpression::DoEvaluate(ScriptFrame& frame, DebugHint*) const
 {
 	ExpressionResult operand1 = m_Operand1->Evaluate(frame);
 	CHECK_RESULT(operand1);
@@ -338,7 +338,7 @@ ExpressionResult NotEqualExpression::DoEvaluate(ScriptFrame& frame, DebugHint *d
 	return operand1.GetValue() != operand2.GetValue();
 }
 
-ExpressionResult LessThanExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+ExpressionResult LessThanExpression::DoEvaluate(ScriptFrame& frame, DebugHint*) const
 {
 	ExpressionResult operand1 = m_Operand1->Evaluate(frame);
 	CHECK_RESULT(operand1);
@@ -349,7 +349,7 @@ ExpressionResult LessThanExpression::DoEvaluate(ScriptFrame& frame, DebugHint *d
 	return operand1.GetValue() < operand2.GetValue();
 }
 
-ExpressionResult GreaterThanExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+ExpressionResult GreaterThanExpression::DoEvaluate(ScriptFrame& frame, DebugHint*) const
 {
 	ExpressionResult operand1 = m_Operand1->Evaluate(frame);
 	CHECK_RESULT(operand1);
@@ -360,7 +360,7 @@ ExpressionResult GreaterThanExpression::DoEvaluate(ScriptFrame& frame, DebugHint
 	return operand1.GetValue() > operand2.GetValue();
 }
 
-ExpressionResult LessThanOrEqualExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+ExpressionResult LessThanOrEqualExpression::DoEvaluate(ScriptFrame& frame, DebugHint*) const
 {
 	ExpressionResult operand1 = m_Operand1->Evaluate(frame);
 	CHECK_RESULT(operand1);
@@ -371,7 +371,7 @@ ExpressionResult LessThanOrEqualExpression::DoEvaluate(ScriptFrame& frame, Debug
 	return operand1.GetValue() <= operand2.GetValue();
 }
 
-ExpressionResult GreaterThanOrEqualExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+ExpressionResult GreaterThanOrEqualExpression::DoEvaluate(ScriptFrame& frame, DebugHint*) const
 {
 	ExpressionResult operand1 = m_Operand1->Evaluate(frame);
 	CHECK_RESULT(operand1);
@@ -382,7 +382,7 @@ ExpressionResult GreaterThanOrEqualExpression::DoEvaluate(ScriptFrame& frame, De
 	return operand1.GetValue() >= operand2.GetValue();
 }
 
-ExpressionResult InExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+ExpressionResult InExpression::DoEvaluate(ScriptFrame& frame, DebugHint*) const
 {
 	ExpressionResult operand2 = m_Operand2->Evaluate(frame);
 	CHECK_RESULT(operand2);
@@ -399,7 +399,7 @@ ExpressionResult InExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) 
 	return arr->Contains(operand1.GetValue());
 }
 
-ExpressionResult NotInExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+ExpressionResult NotInExpression::DoEvaluate(ScriptFrame& frame, DebugHint*) const
 {
 	ExpressionResult operand2 = m_Operand2->Evaluate(frame);
 	CHECK_RESULT(operand2);
@@ -416,7 +416,7 @@ ExpressionResult NotInExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhin
 	return !arr->Contains(operand1.GetValue());
 }
 
-ExpressionResult LogicalAndExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+ExpressionResult LogicalAndExpression::DoEvaluate(ScriptFrame& frame, DebugHint*) const
 {
 	ExpressionResult operand1 = m_Operand1->Evaluate(frame);
 	CHECK_RESULT(operand1);
@@ -431,7 +431,7 @@ ExpressionResult LogicalAndExpression::DoEvaluate(ScriptFrame& frame, DebugHint 
 	}
 }
 
-ExpressionResult LogicalOrExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+ExpressionResult LogicalOrExpression::DoEvaluate(ScriptFrame& frame, DebugHint*) const
 {
 	ExpressionResult operand1 = m_Operand1->Evaluate(frame);
 	CHECK_RESULT(operand1);
@@ -446,7 +446,7 @@ ExpressionResult LogicalOrExpression::DoEvaluate(ScriptFrame& frame, DebugHint *
 	}
 }
 
-ExpressionResult FunctionCallExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+ExpressionResult FunctionCallExpression::DoEvaluate(ScriptFrame& frame, DebugHint*) const
 {
 	Value self, vfunc;
 	String index;
@@ -493,7 +493,7 @@ ExpressionResult FunctionCallExpression::DoEvaluate(ScriptFrame& frame, DebugHin
 	return VMOps::FunctionCall(frame, self, func, arguments);
 }
 
-ExpressionResult ArrayExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+ExpressionResult ArrayExpression::DoEvaluate(ScriptFrame& frame, DebugHint*) const
 {
 	ArrayData result;
 	result.reserve(m_Expressions.size());
@@ -539,7 +539,7 @@ ExpressionResult DictExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint
 	}
 }
 
-ExpressionResult GetScopeExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+ExpressionResult GetScopeExpression::DoEvaluate(ScriptFrame& frame, DebugHint*) const
 {
 	if (m_ScopeSpec == ScopeLocal)
 		return frame.Locals;
@@ -671,7 +671,7 @@ void SetExpression::SetOverrideFrozen()
 	m_OverrideFrozen = true;
 }
 
-ExpressionResult SetConstExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+ExpressionResult SetConstExpression::DoEvaluate(ScriptFrame& frame, DebugHint*) const
 {
 	auto globals = ScriptGlobal::GetGlobals();
 
@@ -716,7 +716,7 @@ ExpressionResult WhileExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhin
 	return Empty;
 }
 
-ExpressionResult ReturnExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+ExpressionResult ReturnExpression::DoEvaluate(ScriptFrame& frame, DebugHint*) const
 {
 	ExpressionResult operand = m_Operand->Evaluate(frame);
 	CHECK_RESULT(operand);
@@ -724,12 +724,12 @@ ExpressionResult ReturnExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhi
 	return ExpressionResult(operand.GetValue(), ResultReturn);
 }
 
-ExpressionResult BreakExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+ExpressionResult BreakExpression::DoEvaluate(ScriptFrame&, DebugHint*) const
 {
 	return ExpressionResult(Empty, ResultBreak);
 }
 
-ExpressionResult ContinueExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+ExpressionResult ContinueExpression::DoEvaluate(ScriptFrame&, DebugHint*) const
 {
 	return ExpressionResult(Empty, ResultContinue);
 }
@@ -844,7 +844,7 @@ void icinga::BindToScope(std::unique_ptr<Expression>& expr, ScopeSpecifier scope
 	}
 }
 
-ExpressionResult ThrowExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+ExpressionResult ThrowExpression::DoEvaluate(ScriptFrame& frame, DebugHint*) const
 {
 	ExpressionResult messageres = m_Message->Evaluate(frame);
 	CHECK_RESULT(messageres);
@@ -902,12 +902,12 @@ ExpressionResult ImportDefaultTemplatesExpression::DoEvaluate(ScriptFrame& frame
 	return Empty;
 }
 
-ExpressionResult FunctionExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+ExpressionResult FunctionExpression::DoEvaluate(ScriptFrame& frame, DebugHint*) const
 {
 	return VMOps::NewFunction(frame, m_Name, m_Args, m_ClosedVars, m_Expression);
 }
 
-ExpressionResult ApplyExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+ExpressionResult ApplyExpression::DoEvaluate(ScriptFrame& frame, DebugHint*) const
 {
 	if (frame.Sandboxed)
 		BOOST_THROW_EXCEPTION(ScriptError("Apply rules are not allowed in sandbox mode.", m_DebugInfo));
@@ -919,7 +919,7 @@ ExpressionResult ApplyExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhin
 		m_Package, m_FKVar, m_FVVar, m_FTerm, m_ClosedVars, m_IgnoreOnError, m_Expression, m_DebugInfo);
 }
 
-ExpressionResult NamespaceExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+ExpressionResult NamespaceExpression::DoEvaluate(ScriptFrame&, DebugHint*) const
 {
 	Namespace::Ptr ns = new Namespace(true);
 
@@ -1046,7 +1046,7 @@ ExpressionResult IncludeExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dh
 	return res;
 }
 
-ExpressionResult BreakpointExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const
+ExpressionResult BreakpointExpression::DoEvaluate(ScriptFrame& frame, DebugHint*) const
 {
 	ScriptBreakpoint(frame, nullptr, GetDebugInfo());
 

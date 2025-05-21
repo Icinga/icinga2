@@ -421,7 +421,7 @@ void ConfigObject::OnAllConfigLoaded()
 		m_Zone = ctype->GetObject(zoneName);
 }
 
-void ConfigObject::CreateChildObjects(const Type::Ptr& childType)
+void ConfigObject::CreateChildObjects(const Type::Ptr&)
 {
 	/* Nothing to do here. */
 }

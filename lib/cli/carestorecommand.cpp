@@ -55,7 +55,7 @@ ImpersonationLevel CARestoreCommand::GetImpersonationLevel() const
  *
  * @returns An exit status.
  */
-int CARestoreCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
+int CARestoreCommand::Run(const boost::program_options::variables_map&, const std::vector<std::string>& ap) const
 {
 	String fingerPrint = ap[0];
 	String removedRequestFile = ApiListener::GetCertificateRequestsDir() + "/" + fingerPrint + ".removed";
