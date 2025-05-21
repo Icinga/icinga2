@@ -51,10 +51,9 @@ Zone::Ptr Zone::GetParent() const
 	return m_Parent;
 }
 
-std::set<Endpoint::Ptr> Zone::GetEndpoints() const
+std::vector<Endpoint::Ptr> Zone::GetEndpoints() const
 {
-	std::set<Endpoint::Ptr> result;
-
+	std::vector<Endpoint::Ptr> result;
 	Array::Ptr endpoints = GetEndpointsRaw();
 
 	if (endpoints) {
@@ -66,7 +65,7 @@ std::set<Endpoint::Ptr> Zone::GetEndpoints() const
 			if (!endpoint)
 				continue;
 
-			result.insert(endpoint);
+			result.emplace_back(std::move(endpoint));
 		}
 	}
 
