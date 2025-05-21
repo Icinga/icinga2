@@ -12,12 +12,13 @@ using namespace icinga;
 
 REGISTER_TYPE(User);
 
-void User::OnConfigLoaded()
+User::User()
 {
-	ObjectImpl<User>::OnConfigLoaded();
-
-	SetTypeFilter(FilterArrayToInt(GetTypes(), Notification::GetTypeFilterMap(), ~0));
-	SetStateFilter(FilterArrayToInt(GetStates(), Notification::GetStateFilterMap(), ~0));
+	// If a User is created without specifying the "types/states" attribute, the Set* methods won't be called,
+	// consequently the filter bitset will also be 0. Thus, we need to ensure that the type/state filter are
+	// initialized to the default values, which are all types and states enabled.
+	SetTypes(nullptr, false, Empty);
+	SetStates(nullptr, false, Empty);
 }
 
 void User::OnAllConfigLoaded()
@@ -78,6 +79,36 @@ void User::AddGroup(const String& name)
 TimePeriod::Ptr User::GetPeriod() const
 {
 	return TimePeriod::GetByName(GetPeriodRaw());
+}
+
+Array::Ptr User::GetTypes() const
+{
+	return m_Types.load();
+}
+
+void User::SetTypes(const Array::Ptr& value, bool suppress_events, const Value& cookie)
+ {
+	m_Types.store(value);
+	// Ensure that the type filter is updated when the types attribute changes.
+	SetTypeFilter(FilterArrayToInt(value, Notification::GetTypeFilterMap(), ~0));
+	if (!suppress_events) {
+		NotifyTypes(cookie);
+	}
+}
+
+Array::Ptr User::GetStates() const
+{
+	return m_States.load();
+}
+
+void User::SetStates(const Array::Ptr& value, bool suppress_events, const Value& cookie)
+{
+	m_States.store(value);
+	// Ensure that the state filter is updated when the states attribute changes.
+	SetStateFilter(FilterArrayToInt(value, Notification::GetStateFilterMap(), ~0));
+	if (!suppress_events) {
+		NotifyStates(cookie);
+	}
 }
 
 void User::ValidateStates(const Lazy<Array::Ptr>& lvalue, const ValidationUtils& utils)

@@ -74,6 +74,8 @@ public:
 	DECLARE_OBJECT(Notification);
 	DECLARE_OBJECTNAME(Notification);
 
+	Notification();
+
 	static void StaticInitialize();
 
 	intrusive_ptr<Checkable> GetCheckable() const;
@@ -115,13 +117,28 @@ public:
 	static const std::map<String, int>& GetStateFilterMap();
 	static const std::map<String, int>& GetTypeFilterMap();
 
-	void OnConfigLoaded() override;
 	void OnAllConfigLoaded() override;
 	void Start(bool runtimeCreated) override;
 	void Stop(bool runtimeRemoved) override;
 
+	Array::Ptr GetTypes() const override;
+	void SetTypes(const Array::Ptr& value, bool suppress_events, const Value& cookie) override;
+
+	Array::Ptr GetStates() const override;
+	void SetStates(const Array::Ptr& value, bool suppress_events, const Value& cookie) override;
+
 private:
 	ObjectImpl<Checkable>::Ptr m_Checkable;
+	// These attributes represent the actual notification "types" and "states" attributes from the "notification.ti".
+	// However, since we want to ensure that the type and state bitsets are always in sync with those attributes,
+	// we need to override their setters, and this on the hand introduces another problem: The virtual setters are
+	// called from within the ObjectImpl<Notification> constructor, which obviously violates the C++ standard [^1].
+	// So, in order to avoid all this kind of mess, these two attributes have the "no_storage" flag set, and
+	// their getters/setters are pure virtual, which means this class has to provide the implementation of them.
+	//
+	// [^1]: https://isocpp.org/wiki/faq/strange-inheritance#calling-virtuals-from-ctors
+	AtomicOrLocked<Array::Ptr> m_Types;
+	AtomicOrLocked<Array::Ptr> m_States;
 
 	bool CheckNotificationUserFilters(NotificationType type, const User::Ptr& user, bool force, bool reminder);
 
