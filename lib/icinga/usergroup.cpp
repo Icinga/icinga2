@@ -110,7 +110,7 @@ bool UserGroup::ResolveGroupMembership(const User::Ptr& user, bool add, int rsta
 	if (groups && groups->GetLength() > 0) {
 		ObjectLock olock(groups);
 
-		for (const String& name : groups) {
+		for (String name : groups) {
 			UserGroup::Ptr group = UserGroup::GetByName(name);
 
 			if (group && !group->ResolveGroupMembership(user, add, rstack + 1))

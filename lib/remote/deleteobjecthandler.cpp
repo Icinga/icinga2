@@ -78,7 +78,7 @@ bool DeleteObjectHandler::HandleRequest(
 
 	bool success = true;
 
-	for (const ConfigObject::Ptr& obj : objs) {
+	for (ConfigObject::Ptr obj : objs) {
 		int code;
 		String status;
 		Array::Ptr errors = new Array();

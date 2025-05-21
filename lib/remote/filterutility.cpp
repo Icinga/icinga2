@@ -241,7 +241,7 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 			Array::Ptr names = query->Get(attr);
 			if (names) {
 				ObjectLock olock(names);
-				for (const String& name : names) {
+				for (String name : names) {
 					Object::Ptr target = provider->GetTargetByName(type, name);
 
 					if (!FilterUtility::EvaluateFilter(permissionFrame, permissionFilter.get(), target, variableName))

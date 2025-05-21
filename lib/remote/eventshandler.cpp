@@ -73,7 +73,7 @@ bool EventsHandler::HandleRequest(
 
 	{
 		ObjectLock olock(types);
-		for (const String& type : types) {
+		for (String type : types) {
 			FilterUtility::CheckPermission(user, "events/" + type);
 		}
 	}
@@ -89,7 +89,7 @@ bool EventsHandler::HandleRequest(
 
 	{
 		ObjectLock olock(types);
-		for (const String& type : types) {
+		for (String type : types) {
 			auto typeId (l_EventTypes.find(type));
 
 			if (typeId != l_EventTypes.end()) {

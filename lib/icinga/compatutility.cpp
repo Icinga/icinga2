@@ -25,7 +25,7 @@ String CompatUtility::GetCommandLine(const Command::Ptr& command)
 		Array::Ptr args = commandLine;
 
 		ObjectLock olock(args);
-		for (const String& arg : args) {
+		for (String arg : args) {
 			// This is obviously incorrect for non-trivial cases.
 			result += " \"" + EscapeString(arg) + "\"";
 		}

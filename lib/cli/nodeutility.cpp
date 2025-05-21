@@ -47,7 +47,7 @@ int NodeUtility::GenerateNodeIcingaConfig(const String& endpointName, const Stri
 
 	Array::Ptr myParentZoneMembers = new Array();
 
-	for (const String& endpoint : endpoints) {
+	for (String endpoint : endpoints) {
 		/* extract all --endpoint arguments and store host,port info */
 		std::vector<String> tokens = endpoint.Split(",");
 
@@ -170,7 +170,7 @@ bool NodeUtility::WriteNodeConfigObjects(const String& filename, const Array::Pt
 	fp << " */\n\n";
 
 	ObjectLock olock(objects);
-	for (const Dictionary::Ptr& object : objects) {
+	for (Dictionary::Ptr object : objects) {
 		SerializeObject(fp, object);
 	}
 

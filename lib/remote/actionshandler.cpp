@@ -88,7 +88,7 @@ bool ActionsHandler::HandleRequest(
 	if (params)
 		verbose = HttpUtility::GetLastParameter(params, "verbose");
 
-	for (const ConfigObject::Ptr& obj : objs) {
+	for (ConfigObject::Ptr obj : objs) {
 		try {
 			results.emplace_back(action->Invoke(obj, params));
 		} catch (const std::exception& ex) {
@@ -108,7 +108,7 @@ bool ActionsHandler::HandleRequest(
 	int statusCode = 500;
 	std::set<int> okStatusCodes, nonOkStatusCodes;
 
-	for (const Dictionary::Ptr& res : results) {
+	for (Dictionary::Ptr res : results) {
 		if (!res->Contains("code")) {
 			continue;
 		}

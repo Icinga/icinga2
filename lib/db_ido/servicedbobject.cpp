@@ -159,7 +159,7 @@ void ServiceDbObject::OnConfigUpdateHeavy()
 
 	if (groups) {
 		ObjectLock olock(groups);
-		for (const String& groupName : groups) {
+		for (String groupName : groups) {
 			ServiceGroup::Ptr group = ServiceGroup::GetByName(groupName);
 
 			DbQuery query2;

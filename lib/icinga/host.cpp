@@ -38,7 +38,7 @@ void Host::OnAllConfigLoaded()
 
 		ObjectLock olock(groups);
 
-		for (const String& name : groups) {
+		for (String name : groups) {
 			HostGroup::Ptr hg = HostGroup::GetByName(name);
 
 			if (hg)
@@ -71,7 +71,7 @@ void Host::Stop(bool runtimeRemoved)
 	if (groups) {
 		ObjectLock olock(groups);
 
-		for (const String& name : groups) {
+		for (String name : groups) {
 			HostGroup::Ptr hg = HostGroup::GetByName(name);
 
 			if (hg)
@@ -88,8 +88,7 @@ std::vector<Service::Ptr> Host::GetServices() const
 
 	std::vector<Service::Ptr> services;
 	services.reserve(m_Services.size());
-	typedef std::pair<String, Service::Ptr> ServicePair;
-	for (const ServicePair& kv : m_Services) {
+	for (auto& kv : m_Services) {
 		services.push_back(kv.second);
 	}
 
