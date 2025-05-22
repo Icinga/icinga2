@@ -834,6 +834,12 @@ void ApiListener::NewClientHandlerInternal(
 	if (ctype == ClientJsonRpc) {
 		Log(LogNotice, "ApiListener", "New JSON-RPC client");
 
+		if (verify_ok && !endpoint) {
+			Log(LogWarning, "ApiListener")
+				<< "Unknown endpoint '" << identity << "' with valid certificate. Aborting JSON-RPC connection.";
+			return;
+		}
+
 		if (endpoint && endpoint->GetConnected()) {
 			Log(LogInformation, "ApiListener")
 				<< "Ignoring JSON-RPC connection " << conninfo
