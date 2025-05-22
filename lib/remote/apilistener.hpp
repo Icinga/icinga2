@@ -152,6 +152,11 @@ public:
 	double GetTlsHandshakeTimeout() const override;
 	void SetTlsHandshakeTimeout(double value, bool suppress_events, const Value& cookie) override;
 
+	WaitGroup::Ptr GetWaitGroup() const
+	{
+		return m_WaitGroup;
+	}
+
 protected:
 	void OnConfigLoaded() override;
 	void OnAllConfigLoaded() override;

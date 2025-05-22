@@ -13,11 +13,11 @@
 
 using namespace icinga;
 
-REGISTER_FUNCTION_NONCONST(Internal, IcingadbCheck, &IcingadbCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
+REGISTER_FUNCTION_NONCONST(Internal, IcingadbCheck, &IcingadbCheckTask::ScriptFunc, "checkable:cr:producer:resolvedMacros:useResolvedMacros");
 
 static void ReportIcingadbCheck(
 	const Checkable::Ptr& checkable, const CheckCommand::Ptr& commandObj,
-	const CheckResult::Ptr& cr, String output, ServiceState state)
+	const CheckResult::Ptr& cr, const WaitGroup::Ptr& producer, String output, ServiceState state)
 {
 	if (Checkable::ExecuteCommandProcessFinishedHandler) {
 		double now = Utility::GetTime();
@@ -32,7 +32,7 @@ static void ReportIcingadbCheck(
 	} else {
 		cr->SetState(state);
 		cr->SetOutput(output);
-		checkable->ProcessCheckResult(cr);
+		checkable->ProcessCheckResult(cr, producer);
 	}
 }
 
@@ -43,7 +43,7 @@ double GetXMessageTs(const Array::Ptr& xMessage)
 }
 
 void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
-	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
+	const WaitGroup::Ptr& producer, const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
 	CheckCommand::Ptr commandObj = CheckCommand::ExecuteOverride ? CheckCommand::ExecuteOverride : checkable->GetCheckCommand();
 
@@ -87,21 +87,21 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 		return;
 
 	if (icingadbName.IsEmpty()) {
-		ReportIcingadbCheck(checkable, commandObj, cr, "Icinga DB UNKNOWN: Attribute 'icingadb_name' must be set.", ServiceUnknown);
+		ReportIcingadbCheck(checkable, commandObj, cr, producer, "Icinga DB UNKNOWN: Attribute 'icingadb_name' must be set.", ServiceUnknown);
 		return;
 	}
 
 	auto conn (IcingaDB::GetByName(icingadbName));
 
 	if (!conn) {
-		ReportIcingadbCheck(checkable, commandObj, cr, "Icinga DB UNKNOWN: Icinga DB connection '" + icingadbName + "' does not exist.", ServiceUnknown);
+		ReportIcingadbCheck(checkable, commandObj, cr, producer, "Icinga DB UNKNOWN: Icinga DB connection '" + icingadbName + "' does not exist.", ServiceUnknown);
 		return;
 	}
 
 	auto redis (conn->GetConnection());
 
 	if (!redis || !redis->GetConnected()) {
-		ReportIcingadbCheck(checkable, commandObj, cr, "Icinga DB CRITICAL: Not connected to Redis.", ServiceCritical);
+		ReportIcingadbCheck(checkable, commandObj, cr, producer, "Icinga DB CRITICAL: Not connected to Redis.", ServiceCritical);
 		return;
 	}
 
@@ -136,7 +136,7 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 		xReadHistoryBacklog = std::move(replies.at(4));
 	} catch (const std::exception& ex) {
 		ReportIcingadbCheck(
-			checkable, commandObj, cr,
+			checkable, commandObj, cr, producer,
 			String("Icinga DB CRITICAL: Could not query Redis: ") + ex.what(), ServiceCritical
 		);
 		return;
@@ -144,7 +144,7 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 
 	if (!xReadHeartbeat) {
 		ReportIcingadbCheck(
-			checkable, commandObj, cr,
+			checkable, commandObj, cr, producer,
 			"Icinga DB CRITICAL: The Icinga DB daemon seems to have never run. (Missing heartbeat)",
 			ServiceCritical
 		);
@@ -511,5 +511,5 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 	}
 
 	cr->SetPerformanceData(perfdata);
-	ReportIcingadbCheck(checkable, commandObj, cr, msgbuf.str(), state);
+	ReportIcingadbCheck(checkable, commandObj, cr, producer, msgbuf.str(), state);
 }

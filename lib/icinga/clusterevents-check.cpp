@@ -279,7 +279,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 
 	if (command_type == "check_command") {
 		try {
-			host->ExecuteRemoteCheck(macros);
+			host->ExecuteRemoteCheck(ApiListener::GetInstance()->GetWaitGroup(), macros);
 		} catch (const std::exception& ex) {
 			String output = "Exception occurred while checking '" + host->GetName() + "': " + DiagnosticInformation(ex);
 			ServiceState state = ServiceUnknown;

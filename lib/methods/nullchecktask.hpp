@@ -19,7 +19,7 @@ class NullCheckTask
 {
 public:
 	static void ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr,
-		const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros);
+		const WaitGroup::Ptr& producer, const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros);
 
 private:
 	NullCheckTask();

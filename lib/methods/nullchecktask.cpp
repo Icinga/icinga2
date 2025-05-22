@@ -13,10 +13,10 @@
 
 using namespace icinga;
 
-REGISTER_FUNCTION_NONCONST(Internal, NullCheck, &NullCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
+REGISTER_FUNCTION_NONCONST(Internal, NullCheck, &NullCheckTask::ScriptFunc, "checkable:cr:producer:resolvedMacros:useResolvedMacros");
 
 void NullCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
-	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
+	const WaitGroup::Ptr& producer, const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
 	REQUIRE_NOT_NULL(checkable);
 	REQUIRE_NOT_NULL(cr);
@@ -45,6 +45,6 @@ void NullCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResul
 		}));
 		cr->SetState(state);
 
-		checkable->ProcessCheckResult(cr);
+		checkable->ProcessCheckResult(cr, producer);
 	}
 }

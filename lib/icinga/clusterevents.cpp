@@ -176,9 +176,9 @@ Value ClusterEvents::CheckResultAPIHandler(const MessageOrigin::Ptr& origin, con
 	}
 
 	if (!checkable->IsPaused() && Zone::GetLocalZone() == checkable->GetZone() && endpoint == checkable->GetCommandEndpoint())
-		checkable->ProcessCheckResult(cr);
+		checkable->ProcessCheckResult(cr, ApiListener::GetInstance()->GetWaitGroup());
 	else
-		checkable->ProcessCheckResult(cr, origin);
+		checkable->ProcessCheckResult(cr, ApiListener::GetInstance()->GetWaitGroup(), origin);
 
 	return Empty;
 }
