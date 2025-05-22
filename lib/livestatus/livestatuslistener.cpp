@@ -112,6 +112,7 @@ void LivestatusListener::Stop(bool runtimeRemoved)
 		<< "'" << GetName() << "' stopped.";
 
 	m_Listener->Close();
+	m_WaitGroup->Join();
 
 	if (m_Thread.joinable())
 		m_Thread.join();

@@ -50,6 +50,8 @@ void ExternalCommandListener::Start(bool runtimeCreated)
  */
 void ExternalCommandListener::Stop(bool runtimeRemoved)
 {
+	m_WaitGroup->Join();
+
 	Log(LogInformation, "ExternalCommandListener")
 		<< "'" << GetName() << "' stopped.";
 

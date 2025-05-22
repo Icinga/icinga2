@@ -81,6 +81,7 @@ void CheckerComponent::Stop(bool runtimeRemoved)
 		m_CV.notify_all();
 	}
 
+	m_WaitGroup->Join();
 	m_ResultTimer->Stop(true);
 	m_Thread.join();
 
