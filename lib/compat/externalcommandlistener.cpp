@@ -50,6 +50,8 @@ void ExternalCommandListener::Start(bool runtimeCreated)
  */
 void ExternalCommandListener::Stop(bool runtimeRemoved)
 {
+	m_WaitGroup->Join();
+
 	Log(LogInformation, "ExternalCommandListener")
 		<< "'" << GetName() << "' stopped.";
 
@@ -136,7 +138,7 @@ void ExternalCommandListener::CommandPipeThread(const String& commandPath)
 					Log(LogInformation, "ExternalCommandListener")
 						<< "Executing external command: " << command;
 
-					ExternalCommandProcessor::Execute(command);
+					ExternalCommandProcessor::Execute(m_WaitGroup, command);
 				} catch (const std::exception& ex) {
 					Log(LogWarning, "ExternalCommandListener")
 						<< "External command failed: " << DiagnosticInformation(ex, false);

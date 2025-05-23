@@ -570,7 +570,7 @@ void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 	SendResponse(stream, LivestatusErrorOK, result.str());
 }
 
-void LivestatusQuery::ExecuteCommandHelper(const Stream::Ptr& stream)
+void LivestatusQuery::ExecuteCommandHelper(const WaitGroup::Ptr& producer, const Stream::Ptr& stream)
 {
 	{
 		std::unique_lock<std::mutex> lock(l_QueryMutex);
@@ -580,7 +580,7 @@ void LivestatusQuery::ExecuteCommandHelper(const Stream::Ptr& stream)
 
 	Log(LogNotice, "LivestatusQuery")
 		<< "Executing command: " << m_Command;
-	ExternalCommandProcessor::Execute(m_Command);
+	ExternalCommandProcessor::Execute(producer, m_Command);
 	SendResponse(stream, LivestatusErrorOK, "");
 }
 
@@ -621,7 +621,7 @@ void LivestatusQuery::PrintFixed16(const Stream::Ptr& stream, int code, const St
 	}
 }
 
-bool LivestatusQuery::Execute(const Stream::Ptr& stream)
+bool LivestatusQuery::Execute(const WaitGroup::Ptr& producer, const Stream::Ptr& stream)
 {
 	try {
 		Log(LogNotice, "LivestatusQuery")
@@ -630,7 +630,7 @@ bool LivestatusQuery::Execute(const Stream::Ptr& stream)
 		if (m_Verb == "GET")
 			ExecuteGetHelper(stream);
 		else if (m_Verb == "COMMAND")
-			ExecuteCommandHelper(stream);
+			ExecuteCommandHelper(producer, stream);
 		else if (m_Verb == "ERROR")
 			ExecuteErrorHelper(stream);
 		else

@@ -23,6 +23,7 @@ public:
 	static thread_local CheckCommand::Ptr ExecuteOverride;
 
 	void Execute(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
+		const WaitGroup::Ptr& producer,
 		const Dictionary::Ptr& resolvedMacros = nullptr,
 		bool useResolvedMacros = false);
 };

@@ -16,6 +16,7 @@
 #include "base/tcpsocket.hpp"
 #include "base/tlsstream.hpp"
 #include "base/threadpool.hpp"
+#include "base/wait-group.hpp"
 #include <atomic>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/tcp.hpp>
@@ -151,6 +152,11 @@ public:
 	double GetTlsHandshakeTimeout() const override;
 	void SetTlsHandshakeTimeout(double value, bool suppress_events, const Value& cookie) override;
 
+	WaitGroup::Ptr GetWaitGroup() const
+	{
+		return m_WaitGroup;
+	}
+
 protected:
 	void OnConfigLoaded() override;
 	void OnAllConfigLoaded() override;
@@ -177,6 +183,7 @@ private:
 	Timer::Ptr m_RenewOwnCertTimer;
 
 	Endpoint::Ptr m_LocalEndpoint;
+	StoppableWaitGroup::Ptr m_WaitGroup = new StoppableWaitGroup();
 
 	static ApiListener::Ptr m_Instance;
 	static std::atomic<bool> m_UpdatedObjectAuthority;

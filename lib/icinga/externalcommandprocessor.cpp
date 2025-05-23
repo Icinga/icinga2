@@ -27,7 +27,7 @@ using namespace icinga;
 
 boost::signals2::signal<void(double, const String&, const std::vector<String>&)> ExternalCommandProcessor::OnNewExternalCommand;
 
-void ExternalCommandProcessor::Execute(const String& line)
+void ExternalCommandProcessor::Execute(const WaitGroup::Ptr& producer, const String& line)
 {
 	if (line.IsEmpty())
 		return;
@@ -54,10 +54,10 @@ void ExternalCommandProcessor::Execute(const String& line)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Missing arguments in command: " + line));
 
 	std::vector<String> argvExtra(argv.begin() + 1, argv.end());
-	Execute(ts, argv[0], argvExtra);
+	Execute(producer, ts, argv[0], argvExtra);
 }
 
-void ExternalCommandProcessor::Execute(double time, const String& command, const std::vector<String>& arguments)
+void ExternalCommandProcessor::Execute(const WaitGroup::Ptr& producer, double time, const String& command, const std::vector<String>& arguments)
 {
 	ExternalCommandInfo eci;
 
@@ -102,7 +102,7 @@ void ExternalCommandProcessor::Execute(double time, const String& command, const
 
 	OnNewExternalCommand(time, command, realArguments);
 
-	eci.Callback(time, realArguments);
+	eci.Callback(producer, time, realArguments);
 }
 
 void ExternalCommandProcessor::RegisterCommand(const String& command, const ExternalCommandCallback& callback, size_t minArgs, size_t maxArgs)
@@ -113,6 +113,16 @@ void ExternalCommandProcessor::RegisterCommand(const String& command, const Exte
 	eci.MinArgs = minArgs;
 	eci.MaxArgs = (maxArgs == UINT_MAX) ? minArgs : maxArgs;
 	GetCommands()[command] = eci;
+}
+
+void ExternalCommandProcessor::RegisterCommand(const String& command, const ExternalCommandCallbackLite& callback, size_t minArgs, size_t maxArgs)
+{
+	RegisterCommand(
+		command,
+		[callback](const WaitGroup::Ptr&, double time, const std::vector<String>& args) { callback(time, args); },
+		minArgs,
+		maxArgs
+	);
 }
 
 void ExternalCommandProcessor::RegisterCommands()
@@ -237,7 +247,7 @@ void ExternalCommandProcessor::RegisterCommands()
 	RegisterCommand("DISABLE_SERVICEGROUP_SVC_NOTIFICATIONS", &ExternalCommandProcessor::DisableServicegroupSvcNotifications, 1);
 }
 
-void ExternalCommandProcessor::ExecuteFromFile(const String& line, std::deque< std::vector<String> >& file_queue)
+void ExternalCommandProcessor::ExecuteFromFile(const WaitGroup::Ptr& producer, const String& line, std::deque<std::vector<String>>& file_queue)
 {
 	if (line.IsEmpty())
 		return;
@@ -270,11 +280,11 @@ void ExternalCommandProcessor::ExecuteFromFile(const String& line, std::deque< s
 			<< "Enqueing external command file " << argvExtra[0];
 		file_queue.push_back(argvExtra);
 	} else {
-		Execute(ts, argv[0], argvExtra);
+		Execute(producer, ts, argv[0], argvExtra);
 	}
 }
 
-void ExternalCommandProcessor::ProcessHostCheckResult(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::ProcessHostCheckResult(const WaitGroup::Ptr& producer, double time, const std::vector<String>& arguments)
 {
 	Host::Ptr host = Host::GetByName(arguments[0]);
 
@@ -318,10 +328,10 @@ void ExternalCommandProcessor::ProcessHostCheckResult(double time, const std::ve
 	Log(LogNotice, "ExternalCommandProcessor")
 		<< "Processing passive check result for host '" << arguments[0] << "'";
 
-	host->ProcessCheckResult(result);
+	host->ProcessCheckResult(result, producer);
 }
 
-void ExternalCommandProcessor::ProcessServiceCheckResult(double time, const std::vector<String>& arguments)
+void ExternalCommandProcessor::ProcessServiceCheckResult(const WaitGroup::Ptr& producer, double time, const std::vector<String>& arguments)
 {
 	Service::Ptr service = Service::GetByNamePair(arguments[0], arguments[1]);
 
@@ -356,7 +366,7 @@ void ExternalCommandProcessor::ProcessServiceCheckResult(double time, const std:
 	Log(LogNotice, "ExternalCommandProcessor")
 		<< "Processing passive check result for service '" << arguments[1] << "'";
 
-	service->ProcessCheckResult(result);
+	service->ProcessCheckResult(result, producer);
 }
 
 void ExternalCommandProcessor::ScheduleHostCheck(double, const std::vector<String>& arguments)
@@ -921,7 +931,7 @@ void ExternalCommandProcessor::DisableHostgroupPassiveSvcChecks(double, const st
 	}
 }
 
-void ExternalCommandProcessor::ProcessFile(double, const std::vector<String>& arguments)
+void ExternalCommandProcessor::ProcessFile(const WaitGroup::Ptr& producer, double, const std::vector<String>& arguments)
 {
 	std::deque< std::vector<String> > file_queue;
 	file_queue.push_back(arguments);
@@ -946,7 +956,7 @@ void ExternalCommandProcessor::ProcessFile(double, const std::vector<String>& ar
 				Log(LogNotice, "compat")
 					<< "Executing external command: " << line;
 
-				ExecuteFromFile(line, file_queue);
+				ExecuteFromFile(producer, line, file_queue);
 			} catch (const std::exception& ex) {
 				Log(LogWarning, "ExternalCommandProcessor")
 					<< "External command failed: " << DiagnosticInformation(ex);

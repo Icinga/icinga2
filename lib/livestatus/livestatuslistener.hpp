@@ -7,6 +7,7 @@
 #include "livestatus/livestatuslistener-ti.hpp"
 #include "livestatus/livestatusquery.hpp"
 #include "base/socket.hpp"
+#include "base/wait-group.hpp"
 #include <thread>
 
 using namespace icinga;
@@ -40,6 +41,7 @@ private:
 
 	Socket::Ptr m_Listener;
 	std::thread m_Thread;
+	StoppableWaitGroup::Ptr m_WaitGroup = new StoppableWaitGroup();
 };
 
 }

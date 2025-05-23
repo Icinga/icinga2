@@ -17,10 +17,10 @@
 
 using namespace icinga;
 
-REGISTER_FUNCTION_NONCONST(Internal, IcingaCheck, &IcingaCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
+REGISTER_FUNCTION_NONCONST(Internal, IcingaCheck, &IcingaCheckTask::ScriptFunc, "checkable:cr:producer:resolvedMacros:useResolvedMacros");
 
 void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
-	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
+	const WaitGroup::Ptr& producer, const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
 	REQUIRE_NOT_NULL(checkable);
 	REQUIRE_NOT_NULL(cr);
@@ -204,6 +204,6 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 		cr->SetOutput(output);
 		cr->SetCommand(commandName);
 
-		checkable->ProcessCheckResult(cr);
+		checkable->ProcessCheckResult(cr, producer);
 	}
 }

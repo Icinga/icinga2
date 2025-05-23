@@ -368,6 +368,7 @@ void ApiListener::Stop(bool runtimeDeleted)
 	m_Timer->Stop(true);
 	m_RenewOwnCertTimer->Stop(true);
 
+	m_WaitGroup->Join();
 	ObjectImpl<ApiListener>::Stop(runtimeDeleted);
 
 	Log(LogInformation, "ApiListener")

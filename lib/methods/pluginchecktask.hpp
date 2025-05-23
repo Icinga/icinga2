@@ -19,13 +19,13 @@ class PluginCheckTask
 {
 public:
 	static void ScriptFunc(const Checkable::Ptr& service, const CheckResult::Ptr& cr,
-		const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros);
+		const WaitGroup::Ptr& producer, const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros);
 
 private:
 	PluginCheckTask();
 
-	static void ProcessFinishedHandler(const Checkable::Ptr& service,
-		const CheckResult::Ptr& cr, const Value& commandLine, const ProcessResult& pr);
+	static void ProcessFinishedHandler(const Checkable::Ptr& service, const CheckResult::Ptr& cr,
+		const WaitGroup::Ptr& producer, const Value& commandLine, const ProcessResult& pr);
 };
 
 }

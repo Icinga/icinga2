@@ -11,11 +11,12 @@ REGISTER_TYPE(CheckCommand);
 thread_local CheckCommand::Ptr CheckCommand::ExecuteOverride;
 
 void CheckCommand::Execute(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
-	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
+	const WaitGroup::Ptr& producer, const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
 	GetExecute()->Invoke({
 		checkable,
 		cr,
+		producer,
 		resolvedMacros,
 		useResolvedMacros
 	});

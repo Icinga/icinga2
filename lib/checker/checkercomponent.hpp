@@ -8,6 +8,7 @@
 #include "base/configobject.hpp"
 #include "base/timer.hpp"
 #include "base/utility.hpp"
+#include "base/wait-group.hpp"
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/key_extractors.hpp>
@@ -77,6 +78,7 @@ private:
 	CheckableSet m_IdleCheckables;
 	CheckableSet m_PendingCheckables;
 
+	StoppableWaitGroup::Ptr m_WaitGroup = new StoppableWaitGroup();
 	Timer::Ptr m_ResultTimer;
 
 	void CheckThreadProc();

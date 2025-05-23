@@ -6,6 +6,7 @@
 #include "base/function.hpp"
 #include "base/functionwrapper.hpp"
 #include "base/scriptframe.hpp"
+#include "remote/apilistener.hpp"
 
 using namespace icinga;
 
@@ -16,7 +17,9 @@ static void CheckableProcessCheckResult(const CheckResult::Ptr& cr)
 	REQUIRE_NOT_NULL(self);
 
 	if (cr) {
-		self->ProcessCheckResult(cr);
+		auto api (ApiListener::GetInstance());
+
+		self->ProcessCheckResult(cr, api ? api->GetWaitGroup() : new StoppableWaitGroup());
 	}
 }
 
