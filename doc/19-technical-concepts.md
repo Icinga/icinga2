@@ -632,15 +632,12 @@ The algorithm works like this:
  * Set the authority (true or false)
 
 The object authority calculation works "offline" without any message exchange.
-Each instance alculates the SDBM hash of the config object name, puts that in contrast
-modulo the connected endpoints size.
-This index is used to lookup the corresponding endpoint in the connected endpoints array,
-including the local endpoint. Whether the local endpoint is equal to the selected endpoint,
-or not, this sets the authority to `true` or `false`.
-
-```cpp
-authority = endpoints[Utility::SDBM(object->GetName()) % endpoints.size()] == my_endpoint;
-```
+Each instance calculates the SDBM hash of the config object name. However, for objects bound to some
+host, i.e. the object name is composed of `<host_name>!<object_name>`, the SDBM hash is calculated based
+on the host name only instead of the full object name. That way, each child object like services, downtimes,
+etc. will be assigned to the same endpoint as the host object itself. The resulting hash modulo (`%`) the number of
+connected endpoints produces the index of the endpoint which is authoritative for this config object. If the
+endpoint at this index is equal to the local endpoint, the authority is set to `true`, otherwise it is set to `false`.
 
 `ConfigObject::SetAuthority(bool authority)` triggers the following events:
 
