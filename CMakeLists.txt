@@ -348,6 +348,17 @@ endif()
 
 if(MSVC)
   add_definitions(-D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE -D_SCL_SECURE_NO_WARNINGS)
+
+  # Boost 1.88.0 introduced a feature [^1] that makes use of the Windows API, so we need to link against the
+  # psapi library. Actually, that new feature can also be disabled by setting the BOOST_STACKTRACE_DISABLE_OFFSET_ADDR_BASE
+  # macro, but since it seems to be a useful feature and isn't even disabled by default, it's better to add the missing
+  # library to the linker flags instead of disabling it.
+  #
+  # [^1]: https://github.com/boostorg/stacktrace/pull/200
+  if ("${Boost_VERSION}" GREATER_EQUAL 1.88.0)
+    set(CMAKE_CXX_STANDARD_LIBRARIES "${CMAKE_CXX_STANDARD_LIBRARIES} psapi.lib")
+    set(CMAKE_C_STANDARD_LIBRARIES "${CMAKE_C_STANDARD_LIBRARIES} psapi.lib")
+  endif ()
 endif()
 
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/Bin/${CMAKE_BUILD_TYPE} CACHE PATH "Library output path")
