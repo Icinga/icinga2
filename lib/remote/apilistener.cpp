@@ -639,10 +639,6 @@ static const auto l_AppVersionInt (([]() -> unsigned long {
 		+ boost::lexical_cast<unsigned long>(match[3].str());
 })());
 
-static const auto l_MyCapabilities (
-	(uint_fast64_t)ApiCapabilities::ExecuteArbitraryCommand | (uint_fast64_t)ApiCapabilities::IfwApiCheckCommand
-);
-
 /**
  * Processes a new client connection.
  *
@@ -773,7 +769,7 @@ void ApiListener::NewClientHandlerInternal(
 				{ "method", "icinga::Hello" },
 				{ "params", new Dictionary({
 					{ "version", (double)l_AppVersionInt },
-					{ "capabilities", (double)l_MyCapabilities }
+					{ "capabilities", (double)ApiCapabilities::MyCapabilities }
 				}) }
 			}), yc);
 
@@ -812,7 +808,7 @@ void ApiListener::NewClientHandlerInternal(
 					{ "method", "icinga::Hello" },
 					{ "params", new Dictionary({
 						{ "version", (double)l_AppVersionInt },
-						{ "capabilities", (double)l_MyCapabilities }
+						{ "capabilities", (double)ApiCapabilities::MyCapabilities }
 					}) }
 				}), yc);
 
@@ -1793,6 +1789,10 @@ Value ApiListener::HelloAPIHandler(const MessageOrigin::Ptr& origin, const Dicti
 
 				endpoint->SetIcingaVersion(nodeVersion);
 				endpoint->SetCapabilities((double)params->Get("capabilities"));
+
+				if (endpoint->GetZone() == Zone::GetLocalZone()) {
+					UpdateObjectAuthority();
+				}
 
 				if (nodeVersion == 0u) {
 					nodeVersion = 21200;
