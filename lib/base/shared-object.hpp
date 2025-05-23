@@ -31,23 +31,8 @@ protected:
 	{
 	}
 
-	inline SharedObject(const SharedObject&) : SharedObject()
-	{
-	}
-
-	inline SharedObject(SharedObject&&) : SharedObject()
-	{
-	}
-
-	inline SharedObject& operator=(const SharedObject&)
-	{
-		return *this;
-	}
-
-	inline SharedObject& operator=(SharedObject&&)
-	{
-		return *this;
-	}
+	SharedObject(const SharedObject&) = delete;
+	SharedObject& operator=(const SharedObject&) = delete;
 
 	inline virtual
 	~SharedObject() = default;
