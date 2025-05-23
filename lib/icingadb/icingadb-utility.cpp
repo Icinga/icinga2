@@ -219,6 +219,31 @@ Dictionary::Ptr IcingaDB::SerializeRedundancyGroupState(const Checkable::Ptr& ch
 	};
 }
 
+/**
+ * Converts the given filter to its Redis value representation.
+ *
+ * Within the Icinga 2 code base, if the states and types filter bitsets are set to -1, the filter will match
+ * on all states/types. However, since sending -1 to Redis would crash the Icinga DB daemon, as both fields are
+ * of type Go's uint8/uint16, so the primary purpose of this function is to make sure that no negative values are
+ * passed to Redis.
+ *
+ * @param filter The filter to convert.
+ * @param isStatesFilter Whether the given filter is a states filter or a types filter.
+ */
+int IcingaDB::StatesOrTypesFilterToRedisValue(int filter, bool isStatesFilter)
+{
+	if (filter >= 0) {
+		return filter;
+	}
+
+	if (isStatesFilter) {
+		return StateFilterOK | StateFilterWarning | StateFilterCritical | StateFilterUnknown | StateFilterUp | StateFilterDown;
+	}
+
+	return NotificationDowntimeStart | NotificationDowntimeEnd | NotificationDowntimeRemoved | NotificationCustom |
+		NotificationAcknowledgement | NotificationProblem | NotificationRecovery | NotificationFlappingStart | NotificationFlappingEnd;
+}
+
 const char* IcingaDB::GetNotificationTypeByEnum(NotificationType type)
 {
 	switch (type) {
@@ -243,6 +268,21 @@ const char* IcingaDB::GetNotificationTypeByEnum(NotificationType type)
 	}
 
 	VERIFY(!"Invalid notification type.");
+}
+
+/**
+ * Converts the given comment type to its string representation.
+ *
+ * @ingroup icinga
+ */
+String IcingaDB::CommentTypeToString(CommentType type)
+{
+	switch (type) {
+		case CommentUser: return "comment";
+		case CommentAcknowledgement: return "ack";
+		default:
+			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid comment type specified"));
+	}
 }
 
 static const std::set<String> propertiesBlacklistEmpty;
