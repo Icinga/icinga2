@@ -191,12 +191,16 @@ private:
 	static ApiListener::Ptr m_Instance;
 	static std::atomic<bool> m_UpdatedObjectAuthority;
 
+	boost::signals2::signal<void()> m_OnListenerShutdown;
+	StoppableWaitGroup::Ptr m_ListenerWaitGroup = new StoppableWaitGroup();
+
 	void ApiTimerHandler();
 	void ApiReconnectTimerHandler();
 	void CleanupCertificateRequestsTimerHandler();
 	void CheckApiPackageIntegrity();
 
 	bool AddListener(const String& node, const String& service);
+	void StopListener();
 	void AddConnection(const Endpoint::Ptr& endpoint);
 
 	void NewClientHandler(
