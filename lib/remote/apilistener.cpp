@@ -368,6 +368,8 @@ void ApiListener::Stop(bool runtimeDeleted)
 	m_Timer->Stop(true);
 	m_RenewOwnCertTimer->Stop(true);
 
+	StopListener();
+
 	m_WaitGroup->Join();
 	ObjectImpl<ApiListener>::Stop(runtimeDeleted);
 
@@ -486,11 +488,26 @@ bool ApiListener::AddListener(const String& node, const String& service)
 	Log(LogInformation, "ApiListener")
 		<< "Started new listener on '[" << localEndpoint.address() << "]:" << localEndpoint.port() << "'";
 
-	IoEngine::SpawnCoroutine(io, [this, acceptor](asio::yield_context yc) { ListenerCoroutineProc(yc, acceptor); });
+	IoEngine::SpawnCoroutine(m_IoStrand, [this, acceptor](asio::yield_context yc) { ListenerCoroutineProc(yc, acceptor); });
+
+	IoEngine::SpawnCoroutine(m_IoStrand, [this, acceptor](asio::yield_context yc) {
+		m_ShutdownListenerEvent.Wait(yc);
+		acceptor->close();
+	});
 
 	UpdateStatusFile(localEndpoint);
 
 	return true;
+}
+
+/**
+ * Stops the listener(s).
+ */
+void ApiListener::StopListener()
+{
+	boost::asio::post(m_IoStrand, [this] { m_ShutdownListenerEvent.Set(); });
+
+	m_ListenerWaitGroup->Join();
 }
 
 void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const Shared<boost::asio::ip::tcp::acceptor>::Ptr& server)
@@ -543,8 +560,20 @@ void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const Sha
 					}
 				);
 
+				std::shared_lock wgLock(*m_ListenerWaitGroup, std::try_to_lock);
+				if (!wgLock) {
+					return;
+				}
+
 				NewClientHandler(yc, strand, sslConn, String(), RoleServer);
 			});
+		} catch (const boost::system::system_error& ex) {
+			if (ex.code() == boost::system::errc::operation_canceled) {
+				break;
+			}
+
+			Log(LogCritical, "ApiListener")
+				<< "Cannot accept new connection: " << ex.what();
 		} catch (const std::exception& ex) {
 			Log(LogCritical, "ApiListener")
 				<< "Cannot accept new connection: " << ex.what();
