@@ -679,9 +679,6 @@ bool ConfigItem::CommitItems(const ActivationContext::Ptr& context, WorkQueue& u
 bool ConfigItem::ActivateItems(const std::vector<ConfigItem::Ptr>& newItems, bool runtimeCreated,
 	bool mainConfigActivation, bool withModAttrs, const Value& cookie)
 {
-	static std::mutex mtx;
-	std::unique_lock<std::mutex> lock(mtx);
-
 	if (withModAttrs) {
 		/* restore modified attributes */
 		if (Utility::PathExists(Configuration::ModAttrPath)) {
