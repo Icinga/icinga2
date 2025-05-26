@@ -31,6 +31,7 @@ public:
 
 	void Start();
 	void StartStreaming();
+	void AbortProcessingRequest();
 	void Disconnect(const boost::asio::deadline_timer::duration_type & timeout);
 
 	bool Disconnected();
@@ -43,6 +44,7 @@ private:
 	String m_PeerAddress;
 	boost::asio::io_context::strand m_IoStrand;
 	bool m_ShuttingDown;
+	Atomic<bool> m_RequestAborted = false;
 	bool m_HasStartedStreaming;
 	boost::asio::deadline_timer m_CheckLivenessTimer;
 

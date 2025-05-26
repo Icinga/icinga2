@@ -140,6 +140,15 @@ void HttpServerConnection::StartStreaming()
 	});
 }
 
+void HttpServerConnection::AbortProcessingRequest()
+{
+	if (m_HasStartedStreaming) {
+		Disconnect(boost::posix_time::seconds(0));
+	} else {
+		m_RequestAborted.store(true);
+	}
+}
+
 bool HttpServerConnection::Disconnected()
 {
 	return m_ShuttingDown;
@@ -437,6 +446,7 @@ bool ProcessRequest(
 	boost::beast::http::response<boost::beast::http::string_body>& response,
 	HttpServerConnection& server,
 	bool& hasStartedStreaming,
+	const Atomic<bool>& requestAborted,
 	std::chrono::steady_clock::duration& cpuBoundWorkTime,
 	boost::asio::yield_context& yc
 )
@@ -449,7 +459,7 @@ bool ProcessRequest(
 		CpuBoundWork handlingRequest (yc);
 		cpuBoundWorkTime = std::chrono::steady_clock::now() - start;
 
-		HttpHandler::ProcessRequest(stream, authenticatedUser, request, response, yc, server);
+		HttpHandler::ProcessRequest(requestAborted, stream, authenticatedUser, request, response, yc, server);
 	} catch (const std::exception& ex) {
 		if (hasStartedStreaming) {
 			return false;
@@ -495,7 +505,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 		 */
 		beast::flat_buffer buf;
 
-		for (;;) {
+		while (!m_RequestAborted) {
 			std::shared_lock wgLock(*m_WaitGroup, std::try_to_lock);
 			if (!wgLock) {
 				break;
@@ -571,7 +581,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 
 			m_Seen = std::numeric_limits<decltype(m_Seen)>::max();
 
-			if (!ProcessRequest(*m_Stream, request, authenticatedUser, response, *this, m_HasStartedStreaming, cpuBoundWorkTime, yc)) {
+			if (!ProcessRequest(*m_Stream, request, authenticatedUser, response, *this, m_HasStartedStreaming, m_RequestAborted, cpuBoundWorkTime, yc)) {
 				break;
 			}
 

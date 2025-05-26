@@ -1837,6 +1837,10 @@ void ApiListener::DisconnectHttpClients()
 	Log(LogInformation, "ApiListener")
 		<< m_HttpClients.size() << " HTTP connections remaining.";
 
+	for (const auto& client : m_HttpClients) {
+		client->AbortProcessingRequest();
+	}
+
 	auto gracePeriodTimer = Shared<boost::asio::deadline_timer>::Make(IoEngine::Get().GetIoContext());
 	gracePeriodTimer->expires_from_now(boost::posix_time::seconds(3));
 	gracePeriodTimer->async_wait([this, gracePeriodTimer](const boost::system::error_code & ec) {

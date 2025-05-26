@@ -47,6 +47,7 @@ void HttpHandler::Register(const Url::Ptr& url, const HttpHandler::Ptr& handler)
 }
 
 void HttpHandler::ProcessRequest(
+	const Atomic<bool>& abort,
 	AsioTlsStream& stream,
 	const ApiUser::Ptr& user,
 	boost::beast::http::request<boost::beast::http::string_body>& request,
@@ -108,11 +109,14 @@ void HttpHandler::ProcessRequest(
 	 */
 	try {
 		for (const HttpHandler::Ptr& handler : handlers) {
-			if (handler->HandleRequest(stream, user, request, url, response, params, yc, server)) {
+			if (handler->HandleRequest(abort, stream, user, request, url, response, params, yc, server)) {
 				processed = true;
 				break;
 			}
 		}
+	} catch (const HttpHandler::Aborted& ex) {
+		HttpUtility::SendJsonError(response, params, 503, "Stop requested. Shutting down.");
+		return;
 	} catch (const std::exception& ex) {
 		Log(LogWarning, "HttpServerConnection")
 			<< "Error while processing HTTP request: " << ex.what();

@@ -89,6 +89,7 @@ Dictionary::Ptr ObjectQueryHandler::SerializeObjectAttrs(const Object::Ptr& obje
 }
 
 bool ObjectQueryHandler::HandleRequest(
+	const Atomic<bool>& abort,
 	AsioTlsStream& stream,
 	const ApiUser::Ptr& user,
 	boost::beast::http::request<boost::beast::http::string_body>& request,
@@ -194,6 +195,10 @@ bool ObjectQueryHandler::HandleRequest(
 	std::unordered_map<Object*, bool> objectAccessAllowed;
 
 	for (ConfigObject::Ptr obj : objs) {
+		if (abort) {
+			BOOST_THROW_EXCEPTION(HttpHandler::Aborted{});
+		}
+
 		DictionaryData result1{
 			{ "name", obj->GetName() },
 			{ "type", obj->GetReflectionType()->GetName() }

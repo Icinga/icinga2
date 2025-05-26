@@ -47,6 +47,7 @@ public:
 };
 
 bool TypeQueryHandler::HandleRequest(
+	const Atomic<bool>& abort,
 	AsioTlsStream& stream,
 	const ApiUser::Ptr& user,
 	boost::beast::http::request<boost::beast::http::string_body>& request,
@@ -92,6 +93,10 @@ bool TypeQueryHandler::HandleRequest(
 	ArrayData results;
 
 	for (Type::Ptr obj : objs) {
+		if (abort) {
+			BOOST_THROW_EXCEPTION(HttpHandler::Aborted{});
+		}
+
 		Dictionary::Ptr result1 = new Dictionary();
 		results.push_back(result1);
 

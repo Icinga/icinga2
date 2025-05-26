@@ -16,6 +16,7 @@ using namespace icinga;
 REGISTER_URLHANDLER("/v1/objects", DeleteObjectHandler);
 
 bool DeleteObjectHandler::HandleRequest(
+	const Atomic<bool>& abort,
 	AsioTlsStream& stream,
 	const ApiUser::Ptr& user,
 	boost::beast::http::request<boost::beast::http::string_body>& request,
@@ -79,6 +80,10 @@ bool DeleteObjectHandler::HandleRequest(
 	bool success = true;
 
 	for (ConfigObject::Ptr obj : objs) {
+		if (abort) {
+			BOOST_THROW_EXCEPTION(HttpHandler::Aborted{});
+		}
+
 		int code;
 		String status;
 		Array::Ptr errors = new Array();

@@ -16,6 +16,7 @@ thread_local ApiUser::Ptr ActionsHandler::AuthenticatedApiUser;
 REGISTER_URLHANDLER("/v1/actions", ActionsHandler);
 
 bool ActionsHandler::HandleRequest(
+	const Atomic<bool>& abort,
 	AsioTlsStream& stream,
 	const ApiUser::Ptr& user,
 	boost::beast::http::request<boost::beast::http::string_body>& request,
@@ -89,6 +90,10 @@ bool ActionsHandler::HandleRequest(
 		verbose = HttpUtility::GetLastParameter(params, "verbose");
 
 	for (ConfigObject::Ptr obj : objs) {
+		if (abort) {
+			BOOST_THROW_EXCEPTION(HttpHandler::Aborted{});
+		}
+
 		try {
 			results.emplace_back(action->Invoke(obj, params));
 		} catch (const std::exception& ex) {
