@@ -30,7 +30,7 @@ set(icinga_SOURCES
   checkable.cpp checkable.hpp checkable-ti.hpp
   checkable-check.cpp checkable-comment.cpp checkable-dependency.cpp
   checkable-downtime.cpp checkable-event.cpp checkable-flapping.cpp
-  checkable-notification.cpp checkable-script.cpp
+  checkable-notification.cpp
   checkcommand.cpp checkcommand.hpp checkcommand-ti.hpp
   checkresult.cpp checkresult.hpp checkresult-ti.hpp
   cib.cpp cib.hpp
