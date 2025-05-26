@@ -12,7 +12,7 @@
 
 using namespace icinga;
 
-REGISTER_TYPE_WITH_PROTOTYPE(Checkable, Checkable::GetPrototype());
+REGISTER_TYPE(Checkable);
 INITIALIZE_ONCE(&Checkable::StaticInitialize);
 
 const std::map<String, int> Checkable::m_FlappingStateFilterMap ({
