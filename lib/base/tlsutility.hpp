@@ -45,7 +45,12 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile =
 std::shared_ptr<X509> CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NAME *issuer, EVP_PKEY *cakey, bool ca);
 
 String GetIcingaCADir();
-String CertificateToString(const std::shared_ptr<X509>& cert);
+String CertificateToString(X509* cert);
+
+inline String CertificateToString(const std::shared_ptr<X509>& cert)
+{
+	return CertificateToString(cert.get());
+}
 
 std::shared_ptr<X509> StringToCertificate(const String& cert);
 std::shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject);
@@ -59,6 +64,7 @@ String SHA256(const String& s);
 String RandomString(int length);
 
 bool VerifyCertificate(const std::shared_ptr<X509>& caCertificate, const std::shared_ptr<X509>& certificate, const String& crlFile);
+bool VerifyCertificate(X509* caCertificate, X509* certificate, const String& crlFile);
 bool IsCa(const std::shared_ptr<X509>& cacert);
 int GetCertificateVersion(const std::shared_ptr<X509>& cert);
 String GetSignatureAlgorithm(const std::shared_ptr<X509>& cert);
