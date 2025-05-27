@@ -19,6 +19,7 @@
 #include "base/tlsstream.hpp"
 #include "base/utility.hpp"
 #include <chrono>
+#include <shared_mutex>
 #include <limits>
 #include <memory>
 #include <stdexcept>
@@ -35,13 +36,13 @@ using namespace icinga;
 
 auto const l_ServerHeader ("Icinga/" + Application::GetAppVersion());
 
-HttpServerConnection::HttpServerConnection(const String& identity, bool authenticated, const Shared<AsioTlsStream>::Ptr& stream)
-	: HttpServerConnection(identity, authenticated, stream, IoEngine::Get().GetIoContext())
+HttpServerConnection::HttpServerConnection(const WaitGroup::Ptr& waitGroup, const String& identity, bool authenticated, const Shared<AsioTlsStream>::Ptr& stream)
+	: HttpServerConnection(waitGroup, identity, authenticated, stream, IoEngine::Get().GetIoContext())
 {
 }
 
-HttpServerConnection::HttpServerConnection(const String& identity, bool authenticated, const Shared<AsioTlsStream>::Ptr& stream, boost::asio::io_context& io)
-	: m_Stream(stream), m_Seen(Utility::GetTime()), m_IoStrand(io), m_ShuttingDown(false), m_HasStartedStreaming(false),
+HttpServerConnection::HttpServerConnection(const WaitGroup::Ptr& waitGroup, const String& identity, bool authenticated, const Shared<AsioTlsStream>::Ptr& stream, boost::asio::io_context& io)
+	: m_WaitGroup(waitGroup), m_Stream(stream), m_Seen(Utility::GetTime()), m_IoStrand(io), m_ShuttingDown(false), m_HasStartedStreaming(false),
 	m_CheckLivenessTimer(io)
 {
 	if (authenticated) {
@@ -495,6 +496,11 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 		beast::flat_buffer buf;
 
 		for (;;) {
+			std::shared_lock wgLock(*m_WaitGroup, std::try_to_lock);
+			if (!wgLock) {
+				break;
+			}
+
 			m_Seen = Utility::GetTime();
 
 			http::parser<true, http::string_body> parser;

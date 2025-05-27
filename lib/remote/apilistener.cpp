@@ -371,6 +371,7 @@ void ApiListener::Stop(bool runtimeDeleted)
 	StopListener();
 
 	DisconnectJsonRpcConnections();
+	DisconnectHttpClients();
 
 	m_WaitGroup->Join();
 
@@ -905,7 +906,7 @@ void ApiListener::NewClientHandlerInternal(
 	} else {
 		Log(LogNotice, "ApiListener", "New HTTP client");
 
-		HttpServerConnection::Ptr aclient = new HttpServerConnection(identity, verify_ok, client);
+		HttpServerConnection::Ptr aclient = new HttpServerConnection(m_WaitGroup, identity, verify_ok, client);
 		AddHttpClient(aclient);
 		aclient->Start();
 		shutdownSslConn.Cancel();
@@ -1828,6 +1829,27 @@ std::set<HttpServerConnection::Ptr> ApiListener::GetHttpClients() const
 {
 	std::unique_lock<std::mutex> lock(m_HttpClientsLock);
 	return m_HttpClients;
+}
+
+void ApiListener::DisconnectHttpClients()
+{
+	std::unique_lock lock(m_HttpClientsLock);
+	Log(LogInformation, "ApiListener")
+		<< m_HttpClients.size() << " HTTP connections remaining.";
+
+	auto gracePeriodTimer = Shared<boost::asio::deadline_timer>::Make(IoEngine::Get().GetIoContext());
+	gracePeriodTimer->expires_from_now(boost::posix_time::seconds(3));
+	gracePeriodTimer->async_wait([this, gracePeriodTimer](const boost::system::error_code & ec) {
+		std::unique_lock lock(m_HttpClientsLock);
+		if (!m_HttpClients.empty()) {
+			Log(LogInformation, "ApiListener")
+				<< "Disconnecting " << m_HttpClients.size() << " HTTP connections.";
+
+			for (const auto & client : m_HttpClients) {
+				client->Disconnect(boost::posix_time::seconds(2));
+			}
+		}
+	});
 }
 
 static void LogAppVersion(unsigned long version, Log& log)

@@ -116,6 +116,7 @@ public:
 	void AddHttpClient(const HttpServerConnection::Ptr& aclient);
 	void RemoveHttpClient(const HttpServerConnection::Ptr& aclient);
 	std::set<HttpServerConnection::Ptr> GetHttpClients() const;
+	void DisconnectHttpClients();
 
 	static double CalculateZoneLag(const Endpoint::Ptr& endpoint);
 
