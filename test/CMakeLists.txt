@@ -114,6 +114,7 @@ add_boost_test(base
     base_tlsutility/iscertuptodate_ok
     base_tlsutility/iscertuptodate_expiring
     base_tlsutility/iscertuptodate_old
+    base_tlsutility/VerifyCertificate_revalidate
     base_type/gettype
     base_type/assign
     base_type/byname
