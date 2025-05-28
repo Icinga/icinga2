@@ -4,11 +4,13 @@
 #define CONFIGOBJECT_H
 
 #include "base/i2-base.hpp"
+#include "base/atomic.hpp"
 #include "base/configobject-ti.hpp"
 #include "base/object.hpp"
 #include "base/type.hpp"
 #include "base/dictionary.hpp"
 #include <boost/signals2.hpp>
+#include <set>
 
 namespace icinga
 {
@@ -60,6 +62,7 @@ public:
 	virtual void OnStateLoaded();
 
 	Dictionary::Ptr GetSourceLocation() const override;
+	const std::set<ConfigObject*>& GetAllParentsAffectingLogging() const;
 
 	template<typename T>
 	static intrusive_ptr<T> GetObject(const String& name)
@@ -81,6 +84,11 @@ public:
 
 private:
 	ConfigObject::Ptr m_Zone;
+
+	struct {
+		std::set<ConfigObject*> Data;
+		Atomic<bool> Frozen {false};
+	} m_AllParentsAffectingLogging;
 
 	static void RestoreObject(const String& message, int attributeTypes);
 };
