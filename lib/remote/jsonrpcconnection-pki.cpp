@@ -62,7 +62,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 		logmsg << "Received certificate request for CN '" << cn << "'";
 
 		try {
-			signedByCA = VerifyCertificate(cacert, cert, listener->GetCrlPath());
+			signedByCA = VerifyCertificate(cacert, cert, listener->GetCrlPath(), listener->GetDefaultCaPath());
 			if (!signedByCA) {
 				logmsg << " not";
 			}
