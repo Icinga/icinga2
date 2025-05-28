@@ -115,7 +115,7 @@ You can also use [jq](https://stedolan.github.io/jq/) or `python -m json.tool`
 in combination with curl on the CLI.
 
 ```bash
-curl ... | jq 
+curl ... | jq
 curl ... | python -m json.tool
 ```
 
@@ -288,6 +288,7 @@ Available permissions for specific URL endpoints:
   config/query                  | /v1/config    | No                | 1
   config/modify                 | /v1/config    | No                | 512
   console                       | /v1/console   | No                | 1
+  debug                         | /v1/debug     | No                | 1
   events/&lt;type&gt;           | /v1/events    | No                | 1
   objects/query/&lt;type&gt;    | /v1/objects   | Yes               | 1
   objects/create/&lt;type&gt;   | /v1/objects   | No                | 1
@@ -565,7 +566,7 @@ created by the API.
 ### Querying Objects <a id="icinga2-api-config-objects-query"></a>
 
 You can request information about configuration objects by sending
-a `GET` query to the `/v1/objects/<type>` URL endpoint. `<type` has
+a `GET` query to the `/v1/objects/<type>` URL endpoint. `<type>` has
 to be replaced with the plural name of the object type you are interested
 in:
 
@@ -813,7 +814,7 @@ parameters need to be passed inside the JSON body:
 
   Parameters        | Type         | Description
   ------------------|--------------|--------------------------
-  templates         | Array        | **Optional.** Import existing configuration templates for this object type. Note: These templates must either be statically configured or provided in [config packages](12-icinga2-api.md#icinga2-api-config-management)-
+  templates         | Array        | **Optional.** Import existing configuration templates for this object type. Note: These templates must either be statically configured or provided in [config packages](12-icinga2-api.md#icinga2-api-config-management).
   attrs             | Dictionary   | **Required.** Set specific object attributes for this [object type](09-object-types.md#object-types).
   ignore\_on\_error | Boolean      | **Optional.** Ignore object creation errors and return an HTTP 200 status instead.
 
@@ -890,9 +891,17 @@ curl -k -s -S -i -u root:icinga -H 'Accept: application/json' \
 Existing objects must be modified by sending a `POST` request. The following
 parameters need to be passed inside the JSON body:
 
-  Parameters | Type       | Description
-  -----------|------------|---------------------------
-  attrs      | Dictionary | **Required.** Set specific object attributes for this [object type](09-object-types.md#object-types).
+| Parameters     | Type       | Description                                                                                                                |
+|----------------|------------|----------------------------------------------------------------------------------------------------------------------------|
+| attrs          | Dictionary | **Optional.** Set specific object attributes for this [object type](09-object-types.md#object-types).                      |
+| restore\_attrs | Array      | **Optional.** Discard modifications of specific object attributes for this [object type](09-object-types.md#object-types). |
+
+One of the above is required.
+
+!!! info
+
+    If a particular attribute is given in both sets,
+    it's first restored and then set to the desired new value.
 
 In addition to these parameters a [filter](12-icinga2-api.md#icinga2-api-filters)
 parameter should be provided.
@@ -936,6 +945,34 @@ curl -k -s -S -i -u root:icinga -H 'Accept: application/json' \
 }
 ```
 
+To undo such modifications to specific object attributes,
+list the latter in the `restore_attrs` parameter. E.g.:
+
+```bash
+curl -k -s -S -i -u root:icinga -H 'Accept: application/json' \
+ -X POST 'https://localhost:5665/v1/objects/hosts/example.localdomain' \
+ -d '{ "restore_attrs": [ "address", "vars.os" ], "pretty": true }'
+```
+
+```json
+{
+    "results": [
+        {
+            "code": 200.0,
+            "name": "example.localdomain",
+            "status": "Attributes updated.",
+            "type": "Host"
+        }
+    ]
+}
+```
+
+Giving `attrs` with the original value would have almost the same effect.
+But in this case Icinga would still store that value as a modified attribute,
+overriding DSL/Director config (changes). In contrast, `restore_attrs` tells
+Icinga to actually forget particular modified attributes, so that changes to
+them via Director or plain config are effective again.
+
 ### Deleting Objects <a id="icinga2-api-config-objects-delete"></a>
 
 You can delete objects created using the API by sending a `DELETE`
@@ -972,7 +1009,7 @@ curl -k -s -S -i -u root:icinga -H 'Accept: application/json' \
 There are several actions available for Icinga 2 provided by the `/v1/actions`
 URL endpoint. You can run actions by sending a `POST` request.
 
-The following actions are also used by [Icinga Web 2](https://icinga.com/products/icinga-web-2/):
+The following actions are also used by [Icinga Web 2](https://icinga.com/docs/icinga-web/latest/):
 
 * sending check results to Icinga from scripts, remote agents, etc.
 * scheduling downtimes from external scripts or cronjobs
@@ -1621,14 +1658,14 @@ Send a `POST` request to the URL endpoint `/v1/actions/execute-command`.
   --------------|------------|--------------
   ttl           | Number     | **Required.** The time to live of the execution expressed in seconds.
   command_type  | String     | **Optional.** The command type: `CheckCommand` or `EventCommand` or `NotificationCommand`. Default: `EventCommand`
-  command       | String     | **Optional.** The command to execute. Its type must the same as `command_type`. It can be a macro string. Default: depending on the `command_type` it's either `$check_command$`, `$event_command$` or `$notification_command$`   
+  command       | String     | **Optional.** The command to execute. Its type must the same as `command_type`. It can be a macro string. Default: depending on the `command_type` it's either `$check_command$`, `$event_command$` or `$notification_command$`
   endpoint      | String     | **Optional.** The endpoint to execute the command on. It can be a macro string. Default: `$command_endpoint$`.
   macros        | Dictionary | **Optional.** Macro overrides. Default: `{}`
-  user          | String     | **Optional.** The user used for the notification command. 
+  user          | String     | **Optional.** The user used for the notification command.
   notification  | String     | **Optional.** The notification used for the notification command.
-  
+
 Example:
-  
+
 ```bash
 curl -k -s -S -i -u root:icinga -H 'Accept: application/json' \
  -X POST 'https://localhost:5665/v1/actions/execute-command' \
@@ -1814,7 +1851,7 @@ Example for all object events:
   --------------|---------------|--------------------------
   type 	        | String        | Event type `DowntimeAdded`.
   timestamp     | Timestamp     | Unix timestamp when the event happened.
-  downtime      | Dictionary    | Serialized [Comment](09-object-types.md#objecttype-downtime) object.
+  downtime      | Dictionary    | Serialized [Downtime](09-object-types.md#objecttype-downtime) object.
 
 #### <a id="icinga2-api-event-streams-type-downtimeremoved"></a> Event Stream Type: DowntimeRemoved
 
@@ -1822,7 +1859,7 @@ Example for all object events:
   --------------|---------------|--------------------------
   type 	        | String        | Event type `DowntimeRemoved`.
   timestamp     | Timestamp     | Unix timestamp when the event happened.
-  downtime      | Dictionary    | Serialized [Comment](09-object-types.md#objecttype-downtime) object.
+  downtime      | Dictionary    | Serialized [Downtime](09-object-types.md#objecttype-downtime) object.
 
 
 #### <a id="icinga2-api-event-streams-type-downtimestarted"></a> Event Stream Type: DowntimeStarted
@@ -1831,7 +1868,7 @@ Example for all object events:
   --------------|---------------|--------------------------
   type 	        | String        | Event type `DowntimeStarted`.
   timestamp     | Timestamp     | Unix timestamp when the event happened.
-  downtime      | Dictionary    | Serialized [Comment](09-object-types.md#objecttype-downtime) object.
+  downtime      | Dictionary    | Serialized [Downtime](09-object-types.md#objecttype-downtime) object.
 
 
 #### <a id="icinga2-api-event-streams-type-downtimetriggered"></a> Event Stream Type: DowntimeTriggered
@@ -1840,8 +1877,34 @@ Example for all object events:
   --------------|---------------|--------------------------
   type 	        | String        | Event type `DowntimeTriggered`.
   timestamp     | Timestamp     | Unix timestamp when the event happened.
-  downtime      | Dictionary    | Serialized [Comment](09-object-types.md#objecttype-downtime) object.
+  downtime      | Dictionary    | Serialized [Downtime](09-object-types.md#objecttype-downtime) object.
 
+#### <a id="icinga2-api-event-streams-type-objectcreated"></a> Event Stream Type: ObjectCreated
+
+| Name         | Type      | Description                                                    |
+|--------------|-----------|----------------------------------------------------------------|
+| type         | String    | Event type `ObjectCreated`.                                    |
+| timestamp    | Timestamp | Unix timestamp when the event happened.                        |
+| object\_type | String    | Type of the newly created object, such as `Host` or `Service`. |
+| object\_name | String    | The full name of the object.                                   |
+
+#### <a id="icinga2-api-event-streams-type-objectmodified"></a> Event Stream Type: ObjectModified
+
+| Name         | Type      | Description                                               |
+|--------------|-----------|-----------------------------------------------------------|
+| type         | String    | Event type `ObjectModified`.                              |
+| timestamp    | Timestamp | Unix timestamp when the event happened.                   |
+| object\_type | String    | Type of the modified object, such as `Host` or `Service`. |
+| object\_name | String    | The full name of the object.                              |
+
+#### <a id="icinga2-api-event-streams-type-objectdeleted"></a> Event Stream Type: ObjectDeleted
+
+| Name         | Type      | Description                                              |
+|--------------|-----------|----------------------------------------------------------|
+| type         | String    | Event type `ObjectDeleted`.                              |
+| timestamp    | Timestamp | Unix timestamp when the event happened.                  |
+| object\_type | String    | Type of the deleted object, such as `Host` or `Service`. |
+| object\_name | String    | The full name of the object.                             |
 
 ### Event Stream Filter <a id="icinga2-api-event-streams-filter"></a>
 
@@ -2311,7 +2374,7 @@ Creation, modification and deletion of templates at runtime is not supported.
 ### Querying Templates <a id="icinga2-api-config-templates-query"></a>
 
 You can request information about configuration templates by sending
-a `GET` query to the `/v1/templates/<type>` URL endpoint. `<type` has
+a `GET` query to the `/v1/templates/<type>` URL endpoint. `<type>` has
 to be replaced with the plural name of the object type you are interested
 in:
 
@@ -2466,6 +2529,72 @@ curl -k -s -S -i -u root:icinga -H 'Accept: application/json' \
 }
 ```
 
+## Memory Usage Analysis <a id="icinga2-api-memory"></a>
+
+The GNU libc function `malloc_info(3)` provides memory allocation and usage
+statistics of Icinga 2 itself. You can call it directly by sending a `GET`
+request to the URL endpoint `/v1/debug/malloc_info`.
+
+The [API permission](12-icinga2-api.md#icinga2-api-permissions) `debug` is required.
+
+Example:
+
+```bash
+curl -k -s -S -i -u root:icinga https://localhost:5665/v1/debug/malloc_info
+```
+
+In contrast to other API endpoints, the response is not JSON,
+but the raw XML output from `malloc_info(3)`. See also the
+[glibc malloc(3) internals](https://sourceware.org/glibc/wiki/MallocInternals).
+
+```xml
+<malloc version="1">
+  <heap nr="0">
+    <sizes>
+      <size from="33" to="48" total="96" count="2"/>
+      <size from="49" to="64" total="192" count="3"/>
+      <size from="65" to="80" total="80" count="1"/>
+      <unsorted from="84817" to="84817" total="84817" count="1"/>
+    </sizes>
+    <total type="fast" count="6" size="368"/>
+    <total type="rest" count="2" size="859217"/>
+    <system type="current" size="7409664"/>
+    <system type="max" size="7409664"/>
+    <aspace type="total" size="7409664"/>
+    <aspace type="mprotect" size="7409664"/>
+  </heap>
+  <!-- ... -->
+  <heap nr="30">
+    <sizes>
+      <size from="17" to="32" total="96" count="3"/>
+      <size from="33" to="48" total="576" count="12"/>
+      <size from="49" to="64" total="64" count="1"/>
+      <size from="97" to="112" total="3584" count="32"/>
+      <size from="49" to="49" total="98" count="2"/>
+      <size from="81" to="81" total="810" count="10"/>
+      <size from="257" to="257" total="2827" count="11"/>
+      <size from="689" to="689" total="689" count="1"/>
+      <size from="705" to="705" total="705" count="1"/>
+      <unsorted from="81" to="81" total="81" count="1"/>
+    </sizes>
+    <total type="fast" count="48" size="4320"/>
+    <total type="rest" count="27" size="118618"/>
+    <system type="current" size="135168"/>
+    <system type="max" size="135168"/>
+    <aspace type="total" size="135168"/>
+    <aspace type="mprotect" size="135168"/>
+    <aspace type="subheaps" size="1"/>
+  </heap>
+  <total type="fast" count="938" size="79392"/>
+  <total type="rest" count="700" size="4409469"/>
+  <total type="mmap" count="0" size="0"/>
+  <system type="current" size="15114240"/>
+  <system type="max" size="15114240"/>
+  <aspace type="total" size="15114240"/>
+  <aspace type="mprotect" size="15114240"/>
+</malloc>
+```
+
 ## API Clients <a id="icinga2-api-clients"></a>
 
 After its initial release in 2015, community members
@@ -2509,7 +2638,7 @@ Name												| Language	| Description
 [BitBar for OSX](https://getbitbar.com/plugins/Dev/Icinga2/icinga2.24m.py)			| Python	| macOS tray app for highlighting the host/service status
 [Icinga 2 Multistatus](https://chrome.google.com/webstore/detail/icinga-multi-status/khabbhcojgkibdeipanmiphceeoiijal/related)	| - 	| Chrome Extension
 [Naglite4](https://github.com/wftech/icinga2-naglite4)						| Python	| Naglite3 rewrite using the Icinga 2 REST API.
-[icinga-telegram-bot](https://github.com/joni1993/icinga-telegram-bot)				| Python	| Telegram Bot using the Icinga 2 REST API 
+[icinga-telegram-bot](https://github.com/joni1993/icinga-telegram-bot)				| Python	| Telegram Bot using the Icinga 2 REST API
 
 ### Manage Objects <a id="icinga2-api-clients-management"></a>
 
@@ -2570,7 +2699,7 @@ The following languages are covered:
 * [Golang](12-icinga2-api.md#icinga2-api-clients-programmatic-examples-golang)
 * [Powershell](12-icinga2-api.md#icinga2-api-clients-programmatic-examples-powershell)
 
-The [request method](icinga2-api-requests) is `POST` using [X-HTTP-Method-Override: GET](12-icinga2-api.md#icinga2-api-requests-method-override)
+The [request method](#icinga2-api-requests) is `POST` using [X-HTTP-Method-Override: GET](12-icinga2-api.md#icinga2-api-requests-method-override)
 which allows you to send a JSON request body. The examples request specific service
 attributes joined with host attributes. `attrs` and `joins` are therefore specified
 as array.

@@ -138,4 +138,3 @@ DbTypeRegistry *DbTypeRegistry::GetInstance()
 {
 	return Singleton<DbTypeRegistry>::GetInstance();
 }
-

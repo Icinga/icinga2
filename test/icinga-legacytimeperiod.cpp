@@ -2,6 +2,7 @@
 
 #include "base/utility.hpp"
 #include "icinga/legacytimeperiod.hpp"
+#include "test/utils.hpp"
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/date_time/posix_time/ptime.hpp>
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
@@ -15,51 +16,7 @@ using namespace icinga;
 
 BOOST_AUTO_TEST_SUITE(icinga_legacytimeperiod);
 
-struct GlobalTimezoneFixture
-{
-	char *tz;
-
-	GlobalTimezoneFixture(const char *fixed_tz = "")
-	{
-		tz = getenv("TZ");
-#ifdef _WIN32
-		_putenv_s("TZ", fixed_tz == "" ? "UTC" : fixed_tz);
-#else
-		setenv("TZ", fixed_tz, 1);
-#endif
-		tzset();
-	}
-
-	~GlobalTimezoneFixture()
-	{
-#ifdef _WIN32
-		if (tz)
-			_putenv_s("TZ", tz);
-		else
-			_putenv_s("TZ", "");
-#else
-		if (tz)
-			setenv("TZ", tz, 1);
-		else
-			unsetenv("TZ");
-#endif
-		tzset();
-	}
-};
-
 BOOST_GLOBAL_FIXTURE(GlobalTimezoneFixture);
-
-// DST changes in America/Los_Angeles:
-// 2021-03-14: 01:59:59 PST (UTC-8) -> 03:00:00 PDT (UTC-7)
-// 2021-11-07: 01:59:59 PDT (UTC-7) -> 01:00:00 PST (UTC-8)
-#ifndef _WIN32
-static const char *dst_test_timezone = "America/Los_Angeles";
-#else /* _WIN32 */
-// Tests are using pacific time because Windows only really supports timezones following US DST rules with the TZ
-// environment variable. Format is "[Standard TZ][negative UTC offset][DST TZ]".
-// https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/tzset?view=msvc-160#remarks
-static const char *dst_test_timezone = "PST8PDT";
-#endif /* _WIN32 */
 
 BOOST_AUTO_TEST_CASE(simple)
 {
@@ -213,6 +170,198 @@ BOOST_AUTO_TEST_CASE(simple)
 	BOOST_CHECK_EQUAL(end, expectedEnd);
 }
 
+BOOST_AUTO_TEST_CASE(is_in_range)
+{
+	tm tm_beg = Utility::LocalTime(1706518800); // 2024-01-29 09:00:00 UTC
+	tm tm_end = Utility::LocalTime(1706520600); // 2024-01-29 09:30:00 UTC
+
+	tm reference = tm_beg; // 2024-01-29 09:00:00 UTC
+
+	// The start date of the range should ofcourse be inside.
+	BOOST_CHECK_EQUAL(true, LegacyTimePeriod::IsInTimeRange(&tm_beg, &tm_end, 1, &reference));
+
+	reference = Utility::LocalTime(1706519400); // 2024-01-29 09:10:00 UTC
+	// The reference time is only 10 minutes behind the start date, which should be covered by this range.
+	BOOST_CHECK_EQUAL(true, LegacyTimePeriod::IsInTimeRange(&tm_beg, &tm_end, 1, &reference));
+
+	reference = Utility::LocalTime(1706518799); // 2024-01-29 08:59:59 UTC
+
+	// The reference time is 1 second ahead of the range start date, which shouldn't be covered by this range.
+	BOOST_CHECK_EQUAL(false, LegacyTimePeriod::IsInTimeRange(&tm_beg, &tm_end, 1, &reference));
+
+	reference = Utility::LocalTime(1706520599); // 2024-01-29 09:29:59 UTC
+
+	// The reference time is 1 second before the specified end time, so this should be in the range.
+	BOOST_CHECK_EQUAL(true, LegacyTimePeriod::IsInTimeRange(&tm_beg, &tm_end, 1, &reference));
+
+	reference = tm_end; // 2024-01-29 09:30:00 UTC
+
+	// The reference time is exactly the same as the specified end time, so this should definitely not be in the range.
+	BOOST_CHECK_EQUAL(false, LegacyTimePeriod::IsInTimeRange(&tm_beg, &tm_end, 1, &reference));
+
+	tm_beg = Utility::LocalTime(1706518800); // 2024-01-29 09:00:00 UTC
+	tm_end = Utility::LocalTime(1706720400); // 2024-01-31 17:00:00 UTC
+
+	reference = Utility::LocalTime(1706612400); // 2024-01-30 12:00:00 UTC
+
+	// Even if the reference time is within the specified range, the stride guarantees that the reference
+	// should be 2 days after the range start date, which is not the case.
+	BOOST_CHECK_EQUAL(false, LegacyTimePeriod::IsInTimeRange(&tm_beg, &tm_end, 2, &reference));
+
+	reference = Utility::LocalTime(1706698800); // 2024-01-31 11:00:00 UTC
+
+	// The reference time is now within the specified range and 2 days after the range start date.
+	BOOST_CHECK_EQUAL(true, LegacyTimePeriod::IsInTimeRange(&tm_beg, &tm_end, 2, &reference));
+}
+
+BOOST_AUTO_TEST_CASE(out_of_range_segments)
+{
+	TimePeriod::Ptr tp = new TimePeriod();
+	tp->SetUpdate(new Function("LegacyTimePeriod", LegacyTimePeriod::ScriptFunc, {"tp", "begin", "end"}), true);
+
+	// A single day range shouldn't span to the following day too (see https://github.com/Icinga/icinga2/issues/9388).
+	tp->SetRanges(new Dictionary({{"2024-06-12", "00:00-24:00"}}), true);
+	tp->UpdateRegion(1718150400, 1718236800, true);  // 2024-06-12 00:00:00 - 24:00:00 UTC
+
+	BOOST_CHECK_EQUAL(true, tp->IsInside(1718200800)); // 2024-06-12 14:00:00 UTC
+	{
+		Array::Ptr segments = tp->GetSegments();
+		BOOST_REQUIRE_EQUAL(1, segments->GetLength());
+
+		Dictionary::Ptr segment = segments->Get(0);
+		BOOST_CHECK_EQUAL(1718150400, segment->Get("begin")); // 2024-06-12 00:00:00 UTC
+		BOOST_CHECK_EQUAL(1718236800, segment->Get("end")); // 2024-06-12 24:00:00 UTC
+	}
+	tp->UpdateRegion(1718236800, 1718323200, true);  // 2024-06-13 00:00:00 - 24:00:00 UTC
+
+	BOOST_CHECK_EQUAL(false, tp->IsInside(1718287200)); // 2024-06-13 14:00:00 UTC
+	{
+		Array::Ptr segments = tp->GetSegments();
+		BOOST_CHECK_EQUAL(0, segments->GetLength()); // There should be no segments at all!
+	}
+
+	// One partially day range shouldn't contain more than a single segment (see https://github.com/Icinga/icinga2/issues/9781).
+	tp->SetRanges(new Dictionary({{"2024-06-12", "10:00-12:00"}}), true);
+	tp->UpdateRegion(1718150400, 1718236800, true);  // 2024-06-12 00:00:00 - 24:00:00 UTC
+
+	BOOST_CHECK_EQUAL(true, tp->IsInside(1718190000)); // 2024-06-12 11:00:00 UTC
+	{
+		Array::Ptr segments = tp->GetSegments();
+		BOOST_REQUIRE_EQUAL(1, segments->GetLength());
+
+		Dictionary::Ptr segment = segments->Get(0);
+		BOOST_CHECK_EQUAL(1718186400, segment->Get("begin")); // 2024-06-12 10:00:00 UTC (range start date)
+		BOOST_CHECK_EQUAL(1718193600, segment->Get("end")); // 2024-06-12 12:00:00 UTC (range end date)
+	}
+	tp->UpdateRegion(1718236800, 1718323200, true);  // 2024-06-13 00:00:00 - 24:00:00 UTC
+
+	BOOST_CHECK_EQUAL(false, tp->IsInside(1718287200)); // 2024-06-13 14:00:00 UTC
+	BOOST_CHECK_EQUAL(0, tp->GetSegments()->GetLength()); // There should be no segments at all!
+}
+
+BOOST_AUTO_TEST_CASE(include_exclude_timeperiods)
+{
+	Function::Ptr update = new Function("LegacyTimePeriod", LegacyTimePeriod::ScriptFunc, {"tp", "begin", "end"});
+	TimePeriod::Ptr excludedTp = new TimePeriod();
+	excludedTp->SetName("excluded", true);
+	excludedTp->SetUpdate(update, true);
+	excludedTp->SetRanges(new Dictionary({{"2024-06-11", "00:00-24:00"}}), true);
+
+	excludedTp->UpdateRegion(1718064000, 1718323200, true);  // 2024-06-11 00:00:00 - 2024-06-13 24:00:00 UTC
+
+	BOOST_CHECK_EQUAL(1, excludedTp->GetSegments()->GetLength());
+	BOOST_CHECK_EQUAL(true, excludedTp->IsInside(1718114400)); // 2024-06-11 14:00:00 UTC
+	BOOST_CHECK_EQUAL(false, excludedTp->IsInside(1718200800)); // 2024-06-12 14:00:00 UTC
+	BOOST_CHECK_EQUAL(false, excludedTp->IsInside(1718287200)); // 2024-06-13 14:00:00 UTC
+
+	// Register the excluded timeperiod to make it globally visible.
+	excludedTp->Register();
+
+	Dictionary::Ptr ranges = new Dictionary({
+		{"2024-06-11", "09:00-17:00"},
+		{"2024-06-12", "09:00-17:00"},
+		{"2024-06-13", "09:00-17:00"}
+	});
+
+	TimePeriod::Ptr tp = new TimePeriod();
+	tp->SetExcludes(new Array({"excluded"}), true);
+	tp->SetUpdate(update, true);
+	tp->SetRanges(ranges, true);
+	tp->UpdateRegion(1718064000, 1718323200, true);  // 2024-06-11 00:00:00 - 2024-06-13 24:00:00 UTC
+
+	BOOST_CHECK_EQUAL(false, tp->IsInside(1718114400)); // 2024-06-11 14:00:00 UTC
+	BOOST_CHECK_EQUAL(false, tp->IsInside(1718150400)); // 2024-06-12 00:00:00 UTC
+	BOOST_CHECK_EQUAL(true, tp->IsInside(1718200800)); // 2024-06-12 14:00:00 UTC
+	BOOST_CHECK_EQUAL(false, tp->IsInside(1718323200)); // 2024-06-13 00:00:00 UTC
+	BOOST_CHECK_EQUAL(true, tp->IsInside(1718287200)); // 2024-06-13 14:00:00 UTC
+	{
+		Array::Ptr segments = tp->GetSegments();
+		// The updated region is 2024-06-11 - 13, so there should only be 2 segements, when the excludes works correctly.
+		BOOST_REQUIRE_EQUAL(2, segments->GetLength());
+
+		Dictionary::Ptr segment = segments->Get(0);
+		BOOST_CHECK_EQUAL(1718182800, segment->Get("begin")); // 2024-06-12 09:00:00 UTC
+		BOOST_CHECK_EQUAL(1718211600, segment->Get("end")); // 2024-06-12 17:00:00 UTC
+
+		BOOST_CHECK_EQUAL(true, tp->IsInside(segment->Get("begin")));
+		BOOST_CHECK_EQUAL(false, tp->IsInside(segment->Get("end")));
+
+		BOOST_CHECK_EQUAL(false, excludedTp->IsInside(segment->Get("begin")));
+		BOOST_CHECK_EQUAL(false, excludedTp->IsInside(segment->Get("end")));
+
+		segment = segments->Get(1);
+		BOOST_CHECK_EQUAL(1718269200, segment->Get("begin")); // 2024-06-13 09:00:00 UTC
+		BOOST_CHECK_EQUAL(1718298000, segment->Get("end")); // 2024-06-13 17:00:00 UTC
+
+		BOOST_CHECK_EQUAL(true, tp->IsInside(segment->Get("begin")));
+		BOOST_CHECK_EQUAL(false, tp->IsInside(segment->Get("end")));
+
+		BOOST_CHECK_EQUAL(false, excludedTp->IsInside(segment->Get("begin")));
+		BOOST_CHECK_EQUAL(false, excludedTp->IsInside(segment->Get("end")));
+	}
+
+	// Include timeperiod test cases ...
+	TimePeriod::Ptr includedTp = new TimePeriod();
+	includedTp->SetName("included", true);
+	includedTp->SetUpdate(update, true);
+	includedTp->SetRanges(new Dictionary({{"2024-06-11", "08:00-17:00"}}), true);
+
+	includedTp->UpdateRegion(1718064000, 1718323200, true);  // 2024-06-11 00:00:00 - 2024-06-13 24:00:00 UTC
+
+	BOOST_CHECK_EQUAL(1, includedTp->GetSegments()->GetLength());
+	BOOST_CHECK_EQUAL(true, includedTp->IsInside(1718114400)); // 2024-06-11 14:00:00 UTC
+	BOOST_CHECK_EQUAL(false, includedTp->IsInside(1718200800)); // 2024-06-12 14:00:00 UTC
+	BOOST_CHECK_EQUAL(false, includedTp->IsInside(1718287200)); // 2024-06-13 14:00:00 UTC
+
+	// Register the timeperiod to make it globally visible.
+	includedTp->Register();
+
+	tp->SetIncludes(new Array({"included"}), true);
+	tp->UpdateRegion(1718064000, 1718323200, true);  // 2024-06-11 00:00:00 - 2024-06-13 24:00:00 UTC
+	{
+		Array::Ptr segments = tp->GetSegments();
+		// The updated region is 2024-06-11 - 13, so there should be 3 segements, when the *prefer* includes works correctly.
+		BOOST_REQUIRE_EQUAL(3, segments->GetLength());
+
+		Dictionary::Ptr segment = segments->Get(0);
+		BOOST_CHECK_EQUAL(1718182800, segment->Get("begin")); // 2024-06-12 09:00:00 UTC
+		BOOST_CHECK_EQUAL(1718211600, segment->Get("end")); // 2024-06-12 17:00:00 UTC
+
+		segment = segments->Get(1);
+		BOOST_CHECK_EQUAL(1718269200, segment->Get("begin")); // 2024-06-13 09:00:00 UTC
+		BOOST_CHECK_EQUAL(1718298000, segment->Get("end")); // 2024-06-13 17:00:00 UTC
+
+		segment = segments->Get(2);
+		BOOST_CHECK_EQUAL(1718092800, segment->Get("begin")); // 2024-06-11 08:00:00 UTC
+		BOOST_CHECK_EQUAL(1718125200, segment->Get("end")); // 2024-06-11 17:00:00 UTC
+
+		BOOST_CHECK_EQUAL(true, tp->IsInside(segment->Get("begin")));
+		BOOST_CHECK_EQUAL(true, includedTp->IsInside(segment->Get("begin")));
+		BOOST_CHECK_EQUAL(false, tp->IsInside(segment->Get("end")));
+		BOOST_CHECK_EQUAL(false, includedTp->IsInside(segment->Get("end")));
+	}
+}
+
 struct DateTime
 {
 	struct {
@@ -279,35 +428,6 @@ BOOST_AUTO_TEST_CASE(advanced)
 	AdvancedHelper("09:00:03-30:00:04", {{2014, 9, 24}, {9, 0, 3}}, {{2014, 9, 25}, {6, 0, 4}});
 }
 
-tm make_tm(std::string s)
-{
-	int dst = -1;
-	size_t l = strlen("YYYY-MM-DD HH:MM:SS");
-	if (s.size() > l) {
-		std::string zone = s.substr(l);
-		if (zone == " PST") {
-			dst = 0;
-		} else if (zone == " PDT") {
-			dst = 1;
-		} else {
-			// tests should only use PST/PDT (for now)
-			BOOST_CHECK_MESSAGE(false, "invalid or unknown time time: " << zone);
-		}
-	}
-
-	std::tm t = {};
-#if defined(__GNUC__) && __GNUC__ < 5
-	// GCC did not implement std::get_time() until version 5
-	strptime(s.c_str(), "%Y-%m-%d %H:%M:%S", &t);
-#else /* defined(__GNUC__) && __GNUC__ < 5 */
-	std::istringstream stream(s);
-	stream >> std::get_time(&t, "%Y-%m-%d %H:%M:%S");
-#endif /* defined(__GNUC__) && __GNUC__ < 5 */
-	t.tm_isdst = dst;
-
-	return t;
-}
-
 time_t make_time_t(const tm* t)
 {
 	tm copy = *t;
@@ -335,16 +455,7 @@ struct Segment
 
 std::string pretty_time(const tm& t)
 {
-#if defined(__GNUC__) && __GNUC__ < 5
-	// GCC did not implement std::put_time() until version 5
-	char buf[128];
-	size_t n = strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S %Z", &t);
-	return std::string(buf, n);
-#else /* defined(__GNUC__) && __GNUC__ < 5 */
-	std::ostringstream stream;
-	stream << std::put_time(&t, "%Y-%m-%d %H:%M:%S %Z");
-	return stream.str();
-#endif /* defined(__GNUC__) && __GNUC__ < 5 */
+	return Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %Z", &t);
 }
 
 std::string pretty_time(time_t t)
@@ -368,7 +479,7 @@ std::ostream& operator<<(std::ostream& o, const boost::optional<Segment>& s)
 
 BOOST_AUTO_TEST_CASE(dst)
 {
-	GlobalTimezoneFixture tz(dst_test_timezone);
+	GlobalTimezoneFixture tz(GlobalTimezoneFixture::TestTimezoneWithDST);
 
 	// Self-tests for helper functions
 	BOOST_CHECK_EQUAL(make_tm("2021-11-07 02:30:00").tm_isdst, -1);
@@ -391,7 +502,7 @@ BOOST_AUTO_TEST_CASE(dst)
 	std::vector<TestData> tests;
 
 	// 2021-03-14: 01:59:59 PST (UTC-8) -> 03:00:00 PDT (UTC-7)
-	for (const std::string& day : {"2021-03-14", "sunday", "sunday 2", "sunday -3"}) {
+	for (std::string day : {"2021-03-14", "sunday", "sunday 2", "sunday -3"}) {
 		// range before DST change
 		tests.push_back(TestData{
 			day, "00:30-01:30",
@@ -406,13 +517,8 @@ BOOST_AUTO_TEST_CASE(dst)
 				day, "01:30-02:30",
 				{make_tm("2021-03-14 01:00:00 PST")},
 				{make_tm("2021-03-14 01:59:59 PST")},
-#ifndef _WIN32
 				// As 02:30 does not exist on this day, it is parsed as if it was 02:30 PST which is actually 03:30 PDT.
 				Segment("2021-03-14 01:30:00 PST", "2021-03-14 03:30:00 PDT"),
-#else
-				// Windows interpretes 02:30 as 01:30 PST, so it is an empty segment.
-				boost::none,
-#endif
 			});
 		}
 
@@ -422,14 +528,9 @@ BOOST_AUTO_TEST_CASE(dst)
 				day, "02:30-03:30",
 				{make_tm("2021-03-14 01:00:00 PST")},
 				{make_tm("2021-03-14 03:00:00 PDT")},
-#ifndef _WIN32
 				// As 02:30 does not exist on this day, it is parsed as if it was 02:30 PST which is actually 03:30 PDT.
 				// Therefore, the result is a segment from 03:30 PDT to 03:30 PDT with a duration of 0, i.e. no segment.
 				boost::none,
-#else
-				// Windows parses non-existing 02:30 as 01:30 PST, resulting in an 1 hour segment.
-				Segment("2021-03-14 01:30:00 PST", "2021-03-14 03:30:00 PDT"),
-#endif
 			});
 		}
 
@@ -438,13 +539,8 @@ BOOST_AUTO_TEST_CASE(dst)
 			day, "02:15-03:45",
 			{make_tm("2021-03-14 01:00:00 PST")},
 			{make_tm("2021-03-14 03:30:00 PDT")},
-#ifndef _WIN32
 			// As 02:15 does not exist on this day, it is parsed as if it was 02:15 PST which is actually 03:15 PDT.
 			Segment("2021-03-14 03:15:00 PDT", "2021-03-14 03:45:00 PDT"),
-#else
-			// Windows interprets 02:15 as 01:15 PST though.
-			Segment("2021-03-14 01:15:00 PST", "2021-03-14 03:45:00 PDT"),
-#endif
 		});
 
 		// range after DST change
@@ -465,7 +561,7 @@ BOOST_AUTO_TEST_CASE(dst)
 	}
 
 	// 2021-11-07: 01:59:59 PDT (UTC-7) -> 01:00:00 PST (UTC-8)
-	for (const std::string& day : {"2021-11-07", "sunday", "sunday 1", "sunday -4"}) {
+	for (std::string day : {"2021-11-07", "sunday", "sunday 1", "sunday -4"}) {
 		// range before DST change
 		tests.push_back(TestData{
 			day, "00:15-00:45",
@@ -476,7 +572,6 @@ BOOST_AUTO_TEST_CASE(dst)
 
 		if (day.find("sunday") == std::string::npos) { // skip for non-absolute day specs (would find another sunday)
 			// range existing twice during DST change (first instance)
-#ifndef _WIN32
 			tests.push_back(TestData{
 				day, "01:15-01:45",
 				{make_tm("2021-11-07 01:00:00 PDT")},
@@ -484,15 +579,6 @@ BOOST_AUTO_TEST_CASE(dst)
 				// Duplicate times are interpreted as the first occurrence.
 				Segment("2021-11-07 01:15:00 PDT", "2021-11-07 01:45:00 PDT"),
 			});
-#else
-			tests.push_back(TestData{
-				day, "01:15-01:45",
-				{make_tm("2021-11-07 01:00:00 PDT")},
-				{make_tm("2021-11-07 01:30:00 PST")},
-				// However, Windows always uses the second occurrence.
-				Segment("2021-11-07 01:15:00 PST", "2021-11-07 01:45:00 PST"),
-			});
-#endif
 		}
 
 		if (day.find("sunday") == std::string::npos) { // skip for non-absolute day specs (would find another sunday)
@@ -501,13 +587,8 @@ BOOST_AUTO_TEST_CASE(dst)
 				day, "01:15-01:45",
 				{make_tm("2021-11-07 01:00:00 PST")},
 				{make_tm("2021-11-07 01:30:00 PST")},
-#ifndef _WIN32
 				// Interpreted as the first occurrence, so it's in the past.
 				boost::none,
-#else
-				// On Windows, it's the second occurrence, so it's still in the present/future and is found.
-				Segment("2021-11-07 01:15:00 PST", "2021-11-07 01:45:00 PST"),
-#endif
 			});
 		}
 
@@ -533,13 +614,8 @@ BOOST_AUTO_TEST_CASE(dst)
 			day, "00:30-01:30",
 			{make_tm("2021-11-07 00:00:00 PDT")},
 			{make_tm("2021-11-07 01:00:00 PDT")},
-#ifndef _WIN32
 			// Both times are interpreted as the first instance on that day (i.e both PDT).
 			Segment("2021-11-07 00:30:00 PDT", "2021-11-07 01:30:00 PDT")
-#else
-			// Windows interprets duplicate times as the second instance (i.e. both PST).
-			Segment("2021-11-07 00:30:00 PDT", "2021-11-07 01:30:00 PST")
-#endif
 		});
 
 		// range beginning during duplicate DST hour (first instance)
@@ -547,18 +623,12 @@ BOOST_AUTO_TEST_CASE(dst)
 			day, "01:30-02:30",
 			{make_tm("2021-11-07 01:00:00 PDT")},
 			{make_tm("2021-11-07 02:00:00 PST")},
-#ifndef _WIN32
 			// 01:30 is interpreted as the first occurrence (PDT) but since there's no 02:30 PDT, it's PST.
 			Segment("2021-11-07 01:30:00 PDT", "2021-11-07 02:30:00 PST")
-#else
-			// Windows interprets both as PST though.
-			Segment("2021-11-07 01:30:00 PST", "2021-11-07 02:30:00 PST")
-#endif
 		});
 
 		if (day.find("sunday") == std::string::npos) { // skip for non-absolute day specs (would find another sunday)
 			// range ending during duplicate DST hour (second instance)
-#ifndef _WIN32
 			tests.push_back(TestData{
 				day, "00:30-01:30",
 				{make_tm("2021-11-07 00:00:00 PST")},
@@ -567,15 +637,6 @@ BOOST_AUTO_TEST_CASE(dst)
 				// 01:00 PST (02:00 PDT) is after the segment.
 				boost::none,
 			});
-#else
-			tests.push_back(TestData{
-				day, "00:30-01:30",
-				{make_tm("2021-11-07 00:00:00 PDT")},
-				{make_tm("2021-11-07 01:00:00 PST")},
-				// As Windows interprets the end as PST, it's still in the future and the segment is found.
-				Segment("2021-11-07 00:30:00 PDT", "2021-11-07 01:30:00 PST"),
-			});
-#endif
 		}
 
 		// range beginning during duplicate DST hour (second instance)
@@ -583,13 +644,8 @@ BOOST_AUTO_TEST_CASE(dst)
 			day, "01:30-02:30",
 			{make_tm("2021-11-07 01:00:00 PDT")},
 			{make_tm("2021-11-07 02:00:00 PST")},
-#ifndef _WIN32
 			// As 01:30 always refers to the first occurrence (PDT), this is actually a 2 hour segment.
 			Segment("2021-11-07 01:30:00 PDT", "2021-11-07 02:30:00 PST"),
-#else
-			// On Windows, it refers t the second occurrence (PST), therefore it's an 1 hour segment.
-			Segment("2021-11-07 01:30:00 PST", "2021-11-07 02:30:00 PST"),
-#endif
 		});
 	}
 
@@ -647,7 +703,7 @@ BOOST_AUTO_TEST_CASE(dst)
 // This tests checks that TimePeriod::IsInside() always returns true for a 24x7 period, even around DST changes.
 BOOST_AUTO_TEST_CASE(dst_isinside)
 {
-	GlobalTimezoneFixture tz(dst_test_timezone);
+	GlobalTimezoneFixture tz(GlobalTimezoneFixture::TestTimezoneWithDST);
 
 	Function::Ptr update = new Function("LegacyTimePeriod", LegacyTimePeriod::ScriptFunc, {"tp", "begin", "end"});
 	Dictionary::Ptr ranges = new Dictionary({
@@ -688,6 +744,58 @@ BOOST_AUTO_TEST_CASE(dst_isinside)
 					t << " should be inside for t_begin=" << t_begin << " t_end=" << t_end);
 			}
 		}
+	}
+}
+
+BOOST_AUTO_TEST_CASE(find_nth_weekday) {
+	auto run = [](const std::string& refDay, int wday, int n, const std::string& expectedDay) {
+		tm expected = make_tm(expectedDay + " 00:00:00");
+
+		tm t = make_tm(refDay + " 00:00:00");
+		LegacyTimePeriod::FindNthWeekday(wday, n, &t);
+
+		BOOST_CHECK_MESSAGE(mktime(&expected) == mktime(&t),
+			"[ref=" << refDay << ", wday=" << wday << ", n=" << n << "] "
+			"expected: " << pretty_time(expected) << ", "
+			"got: " << pretty_time(t));
+	};
+
+	/*      March 2019
+	 * Mo Tu We Th Fr Sa Su
+	 *              1  2  3
+	 *  4  5  6  7  8  9 10
+	 * 11 12 13 14 15 16 17
+	 * 18 19 20 21 22 23 24
+	 * 25 26 27 28 29 30 31
+	 */
+
+	// Use every day of the month as reference day, all must give the same result for that month.
+	for (int i = 1; i <= 31; ++i) {
+		std::stringstream refDayStream;
+		refDayStream << "2019-03-" << std::setw(2) << std::setfill('0') << i;
+		std::string refDay = refDayStream.str();
+
+		const int monday = 1; // 4 ocurrences in March 2019
+		run(refDay, monday, 1, "2019-03-04");
+		run(refDay, monday, 2, "2019-03-11");
+		run(refDay, monday, 3, "2019-03-18");
+		run(refDay, monday, 4, "2019-03-25");
+		run(refDay, monday, -1, "2019-03-25");
+		run(refDay, monday, -2, "2019-03-18");
+		run(refDay, monday, -3, "2019-03-11");
+		run(refDay, monday, -4, "2019-03-04");
+
+		const int friday = 5; // 5 ocurrences in March 2019
+		run(refDay, friday, 1, "2019-03-01");
+		run(refDay, friday, 2, "2019-03-08");
+		run(refDay, friday, 3, "2019-03-15");
+		run(refDay, friday, 4, "2019-03-22");
+		run(refDay, friday, 5, "2019-03-29");
+		run(refDay, friday, -1, "2019-03-29");
+		run(refDay, friday, -2, "2019-03-22");
+		run(refDay, friday, -3, "2019-03-15");
+		run(refDay, friday, -4, "2019-03-08");
+		run(refDay, friday, -5, "2019-03-01");
 	}
 }
 

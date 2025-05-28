@@ -29,11 +29,6 @@ void Stream::Shutdown()
 	BOOST_THROW_EXCEPTION(std::runtime_error("Stream does not support Shutdown()."));
 }
 
-size_t Stream::Peek(void *buffer, size_t count, bool allow_partial)
-{
-	BOOST_THROW_EXCEPTION(std::runtime_error("Stream does not support Peek()."));
-}
-
 void Stream::SignalDataAvailable()
 {
 	OnDataAvailable(this);
@@ -129,7 +124,7 @@ bool StreamReadContext::FillFromStream(const Stream::Ptr& stream, bool may_wait)
 		if (stream->IsEof())
 			break;
 
-		size_t rc = stream->Read(Buffer + Size, 4096, true);
+		size_t rc = stream->Read(Buffer + Size, 4096);
 
 		Size += rc;
 		count += rc;

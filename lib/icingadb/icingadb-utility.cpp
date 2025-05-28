@@ -18,6 +18,7 @@
 #include "icinga/eventcommand.hpp"
 #include "icinga/host.hpp"
 #include <boost/algorithm/string.hpp>
+#include <cmath>
 #include <map>
 #include <utility>
 #include <vector>
@@ -158,6 +159,66 @@ Dictionary::Ptr IcingaDB::SerializeVars(const Dictionary::Ptr& vars)
 	return res;
 }
 
+/**
+ * Serialize a dependency edge state for Icinga DB
+ *
+ * @param dependencyGroup The state of the group the dependency is part of.
+ * @param dep The dependency object to serialize.
+ *
+ * @return A dictionary with the serialized state.
+ */
+Dictionary::Ptr IcingaDB::SerializeDependencyEdgeState(const DependencyGroup::Ptr& dependencyGroup, const Dependency::Ptr& dep)
+{
+	String edgeStateId;
+	// The edge state ID is computed a bit differently depending on whether this is for a redundancy group or not.
+	// For redundancy groups, the state ID is supposed to represent the connection state between the redundancy group
+	// and the parent Checkable of the given dependency. Hence, the outcome will always be different for each parent
+	// Checkable of the redundancy group.
+	if (dependencyGroup->IsRedundancyGroup()) {
+		edgeStateId = HashValue(new Array{
+			dependencyGroup->GetIcingaDBIdentifier(),
+			GetObjectIdentifier(dep->GetParent()),
+		});
+	} else if (dependencyGroup->GetIcingaDBIdentifier().IsEmpty()) {
+		// For non-redundant dependency groups, on the other hand, all dependency objects within that group will
+		// always have the same parent Checkable. Likewise, the state ID will be always the same as well it doesn't
+		// matter which dependency object is used to compute it. Therefore, it's sufficient to compute it only once
+		// and all the other dependency objects can reuse the cached state ID.
+		edgeStateId = HashValue(new Array{dependencyGroup->GetCompositeKey(), GetObjectIdentifier(dep->GetParent())});
+		dependencyGroup->SetIcingaDBIdentifier(edgeStateId);
+	} else {
+		// Use the already computed state ID for the dependency group.
+		edgeStateId = dependencyGroup->GetIcingaDBIdentifier();
+	}
+
+	return new Dictionary{
+		{"id", std::move(edgeStateId)},
+		{"environment_id", m_EnvironmentId},
+		{"failed", !dep->IsAvailable(DependencyState) || !dep->GetParent()->IsReachable()}
+	};
+}
+
+/**
+ * Serialize the provided redundancy group state attributes.
+ *
+ * @param child The child checkable object to serialize the state for.
+ * @param redundancyGroup The redundancy group object to serialize the state for.
+ *
+ * @return A dictionary with the serialized redundancy group state.
+ */
+Dictionary::Ptr IcingaDB::SerializeRedundancyGroupState(const Checkable::Ptr& child, const DependencyGroup::Ptr& redundancyGroup)
+{
+	auto state(redundancyGroup->GetState(child.get()));
+	return new Dictionary{
+		{"id", redundancyGroup->GetIcingaDBIdentifier()},
+		{"environment_id", m_EnvironmentId},
+		{"redundancy_group_id", redundancyGroup->GetIcingaDBIdentifier()},
+		{"failed", state != DependencyGroup::State::Ok},
+		{"is_reachable", state != DependencyGroup::State::Unreachable},
+		{"last_state_change", TimestampToMilliseconds(Utility::GetTime())},
+	};
+}
+
 const char* IcingaDB::GetNotificationTypeByEnum(NotificationType type)
 {
 	switch (type) {
@@ -245,7 +306,18 @@ String IcingaDB::GetLowerCaseTypeNameDB(const ConfigObject::Ptr& obj)
 }
 
 long long IcingaDB::TimestampToMilliseconds(double timestamp) {
-	return static_cast<long long>(timestamp * 1000);
+	// In addition to the limits of the Icinga DB MySQL (0 - 2^64) and PostgreSQL (0 - 2^63) schemata,
+	// years not fitting in YYYY may cause problems, see e.g. https://github.com/golang/go/issues/4556.
+	// RFC 3339: "All dates and times are assumed to be (...) somewhere between 0000AD and 9999AD."
+	//
+	// The below upper limit includes a safety buffer to make sure the timestamp is within 9999AD in all time zones:
+	// $ date -ud @253402214400
+	// Fri Dec 31 00:00:00 UTC 9999
+	// $ TZ=Asia/Vladivostok date -d @253402214400
+	// Fri Dec 31 10:00:00 +10 9999
+	// $ TZ=America/Juneau date -d @253402214400
+	// Thu Dec 30 15:00:00 AKST 9999
+	return std::fmin(std::fmax(timestamp, 0.0), 253402214400.0) * 1000.0;
 }
 
 String IcingaDB::IcingaToStreamValue(const Value& value)

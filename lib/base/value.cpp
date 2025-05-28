@@ -9,11 +9,15 @@ using namespace icinga;
 
 template class boost::variant<boost::blank, double, bool, String, Object::Ptr>;
 template const double& Value::Get<double>() const;
+template double& Value::Get<double>();
 template const bool& Value::Get<bool>() const;
+template bool& Value::Get<bool>();
 template const String& Value::Get<String>() const;
+template String& Value::Get<String>();
 template const Object::Ptr& Value::Get<Object::Ptr>() const;
+template Object::Ptr& Value::Get<Object::Ptr>();
 
-Value icinga::Empty;
+const Value icinga::Empty;
 
 Value::Value(std::nullptr_t)
 { }

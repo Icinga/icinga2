@@ -34,6 +34,7 @@ the [Icinga 2 API](12-icinga2-api.md#icinga2-api-config-objects).
   templates                 | Array                 | Templates imported on object compilation.
   package                   | String                | [Configuration package name](12-icinga2-api.md#icinga2-api-config-management) this object belongs to. Local configuration is set to `_etc`, runtime created objects use `_api`.
   source\_location          | Dictionary            | Location information where the configuration files are stored.
+  name                      | String                | Object name. Might be used in [apply rules](03-monitoring-basics.md#using-apply).
 
 ## Monitoring Objects <a id="object-types-monitoring"></a>
 
@@ -392,7 +393,6 @@ Runtime Attributes:
   last\_check\_result       | CheckResult           | The current [check result](08-advanced-topics.md#advanced-value-types-checkresult).
   last\_state\_change       | Timestamp             | When the last state change occurred (as a UNIX timestamp).
   last\_hard\_state\_change | Timestamp             | When the last hard state change occurred (as a UNIX timestamp).
-  last\_in\_downtime        | Boolean               | Whether the host was in a downtime when the last check occurred.
   acknowledgement           | Number                | The acknowledgement type (0 = NONE, 1 = NORMAL, 2 = STICKY).
   acknowledgement\_expiry   | Timestamp             | When the acknowledgement expires (as a UNIX timestamp; 0 = no expiry).
   downtime\_depth           | Number                | Whether the host has one or more active downtimes.
@@ -731,7 +731,6 @@ Configuration Attributes:
   event\_command            | Object name           | **Optional.** The name of an event command that should be executed every time the service's state changes or the service is in a `SOFT` state.
   volatile                  | Boolean               | **Optional.** Treat all state changes as HARD changes. See [here](08-advanced-topics.md#volatile-services-hosts) for details. Defaults to `false`.
   zone                      | Object name           | **Optional.** The zone this object is a member of. Please read the [distributed monitoring](06-distributed-monitoring.md#distributed-monitoring) chapter for details.
-  name                      | String                | **Required.** The service name. Must be unique on a per-host basis. For advanced usage in [apply rules](03-monitoring-basics.md#using-apply) only.
   command\_endpoint         | Object name           | **Optional.** The endpoint where commands are executed on.
   notes                     | String                | **Optional.** Notes for the service.
   notes\_url                | String                | **Optional.** URL for notes for the service (for example, in notification commands).
@@ -758,7 +757,6 @@ Runtime Attributes:
   last\_check\_result           | CheckResult       | The current [check result](08-advanced-topics.md#advanced-value-types-checkresult).
   last\_state\_change           | Timestamp         | When the last state change occurred (as a UNIX timestamp).
   last\_hard\_state\_change     | Timestamp         | When the last hard state change occurred (as a UNIX timestamp).
-  last\_in\_downtime            | Boolean           | Whether the service was in a downtime when the last check occurred.
   acknowledgement               | Number            | The acknowledgement type (0 = NONE, 1 = NORMAL, 2 = STICKY).
   acknowledgement\_expiry       | Timestamp         | When the acknowledgement expires (as a UNIX timestamp; 0 = no expiry).
   acknowledgement\_last\_change | Timestamp         | When the acknowledgement has been set/cleared
@@ -1046,8 +1044,8 @@ Configuration Attributes:
 
   Name                      | Type                  | Description
   --------------------------|-----------------------|----------------------------------
-  host\_name                | Object name           | **Required.** The name of the host this comment belongs to.
-  service\_name             | Object name           | **Optional.** The short name of the service this comment belongs to. If omitted, this comment object is treated as host comment.
+  host\_name                | Object name           | **Required.** The name of the host this downtime belongs to.
+  service\_name             | Object name           | **Optional.** The short name of the service this downtime belongs to. If omitted, this downtime object is treated as host downtime.
   author                    | String                | **Required.** The author's name.
   comment                   | String                | **Required.** The comment text.
   start\_time               | Timestamp             | **Required.** The start time as UNIX timestamp.
@@ -1102,7 +1100,7 @@ Configuration Attributes:
   accept\_config                        | Boolean               | **Optional.** Accept zone configuration. Defaults to `false`.
   accept\_commands                      | Boolean               | **Optional.** Accept remote commands. Defaults to `false`.
   max\_anonymous\_clients               | Number                | **Optional.** Limit the number of anonymous client connections (not configured endpoints and signing requests).
-  cipher\_list                          | String                | **Optional.** Cipher list that is allowed. For a list of available ciphers run `openssl ciphers`. Defaults to `ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:AES256-GCM-SHA384:AES128-GCM-SHA256`.
+  cipher\_list                          | String                | **Optional.** Cipher list that is allowed. For a list of available ciphers run `openssl ciphers`. Defaults to `ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256`.
   tls\_protocolmin                      | String                | **Optional.** Minimum TLS protocol version. Since v2.11, only `TLSv1.2` is supported. Defaults to `TLSv1.2`.
   tls\_handshake\_timeout               | Number                | **Deprecated.** TLS Handshake timeout. Defaults to `10s`.
   connect\_timeout                      | Number                | **Optional.** Timeout for establishing new connections. Affects both incoming and outgoing connections. Within this time, the TCP and TLS handshakes must complete and either a HTTP request or an Icinga cluster connection must be initiated. Defaults to `15s`.
@@ -1183,7 +1181,7 @@ Configuration Attributes:
 
 ### ElasticsearchWriter <a id="objecttype-elasticsearchwriter"></a>
 
-Writes check result metrics and performance data to an Elasticsearch instance.
+Writes check result metrics and performance data to an Elasticsearch or OpenSearch instance.
 This configuration object is available as [elasticsearch feature](14-features.md#elasticsearch-writer).
 
 Example:
@@ -1195,6 +1193,10 @@ object ElasticsearchWriter "elasticsearch" {
   index = "icinga2"
 
   enable_send_perfdata = true
+
+  host_tags_template = {
+    os_name = "$host.vars.os$"
+  }
 
   flush_threshold = 1024
   flush_interval = 10
@@ -1217,6 +1219,8 @@ Configuration Attributes:
   password                  | String                | **Optional.** Basic auth password if Elasticsearch is hidden behind an HTTP proxy.
   enable\_tls               | Boolean               | **Optional.** Whether to use a TLS stream. Defaults to `false`. Requires an HTTP proxy.
   insecure\_noverify        | Boolean               | **Optional.** Disable TLS peer verification.
+  host\_tags\_template      | Dictionary            | **Optional.** Allows to apply additional tags to the Elasticsearch host entries.
+  service\_tags\_template   | Dictionary            | **Optional.** Allows to apply additional tags to the Elasticsearch service entries.
   ca\_path                  | String                | **Optional.** Path to CA certificate to validate the remote host. Requires `enable_tls` set to `true`.
   cert\_path                | String                | **Optional.** Path to host certificate to present to the remote host for mutual verification. Requires `enable_tls` set to `true`.
   key\_path                 | String                | **Optional.** Path to host key to accompany the cert\_path. Requires `enable_tls` set to `true`.
@@ -1389,13 +1393,15 @@ Configuration Attributes:
   host                      | String                | **Optional.** Redis host. Defaults to `127.0.0.1`.
   port                      | Number                | **Optional.** Redis port. Defaults to `6380` since the Redis server provided by the `icingadb-redis` package listens on that port.
   path                      | String                | **Optional.** Redis unix socket path. Can be used instead of `host` and `port` attributes.
+  username                  | String                | **Optional.** Redis auth username. Only possible if Redis ACLs are used. Requires `password` to be set as well.
   password                  | String                | **Optional.** Redis auth password.
+  db\_index                 | Number                | **Optional.** Redis logical database by its number. Defaults to `0`.
   enable\_tls               | Boolean               | **Optional.** Whether to use TLS.
   cert\_path                | String                | **Optional.** Path to the certificate.
   key\_path                 | String                | **Optional.** Path to the private key.
   ca\_path                  | String                | **Optional.** Path to the CA certificate to use instead of the system's root CAs.
   crl\_path                 | String                | **Optional.** Path to the CRL file.
-  cipher\_list              | String                | **Optional.** Cipher list that is allowed. For a list of available ciphers run `openssl ciphers`. Defaults to `ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:AES256-GCM-SHA384:AES128-GCM-SHA256`.
+  cipher\_list              | String                | **Optional.** Cipher list that is allowed. For a list of available ciphers run `openssl ciphers`. Defaults to `ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256`.
   tls\_protocolmin          | String                | **Optional.** Minimum TLS protocol version. Defaults to `TLSv1.2`.
   insecure\_noverify        | Boolean               | **Optional.** Whether not to verify the peer.
   connect\_timeout          | Number                | **Optional.** Timeout for establishing new connections. Within this time, the TCP, TLS (if enabled) and Redis handshakes must complete. Defaults to `15s`.

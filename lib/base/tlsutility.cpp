@@ -11,6 +11,8 @@
 #include <boost/asio/ssl/context.hpp>
 #include <openssl/opensslv.h>
 #include <openssl/crypto.h>
+#include <openssl/ssl.h>
+#include <openssl/ssl3.h>
 #include <fstream>
 
 namespace icinga
@@ -91,6 +93,18 @@ static void InitSslContext(const Shared<boost::asio::ssl::context>::Ptr& context
 
 	flags |= SSL_OP_CIPHER_SERVER_PREFERENCE;
 
+#ifdef LIBRESSL_VERSION_NUMBER
+	flags |= SSL_OP_NO_CLIENT_RENEGOTIATION;
+#elif OPENSSL_VERSION_NUMBER < 0x10100000L
+	SSL_CTX_set_info_callback(sslContext, [](const SSL* ssl, int where, int) {
+		if (where & SSL_CB_HANDSHAKE_DONE) {
+			ssl->s3->flags |= SSL3_FLAGS_NO_RENEGOTIATE_CIPHERS;
+		}
+	});
+#else /* OPENSSL_VERSION_NUMBER < 0x10100000L */
+	flags |= SSL_OP_NO_RENEGOTIATION;
+#endif /* OPENSSL_VERSION_NUMBER < 0x10100000L */
+
 	SSL_CTX_set_options(sslContext, flags);
 
 	SSL_CTX_set_mode(sslContext, SSL_MODE_ENABLE_PARTIAL_WRITE | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
@@ -103,6 +117,14 @@ static void InitSslContext(const Shared<boost::asio::ssl::context>::Ptr& context
 	SSL_CTX_set_ecdh_auto(sslContext, 1);
 #	endif /* SSL_CTX_set_ecdh_auto */
 #endif /* OPENSSL_VERSION_NUMBER < 0x10100000L */
+
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+	// The built-in DH parameters have to be enabled explicitly to allow the use of ciphers that use a DHE key exchange.
+	// SSL_CTX_set_dh_auto is only documented in OpenSSL starting from version 3.0.0 but was already added in 1.1.0.
+	// https://github.com/openssl/openssl/commit/09599b52d4e295c380512ba39958a11994d63401
+	// https://github.com/openssl/openssl/commit/0437309fdf544492e272943e892523653df2f189
+	SSL_CTX_set_dh_auto(sslContext, 1);
+#endif /* OPENSSL_VERSION_NUMBER >= 0x10100000L */
 
 	if (!pubkey.IsEmpty()) {
 		if (!SSL_CTX_use_certificate_chain_file(sslContext, pubkey.CStr())) {
@@ -706,7 +728,7 @@ String GetIcingaCADir()
 	return Configuration::DataDir + "/ca";
 }
 
-std::shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject)
+std::shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject, bool ca)
 {
 	char errbuf[256];
 
@@ -743,7 +765,7 @@ std::shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject)
 	EVP_PKEY *privkey = EVP_PKEY_new();
 	EVP_PKEY_assign_RSA(privkey, rsa);
 
-	return CreateCert(pubkey, subject, X509_get_subject_name(cacert.get()), privkey, false);
+	return CreateCert(pubkey, subject, X509_get_subject_name(cacert.get()), privkey, ca);
 }
 
 std::shared_ptr<X509> CreateCertIcingaCA(const std::shared_ptr<X509>& cert)
@@ -752,24 +774,37 @@ std::shared_ptr<X509> CreateCertIcingaCA(const std::shared_ptr<X509>& cert)
 	return CreateCertIcingaCA(pkey.get(), X509_get_subject_name(cert.get()));
 }
 
+static inline
+bool CertExpiresWithin(X509* cert, int seconds)
+{
+	time_t renewalStart = time(nullptr) + seconds;
+
+	return X509_cmp_time(X509_get_notAfter(cert), &renewalStart) < 0;
+}
+
 bool IsCertUptodate(const std::shared_ptr<X509>& cert)
 {
-	time_t now;
-	time(&now);
+	if (CertExpiresWithin(cert.get(), RENEW_THRESHOLD)) {
+		return false;
+	}
 
 	/* auto-renew all certificates which were created before 2017 to force an update of the CA,
 	 * because Icinga versions older than 2.4 sometimes create certificates with an invalid
 	 * serial number. */
 	time_t forceRenewalEnd = 1483228800; /* January 1st, 2017 */
-	time_t renewalStart = now + RENEW_THRESHOLD;
 
-	return X509_cmp_time(X509_get_notBefore(cert.get()), &forceRenewalEnd) != -1 && X509_cmp_time(X509_get_notAfter(cert.get()), &renewalStart) != -1;
+	return X509_cmp_time(X509_get_notBefore(cert.get()), &forceRenewalEnd) >= 0;
 }
 
-String CertificateToString(const std::shared_ptr<X509>& cert)
+bool IsCaUptodate(X509* cert)
+{
+	return !CertExpiresWithin(cert, LEAF_VALID_FOR);
+}
+
+String CertificateToString(X509* cert)
 {
 	BIO *mem = BIO_new(BIO_s_mem());
-	PEM_write_bio_X509(mem, cert.get());
+	PEM_write_bio_X509(mem, cert);
 
 	char *data;
 	long len = BIO_get_mem_data(mem, &data);
@@ -948,33 +983,53 @@ String BinaryToHex(const unsigned char* data, size_t length) {
 	return output;
 }
 
-bool VerifyCertificate(const String& caFile, const std::shared_ptr<X509> &certificate, const String& crlFile, STACK_OF(X509) *chain)
+bool VerifyCertificate(const std::shared_ptr<X509> &caCertificate, const std::shared_ptr<X509> &certificate, const String& crlFile, const String& caBundleFile)
 {
-	std::shared_ptr<X509> caCertificate = GetX509Certificate(caFile);
+	return VerifyCertificate(caCertificate.get(), certificate.get(), crlFile, caBundleFile);
+}
 
-	X509_STORE *store = X509_STORE_new();
+bool VerifyCertificate(X509* caCertificate, X509* certificate, const String& crlFile, const String& caBundleFile)
+{
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+	/*
+	 * OpenSSL older than version 1.1.0 stored a valid flag in the struct behind X509* which leads to certain validation
+	 * steps to be skipped on subsequent verification operations. If a certificate is verified multiple times with a
+	 * different configuration, for example with different trust anchors, this can result in the certificate
+	 * incorrectly being treated as valid.
+	 *
+	 * This issue is worked around by serializing and deserializing the certificate which creates a new struct instance
+	 * with the valid flag cleared, hence performing the full validation.
+	 *
+	 * The flag in question was removed in OpenSSL 1.1.0, so this extra step isn't necessary for more recent versions:
+	 * https://github.com/openssl/openssl/commit/0e76014e584ba78ef1d6ecb4572391ef61c4fb51
+	 */
+	std::shared_ptr<X509> copy = StringToCertificate(CertificateToString(certificate));
+	VERIFY(copy.get() != certificate);
+	certificate = copy.get();
+#endif
+
+	std::unique_ptr<X509_STORE, decltype(&X509_STORE_free)> store{X509_STORE_new(), &X509_STORE_free};
 
 	if (!store)
 		return false;
 
-	X509_STORE_add_cert(store, caCertificate.get());
+	X509_STORE_add_cert(store.get(), caCertificate);
 
 	if (!crlFile.IsEmpty()) {
-		AddCRLToSSLContext(store, crlFile);
+		AddCRLToSSLContext(store.get(), crlFile);
 	}
 
-	X509_STORE_load_locations(store, caFile.CStr(), NULL); /* ignore any errors for the moment, since this is just the convenient way to add full chain */
+	if (!caBundleFile.IsEmpty()) {
+		X509_STORE_load_locations(store.get(), caBundleFile.CStr(), NULL); /* ignore any errors for the moment, since this is just the convenient way to add full chain */
+	}
 
-	X509_STORE_CTX *csc = X509_STORE_CTX_new();
-	X509_STORE_CTX_init(csc, store, certificate.get(), chain);
+	std::unique_ptr<X509_STORE_CTX, decltype(&X509_STORE_CTX_free)> csc{X509_STORE_CTX_new(), &X509_STORE_CTX_free};
+	X509_STORE_CTX_init(csc.get(), store.get(), certificate, nullptr);
 
-	int rc = X509_verify_cert(csc);
-
-	X509_STORE_CTX_free(csc);
-	X509_STORE_free(store);
+	int rc = X509_verify_cert(csc.get());
 
 	if (rc == 0) {
-		int err = X509_STORE_CTX_get_error(csc);
+		int err = X509_STORE_CTX_get_error(csc.get());
 
 		BOOST_THROW_EXCEPTION(openssl_error()
 			<< boost::errinfo_api_function("X509_verify_cert")
@@ -1008,16 +1063,7 @@ int GetCertificateVersion(const std::shared_ptr<X509>& cert)
 
 String GetSignatureAlgorithm(const std::shared_ptr<X509>& cert)
 {
-	int alg;
 	int sign_alg;
-	X509_PUBKEY *key;
-	X509_ALGOR *algor;
-
-	key = X509_get_X509_PUBKEY(cert.get());
-
-	X509_PUBKEY_get0_param(nullptr, nullptr, 0, &algor, key); //TODO: Error handling
-
-	alg = OBJ_obj2nid (algor->algorithm);
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
 	sign_alg = OBJ_obj2nid((cert.get())->sig_alg->algorithm);

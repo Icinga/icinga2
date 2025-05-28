@@ -3,10 +3,12 @@
 #ifndef IO_ENGINE_H
 #define IO_ENGINE_H
 
+#include "base/atomic.hpp"
+#include "base/debug.hpp"
 #include "base/exception.hpp"
 #include "base/lazy-init.hpp"
 #include "base/logger.hpp"
-#include "base/shared-object.hpp"
+#include "base/shared.hpp"
 #include <atomic>
 #include <exception>
 #include <memory>
@@ -14,10 +16,15 @@
 #include <utility>
 #include <vector>
 #include <stdexcept>
+#include <boost/context/fixedsize_stack.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/spawn.hpp>
+
+#if BOOST_VERSION >= 108700
+#	include <boost/asio/detached.hpp>
+#endif // BOOST_VERSION >= 108700
 
 namespace icinga
 {
@@ -98,25 +105,32 @@ public:
 
 	template <typename Handler, typename Function>
 	static void SpawnCoroutine(Handler& h, Function f) {
-
-		boost::asio::spawn(h,
-			[f](boost::asio::yield_context yc) {
-
+		auto wrapper = [f = std::move(f)](boost::asio::yield_context yc) {
+			try {
+				f(yc);
+			} catch (const std::exception& ex) {
+				Log(LogCritical, "IoEngine") << "Exception in coroutine: " << DiagnosticInformation(ex);
+			} catch (...) {
 				try {
-					f(yc);
-				} catch (const boost::coroutines::detail::forced_unwind &) {
-					// Required for proper stack unwinding when coroutines are destroyed.
-					// https://github.com/boostorg/coroutine/issues/39
-					throw;
-				} catch (const std::exception& ex) {
 					Log(LogCritical, "IoEngine", "Exception in coroutine!");
-					Log(LogDebug, "IoEngine") << "Exception in coroutine: " << DiagnosticInformation(ex);
 				} catch (...) {
-					Log(LogCritical, "IoEngine", "Exception in coroutine!");
 				}
-			},
-			boost::coroutines::attributes(GetCoroutineStackSize()) // Set a pre-defined stack size.
+
+				// Required for proper stack unwinding when coroutines are destroyed.
+				// https://github.com/boostorg/coroutine/issues/39
+				throw;
+			}
+		};
+
+#if BOOST_VERSION >= 108700
+		boost::asio::spawn(h,
+			std::allocator_arg, boost::context::fixedsize_stack(GetCoroutineStackSize()),
+			std::move(wrapper),
+			boost::asio::detached
 		);
+#else // BOOST_VERSION >= 108700
+		boost::asio::spawn(h, std::move(wrapper), boost::coroutines::attributes(GetCoroutineStackSize()));
+#endif // BOOST_VERSION >= 108700
 	}
 
 	static inline
@@ -144,14 +158,14 @@ class TerminateIoThread : public std::exception
 };
 
 /**
- * Condition variable which doesn't block I/O threads
+ * Awaitable flag which doesn't block I/O threads, inspired by threading.Event from Python
  *
  * @ingroup base
  */
-class AsioConditionVariable
+class AsioEvent
 {
 public:
-	AsioConditionVariable(boost::asio::io_context& io, bool init = false);
+	AsioEvent(boost::asio::io_context& io, bool init = false);
 
 	void Set();
 	void Clear();
@@ -162,53 +176,102 @@ private:
 };
 
 /**
- * I/O timeout emulator
+ * Like AsioEvent, which only allows waiting for an event to be set, but additionally supports waiting for clearing
  *
  * @ingroup base
  */
-class Timeout : public SharedObject
+class AsioDualEvent
 {
 public:
-	DECLARE_PTR_TYPEDEFS(Timeout);
+	AsioDualEvent(boost::asio::io_context& io, bool init = false);
 
-	template<class Executor, class TimeoutFromNow, class OnTimeout>
-	Timeout(boost::asio::io_context& io, Executor& executor, TimeoutFromNow timeoutFromNow, OnTimeout onTimeout)
-		: m_Timer(io)
+	void Set();
+	void Clear();
+
+	void WaitForSet(boost::asio::yield_context yc);
+	void WaitForClear(boost::asio::yield_context yc);
+
+private:
+	AsioEvent m_IsTrue, m_IsFalse;
+};
+
+/**
+ * I/O timeout emulator
+ *
+ * This class provides a workaround for Boost.ASIO's lack of built-in timeout support.
+ * While Boost.ASIO handles asynchronous operations, it does not natively support timeouts for these operations.
+ * This class uses a boost::asio::deadline_timer to emulate a timeout by scheduling a callback to be triggered
+ * after a specified duration, effectively adding timeout behavior where none exists.
+ * The callback is executed within the provided strand, ensuring thread-safety.
+ *
+ * The constructor returns immediately after scheduling the timeout callback.
+ * The callback itself is invoked asynchronously when the timeout occurs.
+ * This allows the caller to continue execution while the timeout is running in the background.
+ *
+ * The class provides a Cancel() method to unschedule any pending callback. If the callback has already been run,
+ * calling Cancel() has no effect. This method can be used to abort the timeout early if the monitored operation
+ * completes before the callback has been run. The Timeout destructor also automatically cancels any pending callback.
+ * A callback is considered pending even if the timeout has already expired,
+ * but the callback has not been executed yet due to a busy strand.
+ *
+ * @ingroup base
+ */
+class Timeout
+{
+public:
+	using Timer = boost::asio::deadline_timer;
+
+	/**
+	 * Schedules onTimeout to be triggered after timeoutFromNow on strand.
+	 *
+	 * @param strand The strand in which the callback will be executed.
+	 *				 The caller must also run in this strand, as well as Cancel() and the destructor!
+	 * @param timeoutFromNow The duration after which the timeout callback will be triggered.
+	 * @param onTimeout The callback to invoke when the timeout occurs.
+	 */
+	template<class OnTimeout>
+	Timeout(boost::asio::io_context::strand& strand, const Timer::duration_type& timeoutFromNow, OnTimeout onTimeout)
+		: m_Timer(strand.context(), timeoutFromNow), m_Cancelled(Shared<Atomic<bool>>::Make(false))
 	{
-		Ptr keepAlive (this);
+		VERIFY(strand.running_in_this_thread());
 
-		m_Cancelled.store(false);
-		m_Timer.expires_from_now(std::move(timeoutFromNow));
-
-		IoEngine::SpawnCoroutine(executor, [this, keepAlive, onTimeout](boost::asio::yield_context yc) {
-			if (m_Cancelled.load()) {
-				return;
-			}
-
-			{
-				boost::system::error_code ec;
-
-				m_Timer.async_wait(yc[ec]);
-
-				if (ec) {
-					return;
+		m_Timer.async_wait(boost::asio::bind_executor(
+			strand, [cancelled = m_Cancelled, onTimeout = std::move(onTimeout)](boost::system::error_code ec) {
+				if (!ec && !cancelled->load()) {
+					onTimeout();
 				}
 			}
+		));
+	}
 
-			if (m_Cancelled.load()) {
-				return;
-			}
+	Timeout(const Timeout&) = delete;
+	Timeout(Timeout&&) = delete;
+	Timeout& operator=(const Timeout&) = delete;
+	Timeout& operator=(Timeout&&) = delete;
 
-			auto f (onTimeout);
-			f(std::move(yc));
-		});
+	/**
+	 * Cancels any pending timeout callback.
+	 *
+	 * Must be called in the strand in which the callback was scheduled!
+	 */
+	~Timeout()
+	{
+		Cancel();
 	}
 
 	void Cancel();
 
 private:
-	boost::asio::deadline_timer m_Timer;
-	std::atomic<bool> m_Cancelled;
+	Timer m_Timer;
+
+	/**
+	 * Indicates whether the Timeout has been cancelled.
+	 *
+	 * This must be Shared<> between the lambda in the constructor and Cancel() for the case
+	 * the destructor calls Cancel() while the lambda is already queued in the strand.
+	 * The whole Timeout instance can't be kept alive by the lambda because this would delay the destructor.
+	 */
+	Shared<Atomic<bool>>::Ptr m_Cancelled;
 };
 
 }

@@ -12,7 +12,7 @@ endif()
 
 add_library(db_ido_mysql OBJECT ${db_ido_mysql_SOURCES})
 
-include_directories(${MYSQL_INCLUDE_DIR})
+include_directories(SYSTEM ${MYSQL_INCLUDE_DIR})
 
 add_dependencies(db_ido_mysql base config icinga db_ido)
 

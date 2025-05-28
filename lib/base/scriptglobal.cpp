@@ -107,4 +107,3 @@ void ScriptGlobal::WriteToFile(const String& filename)
 	sfp->Close();
 	fp.Commit();
 }
-

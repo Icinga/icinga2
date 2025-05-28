@@ -9,7 +9,9 @@
 #include "base/logger.hpp"
 #include "base/configuration.hpp"
 #include "base/shared-memory.hpp"
+#include <cstdint>
 #include <iosfwd>
+#include <type_traits>
 
 namespace icinga
 {
@@ -142,7 +144,7 @@ private:
 #ifdef _WIN32
 	static double m_LastReloadFailed;
 #else /* _WIN32 */
-	typedef Atomic<double> AtomicTs;
+	typedef Atomic<std::conditional_t<Atomic<double>::is_always_lock_free, double, uint32_t>> AtomicTs;
 	static_assert(AtomicTs::is_always_lock_free);
 	static SharedMemory<AtomicTs> m_LastReloadFailed;
 #endif /* _WIN32 */

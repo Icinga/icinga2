@@ -84,7 +84,7 @@ namespace icinga
 				: Config(config), State(state), History(history) { }
 		};
 
-		RedisConnection(const String& host, int port, const String& path, const String& password, int db,
+		RedisConnection(const String& host, int port, const String& path, const String& username, const String& password, int db,
 			bool useTls, bool insecure, const String& certPath, const String& keyPath, const String& caPath, const String& crlPath,
 			const String& tlsProtocolmin, const String& cipherList, double connectTimeout, DebugInfo di, const Ptr& parent = nullptr);
 
@@ -196,7 +196,7 @@ namespace icinga
 
 		static boost::regex m_ErrAuth;
 
-		RedisConnection(boost::asio::io_context& io, String host, int port, String path, String password,
+		RedisConnection(boost::asio::io_context& io, String host, int port, String path, String username, String password,
 			int db, bool useTls, bool insecure, String certPath, String keyPath, String caPath, String crlPath,
 			String tlsProtocolmin, String cipherList, double connectTimeout, DebugInfo di, const Ptr& parent);
 
@@ -222,11 +222,12 @@ namespace icinga
 		void Handshake(StreamPtr& stream, boost::asio::yield_context& yc);
 
 		template<class StreamPtr>
-		Timeout::Ptr MakeTimeout(StreamPtr& stream);
+		Timeout MakeTimeout(StreamPtr& stream);
 
 		String m_Path;
 		String m_Host;
 		int m_Port;
+		String m_Username;
 		String m_Password;
 		int m_DbIndex;
 
@@ -261,7 +262,8 @@ namespace icinga
 		std::set<QueryPriority> m_SuppressedQueryKinds;
 
 		// Indicate that there's something to send/receive
-		AsioConditionVariable m_QueuedWrites, m_QueuedReads;
+		AsioEvent m_QueuedWrites;
+		AsioDualEvent m_QueuedReads;
 
 		std::function<void(boost::asio::yield_context& yc)> m_ConnectedCallback;
 
@@ -388,9 +390,7 @@ RedisConnection::Reply RedisConnection::ReadOne(StreamPtr& stream, boost::asio::
 
 	try {
 		return ReadRESP(*strm, yc);
-	} catch (const boost::coroutines::detail::forced_unwind&) {
-		throw;
-	} catch (...) {
+	} catch (const std::exception&) {
 		if (m_Connecting.exchange(false)) {
 			m_Connected.store(false);
 			stream = nullptr;
@@ -426,9 +426,7 @@ void RedisConnection::WriteOne(StreamPtr& stream, RedisConnection::Query& query,
 	try {
 		WriteRESP(*strm, query, yc);
 		strm->async_flush(yc);
-	} catch (const boost::coroutines::detail::forced_unwind&) {
-		throw;
-	} catch (...) {
+	} catch (const std::exception&) {
 		if (m_Connecting.exchange(false)) {
 			m_Connected.store(false);
 			stream = nullptr;
@@ -457,7 +455,9 @@ void RedisConnection::Handshake(StreamPtr& strm, boost::asio::yield_context& yc)
 		// Trigger NOAUTH
 		WriteRESP(*strm, {"PING"}, yc);
 	} else {
-		if (!m_Password.IsEmpty()) {
+		if (!m_Username.IsEmpty()) {
+			WriteRESP(*strm, {"AUTH", m_Username, m_Password}, yc);
+		} else if (!m_Password.IsEmpty()) {
 			WriteRESP(*strm, {"AUTH", m_Password}, yc);
 		}
 
@@ -509,15 +509,12 @@ void RedisConnection::Handshake(StreamPtr& strm, boost::asio::yield_context& yc)
  * @param stream Redis server connection
  */
 template<class StreamPtr>
-Timeout::Ptr RedisConnection::MakeTimeout(StreamPtr& stream)
+Timeout RedisConnection::MakeTimeout(StreamPtr& stream)
 {
-	Ptr keepAlive (this);
-
-	return new Timeout(
-		m_Strand.context(),
+	return Timeout(
 		m_Strand,
 		boost::posix_time::microseconds(intmax_t(m_ConnectTimeout * 1000000)),
-		[keepAlive, stream](boost::asio::yield_context yc) {
+		[stream] {
 			boost::system::error_code ec;
 			stream->lowest_layer().cancel(ec);
 		}

@@ -449,4 +449,3 @@ Dictionary::Ptr PkiUtility::GetCertificateRequests(bool removed)
 
 	return requests;
 }
-

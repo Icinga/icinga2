@@ -207,9 +207,17 @@ void OpenTsdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 				
 				if (!missing_macro.IsEmpty()) {
 					Log(LogDebug, "OpenTsdbWriter")
-						<< "Unable to resolve macro:'" << missing_macro 
-						<< "' for this host or service.";
+						<< "Unable to resolve macro '" << missing_macro 
+						<< "' for checkable '" << checkable->GetName() << "'.";
 					
+					continue;
+				}
+
+				if (value.IsEmpty()) {
+					Log(LogDebug, "OpenTsdbWriter")
+						<< "Resolved macro '" << pair.second
+						<< "' for checkable '" << checkable->GetName() << "' to '', skipping.";
+
 					continue;
 				}
 				
@@ -227,8 +235,8 @@ void OpenTsdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 			
 			if (!missing_macro.IsEmpty()) {
 				Log(LogDebug, "OpenTsdbWriter")
-					<< "Unable to resolve macro:'" << missing_macro 
-					<< "' for this host or service.";
+					<< "Unable to resolve macro '" << missing_macro 
+					<< "' for checkable '" << checkable->GetName() << "'.";
 				
 			}
 			else {
@@ -368,8 +376,8 @@ void OpenTsdbWriter::SendMetric(const Checkable::Ptr& checkable, const String& m
 {
 	String tags_string = "";
 
-	for (const Dictionary::Pair& tag : tags) {
-		tags_string += " " + tag.first + "=" + Convert::ToString(tag.second);
+	for (auto& tag : tags) {
+		tags_string += " " + tag.first + "=" + tag.second;
 	}
 
 	std::ostringstream msgbuf;

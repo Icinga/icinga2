@@ -6,6 +6,7 @@
 #include "base/function.hpp"
 #include "base/functionwrapper.hpp"
 #include "base/scriptframe.hpp"
+#include "remote/apilistener.hpp"
 
 using namespace icinga;
 
@@ -14,7 +15,12 @@ static void CheckableProcessCheckResult(const CheckResult::Ptr& cr)
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Checkable::Ptr self = vframe->Self;
 	REQUIRE_NOT_NULL(self);
-	self->ProcessCheckResult(cr);
+
+	if (cr) {
+		auto api (ApiListener::GetInstance());
+
+		self->ProcessCheckResult(cr, api ? api->GetWaitGroup() : new StoppableWaitGroup());
+	}
 }
 
 Object::Ptr Checkable::GetPrototype()
@@ -25,4 +31,3 @@ Object::Ptr Checkable::GetPrototype()
 
 	return prototype;
 }
-

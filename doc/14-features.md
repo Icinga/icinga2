@@ -52,7 +52,7 @@ Icinga DB is a set of components for publishing, synchronizing and
 visualizing monitoring data in the Icinga ecosystem, consisting of:
 
 * Icinga 2 with its `icingadb` feature enabled,
-  responsible for publishing monitoring data to a Redis server, i.e. configuration and its runtime updates,  
+  responsible for publishing monitoring data to a Redis server, i.e. configuration and its runtime updates,
   check results, state changes, downtimes, acknowledgements, notifications, and other events such as flapping
 * The [Icinga DB daemon](https://icinga.com/docs/icinga-db),
   which synchronizes the data between the Redis server and a database
@@ -106,7 +106,7 @@ The current naming schema is defined as follows. The [Icinga Web 2 Graphite modu
 depends on this schema.
 
 The default prefix for hosts and services is configured using
-[runtime macros](03-monitoring-basics.md#runtime-macros)like this:
+[runtime macros](03-monitoring-basics.md#runtime-macros) like this:
 
 ```
 icinga2.$host.name$.host.$host.check_command$
@@ -335,16 +335,14 @@ More integrations:
 #### Elasticsearch Writer <a id="elasticsearch-writer"></a>
 
 This feature forwards check results, state changes and notification events
-to an [Elasticsearch](https://www.elastic.co/products/elasticsearch) installation over its HTTP API.
+to an [Elasticsearch](https://www.elastic.co/products/elasticsearch) or an [OpenSearch](https://opensearch.org/) installation over its HTTP API.
 
 The check results include parsed performance data metrics if enabled.
 
 > **Note**
 >
-> Elasticsearch 5.x or 6.x are required. This feature has been successfully tested with
-> Elasticsearch 5.6.7 and 6.3.1.
-
-
+> Elasticsearch 7.x, 8.x or Opensearch 2.12.x are required. This feature has been successfully tested with
+> Elasticsearch 7.17.10, 8.8.1 and OpenSearch 2.13.0.
 
 Enable the feature and restart Icinga 2.
 
@@ -396,6 +394,28 @@ check_result.perfdata.<perfdata-label>.min
 check_result.perfdata.<perfdata-label>.max
 check_result.perfdata.<perfdata-label>.warn
 check_result.perfdata.<perfdata-label>.crit
+```
+
+Additionaly it is possible to configure custom tags that are applied to the metrics via `host_tags_template` or `service_tags_template`.
+Depending on whether the write event was triggered on a service or host object, additional tags are added to the ElasticSearch entries.
+
+A host metrics entry configured with the following `host_tags_template`:
+
+```
+host_tags_template = {
+
+  os_name = "$host.vars.os$"
+  custom_label = "A Custom Label"
+  list = [ "$host.groups$", "$host.vars.foo$" ]
+}
+```
+
+Will in addition to the above mentioned lines also contain:
+
+```
+os_name = "Linux"
+custom_label = "A Custom Label"
+list = [ "group-A;linux-servers", "bar" ]
 ```
 
 #### Elasticsearch in Cluster HA Zones <a id="elasticsearch-writer-cluster-ha"></a>
@@ -815,16 +835,6 @@ apt-get install icinga2-ido-mysql
     default. You can skip the automated setup and install/upgrade the
     database manually if you prefer.
 
-###### CentOS 7
-
-!!! info
-
-    Note that installing `icinga2-ido-mysql` is only supported on CentOS 7 as CentOS 8 is EOL.
-
-```bash
-yum install icinga2-ido-mysql
-```
-
 ###### RHEL 8
 
 ```bash
@@ -843,7 +853,7 @@ yum install icinga2-ido-mysql
 zypper install icinga2-ido-mysql
 ```
 
-###### Amazon Linux 2
+###### Amazon Linux
 
 ```bash
 yum install icinga2-ido-mysql
@@ -914,16 +924,6 @@ apt-get install icinga2-ido-pgsql
     You can skip the automated setup and install/upgrade the database manually
     if you prefer that.
 
-###### CentOS 7
-
-!!! info
-
-    Note that installing `icinga2-ido-pgsql` is only supported on CentOS 7 as CentOS 8 is EOL.
-
-```bash
-yum install icinga2-ido-pgsql
-```
-
 ###### RHEL 8
 
 ```bash
@@ -942,7 +942,7 @@ yum install icinga2-ido-pgsql
 zypper install icinga2-ido-pgsql
 ```
 
-###### Amazon Linux 2
+###### Amazon Linux
 
 ```bash
 yum install icinga2-ido-pgsql

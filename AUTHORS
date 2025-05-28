@@ -11,6 +11,7 @@ Alexander Fuhr <alexander.fuhr@netways.de>
 Alexander Schomburg <script.acc@alex.schomb.org>
 Alexander Stoll <astoll@netways.de>
 Alexander Wirt <formorer@debian.org>
+Alvar Penning <alvar.penning@icinga.com>
 Andrea Avancini <andrea.avancini@wuerth-phoenix.com>
 Andrea Kao <eirinikos@gmail.com>
 Andreas Maus <maus@badphish.ypbind.de>
@@ -20,6 +21,7 @@ Andres Ivanov <andres@andres.wtf>
 Andrew Jaffie <ajaffie@gmail.com>
 Andrew Meyer <ameyer+secure@nodnetwork.org>
 Andy Grunwald <andygrunwald@gmail.com>
+Angel Roman <angel.r.roman77@gmail.com>
 Ant1x <37016240+Ant1x@users.noreply.github.com>
 Arnd Hannemann <arnd@arndnet.de>
 Assaf Flatto <assaf@aikilinux.com>
@@ -51,6 +53,7 @@ Christian Gut <cycloon@is-root.org>
 Christian Harke <ch.harke@gmail.com>
 Christian Jonak <christian@jonak.org>
 Christian Lehmann <christian_lehmann@gmx.de>
+Christian Lauf <github.com@christian-lauf.info>
 Christian Loos <cloos@netsandbox.de>
 Christian Schmidt <github@chsc.dk>
 Christopher Peterson <3893680+cspeterson@users.noreply.github.com>
@@ -71,8 +74,10 @@ Denis <zaharden@gmail.com>
 Dennis Lichtenthäler <dennis.lichtenthaeler@stiftung-tannenhof.de>
 dh.harald <dh.harald@gmail.com>
 Diana Flach <diana.flach@icinga.com>
+Didier 'OdyX' Raboud <didier.raboud@liip.ch>
 Dinesh Majrekar <dinesh.majrekar@serverchoice.com>
 Dirk Goetz <dirk.goetz@icinga.com>
+Dirk Wening <dirk.wening@netways.de>
 Dirk Melchers <dirk@dirk-melchers.de>
 Dolf Schimmel <dolf@transip.nl>
 Dominik Riva <driva@protonmail.com>
@@ -131,8 +136,10 @@ Jesse Morgan <morgajel@gmail.com>
 Jo Goossens <jo.goossens@hosted-power.com>
 Jochen Friedrich <j.friedrich@nwe.de>
 Johannes Meyer <johannes.meyer@icinga.com>
+Johannes Schmidt <johannes.schmidt@icinga.com>
 Jonas Meurer <jonas@freesources.org>
 Jordi van Scheijen <jordi.vanscheijen@solvinity.com>
+Josef Friedrich <josef@friedrich.rocks>
 Joseph L. Casale <jcasale@activenetwerx.com>
 jre3brg <jorge.rebelo@pt.bosch.com>
 Julian Brost <julian.brost@icinga.com>
@@ -153,12 +160,14 @@ Lennart Betz <lennart.betz@icinga.com>
 Leon Stringer <leon@priorsvle.com>
 lihan <tclh123@gmail.com>
 log1-c <24474580+log1-c@users.noreply.github.com>
+Lord Hepipud <contact@lordhepipud.de>
 Lorenz Kästle <lorenz.kaestle@netways.de>
 Louis Sautier <sautier.louis@gmail.com>
 Luca Lesinigo <luca@lm-net.it>
 Lucas Bremgartner <breml@users.noreply.github.com>
 Lucas Fairchild-Madar <lucas.madar@gmail.com>
 Luiz Amaral <luiz.amaral@innogames.com>
+Maciej Dems <maciej.dems@p.lodz.pl>
 Magnus Bäck <magnus@noun.se>
 Maik Stuebner <maik@stuebner.info>
 Malte Rabenseifner <mail@malte-rabenseifner.de>
@@ -205,7 +214,9 @@ mocruz <mocruz@theworkshop.com>
 Muhammad Mominul Huque <nahidbinbaten1995@gmail.com>
 nemtrif <ntrifunovic@hotmail.com>
 Nicolai <nbuchwitz@users.noreply.github.com>
+Nicolas Berens <nicolas.berens@planet.com>
 Nicolas Limage <github@xephon.org>
+Nicolas Rodriguez <nico@nicoladmin.fr>
 Nicole Lang <nicole.lang@icinga.com>
 Niflou <dubuscyr@gmail.com>
 Noah Hilverling <noah.hilverling@icinga.com>
@@ -219,6 +230,7 @@ Patrick Dolinic <pdolinic@netways.de>
 Patrick Huy <frz@frz.cc>
 Paul Denning <paul.denning@dimensiondata.com>
 Paul Richards <paul@minimoo.org>
+Pavel Motyrev <legioner.r@gmail.com>
 Pawel Szafer <pszafer@gmail.com>
 Per von Zweigbergk <pvz@itassistans.se>
 Peter Eckel <6815386+peteeckel@users.noreply.github.com>
@@ -232,7 +244,7 @@ pv2b <pvz@pvz.pp.se>
 Ralph Breier <ralph.breier@roedl.com>
 Reto Zeder <reto.zeder@arcade.ch>
 Ricardo Bartels <ricardo@bitchbrothers.com>
-RincewindsHat <12514511+RincewindsHat@users.noreply.github.com>
+Richard Mortimer <richm@oldelvet.org.uk>
 Rinck H. Sonnenberg <r.sonnenberg@netson.nl>
 Robert Lindgren <robert.lindgren@gmail.com>
 Robert Scheck <robert@fedoraproject.org>
@@ -249,6 +261,7 @@ Sascha Westermann <sascha.westermann@hl-services.de>
 Sebastian Brückner <mail@invlid.com>
 Sebastian Chrostek <sebastian@chrostek.net>
 Sebastian Eikenberg <eikese@mail.uni-paderborn.de>
+Sebastian Grund <s.grund@openinfrastructure.de>
 Sebastian Marsching <sebastian-git-2016@marsching.com>
 Silas <67681686+Tqnsls@users.noreply.github.com>
 Simon Murray <spjmurray@yahoo.co.uk>
@@ -269,6 +282,7 @@ Sven Wegener <swegener@gentoo.org>
 sysadt <sysadt@protonmail.com>
 T. Mulyana <nothinux@gmail.com>
 teclogi <27726999+teclogi@users.noreply.github.com>
+Theo Buehler <tb@openbsd.org>
 Thomas Forrer <thomas.forrer@wuerth-phoenix.com>
 Thomas Gelf <thomas.gelf@icinga.com>
 Thomas Niedermeier <tniedermeier@thomas-krenn.com>
@@ -276,6 +290,7 @@ Thomas Widhalm <thomas.widhalm@icinga.com>
 Tim Hardeck <thardeck@suse.de>
 Tim Weippert <weiti@weiti.eu>
 Timo Buhrmester <van.fstd@gmail.com>
+Tobias Bauriedel <tobias.bauriedel@netways.de>
 Tobias Birnbaum <osterd@gmx.de>
 Tobias Deiminger <haxtibal@posteo.de>
 Tobias von der Krone <tobias.vonderkrone@profitbricks.com>
@@ -290,6 +305,7 @@ Winfried Angele <winfried.angele@gmail.com>
 Wolfgang Nieder <wnd@gmx.net>
 XnS <git@xns.be>
 Yannick Charton <tontonitch-pro@yahoo.fr>
+Yannick Martin <yannick.martin@ovhcloud.com>
 Yohan Jarosz <yohanjarosz@yahoo.fr>
 Yonas Habteab <yonas.habteab@icinga.com>
 Zachary McGibbon <zachary.mcgibbon@gmail.com>

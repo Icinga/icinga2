@@ -78,11 +78,14 @@ bool DeleteObjectHandler::HandleRequest(
 
 	bool success = true;
 
-	for (const ConfigObject::Ptr& obj : objs) {
+	for (ConfigObject::Ptr obj : objs) {
 		int code;
 		String status;
 		Array::Ptr errors = new Array();
 		Array::Ptr diagnosticInformation = new Array();
+
+		// Lock the object name of the given type to prevent from being modified/deleted concurrently.
+		ObjectNameLock objectNameLock(type, obj->GetName());
 
 		if (!ConfigObjectUtility::DeleteObject(obj, cascade, errors, diagnosticInformation)) {
 			code = 500;
@@ -120,4 +123,3 @@ bool DeleteObjectHandler::HandleRequest(
 
 	return true;
 }
-

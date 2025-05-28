@@ -23,6 +23,8 @@ std::map<String, int> Notification::m_StateFilterMap;
 std::map<String, int> Notification::m_TypeFilterMap;
 
 boost::signals2::signal<void (const Notification::Ptr&, const MessageOrigin::Ptr&)> Notification::OnNextNotificationChanged;
+boost::signals2::signal<void (const Notification::Ptr&, const String&, uint_fast8_t, const MessageOrigin::Ptr&)> Notification::OnLastNotifiedStatePerUserUpdated;
+boost::signals2::signal<void (const Notification::Ptr&, const MessageOrigin::Ptr&)> Notification::OnLastNotifiedStatePerUserCleared;
 
 String NotificationNameComposer::MakeName(const String& shortName, const Object::Ptr& context) const
 {
@@ -171,7 +173,7 @@ std::set<User::Ptr> Notification::GetUsers() const
 	if (users) {
 		ObjectLock olock(users);
 
-		for (const String& name : users) {
+		for (String name : users) {
 			User::Ptr user = User::GetByName(name);
 
 			if (!user)
@@ -193,7 +195,7 @@ std::set<UserGroup::Ptr> Notification::GetUserGroups() const
 	if (groups) {
 		ObjectLock olock(groups);
 
-		for (const String& name : groups) {
+		for (String name : groups) {
 			UserGroup::Ptr ug = UserGroup::GetByName(name);
 
 			if (!ug)
@@ -221,6 +223,30 @@ void Notification::ResetNotificationNumber()
 	SetNotificationNumber(0);
 }
 
+/**
+ * Check whether the given notification type is a Recovery or FlappingEnd notification and the Checkable object
+ * has already recovered.
+ *
+ * For the latter case, if the Checkable has recovered while it was in a Flapping state, the recovery notification
+ * will be silently discarded and leave some internal states of the Notification object that depend on it in an
+ * inconsistent state. So, use this helper function whether to reset one of these states.
+ *
+ * @param checkable The checkable object the notification is for
+ * @param cr The current check result passed to the notification
+ * @param type The requested notification type
+ *
+ * @return bool
+ */
+static bool IsRecoveryOrFlappingEndAndCheckableIsOK(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, NotificationType type)
+{
+	if (type == NotificationRecovery) {
+		return true;
+	}
+
+	// Check whether missed the Checkable recovery because of its Flapping state.
+	return type == NotificationFlappingEnd && cr && checkable->IsStateOK(cr->GetState());
+}
+
 void Notification::BeginExecuteNotification(NotificationType type, const CheckResult::Ptr& cr, bool force, bool reminder, const String& author, const String& text)
 {
 	String notificationName = GetName();
@@ -232,6 +258,16 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 		<< "' for notification object '" << notificationName << "'.";
 
 	Checkable::Ptr checkable = GetCheckable();
+
+	// Clear the last notified problem state per user if we're sending a recovery notification or if we're sending a
+	// flapping end notification and the checkable is already in an OK state. This is necessary since we might have
+	// missed the recovery notification due to the flapping state.
+	if (IsRecoveryOrFlappingEndAndCheckableIsOK(checkable, cr, type)) {
+		auto states (GetLastNotifiedStatePerUser());
+
+		states->Clear();
+		OnLastNotifiedStatePerUserCleared(this, nullptr);
+	}
 
 	if (!force) {
 		TimePeriod::Ptr tp = GetPeriod();
@@ -329,7 +365,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 			 */
 			{
 				ObjectLock olock(this);
-				if (type == NotificationRecovery && GetInterval() <= 0)
+				if (GetInterval() <= 0 && IsRecoveryOrFlappingEndAndCheckableIsOK(checkable, cr, type))
 					SetNoMoreNotifications(false);
 			}
 
@@ -380,7 +416,7 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 
 		if (type == NotificationProblem && GetInterval() <= 0)
 			SetNoMoreNotifications(true);
-		else
+		else if (IsRecoveryOrFlappingEndAndCheckableIsOK(checkable, cr, type))
 			SetNoMoreNotifications(false);
 
 		if (type == NotificationProblem && GetInterval() > 0)
@@ -419,22 +455,34 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 			continue;
 		}
 
-		/* on recovery, check if user was notified before */
-		if (type == NotificationRecovery) {
-			if (!notifiedProblemUsers->Contains(userName) && (NotificationProblem & user->GetTypeFilter())) {
+		/* on acknowledgement/recovery, check if user was notified before */
+		if (type == NotificationAcknowledgement || type == NotificationRecovery) {
+			// Do not notify the user about the ACK/recovery of a problem state that they have not been notified
+			// about, unless they are explicitly configured to receive ACK/recovery notifications but no problem
+			// ones, or this Notification instance isn't allowed to send problem notifications (doesn't contain
+			// the 'Problem' type filter).
+			if (!notifiedProblemUsers->Contains(userName) && NotificationProblem & user->GetTypeFilter() & GetTypeFilter()) {
 				Log(LogNotice, "Notification")
 					<< "Notification object '" << notificationName << "': We did not notify user '" << userName
-					<< "' (Problem types enabled) for a problem before. Not sending Recovery notification.";
+					<< "' (Problem types enabled) for a problem before. Not sending "
+					<< (type == NotificationRecovery ? "Recovery" : "acknowledgement") << " notification.";
 				continue;
 			}
 		}
 
-		/* on acknowledgement, check if user was notified before */
-		if (type == NotificationAcknowledgement) {
-			if (!notifiedProblemUsers->Contains(userName) && (NotificationProblem & user->GetTypeFilter())) {
+		if (type == NotificationProblem && !reminder && !checkable->GetVolatile()) {
+			auto [host, service] = GetHostService(checkable);
+			uint_fast8_t state = service ? static_cast<uint_fast8_t>(service->GetState())
+				: static_cast<uint_fast8_t>(host->GetState());
+
+			if (state == (uint_fast8_t)GetLastNotifiedStatePerUser()->Get(userName)) {
+				auto stateStr (service ? NotificationServiceStateToString(service->GetState()) : NotificationHostStateToString(host->GetState()));
+
 				Log(LogNotice, "Notification")
-					<< "Notification object '" << notificationName << "': We did not notify user '" << userName
-					<< "' (Problem types enabled) for a problem before. Not sending acknowledgement notification.";
+					<< "Notification object '" << notificationName << "': We already notified user '" << userName << "' for a " << stateStr
+					<< " problem. Likely after that another state change notification was filtered out by config. Not sending duplicate '"
+					<< stateStr << "' notification.";
+
 				continue;
 			}
 		}
@@ -452,13 +500,24 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 		/* collect all notified users */
 		allNotifiedUsers.insert(user);
 
+		if (type == NotificationProblem) {
+			auto [host, service] = GetHostService(checkable);
+			uint_fast8_t state = service ? static_cast<uint_fast8_t>(service->GetState())
+				: static_cast<uint_fast8_t>(host->GetState());
+
+			if (state != (uint_fast8_t)GetLastNotifiedStatePerUser()->Get(userName)) {
+				GetLastNotifiedStatePerUser()->Set(userName, state);
+				OnLastNotifiedStatePerUserUpdated(this, userName, state, nullptr);
+			}
+		}
+
 		/* store all notified users for later recovery checks */
 		if (type == NotificationProblem && !notifiedProblemUsers->Contains(userName))
 			notifiedProblemUsers->Add(userName);
 	}
 
 	/* if this was a recovery notification, reset all notified users */
-	if (type == NotificationRecovery)
+	if (IsRecoveryOrFlappingEndAndCheckableIsOK(checkable, cr, type))
 		notifiedProblemUsers->Clear();
 
 	/* used in db_ido for notification history */
@@ -608,8 +667,7 @@ String Notification::NotificationFilterToString(int filter, const std::map<Strin
 {
 	std::vector<String> sFilters;
 
-	typedef std::pair<String, int> kv_pair;
-	for (const kv_pair& kv : filterMap) {
+	for (auto& kv : filterMap) {
 		if (filter & kv.second)
 			sFilters.push_back(kv.first);
 	}
@@ -704,7 +762,7 @@ void Notification::Validate(int types, const ValidationUtils& utils)
 	Array::Ptr groups = GetUserGroupsRaw();
 
 	if ((!users || users->GetLength() == 0) && (!groups || groups->GetLength() == 0))
-		BOOST_THROW_EXCEPTION(ValidationError(this, std::vector<String>(), "Validation failed: No users/user_groups specified."));
+		BOOST_THROW_EXCEPTION(ValidationError(this, std::vector<String>(), "No users/user_groups specified."));
 }
 
 void Notification::ValidateStates(const Lazy<Array::Ptr>& lvalue, const ValidationUtils& utils)

@@ -23,7 +23,7 @@ Dictionary::Ptr ObjectQueryHandler::SerializeObjectAttrs(const Object::Ptr& obje
 
 	if (isJoin && attrs) {
 		ObjectLock olock(attrs);
-		for (const String& attr : attrs) {
+		for (String attr : attrs) {
 			if (attr == attrPrefix) {
 				allAttrs = true;
 				break;
@@ -31,7 +31,7 @@ Dictionary::Ptr ObjectQueryHandler::SerializeObjectAttrs(const Object::Ptr& obje
 		}
 	}
 
-	if (!isJoin && (!attrs || attrs->GetLength() == 0))
+	if (!isJoin && !attrs)
 		allAttrs = true;
 
 	if (allAttrs) {
@@ -40,7 +40,7 @@ Dictionary::Ptr ObjectQueryHandler::SerializeObjectAttrs(const Object::Ptr& obje
 		}
 	} else if (attrs) {
 		ObjectLock olock(attrs);
-		for (const String& attr : attrs) {
+		for (String attr : attrs) {
 			String userAttr;
 
 			if (isJoin) {
@@ -173,7 +173,7 @@ bool ObjectQueryHandler::HandleRequest(
 
 	if (ujoins) {
 		ObjectLock olock(ujoins);
-		for (const String& ujoin : ujoins) {
+		for (String ujoin : ujoins) {
 			userJoinAttrs.insert(ujoin.SubStr(0, ujoin.FindFirstOf(".")));
 		}
 	}
@@ -193,7 +193,7 @@ bool ObjectQueryHandler::HandleRequest(
 	std::unordered_map<Type*, std::pair<bool, std::unique_ptr<Expression>>> typePermissions;
 	std::unordered_map<Object*, bool> objectAccessAllowed;
 
-	for (const ConfigObject::Ptr& obj : objs) {
+	for (ConfigObject::Ptr obj : objs) {
 		DictionaryData result1{
 			{ "name", obj->GetName() },
 			{ "type", obj->GetReflectionType()->GetName() }
@@ -203,18 +203,12 @@ bool ObjectQueryHandler::HandleRequest(
 
 		if (umetas) {
 			ObjectLock olock(umetas);
-			for (const String& meta : umetas) {
+			for (String meta : umetas) {
 				if (meta == "used_by") {
 					Array::Ptr used_by = new Array();
 					metaAttrs.emplace_back("used_by", used_by);
 
-					for (const Object::Ptr& pobj : DependencyGraph::GetParents((obj)))
-					{
-						ConfigObject::Ptr configObj = dynamic_pointer_cast<ConfigObject>(pobj);
-
-						if (!configObj)
-							continue;
-
+					for (auto& configObj : DependencyGraph::GetChildren(obj)) {
 						used_by->Add(new Dictionary({
 							{ "type", configObj->GetReflectionType()->GetName() },
 							{ "name", configObj->GetName() }

@@ -101,6 +101,39 @@ private:
 	static bool CommitNewItems(const ActivationContext::Ptr& context, WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems);
 };
 
+/**
+ * Helper class for exposing config items being committed to the ConfigType::BeforeOnAllConfigLoaded callback.
+ *
+ * This class wraps a reference to an internal data structure used in ConfigItem::CommitNewItems() and provides
+ * functions useful for the callbacks without exposing the internals of CommitNewItems().
+ */
+class ConfigItems
+{
+	explicit ConfigItems(std::vector<std::pair<ConfigItem::Ptr, bool>>& items) : m_Items(items) {}
+
+	std::vector<std::pair<ConfigItem::Ptr, bool>>& m_Items;
+
+	friend ConfigItem;
+
+public:
+	/**
+	 * ForEachObject<T>(f) calls f(t) for each object T::Ptr t in vector of underlying config items.
+	 *
+	 * @tparam T ConfigObject type to iterate over
+	 * @tparam F Callback functor type (usually automatically deduced from func)
+	 * @param func Functor accepting T::Ptr as an argument to be called for each object
+	 */
+	template<typename T, typename F>
+	void ForEachObject(F func) const
+	{
+		for (const auto& item : m_Items) {
+			if (typename T::Ptr obj = dynamic_pointer_cast<T>(item.first->GetObject()); obj) {
+				func(std::move(obj));
+			}
+		}
+	}
+};
+
 }
 
 #endif /* CONFIGITEM_H */

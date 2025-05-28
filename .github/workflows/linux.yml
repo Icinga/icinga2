@@ -8,12 +8,12 @@ on:
   pull_request: {}
 
 concurrency:
-  group: linux-${{ github.ref }}
+  group: linux-${{ github.event_name == 'push' && github.sha || github.ref }}
   cancel-in-progress: true
 
 jobs:
   linux:
-    name: ${{ matrix.distro }}
+    name: ${{ matrix.distro }}${{ matrix.platform != 'linux/amd64' && format(' ({0})', matrix.platform) || '' }}
     runs-on: ubuntu-latest
 
     strategy:
@@ -21,31 +21,64 @@ jobs:
       max-parallel: 2
       matrix:
         distro:
+          # Alpine Linux to build Icinga 2 with LibreSSL, OpenBSD's default.
+          # The "alpine:bash" image will be built below based on "alpine:3".
+          - alpine:bash
+
           - amazonlinux:2
-          - centos:7 # and RHEL 7
-          - debian:10
-          - debian:11 # and Raspbian 11
-          - fedora:36
-          - fedora:37
-          - opensuse/leap:15.3 # SLES 15.3
-          - opensuse/leap:15.4 # and SLES 15.4
-          - rockylinux:8 # RHEL 8
-          - rockylinux:9 # RHEL 9
+          - amazonlinux:2023
+
+          # Raspberry Pi OS is close enough to Debian to test just one of them.
+          # Its architecture is different, though, and covered by the Docker job.
+          - debian:11
+          - debian:12
+
+          - fedora:39
+          - fedora:40
+          - fedora:41
+
+          - opensuse/leap:15.5
+          - opensuse/leap:15.6
+
+          # We don't actually support Rocky Linux as such!
+          # We just use that RHEL clone to test the original.
+          - rockylinux:8
+          - rockylinux:9
+
+          - registry.suse.com/suse/sle15:15.5
+          - registry.suse.com/suse/sle15:15.6
+
           - ubuntu:20.04
           - ubuntu:22.04
-          - ubuntu:22.10
+          - ubuntu:24.04
+          - ubuntu:24.10
+
+        platform:
+          - linux/amd64
+
+        include:
+          - distro: debian:11
+            platform: linux/386
+          - distro: debian:12
+            platform: linux/386
 
     steps:
       - name: Checkout HEAD
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Restore/backup ccache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ccache
           key: ccache/${{ matrix.distro }}
 
-      - name: Build
+      - name: Build Alpine Docker Image
+        if: "matrix.distro == 'alpine:bash'"
+        run: >-
+          docker build --file .github/workflows/alpine-bash.Dockerfile
+          --tag alpine:bash `mktemp -d`
+
+      - name: Build Icinga
         run: >-
           docker run --rm -v "$(pwd):/icinga2" -e DISTRO=${{ matrix.distro }}
-          ${{ matrix.distro }} /icinga2/.github/workflows/linux.bash
+          --platform ${{ matrix.platform }} ${{ matrix.distro }} /icinga2/.github/workflows/linux.bash

@@ -89,10 +89,13 @@ public:
 				count++;
 
 			EnqueueUnlocked(lock, [&items, func, offset, count, this]() {
-				for (SizeType j = offset; j < offset + count; j++) {
-					RunTaskFunction([&func, &items, j]() {
-						func(items[j]);
-					});
+				SizeType j;
+				TaskFunction f = [&func, &items, &j]() {
+					func(items[j]);
+				};
+
+				for (j = offset; j < offset + count; j++) {
+					RunTaskFunction(f);
 				}
 			});
 

@@ -51,7 +51,7 @@ described. Try running the plugin after setup and [ensure it works](05-service-m
 Prior to using the check plugin with Icinga 2 you should ensure that it is working properly
 by trying to run it on the console using whichever user Icinga 2 is running as:
 
-RHEL/CentOS/Fedora
+RHEL/Fedora
 
 ```bash
 sudo -u icinga /usr/lib64/nagios/plugins/check_mysql_health --help
@@ -111,7 +111,7 @@ Can't locate Net/SNMP.pm in @INC (you may need to install the Net::SNMP module)
 
 Prior to installing the Perl module via CPAN, look for a distribution
 specific package, e.g. `libnet-snmp-perl` on Debian/Ubuntu or `perl-Net-SNMP`
-on RHEL/CentOS.
+on RHEL.
 
 
 #### Optional: Custom Path <a id="service-monitoring-plugins-custom-path"></a>
@@ -225,12 +225,12 @@ apply Service "db-size-" for (db_name => config in host.vars.databases) {
   check_command = "mysql_health"
 
   if (config.mysql_health_username) {
-    vars.mysql_healt_username = config.mysql_health_username
+    vars.mysql_health_username = config.mysql_health_username
   } else {
     vars.mysql_health_username = "root"
   }
   if (config.mysql_health_password) {
-    vars.mysql_healt_password = config.mysql_health_password
+    vars.mysql_health_password = config.mysql_health_password
   } else {
     vars.mysql_health_password = "icingar0xx"
   }
@@ -281,10 +281,10 @@ that [it works](05-service-monitoring.md#service-monitoring-plugins-it-works). T
 `--help` parameter to see the actual parameters (docs might be outdated).
 
 ```
-./check_systemd.py --help
+./check_systemd --help
 
-usage: check_systemd.py [-h] [-c SECONDS] [-e UNIT | -u UNIT] [-v] [-V]
-                        [-w SECONDS]
+usage: check_systemd [-h] [-c SECONDS] [-e UNIT | -u UNIT] [-v] [-V]
+                     [-w SECONDS]
 
 ...
 
@@ -319,7 +319,7 @@ Start with the basic plugin call without any parameters.
 
 ```
 object CheckCommand "systemd" { // Plugin name without 'check_' prefix
-  command = [ PluginContribDir + "/check_systemd.py" ] // Use the 'PluginContribDir' constant, see the contributed ITL commands
+  command = [ PluginContribDir + "/check_systemd" ] // Use the 'PluginContribDir' constant, see the contributed ITL commands
 }
 ```
 

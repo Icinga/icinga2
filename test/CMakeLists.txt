@@ -2,13 +2,68 @@
 
 include(BoostTestTargets)
 
+set(types_test_SOURCES
+  icingaapplication-fixture.cpp
+  base-type.cpp
+  ${base_OBJS}
+  $<TARGET_OBJECTS:config>
+  $<TARGET_OBJECTS:remote>
+  $<TARGET_OBJECTS:icinga>
+  $<TARGET_OBJECTS:methods>
+)
+
+if(ICINGA2_WITH_CHECKER)
+  list(APPEND types_test_SOURCES $<TARGET_OBJECTS:checker>)
+endif()
+
+if(ICINGA2_WITH_MYSQL)
+  list(APPEND types_test_SOURCES $<TARGET_OBJECTS:db_ido> $<TARGET_OBJECTS:db_ido_mysql>)
+endif()
+
+if(ICINGA2_WITH_PGSQL)
+  list(APPEND types_test_SOURCES $<TARGET_OBJECTS:db_ido> $<TARGET_OBJECTS:db_ido_pgsql>)
+endif()
+
+if(ICINGA2_WITH_ICINGADB)
+  list(APPEND types_test_SOURCES $<TARGET_OBJECTS:icingadb>)
+endif()
+
+if(ICINGA2_WITH_NOTIFICATION)
+  list(APPEND types_test_SOURCES $<TARGET_OBJECTS:notification>)
+endif()
+
+if(ICINGA2_WITH_PERFDATA)
+  list(APPEND types_test_SOURCES $<TARGET_OBJECTS:perfdata>)
+endif()
+
+if(ICINGA2_UNITY_BUILD)
+  mkunity_target(types test types_test_SOURCES)
+endif()
+
+# In order to test the order of all Icinga 2 config type load dependencies, we need to link against all the libraries,
+# but this results in boost signals e.g. in dbevents.cpp being triggered by icinga-checkresult.cpp test cases that
+# only pass partially initialised objects. Therefore, the types test cases are decoupled from base and moved to a
+# separate executable to not crash the base test cases.
+add_boost_test(types
+  SOURCES test-runner.cpp ${types_test_SOURCES}
+  LIBRARIES ${base_DEPS}
+  TESTS
+    types/gettype
+    types/assign
+    types/byname
+    types/instantiate
+    types/sort_by_load_after
+)
+
 set(base_test_SOURCES
   icingaapplication-fixture.cpp
+  utils.cpp
   base-array.cpp
   base-base64.cpp
   base-convert.cpp
   base-dictionary.cpp
   base-fifo.cpp
+  base-io-engine.cpp
   base-json.cpp
   base-match.cpp
   base-netstring.cpp
@@ -21,9 +76,9 @@ set(base_test_SOURCES
   base-string.cpp
   base-timer.cpp
   base-tlsutility.cpp
-  base-type.cpp
   base-utility.cpp
   base-value.cpp
+  config-apply.cpp
   config-ops.cpp
   icinga-checkresult.cpp
   icinga-dependencies.cpp
@@ -31,12 +86,14 @@ set(base_test_SOURCES
   icinga-macros.cpp
   icinga-notification.cpp
   icinga-perfdata.cpp
+  methods-pluginnotificationtask.cpp
   remote-configpackageutility.cpp
   remote-url.cpp
   ${base_OBJS}
   $<TARGET_OBJECTS:config>
   $<TARGET_OBJECTS:remote>
   $<TARGET_OBJECTS:icinga>
+  $<TARGET_OBJECTS:methods>
 )
 
 if(ICINGA2_UNITY_BUILD)
@@ -73,6 +130,11 @@ add_boost_test(base
     base_dictionary/keys_ordered
     base_fifo/construct
     base_fifo/io
+    base_io_engine/timeout_run
+    base_io_engine/timeout_cancelled
+    base_io_engine/timeout_scope
+    base_io_engine/timeout_due_cancelled
+    base_io_engine/timeout_due_scope
     base_json/encode
     base_json/decode
     base_json/invalid1
@@ -104,15 +166,19 @@ add_boost_test(base
     base_string/replace
     base_string/index
     base_string/find
+    base_string/vector_move
+    base_string/move_string_out_of_Value_type
     base_timer/construct
     base_timer/interval
     base_timer/invoke
     base_timer/scope
     base_tlsutility/sha1
-    base_type/gettype
-    base_type/assign
-    base_type/byname
-    base_type/instantiate
+    base_tlsutility/iscauptodate_ok
+    base_tlsutility/iscauptodate_expiring
+    base_tlsutility/iscertuptodate_ok
+    base_tlsutility/iscertuptodate_expiring
+    base_tlsutility/iscertuptodate_old
+    base_tlsutility/VerifyCertificate_revalidate
     base_utility/parse_version
     base_utility/compare_version
     base_utility/comparepasswords_works
@@ -120,9 +186,43 @@ add_boost_test(base
     base_utility/validateutf8
     base_utility/EscapeCreateProcessArg
     base_utility/TruncateUsingHash
+    base_utility/FormatDateTime
+    base_utility/NormalizeTm
     base_value/scalar
     base_value/convert
     base_value/format
+    config_apply/gettargethosts_literal
+    config_apply/gettargethosts_const
+    config_apply/gettargethosts_swapped
+    config_apply/gettargethosts_two
+    config_apply/gettargethosts_three
+    config_apply/gettargethosts_mixed
+    config_apply/gettargethosts_redundant
+    config_apply/gettargethosts_badconst
+    config_apply/gettargethosts_notliteral
+    config_apply/gettargethosts_wrongop
+    config_apply/gettargethosts_wrongattr
+    config_apply/gettargethosts_wrongvar
+    config_apply/gettargethosts_noindexer
+    config_apply/gettargetservices_literal
+    config_apply/gettargetservices_const
+    config_apply/gettargetservices_swapped_outer
+    config_apply/gettargetservices_swapped_inner
+    config_apply/gettargetservices_two
+    config_apply/gettargetservices_three
+    config_apply/gettargetservices_mixed
+    config_apply/gettargetservices_redundant
+    config_apply/gettargetservices_badconst
+    config_apply/gettargetservices_notliteral
+    config_apply/gettargetservices_wrongop_outer
+    config_apply/gettargetservices_wrongop_host
+    config_apply/gettargetservices_wrongop_service
+    config_apply/gettargetservices_wrongattr_host
+    config_apply/gettargetservices_wrongattr_service
+    config_apply/gettargetservices_wrongvar_host
+    config_apply/gettargetservices_wrongvar_service
+    config_apply/gettargetservices_noindexer_host
+    config_apply/gettargetservices_noindexer_service
     config_ops/simple
     config_ops/advanced
     icinga_checkresult/host_1attempt
@@ -135,14 +235,27 @@ add_boost_test(base
     icinga_checkresult/service_flapping_notification
     icinga_checkresult/suppressed_notification
     icinga_dependencies/multi_parent
+    icinga_dependencies/push_dependency_groups_to_registry
+    icinga_dependencies/default_redundancy_group_registration_unregistration
+    icinga_dependencies/simple_redundancy_group_registration_unregistration
+    icinga_dependencies/mixed_redundancy_group_registration_unregsitration
     icinga_notification/strings
     icinga_notification/state_filter
     icinga_notification/type_filter
+    icinga_notification/no_filter_problem_no_duplicate
+    icinga_notification/filter_problem_no_duplicate
+    icinga_notification/volatile_filter_problem_duplicate
+    icinga_notification/no_recovery_filter_no_duplicate
+    icinga_notification/recovery_filter_duplicate
     icinga_macros/simple
     icinga_legacytimeperiod/simple
+    icinga_legacytimeperiod/is_in_range
+    icinga_legacytimeperiod/out_of_range_segments
+    icinga_legacytimeperiod/include_exclude_timeperiods
     icinga_legacytimeperiod/advanced
     icinga_legacytimeperiod/dst
     icinga_legacytimeperiod/dst_isinside
+    icinga_legacytimeperiod/find_nth_weekday
     icinga_perfdata/empty
     icinga_perfdata/simple
     icinga_perfdata/quotes
@@ -151,11 +264,13 @@ add_boost_test(base
     icinga_perfdata/normalize
     icinga_perfdata/uom
     icinga_perfdata/warncritminmax
-    icinga_perfdata/ignore_invalid_warn_crit_min_max
+    icinga_perfdata/ignore_warn_crit_ranges
     icinga_perfdata/invalid
     icinga_perfdata/multi
     icinga_perfdata/scientificnotation
     icinga_perfdata/parse_edgecases
+    icinga_perfdata/empty_warn_crit_min_max
+    methods_pluginnotificationtask/truncate_long_output
     remote_configpackageutility/ValidateName
     remote_url/id_and_path
     remote_url/parameters

@@ -181,19 +181,19 @@ void ApiListener::OnConfigLoaded()
 	UpdateSSLContext();
 }
 
-std::shared_ptr<X509> ApiListener::RenewCert(const std::shared_ptr<X509>& cert)
+std::shared_ptr<X509> ApiListener::RenewCert(const std::shared_ptr<X509>& cert, bool ca)
 {
 	std::shared_ptr<EVP_PKEY> pubkey (X509_get_pubkey(cert.get()), EVP_PKEY_free);
 	auto subject (X509_get_subject_name(cert.get()));
-	auto cacert (GetDefaultCaPath());
-	auto newcert (CreateCertIcingaCA(pubkey.get(), subject));
+	auto cacert (GetX509Certificate(GetDefaultCaPath()));
+	auto newcert (CreateCertIcingaCA(pubkey.get(), subject, ca));
 
 	/* verify that the new cert matches the CA we're using for the ApiListener;
 	 * this ensures that the CA we have in /var/lib/icinga2/ca matches the one
 	 * we're using for cluster connections (there's no point in sending a client
 	 * a certificate it wouldn't be able to use to connect to us anyway) */
 	try {
-		if (!VerifyCertificate(cacert, newcert, GetCrlPath())) {
+		if (!VerifyCertificate(cacert, newcert, GetCrlPath(), GetDefaultCaPath())) {
 			Log(LogWarning, "ApiListener")
 				<< "The CA in '" << GetDefaultCaPath() << "' does not match the CA which Icinga uses "
 				<< "for its own cluster connections. This is most likely a configuration problem.";
@@ -248,7 +248,12 @@ void ApiListener::Start(bool runtimeCreated)
 
 	if (Utility::PathExists(GetIcingaCADir() + "/ca.key")) {
 		RenewOwnCert();
-		m_RenewOwnCertTimer->OnTimerExpired.connect([this](const Timer * const&) { RenewOwnCert(); });
+		RenewCA();
+
+		m_RenewOwnCertTimer->OnTimerExpired.connect([this](const Timer * const&) {
+			RenewOwnCert();
+			RenewCA();
+		});
 	} else {
 		m_RenewOwnCertTimer->OnTimerExpired.connect([this](const Timer * const&) {
 			JsonRpcConnection::SendCertificateRequest(nullptr, nullptr, String());
@@ -329,6 +334,31 @@ void ApiListener::RenewOwnCert()
 	UpdateSSLContext();
 }
 
+void ApiListener::RenewCA()
+{
+	auto certPath (GetCaDir() + "/ca.crt");
+	auto cert (GetX509Certificate(certPath));
+
+	if (IsCaUptodate(cert.get())) {
+		return;
+	}
+
+	Log(LogInformation, "ApiListener")
+		<< "Our CA will expire soon, but we own it. Renewing.";
+
+	cert = RenewCert(cert, true);
+
+	if (!cert) {
+		return;
+	}
+
+	auto certStr (CertificateToString(cert));
+
+	AtomicFile::Write(GetDefaultCaPath(), 0644, certStr);
+	AtomicFile::Write(certPath, 0644, certStr);
+	UpdateSSLContext();
+}
+
 void ApiListener::Stop(bool runtimeDeleted)
 {
 	m_ApiPackageIntegrityTimer->Stop(true);
@@ -338,6 +368,7 @@ void ApiListener::Stop(bool runtimeDeleted)
 	m_Timer->Stop(true);
 	m_RenewOwnCertTimer->Stop(true);
 
+	m_WaitGroup->Join();
 	ObjectImpl<ApiListener>::Stop(runtimeDeleted);
 
 	Log(LogInformation, "ApiListener")
@@ -409,9 +440,7 @@ bool ApiListener::AddListener(const String& node, const String& service)
 
 	try {
 		tcp::resolver resolver (io);
-		tcp::resolver::query query (node, service, tcp::resolver::query::passive);
-
-		auto result (resolver.resolve(query));
+		auto result (resolver.resolve(node.GetData(), service.GetData(), tcp::resolver::passive));
 		auto current (result.begin());
 
 		for (;;) {
@@ -483,6 +512,8 @@ void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const Sha
 
 			server->async_accept(socket.lowest_layer(), yc);
 
+			auto remoteEndpoint (socket.lowest_layer().remote_endpoint());
+
 			if (!crlPath.IsEmpty()) {
 				time_t currentCreationTime = Utility::GetFileCreationTime(crlPath);
 
@@ -501,18 +532,16 @@ void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const Sha
 
 			auto strand (Shared<asio::io_context::strand>::Make(io));
 
-			IoEngine::SpawnCoroutine(*strand, [this, strand, sslConn](asio::yield_context yc) {
-				Timeout::Ptr timeout(new Timeout(strand->context(), *strand, boost::posix_time::microseconds(int64_t(GetConnectTimeout() * 1e6)),
-					[sslConn](asio::yield_context yc) {
+			IoEngine::SpawnCoroutine(*strand, [this, strand, sslConn, remoteEndpoint](asio::yield_context yc) {
+				Timeout timeout (*strand, boost::posix_time::microseconds(int64_t(GetConnectTimeout() * 1e6)),
+					[sslConn, remoteEndpoint] {
 						Log(LogWarning, "ApiListener")
-							<< "Timeout while processing incoming connection from "
-							<< sslConn->lowest_layer().remote_endpoint();
+							<< "Timeout while processing incoming connection from " << remoteEndpoint;
 
 						boost::system::error_code ec;
 						sslConn->lowest_layer().cancel(ec);
 					}
-				));
-				Defer cancelTimeout([timeout]() { timeout->Cancel(); });
+				);
 
 				NewClientHandler(yc, strand, sslConn, String(), RoleServer);
 			});
@@ -554,8 +583,8 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 
 			lock.unlock();
 
-			Timeout::Ptr timeout(new Timeout(strand->context(), *strand, boost::posix_time::microseconds(int64_t(GetConnectTimeout() * 1e6)),
-				[sslConn, endpoint, host, port](asio::yield_context yc) {
+			Timeout timeout (*strand, boost::posix_time::microseconds(int64_t(GetConnectTimeout() * 1e6)),
+				[sslConn, endpoint, host, port] {
 					Log(LogCritical, "ApiListener")
 						<< "Timeout while reconnecting to endpoint '" << endpoint->GetName() << "' via host '" << host
 						<< "' and port '" << port << "', cancelling attempt";
@@ -563,8 +592,7 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 					boost::system::error_code ec;
 					sslConn->lowest_layer().cancel(ec);
 				}
-			));
-			Defer cancelTimeout([&timeout]() { timeout->Cancel(); });
+			);
 
 			Connect(sslConn->lowest_layer(), host, port, yc);
 
@@ -612,7 +640,9 @@ static const auto l_AppVersionInt (([]() -> unsigned long {
 		+ boost::lexical_cast<unsigned long>(match[3].str());
 })());
 
-static const auto l_MyCapabilities (ApiCapabilities::ExecuteArbitraryCommand);
+static const auto l_MyCapabilities (
+	(uint_fast64_t)ApiCapabilities::ExecuteArbitraryCommand | (uint_fast64_t)ApiCapabilities::IfwApiCheckCommand
+);
 
 /**
  * Processes a new client connection.
@@ -650,19 +680,16 @@ void ApiListener::NewClientHandlerInternal(
 	boost::system::error_code ec;
 
 	{
-		Timeout::Ptr handshakeTimeout (new Timeout(
-			strand->context(),
+		Timeout handshakeTimeout (
 			*strand,
 			boost::posix_time::microseconds(intmax_t(Configuration::TlsHandshakeTimeout * 1000000)),
-			[strand, client](asio::yield_context yc) {
+			[client] {
 				boost::system::error_code ec;
 				client->lowest_layer().cancel(ec);
 			}
-		));
+		);
 
 		sslConn.async_handshake(role == RoleClient ? sslConn.client : sslConn.server, yc[ec]);
-
-		handshakeTimeout->Cancel();
 	}
 
 	if (ec) {
@@ -679,15 +706,14 @@ void ApiListener::NewClientHandlerInternal(
 		return;
 	}
 
-	bool willBeShutDown = false;
+	Defer shutdownSslConn ([&sslConn, &yc]() {
+		// Ignore the error, but do not throw an exception being swallowed at all cost.
+		// https://github.com/Icinga/icinga2/issues/7351
+		boost::system::error_code ec;
 
-	Defer shutDownIfNeeded ([&sslConn, &willBeShutDown, &yc]() {
-		if (!willBeShutDown) {
-			// Ignore the error, but do not throw an exception being swallowed at all cost.
-			// https://github.com/Icinga/icinga2/issues/7351
-			boost::system::error_code ec;
-			sslConn.async_shutdown(yc[ec]);
-		}
+		// Using async_shutdown() instead of AsioTlsStream::GracefulDisconnect() as this whole function
+		// is already guarded by a timeout based on the connect timeout.
+		sslConn.async_shutdown(yc[ec]);
 	});
 
 	std::shared_ptr<X509> cert (sslConn.GetPeerCertificate());
@@ -762,12 +788,12 @@ void ApiListener::NewClientHandlerInternal(
 				if (client->async_fill(yc[ec]) == 0u) {
 					if (identity.IsEmpty()) {
 						Log(LogInformation, "ApiListener")
-							<< "No data received on new API connection " << conninfo << ". "
-							<< "Ensure that the remote endpoints are properly configured in a cluster setup.";
+							<< "No data received on new API connection " << conninfo << ": " << ec.message()
+							<< ". Ensure that the remote endpoints are properly configured in a cluster setup.";
 					} else {
 						Log(LogWarning, "ApiListener")
-							<< "No data received on new API connection " << conninfo << " for identity '" << identity << "'. "
-							<< "Ensure that the remote endpoints are properly configured in a cluster setup.";
+							<< "No data received on new API connection " << conninfo << " for identity '" << identity << "': " << ec.message()
+							<< ". Ensure that the remote endpoints are properly configured in a cluster setup.";
 					}
 
 					return;
@@ -800,7 +826,7 @@ void ApiListener::NewClientHandlerInternal(
 		}
 	} catch (const boost::system::system_error& systemError) {
 		if (systemError.code() == boost::asio::error::operation_aborted) {
-			shutDownIfNeeded.Cancel();
+			shutdownSslConn.Cancel();
 		}
 
 		throw;
@@ -810,9 +836,11 @@ void ApiListener::NewClientHandlerInternal(
 		Log(LogNotice, "ApiListener", "New JSON-RPC client");
 
 		if (endpoint && endpoint->GetConnected()) {
-			Log(LogNotice, "ApiListener")
+			Log(LogInformation, "ApiListener")
 				<< "Ignoring JSON-RPC connection " << conninfo
-				<< ". We're already connected to Endpoint '" << endpoint->GetName() << "'.";
+				<< ". We're already connected to Endpoint '" << endpoint->GetName()
+				<< "' (last message sent: " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", endpoint->GetLastMessageSent())
+				<< ", last message received: " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", endpoint->GetLastMessageReceived()) << ").";
 			return;
 		}
 
@@ -834,8 +862,7 @@ void ApiListener::NewClientHandlerInternal(
 
 		if (aclient) {
 			aclient->Start();
-
-			willBeShutDown = true;
+			shutdownSslConn.Cancel();
 		}
 	} else {
 		Log(LogNotice, "ApiListener", "New HTTP client");
@@ -843,8 +870,7 @@ void ApiListener::NewClientHandlerInternal(
 		HttpServerConnection::Ptr aclient = new HttpServerConnection(identity, verify_ok, client);
 		AddHttpClient(aclient);
 		aclient->Start();
-
-		willBeShutDown = true;
+		shutdownSslConn.Cancel();
 	}
 }
 
@@ -988,17 +1014,22 @@ void ApiListener::ApiTimerHandler()
 				maxTs = client->GetTimestamp();
 		}
 
+		Log(LogNotice, "ApiListener")
+			<< "Setting log position for identity '" << endpoint->GetName() << "': "
+			<< Utility::FormatDateTime("%Y/%m/%d %H:%M:%S", ts);
+
 		for (const JsonRpcConnection::Ptr& client : endpoint->GetClients()) {
 			if (client->GetTimestamp() == maxTs) {
-				client->SendMessage(lmessage);
+				try {
+					client->SendMessage(lmessage);
+				} catch (const std::runtime_error& ex) {
+					Log(LogNotice, "ApiListener")
+						<< "Error while setting log position for identity '" << endpoint->GetName() << "': " << DiagnosticInformation(ex, false);
+				}
 			} else {
 				client->Disconnect();
 			}
 		}
-
-		Log(LogNotice, "ApiListener")
-			<< "Setting log position for identity '" << endpoint->GetName() << "': "
-			<< Utility::FormatDateTime("%Y/%m/%d %H:%M:%S", ts);
 	}
 }
 
@@ -1162,7 +1193,12 @@ void ApiListener::SyncSendMessage(const Endpoint::Ptr& endpoint, const Dictionar
 			if (client->GetTimestamp() != maxTs)
 				continue;
 
-			client->SendMessage(message);
+			try {
+				client->SendMessage(message);
+			} catch (const std::runtime_error& ex) {
+				Log(LogNotice, "ApiListener")
+					<< "Error while sending message to endpoint '" << endpoint->GetName() << "': " << DiagnosticInformation(ex, false);
+			}
 		}
 	}
 }
@@ -1343,7 +1379,6 @@ void ApiListener::OpenLogFile()
 	}
 
 	m_LogFile = new StdioStream(fp.release(), true);
-	m_LogMessageCount = 0;
 	SetLogMessageTimestamp(Utility::GetTime());
 }
 
@@ -1373,6 +1408,9 @@ void ApiListener::RotateLogFile()
 	if (!Utility::PathExists(newpath)) {
 		try {
 			Utility::RenameFile(oldpath, newpath);
+
+			// We're rotating the current log file, so reset the log message counter as well.
+			m_LogMessageCount = 0;
 		} catch (const std::exception& ex) {
 			Log(LogCritical, "ApiListener")
 				<< "Cannot rotate replay log file from '" << oldpath << "' to '"
@@ -1402,10 +1440,12 @@ void ApiListener::LogGlobHandler(std::vector<int>& files, const String& file)
 void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 {
 	Endpoint::Ptr endpoint = client->GetEndpoint();
+	Defer resetEndpointSyncing ([&endpoint]() {
+		ObjectLock olock(endpoint);
+		endpoint->SetSyncing(false);
+	});
 
 	if (endpoint->GetLogDuration() == 0) {
-		ObjectLock olock2(endpoint);
-		endpoint->SetSyncing(false);
 		return;
 	}
 
@@ -1422,8 +1462,6 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 	Zone::Ptr target_zone = target_endpoint->GetZone();
 
 	if (!target_zone) {
-		ObjectLock olock2(endpoint);
-		endpoint->SetSyncing(false);
 		return;
 	}
 
@@ -1431,12 +1469,14 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 		std::unique_lock<std::mutex> lock(m_LogLock);
 
 		CloseLogFile();
+		Defer reopenLog;
 
 		if (count == -1 || count > 50000) {
 			OpenLogFile();
 			lock.unlock();
 		} else {
 			last_sync = true;
+			reopenLog.SetFunc([this]() { OpenLogFile(); });
 		}
 
 		count = 0;
@@ -1505,12 +1545,11 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 					count++;
 				} catch (const std::exception& ex) {
 					Log(LogWarning, "ApiListener")
-						<< "Error while replaying log for endpoint '" << endpoint->GetName() << "': " << DiagnosticInformation(ex, false);
+						<< "Error while replaying log for endpoint '" << endpoint->GetName() << "': " << ex.what();
 
 					Log(LogDebug, "ApiListener")
 						<< "Error while replaying log for endpoint '" << endpoint->GetName() << "': " << DiagnosticInformation(ex);
-
-					break;
+					return;
 				}
 
 				peer_ts = pmessage->Get("timestamp");
@@ -1543,14 +1582,7 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 		}
 
 		if (last_sync) {
-			{
-				ObjectLock olock2(endpoint);
-				endpoint->SetSyncing(false);
-			}
-
-			OpenLogFile();
-
-			break;
+			return;
 		}
 	}
 }
@@ -1896,11 +1928,7 @@ void ApiListener::ValidateTlsHandshakeTimeout(const Lazy<double>& lvalue, const 
 bool ApiListener::IsHACluster()
 {
 	Zone::Ptr zone = Zone::GetLocalZone();
-
-	if (!zone)
-		return false;
-
-	return zone->IsSingleInstance();
+	return zone && zone->IsHACluster();
 }
 
 /* Provide a helper function for zone origin name. */

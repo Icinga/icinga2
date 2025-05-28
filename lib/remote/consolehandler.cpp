@@ -1,5 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include "remote/configobjectslock.hpp"
 #include "remote/consolehandler.hpp"
 #include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
@@ -31,9 +32,7 @@ static void ScriptFrameCleanupHandler()
 
 	std::vector<String> cleanup_keys;
 
-	typedef std::pair<String, ApiScriptFrame> KVPair;
-
-	for (const KVPair& kv : l_ApiScriptFrames) {
+	for (auto& kv : l_ApiScriptFrames) {
 		if (kv.second.Seen < Utility::GetTime() - 1800)
 			cleanup_keys.push_back(kv.first);
 	}
@@ -87,6 +86,13 @@ bool ConsoleHandler::HandleRequest(
 	String command = HttpUtility::GetLastParameter(params, "command");
 
 	bool sandboxed = HttpUtility::GetLastParameter(params, "sandboxed");
+
+	ConfigObjectsSharedLock lock (std::try_to_lock);
+
+	if (!lock) {
+		HttpUtility::SendJsonError(response, params, 503, "Icinga is reloading.");
+		return true;
+	}
 
 	if (methodName == "execute-script")
 		return ExecuteScriptHelper(request, response, params, command, session, sandboxed);

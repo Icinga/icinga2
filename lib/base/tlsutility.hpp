@@ -25,7 +25,10 @@
 namespace icinga
 {
 
-const char * const DEFAULT_TLS_CIPHERS = "ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:AES256-GCM-SHA384:AES128-GCM-SHA256";
+// Source: https://ssl-config.mozilla.org, i.e.
+// ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-CHACHA20-POLY1305
+// Modified so that AES256 is preferred over AES128.
+const char * const DEFAULT_TLS_CIPHERS = "ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256";
 
 const char * const DEFAULT_TLS_PROTOCOLMIN = "TLSv1.2";
 const unsigned int DEFAULT_CONNECT_TIMEOUT = 15;
@@ -55,12 +58,18 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile =
 std::shared_ptr<X509> CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NAME *issuer, EVP_PKEY *cakey, bool ca);
 
 String GetIcingaCADir();
-String CertificateToString(const std::shared_ptr<X509>& cert);
+String CertificateToString(X509* cert);
+
+inline String CertificateToString(const std::shared_ptr<X509>& cert)
+{
+	return CertificateToString(cert.get());
+}
 
 std::shared_ptr<X509> StringToCertificate(const String& cert);
-std::shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject);
+std::shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject, bool ca = false);
 std::shared_ptr<X509> CreateCertIcingaCA(const std::shared_ptr<X509>& cert);
 bool IsCertUptodate(const std::shared_ptr<X509>& cert);
+bool IsCaUptodate(X509* cert);
 
 String PBKDF2_SHA1(const String& password, const String& salt, int iterations);
 String PBKDF2_SHA256(const String& password, const String& salt, int iterations);
@@ -69,7 +78,8 @@ String SHA256(const String& s);
 String RandomString(int length);
 String BinaryToHex(const unsigned char* data, size_t length);
 
-bool VerifyCertificate(const String& caFile, const std::shared_ptr<X509>& certificate, const String& crlFile, STACK_OF(X509) *chain = nullptr);
+bool VerifyCertificate(const std::shared_ptr<X509> &caCertificate, const std::shared_ptr<X509> &certificate, const String& crlFile, const String& caBundleFile);
+bool VerifyCertificate(X509* caCertificate, X509* certificate, const String& crlFile, const String& caBundleFile);
 bool IsCa(const std::shared_ptr<X509>& cacert);
 int GetCertificateVersion(const std::shared_ptr<X509>& cert);
 String GetSignatureAlgorithm(const std::shared_ptr<X509>& cert);

@@ -1,7 +1,7 @@
 # Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+
 
 link_directories(${PostgreSQL_LIBRARY_DIRS})
-include_directories(${PostgreSQL_INCLUDE_DIRS})
+include_directories(SYSTEM ${PostgreSQL_INCLUDE_DIRS})
 
 set(pgsql_shim_SOURCES
   pgsql_shim.def

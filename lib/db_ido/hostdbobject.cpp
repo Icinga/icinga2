@@ -161,7 +161,7 @@ void HostDbObject::OnConfigUpdateHeavy()
 
 	if (groups) {
 		ObjectLock olock(groups);
-		for (const String& groupName : groups) {
+		for (String groupName : groups) {
 			HostGroup::Ptr group = HostGroup::GetByName(groupName);
 
 			DbQuery query2;
@@ -330,8 +330,6 @@ void HostDbObject::OnConfigUpdateHeavy()
 	}
 
 	DbObject::OnMultipleQueries(queries);
-
-	DoCommonConfigUpdate();
 }
 
 void HostDbObject::OnConfigUpdateLight()

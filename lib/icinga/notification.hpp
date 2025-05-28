@@ -13,6 +13,7 @@
 #include "remote/endpoint.hpp"
 #include "remote/messageorigin.hpp"
 #include "base/array.hpp"
+#include <cstdint>
 
 namespace icinga
 {
@@ -54,6 +55,7 @@ class ApplyRule;
 struct ScriptFrame;
 class Host;
 class Service;
+class UserGroup;
 
 /**
  * An Icinga notification specification.
@@ -72,7 +74,7 @@ public:
 	intrusive_ptr<NotificationCommand> GetCommand() const;
 	TimePeriod::Ptr GetPeriod() const;
 	std::set<User::Ptr> GetUsers() const;
-	std::set<UserGroup::Ptr> GetUserGroups() const;
+	std::set<intrusive_ptr<UserGroup>> GetUserGroups() const;
 
 	void UpdateNotificationNumber();
 	void ResetNotificationNumber();
@@ -92,6 +94,8 @@ public:
 	static String NotificationHostStateToString(HostState state);
 
 	static boost::signals2::signal<void (const Notification::Ptr&, const MessageOrigin::Ptr&)> OnNextNotificationChanged;
+	static boost::signals2::signal<void (const Notification::Ptr&, const String&, uint_fast8_t, const MessageOrigin::Ptr&)> OnLastNotifiedStatePerUserUpdated;
+	static boost::signals2::signal<void (const Notification::Ptr&, const MessageOrigin::Ptr&)> OnLastNotifiedStatePerUserCleared;
 
 	void Validate(int types, const ValidationUtils& utils) override;
 
@@ -105,7 +109,6 @@ public:
 	static const std::map<String, int>& GetStateFilterMap();
 	static const std::map<String, int>& GetTypeFilterMap();
 
-protected:
 	void OnConfigLoaded() override;
 	void OnAllConfigLoaded() override;
 	void Start(bool runtimeCreated) override;

@@ -49,4 +49,3 @@ int VariableListCommand::Run(const boost::program_options::variables_map& vm, co
 
 	return 0;
 }
-

@@ -23,8 +23,7 @@ public:
 
 	~FIFO() override;
 
-	size_t Peek(void *buffer, size_t count, bool allow_partial = false) override;
-	size_t Read(void *buffer, size_t count, bool allow_partial = false) override;
+	size_t Read(void *buffer, size_t count) override;
 	void Write(const void *buffer, size_t count) override;
 	void Close() override;
 	bool IsEof() const override;

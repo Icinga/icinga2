@@ -124,7 +124,7 @@ bool ScriptUtils::Regex(const std::vector<Value>& args)
 		if (texts->GetLength() == 0)
 			return false;
 
-		for (const String& text : texts) {
+		for (String text : texts) {
 			bool res = false;
 			try {
 				boost::smatch what;
@@ -177,7 +177,7 @@ bool ScriptUtils::Match(const std::vector<Value>& args)
 		if (texts->GetLength() == 0)
 			return false;
 
-		for (const String& text : texts) {
+		for (String text : texts) {
 			bool res = Utility::Match(pattern, text);
 
 			if (mode == MatchAny && res)
@@ -223,7 +223,7 @@ bool ScriptUtils::CidrMatch(const std::vector<Value>& args)
 		if (ips->GetLength() == 0)
 			return false;
 
-		for (const String& ip : ips) {
+		for (String ip : ips) {
 			bool res = Utility::CidrMatch(pattern, ip);
 
 			if (mode == MatchAny && res)
@@ -520,7 +520,7 @@ String ScriptUtils::MsiGetComponentPathShim(const String& component)
 
 Array::Ptr ScriptUtils::TrackParents(const Object::Ptr& child)
 {
-	return Array::FromVector(DependencyGraph::GetParents(child));
+	return Array::FromVector(DependencyGraph::GetChildren(dynamic_pointer_cast<ConfigObject>(child)));
 }
 
 double ScriptUtils::Ptr(const Object::Ptr& object)

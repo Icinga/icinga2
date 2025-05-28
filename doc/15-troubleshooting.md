@@ -19,8 +19,8 @@ findings and details please.
 	* `icinga2 --version`
 	* `icinga2 feature list`
 	* `icinga2 daemon -C`
-	* [Icinga Web 2](https://icinga.com/products/icinga-web-2/) version (screenshot from System - About)
-	* [Icinga Web 2 modules](https://icinga.com/products/icinga-web-2-modules/) e.g. the Icinga Director (optional)
+	* [Icinga Web 2](https://icinga.com/docs/icinga-web/latest/) version (screenshot from System - About)
+	* Icinga Web 2 modules e.g. the Icinga Director (optional)
 * Configuration insights:
 	* Provide complete configuration snippets explaining your problem in detail
 	* Your [icinga2.conf](04-configuration.md#icinga2-conf) file
@@ -174,6 +174,64 @@ You can tail the log files with an administrative Powershell:
 C:\> cd C:\ProgramData\icinga2\var\log\icinga2
 
 C:\ProgramData\icinga2\var\log\icinga2> Get-Content .\debug.log -tail 10 -wait
+```
+
+### Enable/Disable Debug Output on the fly <a id="troubleshooting-enable-disable-debug-output-api"></a>
+
+The `debuglog` feature can also be created and deleted at runtime without having to restart Icinga 2.
+Technically, this is possible because this feature is a [FileLogger](09-object-types.md#objecttype-filelogger)
+that can be managed through the [API](12-icinga2-api.md#icinga2-api-config-objects).
+
+This is a good alternative to `icinga2 feature enable debuglog` as object
+creation/deletion via API happens immediately and requires no restart.
+
+The above matters in setups large enough for the reload to take a while.
+Especially these produce a lot of debug log output until disabled again.
+
+!!! info
+
+    In case of [an HA zone](06-distributed-monitoring.md#distributed-monitoring-scenarios-ha-master-agents),
+    the following API examples toggle the feature on both nodes.
+
+#### Enable Debug Output on the fly <a id="troubleshooting-enable-debug-output-api"></a>
+
+```bash
+curl -k -s -S -i -u root:icinga -H 'Accept: application/json' \
+ -X PUT 'https://localhost:5665/v1/objects/fileloggers/on-the-fly-debug-file' \
+ -d '{ "attrs": { "severity": "debug", "path": "/var/log/icinga2/on-the-fly-debug.log" }, "pretty": true }'
+```
+
+```json
+{
+    "results": [
+        {
+            "code": 200.0,
+            "status": "Object was created."
+        }
+    ]
+}
+```
+
+#### Disable Debug Output on the fly <a id="troubleshooting-disable-debug-output-api"></a>
+
+This works only for debug loggers enabled on the fly as above!
+
+```bash
+curl -k -s -S -i -u root:icinga -H 'Accept: application/json' \
+ -X DELETE 'https://localhost:5665/v1/objects/fileloggers/on-the-fly-debug-file?pretty=1'
+```
+
+```json
+{
+    "results": [
+        {
+            "code": 200.0,
+            "name": "on-the-fly-debug-file",
+            "status": "Object was deleted.",
+            "type": "FileLogger"
+        }
+    ]
+}
 ```
 
 ## Icinga starts/restarts/reloads very slowly
@@ -814,7 +872,7 @@ trying because you probably have a problem that requires manual intervention.
 
 ### Late Check Results <a id="late-check-results"></a>
 
-[Icinga Web 2](https://icinga.com/products/icinga-web-2/) provides
+[Icinga Web 2](https://icinga.com/docs/icinga-web/latest/) provides
 a dashboard overview for `overdue checks`.
 
 The REST API provides the [status](12-icinga2-api.md#icinga2-api-status) URL endpoint with some generic metrics
@@ -829,8 +887,7 @@ You can also calculate late check results via the REST API:
 * Fetch the `last_check` timestamp from each object
 * Compare the timestamp with the current time and add `check_interval` multiple times (change it to see which results are really late, like five times check_interval)
 
-You can use the [icinga2 console](11-cli-commands.md#cli-command-console) to connect to the instance, fetch all data
-and calculate the differences. More infos can be found in [this blogpost](https://icinga.com/2016/08/11/analyse-icinga-2-problems-using-the-console-api/).
+You can use the [icinga2 console](11-cli-commands.md#cli-command-console) to connect to the instance, fetch all data and calculate the differences.
 
 ```
 # ICINGA2_API_USERNAME=root ICINGA2_API_PASSWORD=icinga icinga2 console --connect 'https://localhost:5665/'
@@ -878,7 +935,7 @@ actively attempts to schedule and execute checks. Otherwise the node does not fe
 }
 ```
 
-You may ask why this analysis is important? Fair enough - if the numbers are not inverted in a HA zone
+You may ask why this analysis is important? Fair enough - if the numbers are not inverted in an HA zone
 with two members, this may give a hint that the cluster nodes are in a split-brain scenario, or you've
 found a bug in the cluster.
 
@@ -948,95 +1005,6 @@ You can use the Icinga 2 API [event streams](12-icinga2-api.md#icinga2-api-event
 ```bash
 curl -k -s -u root:icinga -H 'Accept: application/json' -X POST 'https://localhost:5665/v1/events?queue=debugnotifications&types=Notification'
 ```
-
-
-### Analyze Notification Result <a id="troubleshooting-notifications-result"></a>
-
-> **Note**
->
-> This feature is available since v2.11 and requires all endpoints
-> being updated.
-
-Notifications inside a HA enabled zone are balanced between the endpoints,
-just like checks.
-
-Sometimes notifications may fail, and with looking into the (debug) logs
-for both masters, you cannot correlate this correctly.
-
-The `last_notification_result` runtime attribute is stored and synced for Notification
-objects and can be queried via REST API.
-
-Example for retrieving the notification object and result from all `disk` services using a
-[regex match](18-library-reference.md#global-functions-regex) on the name:
-
-```
-$ curl -k -s -u root:icinga -H 'Accept: application/json' -H 'X-HTTP-Method-Override: GET' -X POST 'https://localhost:5665/v1/objects/notifications' \
--d '{ "filter": "regex(pattern, service.name)", "filter_vars": { "pattern": "^disk" }, "attrs": [ "__name", "last_notification_result" ], "pretty": true }'
-{
-    "results": [
-
-        {
-            "attrs": {
-                "last_notification_result": {
-                    "active": true,
-                    "command": [
-                        "/etc/icinga2/scripts/mail-service-notification.sh",
-                        "-4",
-                        "",
-                        "-6",
-                        "",
-                        "-b",
-                        "",
-                        "-c",
-                        "",
-                        "-d",
-                        "2019-08-02 10:54:16 +0200",
-                        "-e",
-                        "disk",
-                        "-l",
-                        "icinga2-agent1.localdomain",
-                        "-n",
-                        "icinga2-agent1.localdomain",
-                        "-o",
-                        "DISK OK - free space: / 38108 MB (90.84% inode=100%);",
-                        "-r",
-                        "user@localdomain",
-                        "-s",
-                        "OK",
-                        "-t",
-                        "RECOVERY",
-                        "-u",
-                        "disk"
-                    ],
-                    "execution_end": 1564736056.186217,
-                    "execution_endpoint": "icinga2-master1.localdomain",
-                    "execution_start": 1564736056.132323,
-                    "exit_status": 0.0,
-                    "output": "",
-                    "type": "NotificationResult"
-                }
-            },
-            "joins": {},
-            "meta": {},
-            "name": "icinga2-agent1.localdomain!disk!mail-service-notification",
-            "type": "Notification"
-        }
-
-...
-
-    ]
-}
-```
-
-Example with the debug console:
-
-```
-$ ICINGA2_API_PASSWORD=icinga icinga2 console --connect 'https://root@localhost:5665/' --eval 'get_object(Notification, "icinga2-agent1.localdomain!disk!mail-service-notification").last_notification_result.execution_endpoint' | jq
-
-"icinga2-agent1.localdomain"
-```
-
-Whenever a notification command failed to execute, you can fetch the output as well.
 
 
 ## Feature Troubleshooting <a id="troubleshooting-features"></a>
@@ -1729,6 +1697,9 @@ Typical errors are:
 * The api feature doesn't [accept config](06-distributed-monitoring.md#distributed-monitoring-top-down-config-sync). This is logged into `/var/lib/icinga2/icinga2.log`.
 * The received configuration zone is not configured in [zones.conf](04-configuration.md#zones-conf) and Icinga denies it. This is logged into `/var/lib/icinga2/icinga2.log`.
 * The satellite/agent has local configuration in `/etc/icinga2/zones.d` and thinks it is authoritive for this zone. It then denies the received update. Purge the content from `/etc/icinga2/zones.d`, `/var/lib/icinga2/api/zones/*` and restart Icinga to fix this.
+* Configuration parts stored outside of `/etc/icinga2/zones.d` on the master, for example a constant in `/etc/icinga2/constants.conf`, are then missing on the satellite/agent.
+
+Note that if set up, the [built-in icinga CheckCommand](10-icinga-template-library.md#icinga) will notify you in case the config sync wasn't successful.
 
 #### New configuration does not trigger a reload <a id="troubleshooting-cluster-config-sync-no-reload"></a>
 

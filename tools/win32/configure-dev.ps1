@@ -27,14 +27,17 @@ if (-not (Test-Path env:CMAKE_GENERATOR)) {
 if (-not (Test-Path env:CMAKE_GENERATOR_PLATFORM)) {
   $env:CMAKE_GENERATOR_PLATFORM = 'x64'
 }
+if (-not (Test-Path env:CMAKE_ARGS)) {
+  $env:CMAKE_ARGS = '[]'
+}
 if (-not (Test-Path env:OPENSSL_ROOT_DIR)) {
   $env:OPENSSL_ROOT_DIR = 'c:\local\OpenSSL-Win64'
 }
 if (-not (Test-Path env:BOOST_ROOT)) {
-  $env:BOOST_ROOT = 'c:\local\boost_1_82_0'
+  $env:BOOST_ROOT = 'c:\local\boost_1_88_0'
 }
 if (-not (Test-Path env:BOOST_LIBRARYDIR)) {
-  $env:BOOST_LIBRARYDIR = 'c:\local\boost_1_82_0\lib64-msvc-14.2'
+  $env:BOOST_LIBRARYDIR = 'c:\local\boost_1_88_0\lib64-msvc-14.2'
 }
 if (-not (Test-Path env:FLEX_BINARY)) {
   $env:FLEX_BINARY = 'C:\ProgramData\chocolatey\bin\win_flex.exe'
@@ -60,7 +63,8 @@ if (Test-Path CMakeCache.txt) {
   -DBOOST_LIBRARYDIR="$env:BOOST_LIBRARYDIR" `
   -DBOOST_INCLUDEDIR="$env:BOOST_ROOT" `
   -DFLEX_EXECUTABLE="$env:FLEX_BINARY" `
-  -DBISON_EXECUTABLE="$env:BISON_BINARY"
+  -DBISON_EXECUTABLE="$env:BISON_BINARY" `
+  $(ConvertFrom-Json -InputObject "$env:CMAKE_ARGS")
 
 cd "$sourcePath"
 

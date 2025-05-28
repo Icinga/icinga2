@@ -55,26 +55,14 @@ public:
 	DECLARE_PTR_TYPEDEFS(Stream);
 
 	/**
-	 * Reads data from the stream without removing it from the stream buffer.
-	 *
-	 * @param buffer The buffer where data should be stored. May be nullptr if you're
-	 *		 not actually interested in the data.
-	 * @param count The number of bytes to read from the queue.
-	 * @param allow_partial Whether to allow partial reads.
-	 * @returns The number of bytes actually read.
-	 */
-	virtual size_t Peek(void *buffer, size_t count, bool allow_partial = false);
-
-	/**
 	 * Reads data from the stream.
 	 *
 	 * @param buffer The buffer where data should be stored. May be nullptr if you're
 	 *		 not actually interested in the data.
 	 * @param count The number of bytes to read from the queue.
-	 * @param allow_partial Whether to allow partial reads.
 	 * @returns The number of bytes actually read.
 	 */
-	virtual size_t Read(void *buffer, size_t count, bool allow_partial = false) = 0;
+	virtual size_t Read(void *buffer, size_t count) = 0;
 
 	/**
 	 * Writes data to the stream.

@@ -484,7 +484,7 @@ host or service is considered flapping until it drops below the low flapping thr
 The attribute `flapping_ignore_states` allows to ignore state changes to specified states during the flapping calculation.
 
 `FlappingStart` and `FlappingEnd` notifications will be sent out accordingly, if configured. See the chapter on
-[notifications](alert-notifications) for details
+[notifications](03-monitoring-basics.md#notifications) for details
 
 > Note: There is no distinctions between hard and soft states with flapping. All state changes count and notifications
 > will be sent out regardless of the objects state.
@@ -1181,7 +1181,7 @@ to represent its internal state. The following types are exposed via the [API](1
   performance\_data         | Array                 | Array of [performance data values](08-advanced-topics.md#advanced-value-types-perfdatavalue).
   check\_source             | String                | Name of the node executing the check.
   scheduling\_source        | String                | Name of the node scheduling the check.
-  state                     | Number                | The current state (0 = OK, 1 = WARNING, 2 = CRITICAL, 3 = UNKNOWN).
+  state                     | Number                | Current state according to the [check result state mapping](03-monitoring-basics.md#check-result-state-mapping).
   command                   | Value                 | Array of command with shell-escaped arguments or command line string.
   execution\_start          | Timestamp             | Check execution start time (as a UNIX timestamp).
   execution\_end            | Timestamp             | Check execution end time (as a UNIX timestamp).

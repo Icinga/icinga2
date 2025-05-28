@@ -9,11 +9,13 @@
 #include "base/dictionary.hpp"
 #include <shared_mutex>
 #include <unordered_map>
+#include <boost/signals2.hpp>
 
 namespace icinga
 {
 
 class ConfigObject;
+class ConfigItems;
 
 class ConfigType
 {
@@ -47,6 +49,13 @@ for (const auto& object : objects) {
 	}
 
 	int GetObjectCount() const;
+
+	/**
+	 * Signal that allows hooking into the config loading process just before ConfigObject::OnAllConfigLoaded() is
+	 * called for a bunch of objects. A vector of pointers to these objects is passed as an argument. All elements
+	 * are of the object type the signal is called on.
+	 */
+	boost::signals2::signal<void (const ConfigItems&)> BeforeOnAllConfigLoaded;
 
 private:
 	typedef std::unordered_map<String, intrusive_ptr<ConfigObject> > ObjectMap;

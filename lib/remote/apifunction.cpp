@@ -24,11 +24,6 @@ void ApiFunction::Register(const String& name, const ApiFunction::Ptr& function)
 	ApiFunctionRegistry::GetInstance()->Register(name, function);
 }
 
-void ApiFunction::Unregister(const String& name)
-{
-	ApiFunctionRegistry::GetInstance()->Unregister(name);
-}
-
 ApiFunctionRegistry *ApiFunctionRegistry::GetInstance()
 {
 	return Singleton<ApiFunctionRegistry>::GetInstance();

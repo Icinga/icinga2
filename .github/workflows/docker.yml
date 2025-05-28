@@ -5,13 +5,12 @@ on:
   push:
     branches:
       - master
-      - 'support/*'
   release:
     types:
       - published
 
 concurrency:
-  group: docker-${{ github.ref }}
+  group: docker-${{ github.event_name == 'push' && github.sha || github.ref }}
   cancel-in-progress: true
 
 jobs:

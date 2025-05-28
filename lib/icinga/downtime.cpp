@@ -16,7 +16,7 @@ using namespace icinga;
 
 static int l_NextDowntimeID = 1;
 static std::mutex l_DowntimeMutex;
-static std::map<int, String> l_LegacyDowntimesCache;
+static std::map<int, Downtime::Ptr> l_LegacyDowntimesCache;
 static Timer::Ptr l_DowntimesOrphanedTimer;
 static Timer::Ptr l_DowntimesStartTimer;
 
@@ -109,7 +109,7 @@ void Downtime::Start(bool runtimeCreated)
 		std::unique_lock<std::mutex> lock(l_DowntimeMutex);
 
 		SetLegacyId(l_NextDowntimeID);
-		l_LegacyDowntimesCache[l_NextDowntimeID] = GetName();
+		l_LegacyDowntimesCache[l_NextDowntimeID] = this;
 		l_NextDowntimeID++;
 	}
 
@@ -148,6 +148,12 @@ void Downtime::Start(bool runtimeCreated)
 
 void Downtime::Stop(bool runtimeRemoved)
 {
+	{
+		std::unique_lock<std::mutex> lock (l_DowntimeMutex);
+
+		l_LegacyDowntimesCache.erase(GetLegacyId());
+	}
+
 	GetCheckable()->UnregisterDowntime(this);
 
 	Downtime::Ptr parent = GetByName(GetParent());
@@ -245,16 +251,21 @@ int Downtime::GetNextDowntimeID()
 
 Downtime::Ptr Downtime::AddDowntime(const Checkable::Ptr& checkable, const String& author,
 	const String& comment, double startTime, double endTime, bool fixed,
-	const String& triggeredBy, double duration,
+	const Downtime::Ptr& parentDowntime, double duration,
 	const String& scheduledDowntime, const String& scheduledBy, const String& parent,
 	const String& id, const MessageOrigin::Ptr& origin)
 {
 	String fullName;
+	String triggeredBy;
 
 	if (id.IsEmpty())
 		fullName = checkable->GetName() + "!" + Utility::NewUniqueID();
 	else
 		fullName = id;
+
+	if (parentDowntime) {
+		triggeredBy = parentDowntime->GetName();
+	}
 
 	Dictionary::Ptr attrs = new Dictionary();
 
@@ -319,15 +330,14 @@ Downtime::Ptr Downtime::AddDowntime(const Checkable::Ptr& checkable, const Strin
 
 	if (!ConfigObjectUtility::CreateObject(Downtime::TypeInstance, fullName, config, errors, nullptr)) {
 		ObjectLock olock(errors);
-		for (const String& error : errors) {
+		for (String error : errors) {
 			Log(LogCritical, "Downtime", error);
 		}
 
 		BOOST_THROW_EXCEPTION(std::runtime_error("Could not create downtime."));
 	}
 
-	if (!triggeredBy.IsEmpty()) {
-		Downtime::Ptr parentDowntime = Downtime::GetByName(triggeredBy);
+	if (parentDowntime) {
 		Array::Ptr triggers = parentDowntime->GetTriggers();
 
 		ObjectLock olock(triggers);
@@ -349,7 +359,7 @@ Downtime::Ptr Downtime::AddDowntime(const Checkable::Ptr& checkable, const Strin
 	return downtime;
 }
 
-void Downtime::RemoveDowntime(const String& id, bool includeChildren, bool cancelled, bool expired,
+void Downtime::RemoveDowntime(const String& id, bool includeChildren, DowntimeRemovalReason removalReason,
 	const String& removedBy, const MessageOrigin::Ptr& origin)
 {
 	Downtime::Ptr downtime = Downtime::GetByName(id);
@@ -359,18 +369,18 @@ void Downtime::RemoveDowntime(const String& id, bool includeChildren, bool cance
 
 	String config_owner = downtime->GetConfigOwner();
 
-	if (!config_owner.IsEmpty() && !expired) {
+	if (!config_owner.IsEmpty() && removalReason == DowntimeRemovedByUser) {
 		BOOST_THROW_EXCEPTION(invalid_downtime_removal_error("Cannot remove downtime '" + downtime->GetName() +
 			"'. It is owned by scheduled downtime object '" + config_owner + "'"));
 	}
 
 	if (includeChildren) {
 		for (const Downtime::Ptr& child : downtime->GetChildren()) {
-			Downtime::RemoveDowntime(child->GetName(), true, true);
+			Downtime::RemoveDowntime(child->GetName(), true, removalReason, removedBy);
 		}
 	}
 
-	if (cancelled) {
+	if (removalReason != DowntimeExpired) {
 		downtime->SetRemovalInfo(removedBy, Utility::GetTime());
 	}
 
@@ -378,7 +388,7 @@ void Downtime::RemoveDowntime(const String& id, bool includeChildren, bool cance
 
 	if (!ConfigObjectUtility::DeleteObject(downtime, false, errors, nullptr)) {
 		ObjectLock olock(errors);
-		for (const String& error : errors) {
+		for (String error : errors) {
 			Log(LogCritical, "Downtime", error);
 		}
 
@@ -386,13 +396,19 @@ void Downtime::RemoveDowntime(const String& id, bool includeChildren, bool cance
 	}
 
 	String reason;
-
-	if (expired) {
-		reason = "expired at " + Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", downtime->GetEndTime());
-	} else if (cancelled) {
-		reason = "cancelled by user";
-	} else {
-		reason = "<unknown>";
+	switch (removalReason) {
+		case DowntimeExpired:
+			reason = "expired at " + Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", downtime->GetEndTime());
+			break;
+		case DowntimeRemovedByUser:
+			reason = "cancelled by user";
+			if (!removedBy.IsEmpty()) {
+				reason += " '" + removedBy + "'";
+			}
+			break;
+		case DowntimeRemovedByConfigOwner:
+			reason = "cancelled by '" + config_owner + "' of type 'ScheduledDowntime'";
+			break;
 	}
 
 	Log msg (LogInformation, "Downtime");
@@ -455,7 +471,7 @@ void Downtime::SetupCleanupTimer()
 			auto downtime (Downtime::GetByName(name));
 
 			if (downtime && downtime->IsExpired()) {
-				RemoveDowntime(name, false, false, true);
+				RemoveDowntime(name, false, DowntimeExpired);
 			}
 		});
 	}
@@ -489,7 +505,7 @@ void Downtime::TriggerDowntime(double triggerTime)
 
 	{
 		ObjectLock olock(triggers);
-		for (const String& triggerName : triggers) {
+		for (String triggerName : triggers) {
 			Downtime::Ptr downtime = Downtime::GetByName(triggerName);
 
 			if (!downtime)
@@ -513,14 +529,15 @@ void Downtime::SetRemovalInfo(const String& removedBy, double removeTime, const 
 	OnRemovalInfoChanged(this, removedBy, removeTime, origin);
 }
 
-String Downtime::GetDowntimeIDFromLegacyID(int id)
+Downtime::Ptr Downtime::GetDowntimeFromLegacyID(int id)
 {
 	std::unique_lock<std::mutex> lock(l_DowntimeMutex);
 
 	auto it = l_LegacyDowntimesCache.find(id);
 
-	if (it == l_LegacyDowntimesCache.end())
-		return Empty;
+	if (it == l_LegacyDowntimesCache.end()) {
+		return nullptr;
+	}
 
 	return it->second;
 }
@@ -546,7 +563,7 @@ void Downtime::DowntimesOrphanedTimerHandler()
 	for (const Downtime::Ptr& downtime : ConfigType::GetObjectsByType<Downtime>()) {
 		/* Only remove downtimes which are activated after daemon start. */
 		if (downtime->IsActive() && !downtime->HasValidConfigOwner())
-			RemoveDowntime(downtime->GetName(), false, false, true);
+			RemoveDowntime(downtime->GetName(), false, DowntimeRemovedByConfigOwner);
 	}
 }
 

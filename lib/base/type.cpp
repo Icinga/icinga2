@@ -1,9 +1,13 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/type.hpp"
+#include "base/atomic.hpp"
+#include "base/configobject.hpp"
+#include "base/debug.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/namespace.hpp"
 #include "base/objectlock.hpp"
+#include <functional>
 
 using namespace icinga;
 
@@ -31,6 +35,43 @@ INITIALIZE_ONCE_WITH_PRIORITY([]() {
 	Type::TypeInstance = type;
 	Type::Register(type);
 }, InitializePriority::RegisterTypeType);
+
+static std::vector<Type::Ptr> l_SortedByLoadDependencies;
+static Atomic l_SortingByLoadDependenciesDone (false);
+
+INITIALIZE_ONCE_WITH_PRIORITY([] {
+	std::unordered_set<Type*> visited;
+
+	std::function<void(Type*)> visit;
+	// Please note that this callback does not detect any cyclic load dependencies,
+	// instead, it relies on the "sort_by_load_after" unit test to fail.
+	visit = ([&visit, &visited](Type* type) {
+		if (visited.find(type) != visited.end()) {
+			return;
+		}
+		visited.emplace(type);
+
+		for (auto dependency : type->GetLoadDependencies()) {
+			visit(dependency);
+		}
+
+		// We have managed to reach the final/top node in this dependency graph,
+		// so let's place them in reverse order to their final place.
+		l_SortedByLoadDependencies.emplace_back(type);
+	});
+
+	// Sort the types by their load_after dependencies in a Depth-First search manner.
+	for (const Type::Ptr& type : Type::GetAllTypes()) {
+		// Note that only those types that are assignable to the dynamic ConfigObject type can have "load_after"
+		// dependencies, otherwise they are just some Icinga 2 primitive types such as Number, String, etc. and
+		// we need to ignore them.
+		if (ConfigObject::TypeInstance->IsAssignableFrom(type)) {
+			visit(type.get());
+		}
+	}
+
+	l_SortingByLoadDependenciesDone.store(true);
+}, InitializePriority::SortTypes);
 
 String Type::ToString() const
 {
@@ -70,6 +111,12 @@ std::vector<Type::Ptr> Type::GetAllTypes()
 	}
 
 	return types;
+}
+
+const std::vector<Type::Ptr>& Type::GetConfigTypesSortedByLoadDependencies()
+{
+	VERIFY(l_SortingByLoadDependenciesDone.load());
+	return l_SortedByLoadDependencies;
 }
 
 String Type::GetPluralName() const
@@ -214,4 +261,3 @@ ObjectFactory TypeType::GetFactory() const
 {
 	return nullptr;
 }
-

@@ -5,6 +5,7 @@
 
 #include "base/i2-base.hpp"
 #include "base/debug.hpp"
+#include "base/intrusive-ptr.hpp"
 #include <boost/smart_ptr/intrusive_ptr.hpp>
 #include <atomic>
 #include <cstddef>
@@ -27,7 +28,7 @@ class String;
 struct DebugInfo;
 class ValidationUtils;
 
-extern Value Empty;
+extern const Value Empty;
 
 #define DECLARE_PTR_TYPEDEFS(klass) \
 	typedef intrusive_ptr<klass> Ptr

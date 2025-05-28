@@ -2,6 +2,7 @@
 
 #include "remote/filterutility.hpp"
 #include "remote/httputility.hpp"
+#include "config/applyrule.hpp"
 #include "config/configcompiler.hpp"
 #include "config/expression.hpp"
 #include "base/namespace.hpp"
@@ -240,7 +241,7 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 			Array::Ptr names = query->Get(attr);
 			if (names) {
 				ObjectLock olock(names);
-				for (const String& name : names) {
+				for (String name : names) {
 					Object::Ptr target = provider->GetTargetByName(type, name);
 
 					if (!FilterUtility::EvaluateFilter(permissionFrame, permissionFilter.get(), target, variableName))
@@ -271,18 +272,73 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 		if (query->Contains("filter")) {
 			String filter = HttpUtility::GetLastParameter(query, "filter");
 			std::unique_ptr<Expression> ufilter = ConfigCompiler::CompileText("<API query>", filter);
-
 			Dictionary::Ptr filter_vars = query->Get("filter_vars");
-			if (filter_vars) {
-				ObjectLock olock(filter_vars);
-				for (const Dictionary::Pair& kv : filter_vars) {
-					frameNS->Set(kv.first, kv.second);
+			bool targeted = false;
+			std::vector<ConfigObject::Ptr> targets;
+
+			if (dynamic_cast<ConfigObjectTargetProvider*>(provider.get())) {
+				auto dict (dynamic_cast<DictExpression*>(ufilter.get()));
+
+				if (dict) {
+					auto& subex (dict->GetExpressions());
+
+					if (subex.size() == 1u) {
+						if (type == "Host") {
+							std::vector<const String *> targetNames;
+
+							if (ApplyRule::GetTargetHosts(subex.at(0).get(), targetNames, filter_vars)) {
+								static const auto typeHost (Type::GetByName("Host"));
+								static const auto ctypeHost (dynamic_cast<ConfigType*>(typeHost.get()));
+								targeted = true;
+
+								for (auto name : targetNames) {
+									auto target (ctypeHost->GetObject(*name));
+
+									if (target) {
+										targets.emplace_back(target);
+									}
+								}
+							}
+						} else if (type == "Service") {
+							std::vector<std::pair<const String *, const String *>> targetNames;
+
+							if (ApplyRule::GetTargetServices(subex.at(0).get(), targetNames, filter_vars)) {
+								static const auto typeService (Type::GetByName("Service"));
+								static const auto ctypeService (dynamic_cast<ConfigType*>(typeService.get()));
+								targeted = true;
+
+								for (auto name : targetNames) {
+									auto target (ctypeService->GetObject(*name.first + "!" + *name.second));
+
+									if (target) {
+										targets.emplace_back(target);
+									}
+								}
+							}
+						}
+					}
 				}
 			}
 
-			provider->FindTargets(type, [&permissionFrame, &permissionFilter, &frame, &ufilter, &result, variableName](const Object::Ptr& target) {
-				FilteredAddTarget(permissionFrame, permissionFilter.get(), frame, &*ufilter, result, variableName, target);
-			});
+			if (targeted) {
+				for (auto& target : targets) {
+					if (FilterUtility::EvaluateFilter(permissionFrame, permissionFilter.get(), target, variableName)) {
+						result.emplace_back(std::move(target));
+					}
+				}
+			} else {
+				if (filter_vars) {
+					ObjectLock olock (filter_vars);
+
+					for (auto& kv : filter_vars) {
+						frameNS->Set(kv.first, kv.second);
+					}
+				}
+
+				provider->FindTargets(type, [&permissionFrame, &permissionFilter, &frame, &ufilter, &result, variableName](const Object::Ptr& target) {
+					FilteredAddTarget(permissionFrame, permissionFilter.get(), frame, &*ufilter, result, variableName, target);
+				});
+			}
 		} else {
 			/* Ensure to pass a nullptr as filter expression.
 			 * GCC 8.1.1 on F28 causes problems, see GH #6533.
@@ -295,4 +351,3 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 
 	return result;
 }
-

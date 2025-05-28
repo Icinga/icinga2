@@ -222,4 +222,3 @@ void ConfigStagesHandler::HandleDelete(
 	response.result(http::status::ok);
 	HttpUtility::SendJsonBody(response, params, result);
 }
-

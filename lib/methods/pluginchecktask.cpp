@@ -10,13 +10,14 @@
 #include "base/utility.hpp"
 #include "base/process.hpp"
 #include "base/convert.hpp"
+#include <sstream>
 
 using namespace icinga;
 
-REGISTER_FUNCTION_NONCONST(Internal, PluginCheck,  &PluginCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
+REGISTER_FUNCTION_NONCONST(Internal, PluginCheck,  &PluginCheckTask::ScriptFunc, "checkable:cr:producer:resolvedMacros:useResolvedMacros");
 
 void PluginCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
-	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
+	const WaitGroup::Ptr& producer, const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
 	REQUIRE_NOT_NULL(checkable);
 	REQUIRE_NOT_NULL(cr);
@@ -47,8 +48,8 @@ void PluginCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	if (Checkable::ExecuteCommandProcessFinishedHandler) {
 		callback = Checkable::ExecuteCommandProcessFinishedHandler;
 	} else {
-		callback = [checkable, cr](const Value& commandLine, const ProcessResult& pr) {
-			ProcessFinishedHandler(checkable, cr, commandLine, pr);
+		callback = [checkable, cr, producer](const Value& commandLine, const ProcessResult& pr) {
+			ProcessFinishedHandler(checkable, cr, producer, commandLine, pr);
 		};
 	}
 
@@ -61,10 +62,13 @@ void PluginCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	}
 }
 
-void PluginCheckTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const Value& commandLine, const ProcessResult& pr)
+void PluginCheckTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
+	const WaitGroup::Ptr& producer, const Value& commandLine, const ProcessResult& pr)
 {
 	Checkable::CurrentConcurrentChecks.fetch_sub(1);
 	Checkable::DecreasePendingChecks();
+
+	String output = pr.Output.Trim();
 
 	if (pr.ExitStatus > 3) {
 		Process::Arguments parguments = Process::PrepareCommand(commandLine);
@@ -72,9 +76,14 @@ void PluginCheckTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, co
 			<< "Check command for object '" << checkable->GetName() << "' (PID: " << pr.PID
 			<< ", arguments: " << Process::PrettyPrintArguments(parguments) << ") terminated with exit code "
 			<< pr.ExitStatus << ", output: " << pr.Output;
-	}
 
-	String output = pr.Output.Trim();
+		std::stringstream crOutput;
+
+		crOutput << "<Terminated with exit code " << pr.ExitStatus
+			<< " (0x" << std::noshowbase << std::hex << std::uppercase << pr.ExitStatus << ").>";
+
+		output += crOutput.str();
+	}
 
 	std::pair<String, String> co = PluginUtility::ParseCheckOutput(output);
 	cr->SetCommand(commandLine);
@@ -85,5 +94,5 @@ void PluginCheckTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, co
 	cr->SetExecutionStart(pr.ExecutionStart);
 	cr->SetExecutionEnd(pr.ExecutionEnd);
 
-	checkable->ProcessCheckResult(cr);
+	checkable->ProcessCheckResult(cr, producer);
 }

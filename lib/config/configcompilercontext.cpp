@@ -54,4 +54,3 @@ void ConfigCompilerContext::FinishObjectsFile()
 	m_ObjectsFP->Commit();
 	m_ObjectsFP.reset(nullptr);
 }
-

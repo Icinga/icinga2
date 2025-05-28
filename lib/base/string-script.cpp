@@ -135,4 +135,3 @@ Object::Ptr String::GetPrototype()
 
 	return prototype;
 }
-

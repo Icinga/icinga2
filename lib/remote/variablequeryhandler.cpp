@@ -98,7 +98,7 @@ bool VariableQueryHandler::HandleRequest(
 
 	ArrayData results;
 
-	for (const Dictionary::Ptr& var : objs) {
+	for (Dictionary::Ptr var : objs) {
 		if (var->Get("name") == "TicketSalt")
 			continue;
 
@@ -118,4 +118,3 @@ bool VariableQueryHandler::HandleRequest(
 
 	return true;
 }
-

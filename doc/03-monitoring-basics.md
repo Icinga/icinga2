@@ -1599,7 +1599,7 @@ A common pattern is to store the users and user groups
 on the host or service objects instead of the notification
 object itself.
 
-The sample configuration provided in [hosts.conf](04-configuration.md#hosts-conf) and [notifications.conf](notifications-conf)
+The sample configuration provided in [hosts.conf](04-configuration.md#hosts-conf) and [notifications.conf](04-configuration.md#notifications-conf)
 already provides an example for this question.
 
 > **Tip**
@@ -2135,7 +2135,7 @@ In order to find out about the command argument, call the plugin's help
 or consult the README.
 
 ```
-./check_systemd.py --help
+./check_systemd --help
 
 ...
 
@@ -2194,7 +2194,7 @@ With the [example above](03-monitoring-basics.md#command-arguments-value),
 inspect the parameter's help text.
 
 ```
-./check_systemd.py --help
+./check_systemd --help
 
 ...
 
@@ -2579,6 +2579,7 @@ information.
   `notification_useremail`       | **Required.** The notification's recipient(s). Defaults to `$user.email$`.
   `notification_hoststate`       | **Required.** Current state of host. Defaults to `$host.state$`.
   `notification_type`            | **Required.** Type of notification. Defaults to `$notification.type$`.
+  `notification_hostnotes`       | **Optional.** The host's notes. Defaults to `$host.notes$`.
   `notification_address`         | **Optional.** The host's IPv4 address. Defaults to `$address$`.
   `notification_address6`        | **Optional.** The host's IPv6 address. Defaults to `$address6$`.
   `notification_author`          | **Optional.** Comment author. Defaults to `$notification.author$`.
@@ -2607,6 +2608,8 @@ information.
   `notification_useremail`          | **Required.** The notification's recipient(s). Defaults to `$user.email$`.
   `notification_servicestate`       | **Required.** Current state of host. Defaults to `$service.state$`.
   `notification_type`               | **Required.** Type of notification. Defaults to `$notification.type$`.
+  `notification_hostnotes`          | **Optional.** The host's notes. Defaults to `$host.notes$`.
+  `notification_servicenotes`       | **Optional.** The service's notes. Defaults to `$service.notes$`.
   `notification_address`            | **Optional.** The host's IPv4 address. Defaults to `$address$`.
   `notification_address6`           | **Optional.** The host's IPv6 address. Defaults to `$address6$`.
   `notification_author`             | **Optional.** Comment author. Defaults to `$notification.author$`.
@@ -2729,7 +2732,7 @@ Requirements:
 * Icinga 2 as client on the remote node
 * icinga user with sudo permissions to the httpd daemon
 
-Example on CentOS 7:
+Example on RHEL:
 
 ```
 # visudo

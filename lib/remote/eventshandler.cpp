@@ -73,7 +73,7 @@ bool EventsHandler::HandleRequest(
 
 	{
 		ObjectLock olock(types);
-		for (const String& type : types) {
+		for (String type : types) {
 			FilterUtility::CheckPermission(user, "events/" + type);
 		}
 	}
@@ -89,7 +89,7 @@ bool EventsHandler::HandleRequest(
 
 	{
 		ObjectLock olock(types);
-		for (const String& type : types) {
+		for (String type : types) {
 			auto typeId (l_EventTypes.find(type));
 
 			if (typeId != l_EventTypes.end()) {
@@ -116,15 +116,11 @@ bool EventsHandler::HandleRequest(
 		auto event (subscriber.GetInbox()->Shift(yc));
 
 		if (event) {
-			CpuBoundWork buildingResponse (yc);
-
 			String body = JsonEncode(event);
 
 			boost::algorithm::replace_all(body, "\n", "");
 
 			asio::const_buffer payload (body.CStr(), body.GetLength());
-
-			buildingResponse.Done();
 
 			asio::async_write(stream, payload, yc);
 			asio::async_write(stream, newLine, yc);
@@ -134,4 +130,3 @@ bool EventsHandler::HandleRequest(
 		}
 	}
 }
-

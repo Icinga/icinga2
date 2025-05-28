@@ -5,6 +5,7 @@
 
 #include "icinga/i2-icinga.hpp"
 #include "icinga/command.hpp"
+#include "base/wait-group.hpp"
 #include "base/string.hpp"
 #include <boost/signals2.hpp>
 #include <vector>
@@ -12,7 +13,8 @@
 namespace icinga
 {
 
-typedef std::function<void (double, const std::vector<String>& arguments)> ExternalCommandCallback;
+typedef std::function<void(const WaitGroup::Ptr&, double, const std::vector<String>& arguments)> ExternalCommandCallback;
+typedef std::function<void(double, const std::vector<String>& arguments)> ExternalCommandCallbackLite;
 
 struct ExternalCommandInfo
 {
@@ -23,18 +25,18 @@ struct ExternalCommandInfo
 
 class ExternalCommandProcessor {
 public:
-	static void Execute(const String& line);
-	static void Execute(double time, const String& command, const std::vector<String>& arguments);
+	static void Execute(const WaitGroup::Ptr& producer, const String& line);
+	static void Execute(const WaitGroup::Ptr& producer, double time, const String& command, const std::vector<String>& arguments);
 
 	static boost::signals2::signal<void(double, const String&, const std::vector<String>&)> OnNewExternalCommand;
 
 private:
 	ExternalCommandProcessor();
 
-	static void ExecuteFromFile(const String& line, std::deque< std::vector<String> >& file_queue);
+	static void ExecuteFromFile(const WaitGroup::Ptr& producer, const String& line, std::deque<std::vector<String>>& file_queue);
 
-	static void ProcessHostCheckResult(double time, const std::vector<String>& arguments);
-	static void ProcessServiceCheckResult(double time, const std::vector<String>& arguments);
+	static void ProcessHostCheckResult(const WaitGroup::Ptr& producer, double time, const std::vector<String>& arguments);
+	static void ProcessServiceCheckResult(const WaitGroup::Ptr& producer, double time, const std::vector<String>& arguments);
 	static void ScheduleHostCheck(double time, const std::vector<String>& arguments);
 	static void ScheduleForcedHostCheck(double time, const std::vector<String>& arguments);
 	static void ScheduleSvcCheck(double time, const std::vector<String>& arguments);
@@ -67,7 +69,7 @@ private:
 	static void DisableServicegroupPassiveSvcChecks(double time, const std::vector<String>& arguments);
 	static void EnableHostgroupPassiveSvcChecks(double time, const std::vector<String>& arguments);
 	static void DisableHostgroupPassiveSvcChecks(double time, const std::vector<String>& arguments);
-	static void ProcessFile(double time, const std::vector<String>& arguments);
+	static void ProcessFile(const WaitGroup::Ptr& producer, double time, const std::vector<String>& arguments);
 	static void ScheduleSvcDowntime(double time, const std::vector<String>& arguments);
 	static void DelSvcDowntime(double time, const std::vector<String>& arguments);
 	static void ScheduleHostDowntime(double time, const std::vector<String>& arguments);
@@ -157,6 +159,7 @@ private:
 	static void ChangeCustomCommandVarInternal(const Command::Ptr& command, const String& name, const Value& value);
 
 	static void RegisterCommand(const String& command, const ExternalCommandCallback& callback, size_t minArgs = 0, size_t maxArgs = UINT_MAX);
+	static void RegisterCommand(const String& command, const ExternalCommandCallbackLite& callback, size_t minArgs = 0, size_t maxArgs = UINT_MAX);
 	static void RegisterCommands();
 
 	static std::mutex& GetMutex();

@@ -5,6 +5,7 @@
 
 #include "remote/i2-remote.hpp"
 #include "remote/endpoint.hpp"
+#include "base/atomic.hpp"
 #include "base/io-engine.hpp"
 #include "base/tlsstream.hpp"
 #include "base/timer.hpp"
@@ -72,12 +73,11 @@ private:
 	ConnectionRole m_Role;
 	double m_Timestamp;
 	double m_Seen;
-	double m_NextHeartbeat;
 	boost::asio::io_context::strand m_IoStrand;
 	std::vector<String> m_OutgoingMessagesQueue;
-	AsioConditionVariable m_OutgoingMessagesQueued;
-	AsioConditionVariable m_WriterDone;
-	bool m_ShuttingDown;
+	AsioEvent m_OutgoingMessagesQueued;
+	AsioEvent m_WriterDone;
+	Atomic<bool> m_ShuttingDown;
 	boost::asio::deadline_timer m_CheckLivenessTimer, m_HeartbeatTimer;
 
 	JsonRpcConnection(const String& identity, bool authenticated, const Shared<AsioTlsStream>::Ptr& stream, ConnectionRole role, boost::asio::io_context& io);
@@ -88,7 +88,8 @@ private:
 	void CheckLiveness(boost::asio::yield_context yc);
 
 	bool ProcessMessage();
-	void MessageHandler(const String& jsonString);
+
+	void MessageHandler(const Dictionary::Ptr& message);
 
 	void CertificateRequestResponseHandler(const Dictionary::Ptr& message);
 

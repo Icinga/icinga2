@@ -204,7 +204,7 @@ You can read the full story [here](https://github.com/Icinga/icinga2/issues/7309
 
 With 2.11 you'll now see 3 processes:
 
-- The umbrella process which takes care about signal handling and process spawning/stopping
+- The umbrella process which takes care of signal handling and process spawning/stopping
 - The main process with the check scheduler, notifications, etc.
 - The execution helper process
 
@@ -622,14 +622,15 @@ The algorithm works like this:
 
 * Determine whether this instance is assigned to a local zone and endpoint.
 * Collects all endpoints in this zone if they are connected.
-* If there's two endpoints, but only us seeing ourselves and the application start is less than 60 seconds in the past, do nothing (wait for cluster reconnect to take place, grace period).
+* If there's two endpoints, but only us seeing ourselves and the application start is less than
+  30 seconds in the past, do nothing (wait for cluster reconnect to take place, grace period).
 * Sort the collected endpoints by name.
 * Iterate over all config types and their respective objects
- * Ignore !active objects
- * Ignore objects which are !HARunOnce. This means, they can run multiple times in a zone and don't need an authority update.
- * If this instance doesn't have a local zone, set authority to true. This is for non-clustered standalone environments where everything belongs to this instance.
- * Calculate the object authority based on the connected endpoint names.
- * Set the authority (true or false)
+    * Ignore !active objects
+    * Ignore objects which are !HARunOnce. This means, they can run multiple times in a zone and don't need an authority update.
+    * If this instance doesn't have a local zone, set authority to true. This is for non-clustered standalone environments where everything belongs to this instance.
+    * Calculate the object authority based on the connected endpoint names.
+    * Set the authority (true or false)
 
 The object authority calculation works "offline" without any message exchange.
 Each instance alculates the SDBM hash of the config object name, puts that in contrast
@@ -651,7 +652,7 @@ authority = endpoints[Utility::SDBM(object->GetName()) % endpoints.size()] == my
 that by querying the `paused` attribute for all objects via REST API
 or debug console on both endpoints.
 
-Endpoints inside a HA zone calculate the object authority independent from each other.
+Endpoints inside an HA zone calculate the object authority independent from each other.
 This object authority is important for selected features explained below.
 
 Since features are configuration objects too, you must ensure that all nodes
@@ -1514,6 +1515,76 @@ Message updates will be dropped when:
 * Notification does not exist.
 * Origin endpoint's zone is not allowed to access this checkable.
 
+#### event::UpdateLastNotifiedStatePerUser <a id="technical-concepts-json-rpc-messages-event-updatelastnotifiedstateperuser"></a>
+
+> Location: `clusterevents.cpp`
+
+##### Message Body
+
+Key       | Value
+----------|---------
+jsonrpc   | 2.0
+method    | event::UpdateLastNotifiedStatePerUser
+params    | Dictionary
+
+##### Params
+
+Key          | Type   | Description
+-------------|--------|------------------
+notification | String | Notification name
+user         | String | User name
+state        | Number | Checkable state the user just got a problem notification for
+
+Used to sync the state of a notification object within the same HA zone.
+
+##### Functions
+
+Event Sender: `Notification::OnLastNotifiedStatePerUserUpdated`
+Event Receiver: `LastNotifiedStatePerUserUpdatedAPIHandler`
+
+##### Permissions
+
+The receiver will not process messages from not configured endpoints.
+
+Message updates will be dropped when:
+
+* Notification does not exist.
+* Origin endpoint is not within the local zone.
+
+#### event::ClearLastNotifiedStatePerUser <a id="technical-concepts-json-rpc-messages-event-clearlastnotifiedstateperuser"></a>
+
+> Location: `clusterevents.cpp`
+
+##### Message Body
+
+Key       | Value
+----------|---------
+jsonrpc   | 2.0
+method    | event::ClearLastNotifiedStatePerUser
+params    | Dictionary
+
+##### Params
+
+Key          | Type   | Description
+-------------|--------|------------------
+notification | String | Notification name
+
+Used to sync the state of a notification object within the same HA zone.
+
+##### Functions
+
+Event Sender: `Notification::OnLastNotifiedStatePerUserCleared`
+Event Receiver: `LastNotifiedStatePerUserClearedAPIHandler`
+
+##### Permissions
+
+The receiver will not process messages from not configured endpoints.
+
+Message updates will be dropped when:
+
+* Notification does not exist.
+* Origin endpoint is not within the local zone.
+
 #### event::SetForceNextCheck <a id="technical-concepts-json-rpc-messages-event-setforcenextcheck"></a>
 
 > Location: `clusterevents.cpp`
@@ -1817,7 +1888,7 @@ source         | String        | The execution UUID
 
 Special handling, calls `ClusterEvents::EnqueueCheck()` for command endpoint checks.
 This function enqueues check tasks into a queue which is controlled in `RemoteCheckThreadProc()`.
-If the `endpoint` parameter is specified and is not equal to the local endpoint then the message is forwarded to the correct endpoint zone. 
+If the `endpoint` parameter is specified and is not equal to the local endpoint then the message is forwarded to the correct endpoint zone.
 
 ##### Permissions
 
@@ -1862,7 +1933,7 @@ executions     | Dictionary    | Executions to be updated
 ##### Functions
 
 **Event Sender:** `ClusterEvents::ExecutedCommandAPIHandler`, `ClusterEvents::UpdateExecutionsAPIHandler`, `ApiActions::ExecuteCommand`
-**Event Receiver:** `ClusterEvents::UpdateExecutionsAPIHandler` 
+**Event Receiver:** `ClusterEvents::UpdateExecutionsAPIHandler`
 
 ##### Permissions
 
@@ -1892,7 +1963,7 @@ Key            | Type          | Description
 host           | String        | Host name.
 service        | String        | Service name.
 execution      | String        | The execution ID executed.
-exitStatus     | Number        | The command exit status. 
+exitStatus     | Number        | The command exit status.
 output         | String        | The command output.
 start          | Number        | The unix timestamp at the start of the command execution
 end            | Number        | The unix timestamp at the end of the command execution
@@ -1900,7 +1971,7 @@ end            | Number        | The unix timestamp at the end of the command ex
 ##### Functions
 
 **Event Sender:** `ClusterEvents::ExecuteCheckFromQueue`, `ClusterEvents::ExecuteCommandAPIHandler`
-**Event Receiver:** `ClusterEvents::ExecutedCommandAPIHandler` 
+**Event Receiver:** `ClusterEvents::ExecutedCommandAPIHandler`
 
 ##### Permissions
 

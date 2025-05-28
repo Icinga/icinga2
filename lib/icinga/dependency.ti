@@ -13,13 +13,15 @@ code {{{
 class DependencyNameComposer : public NameComposer
 {
 public:
-	virtual String MakeName(const String& shortName, const Object::Ptr& context) const;
-	virtual Dictionary::Ptr ParseName(const String& name) const;
+	virtual String MakeName(const String& shortName, const Object::Ptr& context) const override;
+	virtual Dictionary::Ptr ParseName(const String& name) const override;
 };
 }}}
 
 class Dependency : CustomVarObject < DependencyNameComposer
 {
+	activation_priority -10;
+
 	load_after Host;
 	load_after Service;
 
@@ -77,18 +79,18 @@ class Dependency : CustomVarObject < DependencyNameComposer
 		}}}
 	};
 
-	[config] String redundancy_group;
+	[config, no_user_modify] String redundancy_group;
 
-	[config, navigation] name(TimePeriod) period (PeriodRaw) {
+	[config, no_user_modify, navigation] name(TimePeriod) period (PeriodRaw) {
 		navigate {{{
 			return TimePeriod::GetByName(GetPeriodRaw());
 		}}}
 	};
 
-	[config] array(Value) states;
+	[config, no_user_modify] array(Value) states;
 	[no_user_view, no_user_modify] int state_filter_real (StateFilter);
 
-	[config] bool ignore_soft_states {
+	[config, no_user_modify] bool ignore_soft_states {
 		default {{{ return true; }}}
 	};
 

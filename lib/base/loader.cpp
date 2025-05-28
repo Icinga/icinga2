@@ -35,4 +35,3 @@ void Loader::AddDeferredInitializer(const std::function<void()>& callback, Initi
 
 	initializers->push(DeferredInitializer(callback, priority));
 }
-

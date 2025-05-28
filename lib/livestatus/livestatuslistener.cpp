@@ -112,6 +112,7 @@ void LivestatusListener::Stop(bool runtimeRemoved)
 		<< "'" << GetName() << "' stopped.";
 
 	m_Listener->Close();
+	m_WaitGroup->Join();
 
 	if (m_Thread.joinable())
 		m_Thread.join();
@@ -191,7 +192,7 @@ void LivestatusListener::ClientHandler(const Socket::Ptr& client)
 			break;
 
 		LivestatusQuery::Ptr query = new LivestatusQuery(lines, GetCompatLogPath());
-		if (!query->Execute(stream))
+		if (!query->Execute(m_WaitGroup, stream))
 			break;
 	}
 

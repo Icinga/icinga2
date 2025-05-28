@@ -16,6 +16,7 @@
 #include "base/tcpsocket.hpp"
 #include "base/tlsstream.hpp"
 #include "base/threadpool.hpp"
+#include "base/wait-group.hpp"
 #include <atomic>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/tcp.hpp>
@@ -67,7 +68,8 @@ struct ConfigDirInformation
  */
 enum class ApiCapabilities : uint_fast64_t
 {
-	ExecuteArbitraryCommand = 1u
+	ExecuteArbitraryCommand = 1u << 0u,
+	IfwApiCheckCommand = 1u << 1u,
 };
 
 /**
@@ -90,7 +92,7 @@ public:
 	static String GetCaDir();
 	static String GetCertificateRequestsDir();
 
-	std::shared_ptr<X509> RenewCert(const std::shared_ptr<X509>& cert);
+	std::shared_ptr<X509> RenewCert(const std::shared_ptr<X509>& cert, bool ca = false);
 	void UpdateSSLContext();
 
 	static ApiListener::Ptr GetInstance();
@@ -150,6 +152,11 @@ public:
 	double GetTlsHandshakeTimeout() const override;
 	void SetTlsHandshakeTimeout(double value, bool suppress_events, const Value& cookie) override;
 
+	WaitGroup::Ptr GetWaitGroup() const
+	{
+		return m_WaitGroup;
+	}
+
 protected:
 	void OnConfigLoaded() override;
 	void OnAllConfigLoaded() override;
@@ -176,6 +183,7 @@ private:
 	Timer::Ptr m_RenewOwnCertTimer;
 
 	Endpoint::Ptr m_LocalEndpoint;
+	StoppableWaitGroup::Ptr m_WaitGroup = new StoppableWaitGroup();
 
 	static ApiListener::Ptr m_Instance;
 	static std::atomic<bool> m_UpdatedObjectAuthority;
@@ -226,6 +234,7 @@ private:
 	void SyncLocalZoneDirs() const;
 	void SyncLocalZoneDir(const Zone::Ptr& zone) const;
 	void RenewOwnCert();
+	void RenewCA();
 
 	void SendConfigUpdate(const JsonRpcConnection::Ptr& aclient);
 
@@ -245,6 +254,8 @@ private:
 	/* configsync */
 	void UpdateConfigObject(const ConfigObject::Ptr& object, const MessageOrigin::Ptr& origin,
 		const JsonRpcConnection::Ptr& client = nullptr);
+	void UpdateConfigObjectWithParents(const ConfigObject::Ptr& object, const Zone::Ptr& azone,
+		const JsonRpcConnection::Ptr& client, std::unordered_set<ConfigObject*>& syncedObjects);
 	void DeleteConfigObject(const ConfigObject::Ptr& object, const MessageOrigin::Ptr& origin,
 		const JsonRpcConnection::Ptr& client = nullptr);
 	void SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient);

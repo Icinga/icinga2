@@ -5,7 +5,9 @@
 #include "remote/apilistener.hpp"
 #include "config/configcompiler.hpp"
 #include "config/configitem.hpp"
+#include "base/atomic-file.hpp"
 #include "base/configwriter.hpp"
+#include "base/defer.hpp"
 #include "base/exception.hpp"
 #include "base/dependencygraph.hpp"
 #include "base/tlsutility.hpp"
@@ -198,11 +200,16 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 		return false;
 	}
 
+	// AtomicFile doesn't create not yet existing directories, so we have to do it by ourselves.
 	Utility::MkDirP(Utility::DirName(path), 0700);
 
-	std::ofstream fp(path.CStr(), std::ofstream::out | std::ostream::trunc);
-	fp << config;
-	fp.close();
+	AtomicFile::Write(path, 0644, config);
+
+	// Remove the just created config file in all the error cases and if the object creation
+	// succeeds the deferred callback will be cancelled.
+	Defer removeConfigPath([&path]{
+		Utility::Remove(path);
+	});
 
 	std::unique_ptr<Expression> expr = ConfigCompiler::CompileFile(path, String(), "_api");
 
@@ -227,8 +234,6 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 				Log(LogNotice, "ConfigObjectUtility")
 					<< "Failed to commit config item '" << fullName << "'. Aborting and removing config path '" << path << "'.";
 
-				Utility::Remove(path);
-
 				for (const boost::exception_ptr& ex : upq.GetExceptions()) {
 					errors->Add(DiagnosticInformation(ex, false));
 
@@ -249,8 +254,6 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 			if (errors) {
 				Log(LogNotice, "ConfigObjectUtility")
 					<< "Failed to activate config object '" << fullName << "'. Aborting and removing config path '" << path << "'.";
-
-				Utility::Remove(path);
 
 				for (const boost::exception_ptr& ex : upq.GetExceptions()) {
 					errors->Add(DiagnosticInformation(ex, false));
@@ -275,16 +278,16 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 		ConfigObject::Ptr obj = ctype->GetObject(fullName);
 
 		if (obj) {
+			// Object is successfully created and activated, so don't remove its config.
+			removeConfigPath.Cancel();
+
 			Log(LogInformation, "ConfigObjectUtility")
 				<< "Created and activated object '" << fullName << "' of type '" << type->GetName() << "'.";
 		} else {
 			Log(LogNotice, "ConfigObjectUtility")
 				<< "Object '" << fullName << "' was not created but ignored due to errors.";
 		}
-
 	} catch (const std::exception& ex) {
-		Utility::Remove(path);
-
 		if (errors)
 			errors->Add(DiagnosticInformation(ex, false));
 
@@ -300,7 +303,7 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bool cascade,
 	const Array::Ptr& errors, const Array::Ptr& diagnosticInformation, const Value& cookie)
 {
-	std::vector<Object::Ptr> parents = DependencyGraph::GetParents(object);
+	auto parents (DependencyGraph::GetChildren(object));
 
 	Type::Ptr type = object->GetReflectionType();
 
@@ -316,12 +319,7 @@ bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bo
 		return false;
 	}
 
-	for (const Object::Ptr& pobj : parents) {
-		ConfigObject::Ptr parentObj = dynamic_pointer_cast<ConfigObject>(pobj);
-
-		if (!parentObj)
-			continue;
-
+	for (auto& parentObj : parents) {
 		DeleteObjectHelper(parentObj, cascade, errors, diagnosticInformation, cookie);
 	}
 

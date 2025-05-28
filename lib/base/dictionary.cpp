@@ -68,6 +68,20 @@ bool Dictionary::Get(const String& key, Value *result) const
 }
 
 /**
+ * Retrieves a value's address from a dictionary.
+ *
+ * @param key The key whose value's address should be retrieved.
+ * @returns nullptr if the key was not found.
+ */
+const Value * Dictionary::GetRef(const String& key) const
+{
+	std::shared_lock<std::shared_timed_mutex> lock (m_DataMutex);
+	auto it (m_Data.find(key));
+
+	return it == m_Data.end() ? nullptr : &it->second;
+}
+
+/**
  * Sets a value in the dictionary.
  *
  * @param key The key.
@@ -300,4 +314,3 @@ Dictionary::Iterator icinga::end(const Dictionary::Ptr& x)
 {
 	return x->End();
 }
-

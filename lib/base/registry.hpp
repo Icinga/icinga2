@@ -23,53 +23,11 @@ class Registry
 public:
 	typedef std::map<String, T> ItemMap;
 
-	void RegisterIfNew(const String& name, const T& item)
-	{
-		std::unique_lock<std::mutex> lock(m_Mutex);
-
-		if (m_Items.find(name) != m_Items.end())
-			return;
-
-		RegisterInternal(name, item, lock);
-	}
-
 	void Register(const String& name, const T& item)
 	{
 		std::unique_lock<std::mutex> lock(m_Mutex);
 
 		RegisterInternal(name, item, lock);
-	}
-
-	void Unregister(const String& name)
-	{
-		size_t erased;
-
-		{
-			std::unique_lock<std::mutex> lock(m_Mutex);
-			erased = m_Items.erase(name);
-		}
-
-		if (erased > 0)
-			OnUnregistered(name);
-	}
-
-	void Clear()
-	{
-		typename Registry<U, T>::ItemMap items;
-
-		{
-			std::unique_lock<std::mutex> lock(m_Mutex);
-			items = m_Items;
-		}
-
-		for (const auto& kv : items) {
-			OnUnregistered(kv.first);
-		}
-
-		{
-			std::unique_lock<std::mutex> lock(m_Mutex);
-			m_Items.clear();
-		}
 	}
 
 	T GetItem(const String& name) const

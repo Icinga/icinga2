@@ -121,7 +121,7 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 		ConfigCompilerContext::GetInstance()->OpenObjectsFile(objectsFile);
 
 	if (!configs.empty()) {
-		for (const String& configPath : configs) {
+		for (String configPath : configs) {
 			try {
 				std::unique_ptr<Expression> expression = ConfigCompiler::CompileFile(configPath, String(), "_etc");
 				success = ExecuteExpression(&*expression);
@@ -255,17 +255,6 @@ bool DaemonUtility::LoadConfigFiles(const std::vector<std::string>& configs,
 	WorkQueue upq(25000, Configuration::Concurrency);
 	upq.SetName("DaemonUtility::LoadConfigFiles");
 	bool result = ConfigItem::CommitItems(ascope.GetContext(), upq, newItems);
-
-	if (result) {
-		try {
-			Dependency::AssertNoCycles();
-		} catch (...) {
-			Log(LogCritical, "config")
-				<< DiagnosticInformation(boost::current_exception(), false);
-
-			result = false;
-		}
-	}
 
 	if (!result) {
 		ConfigCompilerContext::GetInstance()->CancelObjectsFile();

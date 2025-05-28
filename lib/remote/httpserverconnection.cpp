@@ -18,6 +18,7 @@
 #include "base/timer.hpp"
 #include "base/tlsstream.hpp"
 #include "base/utility.hpp"
+#include <chrono>
 #include <limits>
 #include <memory>
 #include <stdexcept>
@@ -67,46 +68,35 @@ void HttpServerConnection::Start()
 	IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) { CheckLiveness(yc); });
 }
 
-void HttpServerConnection::Disconnect()
+/**
+ * Tries to asynchronously shut down the SSL stream and underlying socket.
+ *
+ * It is important to note that this method should only be called from within a coroutine that uses `m_IoStrand`.
+ *
+ * @param yc boost::asio::yield_context The coroutine yield context which you are calling this method from.
+ */
+void HttpServerConnection::Disconnect(boost::asio::yield_context yc)
 {
 	namespace asio = boost::asio;
 
-	HttpServerConnection::Ptr keepAlive (this);
+	if (m_ShuttingDown) {
+		return;
+	}
 
-	IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) {
-		if (!m_ShuttingDown) {
-			m_ShuttingDown = true;
+	m_ShuttingDown = true;
 
-			Log(LogInformation, "HttpServerConnection")
-				<< "HTTP client disconnected (from " << m_PeerAddress << ")";
+	Log(LogInformation, "HttpServerConnection")
+		<< "HTTP client disconnected (from " << m_PeerAddress << ")";
 
-			/*
-			 * Do not swallow exceptions in a coroutine.
-			 * https://github.com/Icinga/icinga2/issues/7351
-			 * We must not catch `detail::forced_unwind exception` as
-			 * this is used for unwinding the stack.
-			 *
-			 * Just use the error_code dummy here.
-			 */
-			boost::system::error_code ec;
+	m_CheckLivenessTimer.cancel();
 
-			m_CheckLivenessTimer.cancel();
+	m_Stream->GracefulDisconnect(m_IoStrand, yc);
 
-			m_Stream->lowest_layer().cancel(ec);
+	auto listener (ApiListener::GetInstance());
 
-			m_Stream->next_layer().async_shutdown(yc[ec]);
-
-			m_Stream->lowest_layer().shutdown(m_Stream->lowest_layer().shutdown_both, ec);
-
-			auto listener (ApiListener::GetInstance());
-
-			if (listener) {
-				CpuBoundWork removeHttpClient (yc);
-
-				listener->RemoveHttpClient(this);
-			}
-		}
-	});
+	if (listener) {
+		listener->RemoveHttpClient(this);
+	}
 }
 
 void HttpServerConnection::StartStreaming()
@@ -127,7 +117,7 @@ void HttpServerConnection::StartStreaming()
 				m_Stream->async_read_some(readBuf, yc[ec]);
 			} while (!ec);
 
-			Disconnect();
+			Disconnect(yc);
 		}
 	});
 }
@@ -191,10 +181,8 @@ bool EnsureValidHeaders(
 
 		response.set(http::field::connection, "close");
 
-		boost::system::error_code ec;
-
-		http::async_write(stream, response, yc[ec]);
-		stream.async_flush(yc[ec]);
+		http::async_write(stream, response, yc);
+		stream.async_flush(yc);
 
 		return false;
 	}
@@ -216,10 +204,8 @@ void HandleExpect100(
 
 		response.result(http::status::continue_);
 
-		boost::system::error_code ec;
-
-		http::async_write(stream, response, yc[ec]);
-		stream.async_flush(yc[ec]);
+		http::async_write(stream, response, yc);
+		stream.async_flush(yc);
 	}
 }
 
@@ -239,8 +225,6 @@ bool HandleAccessControl(
 		auto headerAllowOrigin (listener->GetAccessControlAllowOrigin());
 
 		if (headerAllowOrigin) {
-			CpuBoundWork allowOriginHeader (yc);
-
 			auto allowedOrigins (headerAllowOrigin->ToSet<String>());
 
 			if (!allowedOrigins.empty()) {
@@ -249,8 +233,6 @@ bool HandleAccessControl(
 				if (allowedOrigins.find(std::string(origin)) != allowedOrigins.end()) {
 					response.set(http::field::access_control_allow_origin, origin);
 				}
-
-				allowOriginHeader.Done();
 
 				response.set(http::field::access_control_allow_credentials, "true");
 
@@ -262,10 +244,8 @@ bool HandleAccessControl(
 					response.content_length(response.body().size());
 					response.set(http::field::connection, "close");
 
-					boost::system::error_code ec;
-
-					http::async_write(stream, response, yc[ec]);
-					stream.async_flush(yc[ec]);
+					http::async_write(stream, response, yc);
+					stream.async_flush(yc);
 
 					return false;
 				}
@@ -293,10 +273,8 @@ bool EnsureAcceptHeader(
 		response.content_length(response.body().size());
 		response.set(http::field::connection, "close");
 
-		boost::system::error_code ec;
-
-		http::async_write(stream, response, yc[ec]);
-		stream.async_flush(yc[ec]);
+		http::async_write(stream, response, yc);
+		stream.async_flush(yc);
 
 		return false;
 	}
@@ -334,10 +312,8 @@ bool EnsureAuthenticatedUser(
 			response.content_length(response.body().size());
 		}
 
-		boost::system::error_code ec;
-
-		http::async_write(stream, response, yc[ec]);
-		stream.async_flush(yc[ec]);
+		http::async_write(stream, response, yc);
+		stream.async_flush(yc);
 
 		return false;
 	}
@@ -363,8 +339,6 @@ bool EnsureValidBody(
 		Array::Ptr permissions = authenticatedUser->GetPermissions();
 
 		if (permissions) {
-			CpuBoundWork evalPermissions (yc);
-
 			ObjectLock olock(permissions);
 
 			for (const Value& permissionInfo : permissions) {
@@ -428,8 +402,8 @@ bool EnsureValidBody(
 
 		response.set(http::field::connection, "close");
 
-		http::async_write(stream, response, yc[ec]);
-		stream.async_flush(yc[ec]);
+		http::async_write(stream, response, yc);
+		stream.async_flush(yc);
 
 		return false;
 	}
@@ -445,13 +419,17 @@ bool ProcessRequest(
 	boost::beast::http::response<boost::beast::http::string_body>& response,
 	HttpServerConnection& server,
 	bool& hasStartedStreaming,
+	std::chrono::steady_clock::duration& cpuBoundWorkTime,
 	boost::asio::yield_context& yc
 )
 {
 	namespace http = boost::beast::http;
 
 	try {
+		// Cache the elapsed time to acquire a CPU semaphore used to detect extremely heavy workloads.
+		auto start (std::chrono::steady_clock::now());
 		CpuBoundWork handlingRequest (yc);
+		cpuBoundWorkTime = std::chrono::steady_clock::now() - start;
 
 		HttpHandler::ProcessRequest(stream, authenticatedUser, request, response, yc, server);
 	} catch (const std::exception& ex) {
@@ -469,10 +447,8 @@ bool ProcessRequest(
 
 		HttpUtility::SendJsonError(response, nullptr, 500, "Unhandled exception" , DiagnosticInformation(ex));
 
-		boost::system::error_code ec;
-
-		http::async_write(stream, response, yc[ec]);
-		stream.async_flush(yc[ec]);
+		http::async_write(stream, response, yc);
+		stream.async_flush(yc);
 
 		return true;
 	}
@@ -481,10 +457,8 @@ bool ProcessRequest(
 		return false;
 	}
 
-	boost::system::error_code ec;
-
-	http::async_write(stream, response, yc[ec]);
-	stream.async_flush(yc[ec]);
+	http::async_write(stream, response, yc);
+	stream.async_flush(yc);
 
 	return true;
 }
@@ -493,6 +467,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 {
 	namespace beast = boost::beast;
 	namespace http = beast::http;
+	namespace ch = std::chrono;
 
 	try {
 		/* Do not reset the buffer in the state machine.
@@ -518,6 +493,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 			}
 
 			m_Seen = Utility::GetTime();
+			auto start (ch::steady_clock::now());
 
 			auto& request (parser.get());
 
@@ -534,20 +510,24 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 			auto authenticatedUser (m_ApiUser);
 
 			if (!authenticatedUser) {
-				CpuBoundWork fetchingAuthenticatedUser (yc);
-
 				authenticatedUser = ApiUser::GetByAuthHeader(std::string(request[http::field::authorization]));
 			}
 
 			Log logMsg (LogInformation, "HttpServerConnection");
 
-			logMsg << "Request: " << request.method_string() << ' ' << request.target()
+			logMsg << "Request " << request.method_string() << ' ' << request.target()
 				<< " (from " << m_PeerAddress
-				<< "), user: " << (authenticatedUser ? authenticatedUser->GetName() : "<unauthenticated>")
+				<< ", user: " << (authenticatedUser ? authenticatedUser->GetName() : "<unauthenticated>")
 				<< ", agent: " << request[http::field::user_agent]; //operator[] - Returns the value for a field, or "" if it does not exist.
 
-			Defer addRespCode ([&response, &logMsg]() {
-				logMsg << ", status: " << response.result() << ").";
+			ch::steady_clock::duration cpuBoundWorkTime(0);
+			Defer addRespCode ([&response, start, &logMsg, &cpuBoundWorkTime]() {
+				logMsg << ", status: " << response.result() << ")";
+				if (cpuBoundWorkTime >= ch::seconds(1)) {
+					logMsg << " waited " << ch::duration_cast<ch::milliseconds>(cpuBoundWorkTime).count() << "ms on semaphore and";
+				}
+
+				logMsg << " took total " << ch::duration_cast<ch::milliseconds>(ch::steady_clock::now() - start).count() << "ms.";
 			});
 
 			if (!HandleAccessControl(*m_Stream, request, response, yc)) {
@@ -568,7 +548,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 
 			m_Seen = std::numeric_limits<decltype(m_Seen)>::max();
 
-			if (!ProcessRequest(*m_Stream, request, authenticatedUser, response, *this, m_HasStartedStreaming, yc)) {
+			if (!ProcessRequest(*m_Stream, request, authenticatedUser, response, *this, m_HasStartedStreaming, cpuBoundWorkTime, yc)) {
 				break;
 			}
 
@@ -578,12 +558,12 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 		}
 	} catch (const std::exception& ex) {
 		if (!m_ShuttingDown) {
-			Log(LogCritical, "HttpServerConnection")
-				<< "Unhandled exception while processing HTTP request: " << ex.what();
+			Log(LogWarning, "HttpServerConnection")
+				<< "Exception while processing HTTP request from " << m_PeerAddress << ": " << ex.what();
 		}
 	}
 
-	Disconnect();
+	Disconnect(yc);
 }
 
 void HttpServerConnection::CheckLiveness(boost::asio::yield_context yc)
@@ -602,7 +582,7 @@ void HttpServerConnection::CheckLiveness(boost::asio::yield_context yc)
 			Log(LogInformation, "HttpServerConnection")
 				<<  "No messages for HTTP connection have been received in the last 10 seconds.";
 
-			Disconnect();
+			Disconnect(yc);
 			break;
 		}
 	}
