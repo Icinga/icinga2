@@ -20,7 +20,7 @@ String PKINewCertCommand::GetShortDescription() const
 }
 
 void PKINewCertCommand::InitParameters(boost::program_options::options_description& visibleDesc,
-	boost::program_options::options_description& hiddenDesc) const
+	[[maybe_unused]] boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
 		("cn", po::value<std::string>(), "Common Name")
@@ -42,7 +42,7 @@ std::vector<String> PKINewCertCommand::GetArgumentSuggestions(const String& argu
  *
  * @returns An exit status.
  */
-int PKINewCertCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
+int PKINewCertCommand::Run(const boost::program_options::variables_map& vm, [[maybe_unused]] const std::vector<std::string>& ap) const
 {
 	if (!vm.count("cn")) {
 		Log(LogCritical, "cli", "Common name (--cn) must be specified.");

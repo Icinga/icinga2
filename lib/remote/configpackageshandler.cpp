@@ -11,14 +11,14 @@ using namespace icinga;
 REGISTER_URLHANDLER("/v1/config/packages", ConfigPackagesHandler);
 
 bool ConfigPackagesHandler::HandleRequest(
-	AsioTlsStream& stream,
+	AsioTlsStream&,
 	const ApiUser::Ptr& user,
 	boost::beast::http::request<boost::beast::http::string_body>& request,
 	const Url::Ptr& url,
 	boost::beast::http::response<boost::beast::http::string_body>& response,
 	const Dictionary::Ptr& params,
-	boost::asio::yield_context& yc,
-	HttpServerConnection& server
+	boost::asio::yield_context&,
+	HttpServerConnection&
 )
 {
 	namespace http = boost::beast::http;

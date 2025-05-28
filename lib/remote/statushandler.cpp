@@ -16,7 +16,7 @@ class StatusTargetProvider final : public TargetProvider
 public:
 	DECLARE_PTR_TYPEDEFS(StatusTargetProvider);
 
-	void FindTargets(const String& type,
+	void FindTargets([[maybe_unused]] const String& type,
 		const std::function<void (const Value&)>& addTarget) const override
 	{
 		Namespace::Ptr statsFunctions = ScriptGlobal::Get("StatsFunctions", &Empty);
@@ -29,7 +29,7 @@ public:
 		}
 	}
 
-	Value GetTargetByName(const String& type, const String& name) const override
+	Value GetTargetByName([[maybe_unused]] const String& type, const String& name) const override
 	{
 		Namespace::Ptr statsFunctions = ScriptGlobal::Get("StatsFunctions", &Empty);
 
@@ -62,21 +62,21 @@ public:
 		return type == "Status";
 	}
 
-	String GetPluralName(const String& type) const override
+	String GetPluralName([[maybe_unused]] const String& type) const override
 	{
 		return "statuses";
 	}
 };
 
 bool StatusHandler::HandleRequest(
-	AsioTlsStream& stream,
+	AsioTlsStream&,
 	const ApiUser::Ptr& user,
 	boost::beast::http::request<boost::beast::http::string_body>& request,
 	const Url::Ptr& url,
 	boost::beast::http::response<boost::beast::http::string_body>& response,
 	const Dictionary::Ptr& params,
-	boost::asio::yield_context& yc,
-	HttpServerConnection& server
+	boost::asio::yield_context&,
+	HttpServerConnection&
 )
 {
 	namespace http = boost::beast::http;
