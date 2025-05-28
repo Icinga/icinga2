@@ -12,10 +12,10 @@
 
 using namespace icinga;
 
-REGISTER_FUNCTION_NONCONST(Internal, ClusterZoneCheck, &ClusterZoneCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
+REGISTER_FUNCTION_NONCONST(Internal, ClusterZoneCheck, &ClusterZoneCheckTask::ScriptFunc, "checkable:cr:producer:resolvedMacros:useResolvedMacros");
 
 void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
-	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
+	const WaitGroup::Ptr& producer, const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
 	REQUIRE_NOT_NULL(checkable);
 	REQUIRE_NOT_NULL(cr);
@@ -42,7 +42,7 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 			cr->SetCommand(commandName);
 			cr->SetOutput(output);
 			cr->SetState(state);
-			checkable->ProcessCheckResult(cr);
+			checkable->ProcessCheckResult(cr, producer);
 		}
 
 		return;
@@ -97,7 +97,7 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 			cr->SetCommand(commandName);
 			cr->SetOutput(output);
 			cr->SetState(state);
-			checkable->ProcessCheckResult(cr);
+			checkable->ProcessCheckResult(cr, producer);
 		}
 
 		return;
@@ -123,7 +123,7 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 			cr->SetCommand(commandName);
 			cr->SetOutput(output);
 			cr->SetState(state);
-			checkable->ProcessCheckResult(cr);
+			checkable->ProcessCheckResult(cr, producer);
 		}
 		return;
 	}
@@ -213,6 +213,6 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 			new PerfdataValue("sum_bytes_received_per_second", bytesReceivedPerSecond)
 		}));
 
-		checkable->ProcessCheckResult(cr);
+		checkable->ProcessCheckResult(cr, producer);
 	}
 }

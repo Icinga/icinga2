@@ -14,10 +14,10 @@
 
 using namespace icinga;
 
-REGISTER_FUNCTION_NONCONST(Internal, PluginCheck,  &PluginCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
+REGISTER_FUNCTION_NONCONST(Internal, PluginCheck,  &PluginCheckTask::ScriptFunc, "checkable:cr:producer:resolvedMacros:useResolvedMacros");
 
 void PluginCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
-	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
+	const WaitGroup::Ptr& producer, const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
 	REQUIRE_NOT_NULL(checkable);
 	REQUIRE_NOT_NULL(cr);
@@ -48,8 +48,8 @@ void PluginCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	if (Checkable::ExecuteCommandProcessFinishedHandler) {
 		callback = Checkable::ExecuteCommandProcessFinishedHandler;
 	} else {
-		callback = [checkable, cr](const Value& commandLine, const ProcessResult& pr) {
-			ProcessFinishedHandler(checkable, cr, commandLine, pr);
+		callback = [checkable, cr, producer](const Value& commandLine, const ProcessResult& pr) {
+			ProcessFinishedHandler(checkable, cr, producer, commandLine, pr);
 		};
 	}
 
@@ -62,7 +62,8 @@ void PluginCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	}
 }
 
-void PluginCheckTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const Value& commandLine, const ProcessResult& pr)
+void PluginCheckTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
+	const WaitGroup::Ptr& producer, const Value& commandLine, const ProcessResult& pr)
 {
 	Checkable::CurrentConcurrentChecks.fetch_sub(1);
 	Checkable::DecreasePendingChecks();
@@ -93,5 +94,5 @@ void PluginCheckTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, co
 	cr->SetExecutionStart(pr.ExecutionStart);
 	cr->SetExecutionEnd(pr.ExecutionEnd);
 
-	checkable->ProcessCheckResult(cr);
+	checkable->ProcessCheckResult(cr, producer);
 }

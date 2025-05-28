@@ -12,6 +12,7 @@
 #include "icinga/notification.hpp"
 #include "icinga/comment.hpp"
 #include "icinga/downtime.hpp"
+#include "base/wait-group.hpp"
 #include "remote/endpoint.hpp"
 #include "remote/messageorigin.hpp"
 #include <condition_variable>
@@ -114,15 +115,17 @@ public:
 
 	static void UpdateStatistics(const CheckResult::Ptr& cr, CheckableType type);
 
-	void ExecuteRemoteCheck(const Dictionary::Ptr& resolvedMacros = nullptr);
-	void ExecuteCheck();
+	void ExecuteRemoteCheck(const WaitGroup::Ptr& producer, const Dictionary::Ptr& resolvedMacros = nullptr);
+	void ExecuteCheck(const WaitGroup::Ptr& producer);
+
 	enum class ProcessingResult
 	{
 		Ok,
 		CheckableInactive,
 		NewerCheckResultPresent,
 	};
-	ProcessingResult ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrigin::Ptr& origin = nullptr);
+
+	ProcessingResult ProcessCheckResult(const CheckResult::Ptr& cr, const WaitGroup::Ptr& producer, const MessageOrigin::Ptr& origin = nullptr);
 
 	Endpoint::Ptr GetCommandEndpoint() const;
 

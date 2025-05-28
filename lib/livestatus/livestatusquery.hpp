@@ -5,6 +5,7 @@
 
 #include "livestatus/filter.hpp"
 #include "livestatus/aggregator.hpp"
+#include "base/wait-group.hpp"
 #include "base/object.hpp"
 #include "base/array.hpp"
 #include "base/stream.hpp"
@@ -33,7 +34,7 @@ public:
 
 	LivestatusQuery(const std::vector<String>& lines, const String& compat_log_path);
 
-	bool Execute(const Stream::Ptr& stream);
+	bool Execute(const WaitGroup::Ptr& producer, const Stream::Ptr& stream);
 
 	static int GetExternalCommands();
 
@@ -76,7 +77,7 @@ private:
 	static String QuoteStringPython(const String& str);
 
 	void ExecuteGetHelper(const Stream::Ptr& stream);
-	void ExecuteCommandHelper(const Stream::Ptr& stream);
+	void ExecuteCommandHelper(const WaitGroup::Ptr& producer, const Stream::Ptr& stream);
 	void ExecuteErrorHelper(const Stream::Ptr& stream);
 
 	void SendResponse(const Stream::Ptr& stream, int code, const String& data);

@@ -126,7 +126,8 @@ Dictionary::Ptr ApiActions::ProcessCheckResult(const ConfigObject::Ptr& object,
 	if (params->Contains("ttl"))
 		cr->SetTtl(HttpUtility::GetLastParameter(params, "ttl"));
 
-	Result result = checkable->ProcessCheckResult(cr);
+	Result result = checkable->ProcessCheckResult(cr, ApiListener::GetInstance()->GetWaitGroup());
+
 	switch (result) {
 		case Result::Ok:
 			return ApiActions::CreateResult(200, "Successfully processed check result for object '" + checkable->GetName() + "'.");
@@ -787,7 +788,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object, cons
 			Defer resetCheckCommandOverride([]() {
 				CheckCommand::ExecuteOverride = nullptr;
 			});
-			cmd->Execute(checkable, cr, execMacros, false);
+			cmd->Execute(checkable, cr, listener->GetWaitGroup(), execMacros, false);
 		}
 	} else if (command_type == "EventCommand") {
 		EventCommand::Ptr cmd = GetSingleObjectByNameUsingPermissions(EventCommand::GetTypeName(), resolved_command, ActionsHandler::AuthenticatedApiUser);

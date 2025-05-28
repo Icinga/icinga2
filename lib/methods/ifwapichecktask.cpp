@@ -31,7 +31,7 @@
 
 using namespace icinga;
 
-REGISTER_FUNCTION_NONCONST(Internal, IfwApiCheck, &IfwApiCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
+REGISTER_FUNCTION_NONCONST(Internal, IfwApiCheck, &IfwApiCheckTask::ScriptFunc, "checkable:cr:producer:resolvedMacros:useResolvedMacros");
 
 static const char* GetUnderstandableError(const std::exception& ex)
 {
@@ -194,7 +194,7 @@ static void DoIfwNetIo(
 }
 
 void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
-	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
+	const WaitGroup::Ptr& producer, const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
 	namespace asio = boost::asio;
 	namespace http = boost::beast::http;
@@ -213,7 +213,7 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 			if (!(commandEndpoint->GetCapabilities() & (uint_fast64_t)ApiCapabilities::IfwApiCheckCommand)) {
 				// Assume "ifw-api-check-command" has been imported into a check command which can also work
 				// based on "plugin-check-command", delegate respectively and hope for the best
-				PluginCheckTask::ScriptFunc(checkable, cr, resolvedMacros, useResolvedMacros);
+				PluginCheckTask::ScriptFunc(checkable, cr, producer, resolvedMacros, useResolvedMacros);
 				return;
 			}
 		}
@@ -275,7 +275,7 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 			callback(cr->GetCommand(), pr);
 		};
 	} else {
-		reportResult = [checkable, cr]() { checkable->ProcessCheckResult(cr); };
+		reportResult = [checkable, cr, producer] { checkable->ProcessCheckResult(cr, producer); };
 	}
 
 	// Set the default check result state and exit code to unknown for the moment!

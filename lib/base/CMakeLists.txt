@@ -87,6 +87,7 @@ set(base_SOURCES
   unixsocket.cpp unixsocket.hpp
   utility.cpp utility.hpp
   value.cpp value.hpp value-operators.cpp
+  wait-group.cpp wait-group.hpp
   win32.hpp
   workqueue.cpp workqueue.hpp
 )

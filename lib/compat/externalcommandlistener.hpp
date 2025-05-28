@@ -5,6 +5,7 @@
 
 #include "compat/externalcommandlistener-ti.hpp"
 #include "base/objectlock.hpp"
+#include "base/wait-group.hpp"
 #include "base/timer.hpp"
 #include "base/utility.hpp"
 #include <thread>
@@ -29,6 +30,8 @@ protected:
 	void Stop(bool runtimeRemoved) override;
 
 private:
+	StoppableWaitGroup::Ptr m_WaitGroup = new StoppableWaitGroup();
+
 #ifndef _WIN32
 	std::thread m_CommandThread;
 

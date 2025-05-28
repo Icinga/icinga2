@@ -12,10 +12,10 @@
 
 using namespace icinga;
 
-REGISTER_FUNCTION_NONCONST(Internal, ExceptionCheck, &ExceptionCheckTask::ScriptFunc, "checkable:cr:resolvedMacros:useResolvedMacros");
+REGISTER_FUNCTION_NONCONST(Internal, ExceptionCheck, &ExceptionCheckTask::ScriptFunc, "checkable:cr:producer:resolvedMacros:useResolvedMacros");
 
 void ExceptionCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
-	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
+	const WaitGroup::Ptr&, const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros)
 {
 	REQUIRE_NOT_NULL(checkable);
 	REQUIRE_NOT_NULL(cr);

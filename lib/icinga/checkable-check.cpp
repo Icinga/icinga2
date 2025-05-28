@@ -14,6 +14,7 @@
 #include "base/convert.hpp"
 #include "base/utility.hpp"
 #include "base/context.hpp"
+#include <shared_mutex>
 
 using namespace icinga;
 
@@ -96,11 +97,12 @@ double Checkable::GetLastCheck() const
 	return schedule_end;
 }
 
-Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrigin::Ptr& origin)
+Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr& cr, const WaitGroup::Ptr& producer, const MessageOrigin::Ptr& origin)
 {
 	using Result = Checkable::ProcessingResult;
 
 	VERIFY(cr);
+	VERIFY(producer);
 
 	{
 		ObjectLock olock(this);
@@ -133,6 +135,14 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 		/* override check source if command_endpoint was defined */
 		if (command_endpoint && !GetExtension("agent_check"))
 			cr->SetCheckSource(command_endpoint->GetName());
+	}
+
+	std::shared_lock producerLock (*producer, std::try_to_lock);
+
+	if (!producerLock) {
+		// Discard the check result to not delay the current reload.
+		// We'll re-run the check immediately after the reload.
+		return Result::CheckableInactive;
 	}
 
 	/* agent checks go through the api */
@@ -544,7 +554,7 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 	return Result::Ok;
 }
 
-void Checkable::ExecuteRemoteCheck(const Dictionary::Ptr& resolvedMacros)
+void Checkable::ExecuteRemoteCheck(const WaitGroup::Ptr& producer, const Dictionary::Ptr& resolvedMacros)
 {
 	CONTEXT("Executing remote check for object '" << GetName() << "'");
 
@@ -555,10 +565,10 @@ void Checkable::ExecuteRemoteCheck(const Dictionary::Ptr& resolvedMacros)
 	cr->SetScheduleStart(scheduled_start);
 	cr->SetExecutionStart(before_check);
 
-	GetCheckCommand()->Execute(this, cr, resolvedMacros, true);
+	GetCheckCommand()->Execute(this, cr, producer, resolvedMacros, true);
 }
 
-void Checkable::ExecuteCheck()
+void Checkable::ExecuteCheck(const WaitGroup::Ptr& producer)
 {
 	CONTEXT("Executing check for object '" << GetName() << "'");
 
@@ -599,10 +609,10 @@ void Checkable::ExecuteCheck()
 	bool local = !endpoint || endpoint == Endpoint::GetLocalEndpoint();
 
 	if (local) {
-		GetCheckCommand()->Execute(this, cr, nullptr, false);
+		GetCheckCommand()->Execute(this, cr, producer, nullptr, false);
 	} else {
 		Dictionary::Ptr macros = new Dictionary();
-		GetCheckCommand()->Execute(this, cr, macros, false);
+		GetCheckCommand()->Execute(this, cr, producer, macros, false);
 
 		if (endpoint->GetConnected()) {
 			/* perform check on remote endpoint */
@@ -667,7 +677,7 @@ void Checkable::ExecuteCheck()
 
 			cr->SetOutput(output);
 
-			ProcessCheckResult(cr);
+			ProcessCheckResult(cr, producer);
 		}
 
 		{
