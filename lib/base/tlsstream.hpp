@@ -14,6 +14,7 @@
 #include <memory>
 #include <utility>
 #include <boost/asio/buffered_stream.hpp>
+#include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/spawn.hpp>
@@ -112,7 +113,8 @@ public:
 	}
 
 	void ForceDisconnect();
-	void GracefulDisconnect(boost::asio::io_context::strand& strand, boost::asio::yield_context& yc);
+	void GracefulDisconnect(boost::asio::io_context::strand& strand, boost::asio::yield_context& yc,
+		const boost::asio::deadline_timer::duration_type& timeout = boost::posix_time::seconds(10));
 
 private:
 	inline
