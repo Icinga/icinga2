@@ -70,6 +70,9 @@ enum class ApiCapabilities : uint_fast64_t
 {
 	ExecuteArbitraryCommand = 1u << 0u,
 	IfwApiCheckCommand = 1u << 1u,
+	HostChildrenInheritObjectAuthority = 1u << 2u,
+
+	MyCapabilities = ExecuteArbitraryCommand | IfwApiCheckCommand | HostChildrenInheritObjectAuthority
 };
 
 /**
