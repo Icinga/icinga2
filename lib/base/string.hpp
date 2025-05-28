@@ -178,6 +178,8 @@ String::ConstIterator range_begin(const String& x);
 String::Iterator range_end(String& x);
 String::ConstIterator range_end(const String& x);
 
+std::size_t hash_value(const String& s) noexcept;
+
 }
 
 template<>
