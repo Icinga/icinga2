@@ -83,30 +83,6 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 	Dictionary::Ptr extraEnvironment = request->Get("extraEnvironment");
 	bool adjustPriority = request->Get("adjustPriority");
 
-	// build argv
-	auto **argv = new char *[arguments->GetLength() + 1];
-
-	for (unsigned int i = 0; i < arguments->GetLength(); i++) {
-		String arg = arguments->Get(i);
-		argv[i] = strdup(arg.CStr());
-	}
-
-	argv[arguments->GetLength()] = nullptr;
-
-	std::vector<std::pair<String, String>> extraEnv;
-
-	if (extraEnvironment) {
-		ObjectLock olock(extraEnvironment);
-
-		extraEnv.reserve(extraEnvironment->GetLength());
-
-		for (const Dictionary::Pair& kv : extraEnvironment) {
-			extraEnv.emplace_back(kv.first, Convert::ToString(kv.second));
-		}
-	}
-
-	extraEnvironment.reset();
-
 	pid_t pid = fork();
 
 	int errorCode = 0;
@@ -133,6 +109,30 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 		(void)close(fds[1]);
 		(void)close(fds[2]);
 
+		std::vector<String> args;
+		std::vector<char*> argv;
+		ObjectLock oLock (arguments);
+
+		try {
+			args.reserve(arguments->GetLength());
+			argv.reserve(arguments->GetLength() + 1u);
+		} catch (const std::exception& ex) {
+			fprintf(stderr, "std::vector#reserve() failed: %s\n", ex.what());
+			_exit(128);
+		}
+
+		for (auto& argument : arguments) {
+			try {
+				args.emplace_back(Convert::ToString(argument));
+				argv.emplace_back(args.back().GetData().data());
+			} catch (const std::exception& ex) {
+				fprintf(stderr, "Convert::ToString() failed: %s\n", ex.what());
+				_exit(128);
+			}
+		}
+
+		argv.emplace_back(nullptr);
+
 		if (unsetenv("NOTIFY_SOCKET")) {
 			perror("unsetenv() failed");
 			_exit(128);
@@ -143,10 +143,23 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 			_exit(128);
 		}
 
-		for (auto& kv : extraEnv) {
-			if (setenv(kv.first.CStr(), kv.second.CStr(), 1)) {
-				perror("setenv() failed");
-				_exit(128);
+		if (extraEnvironment) {
+			ObjectLock oLock (extraEnvironment);
+
+			for (auto& kv : extraEnvironment) {
+				String v;
+
+				try {
+					v = Convert::ToString(kv.second);
+				} catch (const std::exception& ex) {
+					fprintf(stderr, "Convert::ToString() failed: %s\n", ex.what());
+					_exit(128);
+				}
+
+				if (setenv(kv.first.CStr(), v.CStr(), 1)) {
+					perror("setenv() failed");
+					_exit(128);
+				}
 			}
 		}
 
@@ -173,7 +186,7 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 		sigemptyset(&mask);
 		sigprocmask(SIG_SETMASK, &mask, nullptr);
 
-		if (execvp(argv[0], argv) < 0) {
+		if (execvp(argv[0], argv.data()) < 0) {
 			char errmsg[512];
 			strcpy(errmsg, "execvp(");
 			strncat(errmsg, argv[0], sizeof(errmsg) - strlen(errmsg) - 1);
@@ -188,12 +201,6 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 	(void)close(fds[0]);
 	(void)close(fds[1]);
 	(void)close(fds[2]);
-
-	// free arguments
-	for (int i = 0; argv[i]; i++)
-		free(argv[i]);
-
-	delete[] argv;
 
 	Dictionary::Ptr response = new Dictionary({
 		{ "rc", pid },
