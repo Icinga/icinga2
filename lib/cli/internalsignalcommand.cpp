@@ -19,11 +19,6 @@ String InternalSignalCommand::GetShortDescription() const
 	return "Send signal as Icinga user";
 }
 
-ImpersonationLevel InternalSignalCommand::GetImpersonationLevel() const
-{
-	return ImpersonateIcinga;
-}
-
 bool InternalSignalCommand::IsHidden() const
 {
 	return true;
