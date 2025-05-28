@@ -22,6 +22,8 @@ public:
 	DECLARE_OBJECT(User);
 	DECLARE_OBJECTNAME(User);
 
+	static void StaticInitialize();
+
 	void AddGroup(const String& name);
 
 	/* Notifications */

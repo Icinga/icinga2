@@ -98,6 +98,16 @@ void Notification::StaticInitialize()
 	m_TypeFilterMap["Recovery"] = NotificationRecovery;
 	m_TypeFilterMap["FlappingStart"] = NotificationFlappingStart;
 	m_TypeFilterMap["FlappingEnd"] = NotificationFlappingEnd;
+
+	// Since the types and states attributes are user configurable and allowed to change at runtime, we need to
+	// hook into the OnTypesChanged and OnStatesChanged signals to update the actual filter bitsets whenever these
+	// attributes change. Otherwise, the filter bitsets would be stale and not reflect their current state.
+	OnTypesChanged.connect([](const Notification::Ptr& notification, const MessageOrigin::Ptr&) {
+		notification->SetTypeFilter(FilterArrayToInt(notification->GetTypes(), GetTypeFilterMap(), ~0));
+	});
+	OnStatesChanged.connect([](const Notification::Ptr& notification, const MessageOrigin::Ptr&) {
+		notification->SetStateFilter(FilterArrayToInt(notification->GetStates(), GetStateFilterMap(), ~0));
+	});
 }
 
 void Notification::OnConfigLoaded()
