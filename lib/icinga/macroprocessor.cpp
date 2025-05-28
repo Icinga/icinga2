@@ -67,7 +67,7 @@ Value MacroProcessor::ResolveMacros(const Value& str, const ResolverList& resolv
 
 		result = resultDict;
 	} else if (str.IsObjectType<Function>()) {
-		result = EvaluateFunction(str, resolvers, cr, escapeFn, resolvedMacros, useResolvedMacros, 0);
+		result = EvaluateFunction(str, resolvers, cr, resolvedMacros, useResolvedMacros, 0);
 	} else {
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Macro is not a string or array."));
 	}
@@ -192,7 +192,7 @@ bool MacroProcessor::ResolveMacro(const String& macro, const ResolverList& resol
 }
 
 Value MacroProcessor::EvaluateFunction(const Function::Ptr& func, const ResolverList& resolvers,
-	const CheckResult::Ptr& cr, const MacroProcessor::EscapeCallback& escapeFn,
+	const CheckResult::Ptr& cr,
 	const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros, int recursionLevel)
 {
 	Dictionary::Ptr resolvers_this = new Dictionary();
@@ -273,7 +273,7 @@ Value MacroProcessor::InternalResolveMacros(const String& str, const ResolverLis
 		}
 
 		if (resolved_macro.IsObjectType<Function>()) {
-			resolved_macro = EvaluateFunction(resolved_macro, resolvers, cr, escapeFn,
+			resolved_macro = EvaluateFunction(resolved_macro, resolvers, cr,
 				resolvedMacros, useResolvedMacros, recursionLevel + 1);
 		}
 

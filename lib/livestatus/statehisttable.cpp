@@ -36,7 +36,7 @@ StateHistTable::StateHistTable(const String& compat_log_path, time_t from, time_
 	AddColumns(this);
 }
 
-void StateHistTable::UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, int line_count, int lineno, const AddRowFunction& addRowFn)
+void StateHistTable::UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, int lineno, const AddRowFunction&)
 {
 	unsigned int time = log_entry_attrs->Get("time");
 	String host_name = log_entry_attrs->Get("host_name");
