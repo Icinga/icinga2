@@ -144,7 +144,9 @@ std::istream& operator>>(std::istream& stream, String& str);
 
 String operator+(const String& lhs, const String& rhs);
 String operator+(const String& lhs, const char *rhs);
+String operator+(String&& lhs, const char *rhs);
 String operator+(const char *lhs, const String& rhs);
+String operator+(const char *lhs, String&& rhs);
 
 bool operator==(const String& lhs, const String& rhs);
 bool operator==(const String& lhs, const char *rhs);
