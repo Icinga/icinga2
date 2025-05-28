@@ -7,10 +7,12 @@
 #include "config/expression.hpp"
 #include "config/configitembuilder.hpp"
 #include "config/applyrule.hpp"
+#include "config/generator-function.hpp"
 #include "config/objectrule.hpp"
 #include "base/debuginfo.hpp"
 #include "base/array.hpp"
 #include "base/dictionary.hpp"
+#include "base/generator.hpp"
 #include "base/namespace.hpp"
 #include "base/function.hpp"
 #include "base/scriptglobal.hpp"
@@ -18,6 +20,7 @@
 #include "base/convert.hpp"
 #include "base/objectlock.hpp"
 #include <map>
+#include <utility>
 #include <vector>
 
 namespace icinga
@@ -91,11 +94,11 @@ public:
 	}
 
 	static inline Value NewFunction(ScriptFrame& frame, const String& name, const std::vector<String>& argNames,
-		const std::map<String, std::unique_ptr<Expression> >& closedVars, const Expression::Ptr& expression)
+		const std::map<String, std::unique_ptr<Expression> >& closedVars, const Expression::Ptr& expression, bool generator)
 	{
 		auto evaluatedClosedVars = EvaluateClosedVars(frame, closedVars);
 
-		auto wrapper = [argNames, evaluatedClosedVars, expression](const std::vector<Value>& arguments) -> Value {
+		auto wrapper = [argNames, evaluatedClosedVars, expression, generator](const std::vector<Value>& arguments) -> Value {
 			if (arguments.size() < argNames.size())
 				BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments for function"));
 
@@ -109,7 +112,11 @@ public:
 			for (std::vector<Value>::size_type i = 0; i < std::min(arguments.size(), argNames.size()); i++)
 				frame->Locals->Set(argNames[i], arguments[i]);
 
-			return expression->Evaluate(*frame);
+			if (generator) {
+				return new GeneratorFunction(expression);
+			} else {
+				return expression->Evaluate(*frame);
+			}
 		};
 
 		return new Function(name, wrapper, argNames);
@@ -184,6 +191,18 @@ public:
 
 			for (Array::SizeType i = 0; i < arr->GetLength(); i++) {
 				frame.Locals->Set(fkvar, arr->Get(i));
+				ExpressionResult res = expression->Evaluate(frame);
+				CHECK_RESULT_LOOP(res);
+			}
+		} else if (value.IsObjectType<Generator>()) {
+			if (!fvvar.IsEmpty())
+				BOOST_THROW_EXCEPTION(ScriptError("Cannot use dictionary iterator for generator.", debugInfo));
+
+			Generator::Ptr gen = value;
+			Value buf;
+
+			while (gen->GetNext(buf)) {
+				frame.Locals->Set(fkvar, std::move(buf));
 				ExpressionResult res = expression->Evaluate(frame);
 				CHECK_RESULT_LOOP(res);
 			}
