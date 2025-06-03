@@ -269,9 +269,9 @@ const char* IcingaDB::GetNotificationTypeByEnum(NotificationType type)
 			return "flapping_start";
 		case NotificationFlappingEnd:
 			return "flapping_end";
+		default:
+			VERIFY(!"Invalid notification type.");
 	}
-
-	VERIFY(!"Invalid notification type.");
 }
 
 /**
