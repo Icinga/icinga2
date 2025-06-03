@@ -316,11 +316,11 @@ Dictionary::Ptr ApiActions::AddComment(const ConfigObject::Ptr& object,
 		return ApiActions::CreateResult(503, "Icinga is reloading.");
 	}
 
-	String commentName = Comment::AddComment(checkable, CommentUser,
+	Comment::Ptr comment = Comment::AddComment(checkable, CommentUser,
 		HttpUtility::GetLastParameter(params, "author"),
 		HttpUtility::GetLastParameter(params, "comment"), false, timestamp);
 
-	Comment::Ptr comment = Comment::GetByName(commentName);
+	String commentName = comment->GetName();
 
 	Dictionary::Ptr additional = new Dictionary({
 		{ "name", commentName },
