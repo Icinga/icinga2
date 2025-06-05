@@ -2452,17 +2452,17 @@ void IcingaDB::SendFlappingChange(const Checkable::Ptr& checkable, double change
 		xAdd.emplace_back(GetObjectIdentifier(endpoint));
 	}
 
-	long long startTime;
+	double startTime;
 
 	if (checkable->IsFlapping()) {
-		startTime = TimestampToMilliseconds(changeTime);
+		startTime = changeTime;
 
 		xAdd.emplace_back("event_type");
 		xAdd.emplace_back("flapping_start");
 		xAdd.emplace_back("percent_state_change_start");
 		xAdd.emplace_back(Convert::ToString(checkable->GetFlappingCurrent()));
 	} else {
-		startTime = TimestampToMilliseconds(flappingLastChange);
+		startTime = flappingLastChange;
 
 		xAdd.emplace_back("event_type");
 		xAdd.emplace_back("flapping_end");
@@ -2472,12 +2472,14 @@ void IcingaDB::SendFlappingChange(const Checkable::Ptr& checkable, double change
 		xAdd.emplace_back(Convert::ToString(checkable->GetFlappingCurrent()));
 	}
 
+	long long startTs = TimestampToMilliseconds(startTime);
+
 	xAdd.emplace_back("start_time");
-	xAdd.emplace_back(Convert::ToString(startTime));
+	xAdd.emplace_back(Convert::ToString(startTs));
 	xAdd.emplace_back("event_id");
 	xAdd.emplace_back(CalcEventID(checkable->IsFlapping() ? "flapping_start" : "flapping_end", checkable, startTime));
 	xAdd.emplace_back("id");
-	xAdd.emplace_back(HashValue(new Array({m_EnvironmentId, checkable->GetName(), startTime})));
+	xAdd.emplace_back(HashValue(new Array({m_EnvironmentId, checkable->GetName(), startTs})));
 
 	m_HistoryBulker.ProduceOne(std::move(xAdd));
 }
@@ -2555,14 +2557,14 @@ void IcingaDB::SendAcknowledgementSet(const Checkable::Ptr& checkable, const Str
 		xAdd.emplace_back(Convert::ToString(TimestampToMilliseconds(expiry)));
 	}
 
-	long long setTime = TimestampToMilliseconds(changeTime);
+	long long setTs = TimestampToMilliseconds(changeTime);
 
 	xAdd.emplace_back("set_time");
-	xAdd.emplace_back(Convert::ToString(setTime));
+	xAdd.emplace_back(Convert::ToString(setTs));
 	xAdd.emplace_back("event_id");
-	xAdd.emplace_back(CalcEventID("ack_set", checkable, setTime));
+	xAdd.emplace_back(CalcEventID("ack_set", checkable, changeTime));
 	xAdd.emplace_back("id");
-	xAdd.emplace_back(HashValue(new Array({m_EnvironmentId, checkable->GetName(), setTime})));
+	xAdd.emplace_back(HashValue(new Array({m_EnvironmentId, checkable->GetName(), setTs})));
 
 	m_HistoryBulker.ProduceOne(std::move(xAdd));
 }
@@ -2605,14 +2607,14 @@ void IcingaDB::SendAcknowledgementCleared(const Checkable::Ptr& checkable, const
 		xAdd.emplace_back(GetObjectIdentifier(endpoint));
 	}
 
-	long long setTime = TimestampToMilliseconds(ackLastChange);
+	long long setTs = TimestampToMilliseconds(ackLastChange);
 
 	xAdd.emplace_back("set_time");
-	xAdd.emplace_back(Convert::ToString(setTime));
+	xAdd.emplace_back(Convert::ToString(setTs));
 	xAdd.emplace_back("event_id");
-	xAdd.emplace_back(CalcEventID("ack_clear", checkable, setTime));
+	xAdd.emplace_back(CalcEventID("ack_clear", checkable, ackLastChange));
 	xAdd.emplace_back("id");
-	xAdd.emplace_back(HashValue(new Array({m_EnvironmentId, checkable->GetName(), setTime})));
+	xAdd.emplace_back(HashValue(new Array({m_EnvironmentId, checkable->GetName(), setTs})));
 
 	if (!removedBy.IsEmpty()) {
 		xAdd.emplace_back("cleared_by");
