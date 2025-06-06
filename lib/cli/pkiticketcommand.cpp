@@ -22,7 +22,7 @@ String PKITicketCommand::GetShortDescription() const
 }
 
 void PKITicketCommand::InitParameters(boost::program_options::options_description& visibleDesc,
-	boost::program_options::options_description& hiddenDesc) const
+	[[maybe_unused]] boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
 		("cn", po::value<std::string>(), "Certificate common name")
@@ -34,7 +34,7 @@ void PKITicketCommand::InitParameters(boost::program_options::options_descriptio
  *
  * @returns An exit status.
  */
-int PKITicketCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
+int PKITicketCommand::Run(const boost::program_options::variables_map& vm, [[maybe_unused]] const std::vector<std::string>& ap) const
 {
 	if (!vm.count("cn")) {
 		Log(LogCritical, "cli", "Common name (--cn) must be specified.");

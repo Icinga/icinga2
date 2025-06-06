@@ -588,16 +588,16 @@ Dictionary::Ptr ApiActions::RemoveDowntime(const ConfigObject::Ptr& object,
 	}
 }
 
-Dictionary::Ptr ApiActions::ShutdownProcess(const ConfigObject::Ptr& object,
-	const Dictionary::Ptr& params)
+Dictionary::Ptr ApiActions::ShutdownProcess(const ConfigObject::Ptr&,
+	[[maybe_unused]] const Dictionary::Ptr& params)
 {
 	Application::RequestShutdown();
 
 	return ApiActions::CreateResult(200, "Shutting down Icinga 2.");
 }
 
-Dictionary::Ptr ApiActions::RestartProcess(const ConfigObject::Ptr& object,
-	const Dictionary::Ptr& params)
+Dictionary::Ptr ApiActions::RestartProcess(const ConfigObject::Ptr&,
+	[[maybe_unused]] const Dictionary::Ptr& params)
 {
 	Application::RequestRestart();
 
