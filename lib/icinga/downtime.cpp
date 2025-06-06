@@ -446,6 +446,9 @@ std::set<Downtime::Ptr> Downtime::GetChildren() const
 
 bool Downtime::CanBeTriggered()
 {
+	if (!GetActive() || GetWasCancelled())
+		return false;
+
 	if (IsInEffect() && IsTriggered())
 		return false;
 
@@ -484,6 +487,8 @@ void Downtime::SetupCleanupTimer()
 
 void Downtime::TriggerDowntime(double triggerTime)
 {
+	ObjectLock oLock (this);
+
 	if (!CanBeTriggered())
 		return;
 
@@ -496,10 +501,9 @@ void Downtime::TriggerDowntime(double triggerTime)
 		SetTriggerTime(triggerTime);
 	}
 
-	{
-		ObjectLock olock (this);
-		SetupCleanupTimer();
-	}
+	SetupCleanupTimer();
+	OnDowntimeTriggered(this);
+	oLock.Unlock();
 
 	Array::Ptr triggers = GetTriggers();
 
@@ -514,8 +518,6 @@ void Downtime::TriggerDowntime(double triggerTime)
 			downtime->TriggerDowntime(triggerTime);
 		}
 	}
-
-	OnDowntimeTriggered(this);
 }
 
 void Downtime::SetRemovalInfo(const String& removedBy, double removeTime, const MessageOrigin::Ptr& origin) {
