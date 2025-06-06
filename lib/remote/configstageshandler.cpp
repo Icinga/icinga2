@@ -12,7 +12,7 @@ using namespace icinga;
 
 REGISTER_URLHANDLER("/v1/config/stages", ConfigStagesHandler);
 
-std::atomic<bool> ConfigStagesHandler::m_RunningPackageUpdates (false);
+Atomic<bool> ConfigStagesHandler::m_RunningPackageUpdates (false);
 
 bool ConfigStagesHandler::HandleRequest(
 	AsioTlsStream& stream,
