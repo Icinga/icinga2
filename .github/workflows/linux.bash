@@ -73,7 +73,7 @@ case "$DISTRO" in
     esac
 
     dnf install -y bison ccache cmake gcc-c++ flex ninja-build redhat-rpm-config \
-      {boost,libedit,mariadb,ncurses,openssl,postgresql,systemd}-devel
+      {boost,bzip2,libedit,mariadb,ncurses,openssl,postgresql,systemd,xz,libzstd}-devel
     ;;
 esac
 
