@@ -50,7 +50,8 @@ void NodeSetupCommand::InitParameters(boost::program_options::options_descriptio
 		("accept-config", "Accept config from parent node")
 		("accept-commands", "Accept commands from parent node")
 		("master", "Use setup for a master instance")
-		("global_zones", po::value<std::vector<std::string> >(), "The names of the additional global zones to 'global-templates' and 'director-global'.")
+		("global_zones", po::value<std::vector<std::string> >(), "The names of the additional global zones to add to the default ones (if not deactivated).")
+		("no-default-global-zones", "Do not add the default global-zones 'global-templates' and 'director-global'")
 		("disable-confd", "Disables the conf.d directory during the setup");
 
 	hiddenDesc.add_options()
@@ -148,7 +149,10 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 	/* write zones.conf and update with zone + endpoint information */
 	Log(LogInformation, "cli", "Generating zone and object configuration.");
 
-	std::vector<String> globalZones { "global-templates", "director-global" };
+	std::vector<String> globalZones {};
+	if (!vm.count("no-default-global-zones")) {
+		globalZones = {"global-templates", "director-global"};
+	}
 	std::vector<std::string> setupGlobalZones;
 
 	if (vm.count("global_zones"))
@@ -493,7 +497,11 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm,
 	if (vm.count("parent_zone"))
 		parentZoneName = vm["parent_zone"].as<std::string>();
 
-	std::vector<String> globalZones { "global-templates", "director-global" };
+	std::vector<String> globalZones {};
+	if (!vm.count("no-default-global-zones")) {
+		globalZones = {"global-templates", "director-global"};
+	}
+
 	std::vector<std::string> setupGlobalZones;
 
 	if (vm.count("global_zones"))
