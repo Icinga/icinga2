@@ -34,7 +34,7 @@ public:
 
 	static int GetNextCommentID();
 
-	static String AddComment(const intrusive_ptr<Checkable>& checkable, CommentType entryType,
+	static Ptr AddComment(const intrusive_ptr<Checkable>& checkable, CommentType entryType,
 		const String& author, const String& text, bool persistent, double expireTime, bool sticky = false,
 		const String& id = String(), const MessageOrigin::Ptr& origin = nullptr);
 

@@ -130,7 +130,7 @@ int Comment::GetNextCommentID()
 	return l_NextCommentID;
 }
 
-String Comment::AddComment(const Checkable::Ptr& checkable, CommentType entryType, const String& author,
+Comment::Ptr Comment::AddComment(const Checkable::Ptr& checkable, CommentType entryType, const String& author,
 	const String& text, bool persistent, double expireTime, bool sticky, const String& id, const MessageOrigin::Ptr& origin)
 {
 	String fullName;
@@ -184,7 +184,7 @@ String Comment::AddComment(const Checkable::Ptr& checkable, CommentType entryTyp
 	Log(LogNotice, "Comment")
 		<< "Added comment '" << comment->GetName() << "'.";
 
-	return fullName;
+	return comment;
 }
 
 void Comment::RemoveComment(const String& id, bool removedManually, const String& removedBy,
