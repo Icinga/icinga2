@@ -19,6 +19,7 @@
 #include "base/tlsstream.hpp"
 #include "base/utility.hpp"
 #include <chrono>
+#include <shared_mutex>
 #include <limits>
 #include <memory>
 #include <stdexcept>
@@ -35,13 +36,13 @@ using namespace icinga;
 
 auto const l_ServerHeader ("Icinga/" + Application::GetAppVersion());
 
-HttpServerConnection::HttpServerConnection(const String& identity, bool authenticated, const Shared<AsioTlsStream>::Ptr& stream)
-	: HttpServerConnection(identity, authenticated, stream, IoEngine::Get().GetIoContext())
+HttpServerConnection::HttpServerConnection(const WaitGroup::Ptr& waitGroup, const String& identity, bool authenticated, const Shared<AsioTlsStream>::Ptr& stream)
+	: HttpServerConnection(waitGroup, identity, authenticated, stream, IoEngine::Get().GetIoContext())
 {
 }
 
-HttpServerConnection::HttpServerConnection(const String& identity, bool authenticated, const Shared<AsioTlsStream>::Ptr& stream, boost::asio::io_context& io)
-	: m_Stream(stream), m_Seen(Utility::GetTime()), m_IoStrand(io), m_ShuttingDown(false), m_HasStartedStreaming(false),
+HttpServerConnection::HttpServerConnection(const WaitGroup::Ptr& waitGroup, const String& identity, bool authenticated, const Shared<AsioTlsStream>::Ptr& stream, boost::asio::io_context& io)
+	: m_WaitGroup(waitGroup), m_Stream(stream), m_Seen(Utility::GetTime()), m_IoStrand(io), m_ShuttingDown(false), m_HasStartedStreaming(false),
 	m_CheckLivenessTimer(io)
 {
 	if (authenticated) {
@@ -69,13 +70,30 @@ void HttpServerConnection::Start()
 }
 
 /**
+ * A public version of Disconnect() that starts the internal version in a Coroutine.
+ *
+ * @param timeout The timeout to pass to the internal Disconnect()
+ */
+void HttpServerConnection::Disconnect(const boost::asio::deadline_timer::duration_type& timeout)
+{
+	namespace asio = boost::asio;
+
+	HttpServerConnection::Ptr keepAlive (this);
+
+	IoEngine::SpawnCoroutine(m_IoStrand, [this, timeout, keepAlive](asio::yield_context yc) {
+		Disconnect(yc, timeout);
+	});
+}
+
+/**
  * Tries to asynchronously shut down the SSL stream and underlying socket.
  *
  * It is important to note that this method should only be called from within a coroutine that uses `m_IoStrand`.
  *
  * @param yc boost::asio::yield_context The coroutine yield context which you are calling this method from.
+ * @param timeout The timeout to pass to AsioTlsStream::GracefulDisconnect()
  */
-void HttpServerConnection::Disconnect(boost::asio::yield_context yc)
+void HttpServerConnection::Disconnect(boost::asio::yield_context yc, const boost::asio::deadline_timer::duration_type & timeout)
 {
 	namespace asio = boost::asio;
 
@@ -90,7 +108,7 @@ void HttpServerConnection::Disconnect(boost::asio::yield_context yc)
 
 	m_CheckLivenessTimer.cancel();
 
-	m_Stream->GracefulDisconnect(m_IoStrand, yc);
+	m_Stream->GracefulDisconnect(m_IoStrand, yc, timeout);
 
 	auto listener (ApiListener::GetInstance());
 
@@ -120,6 +138,15 @@ void HttpServerConnection::StartStreaming()
 			Disconnect(yc);
 		}
 	});
+}
+
+void HttpServerConnection::AbortProcessingRequest()
+{
+	if (m_HasStartedStreaming) {
+		Disconnect(boost::posix_time::seconds(0));
+	} else {
+		m_RequestAborted.store(true);
+	}
 }
 
 bool HttpServerConnection::Disconnected()
@@ -419,6 +446,7 @@ bool ProcessRequest(
 	boost::beast::http::response<boost::beast::http::string_body>& response,
 	HttpServerConnection& server,
 	bool& hasStartedStreaming,
+	const Atomic<bool>& requestAborted,
 	std::chrono::steady_clock::duration& cpuBoundWorkTime,
 	boost::asio::yield_context& yc
 )
@@ -431,7 +459,7 @@ bool ProcessRequest(
 		CpuBoundWork handlingRequest (yc);
 		cpuBoundWorkTime = std::chrono::steady_clock::now() - start;
 
-		HttpHandler::ProcessRequest(stream, authenticatedUser, request, response, yc, server);
+		HttpHandler::ProcessRequest(requestAborted, stream, authenticatedUser, request, response, yc, server);
 	} catch (const std::exception& ex) {
 		if (hasStartedStreaming) {
 			return false;
@@ -477,7 +505,12 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 		 */
 		beast::flat_buffer buf;
 
-		for (;;) {
+		while (!m_RequestAborted) {
+			std::shared_lock wgLock(*m_WaitGroup, std::try_to_lock);
+			if (!wgLock) {
+				break;
+			}
+
 			m_Seen = Utility::GetTime();
 
 			http::parser<true, http::string_body> parser;
@@ -548,7 +581,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 
 			m_Seen = std::numeric_limits<decltype(m_Seen)>::max();
 
-			if (!ProcessRequest(*m_Stream, request, authenticatedUser, response, *this, m_HasStartedStreaming, cpuBoundWorkTime, yc)) {
+			if (!ProcessRequest(*m_Stream, request, authenticatedUser, response, *this, m_HasStartedStreaming, m_RequestAborted, cpuBoundWorkTime, yc)) {
 				break;
 			}
 

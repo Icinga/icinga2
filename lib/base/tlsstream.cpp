@@ -126,13 +126,15 @@ void AsioTlsStream::ForceDisconnect()
 /**
  * Try to cleanly shut down the connection. This involves sending a TLS close_notify shutdown alert and terminating the
  * underlying TCP connection. Sending these additional messages can block, hence the method takes a yield context and
- * internally implements a timeout of 10 seconds for the operation after which the connection is forcefully terminated
- * using ForceDisconnect().
+ * forcefully terminates the connection using ForceDisconnect() after the given timeout, that defaults to 10 seconds
+ * has elapsed.
  *
  * @param strand Asio strand used for other operations on this connection.
  * @param yc Yield context for Asio coroutines
+ * @param timeout The timeout after which ForceDisconnect() is called
  */
-void AsioTlsStream::GracefulDisconnect(boost::asio::io_context::strand& strand, boost::asio::yield_context& yc)
+void AsioTlsStream::GracefulDisconnect(boost::asio::io_context::strand& strand, boost::asio::yield_context& yc,
+	const boost::asio::deadline_timer::duration_type& timeout)
 {
 	if (!lowest_layer().is_open()) {
 		// Already disconnected, nothing to do.
@@ -140,7 +142,7 @@ void AsioTlsStream::GracefulDisconnect(boost::asio::io_context::strand& strand, 
 	}
 
 	{
-		Timeout shutdownTimeout (strand, boost::posix_time::seconds(10),
+		Timeout shutdownTimeout (strand, timeout,
 			[this] {
 				// Forcefully terminate the connection if async_shutdown() blocked more than 10 seconds.
 				ForceDisconnect();

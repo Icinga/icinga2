@@ -14,6 +14,7 @@ using namespace icinga;
 REGISTER_URLHANDLER("/v1/objects", ModifyObjectHandler);
 
 bool ModifyObjectHandler::HandleRequest(
+	const Atomic<bool>& abort,
 	AsioTlsStream& stream,
 	const ApiUser::Ptr& user,
 	boost::beast::http::request<boost::beast::http::string_body>& request,
@@ -105,6 +106,10 @@ bool ModifyObjectHandler::HandleRequest(
 	ArrayData results;
 
 	for (ConfigObject::Ptr obj : objs) {
+		if (abort) {
+			BOOST_THROW_EXCEPTION(HttpHandler::Aborted{});
+		}
+
 		Dictionary::Ptr result1 = new Dictionary();
 
 		result1->Set("type", type->GetName());

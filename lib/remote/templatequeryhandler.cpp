@@ -76,6 +76,7 @@ public:
 };
 
 bool TemplateQueryHandler::HandleRequest(
+	const Atomic<bool>&,
 	AsioTlsStream& stream,
 	const ApiUser::Ptr& user,
 	boost::beast::http::request<boost::beast::http::string_body>& request,

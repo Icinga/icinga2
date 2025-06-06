@@ -26,7 +26,16 @@ class HttpHandler : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(HttpHandler);
 
+	struct Aborted : public std::exception
+	{
+		const char *what() const noexcept override
+		{
+			return "Handler Aborted";
+		}
+	};
+	
 	virtual bool HandleRequest(
+		const Atomic<bool>& abort,
 		AsioTlsStream& stream,
 		const ApiUser::Ptr& user,
 		boost::beast::http::request<boost::beast::http::string_body>& request,
@@ -39,6 +48,7 @@ public:
 
 	static void Register(const Url::Ptr& url, const HttpHandler::Ptr& handler);
 	static void ProcessRequest(
+		const Atomic<bool>& abort,
 		AsioTlsStream& stream,
 		const ApiUser::Ptr& user,
 		boost::beast::http::request<boost::beast::http::string_body>& request,

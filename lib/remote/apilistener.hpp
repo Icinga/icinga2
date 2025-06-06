@@ -114,10 +114,12 @@ public:
 	bool AddAnonymousClient(const JsonRpcConnection::Ptr& aclient);
 	void RemoveAnonymousClient(const JsonRpcConnection::Ptr& aclient);
 	std::set<JsonRpcConnection::Ptr> GetAnonymousClients() const;
+	void DisconnectJsonRpcConnections();
 
 	void AddHttpClient(const HttpServerConnection::Ptr& aclient);
 	void RemoveHttpClient(const HttpServerConnection::Ptr& aclient);
 	std::set<HttpServerConnection::Ptr> GetHttpClients() const;
+	void DisconnectHttpClients();
 
 	static double CalculateZoneLag(const Endpoint::Ptr& endpoint);
 
@@ -191,12 +193,17 @@ private:
 	static ApiListener::Ptr m_Instance;
 	static std::atomic<bool> m_UpdatedObjectAuthority;
 
+	boost::asio::io_context::strand m_IoStrand{IoEngine::Get().GetIoContext()};
+	AsioEvent m_ShutdownListenerEvent{IoEngine::Get().GetIoContext()};
+	StoppableWaitGroup::Ptr m_ListenerWaitGroup = new StoppableWaitGroup();
+
 	void ApiTimerHandler();
 	void ApiReconnectTimerHandler();
 	void CleanupCertificateRequestsTimerHandler();
 	void CheckApiPackageIntegrity();
 
 	bool AddListener(const String& node, const String& service);
+	void StopListener();
 	void AddConnection(const Endpoint::Ptr& endpoint);
 
 	void NewClientHandler(

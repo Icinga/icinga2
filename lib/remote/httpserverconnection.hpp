@@ -6,6 +6,7 @@
 #include "remote/apiuser.hpp"
 #include "base/string.hpp"
 #include "base/tlsstream.hpp"
+#include "base/wait-group.hpp"
 #include <memory>
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/io_context.hpp>
@@ -25,26 +26,32 @@ class HttpServerConnection final : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(HttpServerConnection);
 
-	HttpServerConnection(const String& identity, bool authenticated, const Shared<AsioTlsStream>::Ptr& stream);
+	HttpServerConnection(const WaitGroup::Ptr& waitGroup, const String& identity, bool authenticated,
+		const Shared<AsioTlsStream>::Ptr& stream);
 
 	void Start();
 	void StartStreaming();
+	void AbortProcessingRequest();
+	void Disconnect(const boost::asio::deadline_timer::duration_type & timeout);
 
 	bool Disconnected();
 
 private:
+	WaitGroup::Ptr m_WaitGroup;
 	ApiUser::Ptr m_ApiUser;
 	Shared<AsioTlsStream>::Ptr m_Stream;
 	double m_Seen;
 	String m_PeerAddress;
 	boost::asio::io_context::strand m_IoStrand;
 	bool m_ShuttingDown;
+	Atomic<bool> m_RequestAborted = false;
 	bool m_HasStartedStreaming;
 	boost::asio::deadline_timer m_CheckLivenessTimer;
 
-	HttpServerConnection(const String& identity, bool authenticated, const Shared<AsioTlsStream>::Ptr& stream, boost::asio::io_context& io);
+	HttpServerConnection(const WaitGroup::Ptr& waitGroup, const String& identity, bool authenticated,
+		const Shared<AsioTlsStream>::Ptr& stream, boost::asio::io_context& io);
 
-	void Disconnect(boost::asio::yield_context yc);
+	void Disconnect(boost::asio::yield_context yc, const boost::asio::deadline_timer::duration_type & timeout = boost::posix_time::seconds(10));
 
 	void ProcessMessages(boost::asio::yield_context yc);
 	void CheckLiveness(boost::asio::yield_context yc);
