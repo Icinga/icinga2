@@ -47,6 +47,8 @@ INITIALIZE_ONCE([]() {
 	ScriptGlobal::Set("System.LogCritical", LogCritical);
 });
 
+thread_local std::vector<LogEntry>* icinga::l_LogConsole = nullptr;
+
 /**
  * Constructor for the Logger class.
  */
@@ -252,8 +254,16 @@ Log::Log(LogSeverity severity, String facility, const String& message)
 }
 
 Log::Log(LogSeverity severity, String facility)
-	: m_Severity(severity), m_Facility(std::move(facility)), m_IsNoOp(severity < Logger::GetMinLogSeverity())
+	: m_Timestamp(Utility::GetTime()), m_Severity(severity),
+	  m_Facility(std::move(facility)), m_IsNoOp(severity < Logger::GetMinLogSeverity())
 { }
+
+Log::Log(LogEntry entry)
+	: m_Timestamp(entry.Timestamp), m_Severity(entry.Severity),
+	  m_Facility(std::move(entry.Facility)), m_IsNoOp(entry.Severity < Logger::GetMinLogSeverity())
+{
+	m_Buffer << std::move(entry.Message);
+}
 
 /**
  * Writes the message to the application's log.
@@ -265,7 +275,7 @@ Log::~Log()
 	}
 
 	LogEntry entry;
-	entry.Timestamp = Utility::GetTime();
+	entry.Timestamp = m_Timestamp;
 	entry.Severity = m_Severity;
 	entry.Facility = m_Facility;
 
@@ -286,34 +296,38 @@ Log::~Log()
 		}
 	}
 
-	for (const Logger::Ptr& logger : Logger::GetLoggers()) {
-		ObjectLock llock(logger);
+	if (l_LogConsole == nullptr) {
+		for (const Logger::Ptr& logger : Logger::GetLoggers()) {
+			ObjectLock llock(logger);
 
-		if (!logger->IsActive())
-			continue;
+			if (!logger->IsActive())
+				continue;
 
-		if (entry.Severity >= logger->GetMinSeverity())
-			logger->ProcessLogEntry(entry);
+			if (entry.Severity >= logger->GetMinSeverity())
+				logger->ProcessLogEntry(entry);
 
 #ifdef I2_DEBUG /* I2_DEBUG */
-		/* Always flush, don't depend on the timer. Enable this for development sprints on Linux/macOS only. Windows crashes. */
-		//logger->Flush();
+			/* Always flush, don't depend on the timer. Enable this for development sprints on Linux/macOS only. Windows crashes. */
+			//logger->Flush();
 #endif /* I2_DEBUG */
-	}
+		}
 
-	if (Logger::IsConsoleLogEnabled() && entry.Severity >= Logger::GetConsoleLogSeverity()) {
-		StreamLogger::ProcessLogEntry(std::cout, entry);
+		if (Logger::IsConsoleLogEnabled() && entry.Severity >= Logger::GetConsoleLogSeverity()) {
+			StreamLogger::ProcessLogEntry(std::cout, entry);
 
-		/* "Console" might be a pipe/socket (systemd, daemontools, docker, ...),
-		 * then cout will not flush lines automatically. */
-		std::cout << std::flush;
-	}
+			/* "Console" might be a pipe/socket (systemd, daemontools, docker, ...),
+			 * then cout will not flush lines automatically. */
+			std::cout << std::flush;
+		}
 
 #ifdef _WIN32
-	if (Logger::IsEarlyLoggingEnabled() && entry.Severity >= LogCritical) {
-		WindowsEventLogLogger::WriteToWindowsEventLog(entry);
-	}
+		if (Logger::IsEarlyLoggingEnabled() && entry.Severity >= LogCritical) {
+			WindowsEventLogLogger::WriteToWindowsEventLog(entry);
+		}
 #endif /* _WIN32 */
+	} else {
+		l_LogConsole->emplace_back(std::move(entry));
+	}
 }
 
 Log& Log::operator<<(const char *val)
