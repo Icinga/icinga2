@@ -323,3 +323,12 @@ bool Host::ResolveMacro(const String& macro, const CheckResult::Ptr&, Value *res
 
 	return false;
 }
+
+Dictionary::Ptr Host::MakeLocalsForApply()
+{
+	auto locals (Checkable::MakeLocalsForApply());
+
+	locals->Set("host", this);
+
+	return locals;
+}
