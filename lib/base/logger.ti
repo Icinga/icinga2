@@ -12,6 +12,13 @@ abstract class Logger : ConfigObject
 	[config, set_virtual] String severity {
 		default {{{ return "information"; }}}
 	};
+	[config, set_virtual] Dictionary::Ptr object_filter;
+};
+
+validator Logger {
+	Dictionary object_filter {
+		Array "*";
+	};
 };
 
 }

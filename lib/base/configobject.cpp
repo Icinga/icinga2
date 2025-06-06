@@ -419,6 +419,30 @@ void ConfigObject::OnAllConfigLoaded()
 
 	if (!zoneName.IsEmpty())
 		m_Zone = ctype->GetObject(zoneName);
+
+	std::vector<Ptr> toDo {this};
+
+	do {
+		auto current (toDo.back());
+
+		toDo.pop_back();
+
+		if (m_AllParentsAffectingLogging.Data.emplace(current.get()).second) {
+			current->GetParentsAffectingLogging(toDo);
+		}
+	} while (!toDo.empty());
+
+	m_AllParentsAffectingLogging.Frozen.store(true);
+}
+
+const std::set<ConfigObject*>& ConfigObject::GetAllParentsAffectingLogging() const
+{
+	if (m_AllParentsAffectingLogging.Frozen.load(std::memory_order_relaxed)) {
+		return m_AllParentsAffectingLogging.Data;
+	}
+
+	static const std::set<ConfigObject*> fallback;
+	return fallback;
 }
 
 void ConfigObject::CreateChildObjects(const Type::Ptr& childType)
