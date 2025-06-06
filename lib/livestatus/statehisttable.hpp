@@ -27,7 +27,7 @@ public:
 	String GetName() const override;
 	String GetPrefix() const override;
 
-	void UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, int line_count, int lineno, const AddRowFunction& addRowFn) override;
+	void UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, int lineno, const AddRowFunction& addRowFn) override;
 
 protected:
 	void FetchRows(const AddRowFunction& addRowFn) override;

@@ -53,8 +53,7 @@ private:
 
 	void ReconnectTimerHandler();
 
-	void ReadConfigTemplate(const Dictionary::Ptr& stemplate, 
-		const Dictionary::Ptr& htemplate);
+	void ReadConfigTemplate();
 };
 
 }

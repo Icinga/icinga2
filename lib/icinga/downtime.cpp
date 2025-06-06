@@ -93,7 +93,7 @@ void Downtime::Start(bool runtimeCreated)
 
 	static boost::once_flag once = BOOST_ONCE_INIT;
 
-	boost::call_once(once, [this]() {
+	boost::call_once(once, [] {
 		l_DowntimesStartTimer = Timer::Create();
 		l_DowntimesStartTimer->SetInterval(5);
 		l_DowntimesStartTimer->OnTimerExpired.connect([](const Timer * const&){ DowntimesStartTimerHandler(); });
@@ -360,7 +360,7 @@ Downtime::Ptr Downtime::AddDowntime(const Checkable::Ptr& checkable, const Strin
 }
 
 void Downtime::RemoveDowntime(const String& id, bool includeChildren, DowntimeRemovalReason removalReason,
-	const String& removedBy, const MessageOrigin::Ptr& origin)
+	const String& removedBy)
 {
 	Downtime::Ptr downtime = Downtime::GetByName(id);
 

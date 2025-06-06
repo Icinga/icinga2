@@ -27,8 +27,8 @@ public:
 	int Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const override;
 
 private:
-	static int SetupMaster(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap);
-	static int SetupNode(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap);
+	static int SetupMaster(const boost::program_options::variables_map& vm);
+	static int SetupNode(const boost::program_options::variables_map& vm);
 };
 
 }
