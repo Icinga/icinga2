@@ -29,6 +29,7 @@ public:
 
 	void Start();
 	void StartStreaming();
+	void Disconnect(const boost::asio::deadline_timer::duration_type & timeout);
 
 	bool Disconnected();
 
@@ -44,7 +45,7 @@ private:
 
 	HttpServerConnection(const String& identity, bool authenticated, const Shared<AsioTlsStream>::Ptr& stream, boost::asio::io_context& io);
 
-	void Disconnect(boost::asio::yield_context yc);
+	void Disconnect(boost::asio::yield_context yc, const boost::asio::deadline_timer::duration_type & timeout = boost::posix_time::seconds(10));
 
 	void ProcessMessages(boost::asio::yield_context yc);
 	void CheckLiveness(boost::asio::yield_context yc);

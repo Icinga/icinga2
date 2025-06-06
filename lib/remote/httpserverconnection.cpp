@@ -69,13 +69,30 @@ void HttpServerConnection::Start()
 }
 
 /**
+ * A public version of Disconnect() that starts the internal version in a Coroutine.
+ *
+ * @param timeout The timeout to pass to the internal Disconnect()
+ */
+void HttpServerConnection::Disconnect(const boost::asio::deadline_timer::duration_type& timeout)
+{
+	namespace asio = boost::asio;
+
+	HttpServerConnection::Ptr keepAlive (this);
+
+	IoEngine::SpawnCoroutine(m_IoStrand, [this, timeout, keepAlive](asio::yield_context yc) {
+		Disconnect(yc, timeout);
+	});
+}
+
+/**
  * Tries to asynchronously shut down the SSL stream and underlying socket.
  *
  * It is important to note that this method should only be called from within a coroutine that uses `m_IoStrand`.
  *
  * @param yc boost::asio::yield_context The coroutine yield context which you are calling this method from.
+ * @param timeout The timeout to pass to AsioTlsStream::GracefulDisconnect()
  */
-void HttpServerConnection::Disconnect(boost::asio::yield_context yc)
+void HttpServerConnection::Disconnect(boost::asio::yield_context yc, const boost::asio::deadline_timer::duration_type & timeout)
 {
 	namespace asio = boost::asio;
 
@@ -90,7 +107,7 @@ void HttpServerConnection::Disconnect(boost::asio::yield_context yc)
 
 	m_CheckLivenessTimer.cancel();
 
-	m_Stream->GracefulDisconnect(m_IoStrand, yc);
+	m_Stream->GracefulDisconnect(m_IoStrand, yc, timeout);
 
 	auto listener (ApiListener::GetInstance());
 
