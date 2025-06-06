@@ -994,7 +994,7 @@ void DbEvents::AddCheckResultLogHistory(const Checkable::Ptr& checkable, const C
 			<< host->GetName() << ";"
 			<< service->GetShortName() << ";"
 			<< Service::StateToString(service->GetState()) << ";"
-			<< Service::StateTypeToString(service->GetStateType()) << ";"
+			<< Checkable::StateTypeToString(service->GetStateType()) << ";"
 			<< service->GetCheckAttempt() << ";"
 			<< output << ""
 			<< "";
@@ -1021,7 +1021,7 @@ void DbEvents::AddCheckResultLogHistory(const Checkable::Ptr& checkable, const C
 		msgbuf << "HOST ALERT: "
 			<< host->GetName() << ";"
 			<< GetHostStateString(host) << ";"
-			<< Host::StateTypeToString(host->GetStateType()) << ";"
+			<< Checkable::StateTypeToString(host->GetStateType()) << ";"
 			<< host->GetCheckAttempt() << ";"
 			<< output << ""
 			<< "";

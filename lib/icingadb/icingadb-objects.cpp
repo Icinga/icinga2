@@ -1624,8 +1624,8 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 		attributes->Set("email", user->GetEmail());
 		attributes->Set("pager", user->GetPager());
 		attributes->Set("notifications_enabled", user->GetEnableNotifications());
-		attributes->Set("states", user->GetStates());
-		attributes->Set("types", user->GetTypes());
+		attributes->Set("states", StateFilterToRedisValue(user->GetStateFilter()));
+		attributes->Set("types", TypeFilterToRedisValue(user->GetTypeFilter()));
 
 		if (user->GetPeriod())
 			attributes->Set("timeperiod_id", GetObjectIdentifier(user->GetPeriod()));
@@ -1673,8 +1673,8 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 		}
 
 		attributes->Set("notification_interval", std::max(0.0, std::round(notification->GetInterval())));
-		attributes->Set("states", notification->GetStates());
-		attributes->Set("types", notification->GetTypes());
+		attributes->Set("states", StateFilterToRedisValue(notification->GetStateFilter()));
+		attributes->Set("types", TypeFilterToRedisValue(notification->GetTypeFilter()));
 
 		return true;
 	}
@@ -1684,7 +1684,7 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
 
 		attributes->Set("author", comment->GetAuthor());
 		attributes->Set("text", comment->GetText());
-		attributes->Set("entry_type", comment->GetEntryType());
+		attributes->Set("entry_type", IcingaDB::CommentTypeToString(comment->GetEntryType()));
 		attributes->Set("entry_time", TimestampToMilliseconds(comment->GetEntryTime()));
 		attributes->Set("is_persistent", comment->GetPersistent());
 		attributes->Set("is_sticky", comment->GetSticky());
@@ -1974,7 +1974,7 @@ void IcingaDB::SendStateChange(const ConfigObject::Ptr& object, const CheckResul
 		"id", HashValue(rawId),
 		"environment_id", m_EnvironmentId,
 		"host_id", GetObjectIdentifier(host),
-		"state_type", Convert::ToString(type),
+		"state_type", Checkable::StateTypeToString(type).ToLower(),
 		"soft_state", Convert::ToString(cr ? service ? Convert::ToLong(cr->GetState()) : Convert::ToLong(Host::CalculateState(cr->GetState())) : 99),
 		"hard_state", Convert::ToString(hard_state),
 		"check_attempt", Convert::ToString(checkable->GetCheckAttempt()),
@@ -2047,8 +2047,9 @@ void IcingaDB::SendSentNotification(
 	auto usersAmount (users.size());
 	auto sendTs (TimestampToMilliseconds(sendTime));
 
+	auto notificationTypeStr(GetNotificationTypeByEnum(type));
 	Array::Ptr rawId = new Array({m_EnvironmentId, notification->GetName()});
-	rawId->Add(GetNotificationTypeByEnum(type));
+	rawId->Add(notificationTypeStr);
 	rawId->Add(sendTs);
 
 	auto notificationHistoryId (HashValue(rawId));
@@ -2059,7 +2060,7 @@ void IcingaDB::SendSentNotification(
 		"environment_id", m_EnvironmentId,
 		"notification_id", GetObjectIdentifier(notification),
 		"host_id", GetObjectIdentifier(host),
-		"type", Convert::ToString(type),
+		"type", notificationTypeStr,
 		"state", Convert::ToString(cr ? service ? Convert::ToLong(cr->GetState()) : Convert::ToLong(Host::CalculateState(cr->GetState())) : 99),
 		"previous_hard_state", Convert::ToString(cr ? service ? Convert::ToLong(cr->GetPreviousHardState()) : Convert::ToLong(Host::CalculateState(cr->GetPreviousHardState())) : 99),
 		"author", Utility::ValidateUTF8(author),
@@ -2300,7 +2301,7 @@ void IcingaDB::SendAddedComment(const Comment::Ptr& comment)
 		"entry_time", Convert::ToString(TimestampToMilliseconds(comment->GetEntryTime())),
 		"author", Utility::ValidateUTF8(comment->GetAuthor()),
 		"comment", Utility::ValidateUTF8(comment->GetText()),
-		"entry_type", Convert::ToString(comment->GetEntryType()),
+		"entry_type", IcingaDB::CommentTypeToString(comment->GetEntryType()),
 		"is_persistent", Convert::ToString((unsigned short)comment->GetPersistent()),
 		"is_sticky", Convert::ToString((unsigned short)comment->GetSticky()),
 		"event_id", CalcEventID("comment_add", comment),
@@ -2372,7 +2373,7 @@ void IcingaDB::SendRemovedComment(const Comment::Ptr& comment)
 		"entry_time", Convert::ToString(TimestampToMilliseconds(comment->GetEntryTime())),
 		"author", Utility::ValidateUTF8(comment->GetAuthor()),
 		"comment", Utility::ValidateUTF8(comment->GetText()),
-		"entry_type", Convert::ToString(comment->GetEntryType()),
+		"entry_type", IcingaDB::CommentTypeToString(comment->GetEntryType()),
 		"is_persistent", Convert::ToString((unsigned short)comment->GetPersistent()),
 		"is_sticky", Convert::ToString((unsigned short)comment->GetSticky()),
 		"event_id", CalcEventID("comment_remove", comment),
@@ -2954,7 +2955,7 @@ Dictionary::Ptr IcingaDB::SerializeState(const Checkable::Ptr& checkable)
 	 */
 	attrs->Set("id", id);
 	attrs->Set("environment_id", m_EnvironmentId);
-	attrs->Set("state_type", checkable->HasBeenChecked() ? checkable->GetStateType() : StateTypeHard);
+	attrs->Set("state_type", Checkable::StateTypeToString(checkable->HasBeenChecked() ? checkable->GetStateType() : StateTypeHard).ToLower());
 
 	// TODO: last_hard/soft_state should be "previous".
 	if (service) {
@@ -3017,7 +3018,9 @@ Dictionary::Ptr IcingaDB::SerializeState(const Checkable::Ptr& checkable)
 	attrs->Set("is_reachable", checkable->IsReachable());
 	attrs->Set("is_flapping", checkable->IsFlapping());
 
-	attrs->Set("is_acknowledged", checkable->GetAcknowledgement());
+	attrs->Set("is_acknowledged", checkable->IsAcknowledged());
+	attrs->Set("is_sticky_acknowledgement", checkable->GetAcknowledgement() == AcknowledgementSticky);
+
 	if (checkable->IsAcknowledged()) {
 		Timestamp entry = 0;
 		Comment::Ptr AckComment;

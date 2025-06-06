@@ -29,9 +29,15 @@ class User : CustomVarObject
 		}}}
 	};
 
-	[config] array(Value) types;
+	[config, no_storage] array(Value) types {
+		get;
+		set;
+	};
 	[no_user_view, no_user_modify] int type_filter_real (TypeFilter);
-	[config] array(Value) states;
+	[config, no_storage] array(Value) states {
+		get;
+		set;
+	};
 	[no_user_view, no_user_modify] int state_filter_real (StateFilter);
 
 	[config] String email;
