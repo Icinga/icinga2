@@ -114,6 +114,7 @@ public:
 	bool AddAnonymousClient(const JsonRpcConnection::Ptr& aclient);
 	void RemoveAnonymousClient(const JsonRpcConnection::Ptr& aclient);
 	std::set<JsonRpcConnection::Ptr> GetAnonymousClients() const;
+	void DisconnectJsonRpcConnections();
 
 	void AddHttpClient(const HttpServerConnection::Ptr& aclient);
 	void RemoveHttpClient(const HttpServerConnection::Ptr& aclient);

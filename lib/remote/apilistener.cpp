@@ -370,7 +370,10 @@ void ApiListener::Stop(bool runtimeDeleted)
 
 	StopListener();
 
+	DisconnectJsonRpcConnections();
+
 	m_WaitGroup->Join();
+
 	ObjectImpl<ApiListener>::Stop(runtimeDeleted);
 
 	Log(LogInformation, "ApiListener")
@@ -891,7 +894,7 @@ void ApiListener::NewClientHandlerInternal(
 			return;
 		}
 
-		JsonRpcConnection::Ptr aclient = new JsonRpcConnection(identity, verify_ok, client, role);
+		JsonRpcConnection::Ptr aclient = new JsonRpcConnection(m_WaitGroup, identity, verify_ok, client, role);
 
 		if (endpoint) {
 			endpoint->AddClient(aclient);
@@ -1803,6 +1806,20 @@ std::set<JsonRpcConnection::Ptr> ApiListener::GetAnonymousClients() const
 {
 	std::unique_lock<std::mutex> lock(m_AnonymousClientsLock);
 	return m_AnonymousClients;
+}
+
+void ApiListener::DisconnectJsonRpcConnections()
+{
+	for (auto endpoint : ConfigType::GetObjectsByType<Endpoint>()) {
+		for (const auto& client : endpoint->GetClients()) {
+			client->Disconnect();
+		}
+	}
+
+	std::unique_lock lock(m_AnonymousClientsLock);
+	for (const auto & client : m_AnonymousClients){
+		client->Disconnect();
+	}
 }
 
 void ApiListener::AddHttpClient(const HttpServerConnection::Ptr& aclient)
