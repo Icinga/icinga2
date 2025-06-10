@@ -17,7 +17,7 @@ if (-not ($env:PATH -contains $env:CMAKE_PATH)) {
   $env:PATH = $env:CMAKE_PATH + ';' + $env:PATH
 }
 if (-not (Test-Path env:CMAKE_GENERATOR)) {
-  $env:CMAKE_GENERATOR = 'Visual Studio 16 2019'
+  $env:CMAKE_GENERATOR = 'Visual Studio 17 2022'
 }
 if (-not (Test-Path env:BITS)) {
   $env:BITS = 64
