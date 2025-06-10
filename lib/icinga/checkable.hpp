@@ -216,8 +216,6 @@ public:
 	static int GetPendingChecks();
 	static void AquirePendingCheckSlot(int maxPendingChecks);
 
-	static Object::Ptr GetPrototype();
-
 protected:
 	void Start(bool runtimeCreated) override;
 	void OnConfigLoaded() override;

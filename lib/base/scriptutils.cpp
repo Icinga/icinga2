@@ -11,7 +11,6 @@
 #include "base/objectlock.hpp"
 #include "base/configtype.hpp"
 #include "base/application.hpp"
-#include "base/dependencygraph.hpp"
 #include "base/initialize.hpp"
 #include "base/namespace.hpp"
 #include "config/configitem.hpp"
@@ -49,7 +48,6 @@ REGISTER_SAFE_FUNCTION(System, basename, &Utility::BaseName, "path");
 REGISTER_SAFE_FUNCTION(System, dirname, &Utility::DirName, "path");
 REGISTER_SAFE_FUNCTION(System, getenv, &ScriptUtils::GetEnv, "value");
 REGISTER_SAFE_FUNCTION(System, msi_get_component_path, &ScriptUtils::MsiGetComponentPathShim, "component");
-REGISTER_SAFE_FUNCTION(System, track_parents, &ScriptUtils::TrackParents, "child");
 REGISTER_SAFE_FUNCTION(System, escape_shell_cmd, &Utility::EscapeShellCmd, "cmd");
 REGISTER_SAFE_FUNCTION(System, escape_shell_arg, &Utility::EscapeShellArg, "arg");
 #ifdef _WIN32
@@ -516,11 +514,6 @@ String ScriptUtils::MsiGetComponentPathShim(const String& component)
 #else /* _WIN32 */
 	return String();
 #endif /* _WIN32 */
-}
-
-Array::Ptr ScriptUtils::TrackParents(const Object::Ptr& child)
-{
-	return Array::FromVector(DependencyGraph::GetChildren(dynamic_pointer_cast<ConfigObject>(child)));
 }
 
 double ScriptUtils::Ptr(const Object::Ptr& object)
