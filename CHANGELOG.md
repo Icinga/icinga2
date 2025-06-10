@@ -7,6 +7,104 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.14.6 (2025-05-27)
+
+This security release fixes a critical issue in the certificate renewal logic in Icinga 2, which
+might incorrectly renew an invalid certificate. However, only nodes with access to the Icinga CA
+private key running with OpenSSL older than version 1.1.0 (released in 2016) are vulnerable. So this
+typically affects Icinga 2 masters running on operating systems like RHEL 7 and Amazon Linux 2.
+
+* CVE-2025-48057: Prevent invalid certificates from being renewed with OpenSSL older than v1.1.0.
+* Fix use-after-free in VerifyCertificate(): Additionally, a use-after-free was found in the same
+  function which is fixed as well, but in case it is triggered, typically only a wrong error code
+  may be shown in a log message.
+* Windows: Update OpenSSL shipped on Windows to v3.0.16.
+
+## 2.14.5 (2025-02-06)
+
+This release fixes a regression introduced in 2.14.4 that caused the `icinga2 node setup`,
+`icinga2 node wizard`, and `icinga2 pki request` commands to fail if a certificate was
+requested from a node that has to forward the request to another node for signing.
+Additionally, it fixes a small bug in the performance data normalization and includes
+various documentation improvements.
+
+### Bug Fixes
+
+* Don't close anonymous connections before sending the response for a certificate request #10337
+* Performance data: Don't discard min/max values even if crit/warn thresholds aren’t given #10339
+* Fix a failing test case on systems `time_t` is only 32 bits #10343
+
+### Documentation
+
+* Document the -X option for the mail-host-notification and mail-service-notification commands #10335
+* Include Nagios in the migration docs #10324
+* Remove RHEL 7 from installation instructions #10334
+* Add instructions for installing build dependencies on Windows Server #10336
+
+## 2.14.4 (2025-01-23)
+
+This bugfix release is focused on improving HA cluster stability and easing
+troubleshooting of issues in this area. It also addresses several crashes,
+in the core itself and both in Icinga DB and IDO (numbers out of range).
+In addition, it fixes several other issues such as lost notifications
+or TimePeriod/ScheduledDowntime exceeding specified date ranges.
+
+### Crash Fixes
+
+* Invalid `DateTime#format()` arguments in config and console on Windows Server 2016 and older. #10112
+* Downtime scheduling at runtime with non-existent trigger. #10049
+* Object creation at runtime during Icinga DB initialization. #10151
+* Comment on a service of a non-existent host. #9861
+
+### Miscellaneous Bugfixes
+
+* Lost notifications after recovery outside the notification time period. #10187
+* TimePeriod/ScheduledDowntime exceeding specified date range. #9983 #10107
+* Clean up failure for obsolete Downtimes. #10062
+* ifw-api check command: use correct process-finished handler. #10140
+* Email notification scripts: strip 0x0D (CR) for a proper Content-Type. #10061
+* Several fixes and improvements of the code quality. #10066 #10214 #10254 #10263 #10264
+
+### Cluster and API
+
+* Sync runtime objects in topological order to honor their dependencies. #10000
+* Make parallel config syncs more robust. #10013
+* After object creation via API fails, clean up properly for the next try. #10111
+* Close HTTPS connections properly to prevent leaks. #10005 #10006
+* Reduce the number of cluster messages in memory at the same time. #9991 #9999 #10210
+* Once a cluster connection shall be closed, stop communicating. #10213 #10221
+* Remove unnecessary blocking of semaphores. #9992 #9994
+* Reduce unnecessary cluster messages setting the next check time. #10011
+
+### Icinga DB and IDO
+
+* IDO: fix object relations after aborted synchronization. #10065
+* Icinga DB, IDO: limit all timestamps to four year digits. #10058 #10059
+* Icinga DB: limit execution\_time and latency (milliseconds) to database schema. #10060
+
+### Troubleshooting
+
+* Add `/v1/debug/malloc_info` which calls `malloc_info(3)` if available. #10015
+* Add log messages about own network I/O. #9993 #10141 #10207
+* Several fixes and improvements of log messages. #9997 #10021 #10209
+
+### Windows
+
+* Update OpenSSL shipped on Windows to v3.0.15. #10170
+* Update Boost shipped on Windows to v1.86. #10114
+* Support CMake v3.29. #10037
+* Don't require to build .msi as admin. #10137
+* Build configuration scripts: allow custom `$CMAKE_ARGS`. #10312
+
+### Documentation
+
+* Distributed Monitoring: add section "External CA/PKI". #9825
+* Explain how to enable/disable debug logging on the fly. #9981
+* Update supported OS versions and repository configuration. #10064 #10090 #10120 #10135 #10136 #10205
+* Several fixes and improvements. #9960 #10050 #10071 #10156 #10194
+* Replace broken links. #10115 #10118 #10282
+* Fix typographical and similarly trivial errors. #9953 #9967 #10056 #10116 #10152 #10153 #10204
+
 ## 2.14.3 (2024-11-12)
 
 This security release fixes a TLS certificate validation bypass.
@@ -242,6 +340,20 @@ Add `linux_netdev` check command. #9045
 * Documentation: several fixes and improvements.  #8954 #9741 #9763 #9767 #9769 #9777
 * Several code quality improvements. #8815 #9106 #9250
   #9508 #9517 #9537 #9594 #9605 #9606 #9641 #9658 #9702 #9717 #9738
+
+## 2.13.12 (2025-05-27)
+
+This security release fixes a critical issue in the certificate renewal logic in Icinga 2, which
+might incorrectly renew an invalid certificate. However, only nodes with access to the Icinga CA
+private key running with OpenSSL older than version 1.1.0 (released in 2016) are vulnerable. So this
+typically affects Icinga 2 masters running on operating systems like RHEL 7 and Amazon Linux 2.
+
+* CVE-2025-48057: Prevent invalid certificates from being renewed with OpenSSL older than v1.1.0.
+* Fix use-after-free in VerifyCertificate(): Additionally, a use-after-free was found in the same
+  function which is fixed as well, but in case it is triggered, typically only a wrong error code
+  may be shown in a log message.
+* Windows: Update OpenSSL shipped on Windows to v3.0.16.
+* Fix a failing test case on systems `time_t` is only 32 bits #10344.
 
 ## 2.13.11 (2025-01-23)
 
