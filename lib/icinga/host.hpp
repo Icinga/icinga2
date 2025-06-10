@@ -45,9 +45,6 @@ public:
 	static HostState StateFromString(const String& state);
 	static String StateToString(HostState state);
 
-	static StateType StateTypeFromString(const String& state);
-	static String StateTypeToString(StateType state);
-
 	bool ResolveMacro(const String& macro, const CheckResult::Ptr& cr, Value *result) const override;
 
 	void OnAllConfigLoaded() override;

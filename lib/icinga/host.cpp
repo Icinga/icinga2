@@ -227,22 +227,6 @@ String Host::StateToString(HostState state)
 	}
 }
 
-StateType Host::StateTypeFromString(const String& type)
-{
-	if (type == "SOFT")
-		return StateTypeSoft;
-	else
-		return StateTypeHard;
-}
-
-String Host::StateTypeToString(StateType type)
-{
-	if (type == StateTypeSoft)
-		return "SOFT";
-	else
-		return "HARD";
-}
-
 bool Host::ResolveMacro(const String& macro, const CheckResult::Ptr&, Value *result) const
 {
 	if (macro == "state") {

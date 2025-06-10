@@ -195,22 +195,6 @@ String Service::StateToString(ServiceState state)
 	}
 }
 
-StateType Service::StateTypeFromString(const String& type)
-{
-	if (type == "SOFT")
-		return StateTypeSoft;
-	else
-		return StateTypeHard;
-}
-
-String Service::StateTypeToString(StateType type)
-{
-	if (type == StateTypeSoft)
-		return "SOFT";
-	else
-		return "HARD";
-}
-
 bool Service::ResolveMacro(const String& macro, const CheckResult::Ptr& cr, Value *result) const
 {
 	if (macro == "state") {

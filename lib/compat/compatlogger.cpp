@@ -130,7 +130,7 @@ void CompatLogger::CheckResultHandler(const Checkable::Ptr& checkable, const Che
 			<< host->GetName() << ";"
 			<< service->GetShortName() << ";"
 			<< Service::StateToString(service->GetState()) << ";"
-			<< Service::StateTypeToString(service->GetStateType()) << ";"
+			<< Checkable::StateTypeToString(service->GetStateType()) << ";"
 			<< attempt_after << ";"
 			<< output << ""
 			<< "";
@@ -140,7 +140,7 @@ void CompatLogger::CheckResultHandler(const Checkable::Ptr& checkable, const Che
 		msgbuf << "HOST ALERT: "
 			<< host->GetName() << ";"
 			<< GetHostStateString(host) << ";"
-			<< Host::StateTypeToString(host->GetStateType()) << ";"
+			<< Checkable::StateTypeToString(host->GetStateType()) << ";"
 			<< attempt_after << ";"
 			<< output << ""
 			<< "";
@@ -413,14 +413,14 @@ void CompatLogger::EventCommandHandler(const Checkable::Ptr& checkable)
 			<< host->GetName() << ";"
 			<< service->GetShortName() << ";"
 			<< Service::StateToString(service->GetState()) << ";"
-			<< Service::StateTypeToString(service->GetStateType()) << ";"
+			<< Checkable::StateTypeToString(service->GetStateType()) << ";"
 			<< current_attempt << ";"
 			<< event_command_name;
 	} else {
 		msgbuf << "HOST EVENT HANDLER: "
 			<< host->GetName() << ";"
 			<< GetHostStateString(host) << ";"
-			<< Host::StateTypeToString(host->GetStateType()) << ";"
+			<< Checkable::StateTypeToString(host->GetStateType()) << ";"
 			<< current_attempt << ";"
 			<< event_command_name;
 	}
@@ -505,7 +505,7 @@ void CompatLogger::ReopenFile(bool rotate)
 		msgbuf << "CURRENT HOST STATE: "
 			<< host->GetName() << ";"
 			<< GetHostStateString(host) << ";"
-			<< Host::StateTypeToString(host->GetStateType()) << ";"
+			<< Checkable::StateTypeToString(host->GetStateType()) << ";"
 			<< host->GetCheckAttempt() << ";"
 			<< output << "";
 
@@ -526,7 +526,7 @@ void CompatLogger::ReopenFile(bool rotate)
 			<< host->GetName() << ";"
 			<< service->GetShortName() << ";"
 			<< Service::StateToString(service->GetState()) << ";"
-			<< Service::StateTypeToString(service->GetStateType()) << ";"
+			<< Checkable::StateTypeToString(service->GetStateType()) << ";"
 			<< service->GetCheckAttempt() << ";"
 			<< output << "";
 

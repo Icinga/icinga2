@@ -100,12 +100,13 @@ void Notification::StaticInitialize()
 	m_TypeFilterMap["FlappingEnd"] = NotificationFlappingEnd;
 }
 
-void Notification::OnConfigLoaded()
+Notification::Notification()
 {
-	ObjectImpl<Notification>::OnConfigLoaded();
-
-	SetTypeFilter(FilterArrayToInt(GetTypes(), GetTypeFilterMap(), ~0));
-	SetStateFilter(FilterArrayToInt(GetStates(), GetStateFilterMap(), ~0));
+	// If a notification is created without specifying the "types/states" attribute, the Set* methods won't be called,
+	// consequently the filter bitset will also be 0. Thus, we need to ensure that the type/state filter are
+	// initialized to the default values, which are all types and states enabled.
+	SetTypes(nullptr, false, Empty);
+	SetStates(nullptr, false, Empty);
 }
 
 void Notification::OnAllConfigLoaded()
@@ -748,6 +749,36 @@ String Notification::NotificationHostStateToString(HostState state)
 			return "Down";
 		default:
 			VERIFY(!"Invalid state type.");
+	}
+}
+
+Array::Ptr Notification::GetTypes() const
+{
+	return m_Types.load();
+}
+
+void Notification::SetTypes(const Array::Ptr& value, bool suppress_events, const Value& cookie)
+{
+	m_Types.store(value);
+	// Ensure that the type filter is updated when the types attribute changes.
+	SetTypeFilter(FilterArrayToInt(value, GetTypeFilterMap(), ~0));
+	if (!suppress_events) {
+		NotifyTypes(cookie);
+	}
+}
+
+Array::Ptr Notification::GetStates() const
+{
+	return m_States.load();
+}
+
+void Notification::SetStates(const Array::Ptr& value, bool suppress_events, const Value& cookie)
+{
+	m_States.store(value);
+	// Ensure that the state filter is updated when the states attribute changes.
+	SetStateFilter(FilterArrayToInt(value, GetStateFilterMap(), ~0));
+	if (!suppress_events) {
+		NotifyStates(cookie);
 	}
 }
 

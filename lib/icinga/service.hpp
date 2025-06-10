@@ -39,9 +39,6 @@ public:
 	static ServiceState StateFromString(const String& state);
 	static String StateToString(ServiceState state);
 
-	static StateType StateTypeFromString(const String& state);
-	static String StateTypeToString(StateType state);
-
 	static void EvaluateApplyRules(const Host::Ptr& host);
 
 	void OnAllConfigLoaded() override;
