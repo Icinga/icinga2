@@ -18,6 +18,7 @@ using namespace icinga;
 REGISTER_URLHANDLER("/v1/debug/malloc_info", MallocInfoHandler);
 
 bool MallocInfoHandler::HandleRequest(
+	const WaitGroup::Ptr&,
 	AsioTlsStream&,
 	const ApiUser::Ptr& user,
 	boost::beast::http::request<boost::beast::http::string_body>& request,

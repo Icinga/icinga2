@@ -917,7 +917,7 @@ void ApiListener::NewClientHandlerInternal(
 	} else {
 		Log(LogNotice, "ApiListener", "New HTTP client");
 
-		HttpServerConnection::Ptr aclient = new HttpServerConnection(identity, verify_ok, client);
+		HttpServerConnection::Ptr aclient = new HttpServerConnection(m_WaitGroup, identity, verify_ok, client);
 		AddHttpClient(aclient);
 		aclient->Start();
 		shutdownSslConn.Cancel();
