@@ -11,8 +11,8 @@ function ThrowOnNativeFailure {
 }
 
 
-$VsVersion = 2019
-$MsvcVersion = '14.2'
+$VsVersion = 2022
+$MsvcVersion = '14.3'
 $BoostVersion = @(1, 88, 0)
 $OpensslVersion = '3_0_16'
 
@@ -74,7 +74,6 @@ try {
 if (-not $Env:GITHUB_ACTIONS) {
     choco install -y `
         "visualstudio${VsVersion}community" `
-        "visualstudio${VsVersion}-workload-netcoretools" `
         "visualstudio${VsVersion}-workload-vctools" `
         "visualstudio${VsVersion}-workload-manageddesktop" `
         "visualstudio${VsVersion}-workload-nativedesktop" `

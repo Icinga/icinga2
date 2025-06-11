@@ -17,7 +17,7 @@ if (-not ($env:PATH -contains $env:CMAKE_PATH)) {
   $env:PATH = $env:CMAKE_PATH + ';' + $env:PATH
 }
 if (-not (Test-Path env:CMAKE_GENERATOR)) {
-  $env:CMAKE_GENERATOR = 'Visual Studio 16 2019'
+  $env:CMAKE_GENERATOR = 'Visual Studio 17 2022'
 }
 if (-not (Test-Path env:BITS)) {
   $env:BITS = 64
@@ -39,7 +39,7 @@ if (-not (Test-Path env:BOOST_ROOT)) {
   $env:BOOST_ROOT = "c:\local\boost_1_88_0-Win${env:BITS}"
 }
 if (-not (Test-Path env:BOOST_LIBRARYDIR)) {
-  $env:BOOST_LIBRARYDIR = "c:\local\boost_1_88_0-Win${env:BITS}\lib${env:BITS}-msvc-14.2"
+  $env:BOOST_LIBRARYDIR = "c:\local\boost_1_88_0-Win${env:BITS}\lib${env:BITS}-msvc-14.3"
 }
 if (-not (Test-Path env:FLEX_BINARY)) {
   $env:FLEX_BINARY = 'C:\ProgramData\chocolatey\bin\win_flex.exe'
