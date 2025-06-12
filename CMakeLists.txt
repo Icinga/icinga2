@@ -18,10 +18,6 @@ if(NOT CMAKE_BUILD_TYPE)
     FORCE)
 endif()
 
-# Include symbols in executables so that function names can be printed in stack traces, for example in crash dumps.
-set(CMAKE_ENABLE_EXPORTS ON) # Added in CMake 3.4
-set(CMAKE_EXECUTABLE_ENABLE_EXPORTS ON) # Added in CMake 3.27 and supersedes the above one.
-
 if(WIN32)
   set(ICINGA2_MASTER OFF)
 else()
