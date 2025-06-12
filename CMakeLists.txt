@@ -1,12 +1,17 @@
 # Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+
 
-# CMake 3.8 is required, CMake policy compatibility was verified up to 3.17.
-cmake_minimum_required(VERSION 3.8...3.17)
+cmake_minimum_required(VERSION 2.8.12)
 set(BOOST_MIN_VERSION "1.66.0")
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+if("${CMAKE_VERSION}" VERSION_LESS "3.8") # SLES 12.5
+  if(NOT MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+  endif()
+else()
+  set(CMAKE_CXX_STANDARD 17)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+  set(CMAKE_CXX_EXTENSIONS OFF)
+endif()
 
 project(icinga2)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
