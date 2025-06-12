@@ -21,7 +21,7 @@ jobs:
       matrix:
         bits: [32, 64]
 
-    runs-on: windows-2019
+    runs-on: windows-2025
 
     env:
       BITS: '${{ matrix.bits }}'
