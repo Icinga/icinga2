@@ -1206,6 +1206,20 @@ void ApiListener::SyncSendMessage(const Endpoint::Ptr& endpoint, const Dictionar
 }
 
 /**
+ * Log the endpoint currently used to relay messages to our parent zone if it (the endpoint) has changed.
+ *
+ * @param zone The parent zone
+ * @param endpoint The new endpoint
+ */
+void ApiListener::LogCurrentParentEndpoint(const Zone::Ptr& zone, const Endpoint::Ptr& endpoint)
+{
+	if (m_CurrentParentEndpoint.exchange(endpoint.get()) != endpoint.get()) {
+		Log(LogInformation, "ApiListener") << "Relaying messages for parent Zone '"
+			<< zone->GetName() << "' to Endpoint '" << endpoint->GetName() << "'";
+	}
+}
+
+/**
  * Relay a message to a directly connected zone or to a global zone.
  * If some other zone is passed as the target zone, it is not relayed.
  *
@@ -1221,11 +1235,12 @@ bool ApiListener::RelayMessageOne(const Zone::Ptr& targetZone, const MessageOrig
 	ASSERT(targetZone);
 
 	Zone::Ptr localZone = Zone::GetLocalZone();
+	auto parentZone (localZone->GetParent());
 
 	/* only relay the message to a) the same local zone, b) the parent zone and c) direct child zones. Exception is a global zone. */
 	if (!targetZone->GetGlobal() &&
 		targetZone != localZone &&
-		targetZone != localZone->GetParent() &&
+		targetZone != parentZone &&
 		targetZone->GetParent() != localZone) {
 		return true;
 	}
@@ -1304,11 +1319,19 @@ bool ApiListener::RelayMessageOne(const Zone::Ptr& targetZone, const MessageOrig
 			bool isMaster = (currentZoneMaster == localEndpoint);
 
 			if (!isMaster && targetEndpoint != currentZoneMaster) {
+				if (currentTargetZone == parentZone) {
+					LogCurrentParentEndpoint(parentZone, currentZoneMaster);
+				}
+
 				skippedEndpoints.push_back(targetEndpoint);
 				continue;
 			}
 
 			relayed = true;
+
+			if (currentTargetZone == parentZone) {
+				LogCurrentParentEndpoint(parentZone, targetEndpoint);
+			}
 
 			SyncSendMessage(targetEndpoint, message);
 		}
