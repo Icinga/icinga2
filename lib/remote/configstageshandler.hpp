@@ -48,7 +48,14 @@ private:
 		const Dictionary::Ptr& params
 	);
 
-	static std::atomic<bool> m_RunningPackageUpdates;
+	enum StagesUpdateState : uint8_t
+	{
+		Idle = 1 << 0u, // no updates in progress
+		Running = 1 << 1u, // there's a config update in progress (includes config validation and stage activation)
+		ReloadRequested = 1 << 2u // validation was successful and the worker has been requested to reload
+	};
+
+	static std::atomic<StagesUpdateState> m_RunningPackageUpdates;
 };
 
 }

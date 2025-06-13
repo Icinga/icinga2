@@ -1,6 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "remote/configstageshandler.hpp"
+#include "remote/configobjectslock.hpp"
 #include "remote/configpackageutility.hpp"
 #include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
@@ -12,7 +13,10 @@ using namespace icinga;
 
 REGISTER_URLHANDLER("/v1/config/stages", ConfigStagesHandler);
 
-std::atomic<bool> ConfigStagesHandler::m_RunningPackageUpdates (false);
+std::atomic<ConfigStagesHandler::StagesUpdateState> ConfigStagesHandler::m_RunningPackageUpdates (Idle);
+// This variable is used to track the last time a reload request was made via this handler.
+// It doesn't need to be thread-safe, as it will never be accessed concurrently.
+static double l_LastReloadRequestTime = 0.0;
 
 bool ConfigStagesHandler::HandleRequest(
 	AsioTlsStream& stream,
@@ -131,19 +135,42 @@ void ConfigStagesHandler::HandlePost(
 		if (reload && !activate)
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Parameter 'reload' must be false when 'activate' is false."));
 
-		if (m_RunningPackageUpdates.exchange(true)) {
+		auto now = Utility::GetTime();
+		if (auto state = m_RunningPackageUpdates.exchange(Running); state == Running) {
 			return HttpUtility::SendJsonError(response, params, 423,
 				"Conflicting request, there is already an ongoing package update in progress. Please try it again later.");
+		} else if (state == ReloadRequested) {
+			// Try to acquire a shared lock on the ConfigObjectsSharedLock to ensure that we are
+			// not in the middle of a reload process.
+			ConfigObjectsSharedLock objectsSharedLock(std::try_to_lock);
+			// If we weren't able to acquire the shared lock, then it's obviously because there's a reload in progress,
+			// so we've to reject the request just like all the other handlers do. However, if we successfully acquired
+			// the lock, then we've to heuristically perform a check when the last reload request was made via this
+			// handler. The magic number 2.7 is composed of the 2.5 seconds that the worker's event loop waits before
+			// its next tick, i.e. that's the worst case scenario how long it takes to react on the reload request,
+			// plus 0.2 seconds that the umbrella process would theoretically take to react on the SIGHUP signal from
+			// the worker. So, if the last reload request was made within the last 2.7 seconds, then we can assume that
+			// the reload is still in progress, and we have to reject the request.
+			if (!objectsSharedLock || l_LastReloadRequestTime >= now - 2.7) {
+				return HttpUtility::SendJsonError(response, params, 503, "Icinga is reloading.");
+			}
 		}
 
-		auto resetPackageUpdates (Shared<Defer>::Make([]() { ConfigStagesHandler::m_RunningPackageUpdates.store(false); }));
+		auto refreshPackageUpdates (Shared<Defer>::Make([reload, packageName, stageName]() {
+			l_LastReloadRequestTime = Utility::GetTime();
+
+			auto activeStage = ConfigPackageUtility::GetActiveStage(packageName);
+			// If the currently active stage is the one we just created, then we can be sure that the config
+			// validation was successful and that we (if reload is true) have requested the worker to reload.
+			m_RunningPackageUpdates.store(reload && activeStage == stageName ? ReloadRequested : Idle);
+		}));
 
 		std::unique_lock<std::mutex> lock(ConfigPackageUtility::GetStaticPackageMutex());
 
 		stageName = ConfigPackageUtility::CreateStage(packageName, files);
 
 		/* validate the config. on success, activate stage and reload */
-		ConfigPackageUtility::AsyncTryActivateStage(packageName, stageName, activate, reload, resetPackageUpdates);
+		ConfigPackageUtility::AsyncTryActivateStage(packageName, stageName, activate, reload, refreshPackageUpdates);
 	} catch (const std::exception& ex) {
 		return HttpUtility::SendJsonError(response, params, 500,
 			"Stage creation failed.",

@@ -168,7 +168,7 @@ void ConfigPackageUtility::ActivateStage(const String& packageName, const String
 }
 
 void ConfigPackageUtility::TryActivateStageCallback(const ProcessResult& pr, const String& packageName, const String& stageName,
-	bool activate, bool reload, const Shared<Defer>::Ptr& resetPackageUpdates)
+	bool activate, bool reload)
 {
 	String logFile = GetPackageDir() + "/" + packageName + "/" + stageName + "/startup.log";
 	std::ofstream fpLog(logFile.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc);
@@ -190,14 +190,6 @@ void ConfigPackageUtility::TryActivateStageCallback(const ProcessResult& pr, con
 			}
 
 			if (reload) {
-				/*
-				 * Cancel the deferred callback before going out of scope so that the config stages handler
-				 * flag isn't resetting earlier and allowing other clients to submit further requests while
-				 * Icinga2 is reloading. Otherwise, the ongoing request will be cancelled halfway before the
-				 * operation is completed once the new worker becomes ready.
-				 */
-				resetPackageUpdates->Cancel();
-
 				Application::RequestRestart();
 			}
 		}
@@ -209,7 +201,7 @@ void ConfigPackageUtility::TryActivateStageCallback(const ProcessResult& pr, con
 }
 
 void ConfigPackageUtility::AsyncTryActivateStage(const String& packageName, const String& stageName, bool activate, bool reload,
-	const Shared<Defer>::Ptr& resetPackageUpdates)
+	const Shared<Defer>::Ptr& refreshPackageUpdates)
 {
 	VERIFY(Application::GetArgC() >= 1);
 
@@ -235,8 +227,10 @@ void ConfigPackageUtility::AsyncTryActivateStage(const String& packageName, cons
 
 	Process::Ptr process = new Process(Process::PrepareCommand(args));
 	process->SetTimeout(Application::GetReloadTimeout());
-	process->Run([packageName, stageName, activate, reload, resetPackageUpdates](const ProcessResult& pr) {
-		TryActivateStageCallback(pr, packageName, stageName, activate, reload, resetPackageUpdates);
+	// Note: the "refreshPackageUpdates" variable isn't used for anything here, instead we just
+	// pass it to process callback to keep the reference alive until the process finishes.
+	process->Run([packageName, stageName, activate, reload, refreshPackageUpdates](const ProcessResult& pr) {
+		TryActivateStageCallback(pr, packageName, stageName, activate, reload);
 	});
 }
 
