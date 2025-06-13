@@ -63,7 +63,7 @@ private:
 	static void WriteStageConfig(const String& packageName, const String& stageName);
 
 	static void TryActivateStageCallback(const ProcessResult& pr, const String& packageName, const String& stageName, bool activate,
-		bool reload, const Shared<Defer>::Ptr& resetPackageUpdates);
+		bool reload);
 
 	static bool ValidateFreshName(const String& name);
 };
