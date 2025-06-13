@@ -35,13 +35,13 @@ using namespace icinga;
 
 auto const l_ServerHeader ("Icinga/" + Application::GetAppVersion());
 
-HttpServerConnection::HttpServerConnection(const String& identity, bool authenticated, const Shared<AsioTlsStream>::Ptr& stream)
-	: HttpServerConnection(identity, authenticated, stream, IoEngine::Get().GetIoContext())
+HttpServerConnection::HttpServerConnection(const WaitGroup::Ptr& waitGroup, const String& identity, bool authenticated, const Shared<AsioTlsStream>::Ptr& stream)
+	: HttpServerConnection(waitGroup, identity, authenticated, stream, IoEngine::Get().GetIoContext())
 {
 }
 
-HttpServerConnection::HttpServerConnection(const String& identity, bool authenticated, const Shared<AsioTlsStream>::Ptr& stream, boost::asio::io_context& io)
-	: m_Stream(stream), m_Seen(Utility::GetTime()), m_IoStrand(io), m_ShuttingDown(false), m_HasStartedStreaming(false),
+HttpServerConnection::HttpServerConnection(const WaitGroup::Ptr& waitGroup, const String& identity, bool authenticated, const Shared<AsioTlsStream>::Ptr& stream, boost::asio::io_context& io)
+	: m_WaitGroup(waitGroup), m_Stream(stream), m_Seen(Utility::GetTime()), m_IoStrand(io), m_ShuttingDown(false), m_HasStartedStreaming(false),
 	m_CheckLivenessTimer(io)
 {
 	if (authenticated) {
@@ -419,6 +419,7 @@ bool ProcessRequest(
 	boost::beast::http::response<boost::beast::http::string_body>& response,
 	HttpServerConnection& server,
 	bool& hasStartedStreaming,
+	const WaitGroup::Ptr& waitGroup,
 	std::chrono::steady_clock::duration& cpuBoundWorkTime,
 	boost::asio::yield_context& yc
 )
@@ -431,7 +432,7 @@ bool ProcessRequest(
 		CpuBoundWork handlingRequest (yc);
 		cpuBoundWorkTime = std::chrono::steady_clock::now() - start;
 
-		HttpHandler::ProcessRequest(stream, authenticatedUser, request, response, yc, server);
+		HttpHandler::ProcessRequest(waitGroup, stream, authenticatedUser, request, response, yc, server);
 	} catch (const std::exception& ex) {
 		if (hasStartedStreaming) {
 			return false;
@@ -477,7 +478,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 		 */
 		beast::flat_buffer buf;
 
-		for (;;) {
+		while (m_WaitGroup->IsLockable()) {
 			m_Seen = Utility::GetTime();
 
 			http::parser<true, http::string_body> parser;
@@ -548,7 +549,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 
 			m_Seen = std::numeric_limits<decltype(m_Seen)>::max();
 
-			if (!ProcessRequest(*m_Stream, request, authenticatedUser, response, *this, m_HasStartedStreaming, cpuBoundWorkTime, yc)) {
+			if (!ProcessRequest(*m_Stream, request, authenticatedUser, response, *this, m_HasStartedStreaming, m_WaitGroup, cpuBoundWorkTime, yc)) {
 				break;
 			}
 

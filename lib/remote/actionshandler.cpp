@@ -16,6 +16,7 @@ thread_local ApiUser::Ptr ActionsHandler::AuthenticatedApiUser;
 REGISTER_URLHANDLER("/v1/actions", ActionsHandler);
 
 bool ActionsHandler::HandleRequest(
+	const WaitGroup::Ptr& waitGroup,
 	AsioTlsStream& stream,
 	const ApiUser::Ptr& user,
 	boost::beast::http::request<boost::beast::http::string_body>& request,
@@ -88,7 +89,28 @@ bool ActionsHandler::HandleRequest(
 	if (params)
 		verbose = HttpUtility::GetLastParameter(params, "verbose");
 
+	std::shared_lock wgLock{*waitGroup, std::try_to_lock};
+	if (!wgLock) {
+		HttpUtility::SendJsonError(response, params, 503, "Shutting down.");
+		return true;
+	}
+
 	for (ConfigObject::Ptr obj : objs) {
+		if (!waitGroup->IsLockable()) {
+			if (wgLock) {
+				wgLock.unlock();
+			}
+
+			results.emplace_back(new Dictionary({
+				{ "type", obj->GetReflectionType()->GetName() },
+				{ "name", obj->GetName() },
+				{ "code", 503 },
+				{ "status", "Action skipped: Shutting down."}
+			}));
+
+			continue;
+		}
+
 		try {
 			results.emplace_back(action->Invoke(obj, params));
 		} catch (const std::exception& ex) {

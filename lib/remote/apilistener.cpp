@@ -368,7 +368,12 @@ void ApiListener::Stop(bool runtimeDeleted)
 	m_Timer->Stop(true);
 	m_RenewOwnCertTimer->Stop(true);
 
+	StopListener();
+
+	DisconnectJsonRpcConnections();
+
 	m_WaitGroup->Join();
+
 	ObjectImpl<ApiListener>::Stop(runtimeDeleted);
 
 	Log(LogInformation, "ApiListener")
@@ -486,11 +491,36 @@ bool ApiListener::AddListener(const String& node, const String& service)
 	Log(LogInformation, "ApiListener")
 		<< "Started new listener on '[" << localEndpoint.address() << "]:" << localEndpoint.port() << "'";
 
-	IoEngine::SpawnCoroutine(io, [this, acceptor](asio::yield_context yc) { ListenerCoroutineProc(yc, acceptor); });
+	auto strand = Shared<asio::io_context::strand>::Make(io);
+
+	boost::signals2::scoped_connection closeSignal = m_OnListenerShutdown.connect([strand, acceptor]() {
+		boost::asio::post(*strand, [acceptor] {
+			try {
+				acceptor->close();
+			} catch (const std::exception& ex) {
+				Log(LogCritical, "ApiListener")
+					<< "Failed to close acceptor socket: " << ex.what();
+			}
+		});
+	});
+
+	IoEngine::SpawnCoroutine(*strand, [this, acceptor, closeSignal = std::move(closeSignal)](asio::yield_context yc) {
+		ListenerCoroutineProc(yc, acceptor);
+	});
 
 	UpdateStatusFile(localEndpoint);
 
 	return true;
+}
+
+/**
+ * Stops the listener(s).
+ */
+void ApiListener::StopListener()
+{
+	m_OnListenerShutdown();
+
+	m_ListenerWaitGroup->Join();
 }
 
 void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const Shared<boost::asio::ip::tcp::acceptor>::Ptr& server)
@@ -506,7 +536,14 @@ void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const Sha
 		lastModified = Utility::GetFileCreationTime(crlPath);
 	}
 
-	for (;;) {
+	std::shared_lock wgLock(*m_ListenerWaitGroup, std::try_to_lock);
+	if (!wgLock) {
+		Log(LogCritical, "ApiListener")
+			<< "Could not lock the listener wait group.";
+		return;
+	}
+
+	while (server->is_open()) {
 		try {
 			asio::ip::tcp::socket socket (io);
 
@@ -546,6 +583,12 @@ void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const Sha
 				NewClientHandler(yc, strand, sslConn, String(), RoleServer);
 			});
 		} catch (const std::exception& ex) {
+			auto se (dynamic_cast<const boost::system::system_error*>(&ex));
+
+			if (se && se->code() == boost::asio::error::operation_aborted) {
+				return;
+			}
+
 			Log(LogCritical, "ApiListener")
 				<< "Cannot accept new connection: " << ex.what();
 		}
@@ -828,6 +871,11 @@ void ApiListener::NewClientHandlerInternal(
 		throw;
 	}
 
+	std::shared_lock wgLock(*m_ListenerWaitGroup, std::try_to_lock);
+	if (!wgLock) {
+		return;
+	}
+
 	if (ctype == ClientJsonRpc) {
 		Log(LogNotice, "ApiListener", "New JSON-RPC client");
 
@@ -846,7 +894,7 @@ void ApiListener::NewClientHandlerInternal(
 			return;
 		}
 
-		JsonRpcConnection::Ptr aclient = new JsonRpcConnection(identity, verify_ok, client, role);
+		JsonRpcConnection::Ptr aclient = new JsonRpcConnection(m_WaitGroup, identity, verify_ok, client, role);
 
 		if (endpoint) {
 			endpoint->AddClient(aclient);
@@ -869,7 +917,7 @@ void ApiListener::NewClientHandlerInternal(
 	} else {
 		Log(LogNotice, "ApiListener", "New HTTP client");
 
-		HttpServerConnection::Ptr aclient = new HttpServerConnection(identity, verify_ok, client);
+		HttpServerConnection::Ptr aclient = new HttpServerConnection(m_WaitGroup, identity, verify_ok, client);
 		AddHttpClient(aclient);
 		aclient->Start();
 		shutdownSslConn.Cancel();
@@ -1758,6 +1806,20 @@ std::set<JsonRpcConnection::Ptr> ApiListener::GetAnonymousClients() const
 {
 	std::unique_lock<std::mutex> lock(m_AnonymousClientsLock);
 	return m_AnonymousClients;
+}
+
+void ApiListener::DisconnectJsonRpcConnections()
+{
+	for (auto endpoint : ConfigType::GetObjectsByType<Endpoint>()) {
+		for (const auto& client : endpoint->GetClients()) {
+			client->Disconnect();
+		}
+	}
+
+	std::unique_lock lock(m_AnonymousClientsLock);
+	for (const auto & client : m_AnonymousClients){
+		client->Disconnect();
+	}
 }
 
 void ApiListener::AddHttpClient(const HttpServerConnection::Ptr& aclient)

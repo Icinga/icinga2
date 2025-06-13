@@ -14,6 +14,7 @@ using namespace icinga;
 REGISTER_URLHANDLER("/v1/objects", ModifyObjectHandler);
 
 bool ModifyObjectHandler::HandleRequest(
+	const WaitGroup::Ptr& waitGroup,
 	AsioTlsStream& stream,
 	const ApiUser::Ptr& user,
 	boost::beast::http::request<boost::beast::http::string_body>& request,
@@ -104,11 +105,30 @@ bool ModifyObjectHandler::HandleRequest(
 
 	ArrayData results;
 
+	std::shared_lock wgLock{*waitGroup, std::try_to_lock};
+	if (!wgLock) {
+		HttpUtility::SendJsonError(response, params, 503, "Shutting down.");
+		return true;
+	}
+
 	for (ConfigObject::Ptr obj : objs) {
 		Dictionary::Ptr result1 = new Dictionary();
 
 		result1->Set("type", type->GetName());
 		result1->Set("name", obj->GetName());
+
+		if (!waitGroup->IsLockable()) {
+			if (wgLock) {
+				wgLock.unlock();
+			}
+
+			result1->Set("code", 503);
+			result1->Set("status", "Action skipped: Shutting down.");
+
+			results.emplace_back(std::move(result1));
+
+			continue;
+		}
 
 		String key;
 

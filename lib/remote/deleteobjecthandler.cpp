@@ -16,6 +16,7 @@ using namespace icinga;
 REGISTER_URLHANDLER("/v1/objects", DeleteObjectHandler);
 
 bool DeleteObjectHandler::HandleRequest(
+	const WaitGroup::Ptr& waitGroup,
 	AsioTlsStream& stream,
 	const ApiUser::Ptr& user,
 	boost::beast::http::request<boost::beast::http::string_body>& request,
@@ -78,7 +79,30 @@ bool DeleteObjectHandler::HandleRequest(
 
 	bool success = true;
 
+	std::shared_lock wgLock{*waitGroup, std::try_to_lock};
+	if (!wgLock) {
+		HttpUtility::SendJsonError(response, params, 503, "Shutting down.");
+		return true;
+	}
+
 	for (ConfigObject::Ptr obj : objs) {
+		if (!waitGroup->IsLockable()) {
+			if (wgLock) {
+				wgLock.unlock();
+			}
+
+			results.emplace_back(new Dictionary({
+				{ "type", type->GetName() },
+				{ "name", obj->GetName() },
+				{ "code", 503 },
+				{ "status", "Action skipped: Shutting down."}
+			}));
+
+			success = false;
+
+			continue;
+		}
+
 		int code;
 		String status;
 		Array::Ptr errors = new Array();

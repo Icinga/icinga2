@@ -89,6 +89,7 @@ Dictionary::Ptr ObjectQueryHandler::SerializeObjectAttrs(const Object::Ptr& obje
 }
 
 bool ObjectQueryHandler::HandleRequest(
+	const WaitGroup::Ptr&,
 	AsioTlsStream& stream,
 	const ApiUser::Ptr& user,
 	boost::beast::http::request<boost::beast::http::string_body>& request,
