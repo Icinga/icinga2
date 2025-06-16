@@ -19,6 +19,10 @@ set_target_properties(
   FOLDER Bin
   OUTPUT_NAME icinga2-installer
   LINK_FLAGS "/SUBSYSTEM:WINDOWS"
+
+  # Use a statically-linked runtime library as this binary is run during the installation process where the other DLLs
+  # may not have been installed already and the system-provided version may be too old.
+  MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
 )
 
 target_link_libraries(icinga-installer shlwapi)
