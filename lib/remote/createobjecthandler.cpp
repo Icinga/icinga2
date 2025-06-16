@@ -16,6 +16,7 @@ using namespace icinga;
 REGISTER_URLHANDLER("/v1/objects", CreateObjectHandler);
 
 bool CreateObjectHandler::HandleRequest(
+	const WaitGroup::Ptr& waitGroup,
 	AsioTlsStream& stream,
 	const ApiUser::Ptr& user,
 	boost::beast::http::request<boost::beast::http::string_body>& request,
@@ -99,6 +100,12 @@ bool CreateObjectHandler::HandleRequest(
 
 	if (!lock) {
 		HttpUtility::SendJsonError(response, params, 503, "Icinga is reloading");
+		return true;
+	}
+
+	std::shared_lock wgLock{*waitGroup, std::try_to_lock};
+	if (!wgLock) {
+		HttpUtility::SendJsonError(response, params, 503, "Shutting down.");
 		return true;
 	}
 

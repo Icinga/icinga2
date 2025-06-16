@@ -3,6 +3,7 @@
 #pragma once
 
 #include "base/object.hpp"
+#include "base/atomic.hpp"
 #include <condition_variable>
 #include <cstdint>
 #include <mutex>
@@ -22,6 +23,8 @@ public:
 
 	virtual bool try_lock_shared() = 0;
 	virtual void unlock_shared() = 0;
+
+	virtual bool IsLockable() const = 0;
 };
 
 /**
@@ -42,13 +45,16 @@ public:
 
 	bool try_lock_shared() override;
 	void unlock_shared() override;
+
+	bool IsLockable() const override;
+
 	void Join();
 
 private:
 	std::mutex m_Mutex;
 	std::condition_variable m_CV;
 	uint_fast32_t m_SharedLocks = 0;
-	bool m_Stopped = false;
+	Atomic<bool> m_Stopped = false;
 };
 
 }

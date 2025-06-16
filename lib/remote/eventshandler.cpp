@@ -40,6 +40,7 @@ const std::map<String, EventType> l_EventTypes ({
 const String l_ApiQuery ("<API query>");
 
 bool EventsHandler::HandleRequest(
+	const WaitGroup::Ptr&,
 	AsioTlsStream& stream,
 	const ApiUser::Ptr& user,
 	boost::beast::http::request<boost::beast::http::string_body>& request,

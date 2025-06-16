@@ -29,17 +29,17 @@ REGISTER_APIFUNCTION(SetLogPosition, log, &SetLogPositionHandler);
 
 static RingBuffer l_TaskStats (15 * 60);
 
-JsonRpcConnection::JsonRpcConnection(const String& identity, bool authenticated,
+JsonRpcConnection::JsonRpcConnection(const WaitGroup::Ptr& waitGroup, const String& identity, bool authenticated,
 	const Shared<AsioTlsStream>::Ptr& stream, ConnectionRole role)
-	: JsonRpcConnection(identity, authenticated, stream, role, IoEngine::Get().GetIoContext())
+	: JsonRpcConnection(waitGroup, identity, authenticated, stream, role, IoEngine::Get().GetIoContext())
 {
 }
 
-JsonRpcConnection::JsonRpcConnection(const String& identity, bool authenticated,
+JsonRpcConnection::JsonRpcConnection(const WaitGroup::Ptr& waitGroup, const String& identity, bool authenticated,
 	const Shared<AsioTlsStream>::Ptr& stream, ConnectionRole role, boost::asio::io_context& io)
 	: m_Identity(identity), m_Authenticated(authenticated), m_Stream(stream), m_Role(role),
 	m_Timestamp(Utility::GetTime()), m_Seen(Utility::GetTime()), m_IoStrand(io),
-	m_OutgoingMessagesQueued(io), m_WriterDone(io), m_ShuttingDown(false),
+	m_OutgoingMessagesQueued(io), m_WriterDone(io), m_ShuttingDown(false), m_WaitGroup(waitGroup),
 	m_CheckLivenessTimer(io), m_HeartbeatTimer(io)
 {
 	if (authenticated)
@@ -284,7 +284,7 @@ void JsonRpcConnection::Disconnect()
 				ApiListener::GetInstance()->RemoveAnonymousClient(this);
 			}
 
-			Log(LogWarning, "JsonRpcConnection")
+			Log(LogInformation, "JsonRpcConnection")
 				<< "API client disconnected for identity '" << m_Identity << "'";
 		});
 	}
@@ -303,6 +303,11 @@ void JsonRpcConnection::Disconnect()
 */
 void JsonRpcConnection::MessageHandler(const Dictionary::Ptr& message)
 {
+	std::shared_lock wgLock(*m_WaitGroup, std::try_to_lock);
+	if (!wgLock) {
+		return;
+	}
+
 	if (m_Endpoint && message->Contains("ts")) {
 		double ts = message->Get("ts");
 

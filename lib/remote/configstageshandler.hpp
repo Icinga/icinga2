@@ -15,6 +15,7 @@ public:
 	DECLARE_PTR_TYPEDEFS(ConfigStagesHandler);
 
 	bool HandleRequest(
+		const WaitGroup::Ptr& waitGroup,
 		AsioTlsStream& stream,
 		const ApiUser::Ptr& user,
 		boost::beast::http::request<boost::beast::http::string_body>& request,

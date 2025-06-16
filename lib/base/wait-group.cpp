@@ -26,6 +26,11 @@ void StoppableWaitGroup::unlock_shared()
 	}
 }
 
+bool StoppableWaitGroup::IsLockable() const
+{
+	return !m_Stopped.load(std::memory_order_relaxed);
+}
+
 /**
  * Disallow new shared locks, wait for all existing ones.
  */
@@ -33,6 +38,6 @@ void StoppableWaitGroup::Join()
 {
 	std::unique_lock lock (m_Mutex);
 
-	m_Stopped = true;
+	m_Stopped.store(true, std::memory_order_relaxed);
 	m_CV.wait(lock, [this] { return !m_SharedLocks; });
 }

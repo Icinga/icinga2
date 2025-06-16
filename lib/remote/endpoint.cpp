@@ -60,7 +60,7 @@ void Endpoint::RemoveClient(const JsonRpcConnection::Ptr& client)
 		std::unique_lock<std::mutex> lock(m_ClientsLock);
 		m_Clients.erase(client);
 
-		Log(LogWarning, "ApiListener")
+		Log(LogInformation, "ApiListener")
 			<< "Removing API client for endpoint '" << GetName() << "'. " << m_Clients.size() << " API clients left.";
 
 		SetConnecting(false);
