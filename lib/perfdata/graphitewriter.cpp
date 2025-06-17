@@ -261,27 +261,6 @@ void GraphiteWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 	if (IsPaused())
 		return;
 
-	m_WorkQueue.Enqueue([this, checkable, cr]() { CheckResultHandlerInternal(checkable, cr); });
-}
-
-/**
- * Check result event handler, prepares metadata and perfdata values and calls Send*()
- *
- * Called inside the WQ.
- *
- * @param checkable Host/Service object
- * @param cr Check result including performance data
- */
-void GraphiteWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
-{
-	AssertOnWorkQueue();
-
-	CONTEXT("Processing check result for '" << checkable->GetName() << "'");
-
-	/* TODO: Deal with missing connection here. Needs refactoring
-	 * into parsing the actual performance data and then putting it
-	 * into a queue for re-inserting. */
-
 	if (!IcingaApplication::GetInstance()->GetEnablePerfdata() || !checkable->GetEnablePerfdata())
 		return;
 
@@ -306,29 +285,34 @@ void GraphiteWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable,
 		});
 	}
 
-	String prefixPerfdata = prefix + ".perfdata";
-	String prefixMetadata = prefix + ".metadata";
-
-	double ts = cr->GetExecutionEnd();
-
+	std::vector<std::pair<String, double>> metadata;
 	if (GetEnableSendMetadata()) {
-		if (service) {
-			SendMetric(checkable, prefixMetadata, "state", service->GetState(), ts);
-		} else {
-			SendMetric(checkable, prefixMetadata, "state", host->GetState(), ts);
-		}
-
-		SendMetric(checkable, prefixMetadata, "current_attempt", checkable->GetCheckAttempt(), ts);
-		SendMetric(checkable, prefixMetadata, "max_check_attempts", checkable->GetMaxCheckAttempts(), ts);
-		SendMetric(checkable, prefixMetadata, "state_type", checkable->GetStateType(), ts);
-		SendMetric(checkable, prefixMetadata, "reachable", checkable->IsReachable(), ts);
-		SendMetric(checkable, prefixMetadata, "downtime_depth", checkable->GetDowntimeDepth(), ts);
-		SendMetric(checkable, prefixMetadata, "acknowledgement", checkable->GetAcknowledgement(), ts);
-		SendMetric(checkable, prefixMetadata, "latency", cr->CalculateLatency(), ts);
-		SendMetric(checkable, prefixMetadata, "execution_time", cr->CalculateExecutionTime(), ts);
+		metadata = {
+			{"state", service ? service->GetState() : host->GetState()},
+			{"current_attempt", checkable->GetCheckAttempt()},
+			{"max_check_attempts", checkable->GetMaxCheckAttempts()},
+			{"state_type", checkable->GetStateType()},
+			{"reachable", checkable->IsReachable()},
+			{"downtime_depth", checkable->GetDowntimeDepth()},
+			{"acknowledgement", checkable->GetAcknowledgement()},
+			{"latency", cr->CalculateLatency()},
+			{"execution_time", cr->CalculateExecutionTime()}
+		};
 	}
 
-	SendPerfdata(checkable, prefixPerfdata, cr, ts);
+	m_WorkQueue.Enqueue([this, checkable, cr, prefix = std::move(prefix), metadata = std::move(metadata)]() {
+		CONTEXT("Processing check result for '" << checkable->GetName() << "'");
+
+		/* TODO: Deal with missing connection here. Needs refactoring
+		* into parsing the actual performance data and then putting it
+		* into a queue for re-inserting. */
+
+		for (auto& [name, val] : metadata) {
+			SendMetric(checkable, prefix + ".metadata", name, val, cr->GetExecutionEnd());
+		}
+
+		SendPerfdata(checkable, prefix + ".perfdata", cr);
+	});
 }
 
 /**
@@ -337,10 +321,11 @@ void GraphiteWriter::CheckResultHandlerInternal(const Checkable::Ptr& checkable,
  * @param checkable Host/service object
  * @param prefix Metric prefix string
  * @param cr Check result including performance data
- * @param ts Timestamp when the check result was created
  */
-void GraphiteWriter::SendPerfdata(const Checkable::Ptr& checkable, const String& prefix, const CheckResult::Ptr& cr, double ts)
+void GraphiteWriter::SendPerfdata(const Checkable::Ptr& checkable, const String& prefix, const CheckResult::Ptr& cr)
 {
+	AssertOnWorkQueue();
+
 	Array::Ptr perfdata = cr->GetPerformanceData();
 
 	if (!perfdata)
@@ -367,6 +352,7 @@ void GraphiteWriter::SendPerfdata(const Checkable::Ptr& checkable, const String&
 		}
 
 		String escapedKey = EscapeMetricLabel(pdv->GetLabel());
+		double ts = cr->GetExecutionEnd();
 
 		SendMetric(checkable, prefix, escapedKey + ".value", pdv->GetValue(), ts);
 
@@ -394,6 +380,8 @@ void GraphiteWriter::SendPerfdata(const Checkable::Ptr& checkable, const String&
  */
 void GraphiteWriter::SendMetric(const Checkable::Ptr& checkable, const String& prefix, const String& name, double value, double ts)
 {
+	AssertOnWorkQueue();
+
 	namespace asio = boost::asio;
 
 	std::ostringstream msgbuf;

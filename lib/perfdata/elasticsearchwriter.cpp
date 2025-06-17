@@ -101,13 +101,13 @@ void ElasticsearchWriter::Resume()
 		CheckResultHandler(checkable, cr);
 	});
 	m_HandleStateChanges = Checkable::OnStateChange.connect([this](const Checkable::Ptr& checkable,
-		const CheckResult::Ptr& cr, StateType type, const MessageOrigin::Ptr&) {
-		StateChangeHandler(checkable, cr, type);
+		const CheckResult::Ptr& cr, StateType, const MessageOrigin::Ptr&) {
+		StateChangeHandler(checkable, cr);
 	});
-	m_HandleNotifications = Checkable::OnNotificationSentToAllUsers.connect([this](const Notification::Ptr& notification,
+	m_HandleNotifications = Checkable::OnNotificationSentToAllUsers.connect([this](const Notification::Ptr&,
 		const Checkable::Ptr& checkable, const std::set<User::Ptr>& users, const NotificationType& type,
 		const CheckResult::Ptr& cr, const String& author, const String& text, const MessageOrigin::Ptr&) {
-		NotificationSentToAllUsersHandler(notification, checkable, users, type, cr, author, text);
+		NotificationSentToAllUsersHandler(checkable, users, type, cr, author, text);
 	});
 }
 
@@ -236,15 +236,6 @@ void ElasticsearchWriter::CheckResultHandler(const Checkable::Ptr& checkable, co
 	if (IsPaused())
 		return;
 
-	m_WorkQueue.Enqueue([this, checkable, cr]() { InternalCheckResultHandler(checkable, cr); });
-}
-
-void ElasticsearchWriter::InternalCheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
-{
-	AssertOnWorkQueue();
-
-	CONTEXT("Elasticwriter processing check result for '" << checkable->GetName() << "'");
-
 	if (!IcingaApplication::GetInstance()->GetEnablePerfdata() || !checkable->GetEnablePerfdata())
 		return;
 
@@ -272,37 +263,23 @@ void ElasticsearchWriter::InternalCheckResultHandler(const Checkable::Ptr& check
 	fields->Set("max_check_attempts", checkable->GetMaxCheckAttempts());
 
 	fields->Set("reachable", checkable->IsReachable());
-
-	CheckCommand::Ptr commandObj = checkable->GetCheckCommand();
-
-	if (commandObj)
-		fields->Set("check_command", commandObj->GetName());
-
-	double ts = Utility::GetTime();
-
-	if (cr) {
-		AddCheckResult(fields, checkable, cr);
-		ts = cr->GetExecutionEnd();
-	}
+	fields->Set("check_command", checkable->GetCheckCommand()->GetName());
 
 	AddTemplateTags(fields, checkable, cr);
 
-	Enqueue(checkable, "checkresult", fields, ts);
+	m_WorkQueue.Enqueue([this, checkable, cr, fields = std::move(fields)]() {
+		CONTEXT("Elasticwriter processing check result for '" << checkable->GetName() << "'");
+
+		AddCheckResult(fields, checkable, cr);
+
+		Enqueue(checkable, "checkresult", fields, cr->GetExecutionEnd());
+	});
 }
 
-void ElasticsearchWriter::StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type)
+void ElasticsearchWriter::StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
 {
 	if (IsPaused())
 		return;
-
-	m_WorkQueue.Enqueue([this, checkable, cr, type]() { StateChangeHandlerInternal(checkable, cr, type); });
-}
-
-void ElasticsearchWriter::StateChangeHandlerInternal(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type)
-{
-	AssertOnWorkQueue();
-
-	CONTEXT("Elasticwriter processing state change '" << checkable->GetName() << "'");
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -325,45 +302,24 @@ void ElasticsearchWriter::StateChangeHandlerInternal(const Checkable::Ptr& check
 		fields->Set("last_hard_state", host->GetLastHardState());
 	}
 
-	CheckCommand::Ptr commandObj = checkable->GetCheckCommand();
-
-	if (commandObj)
-		fields->Set("check_command", commandObj->GetName());
-
-	double ts = Utility::GetTime();
-
-	if (cr) {
-		AddCheckResult(fields, checkable, cr);
-		ts = cr->GetExecutionEnd();
-	}
+	fields->Set("check_command", checkable->GetCheckCommand()->GetName());
 
 	AddTemplateTags(fields, checkable, cr);
 
-	Enqueue(checkable, "statechange", fields, ts);
-}
+	m_WorkQueue.Enqueue([this, checkable, cr, fields = std::move(fields)]() {
+		CONTEXT("Elasticwriter processing state change '" << checkable->GetName() << "'");
 
-void ElasticsearchWriter::NotificationSentToAllUsersHandler(const Notification::Ptr& notification,
-	const Checkable::Ptr& checkable, const std::set<User::Ptr>& users, NotificationType type,
-	const CheckResult::Ptr& cr, const String& author, const String& text)
-{
-	if (IsPaused())
-		return;
+		AddCheckResult(fields, checkable, cr);
 
-	m_WorkQueue.Enqueue([this, notification, checkable, users, type, cr, author, text]() {
-		NotificationSentToAllUsersHandlerInternal(notification, checkable, users, type, cr, author, text);
+		Enqueue(checkable, "statechange", fields, cr->GetExecutionEnd());
 	});
 }
 
-void ElasticsearchWriter::NotificationSentToAllUsersHandlerInternal(const Notification::Ptr& notification,
-	const Checkable::Ptr& checkable, const std::set<User::Ptr>& users, NotificationType type,
-	const CheckResult::Ptr& cr, const String& author, const String& text)
+void ElasticsearchWriter::NotificationSentToAllUsersHandler(const Checkable::Ptr& checkable, const std::set<User::Ptr>& users,
+	NotificationType type, const CheckResult::Ptr& cr, const String& author, const String& text)
 {
-	AssertOnWorkQueue();
-
-	CONTEXT("Elasticwriter processing notification to all users '" << checkable->GetName() << "'");
-
-	Log(LogDebug, "ElasticsearchWriter")
-		<< "Processing notification for '" << checkable->GetName() << "'";
+	if (IsPaused())
+		return;
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -396,27 +352,32 @@ void ElasticsearchWriter::NotificationSentToAllUsersHandlerInternal(const Notifi
 	fields->Set("notification_type", notificationTypeString);
 	fields->Set("author", author);
 	fields->Set("text", text);
-
-	CheckCommand::Ptr commandObj = checkable->GetCheckCommand();
-
-	if (commandObj)
-		fields->Set("check_command", commandObj->GetName());
-
-	double ts = Utility::GetTime();
-
-	if (cr) {
-		AddCheckResult(fields, checkable, cr);
-		ts = cr->GetExecutionEnd();
-	}
+	fields->Set("check_command", checkable->GetCheckCommand()->GetName());
 
 	AddTemplateTags(fields, checkable, cr);
 
-	Enqueue(checkable, "notification", fields, ts);
+	m_WorkQueue.Enqueue([this, checkable, cr, fields = std::move(fields)]() {
+		CONTEXT("Elasticwriter processing notification to all users '" << checkable->GetName() << "'");
+
+		Log(LogDebug, "ElasticsearchWriter")
+			<< "Processing notification for '" << checkable->GetName() << "'";
+
+		double ts = Utility::GetTime();
+
+		if (cr) {
+			AddCheckResult(fields, checkable, cr);
+			ts = cr->GetExecutionEnd();
+		}
+
+		Enqueue(checkable, "notification", fields, ts);
+	});
 }
 
 void ElasticsearchWriter::Enqueue(const Checkable::Ptr& checkable, const String& type,
 	const Dictionary::Ptr& fields, double ts)
 {
+	AssertOnWorkQueue();
+
 	/* Atomically buffer the data point. */
 	std::unique_lock<std::mutex> lock(m_DataBufferMutex);
 
