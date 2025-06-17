@@ -41,11 +41,9 @@ const String l_ApiQuery ("<API query>");
 
 bool EventsHandler::HandleRequest(
 	const WaitGroup::Ptr&,
-	AsioTlsStream& stream,
 	const HttpRequest& request,
 	HttpResponse& response,
-	boost::asio::yield_context& yc,
-	HttpServerConnection& server
+	boost::asio::yield_context& yc
 )
 {
 	namespace asio = boost::asio;

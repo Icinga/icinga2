@@ -15,11 +15,9 @@ REGISTER_URLHANDLER("/v1/objects", ModifyObjectHandler);
 
 bool ModifyObjectHandler::HandleRequest(
 	const WaitGroup::Ptr& waitGroup,
-	AsioTlsStream& stream,
 	const HttpRequest& request,
 	HttpResponse& response,
-	boost::asio::yield_context& yc,
-	HttpServerConnection& server
+	boost::asio::yield_context& yc
 )
 {
 	namespace http = boost::beast::http;
