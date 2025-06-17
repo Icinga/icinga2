@@ -99,7 +99,7 @@ void HttpServerConnection::Disconnect(boost::asio::yield_context yc)
 	}
 }
 
-void HttpServerConnection::StartStreaming()
+Shared<AsioTlsStream>::Ptr HttpServerConnection::StartStreaming()
 {
 	namespace asio = boost::asio;
 
@@ -120,6 +120,8 @@ void HttpServerConnection::StartStreaming()
 			Disconnect(yc);
 		}
 	});
+
+	return m_Stream;
 }
 
 bool HttpServerConnection::Disconnected()

@@ -30,7 +30,7 @@ public:
 		const Shared<AsioTlsStream>::Ptr& stream);
 
 	void Start();
-	void StartStreaming();
+	Shared<AsioTlsStream>::Ptr StartStreaming();
 	bool Disconnected();
 
 private:

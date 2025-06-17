@@ -55,7 +55,6 @@ static void EnsureFrameCleanupTimer()
 
 bool ConsoleHandler::HandleRequest(
 	const WaitGroup::Ptr&,
-	AsioTlsStream& stream,
 	const ApiUser::Ptr& user,
 	boost::beast::http::request<boost::beast::http::string_body>& request,
 	const Url::Ptr& url,

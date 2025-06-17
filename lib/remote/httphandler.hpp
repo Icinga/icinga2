@@ -28,7 +28,6 @@ public:
 
 	virtual bool HandleRequest(
 		const WaitGroup::Ptr& waitGroup,
-		AsioTlsStream& stream,
 		const ApiUser::Ptr& user,
 		boost::beast::http::request<boost::beast::http::string_body>& request,
 		const Url::Ptr& url,
@@ -41,7 +40,6 @@ public:
 	static void Register(const Url::Ptr& url, const HttpHandler::Ptr& handler);
 	static void ProcessRequest(
 		const WaitGroup::Ptr& waitGroup,
-		AsioTlsStream& stream,
 		const ApiUser::Ptr& user,
 		boost::beast::http::request<boost::beast::http::string_body>& request,
 		boost::beast::http::response<boost::beast::http::string_body>& response,

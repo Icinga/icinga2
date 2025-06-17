@@ -16,7 +16,6 @@ std::atomic<bool> ConfigStagesHandler::m_RunningPackageUpdates (false);
 
 bool ConfigStagesHandler::HandleRequest(
 	const WaitGroup::Ptr&,
-	AsioTlsStream& stream,
 	const ApiUser::Ptr& user,
 	boost::beast::http::request<boost::beast::http::string_body>& request,
 	const Url::Ptr& url,
