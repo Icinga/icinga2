@@ -106,9 +106,10 @@ dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-${OSVER}.n
 ### Fedora Repository <a id="fedora-repository"></a>
 
 ```bash
-dnf install -y 'dnf-command(config-manager)'
-dnf config-manager --add-repo https://packages.icinga.com/fedora/$(. /etc/os-release; echo "$VERSION_ID")/release
+rpm --import https://packages.icinga.com/icinga.key
+curl -o /etc/yum.repos.d/ICINGA-release.repo https://packages.icinga.com/fedora/ICINGA-release.repo
 ```
+
 <!-- {% endif %} -->
 
 <!-- {% if sles %} -->
@@ -368,7 +369,7 @@ Restart Icinga 2 for these changes to take effect.
 systemctl restart icinga2
 ```
 
-<!-- {% if amazon_linux or debian or rhel or sles or ubuntu %} -->
+<!-- {% if amazon_linux or debian or fedora or rhel or sles or ubuntu %} -->
 ## Set up Icinga DB <a id="set-up-icinga-db"></a>
 
 Icinga DB is a set of components for publishing, synchronizing and
@@ -409,7 +410,13 @@ A Redis server from version 6.2 is required.
 
 #### Install Icinga DB Redis Package <a id="install-icinga-db-redis-package"></a>
 
-Use your distribution's package manager to install the `icingadb-redis` package as follows:
+Use your distribution's package manager to install the `icingadb-redis` package.
+
+<!-- {% if amazon_linux or fedora or rhel or opensuse or sles %} -->
+!!! tip
+
+    If you have [SELinux](22-selinux.md) enabled, the package `icingadb-redis-selinux` is also required.
+<!-- {% endif %} -->
 
 <!-- {% if amazon_linux %} -->
 <!-- {% if not icingaDocs %} -->
