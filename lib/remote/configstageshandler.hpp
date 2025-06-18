@@ -4,7 +4,6 @@
 #define CONFIGSTAGESHANDLER_H
 
 #include "remote/httphandler.hpp"
-#include <atomic>
 
 namespace icinga
 {
@@ -48,8 +47,6 @@ private:
 		boost::beast::http::response<boost::beast::http::string_body>& response,
 		const Dictionary::Ptr& params
 	);
-
-	static std::atomic<bool> m_RunningPackageUpdates;
 };
 
 }
