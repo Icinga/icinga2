@@ -1,95 +1,140 @@
-### Nano synteax file
+### Nano syntax file
 ### Icinga2 object configuration file 
 
 syntax 	"icinga2" "/etc/icinga2/.*\.conf$" "/usr/share/icinga2/include/(plugin|itl|.*\.conf$)"
 
-## objects types
-icolor brightgreen 		"object[ \t]+(host|hostgroup|service|servicegroup|user|usergroup)"
-icolor brightgreen 		"object[ \t]+(checkcommand|notificationcommand|eventcommand|notification)"
-icolor brightgreen 		"object[ \t]+(timeperiod|scheduleddowntime|dependency|perfdatawriter)"
-icolor brightgreen 		"object[ \t]+(graphitewriter|idomysqlconnection|idomysqlconnection)"
-icolor brightgreen 		"object[ \t]+(livestatuslistener|externalcommandlistener)"
-icolor brightgreen 		"object[ \t]+(compatlogger|checkcomponent|notificationcomponent)"
-icolor brightgreen 		"object[ \t]+(filelogger|sysloglogger|journaldlogger|apilistener|endpoint|zone)"
-
-## apply def
-icolor brightgreen 		"apply[ \t]+(Service|Dependency|Notification|ScheduledDowntime)"
-
-
 ## objects attributes
-icolor red 		"(^|^\s+)(accept_commands|accept_config|action_url|address|address6|arguments|author|bind_host)"
-icolor red 		"(^|^\s+)(bind_port|ca_path|categories|cert_path|check_command|check_interval)"
-icolor red 		"(^|^\s+)(check_period|child_host_name|child_service_name|cleanup|command|command_endpoint|command_path)"
-icolor red 		"(^|^\s+)(comment|compat_log_path|crl_path|database|disable_checks|disable_notifications)"
-icolor red 		"(^|^\s+)(display_name|duration|email|enable_active_checks|enable_event_handler)"
-icolor red 		"(^|^\s+)(enable_flapping|enable_ha|enable_notifications|enable_passive_checks|enable_perfdata)"
-icolor red 		"(^|^\s+)(endpoints|env|event_command|failover_timeout|fixed|flapping_threshold|groups|host)"
-icolor red 		"(^|^\s+)(host_format_template|host_name|host_name_template|host_perfdata_path|host_temp_path|icon_image)"
-icolor red 		"(^|^\s+)(icon_image_alt|instance_description|instance_name|interval|key_path|log_dir)"
-icolor red 		"(^|^\s+)(log_duration|max_check_attempts|methods|name|notes|notes_url|objects_path)"
-icolor red 		"(^|^\s+)(pager|parent|parent_host_name|parent_service_name|password|path|period)"
-icolor red 		"(^|^\s+)(port|ranges|retry_interval|rotation_interval|rotation_method)"
-icolor red 		"(^|^\s+)(service_format_template|service_name|service_name_template|service_perfdata_path|service_temp_path)"
-icolor red 		"(^|^\s+)(severity|socket_path|socket_type|spool_dir|states|status_path|table_prefix)"
-icolor red 		"(^|^\s+)(timeout|times|types|update_interval|user|user_groups|users|volatile|zone)"
-icolor red 		"(^|^\s+)(vars\.\w+)"
-
+icolor red			"(^|^\s+)(accept_commands|accept_config|access_control_allow_origin|action_url|address|address6|arguments|author|bind_host)"
+icolor red			"(^|^\s+)(bind_port|ca_path|categories|cert_path|check_command|check_interval)"
+icolor red			"(^|^\s+)(check_period|check_timeout|child_host_name|child_options|child_service_name|cipher_list)"
+icolor red			"(^|^\s+)(cleanup|client_cn|command|command_endpoint|command_path)"
+icolor red			"(^|^\s+)(comment|compat_log_path|concurrent_checks|crl_path|database|disable_checks|disable_notifications)"
+icolor red			"(^|^\s+)(display_name|duration|email|enable_active_checks|enable_event_handlers|enable_event_handler)"
+icolor red			"(^|^\s+)(enable_flapping|enable_ha|enable_host_checks|enable_notifications|enable_passive_checks|enable_perfdata)"
+icolor red			"(^|^\s+)(enable_send_metadata|enable_send_perfdata|enable_send_thresholds|enable_tls|enable_service_checks)"
+icolor red			"(^|^\s+)(endpoints|env|event_command|excludes|failover_timeout|fixed|flapping_threshold_low|flapping_threshold_high)"
+icolor red			"(^|^\s+)(flush_interval|flush_threshold|global|groups)"
+icolor red			"(^|^\s+)(host_format_template|host_name|host_name_template|host_perfdata_path|host_temp_path|host_template|icon_image)"
+icolor red			"(^|^\s+)(icon_image_alt|ignore_soft_states|includes|index|instance_description|instance_name|interval|key_path|log_dir)"
+icolor red			"(^|^\s+)(log_duration|max_anonymous_clients|max_check_attempts|methods|name|notes|notes_url|objects_path)"
+icolor red			"(^|^\s+)(pager|parent|parent_host_name|parent_service_name|password|path|period|permissions)"
+icolor red			"(^|^\s+)(port|prefer_includes|ranges|retry_interval|rotation_interval|rotation_method)"
+icolor red			"(^|^\s+)(service_format_template|service_name|service_name_template|service_perfdata_path|service_temp_path|service_template)"
+icolor red			"(^|^\s+)(severity|socket_path|socket_type|source|spool_dir)"
+icolor red			"(^|^\s+)(ssl_ca|ssl_capath|ssl_ca_cert|ssl_cert|ssl_cipher|ssl_enable|ssl_mode|ssl_key)"
+icolor red			"(^|^\s+)(states|status_path|table_prefix|ticket_salt)"
+icolor red			"(^|^\s+)(timeout|times|tls_handshake_timeout|tls_protocolmin)"
+icolor red			"(^|^\s+)(types|update_interval|user|user_groups|username|users|volatile|zone)"
+icolor red			"(^|^\s+)(vars\.\w+)"
 
 ## keywords
-icolor red 		"(^|^\s+)|(icinga2Keyword|template|const|import|include|include_recursive|var|function|return|to|use|locals|globals|this)\s+"
+icolor red			"(^|^\s+)(object|template|include|include_recursive|include_zones|library)\s"
+icolor red			"(^|^\s+)(const|var|this|globals|locals|use|default|ignore_on_error)\s"
+icolor red			"(^|^\s+)(current_filename|current_line|apply|to|where|import|assign)\s"
+icolor red			"(^|^\s+)(ignore|function|return|in)\s"
+
+## Object types
+icolor brightgreen	"(object|template)\s+(ApiListener|ApiUser|CheckCommand|CheckerComponent)"
+icolor brightgreen	"(object|template)\s+(Comment|Dependency|Downtime|ElasticsearchWriter)"
+icolor brightgreen	"(object|template)\s+(Endpoint|EventCommand|ExternalCommandListener)"
+icolor brightgreen	"(object|template)\s+(FileLogger|GelfWriter|GraphiteWriter|Host|HostGroup)"
+icolor brightgreen	"(object|template)\s+(IcingaApplication|IdoMysqlConnection|IdoPgsqlConnection)"
+icolor brightgreen	"(object|template)\s+(InfluxdbWriter|Influxdb2Writer|JournaldLogger)"
+icolor brightgreen	"(object|template)\s+(LivestatusListener|Notification|NotificationCommand)"
+icolor brightgreen	"(object|template)\s+(NotificationComponent|OpenTsdbWriter|PerfdataWriter)"
+icolor brightgreen	"(object|template)\s+(ScheduledDowntime|Service|ServiceGroup|SyslogLogger)"
+icolor brightgreen	"(object|template)\s+(TimePeriod|User|UserGroup|WindowsEventLogLogger|Zone)"
+
+## apply def
+icolor brightgreen	"apply[ \t]+(Service|Dependency|Notification|ScheduledDowntime)"
 
 ## Assign conditions
-icolor magenta 	"(assign|ignore)[ \t]+where"
+icolor magenta	 	"(assign|ignore)\s+where"
 
 ## Global functions
-icolor white 	"(regex|match|len|union|intersection|keys|string|number|bool|random|log|typeof|get_time|exit)"
+icolor white		"\s+(regex|match|cidr_match|range|len|union|intersection|keys|string)"
+icolor white		"\s+(number|bool|random|log|typeof|get_time|parse_performance_data|dirname)"
+icolor white		"\s+(basename|path_exists|glob|glob_recursive)"
+icolor white		"\s+(escape_shell_arg|escape_shell_cmd|escape_create_process_arg|sleep|exit)"
+icolor white		"\s+(macro)"
 
 ## Accessor Functions
-icolor white 	"(get_host|get_service|get_user|get_check_command|get_event_command|get_notification_command)"
-icolor white 	"(get_host_group|get_service_group|get_user_group|get_time_period)"
+icolor white		"(get_check_command|get_event_command|get_notification_command)"
+icolor white		"(get_host|get_service|get_services|get_user)"
+icolor white		"(get_host_group|get_service_group|get_user_group)"
+icolor white		"(get_timeperiod)"
+icolor white		"(get_object|get_objects)"
 
 
 ## Math functions
-icolor white	"(Math.E|Math.LN2|Math.LN10|Math.LOG2E|Math.PI|Math.SQRT1_2|Math.SQRT2)"
-icolor white	"(Math.abs|Math.acos|Math.asin|Math.atan|Math.atan2|Math.ceil|Math.cos)"
-icolor white	"(Math.exp|Math.floor|Math.isinf|Math.isnan|Math.log|Math.max|Math.min)"
-icolor white	"(Math.pow|Math.random|Math.round|Math.sign|Math.sin|Math.sqrt|Math.tan)"
+icolor white		"(Math.E|Math.LN2|Math.LN10|Math.LOG2E|Math.PI|Math.SQRT1_2|Math.SQRT2)"
+icolor white		"(Math.abs|Math.acos|Math.asin|Math.atan|Math.atan2|Math.ceil|Math.cos)"
+icolor white		"(Math.exp|Math.floor|Math.isinf|Math.isnan|Math.log|Math.max|Math.min)"
+icolor white		"(Math.pow|Math.random|Math.round|Math.sign|Math.sin|Math.sqrt|Math.tan)"
 
 ## Json functions
-icolor white 	"(Json.encode|Json.decode)"
+icolor white 		"(Json.encode|Json.decode)"
+
+
+## Bool functions
+icolor white		"(\.to_string)"
 
 ## String functions
-icolor white	"(\.to_string)"
-icolor white	"(\.find)"
-icolor white	"(\.contains)"
-icolor white	"(\.len)"
-icolor white	"(\.lower)"
-icolor white	"(\.upper)"
-icolor white	"(\.replace)"
-icolor white	"(\.split)"
-icolor white	"(\.substr)"
+icolor white		"(\.to_string)"
+icolor white		"(\.find)"
+icolor white		"(\.contains)"
+icolor white		"(\.len)"
+icolor white		"(\.lower)"
+icolor white		"(\.upper)"
+icolor white		"(\.replace)"
+icolor white		"(\.split)"
+icolor white		"(\.substr)"
+icolor white		"(\.reverse)"
+icolor white		"(\.trim)"
 
-## Array and Dict  Functions
-icolor white	"(\.add)"
-icolor white	"(\.clear)"
-icolor white	"(\.clone)"
-icolor white	"(\.contains)"
-icolor white	"(\.len)"
-icolor white	"(\.remove)"
-icolor white	"(\.set)"
-icolor white	"(\.remove)"
-icolor white	"(\.sort)"
-icolor white	"(\.join)"
-icolor white	"(\.clone)"
-icolor white	"(\.call)"
-icolor white	"(\.callv)"
+## Array Functions
+icolor white		"(\.add)"
+icolor white		"(\.clear)"
+icolor white		"(\.shallow_clone)"
+icolor white		"(\.contains)"
+icolor white		"(\.freeze)"
+icolor white		"(\.len)"
+icolor white		"(\.remove)"
+icolor white		"(\.set)"
+icolor white		"(\.get)"
+icolor white		"(\.sort)"
+icolor white		"(\.join)"
+icolor white		"(\.reverse)"
+icolor white		"(\.map)"
+icolor white		"(\.filter)"
+icolor white		"(\.any)"
+icolor white		"(\.all)"
 
+## Dict Functions
+icolor white		"(\.shallow_clone)"
+icolor white		"(\.contains)"
+icolor white		"(\.freeze)"
+icolor white		"(\.len)"
+icolor white		"(\.remove)"
+icolor white		"(\.set)"
+icolor white		"(\.get)"
+icolor white		"(\.keys)"
+icolor white		"(\.values)"
+
+## Function Functions
+icolor white		"(\.call)"
+icolor white		"(\.callv)"
+
+## DateTime Functions
+icolor white		"(\.DateTime)"
+icolor white		"(\.format)"
+icolor white		"(\.to_string)"
 
 ## Conditional statements
-icolor white	"(if|else)"
+icolor white		"\s+(if|else)"
 
 ## Loops
-icolor white	"(while|for|break|continue)"
+icolor white		"(while|for|break|continue)"
 
 ## Operators
 icolor green		"\s(\.)\s"
@@ -122,36 +167,69 @@ icolor green		"\s(-=)\s"
 icolor green		"\s(\*=)\s"
 icolor green		"\s(/=)\s"
 
-## Global constats
-icolor yellow 	"(PrefixDir|SysconfDir|ZonesDir|LocalStateDir|RunDir|PkgDataDir|StatePath|ObjectsPath)"
-icolor yellow 	"(PidPath|NodeName|ApplicationType|EnableNotifications|EnableEventHandlers|EnableFlapping)"
-icolor yellow 	"(EnableHostChecks|EnableServiceChecks|EnablePerfdata|UseVfork|RunAsUser|RunAsGroup|PluginDir)"
-icolor yellow 	"(Vars\s+)"
+## Global constants
+# Path specific constants
+color yellow		"\s(CacheDir|ConfigDir|DataDir|IncludeConfDir|InitRunDir|LocalStateDir|LogDir|ModAttrPath)"
+color yellow		"\s(ObjectsPath|PidPath|PkgDataDir|PrefixDir|ProgramData|RunDir|SpoolDir|StatePath|SysconfDir)"
+color yellow		"\s(VarsPath|ZonesDir)"
+
+# Global constants
+color yellow		"\s(Vars|NodeName|Environment|RunAsUser|RunAsGroup|MaxConcurrentChecks|ApiBindHost|ApiBindPort|EventEngine|AttachDebugger)"
+
+# Application runtime constants
+color yellow		"\s(PlatformName|PlatformVersion|PlatformKernel|PlatformKernelVersion|BuildCompilerName|BuildCompilerVersion|BuildHostName)"
+color yellow		"\s(ApplicationVersion)"
+
+# User proposed constants
+color yellow		"\s(PluginDir|ContribPluginContribDir|ManubulonPluginDir|TicketSalt|NodeName|ZoneName)"
+
+# Global types
+color yellow		"\s(Number|String|Boolean|Array|Dictionary|Value|Object|ConfigObject|Command|CheckResult)"
+color yellow		"\s(Checkable|CustomVarObject|DbConnection|Type|PerfdataValue|Comment|Downtime|Logger|Application)"
+
+# Built-in Namespaces
+color yellow		"\s(Icinga\.|Internal\.|System\.Configuration\.|System\.)"
+
+# Additional constants from Namespaces
+color yellow		"\s(LogCritical|LogDebug|LogInformation|LogNotice|LogWarning|MatchAll|MatchAny)"
+
+# more Constants
+color yellow		"\s(Acknowledgement|Critical|Custom|DbCatAcknowledgement|DbCatCheck|DbCatComment|DbCatConfig|DbCatDowntime|DbCatEventHandler|DbCatEverything|DbCatExternalCommand|DbCatFlapping|DbCatLog|DbCatNotification|DbCatProgramStatus|DbCatRetention|DbCatState|DbCatStateHistory|Down|DowntimeEnd|DowntimeNoChildren|DowntimeNonTriggeredChildren|DowntimeRemoved|DowntimeStart|DowntimeTriggeredChildren|FlappingEnd|FlappingStart|HostDown|HostUp|OK|Problem|Recovery|ServiceCritical|ServiceOK|ServiceUnknown|ServiceWarning|Unknown|Up|Warning)"
+
+## Numbers
+icolor brightblue	"\s[0-9]{1,}[hms%]{0,1}"
 
 ## Boolean
-icolor blue 	"(true|false)"
+icolor brightblue 	"(true|false)"
 
 # Null
-icolor blue  	"(null)"
-
-
-## comments
-color brightblue 	"\/\/.*"
-color brightblue  	"^[ \t]*\*\($\|[ \t]\+\)"
-color brightblue 	start="/\*"  end="\*/"
+icolor brightblue  	"(null)"
 
 ## Braces and Parens definition
 # - Braces are used in dictionary definition
 
-color magenta 	"(\(|\))"
-color magenta 	"(\[|\])"
-color magenta 	"(\{|\})"
+color magenta 		"(\(|\))"
+color magenta 		"(\[|\])"
+color magenta 		"(\{|\})"
 
 ## type definitions
 # - double quotes "
 # - single quotes '
 # - brackets <>
+# - literal multiline strings {{{}}}
 
-color brightyellow		"'"
-color brightyellow		"""
-color brightyellow  	start="<"   end=">"
+color brightyellow	start="[^a-zA-Z]'"	end="'"
+color brightyellow	start="""	end="""
+color brightyellow  "<.*>"
+color cyan			start="\$"	end="\$"
+color yellow	 	start="\{\{\{"   end="\}\}\}"
+
+## comments
+color brightblue 	"\/\/.*"
+color brightblue 	"#.*"
+color brightblue  	"^\s*\*\($\|\s\+\)"
+color brightblue 	start="/\*"  end="\*/"
+
+comment				"# "
+
+
