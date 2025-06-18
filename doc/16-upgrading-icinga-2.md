@@ -8,6 +8,28 @@ Specific version upgrades are described below. Please note that version
 updates are incremental. An upgrade from v2.6 to v2.8 requires to
 follow the instructions for v2.7 too.
 
+## Upgrading to v2.15 <a id="upgrading-to-2-15"></a>
+
+### Icinga DB <a id="upgrading-to-2-15-icingadb"></a>
+
+Version 2.15.0 of Icinga 2 is released alongside Icinga DB 1.4.0 and Icinga DB
+Web 1.2.0. A change to the internal communication API requires these updates to
+be applied together. To put it simply, Icinga 2.15.0 needs Icinga DB 1.4.0 or
+later.
+
+### REST API Attribute Filter <a id="upgrading-to-2-15-attrs"></a>
+
+When [querying objects](12-icinga2-api.md#icinga2-api-config-objects-query)
+using the API, specifying `{"attrs":[]}` now returns the objects with no
+attributes. Not supplying the parameter or using `{"attrs":null}` still returns
+the unfiltered list of all attributes.
+
+### Removed DSL Functions <a id="upgrading-to-2-15-dsl"></a>
+
+The undocumented `Checkable#process_check_result` and `System#track_parents`
+functions were removed from the Icinga 2 config language (the
+`process-check-result` API action is unaffected by this).
+
 ## Upgrading to v2.14 <a id="upgrading-to-2-14"></a>
 
 ### Dependencies and Redundancy Groups <a id="upgrading-to-2-14-dependencies"></a>
