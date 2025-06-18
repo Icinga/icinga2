@@ -12,7 +12,10 @@ using namespace icinga;
 
 REGISTER_URLHANDLER("/v1/config/stages", ConfigStagesHandler);
 
-std::atomic<bool> ConfigStagesHandler::m_RunningPackageUpdates (false);
+static bool l_RunningPackageUpdates(false);
+// A timestamp that indicates the last time an Icinga 2 reload failed.
+static double l_LastReloadFailedTime(0);
+static std::mutex l_RunningPackageUpdatesMutex; // Protects the above two variables.
 
 bool ConfigStagesHandler::HandleRequest(
 	const WaitGroup::Ptr&,
@@ -132,12 +135,36 @@ void ConfigStagesHandler::HandlePost(
 		if (reload && !activate)
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Parameter 'reload' must be false when 'activate' is false."));
 
-		if (m_RunningPackageUpdates.exchange(true)) {
-			return HttpUtility::SendJsonError(response, params, 423,
-				"Conflicting request, there is already an ongoing package update in progress. Please try it again later.");
+		{
+			std::lock_guard runningPackageUpdatesLock(l_RunningPackageUpdatesMutex);
+			double currentReloadFailedTime = Application::GetLastReloadFailed();
+
+			/**
+			 * Once the m_RunningPackageUpdates flag is set, it typically remains set until the current worker process is
+			 * terminated, in which case the new worker will have its own m_RunningPackageUpdates flag set to false.
+			 * However, if the reload fails for any reason, the m_RunningPackageUpdates flag will remain set to true
+			 * in the current worker process, which will prevent any further package updates from being processed until
+			 * the next Icinga 2 restart.
+			 *
+			 * So, in order to prevent such a situation, we are additionally tracking the last time a reload failed
+			 * and allow to bypass the m_RunningPackageUpdates flag only if the last reload failed time was changed
+			 * since the previous request.
+			 */
+			if (l_RunningPackageUpdates && l_LastReloadFailedTime == currentReloadFailedTime) {
+				return HttpUtility::SendJsonError(
+					response, params, 423,
+					"Conflicting request, there is already an ongoing package update in progress. Please try it again later."
+				);
+			}
+
+			l_RunningPackageUpdates = true;
+			l_LastReloadFailedTime = currentReloadFailedTime;
 		}
 
-		auto resetPackageUpdates (Shared<Defer>::Make([]() { ConfigStagesHandler::m_RunningPackageUpdates.store(false); }));
+		auto resetPackageUpdates (Shared<Defer>::Make([]() {
+			std::lock_guard lock(l_RunningPackageUpdatesMutex);
+			l_RunningPackageUpdates = false;
+		}));
 
 		std::unique_lock<std::mutex> lock(ConfigPackageUtility::GetStaticPackageMutex());
 
