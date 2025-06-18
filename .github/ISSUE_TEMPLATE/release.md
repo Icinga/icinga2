@@ -13,6 +13,7 @@ assignees: ''
 - [ ] Update bundled Windows dependencies
 - [ ] Harden global TLS defaults (consult https://ssl-config.mozilla.org)
 - [ ] Update `CHANGELOG.md`
+- [ ] Update `doc/16-upgrading-icinga-2.md` if applicable
 - [ ] Create and push a signed tag for the version
 - [ ] Build and release DEB and RPM packages
 - [ ] Build and release Windows packages
