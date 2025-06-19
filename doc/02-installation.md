@@ -369,7 +369,6 @@ Restart Icinga 2 for these changes to take effect.
 systemctl restart icinga2
 ```
 
-<!-- {% if amazon_linux or debian or fedora or rhel or sles or ubuntu %} -->
 ## Set up Icinga DB <a id="set-up-icinga-db"></a>
 
 Icinga DB is a set of components for publishing, synchronizing and
@@ -547,7 +546,6 @@ you have completed the instructions here and can proceed to
 [install the Icinga DB daemon on Ubuntu](https://icinga.com/docs/icinga-db/latest/doc/02-Installation/Ubuntu/#installing-the-package),
 <!-- {% endif %} -->
 which will also guide you through the setup of the database and Icinga DB Web.
-<!-- {% endif %} -->
 
 ## Backup <a id="install-backup"></a>
 
