@@ -227,7 +227,7 @@ private:
 	static constexpr uint8_t m_IndentSize = 4;
 
 	bool m_Pretty; // Whether to pretty-print the JSON output.
-	uint m_Indent; // The current indentation level for pretty-printing.
+	unsigned m_Indent; // The current indentation level for pretty-printing.
 	/**
 	 * The pre-allocated indent characters for pretty-printing.
 	 *
