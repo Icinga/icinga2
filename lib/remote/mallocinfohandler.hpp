@@ -14,11 +14,8 @@ public:
 
 	bool HandleRequest(
 		const WaitGroup::Ptr& waitGroup,
-		const ApiUser::Ptr& user,
-		boost::beast::http::request<boost::beast::http::string_body>& request,
-		const Url::Ptr& url,
-		boost::beast::http::response<boost::beast::http::string_body>& response,
-		const Dictionary::Ptr& params,
+		HttpRequest& request,
+		HttpResponse& response,
 		boost::asio::yield_context& yc,
 		HttpServerConnection& server
 	) override;

@@ -11,30 +11,124 @@
 
 using namespace icinga;
 
-Dictionary::Ptr HttpUtility::FetchRequestParameters(const Url::Ptr& url, const std::string& body)
+HttpRequest::HttpRequest(boost::beast::http::request<boost::beast::http::string_body>&& other)
+	: base_type(std::forward<base_type>(other)){}
+
+const ApiUser::Ptr& HttpRequest::User()
 {
-	Dictionary::Ptr result;
+	if (!user) {
+		FetchUser();
+	}
+	return user;
+}
 
-	if (!body.empty()) {
+void HttpRequest::FetchUser()
+{
+	user = ApiUser::GetByAuthHeader(std::string(at(boost::beast::http::field::authorization)));
+}
+
+void HttpRequest::User(const ApiUser::Ptr& user)
+{
+	this->user = user;
+}
+
+const Url::Ptr& HttpRequest::Url()
+{
+	if (!url) {
+		url = new icinga::Url(std::string(target()));
+	}
+	return url;
+}
+
+const Dictionary::Ptr& HttpRequest::Params() const
+{
+	return params;
+}
+
+void HttpRequest::DecodeParams()
+{
+	if (!body().empty()) {
 		Log(LogDebug, "HttpUtility")
-			<< "Request body: '" << body << '\'';
+			<< "Request body: '" << body() << '\'';
 
-		result = JsonDecode(body);
+		params = JsonDecode(body());
 	}
 
-	if (!result)
-		result = new Dictionary();
+	if (!params)
+		params = new Dictionary();
 
 	std::map<String, std::vector<String>> query;
-	for (const auto& kv : url->GetQuery()) {
+	for (const auto& kv : Url()->GetQuery()) {
 		query[kv.first].emplace_back(kv.second);
 	}
 
 	for (auto& kv : query) {
-		result->Set(kv.first, Array::FromVector(kv.second));
+		params->Set(kv.first, Array::FromVector(kv.second));
+	}
+}
+
+Value HttpRequest::GetLastParameter(const String& key) const
+{
+	return HttpUtility::GetLastParameter(Params(), key);
+}
+
+HttpResponse::HttpResponse()
+	: m_WriteDone(IoEngine::Get().GetIoContext()),
+	  m_WriteReady(IoEngine::Get().GetIoContext())
+{
+}
+
+//TODO: Maybe we don't need this. Signal a complete header implicitly? How?
+void HttpResponse::Begin()
+{
+	m_WriteReady.Set();
+	body().more = true;
+}
+
+//TODO: This becomes useless when everything uses the proper interface
+void HttpResponse::Done()
+{
+	m_WriteReady.Set();
+	body().more = false;
+}
+
+void HttpResponse::Write(AsioTlsStream& stream, boost::asio::yield_context& yc)
+{
+	m_WriteReady.Wait(yc);
+
+	if (has_content_length()) {
+		body().more = false;
+	} else {
+		chunked(true);
 	}
 
-	return result;
+	boost::system::error_code ec;
+	Serializer sr(*this);
+
+	try {
+		do {
+			if (body_type::size(body())) {
+				boost::beast::http::async_write(stream, sr, yc[ec]);
+				if (ec && ec != boost::beast::http::error::need_buffer) {
+					throw boost::system::system_error{ec};
+				}
+				stream.async_flush(yc);
+				m_WriteDone.Set();
+				m_WriteDone.Clear();
+			} else {
+				body().moreData.Wait(yc);
+			}
+		} while (!sr.is_done());
+	} catch (const std::exception& ex) {
+		m_WriteError = true;
+		m_WriteDone.Set();
+		body().buffer.clear();
+	}
+}
+
+void HttpResponse::Wait(boost::asio::yield_context& yc)
+{
+	m_WriteDone.Wait(yc);
 }
 
 Value HttpUtility::GetLastParameter(const Dictionary::Ptr& params, const String& key)
@@ -52,29 +146,28 @@ Value HttpUtility::GetLastParameter(const Dictionary::Ptr& params, const String&
 		return arr->Get(arr->GetLength() - 1);
 }
 
-void HttpUtility::SendJsonBody(boost::beast::http::response<boost::beast::http::string_body>& response, const Dictionary::Ptr& params, const Value& val)
+void HttpResponse::SendJsonBody(const Dictionary::Ptr& params, const Value& val)
 {
 	namespace http = boost::beast::http;
 
-	response.set(http::field::content_type, "application/json");
-	response.body() = JsonEncode(val, params && GetLastParameter(params, "pretty"));
-	response.content_length(response.body().size());
+	set(http::field::content_type, "application/json");
+	body() << JsonEncode(val, params && HttpUtility::GetLastParameter(params, "pretty"));
+	prepare_payload();
 }
 
-void HttpUtility::SendJsonError(boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params, int code, const String& info, const String& diagnosticInformation)
+void HttpResponse::SendJsonError(const Dictionary::Ptr& params, int code, const String& info, const String& diagnosticInformation)
 {
-	Dictionary::Ptr result = new Dictionary({ { "error", code } });
+	Dictionary::Ptr body = new Dictionary({ { "error", code } });
 
 	if (!info.IsEmpty()) {
-		result->Set("status", info);
+		body->Set("status", info);
 	}
 
-	if (params && HttpUtility::GetLastParameter(params, "verbose") && !diagnosticInformation.IsEmpty()) {
-		result->Set("diagnostic_information", diagnosticInformation);
+	if (HttpUtility::GetLastParameter(params, "verbose") && !diagnosticInformation.IsEmpty()) {
+		body->Set("diagnostic_information", diagnosticInformation);
 	}
 
-	response.result(code);
+	result(code);
 
-	HttpUtility::SendJsonBody(response, params, result);
+	SendJsonBody(HttpUtility::GetLastParameter(params, "pretty"), body);
 }

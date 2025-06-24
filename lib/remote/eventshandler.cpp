@@ -41,11 +41,8 @@ const String l_ApiQuery ("<API query>");
 
 bool EventsHandler::HandleRequest(
 	const WaitGroup::Ptr&,
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params,
+	HttpRequest& request,
+	HttpResponse& response,
 	boost::asio::yield_context& yc,
 	HttpServerConnection& server
 )
@@ -53,35 +50,35 @@ bool EventsHandler::HandleRequest(
 	namespace asio = boost::asio;
 	namespace http = boost::beast::http;
 
-	if (url->GetPath().size() != 2)
+	if (request.Url()->GetPath().size() != 2)
 		return false;
 
 	if (request.method() != http::verb::post)
 		return false;
 
 	if (request.version() == 10) {
-		HttpUtility::SendJsonError(response, params, 400, "HTTP/1.0 not supported for event streams.");
+		response.SendJsonError(request.Params(), 400, "HTTP/1.0 not supported for event streams.");
 		return true;
 	}
 
-	Array::Ptr types = params->Get("types");
+	Array::Ptr types = request.Params()->Get("types");
 
 	if (!types) {
-		HttpUtility::SendJsonError(response, params, 400, "'types' query parameter is required.");
+		response.SendJsonError(request.Params(), 400, "'types' query parameter is required.");
 		return true;
 	}
 
 	{
 		ObjectLock olock(types);
 		for (String type : types) {
-			FilterUtility::CheckPermission(user, "events/" + type);
+			FilterUtility::CheckPermission(request.User(), "events/" + type);
 		}
 	}
 
-	String queueName = HttpUtility::GetLastParameter(params, "queue");
+	String queueName = request.GetLastParameter("queue");
 
 	if (queueName.IsEmpty()) {
-		HttpUtility::SendJsonError(response, params, 400, "'queue' query parameter is required.");
+		response.SendJsonError(request.Params(), 400, "'queue' query parameter is required.");
 		return true;
 	}
 
@@ -98,7 +95,7 @@ bool EventsHandler::HandleRequest(
 		}
 	}
 
-	EventsSubscriber subscriber (std::move(eventTypes), HttpUtility::GetLastParameter(params, "filter"), l_ApiQuery);
+	EventsSubscriber subscriber (std::move(eventTypes), request.GetLastParameter("filter"), l_ApiQuery);
 
 	auto stream = server.StartStreaming();
 

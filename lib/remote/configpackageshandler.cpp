@@ -12,50 +12,41 @@ REGISTER_URLHANDLER("/v1/config/packages", ConfigPackagesHandler);
 
 bool ConfigPackagesHandler::HandleRequest(
 	const WaitGroup::Ptr&,
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params,
+	HttpRequest& request,
+	HttpResponse& response,
 	boost::asio::yield_context& yc,
 	HttpServerConnection& server
 )
 {
 	namespace http = boost::beast::http;
 
-	if (url->GetPath().size() > 4)
+	if (request.Url()->GetPath().size() > 4)
 		return false;
 
 	if (request.method() == http::verb::get)
-		HandleGet(user, request, url, response, params);
+		HandleGet(request, response);
 	else if (request.method() == http::verb::post)
-		HandlePost(user, request, url, response, params);
+		HandlePost(request, response);
 	else if (request.method() == http::verb::delete_)
-		HandleDelete(user, request, url, response, params);
+		HandleDelete(request, response);
 	else
 		return false;
 
 	return true;
 }
 
-void ConfigPackagesHandler::HandleGet(
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params
-)
+void ConfigPackagesHandler::HandleGet(HttpRequest& request, HttpResponse& response)
 {
 	namespace http = boost::beast::http;
 
-	FilterUtility::CheckPermission(user, "config/query");
+	FilterUtility::CheckPermission(request.User(), "config/query");
 
 	std::vector<String> packages;
 
 	try {
 		packages = ConfigPackageUtility::GetPackages();
 	} catch (const std::exception& ex) {
-		HttpUtility::SendJsonError(response, params, 500, "Could not retrieve packages.",
+		response.SendJsonError(request.Params(), 500, "Could not retrieve packages.",
 			DiagnosticInformation(ex));
 		return;
 	}
@@ -85,28 +76,22 @@ void ConfigPackagesHandler::HandleGet(
 	});
 
 	response.result(http::status::ok);
-	HttpUtility::SendJsonBody(response, params, result);
+	response.SendJsonBody(request.Params(), result);
 }
 
-void ConfigPackagesHandler::HandlePost(
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params
-)
+void ConfigPackagesHandler::HandlePost(HttpRequest& request, HttpResponse& response)
 {
 	namespace http = boost::beast::http;
 
-	FilterUtility::CheckPermission(user, "config/modify");
+	FilterUtility::CheckPermission(request.User(), "config/modify");
 
-	if (url->GetPath().size() >= 4)
-		params->Set("package", url->GetPath()[3]);
+	if (request.Url()->GetPath().size() >= 4)
+		request.Params()->Set("package", request.Url()->GetPath()[3]);
 
-	String packageName = HttpUtility::GetLastParameter(params, "package");
+	String packageName = request.GetLastParameter("package");
 
 	if (!ConfigPackageUtility::ValidatePackageName(packageName)) {
-		HttpUtility::SendJsonError(response, params, 400, "Invalid package name '" + packageName + "'.");
+		response.SendJsonError(request.Params(), 400, "Invalid package name '" + packageName + "'.");
 		return;
 	}
 
@@ -115,7 +100,7 @@ void ConfigPackagesHandler::HandlePost(
 
 		ConfigPackageUtility::CreatePackage(packageName);
 	} catch (const std::exception& ex) {
-		HttpUtility::SendJsonError(response, params, 500, "Could not create package '" + packageName + "'.",
+		response.SendJsonError(request.Params(), 500, "Could not create package '" + packageName + "'.",
 			DiagnosticInformation(ex));
 		return;
 	}
@@ -131,35 +116,29 @@ void ConfigPackagesHandler::HandlePost(
 	});
 
 	response.result(http::status::ok);
-	HttpUtility::SendJsonBody(response, params, result);
+	response.SendJsonBody(request.Params(), result);
 }
 
-void ConfigPackagesHandler::HandleDelete(
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params
-)
+void ConfigPackagesHandler::HandleDelete(HttpRequest& request, HttpResponse& response)
 {
 	namespace http = boost::beast::http;
 
-	FilterUtility::CheckPermission(user, "config/modify");
+	FilterUtility::CheckPermission(request.User(), "config/modify");
 
-	if (url->GetPath().size() >= 4)
-		params->Set("package", url->GetPath()[3]);
+	if (request.Url()->GetPath().size() >= 4)
+		request.Params()->Set("package", request.Url()->GetPath()[3]);
 
-	String packageName = HttpUtility::GetLastParameter(params, "package");
+	String packageName = request.GetLastParameter("package");
 
 	if (!ConfigPackageUtility::ValidatePackageName(packageName)) {
-		HttpUtility::SendJsonError(response, params, 400, "Invalid package name '" + packageName + "'.");
+		response.SendJsonError(request.Params(), 400, "Invalid package name '" + packageName + "'.");
 		return;
 	}
 
 	try {
 		ConfigPackageUtility::DeletePackage(packageName);
 	} catch (const std::exception& ex) {
-		HttpUtility::SendJsonError(response, params, 500, "Failed to delete package '" + packageName + "'.",
+		response.SendJsonError(request.Params(), 500, "Failed to delete package '" + packageName + "'.",
 			DiagnosticInformation(ex));
 		return;
 	}
@@ -175,5 +154,5 @@ void ConfigPackagesHandler::HandleDelete(
 	});
 
 	response.result(http::status::ok);
-	HttpUtility::SendJsonBody(response, params, result);
+	response.SendJsonBody(request.Params(), result);
 }

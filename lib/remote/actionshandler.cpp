@@ -17,29 +17,26 @@ REGISTER_URLHANDLER("/v1/actions", ActionsHandler);
 
 bool ActionsHandler::HandleRequest(
 	const WaitGroup::Ptr& waitGroup,
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params,
+	HttpRequest& request,
+	HttpResponse& response,
 	boost::asio::yield_context& yc,
 	HttpServerConnection& server
 )
 {
 	namespace http = boost::beast::http;
 
-	if (url->GetPath().size() != 3)
+	if (request.Url()->GetPath().size() != 3)
 		return false;
 
 	if (request.method() != http::verb::post)
 		return false;
 
-	String actionName = url->GetPath()[2];
+	String actionName = request.Url()->GetPath()[2];
 
 	ApiAction::Ptr action = ApiAction::GetByName(actionName);
 
 	if (!action) {
-		HttpUtility::SendJsonError(response, params, 404, "Action '" + actionName + "' does not exist.");
+		response.SendJsonError(request.Params(), 404, "Action '" + actionName + "' does not exist.");
 		return true;
 	}
 
@@ -55,21 +52,21 @@ bool ActionsHandler::HandleRequest(
 		qd.Permission = permission;
 
 		try {
-			objs = FilterUtility::GetFilterTargets(qd, params, user);
+			objs = FilterUtility::GetFilterTargets(qd, request.Params(), request.User());
 		} catch (const std::exception& ex) {
-			HttpUtility::SendJsonError(response, params, 404,
+			response.SendJsonError(request.Params(), 404,
 				"No objects found.",
 				DiagnosticInformation(ex));
 			return true;
 		}
 
 		if (objs.empty()) {
-			HttpUtility::SendJsonError(response, params, 404,
+			response.SendJsonError(request.Params(), 404,
 				"No objects found.");
 			return true;
 		}
 	} else {
-		FilterUtility::CheckPermission(user, permission);
+		FilterUtility::CheckPermission(request.User(), permission);
 		objs.emplace_back(nullptr);
 	}
 
@@ -80,17 +77,17 @@ bool ActionsHandler::HandleRequest(
 
 	bool verbose = false;
 
-	ActionsHandler::AuthenticatedApiUser = user;
+	ActionsHandler::AuthenticatedApiUser = request.User();
 	Defer a ([]() {
 		ActionsHandler::AuthenticatedApiUser = nullptr;
 	});
 
-	if (params)
-		verbose = HttpUtility::GetLastParameter(params, "verbose");
+	if (request.Params())
+		verbose = request.GetLastParameter("verbose");
 
 	std::shared_lock wgLock{*waitGroup, std::try_to_lock};
 	if (!wgLock) {
-		HttpUtility::SendJsonError(response, params, 503, "Shutting down.");
+		response.SendJsonError(request.Params(), 503, "Shutting down.");
 		return true;
 	}
 
@@ -111,7 +108,7 @@ bool ActionsHandler::HandleRequest(
 		}
 
 		try {
-			results.emplace_back(action->Invoke(obj, params));
+			results.emplace_back(action->Invoke(obj, request.Params()));
 		} catch (const std::exception& ex) {
 			Dictionary::Ptr fail = new Dictionary({
 				{ "code", 500 },
@@ -160,7 +157,7 @@ bool ActionsHandler::HandleRequest(
 		{ "results", new Array(std::move(results)) }
 	});
 
-	HttpUtility::SendJsonBody(response, params, result);
+	response.SendJsonBody(request.Params(), result);
 
 	return true;
 }
