@@ -21,8 +21,7 @@ bool MallocInfoHandler::HandleRequest(
 	const WaitGroup::Ptr&,
 	HttpRequest& request,
 	HttpResponse& response,
-	boost::asio::yield_context&,
-	HttpServerConnection&
+	boost::asio::yield_context&
 )
 {
 	namespace http = boost::beast::http;

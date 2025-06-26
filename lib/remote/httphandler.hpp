@@ -32,8 +32,7 @@ public:
 		const WaitGroup::Ptr& waitGroup,
 		HttpRequest& request,
 		HttpResponse& response,
-		boost::asio::yield_context& yc,
-		HttpServerConnection& server
+		boost::asio::yield_context& yc
 	) = 0;
 
 	static void Register(const Url::Ptr& url, const HttpHandler::Ptr& handler);
@@ -41,8 +40,7 @@ public:
 		const WaitGroup::Ptr& waitGroup,
 		HttpRequest& request,
 		HttpResponse& response,
-		boost::asio::yield_context& yc,
-		HttpServerConnection& server
+		boost::asio::yield_context& yc
 	);
 
 private:

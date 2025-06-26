@@ -12,8 +12,7 @@ bool InfoHandler::HandleRequest(
 	const WaitGroup::Ptr&,
 	HttpRequest& request,
 	HttpResponse& response,
-	boost::asio::yield_context& yc,
-	HttpServerConnection& server
+	boost::asio::yield_context& yc
 )
 {
 	namespace http = boost::beast::http;

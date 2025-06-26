@@ -41,8 +41,7 @@ HttpServerConnection::HttpServerConnection(const WaitGroup::Ptr& waitGroup, cons
 }
 
 HttpServerConnection::HttpServerConnection(const WaitGroup::Ptr& waitGroup, const String& identity, bool authenticated, const Shared<AsioTlsStream>::Ptr& stream, boost::asio::io_context& io)
-	: m_WaitGroup(waitGroup), m_Stream(stream), m_Seen(Utility::GetTime()), m_IoStrand(io), m_ShuttingDown(false), m_HasStartedStreaming(false),
-	m_CheckLivenessTimer(io)
+	: m_WaitGroup(waitGroup), m_Stream(stream), m_Seen(Utility::GetTime()), m_IoStrand(io), m_ShuttingDown(false), m_CheckLivenessTimer(io)
 {
 	if (authenticated) {
 		m_ApiUser = ApiUser::GetByClientCN(identity);
@@ -97,31 +96,6 @@ void HttpServerConnection::Disconnect(boost::asio::yield_context yc)
 	if (listener) {
 		listener->RemoveHttpClient(this);
 	}
-}
-
-Shared<AsioTlsStream>::Ptr HttpServerConnection::StartStreaming()
-{
-	namespace asio = boost::asio;
-
-	m_HasStartedStreaming = true;
-
-	HttpServerConnection::Ptr keepAlive (this);
-
-	IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) {
-		if (!m_ShuttingDown) {
-			char buf[128];
-			asio::mutable_buffer readBuf (buf, 128);
-			boost::system::error_code ec;
-
-			do {
-				m_Stream->async_read_some(readBuf, yc[ec]);
-			} while (!ec);
-
-			Disconnect(yc);
-		}
-	});
-
-	return m_Stream;
 }
 
 bool HttpServerConnection::Disconnected()
@@ -418,9 +392,7 @@ bool ProcessRequest(
 	AsioTlsStream& stream,
 	HttpRequest& request,
 	HttpResponse& response,
-	HttpServerConnection& server,
 	boost::asio::io_context::strand strand,
-	bool& hasStartedStreaming,
 	const WaitGroup::Ptr& waitGroup,
 	std::chrono::steady_clock::duration& cpuBoundWorkTime,
 	boost::asio::yield_context& yc
@@ -443,7 +415,7 @@ bool ProcessRequest(
 		CpuBoundWork handlingRequest (yc);
 		cpuBoundWorkTime = std::chrono::steady_clock::now() - start;
 
-		HttpHandler::ProcessRequest(waitGroup, request, response, yc, server);
+		HttpHandler::ProcessRequest(waitGroup, request, response, yc);
 	} catch (const std::exception& ex) {
 		response.SendJsonError(request.Params(), 500, "Unhandled exception" , DiagnosticInformation(ex));
 	}
@@ -540,7 +512,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 
 			m_Seen = std::numeric_limits<decltype(m_Seen)>::max();
 
-			if (!ProcessRequest(*m_Stream, request, response, *this, m_IoStrand, m_HasStartedStreaming, m_WaitGroup, cpuBoundWorkTime, yc)) {
+			if (!ProcessRequest(*m_Stream, request, response, m_IoStrand, m_WaitGroup, cpuBoundWorkTime, yc)) {
 				break;
 			}
 
