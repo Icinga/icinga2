@@ -17,28 +17,23 @@ REGISTER_URLHANDLER("/v1/objects", DeleteObjectHandler);
 
 bool DeleteObjectHandler::HandleRequest(
 	const WaitGroup::Ptr& waitGroup,
-	AsioTlsStream& stream,
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params,
-	boost::asio::yield_context& yc,
-	HttpServerConnection& server
+	HttpRequest& request,
+	HttpResponse& response,
+	boost::asio::yield_context& yc
 )
 {
 	namespace http = boost::beast::http;
 
-	if (url->GetPath().size() < 3 || url->GetPath().size() > 4)
+	if (request.Url()->GetPath().size() < 3 || request.Url()->GetPath().size() > 4)
 		return false;
 
 	if (request.method() != http::verb::delete_)
 		return false;
 
-	Type::Ptr type = FilterUtility::TypeFromPluralName(url->GetPath()[2]);
+	Type::Ptr type = FilterUtility::TypeFromPluralName(request.Url()->GetPath()[2]);
 
 	if (!type) {
-		HttpUtility::SendJsonError(response, params, 400, "Invalid type specified.");
+		response.SendJsonError(request.Params(), 400, "Invalid type specified.");
 		return true;
 	}
 
@@ -46,32 +41,32 @@ bool DeleteObjectHandler::HandleRequest(
 	qd.Types.insert(type->GetName());
 	qd.Permission = "objects/delete/" + type->GetName();
 
-	params->Set("type", type->GetName());
+	request.Params()->Set("type", type->GetName());
 
-	if (url->GetPath().size() >= 4) {
+	if (request.Url()->GetPath().size() >= 4) {
 		String attr = type->GetName();
 		boost::algorithm::to_lower(attr);
-		params->Set(attr, url->GetPath()[3]);
+		request.Params()->Set(attr, request.Url()->GetPath()[3]);
 	}
 
 	std::vector<Value> objs;
 
 	try {
-		objs = FilterUtility::GetFilterTargets(qd, params, user);
+		objs = FilterUtility::GetFilterTargets(qd, request.Params(), request.User());
 	} catch (const std::exception& ex) {
-		HttpUtility::SendJsonError(response, params, 404,
+		response.SendJsonError(request.Params(), 404,
 			"No objects found.",
 			DiagnosticInformation(ex));
 		return true;
 	}
 
-	bool cascade = HttpUtility::GetLastParameter(params, "cascade");
-	bool verbose = HttpUtility::GetLastParameter(params, "verbose");
+	bool cascade = request.GetLastParameter("cascade");
+	bool verbose = request.GetLastParameter("verbose");
 
 	ConfigObjectsSharedLock lock (std::try_to_lock);
 
 	if (!lock) {
-		HttpUtility::SendJsonError(response, params, 503, "Icinga is reloading");
+		response.SendJsonError(request.Params(), 503, "Icinga is reloading");
 		return true;
 	}
 
@@ -81,7 +76,7 @@ bool DeleteObjectHandler::HandleRequest(
 
 	std::shared_lock wgLock{*waitGroup, std::try_to_lock};
 	if (!wgLock) {
-		HttpUtility::SendJsonError(response, params, 503, "Shutting down.");
+		response.SendJsonError(request.Params(), 503, "Shutting down.");
 		return true;
 	}
 
@@ -143,7 +138,7 @@ bool DeleteObjectHandler::HandleRequest(
 	else
 		response.result(http::status::ok);
 
-	HttpUtility::SendJsonBody(response, params, result);
+	response.SendJsonBody(request.Params(), result);
 
 	return true;
 }

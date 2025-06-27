@@ -48,19 +48,15 @@ void HttpHandler::Register(const Url::Ptr& url, const HttpHandler::Ptr& handler)
 
 void HttpHandler::ProcessRequest(
 	const WaitGroup::Ptr& waitGroup,
-	AsioTlsStream& stream,
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	boost::asio::yield_context& yc,
-	HttpServerConnection& server
+	HttpRequest& request,
+	HttpResponse& response,
+	boost::asio::yield_context& yc
 )
 {
 	Dictionary::Ptr node = m_UrlTree;
 	std::vector<HttpHandler::Ptr> handlers;
 
-	Url::Ptr url = new Url(std::string(request.target()));
-	auto& path (url->GetPath());
+	auto& path (request.Url()->GetPath());
 
 	for (std::vector<String>::size_type i = 0; i <= path.size(); i++) {
 		Array::Ptr current_handlers = node->Get("handlers");
@@ -90,12 +86,10 @@ void HttpHandler::ProcessRequest(
 
 	std::reverse(handlers.begin(), handlers.end());
 
-	Dictionary::Ptr params;
-
 	try {
-		params = HttpUtility::FetchRequestParameters(url, request.body());
+		request.DecodeParams();
 	} catch (const std::exception& ex) {
-		HttpUtility::SendJsonError(response, params, 400, "Invalid request body: " + DiagnosticInformation(ex, false));
+		response.SendJsonError(nullptr, 400, "Invalid request body: " + DiagnosticInformation(ex, false));
 		return;
 	}
 
@@ -109,7 +103,7 @@ void HttpHandler::ProcessRequest(
 	 */
 	try {
 		for (const HttpHandler::Ptr& handler : handlers) {
-			if (handler->HandleRequest(waitGroup, stream, user, request, url, response, params, yc, server)) {
+			if (handler->HandleRequest(waitGroup, request, response, yc)) {
 				processed = true;
 				break;
 			}
@@ -122,7 +116,7 @@ void HttpHandler::ProcessRequest(
 	}
 
 	if (!processed) {
-		HttpUtility::SendJsonError(response, params, 404, "The requested path '" + boost::algorithm::join(path, "/") +
+		response.SendJsonError(request.Params(), 404, "The requested path '" + boost::algorithm::join(path, "/") +
 			"' could not be found or the request method is not valid for this path.");
 		return;
 	}

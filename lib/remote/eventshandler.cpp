@@ -9,9 +9,9 @@
 #include "base/io-engine.hpp"
 #include "base/objectlock.hpp"
 #include "base/json.hpp"
-#include <boost/asio/buffer.hpp>
 #include <boost/asio/write.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <boost/asio/streambuf.hpp>
 #include <map>
 #include <set>
 
@@ -41,48 +41,43 @@ const String l_ApiQuery ("<API query>");
 
 bool EventsHandler::HandleRequest(
 	const WaitGroup::Ptr&,
-	AsioTlsStream& stream,
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params,
-	boost::asio::yield_context& yc,
-	HttpServerConnection& server
+	HttpRequest& request,
+	HttpResponse& response,
+	boost::asio::yield_context& yc
 )
 {
 	namespace asio = boost::asio;
 	namespace http = boost::beast::http;
 
-	if (url->GetPath().size() != 2)
+	if (request.Url()->GetPath().size() != 2)
 		return false;
 
 	if (request.method() != http::verb::post)
 		return false;
 
 	if (request.version() == 10) {
-		HttpUtility::SendJsonError(response, params, 400, "HTTP/1.0 not supported for event streams.");
+		response.SendJsonError(request.Params(), 400, "HTTP/1.0 not supported for event streams.");
 		return true;
 	}
 
-	Array::Ptr types = params->Get("types");
+	Array::Ptr types = request.Params()->Get("types");
 
 	if (!types) {
-		HttpUtility::SendJsonError(response, params, 400, "'types' query parameter is required.");
+		response.SendJsonError(request.Params(), 400, "'types' query parameter is required.");
 		return true;
 	}
 
 	{
 		ObjectLock olock(types);
 		for (String type : types) {
-			FilterUtility::CheckPermission(user, "events/" + type);
+			FilterUtility::CheckPermission(request.User(), "events/" + type);
 		}
 	}
 
-	String queueName = HttpUtility::GetLastParameter(params, "queue");
+	String queueName = request.GetLastParameter("queue");
 
 	if (queueName.IsEmpty()) {
-		HttpUtility::SendJsonError(response, params, 400, "'queue' query parameter is required.");
+		response.SendJsonError(request.Params(), 400, "'queue' query parameter is required.");
 		return true;
 	}
 
@@ -99,34 +94,29 @@ bool EventsHandler::HandleRequest(
 		}
 	}
 
-	EventsSubscriber subscriber (std::move(eventTypes), HttpUtility::GetLastParameter(params, "filter"), l_ApiQuery);
+	EventsSubscriber subscriber (std::move(eventTypes), request.GetLastParameter("filter"), l_ApiQuery);
 
-	server.StartStreaming();
+	Log(LogCritical, "EventsHandler") << "Subscribed to events.";
 
 	response.result(http::status::ok);
 	response.set(http::field::content_type, "application/json");
 
 	IoBoundWorkSlot dontLockTheIoThread (yc);
 
-	http::async_write(stream, response, yc);
-	stream.async_flush(yc);
+	response.Begin();
 
-	asio::const_buffer newLine ("\n", 1);
+	auto writer = std::make_shared<decltype(BeastHttpMessageAdapter(response))>(response);
+	JsonEncoder encoder(writer, false);
+
+	encoder.Encode(JsonEncoder::NewLine);
 
 	for (;;) {
-		auto event (subscriber.GetInbox()->Shift(yc));
+		auto event(subscriber.GetInbox()->Shift(yc));
 
-		if (event) {
-			String body = JsonEncode(event);
-
-			boost::algorithm::replace_all(body, "\n", "");
-
-			asio::const_buffer payload (body.CStr(), body.GetLength());
-
-			asio::async_write(stream, payload, yc);
-			asio::async_write(stream, newLine, yc);
-			stream.async_flush(yc);
-		} else if (server.Disconnected()) {
+		if (event && !response.WriteError()) {
+			// Put a newline at the end of each event to render them on a separate line.
+			encoder.Encode(event, JsonEncoder::NewLine);
+		} else {
 			return true;
 		}
 	}

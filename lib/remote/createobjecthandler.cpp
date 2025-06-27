@@ -17,36 +17,31 @@ REGISTER_URLHANDLER("/v1/objects", CreateObjectHandler);
 
 bool CreateObjectHandler::HandleRequest(
 	const WaitGroup::Ptr& waitGroup,
-	AsioTlsStream& stream,
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params,
-	boost::asio::yield_context& yc,
-	HttpServerConnection& server
+	HttpRequest& request,
+	HttpResponse& response,
+	boost::asio::yield_context& yc
 )
 {
 	namespace http = boost::beast::http;
 
-	if (url->GetPath().size() != 4)
+	if (request.Url()->GetPath().size() != 4)
 		return false;
 
 	if (request.method() != http::verb::put)
 		return false;
 
-	Type::Ptr type = FilterUtility::TypeFromPluralName(url->GetPath()[2]);
+	Type::Ptr type = FilterUtility::TypeFromPluralName(request.Url()->GetPath()[2]);
 
 	if (!type) {
-		HttpUtility::SendJsonError(response, params, 400, "Invalid type specified.");
+		response.SendJsonError(request.Params(), 400, "Invalid type specified.");
 		return true;
 	}
 
-	FilterUtility::CheckPermission(user, "objects/create/" + type->GetName());
+	FilterUtility::CheckPermission(request.User(), "objects/create/" + type->GetName());
 
-	String name = url->GetPath()[3];
-	Array::Ptr templates = params->Get("templates");
-	Dictionary::Ptr attrs = params->Get("attrs");
+	String name = request.Url()->GetPath()[3];
+	Array::Ptr templates = request.Params()->Get("templates");
+	Dictionary::Ptr attrs = request.Params()->Get("attrs");
 
 	/* Put created objects into the local zone if not explicitly defined.
 	 * This allows additional zone members to sync the
@@ -82,8 +77,8 @@ bool CreateObjectHandler::HandleRequest(
 
 	bool ignoreOnError = false;
 
-	if (params->Contains("ignore_on_error"))
-		ignoreOnError = HttpUtility::GetLastParameter(params, "ignore_on_error");
+	if (request.Params()->Contains("ignore_on_error"))
+		ignoreOnError = request.GetLastParameter("ignore_on_error");
 
 	Dictionary::Ptr result = new Dictionary({
 		{ "results", new Array({ result1 }) }
@@ -93,19 +88,19 @@ bool CreateObjectHandler::HandleRequest(
 
 	bool verbose = false;
 
-	if (params)
-		verbose = HttpUtility::GetLastParameter(params, "verbose");
+	if (request.Params())
+		verbose = request.GetLastParameter("verbose");
 
 	ConfigObjectsSharedLock lock (std::try_to_lock);
 
 	if (!lock) {
-		HttpUtility::SendJsonError(response, params, 503, "Icinga is reloading");
+		response.SendJsonError(request.Params(), 503, "Icinga is reloading");
 		return true;
 	}
 
 	std::shared_lock wgLock{*waitGroup, std::try_to_lock};
 	if (!wgLock) {
-		HttpUtility::SendJsonError(response, params, 503, "Shutting down.");
+		response.SendJsonError(request.Params(), 503, "Shutting down.");
 		return true;
 	}
 
@@ -126,7 +121,7 @@ bool CreateObjectHandler::HandleRequest(
 		result1->Set("status", "Object could not be created.");
 
 		response.result(http::status::internal_server_error);
-		HttpUtility::SendJsonBody(response, params, result);
+		response.SendJsonBody(request.Params(), result);
 
 		return true;
 	}
@@ -143,7 +138,7 @@ bool CreateObjectHandler::HandleRequest(
 			result1->Set("diagnostic_information", diagnosticInformation);
 
 		response.result(http::status::internal_server_error);
-		HttpUtility::SendJsonBody(response, params, result);
+		response.SendJsonBody(request.Params(), result);
 
 		return true;
 	}
@@ -159,7 +154,7 @@ bool CreateObjectHandler::HandleRequest(
 		result1->Set("status", "Object was not created but 'ignore_on_error' was set to true");
 
 	response.result(http::status::ok);
-	HttpUtility::SendJsonBody(response, params, result);
+	response.SendJsonBody(request.Params(), result);
 
 	return true;
 }

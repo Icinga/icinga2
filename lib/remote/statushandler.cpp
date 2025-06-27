@@ -70,19 +70,14 @@ public:
 
 bool StatusHandler::HandleRequest(
 	const WaitGroup::Ptr&,
-	AsioTlsStream& stream,
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params,
-	boost::asio::yield_context& yc,
-	HttpServerConnection& server
+	HttpRequest& request,
+	HttpResponse& response,
+	boost::asio::yield_context& yc
 )
 {
 	namespace http = boost::beast::http;
 
-	if (url->GetPath().size() > 3)
+	if (request.Url()->GetPath().size() > 3)
 		return false;
 
 	if (request.method() != http::verb::get)
@@ -93,17 +88,17 @@ bool StatusHandler::HandleRequest(
 	qd.Provider = new StatusTargetProvider();
 	qd.Permission = "status/query";
 
-	params->Set("type", "Status");
+	request.Params()->Set("type", "Status");
 
-	if (url->GetPath().size() >= 3)
-		params->Set("status", url->GetPath()[2]);
+	if (request.Url()->GetPath().size() >= 3)
+		request.Params()->Set("status", request.Url()->GetPath()[2]);
 
 	std::vector<Value> objs;
 
 	try {
-		objs = FilterUtility::GetFilterTargets(qd, params, user);
+		objs = FilterUtility::GetFilterTargets(qd, request.Params(), request.User());
 	} catch (const std::exception& ex) {
-		HttpUtility::SendJsonError(response, params, 404,
+		response.SendJsonError(request.Params(), 404,
 			"No objects found.",
 			DiagnosticInformation(ex));
 		return true;
@@ -114,7 +109,7 @@ bool StatusHandler::HandleRequest(
 	});
 
 	response.result(http::status::ok);
-	HttpUtility::SendJsonBody(response, params, result);
+	response.SendJsonBody(request.Params(), result);
 
 	return true;
 }

@@ -1,6 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "remote/objectqueryhandler.hpp"
+#include "base/json.hpp"
 #include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
 #include "base/serializer.hpp"
@@ -9,6 +10,7 @@
 #include <boost/algorithm/string/case_conv.hpp>
 #include <set>
 #include <unordered_map>
+#include <memory>
 
 using namespace icinga;
 
@@ -90,28 +92,23 @@ Dictionary::Ptr ObjectQueryHandler::SerializeObjectAttrs(const Object::Ptr& obje
 
 bool ObjectQueryHandler::HandleRequest(
 	const WaitGroup::Ptr&,
-	AsioTlsStream& stream,
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params,
-	boost::asio::yield_context& yc,
-	HttpServerConnection& server
+	HttpRequest& request,
+	HttpResponse& response,
+	boost::asio::yield_context& yc
 )
 {
 	namespace http = boost::beast::http;
 
-	if (url->GetPath().size() < 3 || url->GetPath().size() > 4)
+	if (request.Url()->GetPath().size() < 3 || request.Url()->GetPath().size() > 4)
 		return false;
 
 	if (request.method() != http::verb::get)
 		return false;
 
-	Type::Ptr type = FilterUtility::TypeFromPluralName(url->GetPath()[2]);
+	Type::Ptr type = FilterUtility::TypeFromPluralName(request.Url()->GetPath()[2]);
 
 	if (!type) {
-		HttpUtility::SendJsonError(response, params, 400, "Invalid type specified.");
+		response.SendJsonError(request.Params(), 400, "Invalid type specified.");
 		return true;
 	}
 
@@ -122,45 +119,45 @@ bool ObjectQueryHandler::HandleRequest(
 	Array::Ptr uattrs, ujoins, umetas;
 
 	try {
-		uattrs = params->Get("attrs");
+		uattrs = request.Params()->Get("attrs");
 	} catch (const std::exception&) {
-		HttpUtility::SendJsonError(response, params, 400,
+		response.SendJsonError(request.Params(), 400,
 			"Invalid type for 'attrs' attribute specified. Array type is required.");
 		return true;
 	}
 
 	try {
-		ujoins = params->Get("joins");
+		ujoins = request.Params()->Get("joins");
 	} catch (const std::exception&) {
-		HttpUtility::SendJsonError(response, params, 400,
+		response.SendJsonError(request.Params(), 400,
 			"Invalid type for 'joins' attribute specified. Array type is required.");
 		return true;
 	}
 
 	try {
-		umetas = params->Get("meta");
+		umetas = request.Params()->Get("meta");
 	} catch (const std::exception&) {
-		HttpUtility::SendJsonError(response, params, 400,
+		response.SendJsonError(request.Params(), 400,
 			"Invalid type for 'meta' attribute specified. Array type is required.");
 		return true;
 	}
 
-	bool allJoins = HttpUtility::GetLastParameter(params, "all_joins");
+	bool allJoins = request.GetLastParameter("all_joins");
 
-	params->Set("type", type->GetName());
+	request.Params()->Set("type", type->GetName());
 
-	if (url->GetPath().size() >= 4) {
+	if (request.Url()->GetPath().size() >= 4) {
 		String attr = type->GetName();
 		boost::algorithm::to_lower(attr);
-		params->Set(attr, url->GetPath()[3]);
+		request.Params()->Set(attr, request.Url()->GetPath()[3]);
 	}
 
 	std::vector<Value> objs;
 
 	try {
-		objs = FilterUtility::GetFilterTargets(qd, params, user);
+		objs = FilterUtility::GetFilterTargets(qd, request.Params(), request.User());
 	} catch (const std::exception& ex) {
-		HttpUtility::SendJsonError(response, params, 404,
+		response.SendJsonError(request.Params(), 404,
 			"No objects found.",
 			DiagnosticInformation(ex));
 		return true;
@@ -194,6 +191,15 @@ bool ObjectQueryHandler::HandleRequest(
 	std::unordered_map<Type*, std::pair<bool, std::unique_ptr<Expression>>> typePermissions;
 	std::unordered_map<Object*, bool> objectAccessAllowed;
 
+	response.result(http::status::ok);
+	response.set(http::field::content_type, "application/json");
+	response.Begin();
+
+	auto adapter = std::make_shared<decltype(BeastHttpMessageAdapter(response))>(response);
+	JsonEncoder encoder(adapter, true);
+
+	encoder.Encode(JsonEncoder::BeginObject, JsonEncoder::MakeField("results", JsonEncoder::BeginArray));
+
 	for (ConfigObject::Ptr obj : objs) {
 		DictionaryData result1{
 			{ "name", obj->GetName() },
@@ -218,7 +224,7 @@ bool ObjectQueryHandler::HandleRequest(
 				} else if (meta == "location") {
 					metaAttrs.emplace_back("location", obj->GetSourceLocation());
 				} else {
-					HttpUtility::SendJsonError(response, params, 400, "Invalid field specified for meta: " + meta);
+					response.SendJsonError(request.Params(), 400, "Invalid field specified for meta: " + meta);
 					return true;
 				}
 			}
@@ -229,7 +235,8 @@ bool ObjectQueryHandler::HandleRequest(
 		try {
 			result1.emplace_back("attrs", SerializeObjectAttrs(obj, String(), uattrs, false, false));
 		} catch (const ScriptError& ex) {
-			HttpUtility::SendJsonError(response, params, 400, ex.what());
+			// TODO: Replace this and the errors below with an error result just for the current object
+			response.SendJsonError(request.Params(), 400, ex.what());
 			return true;
 		}
 
@@ -240,14 +247,14 @@ bool ObjectQueryHandler::HandleRequest(
 			int fid = type->GetFieldId(joinAttr);
 
 			if (fid < 0) {
-				HttpUtility::SendJsonError(response, params, 400, "Invalid field specified for join: " + joinAttr);
+				response.SendJsonError(request.Params(), 400, "Invalid field specified for join: " + joinAttr);
 				return true;
 			}
 
 			Field field = type->GetFieldInfo(fid);
 
 			if (!(field.Attributes & FANavigation)) {
-				HttpUtility::SendJsonError(response, params, 400, "Not a joinable field: " + joinAttr);
+				response.SendJsonError(request.Params(), 400, "Not a joinable field: " + joinAttr);
 				return true;
 			}
 
@@ -264,7 +271,7 @@ bool ObjectQueryHandler::HandleRequest(
 				String permission = "objects/query/" + reflectionType->GetName();
 
 				std::unique_ptr<Expression> permissionFilter;
-				granted = FilterUtility::HasPermission(user, permission, &permissionFilter);
+				granted = FilterUtility::HasPermission(request.User(), permission, &permissionFilter);
 
 				it = typePermissions.insert({reflectionType.get(), std::make_pair(granted, std::move(permissionFilter))}).first;
 			}
@@ -304,22 +311,21 @@ bool ObjectQueryHandler::HandleRequest(
 			try {
 				joins.emplace_back(prefix, SerializeObjectAttrs(joinedObj, prefix, ujoins, true, allJoins));
 			} catch (const ScriptError& ex) {
-				HttpUtility::SendJsonError(response, params, 400, ex.what());
+				response.SendJsonError(request.Params(), 400, ex.what());
 				return true;
 			}
 		}
 
 		result1.emplace_back("joins", new Dictionary(std::move(joins)));
+		encoder.EncodeItem(new Dictionary(std::move(result1)));
 
-		results.push_back(new Dictionary(std::move(result1)));
+		response.Wait(yc);
+		if (response.WriteError()) {
+			return true;
+		}
 	}
 
-	Dictionary::Ptr result = new Dictionary({
-		{ "results", new Array(std::move(results)) }
-	});
-
-	response.result(http::status::ok);
-	HttpUtility::SendJsonBody(response, params, result);
+	encoder.Encode(JsonEncoder::Flush);
 
 	return true;
 }
