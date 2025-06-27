@@ -1,6 +1,8 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "remote/objectqueryhandler.hpp"
+#include "base/generator.hpp"
+#include "base/json.hpp"
 #include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
 #include "base/serializer.hpp"
@@ -9,6 +11,7 @@
 #include <boost/algorithm/string/case_conv.hpp>
 #include <set>
 #include <unordered_map>
+#include <memory>
 
 using namespace icinga;
 
@@ -144,6 +147,16 @@ bool ObjectQueryHandler::HandleRequest(
 		return true;
 	}
 
+	if(umetas){
+		ObjectLock olock(umetas);
+		for (String meta : umetas) {
+			if (!(meta == "used_by" || meta == "location")) {
+				HttpUtility::SendJsonError(response, params, 400, "Invalid field specified for meta: " + meta);
+				return true;
+			}
+		}
+	}
+
 	bool allJoins = HttpUtility::GetLastParameter(params, "all_joins");
 
 	params->Set("type", type->GetName());
@@ -164,9 +177,6 @@ bool ObjectQueryHandler::HandleRequest(
 			DiagnosticInformation(ex));
 		return true;
 	}
-
-	ArrayData results;
-	results.reserve(objs.size());
 
 	std::set<String> joinAttrs;
 	std::set<String> userJoinAttrs;
@@ -193,14 +203,21 @@ bool ObjectQueryHandler::HandleRequest(
 	std::unordered_map<Type*, std::pair<bool, std::unique_ptr<Expression>>> typePermissions;
 	std::unordered_map<Object*, bool> objectAccessAllowed;
 
-	for (ConfigObject::Ptr obj : objs) {
+	auto it = objs.begin();
+	auto generatorFunc = [&]() -> std::optional<Value> {
+		if (it == objs.end()) {
+			return std::nullopt;
+		}
+
+		ConfigObject::Ptr obj = *it;
+		++it;
+
 		DictionaryData result1{
 			{ "name", obj->GetName() },
 			{ "type", obj->GetReflectionType()->GetName() }
 		};
 
 		DictionaryData metaAttrs;
-
 		if (umetas) {
 			ObjectLock olock(umetas);
 			for (String meta : umetas) {
@@ -216,9 +233,6 @@ bool ObjectQueryHandler::HandleRequest(
 					}
 				} else if (meta == "location") {
 					metaAttrs.emplace_back("location", obj->GetSourceLocation());
-				} else {
-					HttpUtility::SendJsonError(response, params, 400, "Invalid field specified for meta: " + meta);
-					return true;
 				}
 			}
 		}
@@ -228,8 +242,12 @@ bool ObjectQueryHandler::HandleRequest(
 		try {
 			result1.emplace_back("attrs", SerializeObjectAttrs(obj, String(), uattrs, false, false));
 		} catch (const ScriptError& ex) {
-			HttpUtility::SendJsonError(response, params, 400, ex.what());
-			return true;
+			return new Dictionary{
+				{"type", type->GetName()},
+				{"name", obj->GetName()},
+				{"code", 400},
+				{"status", ex.what()}
+			};
 		}
 
 		DictionaryData joins;
@@ -238,17 +256,7 @@ bool ObjectQueryHandler::HandleRequest(
 			Object::Ptr joinedObj;
 			int fid = type->GetFieldId(joinAttr);
 
-			if (fid < 0) {
-				HttpUtility::SendJsonError(response, params, 400, "Invalid field specified for join: " + joinAttr);
-				return true;
-			}
-
 			Field field = type->GetFieldInfo(fid);
-
-			if (!(field.Attributes & FANavigation)) {
-				HttpUtility::SendJsonError(response, params, 400, "Not a joinable field: " + joinAttr);
-				return true;
-			}
 
 			joinedObj = obj->NavigateField(fid);
 
@@ -303,22 +311,29 @@ bool ObjectQueryHandler::HandleRequest(
 			try {
 				joins.emplace_back(prefix, SerializeObjectAttrs(joinedObj, prefix, ujoins, true, allJoins));
 			} catch (const ScriptError& ex) {
-				HttpUtility::SendJsonError(response, params, 400, ex.what());
-				return true;
+				return new Dictionary{
+					{"type", type->GetName()},
+					{"name", obj->GetName()},
+					{"code", 400},
+					{"status", ex.what()}
+				};
 			}
 		}
 
 		result1.emplace_back("joins", new Dictionary(std::move(joins)));
 
-		results.push_back(new Dictionary(std::move(result1)));
-	}
-
-	Dictionary::Ptr result = new Dictionary({
-		{ "results", new Array(std::move(results)) }
-	});
+		return new Dictionary{std::move(result1)};
+	};
 
 	response.result(http::status::ok);
-	HttpUtility::SendJsonBody(response, params, result);
+	response.set(http::field::content_type, "application/json");
+	response.StartStreaming();
+
+	Dictionary::Ptr results = new Dictionary{{"results", new ValueGenerator{generatorFunc}}};
+	results->Freeze();
+
+	bool pretty = HttpUtility::GetLastParameter(params, "pretty");
+	response.GetJsonEncoder(pretty).Encode(results, &yc);
 
 	return true;
 }
