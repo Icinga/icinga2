@@ -40,6 +40,76 @@ public:
 	virtual void Flush(boost::asio::yield_context& yield) = 0;
 };
 
+/**
+ * Adapter class for Boost Beast HTTP messages body to be used with the @c JsonEncoder.
+ *
+ * This class implements the @c nlohmann::detail::output_adapter_protocol<> interface and provides
+ * a way to write JSON data directly into the body of a Boost Beast HTTP message. The adapter is designed
+ * to work with Boost Beast HTTP messages that conform to the Beast HTTP message interface and must provide
+ * a body type that has a publicly accessible `reader` type that satisfies the Beast BodyReader [^1] requirements.
+ *
+ * @ingroup base
+ *
+ * [^1]: https://www.boost.org/doc/libs/1_85_0/libs/beast/doc/html/beast/concepts/BodyReader.html
+ */
+template<typename BeastHttpMessage>
+class BeastHttpMessageAdapter : public AsyncJsonWriter
+{
+public:
+	using BodyType = typename BeastHttpMessage::body_type;
+	using Reader = typename BeastHttpMessage::body_type::reader;
+
+	explicit BeastHttpMessageAdapter(BeastHttpMessage& msg) : m_Reader(msg.base(), msg.body()), m_Message{msg}
+	{
+		boost::system::error_code ec;
+		// This never returns an actual error, except when overflowing the max
+		// buffer size, which we don't do here.
+		m_Reader.init(m_MinPendingBufferSize, ec);
+	}
+
+	~BeastHttpMessageAdapter() override
+	{
+		boost::system::error_code ec;
+		// Same here as in the constructor, all the standard Beast HTTP message reader implementations
+		// never return an error here, it's just there to satisfy the interface requirements.
+		m_Reader.finish(ec);
+	}
+
+	void write_character(char c) override
+	{
+		write_characters(&c, 1);
+	}
+
+	void write_characters(const char* s, std::size_t length) override
+	{
+		boost::system::error_code ec;
+		boost::asio::const_buffer buf{s, length};
+		while (buf.size()) {
+			std::size_t w = m_Reader.put(buf, ec);
+			if (ec) {
+				BOOST_THROW_EXCEPTION(boost::system::system_error{ec});
+			}
+			buf += w;
+		}
+		m_PendingBufferSize += length;
+	}
+
+	void Flush(boost::asio::yield_context& yield) override
+	{
+		if (m_PendingBufferSize >= m_MinPendingBufferSize) {
+			m_Message.Write(yield);
+			m_PendingBufferSize = 0;
+		}
+	}
+
+private:
+	Reader m_Reader;
+	BeastHttpMessage& m_Message;
+	std::size_t m_PendingBufferSize{0}; // Tracks the size of the pending buffer to avoid unnecessary writes.
+	// Minimum size of the pending buffer before we flush the data to the underlying stream.
+	static constexpr std::size_t m_MinPendingBufferSize = 4096;
+};
+
 class String;
 class Value;
 
