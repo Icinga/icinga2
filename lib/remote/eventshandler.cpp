@@ -97,27 +97,27 @@ bool EventsHandler::HandleRequest(
 
 	EventsSubscriber subscriber (std::move(eventTypes), request.GetLastParameter("filter"), l_ApiQuery);
 
-	auto stream = server.StartStreaming();
+	Log(LogCritical, "EventsHandler") << "Subscribed to events.";
 
 	response.result(http::status::ok);
 	response.set(http::field::content_type, "application/json");
 
 	IoBoundWorkSlot dontLockTheIoThread (yc);
 
-	http::async_write(*stream, response, yc);
-	stream->async_flush(yc);
+	response.Begin();
 
-	auto adapter(std::make_shared<AsioStreamAdapter<AsioTlsStream>>(stream, yc));
-	JsonEncoder encoder(adapter);
+	auto writer = std::make_shared<decltype(BeastHttpMessageAdapter(response))>(response);
+	JsonEncoder encoder(writer, false);
+
+	encoder.Encode(JsonEncoder::NewLine);
 
 	for (;;) {
-		if (auto event(subscriber.GetInbox()->Shift(yc)); event) {
+		auto event(subscriber.GetInbox()->Shift(yc));
+
+		if (event && !response.WriteError()) {
 			// Put a newline at the end of each event to render them on a separate line.
 			encoder.Encode(event, JsonEncoder::NewLine);
-			// Since shifting the next event may cause the coroutine to yield, we need to flush the
-			// stream after each event to ensure that the client receives it immediately.
-			stream->async_flush(yc);
-		} else if (server.Disconnected()) {
+		} else {
 			return true;
 		}
 	}

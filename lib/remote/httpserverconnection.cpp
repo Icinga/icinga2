@@ -426,7 +426,16 @@ bool ProcessRequest(
 	boost::asio::yield_context& yc
 )
 {
-	namespace http = boost::beast::http;
+	bool retVal = true;
+	IoEngine::SpawnCoroutine(strand, [&retVal, &response, &stream](boost::asio::yield_context yc) {
+		try{
+			response.Write(stream, yc);
+		} catch (const std::exception& ex) {
+			Log(LogCritical, "HttpServerConnection")
+				<< "Exception while sending HTTP response: " << ex.what();
+			retVal = false;
+		}
+	});
 
 	try {
 		// Cache the elapsed time to acquire a CPU semaphore used to detect extremely heavy workloads.
@@ -436,32 +445,13 @@ bool ProcessRequest(
 
 		HttpHandler::ProcessRequest(waitGroup, request, response, yc, server);
 	} catch (const std::exception& ex) {
-		if (hasStartedStreaming) {
-			return false;
-		}
-
-		auto sysErr (dynamic_cast<const boost::system::system_error*>(&ex));
-
-		if (sysErr && sysErr->code() == boost::asio::error::operation_aborted) {
-			throw;
-		}
-
-		response.SendJsonError(nullptr, 500, "Unhandled exception" , DiagnosticInformation(ex));
-
-		http::async_write(stream, response, yc);
-		stream.async_flush(yc);
-
-		return true;
+		response.SendJsonError(request.Params(), 500, "Unhandled exception" , DiagnosticInformation(ex));
 	}
 
-	if (hasStartedStreaming) {
-		return false;
-	}
+	response.Done();
+	response.Wait(yc);
 
-	http::async_write(stream, response, yc);
-	stream.async_flush(yc);
-
-	return true;
+	return retVal;
 }
 
 void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
