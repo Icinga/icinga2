@@ -1,6 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "remote/objectqueryhandler.hpp"
+#include "base/json.hpp"
 #include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
 #include "base/serializer.hpp"
@@ -9,6 +10,7 @@
 #include <boost/algorithm/string/case_conv.hpp>
 #include <set>
 #include <unordered_map>
+#include <memory>
 
 using namespace icinga;
 
@@ -189,6 +191,15 @@ bool ObjectQueryHandler::HandleRequest(
 	std::unordered_map<Type*, std::pair<bool, std::unique_ptr<Expression>>> typePermissions;
 	std::unordered_map<Object*, bool> objectAccessAllowed;
 
+	response.result(http::status::ok);
+	response.set(http::field::content_type, "application/json");
+	response.Begin();
+
+	auto adapter = std::make_shared<decltype(BeastHttpMessageAdapter(response))>(response);
+	JsonEncoder encoder(adapter, true);
+
+	encoder.Encode(JsonEncoder::BeginObject, JsonEncoder::MakeField("results", JsonEncoder::BeginArray));
+
 	for (ConfigObject::Ptr obj : objs) {
 		DictionaryData result1{
 			{ "name", obj->GetName() },
@@ -224,6 +235,7 @@ bool ObjectQueryHandler::HandleRequest(
 		try {
 			result1.emplace_back("attrs", SerializeObjectAttrs(obj, String(), uattrs, false, false));
 		} catch (const ScriptError& ex) {
+			// TODO: Replace this and the errors below with an error result just for the current object
 			response.SendJsonError(request.Params(), 400, ex.what());
 			return true;
 		}
@@ -305,16 +317,15 @@ bool ObjectQueryHandler::HandleRequest(
 		}
 
 		result1.emplace_back("joins", new Dictionary(std::move(joins)));
+		encoder.EncodeItem(new Dictionary(std::move(result1)));
 
-		results.push_back(new Dictionary(std::move(result1)));
+		response.Wait(yc);
+		if (response.WriteError()) {
+			return true;
+		}
 	}
 
-	Dictionary::Ptr result = new Dictionary({
-		{ "results", new Array(std::move(results)) }
-	});
-
-	response.result(http::status::ok);
-	response.SendJsonBody(request.Params(), result);
+	encoder.Encode(JsonEncoder::Flush);
 
 	return true;
 }
