@@ -16,6 +16,50 @@ namespace icinga
 {
 
 /**
+ * A writer interface for writing the JSON output into a Boost Beast Http message body.
+ *
+ * @ingroup base
+ */
+template<typename BeastHttpMessage>
+class BeastHttpMessageAdapter : public nlohmann::detail::output_adapter_protocol<char>
+{
+	using BodyType = typename BeastHttpMessage::body_type;
+	using Reader = typename BodyType::reader;
+
+	Reader rd;
+
+public:
+	BeastHttpMessageAdapter(BeastHttpMessage& msg) : rd(msg.base(), msg.body())
+	{
+		boost::system::error_code ec;
+		rd.init(0, ec);
+	}
+	~BeastHttpMessageAdapter()
+	{
+		boost::system::error_code ec;
+		rd.finish(ec);
+	}
+
+	void write_character(char c) override
+	{
+		boost::system::error_code ec;
+		rd.put(boost::asio::const_buffer{&c, 1}, ec);
+		if (ec) {
+			throw boost::system::system_error{ec};
+		}
+	}
+
+	void write_characters(const char *s, std::size_t length) override
+	{
+		boost::system::error_code ec;
+		rd.put(boost::asio::const_buffer{s, length}, ec);
+		if (ec) {
+			throw boost::system::system_error{ec};
+		}
+	}
+};
+
+/**
  * Asynchronous JSON writer interface.
  *
  * This interface is used to write JSON data asynchronously into all kind of streams. It is intended to be used with
@@ -110,6 +154,10 @@ public:
 		: JsonEncoder{nlohmann::detail::output_adapter<char>(stream), prettify}
 	{
 	}
+
+	JsonEncoder(nlohmann::detail::output_adapter_t<char> stream, bool pretty)
+		: m_Pretty(pretty), m_Indent{0}, m_IndentStr(32, ' '), m_Writer(std::move(stream))
+	{}
 
 	explicit JsonEncoder(const std::shared_ptr<AsioStreamAdapter<AsioTlsStream>>& writer, bool prettify = false)
 		: JsonEncoder{nlohmann::detail::output_adapter_t<char>(writer), prettify}
@@ -208,10 +256,6 @@ public:
 	void EncodeItem(const Value& item);
 
 private:
-	JsonEncoder(nlohmann::detail::output_adapter_t<char> stream, bool pretty)
-		: m_Pretty(pretty), m_Indent{0}, m_IndentStr(32, ' '), m_Writer(std::move(stream))
-	{}
-
 	void EncodeImpl(Ctrls flag);
 	void EncodeImpl(const Value& value);
 
