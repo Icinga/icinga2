@@ -739,6 +739,7 @@ http_privatekey                  | **Optional.** Name of file contains the priva
 http_headerstring                | **Optional.** String to expect in the response headers.
 http_string                      | **Optional.** String to expect in the content.
 http_post                        | **Optional.** URL encoded http POST data.
+http_post_pw                     | **Optional.** URL encoded http POST data Icinga Web 2 shall hide as it contains a password.
 http_method                      | **Optional.** Set http method (for example: HEAD, OPTIONS, TRACE, PUT, DELETE).
 http_maxage                      | **Optional.** Warn if document is more than seconds old.
 http_contenttype                 | **Optional.** Specify Content-Type header when POSTing.
