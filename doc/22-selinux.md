@@ -122,7 +122,7 @@ Having this boolean enabled allows icinga2 to connect to all ports. This can be 
 
 **icinga2_run_sudo**
 
-To allow Icinga 2 executing plugins via sudo you can toogle this boolean. It is disabled by default, resulting in error messages like `execvpe(sudo) failed: Permission denied`.
+To allow Icinga 2 executing plugins via sudo you can toggle this boolean. It is disabled by default, resulting in error messages like `execvpe(sudo) failed: Permission denied`.
 
 **httpd_can_write_icinga2_command**
 
@@ -204,7 +204,7 @@ If you restart the daemon now it will successfully connect to graphite.
 
 #### Running plugins requiring sudo  <a id="selinux-policy-examples-sudo"></a>
 
-Some plugins require privileged access to the system and are designied to be executed via `sudo` to get these privileges.
+Some plugins require privileged access to the system and are designed to be executed via `sudo` to get these privileges.
 
 In this case it is the CheckCommand [running_kernel](10-icinga-template-library.md#plugin-contrib-command-running_kernel) which is set to use `sudo`.
 
@@ -219,7 +219,7 @@ In this case it is the CheckCommand [running_kernel](10-icinga-template-library.
       assign where host.name == NodeName
     }
 
-Having this Service defined will result in a UNKNOWN state and the error message `execvpe(sudo) failed: Permission denied` because SELinux dening the execution.
+Having this Service defined will result in a UNKNOWN state and the error message `execvpe(sudo) failed: Permission denied` because SELinux denying the execution.
 
 Switching the boolean `icinga2_run_sudo` to allow the execution will result in the check executed successfully.
 
@@ -229,7 +229,7 @@ Switching the boolean `icinga2_run_sudo` to allow the execution will result in t
 #### Confining a user <a id="selinux-policy-examples-user"></a>
 
 If you want to have an administrative account capable of only managing icinga2 and not the complete system, you can restrict the privileges by confining
-this user. This is completly optional!
+this user. This is completely optional!
 
 Start by adding the Icinga 2 administrator role `icinga2adm_r` to the administrative SELinux user `staff_u`.
 
@@ -295,7 +295,7 @@ Failed to issue method call: Access denied
 
 If you experience any problems while running in enforcing mode try to reproduce it in permissive mode. If the problem persists it is not related to SELinux because in permissive mode SELinux will not deny anything.
 
-After some feedback Icinga 2 is now running in a enforced domain, but still adds also some rules for other necessary services so no problems should occure at all. But you can help to enhance the policy by testing Icinga 2 running confined by SELinux.
+After some feedback Icinga 2 is now running in a enforced domain, but still adds also some rules for other necessary services so no problems should occur at all. But you can help to enhance the policy by testing Icinga 2 running confined by SELinux.
 
 Please add the following information to [bug reports](https://icinga.com/community/):
 

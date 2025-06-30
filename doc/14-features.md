@@ -246,7 +246,7 @@ resolved, it will be dropped and not sent to the target host.
 
 Backslashes are allowed in tag keys, tag values and field keys, however they are also
 escape characters when followed by a space or comma, but cannot be escaped themselves.
-As a result all trailling slashes in these fields are replaced with an underscore.  This
+As a result all trailing slashes in these fields are replaced with an underscore.  This
 predominantly affects Windows paths e.g. `C:\` becomes `C:_`.
 
 The database/bucket is assumed to exist so this object will make no attempt to create it currently.
@@ -396,7 +396,7 @@ check_result.perfdata.<perfdata-label>.warn
 check_result.perfdata.<perfdata-label>.crit
 ```
 
-Additionaly it is possible to configure custom tags that are applied to the metrics via `host_tags_template` or `service_tags_template`.
+Additionally it is possible to configure custom tags that are applied to the metrics via `host_tags_template` or `service_tags_template`.
 Depending on whether the write event was triggered on a service or host object, additional tags are added to the ElasticSearch entries.
 
 A host metrics entry configured with the following `host_tags_template`:
@@ -574,7 +574,7 @@ with the following tags
 Functionality exists to modify the built in OpenTSDB metric names that the plugin
 writes to. By default this is `icinga.host` and `icinga.service.<servicename>`.
 
-These prefixes can be modified as necessary to any arbitary string. The prefix
+These prefixes can be modified as necessary to any arbitrary string. The prefix
 configuration also supports Icinga macros, so if you rather use `<checkcommand>`
 or any other variable instead of `<servicename>` you may do so.
 

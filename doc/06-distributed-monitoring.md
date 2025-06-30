@@ -2205,7 +2205,7 @@ object Zone "icinga2-agent2.localdomain" {
 The two agent nodes do not need to know about each other. The only important thing
 is that they know about the parent zone (the satellite) and their endpoint members (and optionally the global zone).
 
-> **Tipp**
+> **Tip**
 >
 > In the example above we've specified the `host` attribute in the agent endpoint configuration. In this mode,
 > the satellites actively connect to the agents. This costs some resources on the satellite -- if you prefer to

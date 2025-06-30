@@ -326,7 +326,7 @@ object CheckCommand "systemd" { // Plugin name without 'check_' prefix
 Run a config validation to see if that works, `icinga2 daemon -C`
 
 Next, analyse the plugin parameters. Plugins with a good help output show
-optional parameters in square brackes. This is the case for all parameters
+optional parameters in square brackets. This is the case for all parameters
 for this plugin. If there are required parameters, use the `required` key
 inside the argument.
 
@@ -689,7 +689,7 @@ liters (l)                  | ml, l, hl
 
 The UoM "c" represents a continuous counter (e.g. interface traffic counters).
 
-Unknown UoMs are discarted (as if none was given).
+Unknown UoMs are discarded (as if none was given).
 A value without any UoM may be an integer or floating point number
 for any type (processes, users, etc.).
 

@@ -1134,7 +1134,7 @@ for a more secure configuration is provided by the [Mozilla Wiki](https://wiki.m
 Ensure to use the same configuration for both attributes on **all** endpoints to avoid communication problems which
 requires to use `cipher_list` compatible with the endpoint using the oldest version of the OpenSSL library. If using
 other tools to connect to the API ensure also compatibility with them as this setting affects not only inter-cluster
-communcation but also the REST API.
+communication but also the REST API.
 
 ### CheckerComponent <a id="objecttype-checkercomponent"></a>
 
