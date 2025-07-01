@@ -510,6 +510,31 @@ Name               | Description
 flexlm_licensefile | **Required.** Name of license file (usually license.dat).
 flexlm_timeout     | **Optional.** Plugin time out in seconds. Defaults to 15.
 
+### fping <a id="plugin-check-command-fping"></a>
+
+The [check_fping](https://www.monitoring-plugins.org/doc/man/check_fping.html) plugin
+uses the `fping` command to ping the specified host for a fast check. Note that it is
+necessary to set the `suid` flag on `fping`.
+
+This CheckCommand is agnostic on whether it receives a resolvable name, IPv6 address oder legacy IP address.
+
+Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name            | Description
+----------------|--------------
+fping_address   | **Optional.** The host's IPv4 address. Defaults to "$address$".
+fping_wrta      | **Optional.** The RTA warning threshold in milliseconds. Defaults to 100.
+fping_wpl       | **Optional.** The packet loss warning threshold in %. Defaults to 5.
+fping_crta      | **Optional.** The RTA critical threshold in milliseconds. Defaults to 200.
+fping_cpl       | **Optional.** The packet loss critical threshold in %. Defaults to 15.
+fping_number    | **Optional.** The number of packets to send. Defaults to 5.
+fping_interval  | **Optional.** The interval between packets in milli-seconds. Defaults to 500.
+fping_bytes	| **Optional.** The size of ICMP packet.
+fping_target_timeout | **Optional.** The target timeout in milli-seconds.
+fping_source_ip | **Optional.** The name or ip address of the source ip.
+fping_source_interface | **Optional.** The source interface name.
+fping_extra_opts | **Optional.** Read extra plugin options from an ini file.
+
 
 ### fping4 <a id="plugin-check-command-fping4"></a>
 
