@@ -102,33 +102,22 @@ bool EventsHandler::HandleRequest(
 
 	EventsSubscriber subscriber (std::move(eventTypes), request.GetLastParameter("filter"), l_ApiQuery);
 
-	server.StartStreaming();
+	IoBoundWorkSlot dontLockTheIoThread (yc);
 
 	response.result(http::status::ok);
 	response.set(http::field::content_type, "application/json");
+	response.StartStreaming();
+	response.Flush(yc);
 
-	IoBoundWorkSlot dontLockTheIoThread (yc);
-
-	http::async_write(stream, response, yc);
-	stream.async_flush(yc);
-
-	asio::const_buffer newLine ("\n", 1);
+	auto encoder = response.GetJsonEncoder();
 
 	for (;;) {
-		auto event (subscriber.GetInbox()->Shift(yc));
+		auto event(subscriber.GetInbox()->Shift(yc));
 
 		if (event) {
-			String body = JsonEncode(event);
-
-			boost::algorithm::replace_all(body, "\n", "");
-
-			asio::const_buffer payload (body.CStr(), body.GetLength());
-
-			asio::async_write(stream, payload, yc);
-			asio::async_write(stream, newLine, yc);
-			stream.async_flush(yc);
-		} else if (server.Disconnected()) {
-			return true;
+			encoder.Encode(event);
+			response.body() << '\n';
+			response.Flush(yc);
 		}
 	}
 }
