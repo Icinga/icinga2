@@ -20,18 +20,15 @@ REGISTER_URLHANDLER("/v1/debug/malloc_info", MallocInfoHandler);
 bool MallocInfoHandler::HandleRequest(
 	const WaitGroup::Ptr&,
 	AsioTlsStream&,
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params,
+	HttpRequest& request,
+	HttpResponse& response,
 	boost::asio::yield_context&,
 	HttpServerConnection&
 )
 {
 	namespace http = boost::beast::http;
 
-	if (url->GetPath().size() != 3) {
+	if (request.Url()->GetPath().size() != 3) {
 		return false;
 	}
 
@@ -39,10 +36,10 @@ bool MallocInfoHandler::HandleRequest(
 		return false;
 	}
 
-	FilterUtility::CheckPermission(user, "debug");
+	FilterUtility::CheckPermission(request.User(), "debug");
 
 #ifndef HAVE_MALLOC_INFO
-	HttpUtility::SendJsonError(response, params, 501, "malloc_info(3) not available.");
+	response.SendJsonError(request.Params(), 501, "malloc_info(3) not available.");
 #else /* HAVE_MALLOC_INFO */
 	char* buf = nullptr;
 	size_t bufSize = 0;
@@ -87,8 +84,8 @@ bool MallocInfoHandler::HandleRequest(
 
 	response.result(200);
 	response.set(http::field::content_type, "application/xml");
-	response.body() = std::string(buf, bufSize);
-	response.content_length(response.body().size());
+	response.body() << std::string(buf, bufSize);
+	response.prepare_payload();
 #endif /* HAVE_MALLOC_INFO */
 
 	return true;
