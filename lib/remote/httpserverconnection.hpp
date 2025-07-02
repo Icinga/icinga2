@@ -51,6 +51,7 @@ private:
 
 	void ProcessMessages(boost::asio::yield_context yc);
 	void CheckLiveness(boost::asio::yield_context yc);
+	void CheckStream(boost::asio::yield_context yc);
 };
 
 }
