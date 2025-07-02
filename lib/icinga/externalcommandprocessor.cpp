@@ -657,7 +657,7 @@ void ExternalCommandProcessor::AcknowledgeSvcProblemExpire(double, const std::ve
 		<< "Setting timed acknowledgement for service '" << service->GetName() << "'" << (notify ? "" : ". Disabled notification");
 
 	Comment::AddComment(service, CommentAcknowledgement, arguments[6], arguments[7], persistent, timestamp, sticky);
-	service->AcknowledgeProblem(arguments[6], arguments[7], sticky ? AcknowledgementSticky : AcknowledgementNormal, notify, persistent, timestamp);
+	service->AcknowledgeProblem(arguments[6], arguments[7], sticky ? AcknowledgementSticky : AcknowledgementNormal, notify, persistent, Utility::GetTime(), timestamp);
 }
 
 void ExternalCommandProcessor::RemoveSvcAcknowledgement(double, const std::vector<String>& arguments)
@@ -731,7 +731,7 @@ void ExternalCommandProcessor::AcknowledgeHostProblemExpire(double, const std::v
 	}
 
 	Comment::AddComment(host, CommentAcknowledgement, arguments[5], arguments[6], persistent, timestamp, sticky);
-	host->AcknowledgeProblem(arguments[5], arguments[6], sticky ? AcknowledgementSticky : AcknowledgementNormal, notify, persistent, timestamp);
+	host->AcknowledgeProblem(arguments[5], arguments[6], sticky ? AcknowledgementSticky : AcknowledgementNormal, notify, persistent, Utility::GetTime(), timestamp);
 }
 
 void ExternalCommandProcessor::RemoveHostAcknowledgement(double, const std::vector<String>& arguments)
