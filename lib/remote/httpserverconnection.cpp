@@ -41,7 +41,7 @@ HttpServerConnection::HttpServerConnection(const WaitGroup::Ptr& waitGroup, cons
 }
 
 HttpServerConnection::HttpServerConnection(const WaitGroup::Ptr& waitGroup, const String& identity, bool authenticated, const Shared<AsioTlsStream>::Ptr& stream, boost::asio::io_context& io)
-	: m_WaitGroup(waitGroup), m_Stream(stream), m_Seen(Utility::GetTime()), m_IoStrand(io), m_ShuttingDown(false), m_CheckLivenessTimer(io)
+	: m_WaitGroup(waitGroup), m_Stream(stream), m_Seen(Utility::GetTime()), m_CanRead(io, true), m_IoStrand(io), m_ShuttingDown(false), m_CheckLivenessTimer(io)
 {
 	if (authenticated) {
 		m_ApiUser = ApiUser::GetByClientCN(identity);
@@ -65,6 +65,7 @@ void HttpServerConnection::Start()
 
 	IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) { ProcessMessages(yc); });
 	IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) { CheckLiveness(yc); });
+	IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) { DetectClientShutdown(yc); });
 }
 
 /**
@@ -73,8 +74,9 @@ void HttpServerConnection::Start()
  * It is important to note that this method should only be called from within a coroutine that uses `m_IoStrand`.
  *
  * @param yc boost::asio::yield_context The coroutine yield context which you are calling this method from.
+ * @param reason A string to be included in the disconnect log message.
  */
-void HttpServerConnection::Disconnect(boost::asio::yield_context yc)
+void HttpServerConnection::Disconnect(boost::asio::yield_context yc, std::string_view reason)
 {
 	namespace asio = boost::asio;
 
@@ -84,8 +86,13 @@ void HttpServerConnection::Disconnect(boost::asio::yield_context yc)
 
 	m_ShuttingDown = true;
 
-	Log(LogInformation, "HttpServerConnection")
-		<< "HTTP client disconnected (from " << m_PeerAddress << ")";
+	{
+		Log msg(LogInformation, "HttpServerConnection");
+		msg << "HTTP client disconnected (from " << m_PeerAddress << ")";
+		if (!reason.empty()) {
+			msg << ": " << reason << ".";
+		}
+	}
 
 	m_CheckLivenessTimer.cancel();
 
@@ -414,6 +421,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 
 			response.set(http::field::server, l_ServerHeader);
 
+			m_CanRead.WaitForSet(yc);
 			if (!EnsureValidHeaders(buf, request, response, m_ShuttingDown, yc)) {
 				break;
 			}
@@ -471,6 +479,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 			}
 
 			m_Seen = std::numeric_limits<decltype(m_Seen)>::max();
+			m_CanRead.Clear();
 
 			ProcessRequest(request, response, m_WaitGroup, cpuBoundWorkTime, yc);
 
@@ -501,11 +510,29 @@ void HttpServerConnection::CheckLiveness(boost::asio::yield_context yc)
 		}
 
 		if (m_Seen < Utility::GetTime() - 10) {
-			Log(LogInformation, "HttpServerConnection")
-				<<  "No messages for HTTP connection have been received in the last 10 seconds.";
-
-			Disconnect(yc);
+			Disconnect(yc, "No messages for HTTP connection have been received in the last 10 seconds");
 			break;
 		}
+	}
+}
+
+/**
+ * Detects a shutdown initiated by the client side.
+ *
+ * @param yc The yield context for the coroutine of this function
+ */
+void HttpServerConnection::DetectClientShutdown(boost::asio::yield_context yc)
+{
+	while (!m_ShuttingDown) {
+		m_CanRead.WaitForClear(yc);
+
+		boost::system::error_code ec;
+		m_Stream->async_fill(yc[ec]);
+		if (ec && !m_ShuttingDown) {
+			Disconnect(yc, "Shutdown by client");
+			break;
+		}
+
+		m_CanRead.Set();
 	}
 }
