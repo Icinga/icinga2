@@ -66,6 +66,7 @@ void HttpServerConnection::Start()
 
 	IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) { ProcessMessages(yc); });
 	IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) { CheckLiveness(yc); });
+	IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) { CheckStream(yc); });
 }
 
 /**
@@ -538,6 +539,28 @@ void HttpServerConnection::CheckLiveness(boost::asio::yield_context yc)
 
 			Disconnect(yc);
 			break;
+		}
+	}
+}
+
+/**
+ * Checks if the @c AsioTlsStream has been closed to shut down the connection.
+ *
+ * @param yc The yield context for the coroutine of this function
+ */
+void HttpServerConnection::CheckStream(boost::asio::yield_context yc)
+{
+	using wait_type = boost::asio::socket_base::wait_type;
+
+	while(!m_ShuttingDown){
+		boost::system::error_code ec;
+
+		m_Stream->lowest_layer().async_wait(wait_type::wait_read, yc[ec]);
+
+		char c;
+		m_Stream->peek(boost::asio::mutable_buffer(&c, 1), ec);
+		if (ec) {
+			Disconnect(yc);
 		}
 	}
 }
