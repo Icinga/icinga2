@@ -1703,7 +1703,6 @@ The following parameters need to be specified (either as URL parameters or in a 
   Parameter  | Type         | Description
   -----------|--------------|-------------
   types      | Array        | **Required.** Event type(s). Multiple types as URL parameters are supported.
-  queue      | String       | **Required.** Unique queue name. Multiple HTTP clients can use the same queue as long as they use the same event types and filter.
   filter     | String       | **Optional.** Filter for specific event attributes using [filter expressions](12-icinga2-api.md#icinga2-api-filters).
 
 ### Event Stream Types <a id="icinga2-api-event-streams-types"></a>
@@ -1937,7 +1936,7 @@ Example:
 ```bash
 curl -k -s -S -i -u root:icinga -H 'Accept: application/json' \
  -X POST 'https://localhost:5665/v1/events' \
- -d '{ "queue": "myqueue", "types": [ "CheckResult" ], "filter": "event.check_result.exit_status==2" }'
+ -d '{"types": [ "CheckResult" ], "filter": "event.check_result.exit_status==2" }'
 ```
 
 ```
