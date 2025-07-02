@@ -41,7 +41,7 @@ HttpServerConnection::HttpServerConnection(const WaitGroup::Ptr& waitGroup, cons
 }
 
 HttpServerConnection::HttpServerConnection(const WaitGroup::Ptr& waitGroup, const String& identity, bool authenticated, const Shared<AsioTlsStream>::Ptr& stream, boost::asio::io_context& io)
-	: m_WaitGroup(waitGroup), m_Stream(stream), m_Seen(Utility::GetTime()), m_IoStrand(io), m_ShuttingDown(false), m_CheckLivenessTimer(io)
+	: m_WaitGroup(waitGroup), m_Stream(stream), m_Seen(Utility::GetTime()), m_CanRead(io, true), m_IoStrand(io), m_ShuttingDown(false), m_CheckLivenessTimer(io)
 {
 	if (authenticated) {
 		m_ApiUser = ApiUser::GetByClientCN(identity);
@@ -65,6 +65,7 @@ void HttpServerConnection::Start()
 
 	IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) { ProcessMessages(yc); });
 	IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) { CheckLiveness(yc); });
+	IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) { DetectClientShutdown(yc); });
 }
 
 /**
@@ -418,6 +419,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 
 			response.set(http::field::server, l_ServerHeader);
 
+			m_CanRead.WaitForSet(yc);
 			if (!EnsureValidHeaders(buf, request, response, m_ShuttingDown, yc)) {
 				break;
 			}
@@ -476,6 +478,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 			}
 
 			m_Seen = std::numeric_limits<decltype(m_Seen)>::max();
+			m_CanRead.Clear();
 
 			if (!ProcessRequest(request, response, m_WaitGroup, cpuBoundWorkTime, yc)) {
 				break;
@@ -514,5 +517,27 @@ void HttpServerConnection::CheckLiveness(boost::asio::yield_context yc)
 			Disconnect(yc);
 			break;
 		}
+	}
+}
+
+/**
+ * Detects a shutdown initiated by the client side.
+ *
+ * @param yc The yield context for the coroutine of this function
+ */
+void HttpServerConnection::DetectClientShutdown(boost::asio::yield_context yc)
+{
+	while (!m_ShuttingDown) {
+		m_CanRead.WaitForClear(yc);
+
+		boost::system::error_code ec;
+		m_Stream->async_fill(yc[ec]);
+		if (ec && !m_ShuttingDown) {
+			Log(LogInformation, "HttpServerConnection") << "Detected shutdown from client: " << m_PeerAddress << ".";
+			Disconnect(yc);
+			break;
+		}
+
+		m_CanRead.Set();
 	}
 }
