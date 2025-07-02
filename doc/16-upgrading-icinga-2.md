@@ -128,7 +128,7 @@ have been removed from the command and documentation.
 ### Bugfixes for 2.11 <a id="upgrading-to-2-11-bugfixes"></a>
 
 2.11.1 on agents/satellites fixes a problem where 2.10.x as config master would send out an unwanted config marker file,
-thus rendering the agent to think it is autoritative for the config, and never accepting any new
+thus rendering the agent to think it is authoritative for the config, and never accepting any new
 config files for the zone(s). **If your config master is 2.11.x already, you are not affected by this problem.**
 
 In order to fix this, upgrade to at least 2.11.1, and purge away the local config sync storage once, then restart.
@@ -390,7 +390,7 @@ This affects the following features:
 The reconnect failover has been improved, and the default `failover_timeout`
 for the DB IDO features has been lowered from 60 to 30 seconds.
 Object authority updates (required for balancing in the cluster) happen
-more frequenty (was 30, is 10 seconds).
+more frequently (was 30, is 10 seconds).
 Also the cold startup without object authority updates has been reduced
 from 60 to 30 seconds. This is to allow cluster reconnects (lowered from 60s to 10s in 2.10)
 before actually considering a failover/split brain scenario.

@@ -42,7 +42,7 @@ is also key to identify bottlenecks and issues.
 >
 > [Monitor Icinga 2](08-advanced-topics.md#monitoring-icinga) and use the hints for further analysis.
 
-* Analyze the system's performance and dentify bottlenecks and issues.
+* Analyze the system's performance and identify bottlenecks and issues.
 * Collect details about all applications (e.g. Icinga 2, MySQL, Apache, Graphite, Elastic, etc.).
 * If data is exchanged via network (e.g. central MySQL cluster) ensure to monitor the bandwidth capabilities too.
 * Add graphs from Grafana or Graphite as screenshots to your issue description

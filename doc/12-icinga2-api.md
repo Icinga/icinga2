@@ -498,7 +498,7 @@ The example below is not valid:
 -d '{ "type": "Host", "filter": ""linux-servers" in host.groups" }'
 ```
 
-The double quotes need to be escaped with a preceeding backslash:
+The double quotes need to be escaped with a preceding backslash:
 
 ```
 -d '{ "type": "Host", "filter": "\"linux-servers\" in host.groups" }'
@@ -1073,7 +1073,7 @@ Send a `POST` request to the URL endpoint `/v1/actions/process-check-result`.
   exit\_status       | Number                         | **Required.** For services: 0=OK, 1=WARNING, 2=CRITICAL, 3=UNKNOWN, for hosts: 0=UP, 1=DOWN.
   plugin\_output     | String                         | **Required.** One or more lines of the plugin main output. Does **not** contain the performance data.
   performance\_data  | Array<code>&#124;</code>String | **Optional.** The performance data as array of strings. The raw performance data string can be used too.
-  check\_command     | Array<code>&#124;</code>String | **Optional.** The first entry should be the check commands path, then one entry for each command line option followed by an entry for each of its argument. Alternativly a single string can be used.
+  check\_command     | Array<code>&#124;</code>String | **Optional.** The first entry should be the check commands path, then one entry for each command line option followed by an entry for each of its argument. Alternatively a single string can be used.
   check\_source      | String                         | **Optional.** Usually the name of the `command_endpoint`
   execution\_start   | Timestamp                      | **Optional.** The timestamp where a script/process started its execution.
   execution\_end     | Timestamp                      | **Optional.** The timestamp where a script/process ended its execution. This timestamp is used in features to determine e.g. the metric timestamp.
@@ -2019,7 +2019,7 @@ validate the configuration asynchronously and populate a status log which
 can be fetched in a separated request. Once the validation succeeds,
 a reload is triggered by default.
 
-This functionality was primarly developed for the [Icinga Director](https://icinga.com/docs/director/latest/)
+This functionality was primarily developed for the [Icinga Director](https://icinga.com/docs/director/latest/)
 but can be used with your own deployments too. It also solves the problem
 with certain runtime objects (zones, endpoints) and can be used to
 deploy global templates in [global cluster zones](06-distributed-monitoring.md#distributed-monitoring-global-zone-config-sync).

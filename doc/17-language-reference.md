@@ -666,7 +666,7 @@ setting the `check_command` attribute or custom variables as command parameters.
 and afterwards the `assign where` and `ignore where` conditions are evaluated.
 
 It is not necessary to check attributes referenced in the `for loop` expression
-for their existance using an additional `assign where` condition.
+for their existence using an additional `assign where` condition.
 
 More usage examples are documented in the [monitoring basics](03-monitoring-basics.md#using-apply-for)
 chapter.

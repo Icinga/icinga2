@@ -1317,7 +1317,7 @@ Custom variables passed as [command parameters](03-monitoring-basics.md#command-
 Name        | Description
 ---         | ---
 rpc_address | **Optional.** The rpc host address. Defaults to "$address$ if the host `address` attribute is set, "$address6$" otherwise.
-rpc_command | **Required.** The programm name (or number).
+rpc_command | **Required.** The program name (or number).
 rpc_port    | **Optional.** The port that should be checked.
 rpc_version | **Optional.** The version you want to check for (one or more).
 rpc_udp     | **Optional.** Use UDP test. Defaults to false.
@@ -2323,7 +2323,7 @@ snmp_storage_type       | **Optional.** Filter by storage type. Valid options ar
 snmp_perf               | **Optional.** Enable perfdata values. Defaults to true.
 snmp_exclude            | **Optional.** Select all storages except the one(s) selected by -m. No action on storage type selection.
 snmp_timeout            | **Optional.** The command timeout in seconds. Defaults to 5 seconds.
-snmp_storage_olength	| **Optional.** Max-size of the SNMP message, usefull in case of Too Long responses.
+snmp_storage_olength	| **Optional.** Max-size of the SNMP message, useful in case of Too Long responses.
 
 ### snmp-interface <a id="plugin-check-command-snmp-interface"></a>
 
@@ -3170,7 +3170,7 @@ specified patterns in log files.
 
 Name                        | Description
 ----------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-logfiles_tag                | **Optional.** A short unique descriptor for this search. It will appear in the output of the plugin and is used to separare the different services.
+logfiles_tag                | **Optional.** A short unique descriptor for this search. It will appear in the output of the plugin and is used to separate the different services.
 logfiles_logfile            | **Optional.** This is the name of the log file you want to scan.
 logfiles_rotation           | **Optional.** This is the method how log files are rotated. One of the predefined methods or a regular expression, which helps identify the rotated archives. If this key is missing, check_logfiles assumes that the log file will be simply overwritten instead of rotated.
 logfiles_critical_pattern   | **Optional.** A regular expression which will trigger a critical error.
@@ -3954,7 +3954,7 @@ vmware_isregexp               | **Optional.** Treat blacklist and whitelist expr
 vmware_dc_volume_used         | **Optional.** Output used space instead of free. Defaults to "true".
 vmware_warn                   | **Optional.** The warning threshold for volumes. Defaults to "80%".
 vmware_crit                   | **Optional.** The critical threshold for volumes. Defaults to "90%".
-vmware_maintenance_mode_state | **Optional.** Set status in case ESX host is in maintenace mode. Possible Values are: ok or OK, CRITICAL or critical or CRIT or crit, WARNING or warning or WARN or warn. Default is UNKNOWN because you do not know the real state. Values are case insensitive.
+vmware_maintenance_mode_state | **Optional.** Set status in case ESX host is in maintenance mode. Possible Values are: ok or OK, CRITICAL or critical or CRIT or crit, WARNING or warning or WARN or warn. Default is UNKNOWN because you do not know the real state. Values are case insensitive.
 
 
 **vmware-esx-dc-runtime-info**
