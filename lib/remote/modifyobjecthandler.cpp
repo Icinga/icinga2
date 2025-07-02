@@ -16,16 +16,17 @@ REGISTER_URLHANDLER("/v1/objects", ModifyObjectHandler);
 bool ModifyObjectHandler::HandleRequest(
 	const WaitGroup::Ptr& waitGroup,
 	AsioTlsStream& stream,
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params,
+	const HttpRequest& request,
+	HttpResponse& response,
 	boost::asio::yield_context& yc,
 	HttpServerConnection& server
 )
 {
 	namespace http = boost::beast::http;
+
+	auto url = request.Url();
+	auto user = request.User();
+	auto params = request.Params();
 
 	if (url->GetPath().size() < 3 || url->GetPath().size() > 4)
 		return false;
@@ -36,7 +37,7 @@ bool ModifyObjectHandler::HandleRequest(
 	Type::Ptr type = FilterUtility::TypeFromPluralName(url->GetPath()[2]);
 
 	if (!type) {
-		HttpUtility::SendJsonError(response, params, 400, "Invalid type specified.");
+		response.SendJsonError(params, 400, "Invalid type specified.");
 		return true;
 	}
 
@@ -57,7 +58,7 @@ bool ModifyObjectHandler::HandleRequest(
 	try {
 		objs = FilterUtility::GetFilterTargets(qd, params, user);
 	} catch (const std::exception& ex) {
-		HttpUtility::SendJsonError(response, params, 404,
+		response.SendJsonError(params, 404,
 			"No objects found.",
 			DiagnosticInformation(ex));
 		return true;
@@ -66,7 +67,7 @@ bool ModifyObjectHandler::HandleRequest(
 	Value attrsVal = params->Get("attrs");
 
 	if (attrsVal.GetReflectionType() != Dictionary::TypeInstance && attrsVal.GetType() != ValueEmpty) {
-		HttpUtility::SendJsonError(response, params, 400,
+		response.SendJsonError(params, 400,
 			"Invalid type for 'attrs' attribute specified. Dictionary type is required."
 			"Or is this a POST query and you missed adding a 'X-HTTP-Method-Override: GET' header?");
 		return true;
@@ -77,7 +78,7 @@ bool ModifyObjectHandler::HandleRequest(
 	Value restoreAttrsVal = params->Get("restore_attrs");
 
 	if (restoreAttrsVal.GetReflectionType() != Array::TypeInstance && restoreAttrsVal.GetType() != ValueEmpty) {
-		HttpUtility::SendJsonError(response, params, 400,
+		response.SendJsonError(params, 400,
 			"Invalid type for 'restore_attrs' attribute specified. Array type is required.");
 		return true;
 	}
@@ -85,21 +86,18 @@ bool ModifyObjectHandler::HandleRequest(
 	Array::Ptr restoreAttrs = restoreAttrsVal;
 
 	if (!(attrs || restoreAttrs)) {
-		HttpUtility::SendJsonError(response, params, 400,
+		response.SendJsonError(params, 400,
 			"Missing both 'attrs' and 'restore_attrs'. "
 			"Or is this a POST query and you missed adding a 'X-HTTP-Method-Override: GET' header?");
 		return true;
 	}
 
-	bool verbose = false;
-
-	if (params)
-		verbose = HttpUtility::GetLastParameter(params, "verbose");
+	bool verbose = request.IsVerbose();
 
 	ConfigObjectsSharedLock lock (std::try_to_lock);
 
 	if (!lock) {
-		HttpUtility::SendJsonError(response, params, 503, "Icinga is reloading");
+		response.SendJsonError(params, 503, "Icinga is reloading");
 		return true;
 	}
 
@@ -107,7 +105,7 @@ bool ModifyObjectHandler::HandleRequest(
 
 	std::shared_lock wgLock{*waitGroup, std::try_to_lock};
 	if (!wgLock) {
-		HttpUtility::SendJsonError(response, params, 503, "Shutting down.");
+		response.SendJsonError(params, 503, "Shutting down.");
 		return true;
 	}
 
@@ -185,7 +183,7 @@ bool ModifyObjectHandler::HandleRequest(
 	});
 
 	response.result(http::status::ok);
-	HttpUtility::SendJsonBody(response, params, result);
+	response.SendJsonBody(result, request.IsPretty());
 
 	return true;
 }

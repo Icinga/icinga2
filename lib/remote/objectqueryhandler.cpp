@@ -91,16 +91,17 @@ Dictionary::Ptr ObjectQueryHandler::SerializeObjectAttrs(const Object::Ptr& obje
 bool ObjectQueryHandler::HandleRequest(
 	const WaitGroup::Ptr&,
 	AsioTlsStream& stream,
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params,
+	const HttpRequest& request,
+	HttpResponse& response,
 	boost::asio::yield_context& yc,
 	HttpServerConnection& server
 )
 {
 	namespace http = boost::beast::http;
+
+	auto url = request.Url();
+	auto user = request.User();
+	auto params = request.Params();
 
 	if (url->GetPath().size() < 3 || url->GetPath().size() > 4)
 		return false;
@@ -111,7 +112,7 @@ bool ObjectQueryHandler::HandleRequest(
 	Type::Ptr type = FilterUtility::TypeFromPluralName(url->GetPath()[2]);
 
 	if (!type) {
-		HttpUtility::SendJsonError(response, params, 400, "Invalid type specified.");
+		response.SendJsonError(params, 400, "Invalid type specified.");
 		return true;
 	}
 
@@ -124,7 +125,7 @@ bool ObjectQueryHandler::HandleRequest(
 	try {
 		uattrs = params->Get("attrs");
 	} catch (const std::exception&) {
-		HttpUtility::SendJsonError(response, params, 400,
+		response.SendJsonError(params, 400,
 			"Invalid type for 'attrs' attribute specified. Array type is required.");
 		return true;
 	}
@@ -132,7 +133,7 @@ bool ObjectQueryHandler::HandleRequest(
 	try {
 		ujoins = params->Get("joins");
 	} catch (const std::exception&) {
-		HttpUtility::SendJsonError(response, params, 400,
+		response.SendJsonError(params, 400,
 			"Invalid type for 'joins' attribute specified. Array type is required.");
 		return true;
 	}
@@ -140,12 +141,12 @@ bool ObjectQueryHandler::HandleRequest(
 	try {
 		umetas = params->Get("meta");
 	} catch (const std::exception&) {
-		HttpUtility::SendJsonError(response, params, 400,
+		response.SendJsonError(params, 400,
 			"Invalid type for 'meta' attribute specified. Array type is required.");
 		return true;
 	}
 
-	bool allJoins = HttpUtility::GetLastParameter(params, "all_joins");
+	bool allJoins = request.GetLastParameter("all_joins");
 
 	params->Set("type", type->GetName());
 
@@ -160,7 +161,7 @@ bool ObjectQueryHandler::HandleRequest(
 	try {
 		objs = FilterUtility::GetFilterTargets(qd, params, user);
 	} catch (const std::exception& ex) {
-		HttpUtility::SendJsonError(response, params, 404,
+		response.SendJsonError(params, 404,
 			"No objects found.",
 			DiagnosticInformation(ex));
 		return true;
@@ -218,7 +219,7 @@ bool ObjectQueryHandler::HandleRequest(
 				} else if (meta == "location") {
 					metaAttrs.emplace_back("location", obj->GetSourceLocation());
 				} else {
-					HttpUtility::SendJsonError(response, params, 400, "Invalid field specified for meta: " + meta);
+					response.SendJsonError(request.Params(), 400, "Invalid field specified for meta: " + meta);
 					return true;
 				}
 			}
@@ -229,7 +230,7 @@ bool ObjectQueryHandler::HandleRequest(
 		try {
 			result1.emplace_back("attrs", SerializeObjectAttrs(obj, String(), uattrs, false, false));
 		} catch (const ScriptError& ex) {
-			HttpUtility::SendJsonError(response, params, 400, ex.what());
+			response.SendJsonError(request.Params(), 400, ex.what());
 			return true;
 		}
 
@@ -240,14 +241,14 @@ bool ObjectQueryHandler::HandleRequest(
 			int fid = type->GetFieldId(joinAttr);
 
 			if (fid < 0) {
-				HttpUtility::SendJsonError(response, params, 400, "Invalid field specified for join: " + joinAttr);
+				response.SendJsonError(request.Params(), 400, "Invalid field specified for join: " + joinAttr);
 				return true;
 			}
 
 			Field field = type->GetFieldInfo(fid);
 
 			if (!(field.Attributes & FANavigation)) {
-				HttpUtility::SendJsonError(response, params, 400, "Not a joinable field: " + joinAttr);
+				response.SendJsonError(request.Params(), 400, "Not a joinable field: " + joinAttr);
 				return true;
 			}
 
@@ -304,7 +305,7 @@ bool ObjectQueryHandler::HandleRequest(
 			try {
 				joins.emplace_back(prefix, SerializeObjectAttrs(joinedObj, prefix, ujoins, true, allJoins));
 			} catch (const ScriptError& ex) {
-				HttpUtility::SendJsonError(response, params, 400, ex.what());
+				response.SendJsonError(request.Params(), 400, ex.what());
 				return true;
 			}
 		}
@@ -319,7 +320,7 @@ bool ObjectQueryHandler::HandleRequest(
 	});
 
 	response.result(http::status::ok);
-	HttpUtility::SendJsonBody(response, params, result);
+	response.SendJsonBody(result, request.IsPretty());
 
 	return true;
 }

@@ -2,7 +2,6 @@
 
 #include "remote/configstageshandler.hpp"
 #include "remote/configpackageutility.hpp"
-#include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
 #include "base/application.hpp"
 #include "base/defer.hpp"
@@ -17,41 +16,40 @@ std::atomic<bool> ConfigStagesHandler::m_RunningPackageUpdates (false);
 bool ConfigStagesHandler::HandleRequest(
 	const WaitGroup::Ptr&,
 	AsioTlsStream& stream,
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params,
+	const HttpRequest& request,
+	HttpResponse& response,
 	boost::asio::yield_context& yc,
 	HttpServerConnection& server
 )
 {
 	namespace http = boost::beast::http;
 
+	auto url = request.Url();
+	auto user = request.User();
+	auto params = request.Params();
+
 	if (url->GetPath().size() > 5)
 		return false;
 
 	if (request.method() == http::verb::get)
-		HandleGet(user, request, url, response, params);
+		HandleGet(request, response);
 	else if (request.method() == http::verb::post)
-		HandlePost(user, request, url, response, params);
+		HandlePost(request, response);
 	else if (request.method() == http::verb::delete_)
-		HandleDelete(user, request, url, response, params);
+		HandleDelete(request, response);
 	else
 		return false;
 
 	return true;
 }
 
-void ConfigStagesHandler::HandleGet(
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params
-)
+void ConfigStagesHandler::HandleGet(const HttpRequest& request, HttpResponse& response)
 {
 	namespace http = boost::beast::http;
+
+	auto url = request.Url();
+	auto user = request.User();
+	auto params = request.Params();
 
 	FilterUtility::CheckPermission(user, "config/query");
 
@@ -61,14 +59,14 @@ void ConfigStagesHandler::HandleGet(
 	if (url->GetPath().size() >= 5)
 		params->Set("stage", url->GetPath()[4]);
 
-	String packageName = HttpUtility::GetLastParameter(params, "package");
-	String stageName = HttpUtility::GetLastParameter(params, "stage");
+	String packageName = request.GetLastParameter("package");
+	String stageName = request.GetLastParameter("stage");
 
 	if (!ConfigPackageUtility::ValidatePackageName(packageName))
-		return HttpUtility::SendJsonError(response, params, 400, "Invalid package name '" + packageName + "'.");
+		return response.SendJsonError(params, 400, "Invalid package name '" + packageName + "'.");
 
 	if (!ConfigPackageUtility::ValidateStageName(stageName))
-		return HttpUtility::SendJsonError(response, params, 400, "Invalid stage name '" + stageName + "'.");
+		return response.SendJsonError(params, 400, "Invalid stage name '" + stageName + "'.");
 
 	ArrayData results;
 
@@ -88,38 +86,36 @@ void ConfigStagesHandler::HandleGet(
 	});
 
 	response.result(http::status::ok);
-	HttpUtility::SendJsonBody(response, params, result);
+	response.SendJsonBody(result, request.IsPretty());
 }
 
-void ConfigStagesHandler::HandlePost(
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params
-)
+void ConfigStagesHandler::HandlePost(const HttpRequest& request, HttpResponse& response)
 {
 	namespace http = boost::beast::http;
+
+	auto url = request.Url();
+	auto user = request.User();
+	auto params = request.Params();
 
 	FilterUtility::CheckPermission(user, "config/modify");
 
 	if (url->GetPath().size() >= 4)
 		params->Set("package", url->GetPath()[3]);
 
-	String packageName = HttpUtility::GetLastParameter(params, "package");
+	String packageName = request.GetLastParameter("package");
 
 	if (!ConfigPackageUtility::ValidatePackageName(packageName))
-		return HttpUtility::SendJsonError(response, params, 400, "Invalid package name '" + packageName + "'.");
+		return response.SendJsonError(params, 400, "Invalid package name '" + packageName + "'.");
 
 	bool reload = true;
 
 	if (params->Contains("reload"))
-		reload = HttpUtility::GetLastParameter(params, "reload");
+		reload = request.GetLastParameter("reload");
 
 	bool activate = true;
 
 	if (params->Contains("activate"))
-		activate = HttpUtility::GetLastParameter(params, "activate");
+		activate = request.GetLastParameter("activate");
 
 	Dictionary::Ptr files = params->Get("files");
 
@@ -133,7 +129,7 @@ void ConfigStagesHandler::HandlePost(
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Parameter 'reload' must be false when 'activate' is false."));
 
 		if (m_RunningPackageUpdates.exchange(true)) {
-			return HttpUtility::SendJsonError(response, params, 423,
+			return response.SendJsonError(params, 423,
 				"Conflicting request, there is already an ongoing package update in progress. Please try it again later.");
 		}
 
@@ -146,7 +142,7 @@ void ConfigStagesHandler::HandlePost(
 		/* validate the config. on success, activate stage and reload */
 		ConfigPackageUtility::AsyncTryActivateStage(packageName, stageName, activate, reload, resetPackageUpdates);
 	} catch (const std::exception& ex) {
-		return HttpUtility::SendJsonError(response, params, 500,
+		return response.SendJsonError(params, 500,
 			"Stage creation failed.",
 			DiagnosticInformation(ex));
 	}
@@ -171,18 +167,16 @@ void ConfigStagesHandler::HandlePost(
 	});
 
 	response.result(http::status::ok);
-	HttpUtility::SendJsonBody(response, params, result);
+	response.SendJsonBody(result, request.IsPretty());
 }
 
-void ConfigStagesHandler::HandleDelete(
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params
-)
+void ConfigStagesHandler::HandleDelete(const HttpRequest& request, HttpResponse& response)
 {
 	namespace http = boost::beast::http;
+
+	auto url = request.Url();
+	auto user = request.User();
+	auto params = request.Params();
 
 	FilterUtility::CheckPermission(user, "config/modify");
 
@@ -192,19 +186,19 @@ void ConfigStagesHandler::HandleDelete(
 	if (url->GetPath().size() >= 5)
 		params->Set("stage", url->GetPath()[4]);
 
-	String packageName = HttpUtility::GetLastParameter(params, "package");
-	String stageName = HttpUtility::GetLastParameter(params, "stage");
+	String packageName = request.GetLastParameter("package");
+	String stageName = request.GetLastParameter("stage");
 
 	if (!ConfigPackageUtility::ValidatePackageName(packageName))
-		return HttpUtility::SendJsonError(response, params, 400, "Invalid package name '" + packageName + "'.");
+		return response.SendJsonError(params, 400, "Invalid package name '" + packageName + "'.");
 
 	if (!ConfigPackageUtility::ValidateStageName(stageName))
-		return HttpUtility::SendJsonError(response, params, 400, "Invalid stage name '" + stageName + "'.");
+		return response.SendJsonError(params, 400, "Invalid stage name '" + stageName + "'.");
 
 	try {
 		ConfigPackageUtility::DeleteStage(packageName, stageName);
 	} catch (const std::exception& ex) {
-		return HttpUtility::SendJsonError(response, params, 500,
+		return response.SendJsonError(params, 500,
 			"Failed to delete stage '" + stageName + "' in package '" + packageName + "'.",
 			DiagnosticInformation(ex));
 	}
@@ -221,5 +215,5 @@ void ConfigStagesHandler::HandleDelete(
 	});
 
 	response.result(http::status::ok);
-	HttpUtility::SendJsonBody(response, params, result);
+	response.SendJsonBody(result, request.IsPretty());
 }

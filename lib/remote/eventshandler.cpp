@@ -42,17 +42,18 @@ const String l_ApiQuery ("<API query>");
 bool EventsHandler::HandleRequest(
 	const WaitGroup::Ptr&,
 	AsioTlsStream& stream,
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params,
+	const HttpRequest& request,
+	HttpResponse& response,
 	boost::asio::yield_context& yc,
 	HttpServerConnection& server
 )
 {
 	namespace asio = boost::asio;
 	namespace http = boost::beast::http;
+
+	auto url = request.Url();
+	auto user = request.User();
+	auto params = request.Params();
 
 	if (url->GetPath().size() != 2)
 		return false;
@@ -61,14 +62,14 @@ bool EventsHandler::HandleRequest(
 		return false;
 
 	if (request.version() == 10) {
-		HttpUtility::SendJsonError(response, params, 400, "HTTP/1.0 not supported for event streams.");
+		response.SendJsonError(params, 400, "HTTP/1.0 not supported for event streams.");
 		return true;
 	}
 
 	Array::Ptr types = params->Get("types");
 
 	if (!types) {
-		HttpUtility::SendJsonError(response, params, 400, "'types' query parameter is required.");
+		response.SendJsonError(params, 400, "'types' query parameter is required.");
 		return true;
 	}
 
@@ -79,10 +80,10 @@ bool EventsHandler::HandleRequest(
 		}
 	}
 
-	String queueName = HttpUtility::GetLastParameter(params, "queue");
+	String queueName = request.GetLastParameter("queue");
 
 	if (queueName.IsEmpty()) {
-		HttpUtility::SendJsonError(response, params, 400, "'queue' query parameter is required.");
+		response.SendJsonError(params, 400, "'queue' query parameter is required.");
 		return true;
 	}
 
@@ -99,7 +100,7 @@ bool EventsHandler::HandleRequest(
 		}
 	}
 
-	EventsSubscriber subscriber (std::move(eventTypes), HttpUtility::GetLastParameter(params, "filter"), l_ApiQuery);
+	EventsSubscriber subscriber (std::move(eventTypes), request.GetLastParameter("filter"), l_ApiQuery);
 
 	server.StartStreaming();
 

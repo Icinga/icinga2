@@ -18,16 +18,17 @@ REGISTER_URLHANDLER("/v1/objects", DeleteObjectHandler);
 bool DeleteObjectHandler::HandleRequest(
 	const WaitGroup::Ptr& waitGroup,
 	AsioTlsStream& stream,
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params,
+	const HttpRequest& request,
+	HttpResponse& response,
 	boost::asio::yield_context& yc,
 	HttpServerConnection& server
 )
 {
 	namespace http = boost::beast::http;
+
+	auto url = request.Url();
+	auto user = request.User();
+	auto params = request.Params();
 
 	if (url->GetPath().size() < 3 || url->GetPath().size() > 4)
 		return false;
@@ -38,7 +39,7 @@ bool DeleteObjectHandler::HandleRequest(
 	Type::Ptr type = FilterUtility::TypeFromPluralName(url->GetPath()[2]);
 
 	if (!type) {
-		HttpUtility::SendJsonError(response, params, 400, "Invalid type specified.");
+		response.SendJsonError(params, 400, "Invalid type specified.");
 		return true;
 	}
 
@@ -59,19 +60,19 @@ bool DeleteObjectHandler::HandleRequest(
 	try {
 		objs = FilterUtility::GetFilterTargets(qd, params, user);
 	} catch (const std::exception& ex) {
-		HttpUtility::SendJsonError(response, params, 404,
+		response.SendJsonError(params, 404,
 			"No objects found.",
 			DiagnosticInformation(ex));
 		return true;
 	}
 
-	bool cascade = HttpUtility::GetLastParameter(params, "cascade");
-	bool verbose = HttpUtility::GetLastParameter(params, "verbose");
+	bool cascade = request.GetLastParameter("cascade");
+	bool verbose = request.IsVerbose();
 
 	ConfigObjectsSharedLock lock (std::try_to_lock);
 
 	if (!lock) {
-		HttpUtility::SendJsonError(response, params, 503, "Icinga is reloading");
+		response.SendJsonError(params, 503, "Icinga is reloading");
 		return true;
 	}
 
@@ -81,7 +82,7 @@ bool DeleteObjectHandler::HandleRequest(
 
 	std::shared_lock wgLock{*waitGroup, std::try_to_lock};
 	if (!wgLock) {
-		HttpUtility::SendJsonError(response, params, 503, "Shutting down.");
+		response.SendJsonError(params, 503, "Shutting down.");
 		return true;
 	}
 
@@ -143,7 +144,7 @@ bool DeleteObjectHandler::HandleRequest(
 	else
 		response.result(http::status::ok);
 
-	HttpUtility::SendJsonBody(response, params, result);
+	response.SendJsonBody(result, request.IsPretty());
 
 	return true;
 }

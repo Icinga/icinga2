@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "remote/actionshandler.hpp"
-#include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
 #include "remote/apiaction.hpp"
 #include "base/defer.hpp"
@@ -18,16 +17,16 @@ REGISTER_URLHANDLER("/v1/actions", ActionsHandler);
 bool ActionsHandler::HandleRequest(
 	const WaitGroup::Ptr& waitGroup,
 	AsioTlsStream& stream,
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params,
+	const HttpRequest& request,
+	HttpResponse& response,
 	boost::asio::yield_context& yc,
 	HttpServerConnection& server
 )
 {
 	namespace http = boost::beast::http;
+	auto url = request.Url();
+	auto user = request.User();
+	auto params = request.Params();
 
 	if (url->GetPath().size() != 3)
 		return false;
@@ -40,7 +39,7 @@ bool ActionsHandler::HandleRequest(
 	ApiAction::Ptr action = ApiAction::GetByName(actionName);
 
 	if (!action) {
-		HttpUtility::SendJsonError(response, params, 404, "Action '" + actionName + "' does not exist.");
+		response.SendJsonError(params, 404, "Action '" + actionName + "' does not exist.");
 		return true;
 	}
 
@@ -58,15 +57,12 @@ bool ActionsHandler::HandleRequest(
 		try {
 			objs = FilterUtility::GetFilterTargets(qd, params, user);
 		} catch (const std::exception& ex) {
-			HttpUtility::SendJsonError(response, params, 404,
-				"No objects found.",
-				DiagnosticInformation(ex));
+			response.SendJsonError(params, 404, "No objects found.", DiagnosticInformation(ex));
 			return true;
 		}
 
 		if (objs.empty()) {
-			HttpUtility::SendJsonError(response, params, 404,
-				"No objects found.");
+			response.SendJsonError(params, 404, "No objects found.");
 			return true;
 		}
 	} else {
@@ -79,19 +75,14 @@ bool ActionsHandler::HandleRequest(
 	Log(LogNotice, "ApiActionHandler")
 		<< "Running action " << actionName;
 
-	bool verbose = false;
-
 	ActionsHandler::AuthenticatedApiUser = user;
 	Defer a ([]() {
 		ActionsHandler::AuthenticatedApiUser = nullptr;
 	});
 
-	if (params)
-		verbose = HttpUtility::GetLastParameter(params, "verbose");
-
 	std::shared_lock wgLock{*waitGroup, std::try_to_lock};
 	if (!wgLock) {
-		HttpUtility::SendJsonError(response, params, 503, "Shutting down.");
+		response.SendJsonError(params, 503, "Shutting down.");
 		return true;
 	}
 
@@ -120,7 +111,7 @@ bool ActionsHandler::HandleRequest(
 			});
 
 			/* Exception for actions. Normally we would handle this inside SendJsonError(). */
-			if (verbose)
+			if (request.IsVerbose())
 				fail->Set("diagnostic_information", DiagnosticInformation(ex));
 
 			results.emplace_back(std::move(fail));
@@ -161,7 +152,7 @@ bool ActionsHandler::HandleRequest(
 		{ "results", new Array(std::move(results)) }
 	});
 
-	HttpUtility::SendJsonBody(response, params, result);
+	response.SendJsonBody(result, request.IsPretty());
 
 	return true;
 }
