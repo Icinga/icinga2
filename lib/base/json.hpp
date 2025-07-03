@@ -56,18 +56,18 @@ public:
  * [^1]: https://www.boost.org/doc/libs/1_85_0/libs/beast/doc/html/beast/concepts/BodyReader.html
  */
 template<typename BeastHttpMessage>
-class BeastHttpMessageAdapter : public nlohmann::detail::output_adapter_protocol<char>
+class BeastHttpMessageAdapter : public AsyncJsonWriter
 {
 public:
 	using BodyType = typename BeastHttpMessage::body_type;
 	using Reader = typename BeastHttpMessage::body_type::reader;
 
-	explicit BeastHttpMessageAdapter(BeastHttpMessage& msg) : m_Reader(msg.base(), msg.body())
+	explicit BeastHttpMessageAdapter(BeastHttpMessage& msg) : m_Reader(msg.base(), msg.body()), m_Message{msg}
 	{
 		boost::system::error_code ec;
 		// This never returns an actual error, except when overflowing the max
 		// buffer size, which we don't do here.
-		m_Reader.init(0, ec);
+		m_Reader.init(m_MinPendingBufferSize, ec);
 	}
 
 	~BeastHttpMessageAdapter() override
@@ -90,10 +90,23 @@ public:
 		if (ec) {
 			BOOST_THROW_EXCEPTION(boost::system::system_error{ec});
 		}
+		m_PendingBufferSize += length;
+	}
+
+	void Flush(boost::asio::yield_context& yield) override
+	{
+		if (m_PendingBufferSize >= m_MinPendingBufferSize) {
+			m_Message.Write(yield);
+			m_PendingBufferSize = 0;
+		}
 	}
 
 private:
 	Reader m_Reader;
+	BeastHttpMessage& m_Message;
+	std::uint64_t m_PendingBufferSize{0}; // Tracks the size of the pending buffer to avoid unnecessary writes.
+	// Minimum size of the pending buffer before we flush the data to the underlying stream.
+	static constexpr std::uint16_t m_MinPendingBufferSize = 4096;
 };
 
 class String;
