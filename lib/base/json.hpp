@@ -10,6 +10,7 @@
 #include "base/utility.hpp"
 #include <boost/asio/spawn.hpp>
 #include <json.hpp>
+#include <optional>
 #include <string>
 
 namespace icinga
@@ -167,16 +168,21 @@ public:
 	 * enabled, the JSON output will be formatted with indentation and newlines for better readability, and
 	 * the final JSON will also be terminated by a newline character.
 	 *
-	 * It can be used to incrementally build a JSON object or array by adding elements one by one.
+	 * @note If the used output adapter performs asynchronous I/O operations (it's derived from @c AsyncJsonWriter),
+	 * please provide a @c boost::asio::yield_context object to allow the encoder to flush the output stream in a
+	 * safe manner. The encoder will try to regularly give the output stream a chance to flush its data when it is
+	 * safe to do so, but for this to work, there must be a valid yield context provided. Otherwise, the encoder
+	 * will not attempt to flush the output stream at all, which may lead to huge memory consumption when encoding
+	 * large JSON objects or arrays.
 	 *
 	 * @tparam T The type of the value to encode.
 	 *
 	 * @param value The value to encode into JSON format.
 	 */
 	template<typename T>
-	void Encode(T&& value)
+	void Encode(T&& value, std::optional<boost::asio::yield_context> yc = std::nullopt)
 	{
-		EncodeImpl(std::forward<T>(value));
+		EncodeImpl(std::forward<T>(value), yc, false);
 		// If we are at the top level of the JSON object and prettifying is enabled, we need
 		// to end the JSON with a newline character to ensure that the output is properly formatted.
 		if (m_Indent == 0 && m_Pretty) {
@@ -185,7 +191,8 @@ public:
 	}
 
 private:
-	void EncodeImpl(const Value& value);
+	void EncodeImpl(const Value& value, std::optional<boost::asio::yield_context>& yc, bool parentOlockAcquired);
+	void FlushIfSafe(std::optional<boost::asio::yield_context>& yc, bool objectLockAcquired) const;
 
 	void Write(const std::string_view& sv) const;
 	void BeginContainer(char openChar);
@@ -213,22 +220,31 @@ private:
 	 *
 	 * @param container The container to JSON serialize.
 	 * @param extractor The value extractor function used to extract values from the container's iterator.
+	 * @param yc The optional yield context for asynchronous operations.
+	 * @param parentOlockAcquired Whether an object lock has been acquired on some of the parent containers.
 	 */
 	template<typename Iterable, typename ValExtractor>
-	void EncodeObject(const Iterable& container, const ValExtractor& extractor)
+	void EncodeObject(const Iterable& container, const ValExtractor& extractor, std::optional<boost::asio::yield_context>& yc, bool parentOlockAcquired)
 	{
 		static_assert(std::is_same_v<Iterable, Namespace::Ptr> || std::is_same_v<Iterable, Dictionary::Ptr>,
 			"Container must be a Namespace or Dictionary");
 
 		BeginContainer('{');
-		ObjectLock olock(container);
+		ObjectLock olock(container, std::defer_lock);
+		bool objectLockAcquired = parentOlockAcquired;
+		if (!container->Frozen()) {
+			FlushIfSafe(yc, parentOlockAcquired);
+			olock.Lock();
+			objectLockAcquired = true;
+		}
+
 		int count = 0;
 		for (const auto& [key, val] : container) {
 			WriteSeparatorAndIndentStrIfNeeded(count++);
 			EncodeValidatedJson(Utility::ValidateUTF8(key));
 			Write(m_Pretty ? ": " : ":");
 
-			EncodeImpl(extractor(val));
+			EncodeImpl(extractor(val), yc, objectLockAcquired);
 		}
 		EndContainer('}', container->GetLength() == 0);
 	}

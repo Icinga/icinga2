@@ -35,7 +35,7 @@ JsonEncoder::JsonEncoder(nlohmann::detail::output_adapter_t<char> stream, bool p
  *
  * @param value The value to be JSON serialized.
  */
-void JsonEncoder::EncodeImpl(const Value& value)
+void JsonEncoder::EncodeImpl(const Value& value, std::optional<boost::asio::yield_context>& yc, bool parentOlockAcquired)
 {
 	switch (value.GetType()) {
 		case ValueEmpty:
@@ -59,18 +59,25 @@ void JsonEncoder::EncodeImpl(const Value& value)
 			const auto& type = obj->GetReflectionType();
 			if (type == Namespace::TypeInstance) {
 				static constexpr auto extractor = [](const NamespaceValue& v) -> const Value& { return v.Val; };
-				EncodeObject(static_pointer_cast<Namespace>(obj), extractor);
+				EncodeObject(static_pointer_cast<Namespace>(obj), extractor, yc, parentOlockAcquired);
 			} else if (type == Dictionary::TypeInstance) {
 				static constexpr auto extractor = [](const Value& v) -> const Value& { return v; };
-				EncodeObject(static_pointer_cast<Dictionary>(obj), extractor);
+				EncodeObject(static_pointer_cast<Dictionary>(obj), extractor, yc, parentOlockAcquired);
 			} else if (type == Array::TypeInstance) {
 				auto arr(static_pointer_cast<Array>(obj));
 				BeginContainer('[');
-				ObjectLock olock(arr);
+				ObjectLock olock(arr, std::defer_lock);
+				bool objectLockAcquired = parentOlockAcquired;
+				if (!arr->Frozen()) {
+					FlushIfSafe(yc, parentOlockAcquired);
+					olock.Lock();
+					objectLockAcquired = true;
+				}
+
 				int count = 0;
 				for (const auto& item : arr) {
 					WriteSeparatorAndIndentStrIfNeeded(count++);
-					EncodeImpl(item);
+					EncodeImpl(item, yc, objectLockAcquired);
 				}
 				EndContainer(']', arr->GetLength() == 0);
 			} else if (auto gen(dynamic_pointer_cast<ValueGenerator>(obj)); gen) {
@@ -83,7 +90,8 @@ void JsonEncoder::EncodeImpl(const Value& value)
 						break; // Stop when the generator is exhausted.
 					}
 					WriteSeparatorAndIndentStrIfNeeded(i);
-					EncodeImpl(*result);
+					EncodeImpl(*result, yc, parentOlockAcquired);
+					FlushIfSafe(yc, parentOlockAcquired);
 				}
 				EndContainer(']', isEmpty);
 			} else {
@@ -94,6 +102,27 @@ void JsonEncoder::EncodeImpl(const Value& value)
 		}
 		default:
 			VERIFY(!"Invalid variant type.");
+	}
+}
+
+/**
+ * Flushes the output stream if it is safe to do so.
+ *
+ * Safe flushing means that it only performs the flush operation if the @c JsonEncoder has not acquired
+ * any object lock so far. This is to ensure that the stream can safely perform asynchronous operations
+ * without risking undefined behaviour due to coroutines being suspended while the stream is being flushed.
+ *
+ * Additionally, if there is no yield context provided, it will not attempt to flush the stream at all.
+ *
+ * @param yc The yield context to use for asynchronous operations.
+ * @param objectLockAcquired Whether an object lock has been acquired.
+ */
+void JsonEncoder::FlushIfSafe(std::optional<boost::asio::yield_context>& yc, bool objectLockAcquired) const
+{
+	if (yc && !objectLockAcquired) {
+		if (auto ajw(dynamic_cast<AsyncJsonWriter*>(m_Writer.get())); ajw) {
+			ajw->Flush(*yc);
+		}
 	}
 }
 
