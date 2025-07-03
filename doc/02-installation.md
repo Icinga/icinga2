@@ -369,7 +369,6 @@ Restart Icinga 2 for these changes to take effect.
 systemctl restart icinga2
 ```
 
-<!-- {% if amazon_linux or debian or fedora or rhel or sles or ubuntu %} -->
 ## Set up Icinga DB <a id="set-up-icinga-db"></a>
 
 Icinga DB is a set of components for publishing, synchronizing and
@@ -444,9 +443,18 @@ dnf install icingadb-redis
 ```
 <!-- {% endif %} -->
 
-<!-- {% if sles %} -->
+<!-- {% if fedora %} -->
 <!-- {% if not icingaDocs %} -->
-##### SLES
+##### Fedora
+<!-- {% endif %} -->
+```bash
+dnf install icingadb-redis
+```
+<!-- {% endif %} -->
+
+<!-- {% if sles or opensuse %} -->
+<!-- {% if not icingaDocs %} -->
+##### SLES / openSUSE
 <!-- {% endif %} -->
 ```bash
 zypper install icingadb-redis
@@ -537,6 +545,9 @@ you have completed the instructions here and can proceed to
 <!-- {% if debian %} -->
 [install the Icinga DB daemon on Debian](https://icinga.com/docs/icinga-db/latest/doc/02-Installation/Debian/#installing-the-package),
 <!-- {% endif %} -->
+<!-- {% if fedora %} -->
+[install the Icinga DB daemon on Fedora](https://icinga.com/docs/icinga-db/latest/doc/02-Installation/Fedora/#installing-the-package),
+<!-- {% endif %} -->
 <!-- {% if rhel %} -->
 [install the Icinga DB daemon on RHEL](https://icinga.com/docs/icinga-db/latest/doc/02-Installation/RHEL/#installing-the-package),
 <!-- {% endif %} -->
@@ -546,8 +557,10 @@ you have completed the instructions here and can proceed to
 <!-- {% if ubuntu %} -->
 [install the Icinga DB daemon on Ubuntu](https://icinga.com/docs/icinga-db/latest/doc/02-Installation/Ubuntu/#installing-the-package),
 <!-- {% endif %} -->
-which will also guide you through the setup of the database and Icinga DB Web.
+<!-- {% if opensuse %} -->
+[install the Icinga DB daemon on openSUSE](https://icinga.com/docs/icinga-db/latest/doc/02-Installation/openSUSE/#installing-the-package),
 <!-- {% endif %} -->
+which will also guide you through the setup of the database and Icinga DB Web.
 
 ## Backup <a id="install-backup"></a>
 
