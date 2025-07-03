@@ -15,6 +15,7 @@ struct ObjectLock
 {
 public:
 	ObjectLock(const Object::Ptr& object);
+	ObjectLock(const Object::Ptr& object, std::defer_lock_t);
 	ObjectLock(const Object *object);
 
 	ObjectLock(const ObjectLock&) = delete;

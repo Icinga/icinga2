@@ -18,6 +18,18 @@ ObjectLock::ObjectLock(const Object::Ptr& object)
 {
 }
 
+/**
+ * Constructs a lock for the given object without locking it immediately.
+ *
+ * The user must call Lock() explicitly when needed.
+ *
+ * @param object The object to lock.
+ */
+ObjectLock::ObjectLock(const Object::Ptr& object, std::defer_lock_t)
+	: m_Object(object.get()), m_Locked(false)
+{
+}
+
 ObjectLock::ObjectLock(const Object *object)
 	: m_Object(object), m_Locked(false)
 {
