@@ -11,7 +11,6 @@
 #include <bitset>
 #include <boost/exception_ptr.hpp>
 #include <cstdint>
-#include <json.hpp>
 #include <stack>
 #include <utility>
 #include <vector>
