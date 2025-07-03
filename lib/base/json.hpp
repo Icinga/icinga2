@@ -73,17 +73,19 @@ public:
 	explicit JsonEncoder(std::basic_ostream<char>& stream, bool prettify = false);
 	explicit JsonEncoder(nlohmann::detail::output_adapter_t<char> w, bool prettify = false);
 
-	void Encode(const Value& value);
+	void Encode(const Value& value, boost::asio::yield_context* yc = nullptr);
 
 private:
-	void EncodeArray(const Array::Ptr& array);
-	void EncodeValueGenerator(const ValueGenerator::Ptr& generator);
+	void EncodeArray(const Array::Ptr& array, boost::asio::yield_context* yc);
+	void EncodeValueGenerator(const ValueGenerator::Ptr& generator, boost::asio::yield_context* yc);
 
 	template<typename Iterable, typename ValExtractor>
-	void EncodeObject(const Iterable& container, const ValExtractor& extractor);
+	void EncodeObject(const Iterable& container, const ValExtractor& extractor, boost::asio::yield_context* yc);
 
 	void EncodeNlohmannJson(const nlohmann::json& json) const;
 	void EncodeNumber(double value) const;
+
+	void FlushIfSafe(boost::asio::yield_context* yc) const;
 
 	void Write(const std::string_view& sv) const;
 	void BeginContainer(char openChar);
@@ -93,6 +95,7 @@ private:
 	// The number of spaces to use for indentation in prettified JSON.
 	static constexpr uint8_t m_IndentSize = 4;
 
+	const bool m_IsAsyncWriter; // Whether the writer is an instance of AsyncJsonWriter.
 	bool m_Pretty; // Whether to pretty-print the JSON output.
 	unsigned m_Indent{0}; // The current indentation level for pretty-printing.
 	/**

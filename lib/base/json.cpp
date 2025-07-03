@@ -23,7 +23,7 @@ JsonEncoder::JsonEncoder(std::basic_ostream<char>& stream, bool prettify)
 }
 
 JsonEncoder::JsonEncoder(nlohmann::detail::output_adapter_t<char> w, bool prettify)
-	: m_Pretty(prettify), m_Writer(std::move(w))
+	: m_IsAsyncWriter{dynamic_cast<AsyncJsonWriter*>(w.get()) != nullptr}, m_Pretty(prettify), m_Writer(std::move(w))
 {
 }
 
@@ -35,9 +35,18 @@ JsonEncoder::JsonEncoder(nlohmann::detail::output_adapter_t<char> w, bool pretti
  * If prettifying is enabled, the JSON output will be formatted with indentation and newlines for better
  * readability, and the final JSON will also be terminated by a newline character.
  *
+ * @note If the used output adapter performs asynchronous I/O operations (it's derived from @c AsyncJsonWriter),
+ * please provide a @c boost::asio::yield_context object to allow the encoder to flush the output stream in a
+ * safe manner. The encoder will try to regularly give the output stream a chance to flush its data when it is
+ * safe to do so, but for this to work, there must be a valid yield context provided. Otherwise, the encoder
+ * will not attempt to flush the output stream at all, which may lead to huge memory consumption when encoding
+ * large JSON objects or arrays.
+ *
  * @param value The value to be JSON serialized.
+ * @param yc The optional yield context for asynchronous operations. If provided, it allows the encoder
+ * to flush the output stream safely when it has not acquired any object lock on the parent containers.
  */
-void JsonEncoder::Encode(const Value& value)
+void JsonEncoder::Encode(const Value& value, boost::asio::yield_context* yc)
 {
 	switch (value.GetType()) {
 		case ValueEmpty:
@@ -57,14 +66,14 @@ void JsonEncoder::Encode(const Value& value)
 			const auto& type = obj->GetReflectionType();
 			if (type == Namespace::TypeInstance) {
 				static constexpr auto extractor = [](const NamespaceValue& v) -> const Value& { return v.Val; };
-				EncodeObject(static_pointer_cast<Namespace>(obj), extractor);
+				EncodeObject(static_pointer_cast<Namespace>(obj), extractor, yc);
 			} else if (type == Dictionary::TypeInstance) {
 				static constexpr auto extractor = [](const Value& v) -> const Value& { return v; };
-				EncodeObject(static_pointer_cast<Dictionary>(obj), extractor);
+				EncodeObject(static_pointer_cast<Dictionary>(obj), extractor, yc);
 			} else if (type == Array::TypeInstance) {
-				EncodeArray(static_pointer_cast<Array>(obj));
+				EncodeArray(static_pointer_cast<Array>(obj), yc);
 			} else if (auto gen(dynamic_pointer_cast<ValueGenerator>(obj)); gen) {
-				EncodeValueGenerator(gen);
+				EncodeValueGenerator(gen, yc);
 			} else {
 				// Some other non-serializable object type!
 				EncodeNlohmannJson(Utility::ValidateUTF8(obj->ToString()));
@@ -86,16 +95,23 @@ void JsonEncoder::Encode(const Value& value)
  * Encodes an Array object into JSON and writes it to the output stream.
  *
  * @param array The Array object to be serialized into JSON.
+ * @param yc The optional yield context for asynchronous operations. If provided, it allows the encoder
+ * to flush the output stream safely when it has not acquired any object lock.
  */
-void JsonEncoder::EncodeArray(const Array::Ptr& array)
+void JsonEncoder::EncodeArray(const Array::Ptr& array, boost::asio::yield_context* yc)
 {
 	BeginContainer('[');
-	ObjectLock olock(array);
+	auto olock = array->LockIfRequired();
+	if (olock) {
+		yc = nullptr; // We've acquired an object lock, never allow asynchronous operations.
+	}
+
 	bool isEmpty = true;
 	for (const auto& item : array) {
 		WriteSeparatorAndIndentStrIfNeeded(!isEmpty);
 		isEmpty = false;
-		Encode(item);
+		Encode(item, yc);
+		FlushIfSafe(yc);
 	}
 	EndContainer(']', isEmpty);
 }
@@ -106,15 +122,18 @@ void JsonEncoder::EncodeArray(const Array::Ptr& array)
  * This will iterate through the generator, encoding each value it produces until it is exhausted.
  *
  * @param generator The ValueGenerator object to be serialized into JSON.
+ * @param yc The optional yield context for asynchronous operations. If provided, it allows the encoder
+ * to flush the output stream safely when it has not acquired any object lock on the parent containers.
  */
-void JsonEncoder::EncodeValueGenerator(const ValueGenerator::Ptr& generator)
+void JsonEncoder::EncodeValueGenerator(const ValueGenerator::Ptr& generator, boost::asio::yield_context* yc)
 {
 	BeginContainer('[');
 	bool isEmpty = true;
 	while (auto result = generator->Next()) {
 		WriteSeparatorAndIndentStrIfNeeded(!isEmpty);
 		isEmpty = false;
-		Encode(*result);
+		Encode(*result, yc);
+		FlushIfSafe(yc);
 	}
 	EndContainer(']', isEmpty);
 }
@@ -127,15 +146,21 @@ void JsonEncoder::EncodeValueGenerator(const ValueGenerator::Ptr& generator)
  *
  * @param container The container to JSON serialize.
  * @param extractor The value extractor function used to extract values from the container's iterator.
+ * @param yc The optional yield context for asynchronous operations. It will only be set when the encoder
+ * has not acquired any object lock on the parent containers, allowing safe asynchronous operations.
  */
 template<typename Iterable, typename ValExtractor>
-void JsonEncoder::EncodeObject(const Iterable& container, const ValExtractor& extractor)
+void JsonEncoder::EncodeObject(const Iterable& container, const ValExtractor& extractor, boost::asio::yield_context* yc)
 {
 	static_assert(std::is_same_v<Iterable, Namespace::Ptr> || std::is_same_v<Iterable, Dictionary::Ptr>,
 		"Container must be a Namespace or Dictionary");
 
 	BeginContainer('{');
-	ObjectLock olock(container);
+	auto olock = container->LockIfRequired();
+	if (olock) {
+		yc = nullptr; // We've acquired an object lock, never allow asynchronous operations.
+	}
+
 	bool isEmpty = true;
 	for (const auto& [key, val] : container) {
 		WriteSeparatorAndIndentStrIfNeeded(!isEmpty);
@@ -143,7 +168,9 @@ void JsonEncoder::EncodeObject(const Iterable& container, const ValExtractor& ex
 
 		EncodeNlohmannJson(Utility::ValidateUTF8(key));
 		Write(m_Pretty ? ": " : ":");
-		Encode(extractor(val));
+
+		Encode(extractor(val), yc);
+		FlushIfSafe(yc);
 	}
 	EndContainer('}', isEmpty);
 }
@@ -191,6 +218,29 @@ void JsonEncoder::EncodeNumber(double value) const
 	} catch (const boost::bad_numeric_cast&) {}
 
 	EncodeNlohmannJson(value);
+}
+
+/**
+ * Flushes the output stream if it is safe to do so.
+ *
+ * Safe flushing means that it only performs the flush operation if the @c JsonEncoder has not acquired
+ * any object lock so far. This is to ensure that the stream can safely perform asynchronous operations
+ * without risking undefined behaviour due to coroutines being suspended while the stream is being flushed.
+ *
+ * When the @c yc parameter is provided, it indicates that it's safe to perform asynchronous operations,
+ * and the function will attempt to flush if the writer is an instance of @c AsyncJsonWriter.
+ *
+ * @param yc The yield context to use for asynchronous operations.
+ */
+void JsonEncoder::FlushIfSafe(boost::asio::yield_context* yc) const
+{
+	if (yc && m_IsAsyncWriter) {
+		// The m_IsAsyncWriter flag is a constant, and it will never change, so we can safely static
+		// cast the m_Writer to AsyncJsonWriter without any additional checks as it is guaranteed
+		// to be an instance of AsyncJsonWriter when m_IsAsyncWriter is true.
+		auto ajw(static_cast<AsyncJsonWriter*>(m_Writer.get()));
+		ajw->Flush(*yc);
+	}
 }
 
 /**
