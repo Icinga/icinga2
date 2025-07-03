@@ -99,7 +99,9 @@ void Array::Add(Value value, bool overrideFrozen)
  */
 Array::Iterator Array::Begin()
 {
-	ASSERT(OwnsLock());
+	if (!Frozen()) {
+		ASSERT(OwnsLock());
+	}
 
 	return m_Data.begin();
 }
@@ -113,7 +115,9 @@ Array::Iterator Array::Begin()
  */
 Array::Iterator Array::End()
 {
-	ASSERT(OwnsLock());
+	if (!Frozen()) {
+		ASSERT(OwnsLock());
+	}
 
 	return m_Data.end();
 }
@@ -333,7 +337,12 @@ Array::Ptr Array::Unique() const
 void Array::Freeze()
 {
 	ObjectLock olock(this);
-	m_Frozen = true;
+	m_Frozen.store(true);
+}
+
+bool Array::Frozen() const
+{
+	return m_Frozen.load(std::memory_order_relaxed);
 }
 
 Value Array::GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const

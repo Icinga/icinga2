@@ -133,7 +133,9 @@ bool Dictionary::Contains(const String& key) const
  */
 Dictionary::Iterator Dictionary::Begin()
 {
-	ASSERT(OwnsLock());
+	if (!Frozen()) {
+		ASSERT(OwnsLock());
+	}
 
 	return m_Data.begin();
 }
@@ -147,7 +149,9 @@ Dictionary::Iterator Dictionary::Begin()
  */
 Dictionary::Iterator Dictionary::End()
 {
-	ASSERT(OwnsLock());
+	if (!Frozen()) {
+		ASSERT(OwnsLock());
+	}
 
 	return m_Data.end();
 }
@@ -277,7 +281,12 @@ String Dictionary::ToString() const
 void Dictionary::Freeze()
 {
 	ObjectLock olock(this);
-	m_Frozen = true;
+	m_Frozen.store(true);
+}
+
+bool Dictionary::Frozen() const
+{
+	return m_Frozen.load(std::memory_order_relaxed);
 }
 
 Value Dictionary::GetFieldByName(const String& field, bool, const DebugInfo& debugInfo) const
