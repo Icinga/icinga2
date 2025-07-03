@@ -4,6 +4,7 @@
 #define DICTIONARY_H
 
 #include "base/i2-base.hpp"
+#include "base/atomic.hpp"
 #include "base/object.hpp"
 #include "base/value.hpp"
 #include <boost/range/iterator.hpp>
@@ -69,6 +70,7 @@ public:
 	String ToString() const override;
 
 	void Freeze();
+	bool Frozen() const;
 
 	Value GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const override;
 	void SetFieldByName(const String& field, const Value& value, const DebugInfo& debugInfo) override;
@@ -78,7 +80,7 @@ public:
 private:
 	std::map<String, Value> m_Data; /**< The data for the dictionary. */
 	mutable std::shared_timed_mutex m_DataMutex;
-	bool m_Frozen{false};
+	Atomic<bool> m_Frozen{false};
 };
 
 Dictionary::Iterator begin(const Dictionary::Ptr& x);

@@ -73,6 +73,7 @@ public:
 	bool Contains(const String& field) const;
 	void Remove(const String& field);
 	void Freeze();
+	bool Frozen() const;
 
 	Iterator Begin();
 	Iterator End();

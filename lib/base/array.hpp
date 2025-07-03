@@ -4,6 +4,7 @@
 #define ARRAY_H
 
 #include "base/i2-base.hpp"
+#include "base/atomic.hpp"
 #include "base/objectlock.hpp"
 #include "base/value.hpp"
 #include <boost/range/iterator.hpp>
@@ -98,13 +99,14 @@ public:
 
 	Array::Ptr Unique() const;
 	void Freeze();
+	bool Frozen() const;
 
 	Value GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const override;
 	void SetFieldByName(const String& field, const Value& value, const DebugInfo& debugInfo) override;
 
 private:
 	std::vector<Value> m_Data; /**< The data for the array. */
-	bool m_Frozen{false};
+	Atomic<bool> m_Frozen{false};
 };
 
 Array::Iterator begin(const Array::Ptr& x);
