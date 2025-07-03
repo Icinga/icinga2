@@ -50,8 +50,8 @@ void NodeSetupCommand::InitParameters(boost::program_options::options_descriptio
 		("accept-config", "Accept config from parent node")
 		("accept-commands", "Accept commands from parent node")
 		("master", "Use setup for a master instance")
-		("global_zones", po::value<std::vector<std::string> >(), "The names of the additional global zones to add to the default ones (if not deactivated).")
-		("no-default-global-zones", "Do not add the default global-zones 'global-templates' and 'director-global'")
+		("global_zones", po::value<std::vector<std::string> >(), "The names of the additional global zones to 'global-templates' and 'director-global'.")
+		("no-default-global-zones", "Do not add the default global zones 'global-templates' and 'director-global'")
 		("disable-confd", "Disables the conf.d directory during the setup");
 
 	hiddenDesc.add_options()
