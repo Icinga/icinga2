@@ -5,6 +5,7 @@
 #include "base/dictionary.hpp"
 #include "base/namespace.hpp"
 #include "base/objectlock.hpp"
+#include "base/utility.hpp"
 #include <boost/numeric/conversion/cast.hpp>
 #include <stack>
 #include <utility>
@@ -56,7 +57,7 @@ void JsonEncoder::Encode(const Value& value, boost::asio::yield_context* yc)
 			Write(value.ToBool() ? "true" : "false");
 			break;
 		case ValueString:
-			EncodeNlohmannJson(Utility::ValidateUTF8(value.Get<String>()));
+			EncodeNlohmannJson(value.Get<String>());
 			break;
 		case ValueNumber:
 			EncodeNumber(value.Get<double>());
@@ -76,7 +77,7 @@ void JsonEncoder::Encode(const Value& value, boost::asio::yield_context* yc)
 				EncodeValueGenerator(gen, yc);
 			} else {
 				// Some other non-serializable object type!
-				EncodeNlohmannJson(Utility::ValidateUTF8(obj->ToString()));
+				EncodeNlohmannJson(obj->ToString());
 			}
 			break;
 		}
@@ -166,7 +167,7 @@ void JsonEncoder::EncodeObject(const Iterable& container, const ValExtractor& ex
 		WriteSeparatorAndIndentStrIfNeeded(!isEmpty);
 		isEmpty = false;
 
-		EncodeNlohmannJson(Utility::ValidateUTF8(key));
+		EncodeNlohmannJson(key);
 		Write(m_Pretty ? ": " : ":");
 
 		Encode(extractor(val), yc);
@@ -179,13 +180,15 @@ void JsonEncoder::EncodeObject(const Iterable& container, const ValExtractor& ex
  * Dumps a nlohmann::json object to the output stream using the serializer.
  *
  * This function uses the @c nlohmann::detail::serializer to dump the provided @c nlohmann::json
- * object to the output stream managed by the @c JsonEncoder.
+ * object to the output stream managed by the @c JsonEncoder. Strings will be properly escaped, and
+ * if any invalid UTF-8 sequences are encountered, it will replace them with the Unicode replacement
+ * character (U+FFFD).
  *
  * @param json The nlohmann::json object to encode.
  */
 void JsonEncoder::EncodeNlohmannJson(const nlohmann::json& json) const
 {
-	nlohmann::detail::serializer<nlohmann::json> s(m_Writer, ' ', nlohmann::json::error_handler_t::strict);
+	nlohmann::detail::serializer<nlohmann::json> s(m_Writer, ' ', nlohmann::json::error_handler_t::replace);
 	s.dump(json, m_Pretty, true, 0, 0);
 }
 

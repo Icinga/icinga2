@@ -6,7 +6,6 @@
 #include "base/i2-base.hpp"
 #include "base/array.hpp"
 #include "base/generator.hpp"
-#include "base/utility.hpp"
 #include <boost/asio/spawn.hpp>
 #include <json.hpp>
 
@@ -58,8 +57,7 @@ class Value;
  * The JSON encoder generates most of the low level JSON tokens, but it still relies on the already existing
  * @c nlohmann::detail::serializer<> class to dump numbers and ASCII validated JSON strings. This means that the
  * encoder doesn't perform any kind of JSON validation or escaping on its own, but simply delegates all this kind
- * of work to serializer<>. However, Strings are UTF-8 validated beforehand using the @c Utility::ValidateUTF8()
- * function and only the validated (copy of the original) String is passed to the serializer.
+ * of work to serializer<>.
  *
  * The generated JSON can be either prettified or compact, depending on your needs. The prettified JSON object
  * is indented with 4 spaces and grows linearly with the depth of the object tree.
