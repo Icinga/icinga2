@@ -7,7 +7,6 @@
 #include "base/dictionary.hpp"
 #include "base/namespace.hpp"
 #include "base/objectlock.hpp"
-#include "base/utility.hpp"
 #include <boost/asio/spawn.hpp>
 #include <json.hpp>
 #include <optional>
@@ -125,8 +124,7 @@ class Value;
  * The JSON encoder generates most of the low level JSON tokens, but it still relies on the already existing
  * @c nlohmann::detail::serializer<> class to dump numbers and ascii validated JSON strings. This means that the
  * encoder doesn't perform any kind of JSON validation or escaping on its own, but simply delegates all this kind
- * of work to serializer<>. However, Strings are UTF-8 validated beforehand using the @c Utility::ValidateUTF8()
- * function and only the validated (copy of the original) String is passed to the serializer.
+ * of work to serializer<>.
  *
  * The generated JSON can be either prettified or compact, depending on your needs. The prettified JSON object
  * is indented with 4 spaces and grows linearly with the depth of the object tree.
@@ -188,7 +186,7 @@ private:
 	template<typename T>
 	void EncodeValidatedJson(T&& value) const
 	{
-		nlohmann::detail::serializer<nlohmann::json> s(m_Writer, ' ', nlohmann::json::error_handler_t::strict);
+		nlohmann::detail::serializer<nlohmann::json> s(m_Writer, ' ', nlohmann::json::error_handler_t::replace);
 		s.dump(nlohmann::json(std::forward<T>(value)), m_Pretty, true, 0, 0);
 	}
 
@@ -221,7 +219,7 @@ private:
 		int count = 0;
 		for (const auto& [key, val] : container) {
 			WriteSeparatorAndIndentStrIfNeeded(count++);
-			EncodeValidatedJson(Utility::ValidateUTF8(key));
+			EncodeValidatedJson(key);
 			Write(m_Pretty ? ": " : ":");
 
 			EncodeImpl(extractor(val), yc, objectLockAcquired);

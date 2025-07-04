@@ -4,6 +4,7 @@
 #include "base/debug.hpp"
 #include "base/array.hpp"
 #include "base/generator.hpp"
+#include "base/utility.hpp"
 #include <stack>
 #include <utility>
 #include <vector>
@@ -45,7 +46,7 @@ void JsonEncoder::EncodeImpl(const Value& value, std::optional<boost::asio::yiel
 			Write(value.ToBool() ? "true" : "false");
 			return;
 		case ValueString:
-			EncodeValidatedJson(Utility::ValidateUTF8(value.Get<String>()));
+			EncodeValidatedJson(value.Get<String>());
 			return;
 		case ValueNumber:
 			if (auto ll(static_cast<long long>(value)); ll == value) {
@@ -96,7 +97,7 @@ void JsonEncoder::EncodeImpl(const Value& value, std::optional<boost::asio::yiel
 				EndContainer(']', isEmpty);
 			} else {
 				// Some other non-serializable object type!
-				EncodeValidatedJson(Utility::ValidateUTF8(obj->ToString()));
+				EncodeValidatedJson(obj->ToString());
 			}
 			return;
 		}
