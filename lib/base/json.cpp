@@ -2,21 +2,197 @@
 
 #include "base/json.hpp"
 #include "base/debug.hpp"
-#include "base/namespace.hpp"
-#include "base/dictionary.hpp"
 #include "base/array.hpp"
-#include "base/objectlock.hpp"
-#include "base/convert.hpp"
+#include "base/generator.hpp"
 #include "base/utility.hpp"
-#include <bitset>
-#include <boost/exception_ptr.hpp>
-#include <cstdint>
-#include <json.hpp>
 #include <stack>
 #include <utility>
 #include <vector>
 
 using namespace icinga;
+
+constexpr uint8_t JsonEncoder::m_IndentSize;
+
+JsonEncoder::JsonEncoder(std::string& output, bool prettify)
+	: JsonEncoder{nlohmann::detail::output_adapter<char>(output), prettify}
+{
+}
+
+JsonEncoder::JsonEncoder(std::basic_ostream<char>& stream, bool prettify)
+	: JsonEncoder{nlohmann::detail::output_adapter<char>(stream), prettify}
+{
+}
+
+JsonEncoder::JsonEncoder(nlohmann::detail::output_adapter_t<char> stream, bool prettify)
+	: m_Pretty(prettify), m_Indent{0}, m_IndentStr(32, ' '), m_Writer(std::move(stream))
+{
+}
+
+/**
+ * Encodes the given value into JSON and writes it to the configured output stream.
+ *
+ * This function is specialized for the @c Value type and recursively encodes each
+ * and every concrete type it represents.
+ *
+ * @param value The value to be JSON serialized.
+ */
+void JsonEncoder::EncodeImpl(const Value& value, std::optional<boost::asio::yield_context>& yc, bool parentOlockAcquired)
+{
+	switch (value.GetType()) {
+		case ValueEmpty:
+			Write("null");
+			return;
+		case ValueBoolean:
+			Write(value.ToBool() ? "true" : "false");
+			return;
+		case ValueString:
+			EncodeValidatedJson(value.Get<String>());
+			return;
+		case ValueNumber:
+			if (auto ll(static_cast<long long>(value)); ll == value) {
+				EncodeValidatedJson(ll);
+			} else {
+				EncodeValidatedJson(value.Get<double>());
+			}
+			return;
+		case ValueObject: {
+			const Object::Ptr& obj = value.Get<Object::Ptr>();
+			const auto& type = obj->GetReflectionType();
+			if (type == Namespace::TypeInstance) {
+				static constexpr auto extractor = [](const NamespaceValue& v) -> const Value& { return v.Val; };
+				EncodeObject(static_pointer_cast<Namespace>(obj), extractor, yc, parentOlockAcquired);
+			} else if (type == Dictionary::TypeInstance) {
+				static constexpr auto extractor = [](const Value& v) -> const Value& { return v; };
+				EncodeObject(static_pointer_cast<Dictionary>(obj), extractor, yc, parentOlockAcquired);
+			} else if (type == Array::TypeInstance) {
+				auto arr(static_pointer_cast<Array>(obj));
+				BeginContainer('[');
+				ObjectLock olock(arr, std::defer_lock);
+				bool objectLockAcquired = parentOlockAcquired;
+				if (!arr->Frozen()) {
+					FlushIfSafe(yc, parentOlockAcquired);
+					olock.Lock();
+					objectLockAcquired = true;
+				}
+
+				int count = 0;
+				for (const auto& item : arr) {
+					WriteSeparatorAndIndentStrIfNeeded(count++);
+					EncodeImpl(item, yc, objectLockAcquired);
+				}
+				EndContainer(']', arr->GetLength() == 0);
+			} else if (auto gen(dynamic_pointer_cast<ValueGenerator>(obj)); gen) {
+				BeginContainer('[');
+				bool isEmpty;
+				for (int i = 0; true; ++i) {
+					auto result = gen->Next();
+					if (!result) {
+						isEmpty = i == 0;
+						break; // Stop when the generator is exhausted.
+					}
+					WriteSeparatorAndIndentStrIfNeeded(i);
+					EncodeImpl(*result, yc, parentOlockAcquired);
+					FlushIfSafe(yc, parentOlockAcquired);
+				}
+				EndContainer(']', isEmpty);
+			} else {
+				// Some other non-serializable object type!
+				EncodeValidatedJson(obj->ToString());
+			}
+			return;
+		}
+		default:
+			VERIFY(!"Invalid variant type.");
+	}
+}
+
+/**
+ * Flushes the output stream if it is safe to do so.
+ *
+ * Safe flushing means that it only performs the flush operation if the @c JsonEncoder has not acquired
+ * any object lock so far. This is to ensure that the stream can safely perform asynchronous operations
+ * without risking undefined behaviour due to coroutines being suspended while the stream is being flushed.
+ *
+ * Additionally, if there is no yield context provided, it will not attempt to flush the stream at all.
+ *
+ * @param yc The yield context to use for asynchronous operations.
+ * @param objectLockAcquired Whether an object lock has been acquired.
+ */
+void JsonEncoder::FlushIfSafe(std::optional<boost::asio::yield_context>& yc, bool objectLockAcquired) const
+{
+	if (yc && !objectLockAcquired) {
+		if (auto ajw(dynamic_cast<AsyncJsonWriter*>(m_Writer.get())); ajw) {
+			ajw->Flush(*yc);
+		}
+	}
+}
+
+/**
+ * Writes a string to the underlying output stream.
+ *
+ * This function writes the provided string view directly to the output stream without any additional formatting.
+ *
+ * @param sv The string view to write to the output stream.
+ */
+void JsonEncoder::Write(const std::string_view& sv) const
+{
+	m_Writer->write_characters(sv.data(), sv.size());
+}
+
+/**
+ * Begins a JSON container (object or array) by writing the opening character and adjusting the
+ * indentation level if pretty-printing is enabled.
+ *
+ * @param openChar The character that opens the container (either '{' for objects or '[' for arrays).
+ */
+void JsonEncoder::BeginContainer(char openChar)
+{
+	if (m_Pretty) {
+		m_Indent += m_IndentSize;
+		if (m_IndentStr.size() < m_Indent) {
+			m_IndentStr.resize(m_IndentStr.size() * 2, ' ');
+		}
+	}
+	m_Writer->write_character(openChar);
+}
+
+/**
+ * Ends a JSON container (object or array) by writing the closing character and adjusting the
+ * indentation level if pretty-printing is enabled.
+ *
+ * @param closeChar The character that closes the container (either '}' for objects or ']' for arrays).
+ * @param isContainerEmpty Whether the container is empty, used to determine if a newline should be written.
+ */
+void JsonEncoder::EndContainer(char closeChar, bool isContainerEmpty)
+{
+	if (m_Pretty) {
+		ASSERT(m_Indent >= m_IndentSize); // Ensure we don't underflow the indent size.
+		m_Indent -= m_IndentSize;
+		if (!isContainerEmpty) {
+			Write("\n");
+			m_Writer->write_characters(m_IndentStr.c_str(), m_Indent);
+		}
+	}
+	m_Writer->write_character(closeChar);
+}
+
+/**
+ * Writes a separator (comma) and an indentation string if pretty-printing is enabled.
+ *
+ * This function is used to separate items in a JSON array or object and to maintain the correct indentation level.
+ *
+ * @param count The current item count, used to determine if a separator should be written.
+ */
+void JsonEncoder::WriteSeparatorAndIndentStrIfNeeded(int count) const
+{
+	if (count > 0) {
+		Write(",");
+	}
+	if (m_Pretty) {
+		Write("\n");
+		m_Writer->write_characters(m_IndentStr.c_str(), m_Indent);
+	}
+}
 
 class JsonSax : public nlohmann::json_sax<nlohmann::json>
 {
@@ -45,165 +221,25 @@ private:
 	void FillCurrentTarget(Value value);
 };
 
-const char l_Null[] = "null";
-const char l_False[] = "false";
-const char l_True[] = "true";
-const char l_Indent[] = "    ";
-
-// https://github.com/nlohmann/json/issues/1512
-template<bool prettyPrint>
-class JsonEncoder
-{
-public:
-	void Null();
-	void Boolean(bool value);
-	void NumberFloat(double value);
-	void Strng(String value);
-	void StartObject();
-	void Key(String value);
-	void EndObject();
-	void StartArray();
-	void EndArray();
-
-	String GetResult();
-
-private:
-	std::vector<char> m_Result;
-	String m_CurrentKey;
-	std::stack<std::bitset<2>> m_CurrentSubtree;
-
-	void AppendChar(char c);
-
-	template<class Iterator>
-	void AppendChars(Iterator begin, Iterator end);
-
-	void AppendJson(nlohmann::json json);
-
-	void BeforeItem();
-
-	void FinishContainer(char terminator);
-};
-
-template<bool prettyPrint>
-void Encode(JsonEncoder<prettyPrint>& stateMachine, const Value& value);
-
-template<bool prettyPrint>
-inline
-void EncodeNamespace(JsonEncoder<prettyPrint>& stateMachine, const Namespace::Ptr& ns)
-{
-	stateMachine.StartObject();
-
-	ObjectLock olock(ns);
-	for (const Namespace::Pair& kv : ns) {
-		stateMachine.Key(Utility::ValidateUTF8(kv.first));
-		Encode(stateMachine, kv.second.Val);
-	}
-
-	stateMachine.EndObject();
-}
-
-template<bool prettyPrint>
-inline
-void EncodeDictionary(JsonEncoder<prettyPrint>& stateMachine, const Dictionary::Ptr& dict)
-{
-	stateMachine.StartObject();
-
-	ObjectLock olock(dict);
-	for (const Dictionary::Pair& kv : dict) {
-		stateMachine.Key(Utility::ValidateUTF8(kv.first));
-		Encode(stateMachine, kv.second);
-	}
-
-	stateMachine.EndObject();
-}
-
-template<bool prettyPrint>
-inline
-void EncodeArray(JsonEncoder<prettyPrint>& stateMachine, const Array::Ptr& arr)
-{
-	stateMachine.StartArray();
-
-	ObjectLock olock(arr);
-	for (const Value& value : arr) {
-		Encode(stateMachine, value);
-	}
-
-	stateMachine.EndArray();
-}
-
-template<bool prettyPrint>
-void Encode(JsonEncoder<prettyPrint>& stateMachine, const Value& value)
-{
-	switch (value.GetType()) {
-		case ValueNumber:
-			stateMachine.NumberFloat(value.Get<double>());
-			break;
-
-		case ValueBoolean:
-			stateMachine.Boolean(value.ToBool());
-			break;
-
-		case ValueString:
-			stateMachine.Strng(Utility::ValidateUTF8(value.Get<String>()));
-			break;
-
-		case ValueObject:
-			{
-				const Object::Ptr& obj = value.Get<Object::Ptr>();
-
-				{
-					Namespace::Ptr ns = dynamic_pointer_cast<Namespace>(obj);
-					if (ns) {
-						EncodeNamespace(stateMachine, ns);
-						break;
-					}
-				}
-
-				{
-					Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(obj);
-					if (dict) {
-						EncodeDictionary(stateMachine, dict);
-						break;
-					}
-				}
-
-				{
-					Array::Ptr arr = dynamic_pointer_cast<Array>(obj);
-					if (arr) {
-						EncodeArray(stateMachine, arr);
-						break;
-					}
-				}
-
-				// obj is most likely a function => "Object of type 'Function'"
-				Encode(stateMachine, obj->ToString());
-				break;
-			}
-
-		case ValueEmpty:
-			stateMachine.Null();
-			break;
-
-		default:
-			VERIFY(!"Invalid variant type.");
-	}
-}
-
 String icinga::JsonEncode(const Value& value, bool pretty_print)
 {
-	if (pretty_print) {
-		JsonEncoder<true> stateMachine;
+	std::string output;
+	JsonEncoder encoder(output, pretty_print);
+	encoder.Encode(value);
+	return String(std::move(output));
+}
 
-		Encode(stateMachine, value);
-
-		return stateMachine.GetResult() + "\n";
-	} else {
-		JsonEncoder<false> stateMachine;
-
-		Encode(stateMachine, value);
-
-		return stateMachine.GetResult();
-	}
+/**
+ * Serializes an Icinga Value into a JSON object and writes it to the given output stream.
+ *
+ * @param value The value to be JSON serialized.
+ * @param os The output stream to write the JSON data to.
+ * @param prettify Whether to pretty print the serialized JSON.
+ */
+void icinga::JsonEncode(const Value& value, std::ostream& os, bool prettify)
+{
+	JsonEncoder encoder(os, prettify);
+	encoder.Encode(value);
 }
 
 Value icinga::JsonDecode(const String& data)
@@ -348,178 +384,4 @@ void JsonSax::FillCurrentTarget(Value value)
 			node.second->Add(value);
 		}
 	}
-}
-
-template<bool prettyPrint>
-inline
-void JsonEncoder<prettyPrint>::Null()
-{
-	BeforeItem();
-	AppendChars((const char*)l_Null, (const char*)l_Null + 4);
-}
-
-template<bool prettyPrint>
-inline
-void JsonEncoder<prettyPrint>::Boolean(bool value)
-{
-	BeforeItem();
-
-	if (value) {
-		AppendChars((const char*)l_True, (const char*)l_True + 4);
-	} else {
-		AppendChars((const char*)l_False, (const char*)l_False + 5);
-	}
-}
-
-template<bool prettyPrint>
-inline
-void JsonEncoder<prettyPrint>::NumberFloat(double value)
-{
-	BeforeItem();
-
-	// Make sure 0.0 is serialized as 0, so e.g. Icinga DB can parse it as int.
-	if (value < 0) {
-		long long i = value;
-
-		if (i == value) {
-			AppendJson(i);
-		} else {
-			AppendJson(value);
-		}
-	} else {
-		unsigned long long i = value;
-
-		if (i == value) {
-			AppendJson(i);
-		} else {
-			AppendJson(value);
-		}
-	}
-}
-
-template<bool prettyPrint>
-inline
-void JsonEncoder<prettyPrint>::Strng(String value)
-{
-	BeforeItem();
-	AppendJson(std::move(value));
-}
-
-template<bool prettyPrint>
-inline
-void JsonEncoder<prettyPrint>::StartObject()
-{
-	BeforeItem();
-	AppendChar('{');
-
-	m_CurrentSubtree.push(2);
-}
-
-template<bool prettyPrint>
-inline
-void JsonEncoder<prettyPrint>::Key(String value)
-{
-	m_CurrentKey = std::move(value);
-}
-
-template<bool prettyPrint>
-inline
-void JsonEncoder<prettyPrint>::EndObject()
-{
-	FinishContainer('}');
-}
-
-template<bool prettyPrint>
-inline
-void JsonEncoder<prettyPrint>::StartArray()
-{
-	BeforeItem();
-	AppendChar('[');
-
-	m_CurrentSubtree.push(0);
-}
-
-template<bool prettyPrint>
-inline
-void JsonEncoder<prettyPrint>::EndArray()
-{
-	FinishContainer(']');
-}
-
-template<bool prettyPrint>
-inline
-String JsonEncoder<prettyPrint>::GetResult()
-{
-	return String(m_Result.begin(), m_Result.end());
-}
-
-template<bool prettyPrint>
-inline
-void JsonEncoder<prettyPrint>::AppendChar(char c)
-{
-	m_Result.emplace_back(c);
-}
-
-template<bool prettyPrint>
-template<class Iterator>
-inline
-void JsonEncoder<prettyPrint>::AppendChars(Iterator begin, Iterator end)
-{
-	m_Result.insert(m_Result.end(), begin, end);
-}
-
-template<bool prettyPrint>
-inline
-void JsonEncoder<prettyPrint>::AppendJson(nlohmann::json json)
-{
-	nlohmann::detail::serializer<nlohmann::json>(nlohmann::detail::output_adapter<char>(m_Result), ' ').dump(std::move(json), prettyPrint, true, 0);
-}
-
-template<bool prettyPrint>
-inline
-void JsonEncoder<prettyPrint>::BeforeItem()
-{
-	if (!m_CurrentSubtree.empty()) {
-		auto& node (m_CurrentSubtree.top());
-
-		if (node[0]) {
-			AppendChar(',');
-		} else {
-			node[0] = true;
-		}
-
-		if (prettyPrint) {
-			AppendChar('\n');
-
-			for (auto i (m_CurrentSubtree.size()); i; --i) {
-				AppendChars((const char*)l_Indent, (const char*)l_Indent + 4);
-			}
-		}
-
-		if (node[1]) {
-			AppendJson(std::move(m_CurrentKey));
-			AppendChar(':');
-
-			if (prettyPrint) {
-				AppendChar(' ');
-			}
-		}
-	}
-}
-
-template<bool prettyPrint>
-inline
-void JsonEncoder<prettyPrint>::FinishContainer(char terminator)
-{
-	if (prettyPrint && m_CurrentSubtree.top()[0]) {
-		AppendChar('\n');
-
-		for (auto i (m_CurrentSubtree.size() - 1u); i; --i) {
-			AppendChars((const char*)l_Indent, (const char*)l_Indent + 4);
-		}
-	}
-
-	AppendChar(terminator);
-
-	m_CurrentSubtree.pop();
 }

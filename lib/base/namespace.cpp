@@ -122,6 +122,11 @@ void Namespace::Freeze() {
 	m_Frozen = true;
 }
 
+bool Namespace::Frozen() const
+{
+	return m_Frozen.load(std::memory_order_relaxed);
+}
+
 std::shared_lock<std::shared_timed_mutex> Namespace::ReadLockUnlessFrozen() const
 {
 	if (m_Frozen.load(std::memory_order_relaxed)) {
@@ -165,14 +170,18 @@ bool Namespace::GetOwnField(const String& field, Value *result) const
 
 Namespace::Iterator Namespace::Begin()
 {
-	ASSERT(OwnsLock());
+	if (!Frozen()) {
+		ASSERT(OwnsLock());
+	}
 
 	return m_Data.begin();
 }
 
 Namespace::Iterator Namespace::End()
 {
-	ASSERT(OwnsLock());
+	if (!Frozen()) {
+		ASSERT(OwnsLock());
+	}
 
 	return m_Data.end();
 }

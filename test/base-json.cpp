@@ -4,6 +4,7 @@
 #include "base/function.hpp"
 #include "base/namespace.hpp"
 #include "base/array.hpp"
+#include "base/generator.hpp"
 #include "base/objectlock.hpp"
 #include "base/json.hpp"
 #include <boost/algorithm/string/replace.hpp>
@@ -15,6 +16,15 @@ BOOST_AUTO_TEST_SUITE(base_json)
 
 BOOST_AUTO_TEST_CASE(encode)
 {
+	auto generate = []() -> std::optional<Value> {
+		static int count = 0;
+		if (++count == 4) {
+			count = 0;
+			return std::nullopt;
+		}
+		return Value(count);
+	};
+
 	Dictionary::Ptr input (new Dictionary({
 		{ "array", new Array({ new Namespace() }) },
 		{ "false", false },
@@ -24,16 +34,24 @@ BOOST_AUTO_TEST_CASE(encode)
 		{ "null", Value() },
 		{ "string", "LF\nTAB\tAUml\xC3\xA4Ill\xC3" },
 		{ "true", true },
-		{ "uint", 23u }
+		{ "uint", 23u },
+		{ "generator", new ValueGenerator(generate) },
+		{ "empty_generator", new ValueGenerator([]() -> std::optional<Value> { return std::nullopt; }) }
 	}));
 
 	String output (R"EOF({
     "array": [
         {}
     ],
+    "empty_generator": [],
     "false": false,
     "float": -1.25,
     "fx": "Object of type 'Function'",
+    "generator": [
+        1,
+        2,
+        3
+    ],
     "int": -42,
     "null": null,
     "string": "LF\nTAB\tAUml\u00e4Ill\ufffd",
@@ -42,7 +60,12 @@ BOOST_AUTO_TEST_CASE(encode)
 }
 )EOF");
 
-	BOOST_CHECK(JsonEncode(input, true) == output);
+	auto got(JsonEncode(input, true));
+	BOOST_CHECK_MESSAGE(output == got, "expected=" << output << "\ngot=" << got);
+
+	std::ostringstream oss;
+	JsonEncode(input, oss, true);
+	BOOST_CHECK_MESSAGE(oss.str() == output, "expected=" << output << "\ngot=" << oss.str());
 
 	boost::algorithm::replace_all(output, " ", "");
 	boost::algorithm::replace_all(output, "Objectoftype'Function'", "Object of type 'Function'");
