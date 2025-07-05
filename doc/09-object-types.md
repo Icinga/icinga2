@@ -107,7 +107,7 @@ Configuration Attributes:
 
   Name                      | Type                  | Description
   --------------------------|-----------------------|----------------------------------
-  command                   | Array                 | **Required.** The command. This can either be an array of individual command arguments. Alternatively a string can be specified in which case the shell interpreter (usually /bin/sh) takes care of parsing the command. When using the "arguments" attribute this must be an array. Can be specified as function for advanced implementations.
+  command                   | Array                 | **Required.** The command. This can either be an array of individual command arguments. Alternatively a string can be specified in which case the shell interpreter (either sh or powershell.exe) takes care of parsing the command. When using the "arguments" attribute this must be an array. Can be specified as function for advanced implementations.
   env                       | Dictionary            | **Optional.** A dictionary of macros which should be exported as environment variables prior to executing the command.
   vars                      | Dictionary            | **Optional.** A dictionary containing custom variables that are specific to this command.
   timeout                   | Duration              | **Optional.** The command timeout in seconds. Defaults to `1m`.
