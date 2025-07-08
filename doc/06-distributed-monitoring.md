@@ -3270,9 +3270,27 @@ Intermediate CA restrictions:
 
 * Each side has to provide its intermediate CAs along with the leaf certificate
   in `/var/lib/icinga2/certs/NODENAME.crt`, ordered from leaf to root.
-* Intermediate CAs may not be used directly as root CAs. To trust only specific
-  intermediate CAs, cross-sign them with themselves, so that you get equal
-  certificates except that they're self-signed. Use them as root CAs in Icinga.
+* Intermediate CAs may not be used directly as root CAs.
+
+##### Using an intermediate CA as Icinga root CA
+
+For Icinga to trust only its own intermediate CA,
+do either of the following:
+
+###### Icinga itself issues leaf certificates
+
+1. Setup Icinga as usual, with its own CA issuing leaf certificates.
+2. Cross-sign that CA with the desired parent CA, to create an intermediate CA.
+3. Add that new intermediate CA to your trusted root CAs where needed
+   to have an uninterrupted chain from your root CA to Icinga leaf certificates.
+
+###### Leaf certificates are issued externally
+
+1. Create your intermediate CA for Icinga.
+2. Cross-sign it with itself, to create a root CA.
+3. Use that self-signed CA as Icinga root CA.
+4. Deploy leaf certificates manually,
+   each with its intermediate CA(s) as described in the parent section.
 
 ## Automation <a id="distributed-monitoring-automation"></a>
 
