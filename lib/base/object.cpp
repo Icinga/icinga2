@@ -125,7 +125,7 @@ Value Object::GetFieldByName(const String& field, bool sandboxed, const DebugInf
 	return GetField(fid);
 }
 
-void Object::SetFieldByName(const String& field, const Value& value, bool overrideFrozen, const DebugInfo& debugInfo)
+void Object::SetFieldByName(const String& field, const Value& value, const DebugInfo& debugInfo)
 {
 	Type::Ptr type = GetReflectionType();
 

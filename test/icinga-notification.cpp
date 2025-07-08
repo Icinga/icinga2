@@ -36,9 +36,9 @@ struct DuplicateDueToFilterHelper
 		nc->SetExecute(new Function("", [this]() { ++called; }), true);
 		nc->Register();
 
-		n->SetFieldByName("host_name", "example.com", false, DebugInfo());
-		n->SetFieldByName("service_name", "disk", false, DebugInfo());
-		n->SetFieldByName("command", "mail", false, DebugInfo());
+		n->SetFieldByName("host_name", "example.com", DebugInfo());
+		n->SetFieldByName("service_name", "disk", DebugInfo());
+		n->SetFieldByName("command", "mail", DebugInfo());
 		n->SetUsersRaw(new Array({"jdoe"}), true);
 		n->SetTypeFilter(typeFilter);
 		n->SetStateFilter(stateFilter);

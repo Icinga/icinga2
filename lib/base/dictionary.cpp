@@ -86,14 +86,13 @@ const Value * Dictionary::GetRef(const String& key) const
  *
  * @param key The key.
  * @param value The value.
- * @param overrideFrozen Whether to allow modifying frozen dictionaries.
  */
-void Dictionary::Set(const String& key, Value value, bool overrideFrozen)
+void Dictionary::Set(const String& key, Value value)
 {
 	ObjectLock olock(this);
 	std::unique_lock<std::shared_timed_mutex> lock (m_DataMutex);
 
-	if (m_Frozen && !overrideFrozen)
+	if (m_Frozen)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Value in dictionary must not be modified."));
 
 	m_Data[key] = std::move(value);
@@ -290,9 +289,9 @@ Value Dictionary::GetFieldByName(const String& field, bool, const DebugInfo& deb
 		return GetPrototypeField(const_cast<Dictionary *>(this), field, false, debugInfo);
 }
 
-void Dictionary::SetFieldByName(const String& field, const Value& value, bool overrideFrozen, const DebugInfo&)
+void Dictionary::SetFieldByName(const String& field, const Value& value, const DebugInfo&)
 {
-	Set(field, value, overrideFrozen);
+	Set(field, value);
 }
 
 bool Dictionary::HasOwnField(const String& field) const
