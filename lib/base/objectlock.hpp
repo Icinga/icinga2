@@ -26,6 +26,8 @@ public:
 	void Lock();
 	void Unlock();
 
+	operator bool() const;
+
 private:
 	const Object *m_Object{nullptr};
 	bool m_Locked{false};

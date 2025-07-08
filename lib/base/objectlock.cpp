@@ -65,3 +65,15 @@ void ObjectLock::Unlock()
 		m_Locked = false;
 	}
 }
+
+/**
+ * Returns true if the object is locked, false otherwise.
+ *
+ * This operator allows using ObjectLock in boolean contexts.
+ *
+ * @returns true if the object is locked, false otherwise.
+ */
+ObjectLock::operator bool() const
+{
+	return m_Locked;
+}
