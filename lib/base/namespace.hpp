@@ -80,7 +80,7 @@ public:
 	size_t GetLength() const;
 
 	Value GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const override;
-	void SetFieldByName(const String& field, const Value& value, bool overrideFrozen, const DebugInfo& debugInfo) override;
+	void SetFieldByName(const String& field, const Value& value, const DebugInfo& debugInfo) override;
 	bool HasOwnField(const String& field) const override;
 	bool GetOwnField(const String& field, Value *result) const override;
 

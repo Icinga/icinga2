@@ -171,7 +171,7 @@ public:
 	virtual void SetField(int id, const Value& value, bool suppress_events = false, const Value& cookie = Empty);
 	virtual Value GetField(int id) const;
 	virtual Value GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const;
-	virtual void SetFieldByName(const String& field, const Value& value, bool overrideFrozen, const DebugInfo& debugInfo);
+	virtual void SetFieldByName(const String& field, const Value& value, const DebugInfo& debugInfo);
 	virtual bool HasOwnField(const String& field) const;
 	virtual bool GetOwnField(const String& field, Value *result) const;
 	virtual void ValidateField(int id, const Lazy<Value>& lvalue, const ValidationUtils& utils);

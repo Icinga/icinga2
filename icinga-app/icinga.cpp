@@ -420,12 +420,10 @@ static int Main()
 
 			for (size_t i = 1; i < keyTokens.size(); i++) {
 				std::unique_ptr<IndexerExpression> indexerExpr{new IndexerExpression(std::move(expr), MakeLiteral(keyTokens[i]))};
-				indexerExpr->SetOverrideFrozen();
 				expr = std::move(indexerExpr);
 			}
 
 			std::unique_ptr<SetExpression> setExpr{new SetExpression(std::move(expr), OpSetLiteral, MakeLiteral(value))};
-			setExpr->SetOverrideFrozen();
 
 			try {
 				ScriptFrame frame(true);

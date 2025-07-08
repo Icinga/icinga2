@@ -56,9 +56,9 @@ BOOST_AUTO_TEST_CASE(truncate_long_output)
 	nc->SetName("mail", true);
 	nc->Register();
 
-	n->SetFieldByName("host_name", "example.com", false, DebugInfo());
-	n->SetFieldByName("service_name", "disk", false, DebugInfo());
-	n->SetFieldByName("command", "mail", false, DebugInfo());
+	n->SetFieldByName("host_name", "example.com", DebugInfo());
+	n->SetFieldByName("service_name", "disk", DebugInfo());
+	n->SetFieldByName("command", "mail", DebugInfo());
 	n->OnAllConfigLoaded(); // link Service
 
 	Checkable::ExecuteCommandProcessFinishedHandler = [&promise](const Value&, const ProcessResult& pr) {

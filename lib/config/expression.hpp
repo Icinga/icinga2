@@ -657,14 +657,11 @@ public:
 		: BinaryExpression(std::move(operand1), std::move(operand2), debugInfo), m_Op(op)
 	{ }
 
-	void SetOverrideFrozen();
-
 protected:
 	ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 
 private:
 	CombinedSetOp m_Op;
-	bool m_OverrideFrozen{false};
 
 	friend void BindToScope(std::unique_ptr<Expression>& expr, ScopeSpecifier scopeSpec);
 };
@@ -755,11 +752,7 @@ public:
 		: BinaryExpression(std::move(operand1), std::move(operand2), debugInfo)
 	{ }
 
-	void SetOverrideFrozen();
-
 protected:
-	bool m_OverrideFrozen{false};
-
 	ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 	bool GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint) const override;
 

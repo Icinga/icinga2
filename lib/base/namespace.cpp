@@ -143,13 +143,8 @@ Value Namespace::GetFieldByName(const String& field, bool, const DebugInfo& debu
 		return GetPrototypeField(const_cast<Namespace *>(this), field, false, debugInfo); /* Ignore indexer not found errors similar to the Dictionary class. */
 }
 
-void Namespace::SetFieldByName(const String& field, const Value& value, bool overrideFrozen, const DebugInfo& debugInfo)
+void Namespace::SetFieldByName(const String& field, const Value& value, const DebugInfo& debugInfo)
 {
-	// The override frozen parameter is mandated by the interface but ignored here. If the namespace is frozen, this
-	// disables locking for read operations, so it must not be modified again to ensure the consistency of the internal
-	// data structures.
-	(void) overrideFrozen;
-
 	Set(field, value, false, debugInfo);
 }
 
