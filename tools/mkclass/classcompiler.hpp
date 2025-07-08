@@ -62,6 +62,7 @@ enum FieldAttribute
 	FASetVirtual = 16384,
 	FAActivationPriority = 32768,
 	FASignalWithOldValue = 65536,
+	FAParentAffectingLogging = 131072,
 };
 
 struct FieldType

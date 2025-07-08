@@ -1087,6 +1087,87 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 					<< field.GetFriendlyName() << "ChangedWithOldValue;" << std::endl << std::endl;
 			}
 		}
+
+		/* override ConfigObject#GetParentsAffectingLogging() */
+
+		bool overrideGetParentsAffectingLogging = klass.Name == "ConfigObject";
+
+		if (!overrideGetParentsAffectingLogging) {
+			for (auto& field : klass.Fields) {
+				if (field.Attributes & FAParentAffectingLogging && (field.Type.IsName || field.Attributes & FANavigation)) {
+					overrideGetParentsAffectingLogging = true;
+					break;
+				}
+			}
+		}
+
+		if (overrideGetParentsAffectingLogging) {
+			m_Header << "protected:" << std::endl << "\t";
+
+			if (klass.Name == "ConfigObject") {
+				m_Header << "virtual void GetParentsAffectingLogging(std::vector<intrusive_ptr<ConfigObject>>& output) const;";
+			} else {
+				m_Header << "void GetParentsAffectingLogging(std::vector<ConfigObject::Ptr>& output) const override;";
+			}
+
+			m_Header << std::endl;
+
+			m_Impl << "void ObjectImpl<" << klass.Name
+				<< ">::GetParentsAffectingLogging(std::vector<ConfigObject::Ptr>& output) const" << std::endl
+				<< "{" << std::endl;
+
+			std::set<std::string> types;
+
+			for (auto& field : klass.Fields) {
+				if (field.Attributes & FAParentAffectingLogging && field.Type.IsName && types.emplace(field.Type.TypeName).second) {
+					m_Impl << "\t" << "static const auto type" << field.Type.TypeName
+						<< " (Type::GetByName(\"" << field.Type.TypeName << "\"));" << std::endl
+						<< "\t" << "static const auto configType" << field.Type.TypeName
+						<< " (dynamic_cast<ConfigType*>(type" << field.Type.TypeName << ".get()));" << std::endl;
+				}
+			}
+
+			if (klass.Name != "ConfigObject") {
+				m_Impl << std::endl << "\t" << klass.Parent << "::GetParentsAffectingLogging(output);" << std::endl;
+			}
+
+			for (auto& field : klass.Fields) {
+				if (field.Attributes & FAParentAffectingLogging && (field.Type.IsName || field.Attributes & FANavigation)) {
+					m_Impl << std::endl << "\t";
+
+					if (field.Type.IsName) {
+						if (field.Type.ArrayRank) {
+							m_Impl << "auto names" << field.GetFriendlyName()
+								<< " (Get" << field.GetFriendlyName() << "());" << std::endl << std::endl
+								<< "\t" << "if (names" << field.GetFriendlyName() << ") {" << std::endl
+								<< "\t\t" << "ObjectLock lock (names" << field.GetFriendlyName() << ");" << std::endl << std::endl
+								<< "\t\t" << "for (auto& name : names" << field.GetFriendlyName() << ") {" << std::endl
+								<< "\t\t\t" << "auto object (configType" << field.Type.TypeName << "->GetObject(name));" << std::endl << std::endl
+								<< "\t\t\t" << "if (object) {" << std::endl
+								<< "\t\t\t\t" << "output.emplace_back(std::move(object));" << std::endl
+								<< "\t\t\t" << "}" << std::endl
+								<< "\t\t" << "}";
+						} else {
+							m_Impl << "auto object" << field.GetFriendlyName()
+								<< " (configType" << field.Type.TypeName << "->GetObject(Get"
+								<< field.GetFriendlyName() << "()));" << std::endl << std::endl
+								<< "\t" << "if (object" << field.GetFriendlyName() << ") {" << std::endl
+								<< "\t\t" << "output.emplace_back(std::move(object" << field.GetFriendlyName() << "));";
+						}
+					} else {
+						m_Impl << "auto object" << field.GetFriendlyName()
+							<< " (static_pointer_cast<ConfigObject>(Navigate"
+							<< field.GetFriendlyName() << "()));" << std::endl << std::endl
+							<< "\t" << "if (object" << field.GetFriendlyName() << ") {" << std::endl
+							<< "\t\t" << "output.emplace_back(std::move(object" << field.GetFriendlyName() << "));";
+					}
+
+					m_Impl << std::endl << "\t" << "}" << std::endl;
+				}
+			}
+
+			m_Impl << "}" << std::endl << std::endl;
+		}
 	}
 
 	if (klass.Name == "ConfigObject")

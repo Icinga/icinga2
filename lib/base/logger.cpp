@@ -14,7 +14,9 @@
 #endif /* _WIN32 */
 #include <algorithm>
 #include <iostream>
+#include <iterator>
 #include <utility>
+#include <vector>
 
 using namespace icinga;
 
@@ -62,6 +64,19 @@ void Logger::Start(bool runtimeCreated)
 	UpdateMinLogSeverity();
 }
 
+void Logger::SetObjectFilter(const Dictionary::Ptr& value, bool suppress_events, const Value& cookie)
+{
+	ObjectImpl<Logger>::SetObjectFilter(value, suppress_events, cookie);
+	UpdateCheckObjectFilterCache();
+}
+
+void Logger::OnAllConfigLoaded()
+{
+	ObjectImpl<Logger>::OnAllConfigLoaded();
+	m_CalledOnAllConfigLoaded.store(true);
+	UpdateCheckObjectFilterCache();
+}
+
 void Logger::Stop(bool runtimeRemoved)
 {
 	{
@@ -72,6 +87,47 @@ void Logger::Stop(bool runtimeRemoved)
 	UpdateMinLogSeverity();
 
 	ObjectImpl<Logger>::Stop(runtimeRemoved);
+}
+
+void Logger::ValidateObjectFilter(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)
+{
+	ObjectImpl<Logger>::ValidateObjectFilter(lvalue, utils);
+
+	auto filter (lvalue());
+
+	if (filter) {
+		ObjectLock lock (filter);
+
+		for (auto& kv : filter) {
+			auto type (Type::GetByName(kv.first));
+
+			if (!type) {
+				BOOST_THROW_EXCEPTION(
+					ValidationError(this, {"object_filter"}, "No such type: '" + kv.first + "'")
+				);
+			}
+
+			if (!dynamic_cast<ConfigType*>(type.get())) {
+				BOOST_THROW_EXCEPTION(
+					ValidationError(this, {"object_filter"}, "Not a config object type: '" + kv.first + "'")
+				);
+			}
+
+			Array::Ptr objects = kv.second;
+
+			if (objects) {
+				ObjectLock lock (objects);
+
+				for (auto& object : objects) {
+					if (object.GetType() != ValueString) {
+						BOOST_THROW_EXCEPTION(
+							ValidationError(this, {"object_filter", kv.first}, "Must be an array of strings.")
+						);
+					}
+				}
+			}
+		}
+	}
 }
 
 std::set<Logger::Ptr> Logger::GetLoggers()
@@ -243,17 +299,61 @@ void Logger::UpdateMinLogSeverity()
 	m_MinLogSeverity.store(result);
 }
 
-Log::Log(LogSeverity severity, String facility, const String& message)
-	: Log(severity, std::move(facility))
+void Logger::UpdateCheckObjectFilterCache()
 {
-	if (!m_IsNoOp) {
+	if (!m_CalledOnAllConfigLoaded.load()) {
+		return;
+	}
+
+	auto filter (GetObjectFilter());
+
+	if (!filter) {
+		ObjectLock lock (this);
+		m_ObjectFilterCache.clear();
+		return;
+	}
+
+	std::vector<ConfigObject*> allObjects;
+
+	{
+		ObjectLock lock (filter);
+
+		for (auto& kv : filter) {
+			auto type (Type::GetByName(kv.first));
+			auto ctype (dynamic_cast<ConfigType*>(type.get()));
+			Array::Ptr objects = kv.second;
+
+			if (ctype && objects) {
+				ObjectLock lock (objects);
+
+				for (String name : objects) {
+					auto object (ctype->GetObject(name));
+
+					if (object) {
+						allObjects.emplace_back(object.get());
+					} else {
+						Log(LogWarning, GetReflectionType()->GetName())
+							<< "Missing " << kv.first << " '" << name << "' in name filter of '" << GetName() << "'.";
+					}
+				}
+			}
+		}
+	}
+
+	std::sort(allObjects.begin(), allObjects.end());
+
+	ObjectLock lock (this);
+
+	m_ObjectFilterCache.swap(allObjects);
+}
+
+Log::Log(LogSeverity severity, String facility, const String& message)
+	: m_Severity(severity), m_Facility(std::move(facility)), m_IsNoOp(severity < Logger::GetMinLogSeverity())
+{
+	if (!m_IsNoOp && !message.IsEmpty()) {
 		m_Buffer << message;
 	}
 }
-
-Log::Log(LogSeverity severity, String facility)
-	: m_Severity(severity), m_Facility(std::move(facility)), m_IsNoOp(severity < Logger::GetMinLogSeverity())
-{ }
 
 /**
  * Writes the message to the application's log.
@@ -289,11 +389,31 @@ Log::~Log()
 	for (const Logger::Ptr& logger : Logger::GetLoggers()) {
 		ObjectLock llock(logger);
 
-		if (!logger->IsActive())
+		if (!logger->IsActive()) {
 			continue;
+		}
 
-		if (entry.Severity >= logger->GetMinSeverity())
-			logger->ProcessLogEntry(entry);
+		if (entry.Severity < logger->GetMinSeverity()) {
+			continue;
+		}
+
+		if (logger->GetObjectFilter()) {
+			if (!m_Involved) {
+				continue;
+			}
+
+			auto& allowed (logger->GetObjectFilterCache());
+			auto& indirect (m_Involved->GetAllParentsAffectingLogging());
+			std::vector<ConfigObject*> intersection;
+
+			std::set_intersection(allowed.begin(), allowed.end(), indirect.begin(), indirect.end(), std::back_inserter(intersection));
+
+			if (intersection.empty()) {
+				continue;
+			}
+		}
+
+		logger->ProcessLogEntry(entry);
 
 #ifdef I2_DEBUG /* I2_DEBUG */
 		/* Always flush, don't depend on the timer. Enable this for development sprints on Linux/macOS only. Windows crashes. */

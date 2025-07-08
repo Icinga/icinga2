@@ -167,6 +167,17 @@ void Downtime::Stop(bool runtimeRemoved)
 	ObjectImpl<Downtime>::Stop(runtimeRemoved);
 }
 
+void Downtime::GetParentsAffectingLogging(std::vector<ConfigObject::Ptr>& output) const
+{
+	ObjectImpl<Downtime>::GetParentsAffectingLogging(output);
+
+	auto object (ConfigObject::GetObject<ScheduledDowntime>(GetConfigOwner()));
+
+	if (object) {
+		output.emplace_back(std::move(object));
+	}
+}
+
 void Downtime::Pause()
 {
 	if (m_CleanupTimer) {

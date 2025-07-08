@@ -27,7 +27,7 @@ class Service : Checkable < ServiceNameComposer
 	load_after Host;
 	load_after Zone;
 
-	[config, no_user_modify, required, signal_with_old_value] array(name(ServiceGroup)) groups {
+	[config, no_user_modify, required, signal_with_old_value, parent_affecting_logging] array(name(ServiceGroup)) groups {
 		default {{{ return new Array(); }}}
 	};
 
@@ -40,7 +40,7 @@ class Service : Checkable < ServiceNameComposer
 				return displayName;
 		}}}
 	};
-	[config, no_user_modify, required] name(Host) host_name;
+	[config, no_user_modify, required, parent_affecting_logging] name(Host) host_name;
 	[no_storage, navigation] Host::Ptr host {
 		get;
 		navigate {{{

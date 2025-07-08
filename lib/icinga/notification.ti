@@ -51,12 +51,12 @@ class Notification : CustomVarObject < NotificationNameComposer
 		set;
 	};
 	[no_user_view, no_user_modify] int state_filter_real (StateFilter);
-	[config, no_user_modify, protected, required, navigation(host)] name(Host) host_name {
+	[config, no_user_modify, protected, required, navigation(host), parent_affecting_logging] name(Host) host_name {
 		navigate {{{
 			return Host::GetByName(GetHostName());
 		}}}
 	};
-	[config, protected, no_user_modify, navigation(service)] String service_name {
+	[config, protected, no_user_modify, navigation(service), parent_affecting_logging] String service_name {
 		track {{{
 			if (!oldValue.IsEmpty()) {
 				Service::Ptr service = Service::GetByNamePair(GetHostName(), oldValue);
