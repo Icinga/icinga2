@@ -26,7 +26,7 @@ namespace icinga
 class VMOps
 {
 public:
-	static inline bool FindVarImportRef(ScriptFrame& frame, const std::vector<Expression::Ptr>& imports, const String& name, Value *result, const DebugInfo& debugInfo = DebugInfo())
+	static inline bool FindVarImportRef(ScriptFrame& frame, const std::vector<Expression::Ptr>& imports, const String& name, Value *result)
 	{
 		for (const auto& import : imports) {
 			ExpressionResult res = import->Evaluate(frame);
@@ -44,7 +44,7 @@ public:
 	{
 		Value parent;
 
-		if (FindVarImportRef(frame, imports, name, &parent, debugInfo)) {
+		if (FindVarImportRef(frame, imports, name, &parent)) {
 			*result = GetField(parent, name, frame.Sandboxed, debugInfo);
 			return true;
 		}
@@ -52,7 +52,7 @@ public:
 		return false;
 	}
 
-	static inline Value ConstructorCall(const Type::Ptr& type, const std::vector<Value>& args, const DebugInfo& debugInfo = DebugInfo())
+	static inline Value ConstructorCall(const Type::Ptr& type, const std::vector<Value>& args)
 	{
 		if (type->GetName() == "String") {
 			if (args.empty())
@@ -81,7 +81,7 @@ public:
 			return type->Instantiate(args);
 	}
 
-	static inline Value FunctionCall(ScriptFrame& frame, const Value& self, const Function::Ptr& func, const std::vector<Value>& arguments)
+	static inline Value FunctionCall(const Value& self, const Function::Ptr& func, const std::vector<Value>& arguments)
 	{
 		if (!self.IsEmpty() || self.IsString())
 			return func->InvokeThis(self, arguments);

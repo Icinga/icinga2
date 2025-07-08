@@ -494,8 +494,8 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 
 		// Explicitly use Notification::Ptr to keep the reference counted while the callback is active
 		Notification::Ptr notification (this);
-		Utility::QueueAsyncCallback([notification, type, user, cr, force, author, text]() {
-			notification->ExecuteNotificationHelper(type, user, cr, force, author, text);
+		Utility::QueueAsyncCallback([notification, type, user, cr, author, text]() {
+			notification->ExecuteNotificationHelper(type, user, cr, author, text);
 		});
 
 		/* collect all notified users */
@@ -600,7 +600,7 @@ bool Notification::CheckNotificationUserFilters(NotificationType type, const Use
 	return true;
 }
 
-void Notification::ExecuteNotificationHelper(NotificationType type, const User::Ptr& user, const CheckResult::Ptr& cr, bool force, const String& author, const String& text)
+void Notification::ExecuteNotificationHelper(NotificationType type, const User::Ptr& user, const CheckResult::Ptr& cr, const String& author, const String& text)
 {
 	String notificationName = GetName();
 	String userName = user->GetName();

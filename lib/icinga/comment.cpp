@@ -80,7 +80,7 @@ void Comment::Start(bool runtimeCreated)
 
 	static boost::once_flag once = BOOST_ONCE_INIT;
 
-	boost::call_once(once, [this]() {
+	boost::call_once(once, [] {
 		l_CommentsExpireTimer = Timer::Create();
 		l_CommentsExpireTimer->SetInterval(60);
 		l_CommentsExpireTimer->OnTimerExpired.connect([](const Timer * const&) { CommentsExpireTimerHandler(); });
@@ -131,7 +131,7 @@ int Comment::GetNextCommentID()
 }
 
 Comment::Ptr Comment::AddComment(const Checkable::Ptr& checkable, CommentType entryType, const String& author,
-	const String& text, bool persistent, double expireTime, bool sticky, const String& id, const MessageOrigin::Ptr& origin)
+	const String& text, bool persistent, double expireTime, bool sticky, const String& id)
 {
 	String fullName;
 
@@ -187,8 +187,7 @@ Comment::Ptr Comment::AddComment(const Checkable::Ptr& checkable, CommentType en
 	return comment;
 }
 
-void Comment::RemoveComment(const String& id, bool removedManually, const String& removedBy,
-	const MessageOrigin::Ptr& origin)
+void Comment::RemoveComment(const String& id, bool removedManually, const String& removedBy)
 {
 	Comment::Ptr comment = Comment::GetByName(id);
 
