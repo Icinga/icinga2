@@ -100,6 +100,7 @@ public:
 	Array::Ptr Unique() const;
 	void Freeze();
 	bool Frozen() const;
+	ObjectLock LockIfRequired();
 
 	Value GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const override;
 	void SetFieldByName(const String& field, const Value& value, const DebugInfo& debugInfo) override;

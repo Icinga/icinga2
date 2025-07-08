@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/dictionary.hpp"
-#include "base/objectlock.hpp"
 #include "base/debug.hpp"
 #include "base/primitivetype.hpp"
 #include "base/configwriter.hpp"
@@ -282,6 +281,20 @@ void Dictionary::Freeze()
 bool Dictionary::Frozen() const
 {
 	return m_Frozen.load(std::memory_order_acquire);
+}
+
+/**
+ * Returns an already locked ObjectLock if the dictionary is frozen.
+ * Otherwise, returns an unlocked object lock.
+ *
+ * @returns An object lock.
+ */
+ObjectLock Dictionary::LockIfRequired()
+{
+	if (Frozen()) {
+		return ObjectLock(this, std::defer_lock);
+	}
+	return ObjectLock(this);
 }
 
 Value Dictionary::GetFieldByName(const String& field, bool, const DebugInfo& debugInfo) const

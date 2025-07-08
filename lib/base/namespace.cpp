@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/namespace.hpp"
-#include "base/objectlock.hpp"
 #include "base/debug.hpp"
 #include "base/primitivetype.hpp"
 #include "base/debuginfo.hpp"
@@ -125,6 +124,20 @@ void Namespace::Freeze() {
 bool Namespace::Frozen() const
 {
 	return m_Frozen.load(std::memory_order_acquire);
+}
+
+/**
+ * Returns an already locked ObjectLock if the namespace is frozen.
+ * Otherwise, returns an unlocked object lock.
+ *
+ * @returns An object lock.
+ */
+ObjectLock Namespace::LockIfRequired()
+{
+	if (Frozen()) {
+		return ObjectLock(this, std::defer_lock);
+	}
+	return ObjectLock(this);
 }
 
 std::shared_lock<std::shared_timed_mutex> Namespace::ReadLockUnlessFrozen() const

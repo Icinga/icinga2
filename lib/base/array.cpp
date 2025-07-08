@@ -335,6 +335,20 @@ bool Array::Frozen() const
 	return m_Frozen.load(std::memory_order_acquire);
 }
 
+/**
+ * Returns an already locked ObjectLock if the array is frozen.
+ * Otherwise, returns an unlocked object lock.
+ *
+ * @returns An object lock.
+ */
+ObjectLock Array::LockIfRequired()
+{
+	if (Frozen()) {
+		return ObjectLock(this, std::defer_lock);
+	}
+	return ObjectLock(this);
+}
+
 Value Array::GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const
 {
 	int index;

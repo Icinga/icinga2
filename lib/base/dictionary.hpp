@@ -6,6 +6,7 @@
 #include "base/i2-base.hpp"
 #include "base/atomic.hpp"
 #include "base/object.hpp"
+#include "base/objectlock.hpp"
 #include "base/value.hpp"
 #include <boost/range/iterator.hpp>
 #include <map>
@@ -71,6 +72,7 @@ public:
 
 	void Freeze();
 	bool Frozen() const;
+	ObjectLock LockIfRequired();
 
 	Value GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const override;
 	void SetFieldByName(const String& field, const Value& value, const DebugInfo& debugInfo) override;
