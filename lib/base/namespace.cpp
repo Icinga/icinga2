@@ -7,10 +7,11 @@
 #include "base/debuginfo.hpp"
 #include "base/exception.hpp"
 #include <sstream>
+#include <utility>
 
 using namespace icinga;
 
-template class std::map<icinga::String, std::shared_ptr<icinga::NamespaceValue> >;
+template class icinga::HybridMap<String, NamespaceValue>;
 
 REGISTER_PRIMITIVE_TYPE(Namespace, Object, Namespace::GetPrototype());
 
@@ -34,14 +35,13 @@ Value Namespace::Get(const String& field) const
 bool Namespace::Get(const String& field, Value *value) const
 {
 	auto lock(ReadLockUnlessFrozen());
+	NamespaceValue nv;
 
-	auto nsVal = m_Data.find(field);
-
-	if (nsVal == m_Data.end()) {
+	if (!m_Data.Get(field, nv)) {
 		return false;
 	}
 
-	*value = nsVal->second.Val;
+	*value = std::move(nv.Val);
 	return true;
 }
 
@@ -55,16 +55,16 @@ void Namespace::Set(const String& field, const Value& value, bool isConst, const
 
 	std::unique_lock<decltype(m_DataMutex)> dlock (m_DataMutex);
 
-	auto nsVal = m_Data.find(field);
+	auto pos (m_Data.Find(field));
 
-	if (nsVal == m_Data.end()) {
-		m_Data[field] = NamespaceValue{value, isConst || m_ConstValues};
+	if (pos == m_Data.NPos()) {
+		m_Data.Set(field, NamespaceValue{value, isConst || m_ConstValues});
 	} else {
-		if (nsVal->second.Const) {
+		if (pos->second.Const) {
 			BOOST_THROW_EXCEPTION(ScriptError("Constant must not be modified.", debugInfo));
 		}
 
-		nsVal->second.Val = value;
+		*const_cast<Value*>(&pos->second.Val) = value;
 	}
 }
 
@@ -77,14 +77,14 @@ size_t Namespace::GetLength() const
 {
 	auto lock(ReadLockUnlessFrozen());
 
-	return m_Data.size();
+	return m_Data.GetLength();
 }
 
 bool Namespace::Contains(const String& field) const
 {
 	auto lock (ReadLockUnlessFrozen());
 
-	return m_Data.find(field) != m_Data.end();
+	return m_Data.Contains(field);
 }
 
 void Namespace::Remove(const String& field)
@@ -97,17 +97,17 @@ void Namespace::Remove(const String& field)
 
 	std::unique_lock<decltype(m_DataMutex)> dlock (m_DataMutex);
 
-	auto it = m_Data.find(field);
+	auto pos (m_Data.Find(field));
 
-	if (it == m_Data.end()) {
+	if (pos == m_Data.NPos()) {
 		return;
 	}
 
-	if (it->second.Const) {
+	if (pos->second.Const) {
 		BOOST_THROW_EXCEPTION(ScriptError("Constants must not be removed."));
 	}
 
-	m_Data.erase(it);
+	m_Data.Remove(pos);
 }
 
 /**
@@ -133,14 +133,14 @@ std::shared_lock<std::shared_timed_mutex> Namespace::ReadLockUnlessFrozen() cons
 
 Value Namespace::GetFieldByName(const String& field, bool, const DebugInfo& debugInfo) const
 {
+	NamespaceValue nv;
 	auto lock (ReadLockUnlessFrozen());
 
-	auto nsVal = m_Data.find(field);
-
-	if (nsVal != m_Data.end())
-		return nsVal->second.Val;
-	else
+	if (m_Data.Get(field, nv)) {
+		return std::move(nv.Val);
+	} else {
 		return GetPrototypeField(const_cast<Namespace *>(this), field, false, debugInfo); /* Ignore indexer not found errors similar to the Dictionary class. */
+	}
 }
 
 void Namespace::SetFieldByName(const String& field, const Value& value, bool overrideFrozen, const DebugInfo& debugInfo)

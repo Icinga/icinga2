@@ -3,13 +3,13 @@
 #ifndef NAMESPACE_H
 #define NAMESPACE_H
 
+#include "base/hybrid-map.hpp"
 #include "base/i2-base.hpp"
 #include "base/object.hpp"
 #include "base/shared-object.hpp"
 #include "base/value.hpp"
 #include "base/debuginfo.hpp"
 #include <atomic>
-#include <map>
 #include <vector>
 #include <memory>
 #include <shared_mutex>
@@ -61,9 +61,9 @@ class Namespace final : public Object
 public:
 	DECLARE_OBJECT(Namespace);
 
-	typedef std::map<String, NamespaceValue>::iterator Iterator;
+	typedef HybridMap<String, NamespaceValue>::Iterator Iterator;
 
-	typedef std::map<String, NamespaceValue>::value_type Pair;
+	typedef HybridMap<String, NamespaceValue>::ValueType Pair;
 
 	explicit Namespace(bool constValues = false);
 
@@ -89,7 +89,7 @@ public:
 private:
 	std::shared_lock<std::shared_timed_mutex> ReadLockUnlessFrozen() const;
 
-	std::map<String, NamespaceValue> m_Data;
+	HybridMap<String, NamespaceValue> m_Data;
 	mutable std::shared_timed_mutex m_DataMutex;
 	bool m_ConstValues;
 	std::atomic<bool> m_Frozen;
@@ -100,6 +100,6 @@ Namespace::Iterator end(const Namespace::Ptr& x);
 
 }
 
-extern template class std::map<icinga::String, std::shared_ptr<icinga::NamespaceValue> >;
+extern template class icinga::HybridMap<icinga::String, icinga::NamespaceValue>;
 
 #endif /* NAMESPACE_H */
