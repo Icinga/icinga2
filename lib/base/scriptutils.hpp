@@ -7,6 +7,7 @@
 #include "base/string.hpp"
 #include "base/array.hpp"
 #include "base/dictionary.hpp"
+#include "base/generator.hpp"
 #include "base/type.hpp"
 #include "base/configobject.hpp"
 
@@ -31,6 +32,7 @@ public:
 	static Array::Ptr Intersection(const std::vector<Value>& arguments);
 	static void Log(const std::vector<Value>& arguments);
 	static Array::Ptr Range(const std::vector<Value>& arguments);
+	static Generator::Ptr XRange(const std::vector<Value>& arguments);
 	static Type::Ptr TypeOf(const Value& value);
 	static Array::Ptr Keys(const Object::Ptr& obj);
 	static Dictionary::Ptr GetTemplate(const Value& vtype, const String& name);
