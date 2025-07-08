@@ -3,8 +3,8 @@
 #ifndef CONFIGSTAGESHANDLER_H
 #define CONFIGSTAGESHANDLER_H
 
+#include "base/atomic.hpp"
 #include "remote/httphandler.hpp"
-#include <atomic>
 
 namespace icinga
 {
@@ -49,7 +49,7 @@ private:
 		const Dictionary::Ptr& params
 	);
 
-	static std::atomic<bool> m_RunningPackageUpdates;
+	static Atomic<bool> m_RunningPackageUpdates;
 };
 
 }
