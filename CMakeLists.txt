@@ -232,6 +232,9 @@ endif()
 
 if(WIN32)
   list(APPEND base_DEPS ws2_32 dbghelp shlwapi msi)
+else()
+  find_library(CRYPT_LIBRARIES NAMES crypt)
+  list(APPEND base_DEPS ${CRYPT_LIBRARIES})
 endif()
 
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH};${CMAKE_INSTALL_FULL_LIBDIR}/icinga2")
