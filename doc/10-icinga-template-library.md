@@ -522,7 +522,7 @@ Custom variables passed as [command parameters](03-monitoring-basics.md#command-
 
 Name            | Description
 ----------------|--------------
-fping_address   | **Optional.** The host's IPv4 address. Defaults to "$address$".
+fping_address   | **Optional.** The host's IP address (v6 or v4). Defaults to "$address6$" or "$address$" (in that order).
 fping_wrta      | **Optional.** The RTA warning threshold in milliseconds. Defaults to 100.
 fping_wpl       | **Optional.** The packet loss warning threshold in %. Defaults to 5.
 fping_crta      | **Optional.** The RTA critical threshold in milliseconds. Defaults to 200.
