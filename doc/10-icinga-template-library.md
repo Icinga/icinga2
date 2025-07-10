@@ -516,7 +516,7 @@ The [check_fping](https://www.monitoring-plugins.org/doc/man/check_fping.html) p
 uses the `fping` command to ping the specified host for a fast check. Note that it is
 necessary to set the `suid` flag on `fping`.
 
-This CheckCommand is agnostic on whether it receives a resolvable name, IPv6 address oder legacy IP address.
+This CheckCommand is agnostic on whether it receives a resolvable name, IPv6 address or legacy IP address.
 
 Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
