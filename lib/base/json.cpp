@@ -242,7 +242,7 @@ void JsonEncoder::FlushIfSafe(boost::asio::yield_context* yc) const
 		// cast the m_Writer to AsyncJsonWriter without any additional checks as it is guaranteed
 		// to be an instance of AsyncJsonWriter when m_IsAsyncWriter is true.
 		auto ajw(static_cast<AsyncJsonWriter*>(m_Writer.get()));
-		ajw->Flush(*yc);
+		ajw->MayFlush(*yc);
 	}
 }
 

@@ -17,7 +17,7 @@ namespace icinga
  *
  * All users of this class must ensure that the underlying output stream will not perform any asynchronous I/O
  * operations when the @c write_character() or @c write_characters() methods are called. They shall only perform
- * such ops when the @c JsonEncoder allows them to do so by calling the @c Flush() method.
+ * such ops when the @c JsonEncoder allows them to do so by calling the @c MayFlush() method.
  *
  * @ingroup base
  */
@@ -25,7 +25,7 @@ class AsyncJsonWriter : public nlohmann::detail::output_adapter_protocol<char>
 {
 public:
 	/**
-	 * Flush instructs the underlying output stream to write any buffered data to wherever it is supposed to go.
+	 * It instructs the underlying output stream to write any buffered data to wherever it is supposed to go.
 	 *
 	 * The @c JsonEncoder allows the stream to even perform asynchronous operations in a safe manner by calling
 	 * this method with a dedicated @c boost::asio::yield_context object. The stream must not perform any async
@@ -37,7 +37,7 @@ public:
 	 *
 	 * @param yield The yield context to use for asynchronous operations.
 	 */
-	virtual void Flush(boost::asio::yield_context& yield) = 0;
+	virtual void MayFlush(boost::asio::yield_context& yield) = 0;
 };
 
 class String;
