@@ -15,28 +15,23 @@ REGISTER_URLHANDLER("/v1/objects", ModifyObjectHandler);
 
 bool ModifyObjectHandler::HandleRequest(
 	const WaitGroup::Ptr& waitGroup,
-	AsioTlsStream& stream,
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params,
-	boost::asio::yield_context& yc,
-	HttpServerConnection& server
+	HttpRequest& request,
+	HttpResponse& response,
+	boost::asio::yield_context& yc
 )
 {
 	namespace http = boost::beast::http;
 
-	if (url->GetPath().size() < 3 || url->GetPath().size() > 4)
+	if (request.Url()->GetPath().size() < 3 || request.Url()->GetPath().size() > 4)
 		return false;
 
 	if (request.method() != http::verb::post)
 		return false;
 
-	Type::Ptr type = FilterUtility::TypeFromPluralName(url->GetPath()[2]);
+	Type::Ptr type = FilterUtility::TypeFromPluralName(request.Url()->GetPath()[2]);
 
 	if (!type) {
-		HttpUtility::SendJsonError(response, params, 400, "Invalid type specified.");
+		response.SendJsonError(request.Params(), 400, "Invalid type specified.");
 		return true;
 	}
 
@@ -44,29 +39,29 @@ bool ModifyObjectHandler::HandleRequest(
 	qd.Types.insert(type->GetName());
 	qd.Permission = "objects/modify/" + type->GetName();
 
-	params->Set("type", type->GetName());
+	request.Params()->Set("type", type->GetName());
 
-	if (url->GetPath().size() >= 4) {
+	if (request.Url()->GetPath().size() >= 4) {
 		String attr = type->GetName();
 		boost::algorithm::to_lower(attr);
-		params->Set(attr, url->GetPath()[3]);
+		request.Params()->Set(attr, request.Url()->GetPath()[3]);
 	}
 
 	std::vector<Value> objs;
 
 	try {
-		objs = FilterUtility::GetFilterTargets(qd, params, user);
+		objs = FilterUtility::GetFilterTargets(qd, request.Params(), request.User());
 	} catch (const std::exception& ex) {
-		HttpUtility::SendJsonError(response, params, 404,
+		response.SendJsonError(request.Params(), 404,
 			"No objects found.",
 			DiagnosticInformation(ex));
 		return true;
 	}
 
-	Value attrsVal = params->Get("attrs");
+	Value attrsVal = request.Params()->Get("attrs");
 
 	if (attrsVal.GetReflectionType() != Dictionary::TypeInstance && attrsVal.GetType() != ValueEmpty) {
-		HttpUtility::SendJsonError(response, params, 400,
+		response.SendJsonError(request.Params(), 400,
 			"Invalid type for 'attrs' attribute specified. Dictionary type is required."
 			"Or is this a POST query and you missed adding a 'X-HTTP-Method-Override: GET' header?");
 		return true;
@@ -74,10 +69,10 @@ bool ModifyObjectHandler::HandleRequest(
 
 	Dictionary::Ptr attrs = attrsVal;
 
-	Value restoreAttrsVal = params->Get("restore_attrs");
+	Value restoreAttrsVal = request.Params()->Get("restore_attrs");
 
 	if (restoreAttrsVal.GetReflectionType() != Array::TypeInstance && restoreAttrsVal.GetType() != ValueEmpty) {
-		HttpUtility::SendJsonError(response, params, 400,
+		response.SendJsonError(request.Params(), 400,
 			"Invalid type for 'restore_attrs' attribute specified. Array type is required.");
 		return true;
 	}
@@ -85,21 +80,18 @@ bool ModifyObjectHandler::HandleRequest(
 	Array::Ptr restoreAttrs = restoreAttrsVal;
 
 	if (!(attrs || restoreAttrs)) {
-		HttpUtility::SendJsonError(response, params, 400,
+		response.SendJsonError(request.Params(), 400,
 			"Missing both 'attrs' and 'restore_attrs'. "
 			"Or is this a POST query and you missed adding a 'X-HTTP-Method-Override: GET' header?");
 		return true;
 	}
 
-	bool verbose = false;
-
-	if (params)
-		verbose = HttpUtility::GetLastParameter(params, "verbose");
+	bool verbose = request.IsVerbose();
 
 	ConfigObjectsSharedLock lock (std::try_to_lock);
 
 	if (!lock) {
-		HttpUtility::SendJsonError(response, params, 503, "Icinga is reloading");
+		response.SendJsonError(request.Params(), 503, "Icinga is reloading");
 		return true;
 	}
 
@@ -107,7 +99,7 @@ bool ModifyObjectHandler::HandleRequest(
 
 	std::shared_lock wgLock{*waitGroup, std::try_to_lock};
 	if (!wgLock) {
-		HttpUtility::SendJsonError(response, params, 503, "Shutting down.");
+		response.SendJsonError(request.Params(), 503, "Shutting down.");
 		return true;
 	}
 
@@ -185,7 +177,7 @@ bool ModifyObjectHandler::HandleRequest(
 	});
 
 	response.result(http::status::ok);
-	HttpUtility::SendJsonBody(response, params, result);
+	response.SendJsonBody(result, request.IsPretty());
 
 	return true;
 }

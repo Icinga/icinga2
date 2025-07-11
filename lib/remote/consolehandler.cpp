@@ -55,19 +55,14 @@ static void EnsureFrameCleanupTimer()
 
 bool ConsoleHandler::HandleRequest(
 	const WaitGroup::Ptr&,
-	AsioTlsStream& stream,
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params,
-	boost::asio::yield_context& yc,
-	HttpServerConnection& server
+	HttpRequest& request,
+	HttpResponse& response,
+	boost::asio::yield_context& yc
 )
 {
 	namespace http = boost::beast::http;
 
-	if (url->GetPath().size() != 3)
+	if (request.Url()->GetPath().size() != 3)
 		return false;
 
 	if (request.method() != http::verb::post)
@@ -75,38 +70,37 @@ bool ConsoleHandler::HandleRequest(
 
 	QueryDescription qd;
 
-	String methodName = url->GetPath()[2];
+	String methodName = request.Url()->GetPath()[2];
 
-	FilterUtility::CheckPermission(user, "console");
+	FilterUtility::CheckPermission(request.User(), "console");
 
-	String session = HttpUtility::GetLastParameter(params, "session");
+	String session = request.GetLastParameter("session");
 
 	if (session.IsEmpty())
 		session = Utility::NewUniqueID();
 
-	String command = HttpUtility::GetLastParameter(params, "command");
+	String command = request.GetLastParameter("command");
 
-	bool sandboxed = HttpUtility::GetLastParameter(params, "sandboxed");
+	bool sandboxed = request.GetLastParameter("sandboxed");
 
 	ConfigObjectsSharedLock lock (std::try_to_lock);
 
 	if (!lock) {
-		HttpUtility::SendJsonError(response, params, 503, "Icinga is reloading.");
+		response.SendJsonError(request.Params(), 503, "Icinga is reloading.");
 		return true;
 	}
 
 	if (methodName == "execute-script")
-		return ExecuteScriptHelper(request, response, params, command, session, sandboxed);
+		return ExecuteScriptHelper(request, response, command, session, sandboxed);
 	else if (methodName == "auto-complete-script")
-		return AutocompleteScriptHelper(request, response, params, command, session, sandboxed);
+		return AutocompleteScriptHelper(request, response, command, session, sandboxed);
 
-	HttpUtility::SendJsonError(response, params, 400, "Invalid method specified: " + methodName);
+	response.SendJsonError(request.Params(), 400, "Invalid method specified: " + methodName);
 	return true;
 }
 
-bool ConsoleHandler::ExecuteScriptHelper(boost::beast::http::request<boost::beast::http::string_body>& request,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params, const String& command, const String& session, bool sandboxed)
+bool ConsoleHandler::ExecuteScriptHelper(HttpRequest& request, HttpResponse& response,
+	const String& command, const String& session, bool sandboxed)
 {
 	namespace http = boost::beast::http;
 
@@ -174,14 +168,13 @@ bool ConsoleHandler::ExecuteScriptHelper(boost::beast::http::request<boost::beas
 	});
 
 	response.result(http::status::ok);
-	HttpUtility::SendJsonBody(response, params, result);
+	response.SendJsonBody(result, request.IsPretty());
 
 	return true;
 }
 
-bool ConsoleHandler::AutocompleteScriptHelper(boost::beast::http::request<boost::beast::http::string_body>& request,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params, const String& command, const String& session, bool sandboxed)
+bool ConsoleHandler::AutocompleteScriptHelper(HttpRequest& request, HttpResponse& response,
+	const String& command, const String& session, bool sandboxed)
 {
 	namespace http = boost::beast::http;
 
@@ -213,7 +206,7 @@ bool ConsoleHandler::AutocompleteScriptHelper(boost::beast::http::request<boost:
 	});
 
 	response.result(http::status::ok);
-	HttpUtility::SendJsonBody(response, params, result);
+	response.SendJsonBody(result, request.IsPretty());
 
 	return true;
 }
