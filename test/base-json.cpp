@@ -32,7 +32,7 @@ BOOST_AUTO_TEST_CASE(encode)
 		{ "false", false },
 		// Use double max value to test JSON encoding of large numbers and trigger boost numeric_cast exceptions
 		{ "max_double", std::numeric_limits<double>::max() },
-		// Test the maximum number that can be exact represented by a double is 2^64-2048.
+		// Test the largest uint64_t value that has an exact double representation (2^64-2048).
 		{ "max_int_in_double", std::nextafter(std::pow(2, 64), 0.0) },
 		{ "float", -1.25f },
 		{ "float_without_fraction", 23.0f },

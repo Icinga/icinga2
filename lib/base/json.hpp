@@ -50,9 +50,7 @@ class Value;
  * The supported stream types include any @c std::ostream like objects and our own @c AsyncJsonWriter, which
  * allows writing JSON data to an Asio stream asynchronously. The nlohmann/json library already provides
  * full support for the former stream type, while the latter is fully implemented by our own and satisfies the
- * @c nlohmann::detail::output_adapter_protocol<> interface as well. Therefore, any concrete implementation of
- * @c AsyncJsonWriter may be used to write the produced JSON directly to an Asio either TCP or TLS stream without
- * any additional buffering other than the one used by the Asio buffered_stream<> class internally.
+ * @c nlohmann::detail::output_adapter_protocol<> interface as well.
  *
  * The JSON encoder generates most of the low level JSON tokens, but it still relies on the already existing
  * @c nlohmann::detail::serializer<> class to dump numbers and ASCII validated JSON strings. This means that the
