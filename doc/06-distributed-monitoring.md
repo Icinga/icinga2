@@ -3386,6 +3386,7 @@ Pass the following details to the `node setup` CLI command:
   `--accept-commands` | **Optional.** Whether this node accepts command execution messages from the master node (required for [command endpoint mode](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)).
   `--global_zones`    | **Optional.** Allows to specify more global zones in addition to `global-templates` and `director-global`.
   `--disable-confd`   | **Optional.** If provided, this disables the `include_recursive "conf.d"` directive in `icinga2.conf`. Available since v2.9+. Not set by default for compatibility reasons with Puppet, Ansible, Chef, etc.
+  `--no-default-global-zones` | **Optional.** If provided, this flag disables the default global zones `global-templates` and `director-global`. This flag is useful for agent setups.
 
 > **Note**
 >
