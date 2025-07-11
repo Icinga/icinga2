@@ -88,6 +88,8 @@ set(base_test_SOURCES
   icinga-perfdata.cpp
   methods-pluginnotificationtask.cpp
   remote-configpackageutility.cpp
+  remote-httpserverconnection.cpp
+  remote-httpmessage.cpp
   remote-url.cpp
   ${base_OBJS}
   $<TARGET_OBJECTS:config>
@@ -271,6 +273,20 @@ add_boost_test(base
     icinga_perfdata/parse_edgecases
     icinga_perfdata/empty_warn_crit_min_max
     methods_pluginnotificationtask/truncate_long_output
+    remote_httpmessage/request_parse
+    # remote_httpmessage/request_params
+    remote_httpserverconnection/setup_certs
+    remote_httpserverconnection/expect_100_continue
+    remote_httpserverconnection/bad_request
+    remote_httpserverconnection/error_access_control
+    remote_httpserverconnection/error_accept_header
+    remote_httpserverconnection/error_authenticate_cn
+    remote_httpserverconnection/error_authenticate_passwd
+    remote_httpserverconnection/error_authenticate_wronguser
+    remote_httpserverconnection/error_authenticate_wrongpasswd
+    # remote_httpserverconnection/reuse_connection_and_wg_abort
+    # remote_httpserverconnection/liveness_disconnect
+    remote_httpserverconnection/cleanup_certs
     remote_configpackageutility/ValidateName
     remote_url/id_and_path
     remote_url/parameters
@@ -278,6 +294,32 @@ add_boost_test(base
     remote_url/format
     remote_url/illegal_legal_strings
 )
+
+if(BUILD_TESTING)
+  set_tests_properties(
+    base-remote_httpmessage/request_parse
+    base-remote_httpserverconnection/expect_100_continue
+    base-remote_httpserverconnection/bad_request
+    base-remote_httpserverconnection/error_access_control
+    base-remote_httpserverconnection/error_accept_header
+    base-remote_httpserverconnection/error_authenticate_cn
+    base-remote_httpserverconnection/error_authenticate_passwd
+    base-remote_httpserverconnection/error_authenticate_wronguser
+    base-remote_httpserverconnection/error_authenticate_wrongpasswd
+    # base-remote_httpserverconnection/reuse_connection_and_wg_abort
+    # remote-remote_httpserverconnection/liveness_disconnect
+    PROPERTIES FIXTURES_REQUIRED ssl_certs)
+
+  set_tests_properties(
+    base-remote_httpserverconnection/setup_certs
+    PROPERTIES FIXTURES_SETUP ssl_certs
+  )
+
+  set_tests_properties(
+    base-remote_httpserverconnection/cleanup_certs
+    PROPERTIES FIXTURES_CLEANUP ssl_certs
+  )
+endif()
 
 if(ICINGA2_WITH_LIVESTATUS)
   set(livestatus_test_SOURCES
