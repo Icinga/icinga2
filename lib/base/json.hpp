@@ -81,8 +81,6 @@ private:
 	void EncodeNlohmannJson(const nlohmann::json& json) const;
 	void EncodeNumber(double value) const;
 
-	void FlushIfSafe(boost::asio::yield_context* yc) const;
-
 	void Write(const std::string_view& sv) const;
 	void BeginContainer(char openChar);
 	void EndContainer(char closeChar, bool isContainerEmpty = false);
@@ -91,7 +89,6 @@ private:
 	// The number of spaces to use for indentation in prettified JSON.
 	static constexpr uint8_t m_IndentSize = 4;
 
-	const bool m_IsAsyncWriter; // Whether the writer is an instance of AsyncJsonWriter.
 	bool m_Pretty; // Whether to pretty-print the JSON output.
 	unsigned m_Indent{0}; // The current indentation level for pretty-printing.
 	/**
@@ -104,6 +101,20 @@ private:
 
 	// The output stream adapter for writing JSON data. This can be either a std::ostream or an Asio stream adapter.
 	nlohmann::detail::output_adapter_t<char> m_Writer;
+
+	/**
+	 * This class wraps any @c nlohmann::detail::output_adapter_t<char> writer and provides a method to flush it as
+	 * required. Only @c AsyncJsonWriter supports the flush operation, however, this class is also safe to use with
+	 * other writer types and the flush method does nothing for them.
+	 */
+	class Flusher {
+	public:
+		explicit Flusher(const nlohmann::detail::output_adapter_t<char>& w);
+		void FlushIfSafe(boost::asio::yield_context* yc) const;
+
+	private:
+		AsyncJsonWriter* m_AsyncWriter;
+	} m_Flusher;
 };
 
 String JsonEncode(const Value& value, bool prettify = false);

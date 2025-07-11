@@ -24,7 +24,7 @@ JsonEncoder::JsonEncoder(std::basic_ostream<char>& stream, bool prettify)
 }
 
 JsonEncoder::JsonEncoder(nlohmann::detail::output_adapter_t<char> w, bool prettify)
-	: m_IsAsyncWriter{dynamic_cast<AsyncJsonWriter*>(w.get()) != nullptr}, m_Pretty(prettify), m_Writer(std::move(w))
+	: m_Pretty(prettify), m_Writer(std::move(w)), m_Flusher{m_Writer}
 {
 }
 
@@ -112,7 +112,7 @@ void JsonEncoder::EncodeArray(const Array::Ptr& array, boost::asio::yield_contex
 		WriteSeparatorAndIndentStrIfNeeded(!isEmpty);
 		isEmpty = false;
 		Encode(item, yc);
-		FlushIfSafe(yc);
+		m_Flusher.FlushIfSafe(yc);
 	}
 	EndContainer(']', isEmpty);
 }
@@ -134,7 +134,7 @@ void JsonEncoder::EncodeValueGenerator(const ValueGenerator::Ptr& generator, boo
 		WriteSeparatorAndIndentStrIfNeeded(!isEmpty);
 		isEmpty = false;
 		Encode(*result, yc);
-		FlushIfSafe(yc);
+		m_Flusher.FlushIfSafe(yc);
 	}
 	EndContainer(']', isEmpty);
 }
@@ -171,7 +171,7 @@ void JsonEncoder::EncodeObject(const Iterable& container, const ValExtractor& ex
 		Write(m_Pretty ? ": " : ":");
 
 		Encode(extractor(val), yc);
-		FlushIfSafe(yc);
+		m_Flusher.FlushIfSafe(yc);
 	}
 	EndContainer('}', isEmpty);
 }
@@ -221,29 +221,6 @@ void JsonEncoder::EncodeNumber(double value) const
 	} catch (const boost::bad_numeric_cast&) {}
 
 	EncodeNlohmannJson(value);
-}
-
-/**
- * Flushes the output stream if it is safe to do so.
- *
- * Safe flushing means that it only performs the flush operation if the @c JsonEncoder has not acquired
- * any object lock so far. This is to ensure that the stream can safely perform asynchronous operations
- * without risking undefined behaviour due to coroutines being suspended while the stream is being flushed.
- *
- * When the @c yc parameter is provided, it indicates that it's safe to perform asynchronous operations,
- * and the function will attempt to flush if the writer is an instance of @c AsyncJsonWriter.
- *
- * @param yc The yield context to use for asynchronous operations.
- */
-void JsonEncoder::FlushIfSafe(boost::asio::yield_context* yc) const
-{
-	if (yc && m_IsAsyncWriter) {
-		// The m_IsAsyncWriter flag is a constant, and it will never change, so we can safely static
-		// cast the m_Writer to AsyncJsonWriter without any additional checks as it is guaranteed
-		// to be an instance of AsyncJsonWriter when m_IsAsyncWriter is true.
-		auto ajw(static_cast<AsyncJsonWriter*>(m_Writer.get()));
-		ajw->MayFlush(*yc);
-	}
 }
 
 /**
@@ -310,6 +287,36 @@ void JsonEncoder::WriteSeparatorAndIndentStrIfNeeded(bool emitComma) const
 	if (m_Pretty) {
 		Write("\n");
 		m_Writer->write_characters(m_IndentStr.c_str(), m_Indent);
+	}
+}
+
+/**
+ * Wraps any writer of type @c nlohmann::detail::output_adapter_t<char> into a Flusher
+ *
+ * @param w The writer to wrap.
+ */
+JsonEncoder::Flusher::Flusher(const nlohmann::detail::output_adapter_t<char>& w)
+	: m_AsyncWriter(dynamic_cast<AsyncJsonWriter*>(w.get()))
+{
+}
+
+/**
+ * Flushes the underlying writer if it supports that operation and is safe to do so.
+ *
+ * Safe flushing means that it only performs the flush operation if the @c JsonEncoder has not acquired
+ * any object lock so far. This is to ensure that the stream can safely perform asynchronous operations
+ * without risking undefined behaviour due to coroutines being suspended while the stream is being flushed.
+ *
+ * When the @c yc parameter is provided, it indicates that it's safe to perform asynchronous operations,
+ * and the function will attempt to flush if the writer is an instance of @c AsyncJsonWriter. Otherwise,
+ * this function does nothing.
+ *
+ * @param yc The yield context to use for asynchronous operations.
+ */
+void JsonEncoder::Flusher::FlushIfSafe(boost::asio::yield_context* yc) const
+{
+	if (yc && m_AsyncWriter) {
+		m_AsyncWriter->MayFlush(*yc);
 	}
 }
 
