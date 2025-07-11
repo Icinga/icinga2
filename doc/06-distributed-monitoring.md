@@ -3373,19 +3373,19 @@ the previously stored trusted parent certificate (`trusted-parent.crt`).
 
 Pass the following details to the `node setup` CLI command:
 
-  Parameter           | Description
-  --------------------|--------------------
-  `--cn`              | **Optional.** Common name (CN). By convention this should be the host's FQDN.
-  `--ticket`          | **Required.** Request ticket. Add the previously generated [ticket number](06-distributed-monitoring.md#distributed-monitoring-setup-csr-auto-signing).
-  `--trustedcert`     | **Required.** Trusted parent certificate file as connection verification (received via 'pki save-cert').
-  `--parent_host`     | **Optional.** FQDN or IP address of the parent host. This is where the command connects for CSR signing. If not specified, you need to manually copy the parent's public CA certificate file into `/var/lib/icinga2/certs/ca.crt` in order to start Icinga 2.
-  `--endpoint`        | **Required.** Specifies the parent's endpoint name.
-  `--zone`            | **Required.** Specifies the agent/satellite zone name.
-  `--parent_zone`     | **Optional.** Specifies the parent's zone name.
-  `--accept-config`   | **Optional.** Whether this node accepts configuration sync from the master node (required for [config sync mode](06-distributed-monitoring.md#distributed-monitoring-top-down-config-sync)).
-  `--accept-commands` | **Optional.** Whether this node accepts command execution messages from the master node (required for [command endpoint mode](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)).
-  `--global_zones`    | **Optional.** Allows to specify more global zones in addition to `global-templates` and `director-global`.
-  `--disable-confd`   | **Optional.** If provided, this disables the `include_recursive "conf.d"` directive in `icinga2.conf`. Available since v2.9+. Not set by default for compatibility reasons with Puppet, Ansible, Chef, etc.
+  Parameter                   | Description
+  ----------------------------|--------------------
+  `--cn`                      | **Optional.** Common name (CN). By convention this should be the host's FQDN.
+  `--ticket`                  | **Required.** Request ticket. Add the previously generated [ticket number](06-distributed-monitoring.md#distributed-monitoring-setup-csr-auto-signing).
+  `--trustedcert`             | **Required.** Trusted parent certificate file as connection verification (received via 'pki save-cert').
+  `--parent_host`             | **Optional.** FQDN or IP address of the parent host. This is where the command connects for CSR signing. If not specified, you need to manually copy the parent's public CA certificate file into `/var/lib/icinga2/certs/ca.crt` in order to start Icinga 2.
+  `--endpoint`                | **Required.** Specifies the parent's endpoint name.
+  `--zone`                    | **Required.** Specifies the agent/satellite zone name.
+  `--parent_zone`             | **Optional.** Specifies the parent's zone name.
+  `--accept-config`           | **Optional.** Whether this node accepts configuration sync from the master node (required for [config sync mode](06-distributed-monitoring.md#distributed-monitoring-top-down-config-sync)).
+  `--accept-commands`         | **Optional.** Whether this node accepts command execution messages from the master node (required for [command endpoint mode](06-distributed-monitoring.md#distributed-monitoring-top-down-command-endpoint)).
+  `--global_zones`            | **Optional.** Allows to specify more global zones in addition to `global-templates` and `director-global`.
+  `--disable-confd`           | **Optional.** If provided, this disables the `include_recursive "conf.d"` directive in `icinga2.conf`. Available since v2.9+. Not set by default for compatibility reasons with Puppet, Ansible, Chef, etc.
   `--no-default-global-zones` | **Optional.** If provided, this flag disables the default global zones `global-templates` and `director-global`. This flag is useful for agent setups.
 
 > **Note**
