@@ -27,6 +27,7 @@ template Log& Log::operator<<(const int&);
 template Log& Log::operator<<(const unsigned long&);
 template Log& Log::operator<<(const long&);
 template Log& Log::operator<<(const double&);
+template Log& Log::operator<<(const char*&);
 
 REGISTER_TYPE(Logger);
 
@@ -314,13 +315,4 @@ Log::~Log()
 		WindowsEventLogLogger::WriteToWindowsEventLog(entry);
 	}
 #endif /* _WIN32 */
-}
-
-Log& Log::operator<<(const char *val)
-{
-	if (!m_IsNoOp) {
-		m_Buffer << val;
-	}
-
-	return *this;
 }
