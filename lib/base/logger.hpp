@@ -6,6 +6,7 @@
 #include "base/atomic.hpp"
 #include "base/i2-base.hpp"
 #include "base/logger-ti.hpp"
+#include <optional>
 #include <set>
 #include <sstream>
 
@@ -121,8 +122,8 @@ public:
 	template<typename T>
 	Log& operator<<(T&& val)
 	{
-		if (!m_IsNoOp) {
-			m_Buffer << std::forward<T>(val);
+		if (m_Buffer) {
+			*m_Buffer << std::forward<T>(val);
 		}
 
 		return *this;
@@ -131,8 +132,11 @@ public:
 private:
 	LogSeverity m_Severity;
 	String m_Facility;
-	std::ostringstream m_Buffer;
-	bool m_IsNoOp;
+	/**
+	 * Stream for incrementally generating the log message. If the message will be discarded as it's level currently
+	 * isn't logged, it will be empty as the stream doesn't need to be initialized in this case.
+	 */
+	std::optional<std::ostringstream> m_Buffer;
 };
 
 extern template Log& Log::operator<<(const Value&);
