@@ -119,16 +119,14 @@ public:
 	~Log();
 
 	template<typename T>
-	Log& operator<<(const T& val)
+	Log& operator<<(T&& val)
 	{
 		if (!m_IsNoOp) {
-			m_Buffer << val;
+			m_Buffer << std::forward<T>(val);
 		}
 
 		return *this;
 	}
-
-	Log& operator<<(const char *val);
 
 private:
 	LogSeverity m_Severity;
@@ -146,6 +144,7 @@ extern template Log& Log::operator<<(const int&);
 extern template Log& Log::operator<<(const unsigned long&);
 extern template Log& Log::operator<<(const long&);
 extern template Log& Log::operator<<(const double&);
+extern template Log& Log::operator<<(const char*&);
 
 }
 
