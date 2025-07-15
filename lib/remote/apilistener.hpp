@@ -161,12 +161,12 @@ public:
 		return m_WaitGroup;
 	}
 
-protected:
 	void OnConfigLoaded() override;
 	void OnAllConfigLoaded() override;
 	void Start(bool runtimeCreated) override;
 	void Stop(bool runtimeDeleted) override;
 
+protected:
 	void ValidateTlsProtocolmin(const Lazy<String>& lvalue, const ValidationUtils& utils) override;
 	void ValidateTlsHandshakeTimeout(const Lazy<double>& lvalue, const ValidationUtils& utils) override;
 
