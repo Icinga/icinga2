@@ -5,6 +5,7 @@
 
 #include "base/i2-base.hpp"
 #include "base/object.hpp"
+#include "base/objectlock.hpp"
 #include "base/shared-object.hpp"
 #include "base/value.hpp"
 #include "base/debuginfo.hpp"
@@ -73,6 +74,8 @@ public:
 	bool Contains(const String& field) const;
 	void Remove(const String& field);
 	void Freeze();
+	bool Frozen() const;
+	ObjectLock LockIfRequired();
 
 	Iterator Begin();
 	Iterator End();

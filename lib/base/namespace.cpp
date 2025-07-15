@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/namespace.hpp"
-#include "base/objectlock.hpp"
 #include "base/debug.hpp"
 #include "base/primitivetype.hpp"
 #include "base/debuginfo.hpp"
@@ -119,7 +118,26 @@ void Namespace::Remove(const String& field)
 void Namespace::Freeze() {
 	ObjectLock olock(this);
 
-	m_Frozen = true;
+	m_Frozen.store(true, std::memory_order_release);
+}
+
+bool Namespace::Frozen() const
+{
+	return m_Frozen.load(std::memory_order_acquire);
+}
+
+/**
+ * Returns an already locked ObjectLock if the namespace is frozen.
+ * Otherwise, returns an unlocked object lock.
+ *
+ * @returns An object lock.
+ */
+ObjectLock Namespace::LockIfRequired()
+{
+	if (Frozen()) {
+		return ObjectLock(this, std::defer_lock);
+	}
+	return ObjectLock(this);
 }
 
 std::shared_lock<std::shared_timed_mutex> Namespace::ReadLockUnlessFrozen() const
@@ -160,14 +178,14 @@ bool Namespace::GetOwnField(const String& field, Value *result) const
 
 Namespace::Iterator Namespace::Begin()
 {
-	ASSERT(OwnsLock());
+	ASSERT(Frozen() || OwnsLock());
 
 	return m_Data.begin();
 }
 
 Namespace::Iterator Namespace::End()
 {
-	ASSERT(OwnsLock());
+	ASSERT(Frozen() || OwnsLock());
 
 	return m_Data.end();
 }
