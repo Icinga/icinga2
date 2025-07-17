@@ -77,7 +77,6 @@ jobs:
             echo "The current tag ${{ github.ref_name }} is not the greatest overall compared to $greatest_tag. Not tagging as 'latest'."
           fi
 
-
           major_version=$(echo ${{ github.ref_name }} | cut -d. -f1)
           greatest_major=$(git -c 'versionsort.suffix=-' tag --list "${major_version}.*" --sort=-v:refname | awk 'NR==1')
           if [ "${{ github.ref_name }}" = "$greatest_major" ]; then
@@ -100,7 +99,7 @@ jobs:
             # Docker Hub
             ${{ env.IMAGE_NAME }}
           labels: |
-            org.opencontainers.image.documentation=https://icinga.com/docs/icinga-db
+            org.opencontainers.image.documentation=https://icinga.com/docs/icinga2
             org.opencontainers.image.vendor=Icinga GmbH
           flavor: |
             # Disable automatic 'latest' tagging as our custom logic is used to
