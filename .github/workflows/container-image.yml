@@ -2,21 +2,19 @@
 # pushes them to both GitHub Container Registry (GHCR) and Docker Hub.
 # It sets up QEMU and Docker Buildx for cross-platform builds,
 # and builds the container images using the Containerfile.
-# Upon pushes to the main branch or when releases are published,
+# Upon pushes to the master branch or when releases are published,
 # it logs into GHCR and Docker Hub using credentials from GitHub secrets,
 # tags and pushes the images to both registries,
 # and generates and pushes signed build provenance attestations to each registry.
-# The workflow also triggers for pull requests to the main branch, verifying only the image build.
+# The workflow also triggers for pull requests to the master branch, verifying only the image build.
 
 name: Build and Publish Container Image
 
 on:
   push:
     branches:
-      - main
-  pull_request:
-    branches:
-      - main
+      - master
+  pull_request: {}
   release:
     types:
       - published
