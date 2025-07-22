@@ -26,6 +26,8 @@ void IcingaApplicationFixture::InitIcingaApplication()
 
 IcingaApplicationFixture::~IcingaApplicationFixture()
 {
+	BOOST_TEST_MESSAGE("Uninitializing Application...");
+	Application::UninitializeBase();
 	IcingaApplication::GetInstance().reset();
 }
 
