@@ -1229,6 +1229,11 @@ Configuration Attributes:
 Note: If `flush_threshold` is set too low, this will force the feature to flush all data to Elasticsearch too often.
 Experiment with the setting, if you are processing more than 1024 metrics per second or similar.
 
+> **Note**
+>
+> Be aware that `enable_send_perfdata` will create a new field mapping in the index for each performance data metric in a check plugin.
+> Elasticsearch/OpenSearch have a maximum number of fields in an index. The default value is usually 1000 fields. See [mapping settings limit](https://www.elastic.co/guide/en/elasticsearch/reference/8.18/mapping-settings-limit.html)
+
 Basic auth is supported with the `username` and `password` attributes. This requires an
 HTTP proxy (Nginx, etc.) in front of the Elasticsearch instance. Check [this blogpost](https://blog.netways.de/2017/09/14/secure-elasticsearch-and-kibana-with-an-nginx-http-proxy/)
 for an example.
