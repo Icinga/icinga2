@@ -2,6 +2,7 @@
 
 #include "remote/configpackageshandler.hpp"
 #include "remote/configpackageutility.hpp"
+#include "remote/configobjectslock.hpp"
 #include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
 #include "base/exception.hpp"
@@ -111,6 +112,12 @@ void ConfigPackagesHandler::HandlePost(
 		return;
 	}
 
+	ConfigObjectsSharedLock configObjectsSharedLock(std::try_to_lock);
+	if (!configObjectsSharedLock) {
+		HttpUtility::SendJsonError(response, params, 503, "Icinga is reloading");
+		return;
+	}
+
 	try {
 		std::unique_lock<std::mutex> lock(ConfigPackageUtility::GetStaticPackageMutex());
 
@@ -154,6 +161,12 @@ void ConfigPackagesHandler::HandleDelete(
 
 	if (!ConfigPackageUtility::ValidatePackageName(packageName)) {
 		HttpUtility::SendJsonError(response, params, 400, "Invalid package name '" + packageName + "'.");
+		return;
+	}
+
+	ConfigObjectsSharedLock lock(std::try_to_lock);
+	if (!lock) {
+		HttpUtility::SendJsonError(response, params, 503, "Icinga is reloading");
 		return;
 	}
 

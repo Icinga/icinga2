@@ -2,6 +2,7 @@
 
 #include "remote/configstageshandler.hpp"
 #include "remote/configpackageutility.hpp"
+#include "remote/configobjectslock.hpp"
 #include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
 #include "base/application.hpp"
@@ -135,6 +136,12 @@ void ConfigStagesHandler::HandlePost(
 		if (reload && !activate)
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Parameter 'reload' must be false when 'activate' is false."));
 
+		ConfigObjectsSharedLock configObjectsSharedLock(std::try_to_lock);
+		if (!configObjectsSharedLock) {
+			HttpUtility::SendJsonError(response, params, 503, "Icinga is reloading");
+			return;
+		}
+
 		{
 			std::lock_guard runningPackageUpdatesLock(l_RunningPackageUpdatesMutex);
 			double currentReloadFailedTime = Application::GetLastReloadFailed();
@@ -227,6 +234,12 @@ void ConfigStagesHandler::HandleDelete(
 
 	if (!ConfigPackageUtility::ValidateStageName(stageName))
 		return HttpUtility::SendJsonError(response, params, 400, "Invalid stage name '" + stageName + "'.");
+
+	ConfigObjectsSharedLock lock(std::try_to_lock);
+	if (!lock) {
+		HttpUtility::SendJsonError(response, params, 503, "Icinga is reloading");
+		return;
+	}
 
 	try {
 		ConfigPackageUtility::DeleteStage(packageName, stageName);
