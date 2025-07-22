@@ -50,6 +50,7 @@ jobs:
 
           - registry.suse.com/suse/sle15:15.5
           - registry.suse.com/suse/sle15:15.6
+          - registry.suse.com/suse/sle15:15.7
 
           - ubuntu:22.04
           - ubuntu:24.04
