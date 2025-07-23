@@ -21,41 +21,40 @@ static std::mutex l_RunningPackageUpdatesMutex; // Protects the above two variab
 bool ConfigStagesHandler::HandleRequest(
 	const WaitGroup::Ptr&,
 	AsioTlsStream& stream,
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params,
+	const HttpRequest& request,
+	HttpResponse& response,
 	boost::asio::yield_context& yc,
 	HttpServerConnection& server
 )
 {
 	namespace http = boost::beast::http;
 
+	auto url = request.Url();
+	auto user = request.User();
+	auto params = request.Params();
+
 	if (url->GetPath().size() > 5)
 		return false;
 
 	if (request.method() == http::verb::get)
-		HandleGet(user, request, url, response, params);
+		HandleGet(request, response);
 	else if (request.method() == http::verb::post)
-		HandlePost(user, request, url, response, params);
+		HandlePost(request, response);
 	else if (request.method() == http::verb::delete_)
-		HandleDelete(user, request, url, response, params);
+		HandleDelete(request, response);
 	else
 		return false;
 
 	return true;
 }
 
-void ConfigStagesHandler::HandleGet(
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params
-)
+void ConfigStagesHandler::HandleGet(const HttpRequest& request, HttpResponse& response)
 {
 	namespace http = boost::beast::http;
+
+	auto url = request.Url();
+	auto user = request.User();
+	auto params = request.Params();
 
 	FilterUtility::CheckPermission(user, "config/query");
 
@@ -95,15 +94,13 @@ void ConfigStagesHandler::HandleGet(
 	HttpUtility::SendJsonBody(response, params, result);
 }
 
-void ConfigStagesHandler::HandlePost(
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params
-)
+void ConfigStagesHandler::HandlePost(const HttpRequest& request, HttpResponse& response)
 {
 	namespace http = boost::beast::http;
+
+	auto url = request.Url();
+	auto user = request.User();
+	auto params = request.Params();
 
 	FilterUtility::CheckPermission(user, "config/modify");
 
@@ -208,15 +205,13 @@ void ConfigStagesHandler::HandlePost(
 	HttpUtility::SendJsonBody(response, params, result);
 }
 
-void ConfigStagesHandler::HandleDelete(
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params
-)
+void ConfigStagesHandler::HandleDelete(const HttpRequest& request, HttpResponse& response)
 {
 	namespace http = boost::beast::http;
+
+	auto url = request.Url();
+	auto user = request.User();
+	auto params = request.Params();
 
 	FilterUtility::CheckPermission(user, "config/modify");
 

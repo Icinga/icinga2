@@ -11,16 +11,17 @@ REGISTER_URLHANDLER("/", InfoHandler);
 bool InfoHandler::HandleRequest(
 	const WaitGroup::Ptr&,
 	AsioTlsStream& stream,
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params,
+	const HttpRequest& request,
+	HttpResponse& response,
 	boost::asio::yield_context& yc,
 	HttpServerConnection& server
 )
 {
 	namespace http = boost::beast::http;
+
+	auto url = request.Url();
+	auto user = request.User();
+	auto params = request.Params();
 
 	if (url->GetPath().size() > 2)
 		return false;
@@ -77,23 +78,23 @@ bool InfoHandler::HandleRequest(
 	} else {
 		response.set(http::field::content_type, "text/html");
 
-		String body = "<html><head><title>Icinga 2</title></head><h1>Hello from Icinga 2 (Version: " + Application::GetAppVersion() + ")!</h1>";
-		body += "<p>You are authenticated as <b>" + user->GetName() + "</b>. ";
+		auto& body = response.body();
+		body << "<html><head><title>Icinga 2</title></head><h1>Hello from Icinga 2 (Version: "
+			<< Application::GetAppVersion() << ")!</h1>"
+			<< "<p>You are authenticated as <b>" << user->GetName() << "</b>. ";
 
 		if (!permInfo.empty()) {
-			body += "Your user has the following permissions:</p> <ul>";
+			body << "Your user has the following permissions:</p> <ul>";
 
 			for (const String& perm : permInfo) {
-				body += "<li>" + perm + "</li>";
+				body << "<li>" << perm << "</li>";
 			}
 
-			body += "</ul>";
+			body << "</ul>";
 		} else
-			body += "Your user does not have any permissions.</p>";
+			body << "Your user does not have any permissions.</p>";
 
-		body += R"(<p>More information about API requests is available in the <a href="https://icinga.com/docs/icinga2/latest/" target="_blank">documentation</a>.</p></html>)";
-		response.body() = body;
-		response.content_length(response.body().size());
+		body << R"(<p>More information about API requests is available in the <a href="https://icinga.com/docs/icinga2/latest/" target="_blank">documentation</a>.</p></html>)";
 	}
 
 	return true;

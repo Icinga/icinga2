@@ -25,11 +25,8 @@ public:
 	bool HandleRequest(
 		const WaitGroup::Ptr& waitGroup,
 		AsioTlsStream& stream,
-		const ApiUser::Ptr& user,
-		boost::beast::http::request<boost::beast::http::string_body>& request,
-		const Url::Ptr& url,
-		boost::beast::http::response<boost::beast::http::string_body>& response,
-		const Dictionary::Ptr& params,
+		const HttpRequest& request,
+		HttpResponse& response,
 		boost::asio::yield_context& yc,
 		HttpServerConnection& server
 	) override;
@@ -37,12 +34,10 @@ public:
 	static std::vector<String> GetAutocompletionSuggestions(const String& word, ScriptFrame& frame);
 
 private:
-	static bool ExecuteScriptHelper(boost::beast::http::request<boost::beast::http::string_body>& request,
-		boost::beast::http::response<boost::beast::http::string_body>& response,
-		const Dictionary::Ptr& params, const String& command, const String& session, bool sandboxed);
-	static bool AutocompleteScriptHelper(boost::beast::http::request<boost::beast::http::string_body>& request,
-		boost::beast::http::response<boost::beast::http::string_body>& response,
-		const Dictionary::Ptr& params, const String& command, const String& session, bool sandboxed);
+	static bool ExecuteScriptHelper(const HttpRequest& request, HttpResponse& response,
+		const String& command, const String& session, bool sandboxed);
+	static bool AutocompleteScriptHelper(const HttpRequest& request, HttpResponse& response,
+		const String& command, const String& session, bool sandboxed);
 
 };
 

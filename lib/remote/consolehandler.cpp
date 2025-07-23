@@ -56,16 +56,17 @@ static void EnsureFrameCleanupTimer()
 bool ConsoleHandler::HandleRequest(
 	const WaitGroup::Ptr&,
 	AsioTlsStream& stream,
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params,
+	const HttpRequest& request,
+	HttpResponse& response,
 	boost::asio::yield_context& yc,
 	HttpServerConnection& server
 )
 {
 	namespace http = boost::beast::http;
+
+	auto url = request.Url();
+	auto user = request.User();
+	auto params = request.Params();
 
 	if (url->GetPath().size() != 3)
 		return false;
@@ -96,17 +97,16 @@ bool ConsoleHandler::HandleRequest(
 	}
 
 	if (methodName == "execute-script")
-		return ExecuteScriptHelper(request, response, params, command, session, sandboxed);
+		return ExecuteScriptHelper(request, response, command, session, sandboxed);
 	else if (methodName == "auto-complete-script")
-		return AutocompleteScriptHelper(request, response, params, command, session, sandboxed);
+		return AutocompleteScriptHelper(request, response, command, session, sandboxed);
 
 	HttpUtility::SendJsonError(response, params, 400, "Invalid method specified: " + methodName);
 	return true;
 }
 
-bool ConsoleHandler::ExecuteScriptHelper(boost::beast::http::request<boost::beast::http::string_body>& request,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params, const String& command, const String& session, bool sandboxed)
+bool ConsoleHandler::ExecuteScriptHelper(const HttpRequest& request, HttpResponse& response,
+	const String& command, const String& session, bool sandboxed)
 {
 	namespace http = boost::beast::http;
 
@@ -174,14 +174,13 @@ bool ConsoleHandler::ExecuteScriptHelper(boost::beast::http::request<boost::beas
 	});
 
 	response.result(http::status::ok);
-	HttpUtility::SendJsonBody(response, params, result);
+	HttpUtility::SendJsonBody(response, request.Params(), result);
 
 	return true;
 }
 
-bool ConsoleHandler::AutocompleteScriptHelper(boost::beast::http::request<boost::beast::http::string_body>& request,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params, const String& command, const String& session, bool sandboxed)
+bool ConsoleHandler::AutocompleteScriptHelper(const HttpRequest& request, HttpResponse& response,
+	const String& command, const String& session, bool sandboxed)
 {
 	namespace http = boost::beast::http;
 
@@ -213,7 +212,7 @@ bool ConsoleHandler::AutocompleteScriptHelper(boost::beast::http::request<boost:
 	});
 
 	response.result(http::status::ok);
-	HttpUtility::SendJsonBody(response, params, result);
+	HttpUtility::SendJsonBody(response, request.Params(), result);
 
 	return true;
 }
