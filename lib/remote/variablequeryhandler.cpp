@@ -58,11 +58,9 @@ public:
 
 bool VariableQueryHandler::HandleRequest(
 	const WaitGroup::Ptr&,
-	AsioTlsStream& stream,
 	const HttpRequest& request,
 	HttpResponse& response,
-	boost::asio::yield_context& yc,
-	HttpServerConnection& server
+	boost::asio::yield_context& yc
 )
 {
 	namespace http = boost::beast::http;

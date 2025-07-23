@@ -19,11 +19,9 @@ REGISTER_URLHANDLER("/v1/debug/malloc_info", MallocInfoHandler);
 
 bool MallocInfoHandler::HandleRequest(
 	const WaitGroup::Ptr&,
-	AsioTlsStream&,
 	const HttpRequest& request,
 	HttpResponse& response,
-	boost::asio::yield_context&,
-	HttpServerConnection&
+	boost::asio::yield_context&
 )
 {
 	namespace http = boost::beast::http;

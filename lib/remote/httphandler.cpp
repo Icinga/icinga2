@@ -48,11 +48,9 @@ void HttpHandler::Register(const Url::Ptr& url, const HttpHandler::Ptr& handler)
 
 void HttpHandler::ProcessRequest(
 	const WaitGroup::Ptr& waitGroup,
-	AsioTlsStream& stream,
 	HttpRequest& request,
 	HttpResponse& response,
-	boost::asio::yield_context& yc,
-	HttpServerConnection& server
+	boost::asio::yield_context& yc
 )
 {
 	Dictionary::Ptr node = m_UrlTree;
@@ -106,7 +104,7 @@ void HttpHandler::ProcessRequest(
 	 */
 	try {
 		for (const HttpHandler::Ptr& handler : handlers) {
-			if (handler->HandleRequest(waitGroup, stream, request, response, yc, server)) {
+			if (handler->HandleRequest(waitGroup, request, response, yc)) {
 				processed = true;
 				break;
 			}
