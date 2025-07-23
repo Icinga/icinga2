@@ -1,10 +1,14 @@
 name: Docker image
 
 on:
-  pull_request: {}
+  pull_request:
+    paths-ignore:
+      - 'doc/**'
   push:
     branches:
       - master
+    paths-ignore:
+      - 'doc/**'
   release:
     types:
       - published
