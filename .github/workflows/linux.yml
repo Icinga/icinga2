@@ -45,6 +45,7 @@ jobs:
           # We just use that RHEL clone to test the original.
           - rockylinux:8
           - rockylinux:9
+          - rockylinux/rockylinux:10
 
           - registry.suse.com/suse/sle15:15.5
           - registry.suse.com/suse/sle15:15.6
