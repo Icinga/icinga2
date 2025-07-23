@@ -408,12 +408,9 @@ bool EnsureValidBody(
 }
 
 static inline
-bool ProcessRequest(
-	AsioTlsStream& stream,
+void ProcessRequest(
 	HttpRequest& request,
 	HttpResponse& response,
-	HttpServerConnection& server,
-	bool& connectionReusable,
 	const WaitGroup::Ptr& waitGroup,
 	std::chrono::steady_clock::duration& cpuBoundWorkTime,
 	boost::asio::yield_context& yc
@@ -425,12 +422,9 @@ bool ProcessRequest(
 		CpuBoundWork handlingRequest (yc);
 		cpuBoundWorkTime = std::chrono::steady_clock::now() - start;
 
-		HttpHandler::ProcessRequest(waitGroup, stream, request, response, yc, server);
+		HttpHandler::ProcessRequest(waitGroup, request, response, yc);
+		response.body().Finish();
 	} catch (const std::exception& ex) {
-		if (!connectionReusable) {
-			return false;
-		}
-
 		/* Since we don't know the state the stream is in, we can't send an error response and
 		 * have to just cause a disconnect here.
 		 */
@@ -439,18 +433,9 @@ bool ProcessRequest(
 		}
 
 		HttpUtility::SendJsonError(response, request.Params(), 500, "Unhandled exception", DiagnosticInformation(ex));
-		response.Flush(yc);
-		return true;
 	}
 
-	if (!connectionReusable) {
-		return false;
-	}
-
-	response.body().Finish();
 	response.Flush(yc);
-
-	return true;
 }
 
 void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
@@ -536,9 +521,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 
 			m_Seen = std::numeric_limits<decltype(m_Seen)>::max();
 
-			if (!ProcessRequest(*m_Stream, request, response, *this, m_ConnectionReusable, m_WaitGroup, cpuBoundWorkTime, yc)) {
-				break;
-			}
+			ProcessRequest(request, response, m_WaitGroup, cpuBoundWorkTime, yc);
 
 			if (!request.keep_alive() || !m_ConnectionReusable) {
 				break;
