@@ -4,8 +4,10 @@
 #define HTTPHANDLER_H
 
 #include "remote/i2-remote.hpp"
+#include "base/io-engine.hpp"
 #include "remote/url.hpp"
 #include "remote/httpserverconnection.hpp"
+#include "remote/httpmessage.hpp"
 #include "remote/apiuser.hpp"
 #include "base/registry.hpp"
 #include "base/tlsstream.hpp"
@@ -29,11 +31,8 @@ public:
 	virtual bool HandleRequest(
 		const WaitGroup::Ptr& waitGroup,
 		AsioTlsStream& stream,
-		const ApiUser::Ptr& user,
-		boost::beast::http::request<boost::beast::http::string_body>& request,
-		const Url::Ptr& url,
-		boost::beast::http::response<boost::beast::http::string_body>& response,
-		const Dictionary::Ptr& params,
+		const HttpRequest& request,
+		HttpResponse& response,
 		boost::asio::yield_context& yc,
 		HttpServerConnection& server
 	) = 0;
@@ -42,9 +41,8 @@ public:
 	static void ProcessRequest(
 		const WaitGroup::Ptr& waitGroup,
 		AsioTlsStream& stream,
-		const ApiUser::Ptr& user,
-		boost::beast::http::request<boost::beast::http::string_body>& request,
-		boost::beast::http::response<boost::beast::http::string_body>& response,
+		HttpRequest& request,
+		HttpResponse& response,
 		boost::asio::yield_context& yc,
 		HttpServerConnection& server
 	);

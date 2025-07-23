@@ -20,16 +20,17 @@ REGISTER_URLHANDLER("/v1/debug/malloc_info", MallocInfoHandler);
 bool MallocInfoHandler::HandleRequest(
 	const WaitGroup::Ptr&,
 	AsioTlsStream&,
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params,
+	const HttpRequest& request,
+	HttpResponse& response,
 	boost::asio::yield_context&,
 	HttpServerConnection&
 )
 {
 	namespace http = boost::beast::http;
+
+	auto url = request.Url();
+	auto user = request.User();
+	auto params = request.Params();
 
 	if (url->GetPath().size() != 3) {
 		return false;
@@ -87,8 +88,7 @@ bool MallocInfoHandler::HandleRequest(
 
 	response.result(200);
 	response.set(http::field::content_type, "application/xml");
-	response.body() = std::string(buf, bufSize);
-	response.content_length(response.body().size());
+	response.body() << std::string_view(buf, bufSize);
 #endif /* HAVE_MALLOC_INFO */
 
 	return true;
