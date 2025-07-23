@@ -31,7 +31,8 @@ class ValidationUtils;
 extern const Value Empty;
 
 #define DECLARE_PTR_TYPEDEFS(klass) \
-	typedef intrusive_ptr<klass> Ptr
+	typedef intrusive_ptr<klass> Ptr; \
+	typedef intrusive_ptr<const klass> ConstPtr
 
 #define IMPL_TYPE_LOOKUP_SUPER() 					\
 
@@ -192,7 +193,7 @@ private:
 	Object(const Object& other) = delete;
 	Object& operator=(const Object& rhs) = delete;
 
-	std::atomic<uint_fast64_t> m_References;
+	mutable std::atomic<uint_fast64_t> m_References;
 	mutable std::recursive_mutex m_Mutex;
 
 #ifdef I2_DEBUG
@@ -202,17 +203,17 @@ private:
 
 	friend struct ObjectLock;
 
-	friend void intrusive_ptr_add_ref(Object *object);
-	friend void intrusive_ptr_release(Object *object);
+	friend void intrusive_ptr_add_ref(const Object *object);
+	friend void intrusive_ptr_release(const Object *object);
 };
 
 Value GetPrototypeField(const Value& context, const String& field, bool not_found_error, const DebugInfo& debugInfo);
 
-void TypeAddObject(Object *object);
-void TypeRemoveObject(Object *object);
+void TypeAddObject(const Object *object);
+void TypeRemoveObject(const Object *object);
 
-void intrusive_ptr_add_ref(Object *object);
-void intrusive_ptr_release(Object *object);
+void intrusive_ptr_add_ref(const Object *object);
+void intrusive_ptr_release(const Object *object);
 
 template<typename T>
 class ObjectImpl
