@@ -5,7 +5,7 @@
 
 #include "remote/url.hpp"
 #include "base/dictionary.hpp"
-#include <boost/beast/http.hpp>
+#include "remote/httpmessage.hpp"
 #include <string>
 
 namespace icinga
@@ -23,8 +23,8 @@ public:
 	static Dictionary::Ptr FetchRequestParameters(const Url::Ptr& url, const std::string& body);
 	static Value GetLastParameter(const Dictionary::Ptr& params, const String& key);
 
-	static void SendJsonBody(boost::beast::http::response<boost::beast::http::string_body>& response, const Dictionary::Ptr& params, const Value& val);
-	static void SendJsonError(boost::beast::http::response<boost::beast::http::string_body>& response, const Dictionary::Ptr& params, const int code,
+	static void SendJsonBody(HttpResponse& response, const Dictionary::Ptr& params, const Value& val);
+	static void SendJsonError(HttpResponse& response, const Dictionary::Ptr& params, const int code,
 		const String& verbose = String(), const String& diagnosticInformation = String());
 };
 
