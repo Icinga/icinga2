@@ -30,7 +30,6 @@ public:
 		const Shared<AsioTlsStream>::Ptr& stream);
 
 	void Start();
-	void StartStreaming();
 	bool Disconnected();
 
 private:
@@ -41,7 +40,6 @@ private:
 	String m_PeerAddress;
 	boost::asio::io_context::strand m_IoStrand;
 	bool m_ShuttingDown;
-	bool m_HasStartedStreaming;
 	boost::asio::deadline_timer m_CheckLivenessTimer;
 
 	HttpServerConnection(const WaitGroup::Ptr& waitGroup, const String& identity, bool authenticated,
