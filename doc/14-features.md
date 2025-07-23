@@ -147,7 +147,7 @@ parsed from plugin output:
 
 Note that labels may contain dots (`.`) allowing to
 add more subsequent levels inside the Graphite tree.
-`::` adds support for [multi performance labels](http://my-plugin.de/wiki/projects/check_multi/configuration/performance)
+`::` adds support for [multi performance labels](https://github.com/flackem/check_multi/blob/next/doc/configuration/performance.md)
 and is therefore replaced by `.`.
 
 By enabling `enable_send_thresholds` Icinga 2 automatically adds the following threshold metrics:
@@ -384,7 +384,7 @@ The following characters are escaped in perfdata labels:
 
 Note that perfdata labels may contain dots (`.`) allowing to
 add more subsequent levels inside the tree.
-`::` adds support for [multi performance labels](http://my-plugin.de/wiki/projects/check_multi/configuration/performance)
+`::` adds support for [multi performance labels](https://github.com/flackem/check_multi/blob/next/doc/configuration/performance.md)
 and is therefore replaced by `.`.
 
 Icinga 2 automatically adds the following threshold metrics
@@ -443,11 +443,11 @@ or Logstash for additional filtering.
 
 #### GELF Writer <a id="gelfwriter"></a>
 
-The `Graylog Extended Log Format` (short: [GELF](https://docs.graylog.org/en/latest/pages/gelf.html))
+The `Graylog Extended Log Format` (short: GELF)
 can be used to send application logs directly to a TCP socket.
 
 While it has been specified by the [Graylog](https://www.graylog.org) project as their
-[input resource standard](https://docs.graylog.org/en/latest/pages/sending_data.html), other tools such as
+[input resource standard](https://go2docs.graylog.org/current/getting_in_log_data/inputs.htm), other tools such as
 [Logstash](https://www.elastic.co/products/logstash) also support `GELF` as
 [input type](https://www.elastic.co/guide/en/logstash/current/plugins-inputs-gelf.html).
 
@@ -1119,7 +1119,7 @@ As with any application database, there are ways to optimize and tune the databa
 
 General tips for performance tuning:
 
-* [MariaDB KB](https://mariadb.com/kb/en/library/optimization-and-tuning/)
+* [MariaDB KB](https://mariadb.com/docs/server/ha-and-performance/optimization-and-tuning)
 * [PostgreSQL Wiki](https://wiki.postgresql.org/wiki/Performance_Optimization)
 
 Re-creation of indexes, changed column values, etc. will increase the database size. Ensure to
@@ -1236,7 +1236,7 @@ on the [Icinga 1.x documentation](https://docs.icinga.com/latest/en/extcommands2
 > This feature is DEPRECATED and may be removed in future releases.
 > Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
 
-The [MK Livestatus](https://mathias-kettner.de/checkmk_livestatus.html) project
+The [MK Livestatus](https://exchange.nagios.org/directory/Documentation/MK-Livestatus/details) project
 implements a query protocol that lets users query their Icinga instance for
 status information. It can also be used to send commands.
 

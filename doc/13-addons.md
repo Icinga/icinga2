@@ -122,7 +122,7 @@ icinga2 feature enable influxdb2
 
 A popular frontend for InfluxDB is for example [Grafana](https://grafana.org).
 
-Integration in Icinga Web 2 is possible by installing the community [Grafana module](https://github.com/Mikesch-mp/icingaweb2-module-grafana).
+Integration in Icinga Web 2 is possible by installing the community [Grafana module](https://github.com/NETWAYS/icingaweb2-module-grafana).
 
 ![Icinga Web 2 Detail View with Grafana](images/addons/icingaweb2_grafana.png)
 
