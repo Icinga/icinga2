@@ -370,7 +370,15 @@ See: [ElasticsearchWriter](09-object-types.md#objecttype-elasticsearchwriter)
 Metric values are stored like this:
 
 ```
-check_result.perfdata.<perfdata-label>.value
+check_result.perfdata: [
+ {
+   "crit": 0,
+   "label": "example",
+   "min": 0,
+   "value": 0,
+   "warn": 0
+ }
+]
 ```
 
 The following characters are escaped in perfdata labels:
@@ -388,14 +396,7 @@ add more subsequent levels inside the tree.
 and is therefore replaced by `.`.
 
 Icinga 2 automatically adds the following threshold metrics
-if existing:
-
-```
-check_result.perfdata.<perfdata-label>.min
-check_result.perfdata.<perfdata-label>.max
-check_result.perfdata.<perfdata-label>.warn
-check_result.perfdata.<perfdata-label>.crit
-```
+if existing: min, max, warn, crit
 
 Additionally it is possible to configure custom tags that are applied to the metrics via `host_tags_template` or `service_tags_template`.
 Depending on whether the write event was triggered on a service or host object, additional tags are added to the ElasticSearch entries.

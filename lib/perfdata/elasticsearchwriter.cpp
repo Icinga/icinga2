@@ -189,6 +189,9 @@ void ElasticsearchWriter::AddCheckResult(const Dictionary::Ptr& fields, const Ch
 
 	if (perfdata) {
 		ObjectLock olock(perfdata);
+
+		Array::Ptr perfdatapoints = new Array();
+
 		for (const Value& val : perfdata) {
 			PerfdataValue::Ptr pdv;
 
@@ -212,22 +215,28 @@ void ElasticsearchWriter::AddCheckResult(const Dictionary::Ptr& fields, const Ch
 			boost::replace_all(escapedKey, "\\", "_");
 			boost::algorithm::replace_all(escapedKey, "::", ".");
 
-			String perfdataPrefix = prefix + "perfdata." + escapedKey;
+			Dictionary::Ptr datapoint = new Dictionary();
 
-			fields->Set(perfdataPrefix + ".value", pdv->GetValue());
+			datapoint->Set("label", escapedKey);
+			datapoint->Set("value", pdv->GetValue());
 
 			if (!pdv->GetMin().IsEmpty())
-				fields->Set(perfdataPrefix + ".min", pdv->GetMin());
+				datapoint->Set("min", pdv->GetMin());
 			if (!pdv->GetMax().IsEmpty())
-				fields->Set(perfdataPrefix + ".max", pdv->GetMax());
+				datapoint->Set("max", pdv->GetMax());
 			if (!pdv->GetWarn().IsEmpty())
-				fields->Set(perfdataPrefix + ".warn", pdv->GetWarn());
+				datapoint->Set("warn", pdv->GetWarn());
 			if (!pdv->GetCrit().IsEmpty())
-				fields->Set(perfdataPrefix + ".crit", pdv->GetCrit());
+				datapoint->Set("crit", pdv->GetCrit());
 
 			if (!pdv->GetUnit().IsEmpty())
-				fields->Set(perfdataPrefix + ".unit", pdv->GetUnit());
+				datapoint->Set("unit", pdv->GetUnit());
+
+			perfdatapoints->Add(datapoint);
 		}
+
+		String perfdataPrefix = prefix + "perfdata";
+		fields->Set(perfdataPrefix, std::move(perfdatapoints));
 	}
 }
 
