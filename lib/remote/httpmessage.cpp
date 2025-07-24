@@ -12,36 +12,25 @@
 using namespace icinga;
 
 /**
- * Adapter class for Boost Beast HTTP messages body to be used with the @c JsonEncoder.
+ * Adapter class for writing JSON data to an HTTP response.
  *
- * This class implements the @c nlohmann::detail::output_adapter_protocol<> interface and provides
- * a way to write JSON data directly into the body of a Boost Beast HTTP message. The adapter is designed
- * to work with Boost Beast HTTP messages that conform to the Beast HTTP message interface and must provide
- * a body type that has a publicly accessible `reader` type that satisfies the Beast BodyReader [^1] requirements.
+ * This class implements the @c AsyncJsonWriter interface and writes JSON data directly to the @c HttpResponse
+ * object. It uses the @c HttpResponse's output stream operator to fill the response body with JSON data.
+ * It is designed to be used with the @c JsonEncoder class to indirectly fill the response body with JSON
+ * data and then forward it to the underlying stream using the @c Flush() method whenever it needs to do so.
  *
  * @ingroup base
- *
- * [^1]: https://www.boost.org/doc/libs/1_85_0/libs/beast/doc/html/beast/concepts/BodyReader.html
  */
 class HttpResponseJsonWriter : public AsyncJsonWriter
 {
 public:
-	explicit HttpResponseJsonWriter(HttpResponse& msg) : m_Reader(msg.base(), msg.body()), m_Message{msg}
+	explicit HttpResponseJsonWriter(HttpResponse& msg) : m_Message{msg}
 	{
-		boost::system::error_code ec;
-		// This never returns an actual error, except when overflowing the max
-		// buffer size, which we don't do here.
-		m_Reader.init(m_MinPendingBufferSize, ec);
-		ASSERT(!ec);
 	}
 
 	~HttpResponseJsonWriter() override
 	{
-		boost::system::error_code ec;
-		// Same here as in the constructor, all the standard Beast HTTP message reader implementations
-		// never return an error here, it's just there to satisfy the interface requirements.
-		m_Reader.finish(ec);
-		ASSERT(!ec);
+		m_Message.Finish();
 	}
 
 	void write_character(char c) override
@@ -51,30 +40,27 @@ public:
 
 	void write_characters(const char* s, std::size_t length) override
 	{
-		boost::system::error_code ec;
-		boost::asio::const_buffer buf{s, length};
-		while (buf.size()) {
-			std::size_t w = m_Reader.put(buf, ec);
-			ASSERT(!ec);
-			buf += w;
-		}
-		m_PendingBufferSize += length;
+		m_Message << std::string_view(s, length);
 	}
 
 	void MayFlush(boost::asio::yield_context& yield) override
 	{
-		if (m_PendingBufferSize >= m_MinPendingBufferSize) {
+		if (m_Message.Size() >= m_MinPendingBufferSize) {
 			m_Message.Flush(yield);
-			m_PendingBufferSize = 0;
 		}
 	}
 
 private:
-	HttpResponse::body_type::reader m_Reader;
 	HttpResponse& m_Message;
-	// The size of the pending buffer to avoid unnecessary writes
-	std::size_t m_PendingBufferSize{0};
-	// Minimum size of the pending buffer before we flush the data to the underlying stream
+	/**
+	 * Minimum size of the pending buffer before we flush the data to the underlying stream.
+	 *
+	 * This magic number represents 4x the default size of the internal buffer used by @c AsioTlsStream,
+	 * which is 1024 bytes. This ensures that we don't flush too often and allows for efficient streaming
+	 * of the response body. The value is chosen to balance between performance and memory usage, as flushing
+	 * too often can lead to excessive I/O operations and increased latency, while flushing too infrequently
+	 * can lead to high memory usage.
+	 */
 	static constexpr std::size_t m_MinPendingBufferSize = 4096;
 };
 
@@ -131,37 +117,108 @@ HttpResponse::HttpResponse(Shared<AsioTlsStream>::Ptr stream)
 {
 }
 
+/**
+ * Get the size of the current response body buffer.
+ *
+ * @return size of the response buffer
+ */
+std::size_t HttpResponse::Size() const
+{
+	return m_Buffer.size();
+}
+
+/**
+ * Checks whether the HTTP response headers have been written to the stream.
+ *
+ * @return true if the HTTP response headers have been written to the stream, false otherwise.
+ */
+bool HttpResponse::IsHeaderDone() const
+{
+	return m_HeaderDone;
+}
+
+/**
+ * Flush the response to the underlying stream.
+ *
+ * This function flushes the response body and headers to the underlying stream in the following two ways:
+ * - If the response is chunked, it writes the body in chunks using the @c boost::beast::http::make_chunk() function.
+ *   The size of the current @c m_Buffer represents the chunk size with each call to this function. If there is no
+ *   data in the buffer, and the response isn't finished yet, it's a no-op and will silently return. Otherwise, if
+ *   the response is finished, it writes the last chunk with a size of zero to indicate the end of the response.
+ *
+ * - If the response is not chunked, it writes the entire buffer at once using the @c boost::asio::async_write()
+ *   function. The content length is set to the size of the current @c m_Buffer. Calling this function more than
+ *   once will immediately terminate the process in debug builds, as this should never happen and indicates a
+ *   programming error.
+ *
+ * The headers are written in the same way in both cases, using the @c boost::beast::http::response_serializer<> class.
+ *
+ * @param yc The yield context for asynchronous operations
+ */
 void HttpResponse::Flush(boost::asio::yield_context yc)
 {
 	if (!chunked()) {
-		ASSERT(!m_Serializer.is_header_done());
-		prepare_payload();
+		ASSERT(!m_HeaderDone);
+		content_length(Size());
 	}
 
-	boost::system::error_code ec;
-	boost::beast::http::async_write(*m_Stream, m_Serializer, yc[ec]);
-	if (ec && ec != boost::beast::http::error::need_buffer) {
-		if (yc.ec_) {
-			*yc.ec_ = ec;
-			return;
-		} else {
-			BOOST_THROW_EXCEPTION(boost::system::system_error{ec});
+	if (!m_HeaderDone) {
+		m_HeaderDone = true;
+		boost::beast::http::response_serializer<body_type> s(*this);
+		boost::beast::http::async_write_header(*m_Stream, s, yc);
+	}
+
+	if (chunked()) {
+		bool flush = false;
+		// In case this is our last chunk (i.e., the response is finished), we need to write any
+		// remaining data in the buffer before we terminate the response with a zero-sized last chunk.
+		if (Size() > 0) {
+			boost::system::error_code ec;
+			boost::asio::async_write(*m_Stream, boost::beast::http::make_chunk(m_Buffer.data()), yc[ec]);
+			if (ec) {
+				if (yc.ec_) {
+					*yc.ec_ = std::move(ec);
+					return;
+				}
+				BOOST_THROW_EXCEPTION(boost::system::system_error(ec, "Failed to write chunked response"));
+			}
+
+			// The above write operation is guaranteed to either write the entire buffer or fail, and if it's the
+			// latter, we shouldn't reach this point, so we can safely trim the entire buffer input sequence here.
+			m_Buffer.consume(Size());
+			flush = true;
 		}
+
+		if (m_Finished) {
+			// If the response is finished, we need to write the last chunk with a size of zero.
+			boost::asio::async_write(*m_Stream, boost::beast::http::make_chunk_last(), yc);
+		} else if (!flush) {
+			// If we haven't written any data, we don't need to trigger a flush operation as well.
+			return;
+		}
+	} else {
+		// Non-chunked response, write the entire buffer at once.
+		async_write(*m_Stream, m_Buffer, yc);
+		m_Buffer.consume(Size()); // Won't be reused, but we want to free the memory ASAP.
 	}
 	m_Stream->async_flush(yc);
-
-	ASSERT(chunked() || m_Serializer.is_done());
 }
 
+/**
+ * Start streaming the response body in chunks.
+ *
+ * This function sets the response to use chunked encoding and prepares it for streaming.
+ * It must be called before any data is written to the response body, otherwise it will trigger an assertion failure.
+ *
+ * @note This function should only be called if the response body is expected to be streamed in chunks.
+ */
 void HttpResponse::StartStreaming()
 {
-	ASSERT(body().Size() == 0 && !m_Serializer.is_header_done());
-	body().Start();
+	ASSERT(Size() == 0 && !m_HeaderDone);
 	chunked(true);
 }
 
 JsonEncoder HttpResponse::GetJsonEncoder(bool pretty)
 {
-	auto adapter = std::make_shared<HttpResponseJsonWriter>(*this);
-	return JsonEncoder{adapter, pretty};
+	return JsonEncoder{std::make_shared<HttpResponseJsonWriter>(*this), pretty};
 }

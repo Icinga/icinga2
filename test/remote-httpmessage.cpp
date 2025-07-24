@@ -64,47 +64,6 @@ BOOST_AUTO_TEST_CASE(request_params)
 	BOOST_REQUIRE(!HttpUtility::GetLastParameter(params, "test4"));
 }
 
-BOOST_AUTO_TEST_CASE(response_body_reader)
-{
-	auto & io = IoEngine::Get();
-	io.SpawnCoroutine(io.GetIoContext(), [&, this](boost::asio::yield_context yc) {
-		HttpResponse response(server);
-		response.result(http::status::ok);
-		response.StartStreaming();
-
-		SerializableBody<boost::beast::multi_buffer>::reader rd{response.base(), response.body()};
-		boost::system::error_code ec;
-		rd.init(3, ec);
-		BOOST_REQUIRE(!ec);
-
-		boost::asio::const_buffer seq1("test1", 5);
-		rd.put(seq1, ec);
-		BOOST_REQUIRE(!ec);
-		BOOST_REQUIRE_NO_THROW(response.Flush(yc));
-
-		boost::asio::const_buffer seq2("test2", 5);
-		rd.put(seq2, ec);
-		BOOST_REQUIRE(!ec);
-		BOOST_REQUIRE_NO_THROW(response.Flush(yc));
-
-		rd.finish(ec);
-		BOOST_REQUIRE(!ec);
-		BOOST_REQUIRE_NO_THROW(response.Flush(yc));
-
-		BOOST_REQUIRE(Shutdown(server, yc));
-	});
-
-	http::response_parser<http::string_body> parser;
-	flat_buffer buf;
-	http::read(*client, buf, parser);
-
-	BOOST_REQUIRE_EQUAL(parser.get().result(), http::status::ok);
-	BOOST_REQUIRE_EQUAL(parser.get().chunked(), true);
-	BOOST_REQUIRE_EQUAL(parser.get().body(), "test1test2");
-
-	BOOST_REQUIRE(Shutdown(client));
-}
-
 BOOST_AUTO_TEST_CASE(response_flush_nothrow)
 {
 	auto& io = IoEngine::Get();
@@ -157,7 +116,7 @@ BOOST_AUTO_TEST_CASE(response_write_fixed)
 	io.SpawnCoroutine(io.GetIoContext(), [&, this](boost::asio::yield_context yc) {
 		HttpResponse response(server);
 		response.result(http::status::ok);
-		response.body() << "test";
+		response << "test";
 
 		BOOST_REQUIRE_NO_THROW(response.Flush(yc));
 
@@ -183,14 +142,14 @@ BOOST_AUTO_TEST_CASE(response_write_chunked)
 		response.result(http::status::ok);
 
 		response.StartStreaming();
-		response.body() << "test" << 1;
+		response << "test" << 1;
 		BOOST_REQUIRE_NO_THROW(response.Flush(yc));
 
-		response.body() << "test" << 2;
+		response << "test" << 2;
 		BOOST_REQUIRE_NO_THROW(response.Flush(yc));
 
-		response.body() << "test" << 3;
-		response.body().Finish();
+		response << "test" << 3;
+		response.Finish();
 		BOOST_REQUIRE_NO_THROW(response.Flush(yc));
 
 		BOOST_REQUIRE(Shutdown(server, yc));

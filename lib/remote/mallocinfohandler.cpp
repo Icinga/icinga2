@@ -86,7 +86,7 @@ bool MallocInfoHandler::HandleRequest(
 
 	response.result(200);
 	response.set(http::field::content_type, "application/xml");
-	response.body() << std::string_view(buf, bufSize);
+	response << std::string_view(buf, bufSize);
 #endif /* HAVE_MALLOC_INFO */
 
 	return true;

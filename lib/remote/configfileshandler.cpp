@@ -82,7 +82,7 @@ bool ConfigFilesHandler::HandleRequest(
 
 		response.result(http::status::ok);
 		response.set(http::field::content_type, "application/octet-stream");
-		response.body() << fp.rdbuf();
+		response << fp.rdbuf();
 	} catch (const std::exception& ex) {
 		HttpUtility::SendJsonError(response, params, 500, "Could not read file.",
 			DiagnosticInformation(ex));

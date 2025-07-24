@@ -9,197 +9,10 @@
 #include "remote/url.hpp"
 #include "remote/apiuser.hpp"
 #include <boost/beast/http.hpp>
-#include <boost/version.hpp>
+#include <boost/asio/streambuf.hpp>
 
 namespace icinga
 {
-
-/**
- * A custom body_type for a  @c boost::beast::http::message
- *
- * It combines the memory management of @c boost::beast::http::dynamic_body,
- * which uses a multi_buffer, with the ability to continue serialization when
- * new data arrives of the @c boost::beast::http::buffer_body.
- *
- * @tparam DynamicBuffer A buffer conforming to the boost::beast interface of the same name
- *
- * @ingroup remote
- */
-template<class DynamicBuffer>
-struct SerializableBody
-{
-	class reader;
-	class writer;
-
-	class value_type
-	{
-	public:
-		template <typename T>
-		value_type& operator<<(T && right)
-		{
-			/* Preferably, we would return an ostream object here instead. However
-			 * there seems to be a bug in boost::beast where if the ostream, or rather its
-			 * streambuf object is moved into the return value, the chunked encoding gets
-			 * mangled, leading to the client disconnecting.
-			 *
-			 * A workaround would have been to construct the boost::beast::detail::ostream_helper
-			 * with the last parameter set to false, indicating that the streambuf object is not
-			 * movable, but that is an implementation detail we'd rather not use directly in our
-			 * code.
-			 *
-			 * This version has a certain overhead of the ostream being constructed on every call
-			 * to the operator, which leads to an individual append for each time, whereas if the
-			 * object could be kept until the entire chain of output operators is finished, only
-			 * a single call to prepare()/commit() would have been needed.
-			 *
-			 * However, since this operator is mostly used for small error messages and the big
-			 * responses are handled via a reader instance, this shouldn't be too much of a
-			 * problem.
-			 */
-			boost::beast::ostream(m_Buffer) << std::forward<T>(right);
-			return *this;
-		}
-
-		std::size_t Size() const { return m_Buffer.size(); }
-
-		void Finish() { m_More = false; }
-		void Start() { m_More = true; }
-
-		friend class reader;
-		friend class writer;
-
-	private:
-		/* This defaults to false so the body does not require any special handling
-		 * for simple messages and can still be written with http::async_write().
-		 */
-		bool m_More = false;
-		DynamicBuffer m_Buffer;
-	};
-
-	static std::uint64_t size(const value_type& body) { return body.Size(); }
-
-	/**
-	 * Implement the boost::beast BodyReader interface for this body type
-	 *
-	 * This is used by the  @c boost::beast::http::parser (which we don't use for responses)
-	 * or in the  @c BeastHttpMessageAdapter for our own  @c JsonEncoder to write JSON directly
-	 * into the body of a HTTP response message.
-	 *
-	 * The reader automatically sets the body's `more` flag on the call to its init() function
-	 * and resets it when its finish() function is called. Regarding the usage in the
-	 * @c JsonEncoder above, this means that the message is automatically marked as complete
-	 * when the encoder object is destroyed.
-	 */
-	class reader
-	{
-	public:
-		template <bool isRequest, class Fields>
-		explicit reader(boost::beast::http::header<isRequest, Fields>& h, value_type& b) : m_Body(b)
-		{
-		}
-
-		void init(const boost::optional<std::uint64_t>& n, boost::beast::error_code& ec)
-		{
-			ec = {};
-			m_Body.Start();
-#if BOOST_VERSION >= 107000
-			if (n) {
-				m_Body.m_Buffer.reserve(*n);
-			}
-#endif /* BOOST_VERSION */
-		}
-
-		template <class ConstBufferSequence>
-		std::size_t put(const ConstBufferSequence& buffers, boost::beast::error_code& ec)
-		{
-			auto size = boost::asio::buffer_size(buffers);
-			if (size > m_Body.m_Buffer.max_size() - m_Body.Size()) {
-				ec = boost::beast::http::error::buffer_overflow;
-				return 0;
-			}
-
-			auto const wBuf = m_Body.m_Buffer.prepare(size);
-			boost::asio::buffer_copy(wBuf, buffers);
-			m_Body.m_Buffer.commit(size);
-			return size;
-		}
-
-		void finish(boost::beast::error_code& ec)
-		{
-			ec = {};
-			m_Body.Finish();
-		}
-
-	private:
-		value_type& m_Body;
-	};
-
-	/**
-	 * Implement the boost::beast BodyWriter interface for this body type
-	 *
-	 * This is used (for example) by the @c boost::beast::http::serializer to write out the
-	 * message over the TLS stream. The logic is similar to the writer of the
-	 * @c boost::beast::http::buffer_body.
-	 *
-	 * On the every call, it will free up the buffer range that has previously been written,
-	 * then return a buffer containing data the has become available in the meantime. Otherwise,
-	 * if there is more data expected in the future, for example because a corresponding reader
-	 * has not yet finished filling the body, a `need_buffer` error is returned, to inform the
-	 * serializer to abort writing for now, which in turn leads to the outer call to
-	 * `http::async_write` to call their completion handlers with a `need_buffer` error, to
-	 * notify that more data is required for another call to `http::async_write`.
-	 */
-	class writer
-	{
-	public:
-		using const_buffers_type = typename decltype(value_type::m_Buffer)::const_buffers_type;
-
-#if BOOST_VERSION > 106600
-		template <bool isRequest, class Fields>
-		explicit writer(const boost::beast::http::header<isRequest, Fields>& h, value_type& b)
-			: m_Body(b)
-		{
-		}
-#else
-		/**
-		 * This constructor is needed specifically for boost-1.66, which was the first version
-		 * the beast library was introduced and is still used on older (supported) distros.
-		 */
-		template <bool isRequest, class Fields>
-		explicit writer(const boost::beast::http::message<isRequest, SerializableBody, Fields>& msg)
-			: m_Body(const_cast<value_type &>(msg.body()))
-		{
-		}
-#endif
-		void init(boost::beast::error_code& ec) { ec = {}; }
-
-		boost::optional<std::pair<const_buffers_type, bool>> get(boost::beast::error_code& ec)
-		{
-			using namespace boost::beast::http;
-
-			if (m_SizeWritten > 0) {
-				m_Body.m_Buffer.consume(std::exchange(m_SizeWritten, 0));
-			}
-
-			if (m_Body.m_Buffer.size()) {
-				ec = {};
-				m_SizeWritten = m_Body.m_Buffer.size();
-				return {{m_Body.m_Buffer.data(), m_Body.m_More}};
-			}
-
-			if (m_Body.m_More) {
-				ec = {make_error_code(error::need_buffer)};
-			} else {
-				ec = {};
-			}
-			return boost::none;
-		}
-
-	private:
-		value_type& m_Body;
-		std::size_t m_SizeWritten = 0;
-	};
-};
 
 /**
  * A wrapper class for a boost::beast HTTP request
@@ -254,40 +67,74 @@ private:
 };
 
 /**
- * A wrapper class for a boost::beast HTTP response
+ * A wrapper class for a boost::beast HTTP response.
+ *
+ * This is a convenience class to handle HTTP responses in a more streaming-like way. This class is derived
+ * from @c boost::beast::http::response<boost::beast::http::empty_body> and as its name implies, it doesn't
+ * and won't contain a body. Instead, it uses its own internal buffer to efficiently manage the response body
+ * data, which can be filled using the output stream operator (`<<`) or the @c JsonEncoder class. This allows
+ * for a more flexible and efficient way to handle HTTP responses, without having to copy Asio/Beast buffers
+ * around. It uses a @c boost::asio::streambuf internally to manage the response body data, which is suitable
+ * for the @c JsonEncoder class to write JSON data directly into it and then forward it as-is to Asio's
+ * @c boost::asio::async_write() function.
+ *
+ * Furthermore, it supports chunked encoding as well as fixed-size responses. If chunked encoding is used, the
+ * @c m_Buffer is written in chunks created by the @c boost::beast::http::make_chunk() function, which doesn't
+ * copy the buffer data, but instead creates a view similar to @c std::string_view but for buffers and allows
+ * for efficient streaming of the response body data. Once you've finished writing to the response, you must
+ * call the @c Finish() followed by a call to @c Flush() to indicate that there will be no more data to stream
+ * and to write the final chunk with a size of zero to indicate the end of the response. If you don't call @c Finish(),
+ * the response will not be flushed and the client will not receive the final chunk, which may lead to a timeout
+ * or other issues on the client side.
  *
  * @ingroup remote
  */
-class HttpResponse: public boost::beast::http::response<SerializableBody<boost::beast::multi_buffer>>
+class HttpResponse : public boost::beast::http::response<boost::beast::http::empty_body>
 {
 public:
 	explicit HttpResponse(Shared<AsioTlsStream>::Ptr stream);
 
-	/**
-	 * Writes as much of the response as is currently available.
-	 *
-	 * Uses chunk-encoding if the content_length has not been set by the time this is called
-	 * for the first time.
-	 *
-	 * The caller needs to ensure that the header is finished before calling this for the
-	 * first time as changes to the header afterwards will not have any effect.
-	 *
-	 * @param yc The yield_context for this operation
-	 */
+	std::size_t Size() const;
+	bool IsHeaderDone() const;
+
 	void Flush(boost::asio::yield_context yc);
 
-	bool HasSerializationStarted () { return m_Serializer.is_header_done(); }
-
-	/**
-	 * Enables chunked encoding.
-	 */
 	void StartStreaming();
 
+	void Finish()
+	{
+		m_Finished = true;
+	}
+
 	JsonEncoder GetJsonEncoder(bool pretty = false);
-	
+
+	/**
+	 * Write data to the response body.
+	 *
+	 * This function appends the given data to the response body using the internal output stream.
+	 * This is the only available way to fill the response body with data and must not be called
+	 * after the response has been finished (i.e., after calling @c Finish()).
+	 *
+	 * @tparam T The type of the data to write. It can be any type that supports the output stream operator (`<<`).
+	 *
+	 * @param data The data to write to the response body
+	 *
+	 * @return Reference to this HttpResponse object for chaining operations.
+	 */
+	template<typename T>
+	HttpResponse& operator<<(T&& data)
+	{
+		ASSERT(!m_Finished); // Never allow writing to an already finished response.
+		m_Ostream << std::forward<T>(data);
+		return *this;
+	}
+
 private:
-	using Serializer = boost::beast::http::response_serializer<HttpResponse::body_type>;
-	Serializer m_Serializer{*this};
+	bool m_HeaderDone = false; // Indicates if the response headers have been written to the stream.
+	bool m_Finished = false; // Indicates if the response is finished and no more data will be written.
+
+	boost::asio::streambuf m_Buffer; // The buffer used to store the response body.
+	std::ostream m_Ostream{&m_Buffer}; // The output stream used to write data to the response body.
 
 	Shared<AsioTlsStream>::Ptr m_Stream;
 };

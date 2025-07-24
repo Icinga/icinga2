@@ -76,23 +76,22 @@ bool InfoHandler::HandleRequest(
 	} else {
 		response.set(http::field::content_type, "text/html");
 
-		auto & body = response.body();
-		body << "<html><head><title>Icinga 2</title></head><h1>Hello from Icinga 2 (Version: "
+		response << "<html><head><title>Icinga 2</title></head><h1>Hello from Icinga 2 (Version: "
 			<< Application::GetAppVersion() << ")!</h1>"
 			<< "<p>You are authenticated as <b>" << user->GetName() << "</b>. ";
 
 		if (!permInfo.empty()) {
-			body << "Your user has the following permissions:</p> <ul>";
+			response << "Your user has the following permissions:</p> <ul>";
 
 			for (const String& perm : permInfo) {
-				body << "<li>" << perm << "</li>";
+				response << "<li>" << perm << "</li>";
 			}
 
-			body << "</ul>";
+			response << "</ul>";
 		} else
-			body << "Your user does not have any permissions.</p>";
+			response << "Your user does not have any permissions.</p>";
 
-		body << R"(<p>More information about API requests is available in the <a href="https://icinga.com/docs/icinga2/latest/" target="_blank">documentation</a>.</p></html>)";
+		response << R"(<p>More information about API requests is available in the <a href="https://icinga.com/docs/icinga2/latest/" target="_blank">documentation</a>.</p></html>)";
 	}
 
 	return true;

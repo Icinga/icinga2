@@ -279,7 +279,6 @@ add_boost_test(base
     remote_httpmessage/request_parse
     remote_httpmessage/request_params
     remote_httpmessage/response_flush_nothrow
-    remote_httpmessage/response_body_reader
     remote_httpmessage/response_write_empty
     remote_httpmessage/response_write_fixed
     remote_httpmessage/response_write_chunked
@@ -311,7 +310,6 @@ if(BUILD_TESTING)
     base-remote_httpmessage/request_parse
     base-remote_httpmessage/request_params
     base-remote_httpmessage/response_flush_nothrow
-    base-remote_httpmessage/response_body_reader
     base-remote_httpmessage/response_write_empty
     base-remote_httpmessage/response_write_fixed
     base-remote_httpmessage/response_write_chunked

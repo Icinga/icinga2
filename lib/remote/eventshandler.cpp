@@ -114,7 +114,7 @@ bool EventsHandler::HandleRequest(
 
 		if (event) {
 			encoder.Encode(event);
-			response.body() << '\n';
+			response << '\n';
 			response.Flush(yc);
 		}
 	}

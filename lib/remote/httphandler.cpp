@@ -114,7 +114,7 @@ void HttpHandler::ProcessRequest(
 		 * in the middle of a streaming response. We can't send any error response, so the
 		 * only thing we can do is propagate it up.
 		 */
-		if (response.HasSerializationStarted()) {
+		if (response.IsHeaderDone()) {
 			throw;
 		}
 

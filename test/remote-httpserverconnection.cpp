@@ -84,7 +84,7 @@ class UnitTestHandler final: public HttpHandler
 			response.StartStreaming();
 			response.Flush(yc);
 			for (;;) {
-				response.body() << "test";
+				response << "test";
 				response.Flush(yc);
 			}
 
@@ -93,12 +93,12 @@ class UnitTestHandler final: public HttpHandler
 
 		if (HttpUtility::GetLastParameter(request.Params(), "throw")) {
 			response.StartStreaming();
-			response.body() << "test";
+			response << "test";
 			response.Flush(yc);
 			throw std::runtime_error{"The front fell off"};
 		}
 
-		response.body() << "test";
+		response << "test";
 		return true;
 	}
 };

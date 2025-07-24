@@ -148,7 +148,7 @@ bool EnsureValidHeaders(
 			HttpUtility::SendJsonError(response, nullptr, 400, "Bad Request: " + errorMsg);
 		} else {
 			response.set(http::field::content_type, "text/html");
-			response.body() << "<h1>Bad Request</h1><p><pre>" << errorMsg << "</pre></p>\r\n";
+			response << "<h1>Bad Request</h1><p><pre>" << errorMsg << "</pre></p>\r\n";
 		}
 
 		response.set(http::field::connection, "close");
@@ -207,7 +207,7 @@ bool HandleAccessControl(
 					response.result(http::status::ok);
 					response.set(http::field::access_control_allow_methods, "GET, POST, PUT, DELETE");
 					response.set(http::field::access_control_allow_headers, "Authorization, Content-Type, X-HTTP-Method-Override");
-					response.body() << "Preflight OK";
+					response << "Preflight OK";
 					response.set(http::field::connection, "close");
 
 					response.Flush(yc);
@@ -233,7 +233,7 @@ bool EnsureAcceptHeader(
 	if (request.method() != http::verb::get && request[http::field::accept] != "application/json") {
 		response.result(http::status::bad_request);
 		response.set(http::field::content_type, "text/html");
-		response.body() << "<h1>Accept header is missing or not set to 'application/json'.</h1>\r\n";
+		response << "<h1>Accept header is missing or not set to 'application/json'.</h1>\r\n";
 		response.set(http::field::connection, "close");
 
 		response.Flush(yc);
@@ -265,7 +265,7 @@ bool EnsureAuthenticatedUser(
 			HttpUtility::SendJsonError(response, nullptr, 401, "Unauthorized. Please check your user credentials.");
 		} else {
 			response.set(http::field::content_type, "text/html");
-			response.body() << "<h1>Unauthorized. Please check your user credentials.</h1>\r\n";
+			response << "<h1>Unauthorized. Please check your user credentials.</h1>\r\n";
 		}
 
 		response.Flush(yc);
@@ -346,7 +346,7 @@ bool EnsureValidBody(
 			HttpUtility::SendJsonError(response, nullptr, 400, "Bad Request: " + ec.message());
 		} else {
 			response.set(http::field::content_type, "text/html");
-			response.body() << "<h1>Bad Request</h1><p><pre>" << ec.message() << "</pre></p>\r\n";
+			response << "<h1>Bad Request</h1><p><pre>" << ec.message() << "</pre></p>\r\n";
 		}
 
 		response.set(http::field::connection, "close");
@@ -379,7 +379,7 @@ bool ProcessRequest(
 		/* Since we don't know the state the stream is in, we can't send an error response and
 		 * have to just cause a disconnect here.
 		 */
-		if (response.HasSerializationStarted()) {
+		if (response.IsHeaderDone()) {
 			throw;
 		}
 
@@ -388,7 +388,7 @@ bool ProcessRequest(
 		return true;
 	}
 
-	response.body().Finish();
+	response.Finish();
 	response.Flush(yc);
 
 	return true;
