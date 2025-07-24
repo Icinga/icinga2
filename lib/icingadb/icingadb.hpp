@@ -185,7 +185,7 @@ private:
 	static String HashValue(const Value& value, const std::set<String>& propertiesBlacklist, bool propertiesWhitelist = false);
 
 	static String GetLowerCaseTypeNameDB(const ConfigObject::Ptr& obj);
-	static bool PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& attributes, Dictionary::Ptr& checkSums);
+	static bool PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& attributes);
 
 	static void ReachabilityChangeHandler(const std::set<Checkable::Ptr>& children);
 	static void StateChangeHandler(const ConfigObject::Ptr& object, const CheckResult::Ptr& cr, StateType type);

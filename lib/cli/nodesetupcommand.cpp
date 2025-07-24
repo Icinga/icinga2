@@ -88,12 +88,12 @@ int NodeSetupCommand::Run(const boost::program_options::variables_map& vm, const
 	}
 
 	if (vm.count("master"))
-		return SetupMaster(vm, ap);
+		return SetupMaster(vm);
 	else
-		return SetupNode(vm, ap);
+		return SetupNode(vm);
 }
 
-int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap)
+int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& vm)
 {
 	/* Ignore not required parameters */
 	if (vm.count("ticket"))
@@ -250,7 +250,7 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 	return 0;
 }
 
-int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap)
+int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm)
 {
 	/* require at least one endpoint. Ticket is optional. */
 	if (!vm.count("endpoint")) {
