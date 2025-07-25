@@ -364,7 +364,8 @@ The following event types are written to Elasticsearch:
 * icinga2.event.notification
 
 Performance data metrics must be explicitly enabled with the `enable_send_perfdata`
-attribute.
+attribute. Be aware that this will create a new field mapping in the index for each performance data metric in a check plugin.
+See: [ElasticsearchWriter](09-object-types.md#objecttype-elasticsearchwriter)
 
 Metric values are stored like this:
 
