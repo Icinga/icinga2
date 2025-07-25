@@ -3,6 +3,7 @@ BasedOnStyle: LLVM
 AccessModifierOffset: -4
 AlignAfterOpenBracket: DontAlign
 BreakBeforeBraces: Mozilla
+BreakTemplateDeclarations: Yes
 ColumnLimit: 100
 IncludeCategories:
   - Regex: ^"(base|icinga|remote|test)/
@@ -21,5 +22,6 @@ PenaltyBreakBeforeFirstCallParameter: 50
 PenaltyBreakOpenParenthesis: 50
 PointerAlignment: Left
 ReferenceAlignment: Left
+SpaceAfterTemplateKeyword: false
 TabWidth: 4
 UseTab: Always
