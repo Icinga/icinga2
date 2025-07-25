@@ -1,0 +1,165 @@
+# The Build and Publish Container Image workflow builds container images and
+# pushes them to both GitHub Container Registry (GHCR) and Docker Hub.
+# It sets up QEMU and Docker Buildx for cross-platform builds,
+# and builds the container images using the Containerfile.
+# Upon pushes to the master branch or when releases are published,
+# it logs into GHCR and Docker Hub using credentials from GitHub secrets,
+# tags and pushes the images to both registries,
+# and generates and pushes signed build provenance attestations to each registry.
+# The workflow also triggers for pull requests to the master branch, verifying only the image build.
+
+name: Build and Publish Container Image
+
+on:
+  push:
+    branches:
+      - master
+  pull_request: {}
+  release:
+    types:
+      - published
+
+env:
+  # The variable ${{ github.repository }} is not suitable for container image names in our case because
+  # they must be lowercase, and our organization name is Icinga.
+  # Since our repository names are already lowercase, no additional modifications are necessary.
+  IMAGE_NAME: icinga/${{ github.event.repository.name }}
+
+  # The LATEST variable determines if the current release tag is the greatest tag overall.
+  # If true, the container image will be tagged as 'latest' when pushed to the container registries.
+  LATEST: false
+
+  # The LATEST_MAJOR variable determines if the current release tag is the greatest within its major version.
+  # If true, the container image will be tagged with the major version (e.g., '1') when pushed to the registries.
+  LATEST_MAJOR: false
+
+jobs:
+  build-and-publish-container-image:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
+
+    steps:
+      # Explicitly using the checkout action (instead of relying on docker/build-push-action to do it implicitly)
+      # because we need to fetch all tags.
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Switch to fetch-tags: true once https://github.com/actions/checkout/issues/1467 is fixed.
+          fetch-depth: 0
+
+      # Updates env.LATEST and env.LATEST_MAJOR based on
+      # whether the current release tag is the greatest overall and/or
+      # within its major version.
+      - name: Prepare metadata (release tags)
+        if: github.event_name == 'release' && github.event.action == 'published'
+        run: |
+          # Retrieve the greatest existing tag in the repository by sorting tags in descending order.
+          # Options used:
+          # * --sort=-v:refname sorts tags as versions, placing the highest version at the top.
+          # * -c 'versionsort.suffix=-' ensures that pre-release tags (e.g., 1.0.0-rc1) are sorted correctly,
+          #   so they are not considered greater than their corresponding final release (e.g., 1.0.0).
+          # Intentionally not using head -1 to prevent potential broken pipe errors.
+          greatest_tag=$(git -c 'versionsort.suffix=-' tag --list --sort=-v:refname | awk 'NR==1')
+
+          if [ "${{ github.ref_name }}" = "$greatest_tag" ]; then
+            echo "The current tag ${{ github.ref_name }} is the greatest overall. Tagging as 'latest'."
+
+            # Update environment variable to enable tagging as 'latest'.
+            echo "LATEST=true" >> "$GITHUB_ENV"
+          else
+            echo "The current tag ${{ github.ref_name }} is not the greatest overall compared to $greatest_tag. Not tagging as 'latest'."
+          fi
+
+          major_version=$(echo ${{ github.ref_name }} | cut -d. -f1)
+          greatest_major=$(git -c 'versionsort.suffix=-' tag --list "${major_version}.*" --sort=-v:refname | awk 'NR==1')
+          if [ "${{ github.ref_name }}" = "$greatest_major" ]; then
+            echo "The current tag ${{ github.ref_name }} is the greatest within its major version. Tagging with major version ${major_version#v}."
+
+            # Update environment variable to enable tagging with major version.
+            echo "LATEST_MAJOR=true" >> "$GITHUB_ENV"
+          else
+            echo "The current tag ${{ github.ref_name }} is not the greatest within its major version compared to $greatest_major. Not tagging with major version ${major_version#v}."
+          fi
+
+      - name: Extract metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          # This will generate tags and labels for both the GHCR image and Docker Hub image.
+          images: |
+            # GitHub Container Registry
+            ghcr.io/${{ env.IMAGE_NAME }}
+            # Docker Hub
+            ${{ env.IMAGE_NAME }}
+          labels: |
+            org.opencontainers.image.documentation=https://icinga.com/docs/icinga2
+            org.opencontainers.image.vendor=Icinga GmbH
+          flavor: |
+            # Disable automatic 'latest' tagging as our custom logic is used to
+            # determine when to apply the 'latest' tag.
+            latest=false
+          tags: |
+            type=edge
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}},enable=${{ env.LATEST_MAJOR }}
+            type=raw,value=latest,enable=${{ env.LATEST }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Container image
+        id: build-and-push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Containerfile
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'pull_request' }}
+          # The tags generated in the metadata step include tags for both Docker Hub and GHCR image names,
+          # allowing the build and push action to build and push images to both registries.
+          tags: ${{ steps.meta.outputs.tags }}
+
+      - name: Generate artifact attestation for GitHub Container Registry
+        if: github.event_name != 'pull_request'
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: ghcr.io/${{ env.IMAGE_NAME }}
+          subject-digest: ${{ steps.build-and-push.outputs.digest }}
+          push-to-registry: false
+
+      - name: Generate artifact attestation for Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: actions/attest-build-provenance@v2
+        with:
+          # According to the documentation [^1],
+          # "index.docker.io" should be used as the registry portion of the image name when pushing to Docker Hub.
+          #
+          # [^1]: https://github.com/actions/attest-build-provenance?tab=readme-ov-file#container-image
+          subject-name: index.docker.io/${{ env.IMAGE_NAME }}
+          subject-digest: ${{ steps.build-and-push.outputs.digest }}
+          push-to-registry: false
