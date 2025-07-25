@@ -1685,11 +1685,11 @@ Configuration Attributes:
   flush\_threshold          | Number                | **Optional.** How many data points to buffer before forcing a transfer to InfluxDB.  Defaults to `1024`.
   enable\_ha                | Boolean               | **Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-features). Defaults to `false`.
 
-Note: If `flush_threshold` is set too low, this will always force the feature to flush all data
-to InfluxDB. Experiment with the setting, if you are processing more than 1024 metrics per second
-or similar.
-
-
+> **Note**
+>
+> If `flush_threshold` is set too low, this will always force the feature to flush all data
+> to InfluxDB. Experiment with the setting, if you are processing more than 1024 metrics per second
+> or similar.
 
 ### Influxdb2Writer <a id="objecttype-influxdb2writer"></a>
 
