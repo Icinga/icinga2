@@ -302,47 +302,10 @@ String DependencyGroup::GetCompositeKey()
  *
  * @param child The child Checkable to evaluate the state for.
  * @param dt The dependency type to evaluate the state for, defaults to DependencyState.
- * @param rstack The recursion stack level to prevent infinite recursion, defaults to 0.
  *
  * @return - Returns the state of the current dependency group.
  */
-DependencyGroup::State DependencyGroup::GetState(const Checkable* child, DependencyType dt, int rstack) const
+DependencyGroup::State DependencyGroup::GetState(const Checkable* child, DependencyType dt) const
 {
-	auto dependencies(GetDependenciesForChild(child));
-	size_t reachable = 0, available = 0;
-
-	for (const auto& dependency : dependencies) {
-		if (dependency->GetParent()->IsReachable(dt, rstack)) {
-			reachable++;
-
-			// Only reachable parents are considered for availability. If they are unreachable and checks are
-			// disabled, they could be incorrectly treated as available otherwise.
-			if (dependency->IsAvailable(dt)) {
-				available++;
-			}
-		}
-	}
-
-	if (IsRedundancyGroup()) {
-		// The state of a redundancy group is determined by the best state of any parent. If any parent ist reachable,
-		// the redundancy group is reachable, analogously for availability.
-		if (reachable == 0) {
-			return State::Unreachable;
-		} else if (available == 0) {
-			return State::Failed;
-		} else {
-			return State::Ok;
-		}
-	} else {
-		// For dependencies without a redundancy group, dependencies.size() will be 1 in almost all cases. It will only
-		// contain more elements if there are duplicate dependency config objects between two checkables. In this case,
-		// all of them have to be reachable/available as they don't provide redundancy.
-		if (reachable < dependencies.size()) {
-			return State::Unreachable;
-		} else if (available < dependencies.size()) {
-			return State::Failed;
-		} else {
-			return State::Ok;
-		}
-	}
+	return DependencyStateChecker(dt).GetState(this, child);
 }

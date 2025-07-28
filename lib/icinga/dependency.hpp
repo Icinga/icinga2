@@ -49,6 +49,14 @@ public:
 	void SetParent(intrusive_ptr<Checkable> parent);
 	void SetChild(intrusive_ptr<Checkable> child);
 
+	/**
+	 * The maximum number of allowed dependency recursion levels.
+	 *
+	 * This is a subjective limit how deep the dependency tree should be allowed to go, as anything beyond this level
+	 * is just madness and will likely result in a stack overflow or other undefined behavior.
+	 */
+	static constexpr int MaxDependencyRecursionLevel{256};
+
 protected:
 	void OnConfigLoaded() override;
 	void OnAllConfigLoaded() override;
@@ -164,7 +172,7 @@ public:
 	String GetCompositeKey();
 
 	enum class State { Ok, Failed, Unreachable };
-	State GetState(const Checkable* child, DependencyType dt = DependencyState, int rstack = 0) const;
+	State GetState(const Checkable* child, DependencyType dt = DependencyState) const;
 
 	static boost::signals2::signal<void(const Checkable::Ptr&, const DependencyGroup::Ptr&)> OnChildRegistered;
 	static boost::signals2::signal<void(const DependencyGroup::Ptr&, const std::vector<Dependency::Ptr>&, bool)> OnChildRemoved;
@@ -220,6 +228,28 @@ private:
 	// The global registry of dependency groups.
 	static std::mutex m_RegistryMutex;
 	static RegistryType m_Registry;
+};
+
+/**
+ * Helper class to evaluate the reachability of checkables and state of dependency groups.
+ *
+ * This class is used for implementing Checkable::IsReachable() and DependencyGroup::GetState().
+ * For this, both methods call each other, traversing the dependency graph recursively. In order
+ * to achieve linear runtime in the graph size, the class internally caches state information
+ * (otherwise, evaluating the state of the same checkable multiple times can result in exponential
+ * worst-case complexity). Because of this cached information is not invalidated, the object is
+ * intended to be short-lived.
+ */
+class DependencyStateChecker
+{
+public:
+	explicit DependencyStateChecker(DependencyType dt);
+
+	bool IsReachable(Checkable::ConstPtr checkable, int rstack = 0);
+	DependencyGroup::State GetState(const DependencyGroup::ConstPtr& group, const Checkable* child, int rstack = 0);
+
+private:
+	DependencyType m_DependencyType;
 };
 
 }

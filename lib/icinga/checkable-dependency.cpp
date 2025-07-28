@@ -7,14 +7,6 @@
 using namespace icinga;
 
 /**
- * The maximum number of allowed dependency recursion levels.
- *
- * This is a subjective limit how deep the dependency tree should be allowed to go, as anything beyond this level
- * is just madness and will likely result in a stack overflow or other undefined behavior.
- */
-static constexpr int l_MaxDependencyRecursionLevel(256);
-
-/**
  * Register all the dependency groups of the current Checkable to the global dependency group registry.
  *
  * Initially, each Checkable object tracks locally its own dependency groups on Icinga 2 startup, and once the start
@@ -186,36 +178,15 @@ std::vector<Dependency::Ptr> Checkable::GetReverseDependencies() const
 	return std::vector<Dependency::Ptr>(m_ReverseDependencies.begin(), m_ReverseDependencies.end());
 }
 
-bool Checkable::IsReachable(DependencyType dt, int rstack) const
+/**
+ * Checks whether this checkable is currently reachable according to its dependencies.
+ *
+ * @param dt Dependency type to evaluate for.
+ * @return Whether the given checkable is reachable.
+ */
+bool Checkable::IsReachable(DependencyType dt) const
 {
-	if (rstack > l_MaxDependencyRecursionLevel) {
-		Log(LogWarning, "Checkable")
-			<< "Too many nested dependencies (>" << l_MaxDependencyRecursionLevel << ") for checkable '" << GetName() << "': Dependency failed.";
-
-		return false;
-	}
-
-	/* implicit dependency on host if this is a service */
-	const auto *service = dynamic_cast<const Service *>(this);
-	if (service && (dt == DependencyState || dt == DependencyNotification)) {
-		Host::Ptr host = service->GetHost();
-
-		if (host && host->GetState() != HostUp && host->GetStateType() == StateTypeHard) {
-			return false;
-		}
-	}
-
-	for (auto& dependencyGroup : GetDependencyGroups()) {
-		if (auto state(dependencyGroup->GetState(this, dt, rstack + 1)); state != DependencyGroup::State::Ok) {
-			Log(LogDebug, "Checkable")
-				<< "Dependency group '" << dependencyGroup->GetRedundancyGroupName() << "' have failed for checkable '"
-				<< GetName() << "': Marking as unreachable.";
-
-			return false;
-		}
-	}
-
-	return true;
+	return DependencyStateChecker(dt).IsReachable(this);
 }
 
 /**
@@ -307,9 +278,10 @@ std::set<Checkable::Ptr> Checkable::GetAllChildren() const
  */
 void Checkable::GetAllChildrenInternal(std::set<Checkable::Ptr>& seenChildren, int level) const
 {
-	if (level > l_MaxDependencyRecursionLevel) {
+	if (level > Dependency::MaxDependencyRecursionLevel) {
 		Log(LogWarning, "Checkable")
-			<< "Too many nested dependencies (>" << l_MaxDependencyRecursionLevel << ") for checkable '" << GetName() << "': aborting traversal.";
+			<< "Too many nested dependencies (>" << Dependency::MaxDependencyRecursionLevel << ") for checkable '"
+			<< GetName() << "': aborting traversal.";
 		return;
 	}
 
