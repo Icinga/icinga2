@@ -25,6 +25,14 @@ DependencyStateChecker::DependencyStateChecker(DependencyType dt)
  */
 bool DependencyStateChecker::IsReachable(Checkable::ConstPtr checkable, int rstack)
 {
+	// If the reachability of this checkable was already computed, return it directly. Otherwise, already create a
+	// temporary map entry that says that this checkable is unreachable so that the different cases returning false
+	// don't have to deal with updating the cache, but only the final return true does. Cyclic dependencies are invalid,
+	// hence recursive calls won't access the potentially not yet correct cached value.
+	if (auto [it, inserted] = m_Cache.insert({checkable, false}); !inserted) {
+		return it->second;
+	}
+
 	if (rstack > Dependency::MaxDependencyRecursionLevel) {
 		Log(LogWarning, "Checkable")
 			<< "Too many nested dependencies (>" << Dependency::MaxDependencyRecursionLevel << ") for checkable '"
@@ -53,6 +61,9 @@ bool DependencyStateChecker::IsReachable(Checkable::ConstPtr checkable, int rsta
 		}
 	}
 
+	// Note: This must do the map lookup again. The iterator from above must not be used as a m_Cache.insert() inside a
+	// recursive may have invalidated it.
+	m_Cache[checkable] = true;
 	return true;
 }
 

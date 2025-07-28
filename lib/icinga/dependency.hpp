@@ -250,6 +250,7 @@ public:
 
 private:
 	DependencyType m_DependencyType;
+	std::unordered_map<Checkable::ConstPtr, bool> m_Cache;
 };
 
 }
