@@ -6095,6 +6095,7 @@ ssl_cert_ignore_ocsp_timeout            | **Optional.** Ignore OCSP result when 
 ssl_cert_ignore_sct                     | **Optional.** Do not check for signed certificate timestamps.
 ssl_cert_ignore_tls_renegotiation       | **Optional.** Do not check for renegotiation.
 ssl_cert_dane                           | **Optional.** Verify that valid DANE records exist ({211,301,302,311,312} or empty string).
+ssl_cert_long_output                    | **Optional.** Append the specified comma separated (no spaces) list of attributes to the plugin output on additional lines.
 
 
 #### jmx4perl <a id="plugin-contrib-command-jmx4perl"></a>
