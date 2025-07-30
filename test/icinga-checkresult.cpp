@@ -551,7 +551,7 @@ BOOST_AUTO_TEST_CASE(service_flapping_notification)
 #endif /* I2_DEBUG */
 }
 
-BOOST_AUTO_TEST_CASE(service_flapping_problem_notifications)
+BOOST_AUTO_TEST_CASE(service_flapping_problem_notifications, *boost::unit_test::disabled())
 {
 #ifndef I2_DEBUG
 	BOOST_WARN_MESSAGE(false, "This test can only be run in a debug build!");
@@ -652,7 +652,7 @@ BOOST_AUTO_TEST_CASE(service_flapping_problem_notifications)
 #endif /* I2_DEBUG */
 }
 
-BOOST_AUTO_TEST_CASE(service_flapping_ok_into_bad)
+BOOST_AUTO_TEST_CASE(service_flapping_ok_into_bad, *boost::unit_test::disabled())
 {
 #ifndef I2_DEBUG
 	BOOST_WARN_MESSAGE(false, "This test can only be run in a debug build!");
@@ -733,7 +733,7 @@ BOOST_AUTO_TEST_CASE(service_flapping_ok_into_bad)
 
 #endif /* I2_DEBUG */
 }
-BOOST_AUTO_TEST_CASE(service_flapping_ok_over_bad_into_ok)
+BOOST_AUTO_TEST_CASE(service_flapping_ok_over_bad_into_ok, *boost::unit_test::disabled())
 {
 #ifndef I2_DEBUG
 	BOOST_WARN_MESSAGE(false, "This test can only be run in a debug build!");

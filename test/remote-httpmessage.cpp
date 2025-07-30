@@ -1,17 +1,22 @@
 /* Icinga 2 | (c) 2025 Icinga GmbH | GPLv2+ */
 
+#include <BoostTestTargetConfig.h>
 #include "base/base64.hpp"
 #include "base/json.hpp"
 #include "remote/httpmessage.hpp"
 #include "remote/httputility.hpp"
 #include "test/base-tlsstream-fixture.hpp"
-#include <BoostTestTargetConfig.h>
+#include "test/test-ctest.hpp"
 #include <fstream>
 
 using namespace icinga;
 using namespace boost::beast;
 
-BOOST_FIXTURE_TEST_SUITE(remote_httpmessage, TlsStreamFixture)
+// clang-format off
+BOOST_FIXTURE_TEST_SUITE(remote_httpmessage, TlsStreamFixture,
+	*CTestProperties("FIXTURES_REQUIRED ssl_certs")
+	*boost::unit_test::label("http"))
+// clang-format on
 
 BOOST_AUTO_TEST_CASE(request_parse)
 {
