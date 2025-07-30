@@ -5,7 +5,7 @@ AlignAfterOpenBracket: DontAlign
 AllowShortFunctionsOnASingleLine: InlineOnly
 BreakBeforeBraces: Mozilla
 BreakTemplateDeclarations: Yes
-ColumnLimit: 100
+ColumnLimit: 120
 IncludeCategories:
   - Regex: ^"(base|icinga|remote|test)/
     Priority: 1
