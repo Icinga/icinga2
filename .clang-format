@@ -18,7 +18,6 @@ IncludeCategories:
     CaseSensitive: false
 IndentCaseLabels: true
 IndentWidth: 4
-PenaltyBreakAssignment: 50
 PenaltyBreakBeforeFirstCallParameter: 50
 PenaltyBreakOpenParenthesis: 50
 PointerAlignment: Left
