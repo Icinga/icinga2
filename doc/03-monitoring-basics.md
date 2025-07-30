@@ -3097,6 +3097,12 @@ via the [REST API](12-icinga2-api.md#icinga2-api).
 > Reachability calculation depends on fresh and processed check results. If dependencies
 > disable checks for child objects, this won't work reliably.
 
+> **Note**
+>
+> The parent of a dependency can have a parent itself and so on. The nesting depth of
+> dependencies is currently limited to 256 which should be more than enough for any practical
+> use. This is an implementation detail and may change in the future.
+
 ### Implicit Dependencies for Services on Host <a id="dependencies-implicit-host-service"></a>
 
 Icinga 2 automatically adds an implicit dependency for services on their host. That way
