@@ -6,6 +6,7 @@
 #include "remote/httphandler.hpp"
 #include "test/base-testloggerfixture.hpp"
 #include "test/base-tlsstream-fixture.hpp"
+#include "test/test-ctest.hpp"
 #include <boost/algorithm/string.hpp>
 #include <boost/beast/http.hpp>
 #include <utility>
@@ -93,7 +94,11 @@ private:
 
 REGISTER_URLHANDLER("/v1/test", UnitTestHandler);
 
-BOOST_FIXTURE_TEST_SUITE(remote_httpserverconnection, HttpServerConnectionFixture)
+// clang-format off
+BOOST_FIXTURE_TEST_SUITE(remote_httpserverconnection, HttpServerConnectionFixture,
+	*CTestProperties("FIXTURES_REQUIRED ssl_certs")
+	*boost::unit_test::label("http"))
+// clang-format on
 
 BOOST_AUTO_TEST_CASE(expect_100_continue)
 {
