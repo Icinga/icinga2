@@ -35,7 +35,6 @@ option(ICINGA2_WITH_COMPAT "Build the compat module" ${ICINGA2_MASTER})
 option(ICINGA2_WITH_LIVESTATUS "Build the Livestatus module" ${ICINGA2_MASTER})
 option(ICINGA2_WITH_NOTIFICATION "Build the notification module" ON)
 option(ICINGA2_WITH_PERFDATA "Build the perfdata module" ${ICINGA2_MASTER})
-option(ICINGA2_WITH_TESTS "Run unit tests" ON)
 option(ICINGA2_WITH_ICINGADB "Build the IcingaDB module" ${ICINGA2_MASTER})
 
 option (USE_SYSTEMD
@@ -471,9 +470,6 @@ install(
   DESTINATION ${CMAKE_INSTALL_DOCDIR}
 )
 
-include(CTest)
-enable_testing()
-
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 add_subdirectory(third-party)
@@ -494,7 +490,8 @@ if(MSVC)
   add_subdirectory(icinga-installer)
 endif()
 
-if(ICINGA2_WITH_TESTS)
+include(CTest)
+if(BUILD_TESTING)
   add_subdirectory(test)
 endif()
 
