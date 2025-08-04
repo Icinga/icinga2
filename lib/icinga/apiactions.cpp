@@ -16,6 +16,7 @@
 #include "remote/filterutility.hpp"
 #include "remote/pkiutility.hpp"
 #include "remote/httputility.hpp"
+#include "base/application.hpp"
 #include "base/utility.hpp"
 #include "base/convert.hpp"
 #include "base/defer.hpp"
@@ -754,6 +755,17 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object, cons
 		}
 	} else {
 		command = HttpUtility::GetLastParameter(params, "command");
+	}
+
+	ConfigObjectsSharedLock lock (std::try_to_lock);
+	if (!lock) {
+		return ApiActions::CreateResult(503, "Icinga is reloading");
+	}
+
+	const WaitGroup::Ptr& waitGroup = ApiListener::GetInstance()->GetWaitGroup();
+	std::shared_lock wgLock{*waitGroup, std::try_to_lock};
+	if (!wgLock || Application::IsRestarting() || Application::IsShuttingDown()) {
+		return ApiActions::CreateResult(503, "Icinga is reloading");
 	}
 
 	/* Resolve command macro */
