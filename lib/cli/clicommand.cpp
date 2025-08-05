@@ -147,7 +147,7 @@ void CLICommand::InitParameters(boost::program_options::options_description& vis
 
 ImpersonationLevel CLICommand::GetImpersonationLevel() const
 {
-	return ImpersonateIcinga;
+	return m_ImpersonationLevel;
 }
 
 bool CLICommand::ParseCommand(int argc, char **argv, po::options_description& visibleDesc,
@@ -215,6 +215,10 @@ found_command:
 
 	po::store(po::command_line_parser(argc - arg_end, argv + arg_end).options(adesc).positional(positionalDesc).run(), vm);
 	po::notify(vm);
+
+	if (vm.count("no-impersonate")) {
+		command->m_ImpersonationLevel = ImpersonateNone;
+	}
 
 	return true;
 }
