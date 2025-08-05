@@ -12,8 +12,8 @@ namespace icinga
 
 class SharedObject;
 
-inline void intrusive_ptr_add_ref(SharedObject *object);
-inline void intrusive_ptr_release(SharedObject *object);
+inline void intrusive_ptr_add_ref(const SharedObject *object);
+inline void intrusive_ptr_release(const SharedObject *object);
 
 /**
  * Seamless and polymorphistic base for any class to create shared pointers of.
@@ -23,8 +23,8 @@ inline void intrusive_ptr_release(SharedObject *object);
  */
 class SharedObject
 {
-	friend void intrusive_ptr_add_ref(SharedObject *object);
-	friend void intrusive_ptr_release(SharedObject *object);
+	friend void intrusive_ptr_add_ref(const SharedObject *object);
+	friend void intrusive_ptr_release(const SharedObject *object);
 
 protected:
 	inline SharedObject() : m_References(0)
@@ -38,15 +38,15 @@ protected:
 	~SharedObject() = default;
 
 private:
-	Atomic<uint_fast64_t> m_References;
+	mutable Atomic<uint_fast64_t> m_References;
 };
 
-inline void intrusive_ptr_add_ref(SharedObject *object)
+inline void intrusive_ptr_add_ref(const SharedObject *object)
 {
 	object->m_References.fetch_add(1);
 }
 
-inline void intrusive_ptr_release(SharedObject *object)
+inline void intrusive_ptr_release(const SharedObject *object)
 {
 	if (object->m_References.fetch_sub(1) == 1u) {
 		delete object;
