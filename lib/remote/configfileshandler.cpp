@@ -15,17 +15,16 @@ REGISTER_URLHANDLER("/v1/config/files", ConfigFilesHandler);
 
 bool ConfigFilesHandler::HandleRequest(
 	const WaitGroup::Ptr&,
-	AsioTlsStream& stream,
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params,
-	boost::asio::yield_context& yc,
-	HttpServerConnection& server
+	const HttpRequest& request,
+	HttpResponse& response,
+	boost::asio::yield_context& yc
 )
 {
 	namespace http = boost::beast::http;
+
+	auto url = request.Url();
+	auto user = request.User();
+	auto params = request.Params();
 
 	if (request.method() != http::verb::get)
 		return false;
@@ -78,14 +77,9 @@ bool ConfigFilesHandler::HandleRequest(
 	}
 
 	try {
-		std::ifstream fp(path.CStr(), std::ifstream::in | std::ifstream::binary);
-		fp.exceptions(std::ifstream::badbit);
-
-		String content((std::istreambuf_iterator<char>(fp)), std::istreambuf_iterator<char>());
 		response.result(http::status::ok);
 		response.set(http::field::content_type, "application/octet-stream");
-		response.body() = content;
-		response.content_length(response.body().size());
+		response.SendFile(path, yc);
 	} catch (const std::exception& ex) {
 		HttpUtility::SendJsonError(response, params, 500, "Could not read file.",
 			DiagnosticInformation(ex));
