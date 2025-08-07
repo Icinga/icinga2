@@ -1,5 +1,6 @@
 /* Icinga 2 | (c) 2025 Icinga GmbH | GPLv2+ */
 
+#include <BoostTestTargetConfig.h>
 #include "base/base64.hpp"
 #include "base/json.hpp"
 #include "remote/httphandler.hpp"
@@ -7,11 +8,11 @@
 #include "test/base-testloggerfixture.hpp"
 #include "test/base-tlsstream-fixture.hpp"
 #include "test/icingaapplication-fixture.hpp"
+#include "test/test-ctest.hpp"
 #include <boost/algorithm/string.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/container/flat_set.hpp>
 #include <boost/version.hpp>
-#include <BoostTestTargetConfig.h>
 
 using namespace icinga;
 using namespace boost::beast;
@@ -101,7 +102,11 @@ class UnitTestHandler final : public HttpHandler
 
 REGISTER_URLHANDLER("/v1/test", UnitTestHandler);
 
-BOOST_FIXTURE_TEST_SUITE(remote_httpserverconnection, HttpServerConnectionFixture)
+// clang-format off
+BOOST_FIXTURE_TEST_SUITE(remote_httpserverconnection, HttpServerConnectionFixture,
+	*CTestProperties("FIXTURES_REQUIRED ssl_certs")
+	*boost::unit_test::label("http"))
+// clang-format on
 
 BOOST_AUTO_TEST_CASE(expect_100_continue)
 {
