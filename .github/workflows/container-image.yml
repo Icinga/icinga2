@@ -1,0 +1,32 @@
+name: Container Image
+
+on:
+  push:
+    branches:
+      - master
+  pull_request: {}
+  release:
+    types:
+      - published
+
+concurrency:
+  group: container-image-${{ github.event_name == 'push' && github.sha || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  container-image:
+    # Required by the base Container Image Action [^1].
+    # [^1]: https://github.com/Icinga/github-actions/blob/main/.github/workflows/container-image.yml#L54-L58
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
+
+    name: Container Image
+    uses: icinga/github-actions/.github/workflows/container-image.yml@main
+    with:
+      documentation_url: https://icinga.com/docs/icinga2
+    secrets:
+      dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
+      dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
