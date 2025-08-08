@@ -1,6 +1,6 @@
 # Icinga 2 Docker image | (c) 2025 Icinga GmbH | GPLv2+
 
-FROM debian:bookworm-slim AS build-base
+FROM debian:trixie-slim AS build-base
 
 # Install all the necessary build dependencies for building Icinga 2 and the plugins.
 #
@@ -11,6 +11,7 @@ FROM debian:bookworm-slim AS build-base
 #
 # [^1]: https://docs.docker.com/build/building/best-practices/#create-reusable-stages
 RUN apt-get update && \
+    apt-get upgrade -y && \
     apt-get install -y --no-install-recommends --no-install-suggests \
         autoconf \
         automake \
@@ -20,17 +21,17 @@ RUN apt-get update && \
         flex \
         g++ \
         git \
-        libboost1.74-dev \
-        libboost-context1.74-dev \
-        libboost-coroutine1.74-dev \
-        libboost-date-time1.74-dev \
-        libboost-filesystem1.74-dev \
-        libboost-iostreams1.74-dev \
-        libboost-program-options1.74-dev \
-        libboost-regex1.74-dev \
-        libboost-system1.74-dev \
-        libboost-thread1.74-dev \
-        libboost-test1.74-dev \
+        libboost1.83-dev \
+        libboost-context1.83-dev \
+        libboost-coroutine1.83-dev \
+        libboost-date-time1.83-dev \
+        libboost-filesystem1.83-dev \
+        libboost-iostreams1.83-dev \
+        libboost-program-options1.83-dev \
+        libboost-regex1.83-dev \
+        libboost-system1.83-dev \
+        libboost-thread1.83-dev \
+        libboost-test1.83-dev \
         libedit-dev \
         libmariadb-dev \
         libpq-dev \
@@ -134,30 +135,31 @@ RUN rm -rf /icinga2-install/etc/icinga2/features-enabled/mainlog.conf \
     strip -g /icinga2-install/usr/lib/nagios/plugins/check_nscp_api
 
 # Prepare the final image with the necessary configuration files and runtime dependencies.
-FROM debian:bookworm-slim AS icinga2
+FROM debian:trixie-slim AS icinga2
 
 # The real UID of the Icinga user to be used in the final image.
 ARG ICINGA_USER_ID=5665
 
 # Install the necessary runtime dependencies for the Icinga 2 binary and the monitoring-plugins.
 RUN apt-get update && \
+    apt-get upgrade -y && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends --no-install-suggests \
         bc \
         ca-certificates \
         curl \
         dumb-init \
         file \
-        libboost1.74-dev \
-        libboost-context1.74-dev \
-        libboost-coroutine1.74-dev \
-        libboost-date-time1.74-dev \
-        libboost-filesystem1.74-dev \
-        libboost-iostreams1.74-dev \
-        libboost-program-options1.74-dev \
-        libboost-regex1.74-dev \
-        libboost-system1.74-dev \
-        libboost-thread1.74-dev \
-        libboost-test1.74-dev \
+        libboost1.83-dev \
+        libboost-context1.83-dev \
+        libboost-coroutine1.83-dev \
+        libboost-date-time1.83-dev \
+        libboost-filesystem1.83-dev \
+        libboost-iostreams1.83-dev \
+        libboost-program-options1.83-dev \
+        libboost-regex1.83-dev \
+        libboost-system1.83-dev \
+        libboost-thread1.83-dev \
+        libboost-test1.83-dev \
         libcap2-bin \
         libedit2 \
         libldap-common \
