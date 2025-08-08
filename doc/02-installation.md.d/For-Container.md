@@ -65,7 +65,7 @@ docker run --detach \
 	--hostname icinga-master \
 	--publish 5665:5665 \
 	--volume icinga-master:/data \
-	--mount=type=bind,source=/absolute/path/to/your/api-users.conf,target=`/data/etc/icinga2/conf.d/api-users.conf` \
+	--mount=type=bind,source=/absolute/path/to/your/api-users.conf,target=/data/etc/icinga2/conf.d/api-users.conf \
 	--env ICINGA_MASTER=1 \
 	icinga/icinga2
 ```
