@@ -36,11 +36,11 @@ bool ConfigStagesHandler::HandleRequest(
 		return false;
 
 	if (request.method() == http::verb::get)
-		HandleGet(user, request, url, response, params);
+		HandleGet(user, url, response, params);
 	else if (request.method() == http::verb::post)
-		HandlePost(user, request, url, response, params);
+		HandlePost(user, url, response, params);
 	else if (request.method() == http::verb::delete_)
-		HandleDelete(user, request, url, response, params);
+		HandleDelete(user, url, response, params);
 	else
 		return false;
 
@@ -49,7 +49,6 @@ bool ConfigStagesHandler::HandleRequest(
 
 void ConfigStagesHandler::HandleGet(
 	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
 	const Url::Ptr& url,
 	boost::beast::http::response<boost::beast::http::string_body>& response,
 	const Dictionary::Ptr& params
@@ -97,7 +96,6 @@ void ConfigStagesHandler::HandleGet(
 
 void ConfigStagesHandler::HandlePost(
 	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
 	const Url::Ptr& url,
 	boost::beast::http::response<boost::beast::http::string_body>& response,
 	const Dictionary::Ptr& params
@@ -210,7 +208,6 @@ void ConfigStagesHandler::HandlePost(
 
 void ConfigStagesHandler::HandleDelete(
 	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
 	const Url::Ptr& url,
 	boost::beast::http::response<boost::beast::http::string_body>& response,
 	const Dictionary::Ptr& params
