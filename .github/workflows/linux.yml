@@ -64,7 +64,7 @@ jobs:
 
     steps:
       - name: Checkout HEAD
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Restore/backup ccache
         uses: actions/cache@v3
