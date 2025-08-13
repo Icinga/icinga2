@@ -70,11 +70,6 @@ std::vector<String> NodeSetupCommand::GetArgumentSuggestions(const String& argum
 		return CLICommand::GetArgumentSuggestions(argument, word);
 }
 
-ImpersonationLevel NodeSetupCommand::GetImpersonationLevel() const
-{
-	return ImpersonateIcinga;
-}
-
 /**
  * The entry point for the "node setup" CLI command.
  *
