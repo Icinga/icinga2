@@ -570,10 +570,19 @@ static int Main()
 			String group = Configuration::RunAsGroup;
 			String user = Configuration::RunAsUser;
 
+			std::optional<gid_t> gid;
 			errno = 0;
-			struct group *gr = getgrnam(group.CStr());
+			struct group* gr = nullptr;
+			try {
+				gid = Convert::ToLong(group);
+				gr = getgrgid(*gid);
+			} catch (const std::invalid_argument&) {
+				gr = getgrnam(group.CStr());
+			}
 
-			if (!gr) {
+			if (gr) {
+				gid = gr->gr_gid;
+			} else if (!gid) {
 				if (errno == 0) {
 					Log(LogCritical, "cli")
 						<< "Invalid group specified: " << group;
@@ -585,7 +594,7 @@ static int Main()
 				}
 			}
 
-			if (getgid() != gr->gr_gid) {
+			if (getgid() != *gid) {
 				if (!vm.count("reload-internal") && setgroups(0, nullptr) < 0) {
 					Log(LogCritical, "cli")
 						<< "setgroups() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
@@ -594,17 +603,27 @@ static int Main()
 					return EXIT_FAILURE;
 				}
 
-				if (setgid(gr->gr_gid) < 0) {
+				if (setgid(*gid) < 0) {
 					Log(LogCritical, "cli")
 						<< "setgid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 					return EXIT_FAILURE;
 				}
 			}
 
+			std::optional<uid_t> uid;
 			errno = 0;
-			struct passwd *pw = getpwnam(user.CStr());
+			struct passwd *pw = nullptr;
 
-			if (!pw) {
+			try {
+				uid = Convert::ToLong(user);
+				pw = getpwuid(*uid);
+			} catch (const std::invalid_argument&) {
+				pw = getpwnam(user.CStr());
+			}
+
+			if (pw) {
+				uid = pw->pw_uid;
+			} else if(!uid) {
 				if (errno == 0) {
 					Log(LogCritical, "cli")
 						<< "Invalid user specified: " << user;
@@ -617,8 +636,8 @@ static int Main()
 			}
 
 			// also activate the additional groups the configured user is member of
-			if (getuid() != pw->pw_uid) {
-				if (!vm.count("reload-internal") && initgroups(user.CStr(), pw->pw_gid) < 0) {
+			if (getuid() != *uid) {
+				if (!vm.count("reload-internal") && pw && initgroups(user.CStr(), pw->pw_gid) < 0) {
 					Log(LogCritical, "cli")
 						<< "initgroups() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 					Log(LogCritical, "cli")
@@ -626,7 +645,7 @@ static int Main()
 					return EXIT_FAILURE;
 				}
 
-				if (setuid(pw->pw_uid) < 0) {
+				if (setuid(*uid) < 0) {
 					Log(LogCritical, "cli")
 						<< "setuid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 					Log(LogCritical, "cli")
