@@ -43,7 +43,7 @@ if [ ! -e "$ICINGA2_PID_FILE" ]; then
 fi
 
 pid=`cat "$ICINGA2_PID_FILE"`
-if ! kill -HUP "$pid" >/dev/null 2>&1; then
+if ! "$DAEMON" internal signal --sig SIGHUP --pid "$pid" >/dev/null 2>&1; then
 	echo "Error: Icinga not running"
 	exit 7
 fi
