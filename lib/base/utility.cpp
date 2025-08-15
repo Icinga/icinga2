@@ -800,43 +800,67 @@ void Utility::RenameFile(const String& source, const String& target)
 #endif /* _WIN32 */
 }
 
-/*
- * Set file permissions
+/**
+ * Set the ownership of file to the given user and group.
+ *
+ * In case of an error, false is returned and the error is logged.
+ *
+ * @note This operation will fail if the program is not run as root or the given user is
+ * not already the owner and member of the given group.
+ *
+ * @param file The path to the file as a string
+ * @param user Either the user name or their UID as a string
+ * @param group Either the group name or their GID as a string
+ *
+ * @return 'true' if the opration was successful, 'false' if an error occured.
  */
 bool Utility::SetFileOwnership(const String& file, const String& user, const String& group)
 {
 #ifndef _WIN32
-	errno = 0;
-	struct passwd *pw = getpwnam(user.CStr());
+	std::optional<uid_t> uid;
+	try {
+		uid = Convert::ToLong(user);
+	} catch (const std::invalid_argument&) {
+		errno = 0;
+		struct passwd* pw = getpwnam(user.CStr());
 
-	if (!pw) {
-		if (errno == 0) {
-			Log(LogCritical, "cli")
-				<< "Invalid user specified: " << user;
-			return false;
-		} else {
-			Log(LogCritical, "cli")
-				<< "getpwnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-			return false;
-		}
-	}
-
-	errno = 0;
-	struct group *gr = getgrnam(group.CStr());
-
-	if (!gr) {
-		if (errno == 0) {
-			Log(LogCritical, "cli")
-				<< "Invalid group specified: " << group;
-			return false;
-		} else {
-			Log(LogCritical, "cli")
-				<< "getgrnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+		if (!pw) {
+			if (errno == 0) {
+				Log(LogCritical, "cli")
+					<< "Invalid user specified: " << user;
+			} else {
+				Log(LogCritical, "cli") << "getpwnam() failed with error code " << errno << ", \""
+					<< Utility::FormatErrorNumber(errno) << "\"";
+			}
 			return false;
 		}
+
+		uid = pw->pw_uid;
 	}
 
-	if (chown(file.CStr(), pw->pw_uid, gr->gr_gid) < 0) {
+
+	std::optional<gid_t> gid;
+	try {
+		gid = Convert::ToLong(group);
+	} catch (const std::invalid_argument&) {
+		errno = 0;
+		struct group* gr = getgrnam(group.CStr());
+
+		if (!gr) {
+			if (errno == 0) {
+				Log(LogCritical, "cli")
+					<< "Invalid group specified: " << group;
+			} else {
+				Log(LogCritical, "cli") << "getgrnam() failed with error code " << errno << ", \""
+					<< Utility::FormatErrorNumber(errno) << "\"";
+			}
+			return false;
+		}
+
+		gid = gr->gr_gid;
+	}
+
+	if (chown(file.CStr(), *uid, *gid) < 0) {
 		Log(LogCritical, "cli")
 			<< "chown() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 		return false;
