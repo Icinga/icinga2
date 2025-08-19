@@ -6,6 +6,7 @@
 #include "remote/apilistener.hpp"
 #include "remote/apifunction.hpp"
 #include "remote/jsonrpc.hpp"
+#include "base/accesslogger.hpp"
 #include "base/application.hpp"
 #include "base/base64.hpp"
 #include "base/convert.hpp"
@@ -143,9 +144,15 @@ bool EnsureValidHeaders(
 		return false;
 
 	bool httpError = false;
+	bool logAccess = true;
 	String errorMsg;
 
 	boost::system::error_code ec;
+
+	if (!buf.size() && !stream.in_avail()) {
+		boost::system::error_code ec;
+		logAccess = stream.async_fill(yc[ec]);
+	}
 
 	http::async_read_header(stream, buf, parser, yc[ec]);
 
@@ -181,6 +188,10 @@ bool EnsureValidHeaders(
 
 		response.set(http::field::connection, "close");
 
+		if (logAccess) {
+			LogAccess(stream, parser.get(), "", response);
+		}
+
 		http::async_write(stream, response, yc);
 		stream.async_flush(yc);
 
@@ -213,6 +224,7 @@ static inline
 bool HandleAccessControl(
 	AsioTlsStream& stream,
 	boost::beast::http::request<boost::beast::http::string_body>& request,
+	ApiUser::Ptr& authenticatedUser,
 	boost::beast::http::response<boost::beast::http::string_body>& response,
 	boost::asio::yield_context& yc
 )
@@ -244,6 +256,8 @@ bool HandleAccessControl(
 					response.content_length(response.body().size());
 					response.set(http::field::connection, "close");
 
+					LogAccess(stream, request, authenticatedUser ? authenticatedUser->GetName() : "", response);
+
 					http::async_write(stream, response, yc);
 					stream.async_flush(yc);
 
@@ -260,6 +274,7 @@ static inline
 bool EnsureAcceptHeader(
 	AsioTlsStream& stream,
 	boost::beast::http::request<boost::beast::http::string_body>& request,
+	ApiUser::Ptr& authenticatedUser,
 	boost::beast::http::response<boost::beast::http::string_body>& response,
 	boost::asio::yield_context& yc
 )
@@ -272,6 +287,8 @@ bool EnsureAcceptHeader(
 		response.body() = "<h1>Accept header is missing or not set to 'application/json'.</h1>";
 		response.content_length(response.body().size());
 		response.set(http::field::connection, "close");
+
+		LogAccess(stream, request, authenticatedUser ? authenticatedUser->GetName() : "", response);
 
 		http::async_write(stream, response, yc);
 		stream.async_flush(yc);
@@ -312,6 +329,8 @@ bool EnsureAuthenticatedUser(
 			response.content_length(response.body().size());
 		}
 
+		LogAccess(stream, request, "", response);
+
 		http::async_write(stream, response, yc);
 		stream.async_flush(yc);
 
@@ -326,6 +345,7 @@ bool EnsureValidBody(
 	AsioTlsStream& stream,
 	boost::beast::flat_buffer& buf,
 	boost::beast::http::parser<true, boost::beast::http::string_body>& parser,
+	boost::beast::http::request<boost::beast::http::string_body>& request,
 	ApiUser::Ptr& authenticatedUser,
 	boost::beast::http::response<boost::beast::http::string_body>& response,
 	bool& shuttingDown,
@@ -402,6 +422,8 @@ bool EnsureValidBody(
 
 		response.set(http::field::connection, "close");
 
+		LogAccess(stream, request, authenticatedUser ? authenticatedUser->GetName() : "", response);
+
 		http::async_write(stream, response, yc);
 		stream.async_flush(yc);
 
@@ -448,6 +470,8 @@ bool ProcessRequest(
 
 		HttpUtility::SendJsonError(response, nullptr, 500, "Unhandled exception" , DiagnosticInformation(ex));
 
+		LogAccess(stream, request, authenticatedUser ? authenticatedUser->GetName() : "", response);
+
 		http::async_write(stream, response, yc);
 		stream.async_flush(yc);
 
@@ -457,6 +481,8 @@ bool ProcessRequest(
 	if (hasStartedStreaming) {
 		return false;
 	}
+
+	LogAccess(stream, request, authenticatedUser ? authenticatedUser->GetName() : "", response);
 
 	http::async_write(stream, response, yc);
 	stream.async_flush(yc);
@@ -531,11 +557,11 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 				logMsg << " took total " << ch::duration_cast<ch::milliseconds>(ch::steady_clock::now() - start).count() << "ms.";
 			});
 
-			if (!HandleAccessControl(*m_Stream, request, response, yc)) {
+			if (!HandleAccessControl(*m_Stream, request, authenticatedUser, response, yc)) {
 				break;
 			}
 
-			if (!EnsureAcceptHeader(*m_Stream, request, response, yc)) {
+			if (!EnsureAcceptHeader(*m_Stream, request, authenticatedUser, response, yc)) {
 				break;
 			}
 
@@ -543,7 +569,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 				break;
 			}
 
-			if (!EnsureValidBody(*m_Stream, buf, parser, authenticatedUser, response, m_ShuttingDown, yc)) {
+			if (!EnsureValidBody(*m_Stream, buf, parser, request, authenticatedUser, response, m_ShuttingDown, yc)) {
 				break;
 			}
 

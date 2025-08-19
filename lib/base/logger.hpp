@@ -94,6 +94,9 @@ protected:
 	void Start(bool runtimeCreated) override;
 	void Stop(bool runtimeRemoved) override;
 
+	virtual void Register();
+	virtual void Unregister();
+
 private:
 	static void UpdateMinLogSeverity();
 

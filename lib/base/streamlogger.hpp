@@ -31,10 +31,10 @@ public:
 protected:
 	void ProcessLogEntry(const LogEntry& entry) final;
 	void Flush() final;
+	std::ostream *m_Stream{nullptr};
 
 private:
 	static std::mutex m_Mutex;
-	std::ostream *m_Stream{nullptr};
 	bool m_OwnsStream{false};
 
 	Timer::Ptr m_FlushLogTimer;
