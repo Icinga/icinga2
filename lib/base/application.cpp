@@ -20,6 +20,7 @@
 #include <boost/exception/errinfo_errno.hpp>
 #include <boost/exception/errinfo_file_name.hpp>
 #include <boost/stacktrace.hpp>
+#include <cstring>
 #include <sstream>
 #include <iostream>
 #include <fstream>
@@ -30,6 +31,7 @@
 #ifdef _WIN32
 #include <windows.h>
 #else /* _WIN32 */
+#include "base/shared-memory.hpp"
 #include <signal.h>
 #endif /* _WIN32 */
 
@@ -63,11 +65,18 @@ char **Application::m_ArgV;
 double Application::m_StartTime;
 bool Application::m_ScriptDebuggerEnabled = false;
 
+Application::LastReloadFailed* Application::m_LastReloadFailed (Application::AllocLastReloadFailed());
+
+Application::LastReloadFailed* Application::AllocLastReloadFailed()
+{
 #ifdef _WIN32
-double Application::m_LastReloadFailed = 0;
+	static LastReloadFailed lrf;
+	return &lrf;
 #else /* _WIN32 */
-SharedMemory<Application::AtomicTs> Application::m_LastReloadFailed (0);
+	static SharedMemory<LastReloadFailed> slrf;
+	return &slrf.Get();
 #endif /* _WIN32 */
+}
 
 #ifdef _WIN32
 static LPTOP_LEVEL_EXCEPTION_FILTER l_DefaultUnhandledExceptionFilter = nullptr;
@@ -379,7 +388,7 @@ void Application::OnShutdown()
 static void ReloadProcessCallbackInternal(const ProcessResult& pr)
 {
 	if (pr.ExitStatus != 0) {
-		Application::SetLastReloadFailed(Utility::GetTime());
+		Application::SetLastReloadFailed(Utility::GetTime(), pr.Output);
 		Log(LogCritical, "Application", "Found error in config: reloading aborted");
 	}
 #ifdef _WIN32
@@ -1217,22 +1226,17 @@ void Application::SetScriptDebuggerEnabled(bool enabled)
 	m_ScriptDebuggerEnabled = enabled;
 }
 
-double Application::GetLastReloadFailed()
+std::pair<double, String> Application::GetLastReloadFailed()
 {
-#ifdef _WIN32
-	return m_LastReloadFailed;
-#else /* _WIN32 */
-	return m_LastReloadFailed.Get().load();
-#endif /* _WIN32 */
+	LastReloadFailed::SharedLock lock (m_LastReloadFailed->Mutex);
+	return {m_LastReloadFailed->When, String(m_LastReloadFailed->Why)};
 }
 
-void Application::SetLastReloadFailed(double ts)
+void Application::SetLastReloadFailed(double ts, const String& error)
 {
-#ifdef _WIN32
-	m_LastReloadFailed = ts;
-#else /* _WIN32 */
-	m_LastReloadFailed.Get().store(ts);
-#endif /* _WIN32 */
+	LastReloadFailed::UniqueLock lock (m_LastReloadFailed->Mutex);
+	m_LastReloadFailed->When = ts;
+	strncpy(m_LastReloadFailed->Why, error.CStr(), sizeof(m_LastReloadFailed->Why));
 }
 
 void Application::ValidateName(const Lazy<String>& lvalue, const ValidationUtils& utils)
