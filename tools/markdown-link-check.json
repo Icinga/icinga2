@@ -1,0 +1,5 @@
+{
+    "ignorePatterns": [
+      {"pattern": "^https://github.com/icinga/icinga2/issues/"}
+    ]
+}
