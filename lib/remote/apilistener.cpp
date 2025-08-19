@@ -310,6 +310,10 @@ void ApiListener::Start(bool runtimeCreated)
 	m_ApiPackageIntegrityTimer->Start();
 
 	OnMasterChanged(true);
+
+	if (GetMaxAnonymousClients() < 0) {
+		SetMaxAnonymousClients(ConfigType::GetObjectsByType<Endpoint>().size() * 2u, true);
+	}
 }
 
 void ApiListener::RenewOwnCert()
