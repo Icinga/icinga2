@@ -57,9 +57,14 @@ bool ActionsHandler::HandleRequest(
 
 		try {
 			objs = FilterUtility::GetFilterTargets(qd, params, user);
-		} catch (const std::exception& ex) {
-			HttpUtility::SendJsonError(response, params, 404,
-				"No objects found.",
+		} catch (const std::invalid_argument& ex) {
+			HttpUtility::SendJsonError(response, params, 400,
+				"Invalid filter.",
+				DiagnosticInformation(ex));
+			return true;
+		} catch (const ScriptError& ex) {
+			HttpUtility::SendJsonError(response, params, 401,
+				"Access denied for filter.",
 				DiagnosticInformation(ex));
 			return true;
 		}
@@ -151,7 +156,7 @@ bool ActionsHandler::HandleRequest(
 		statusCode = *okStatusCodes.begin();
 	} else if (nonOkSize == 1u) {
 		statusCode = *nonOkStatusCodes.begin();
-	} else if (okSize >= 2u && nonOkSize == 0u) {
+	} else if ((okSize == 0u || okSize >= 2u) && nonOkSize == 0u) {
 		statusCode = 200;
 	}
 
