@@ -212,10 +212,6 @@ include_directories(
   ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR}/lib
 )
 
-if(UNIX OR CYGWIN)
-  list(APPEND base_OBJS $<TARGET_OBJECTS:execvpe>)
-endif()
-
 if(HAVE_SYSTEMD)
   list(APPEND base_DEPS systemd)
 endif()
