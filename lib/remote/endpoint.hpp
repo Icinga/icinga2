@@ -45,6 +45,7 @@ public:
 	static Endpoint::Ptr GetLocalEndpoint();
 
 	void SetCachedZone(const intrusive_ptr<Zone>& zone);
+	uint_fast64_t GetPendingOutgoingMessages() const override;
 
 	void AddMessageSent(int bytes);
 	void AddMessageReceived(int bytes);
