@@ -555,7 +555,7 @@ static int Main()
 	int rc = 1;
 
 	if (autocomplete) {
-		CLICommand::ShowCommands(argc, argv, &visibleDesc, &hiddenDesc,
+		CLICommand::ShowCommands(argc, argv, &visibleDesc,
 			&GlobalArgumentCompletion, true, autoindex);
 		rc = 0;
 	} else if (command) {
