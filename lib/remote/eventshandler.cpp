@@ -79,13 +79,6 @@ bool EventsHandler::HandleRequest(
 		}
 	}
 
-	String queueName = HttpUtility::GetLastParameter(params, "queue");
-
-	if (queueName.IsEmpty()) {
-		HttpUtility::SendJsonError(response, params, 400, "'queue' query parameter is required.");
-		return true;
-	}
-
 	std::set<EventType> eventTypes;
 
 	{
