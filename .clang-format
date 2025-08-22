@@ -1,0 +1,27 @@
+---
+BasedOnStyle: LLVM
+AccessModifierOffset: -4
+AlignAfterOpenBracket: DontAlign
+AllowShortFunctionsOnASingleLine: InlineOnly
+BreakBeforeBraces: Mozilla
+BreakTemplateDeclarations: Yes
+ColumnLimit: 120
+IncludeCategories:
+  - Regex: ^"(base|icinga|remote|test)/
+    Priority: 1
+    CaseSensitive: false
+  - Regex: ^<boost/
+    Priority: 2
+    CaseSensitive: false
+  - Regex: ^<
+    Priority: 3
+    CaseSensitive: false
+IndentCaseLabels: true
+IndentWidth: 4
+PenaltyBreakBeforeFirstCallParameter: 50
+PenaltyBreakOpenParenthesis: 50
+PointerAlignment: Left
+ReferenceAlignment: Left
+SpaceAfterTemplateKeyword: false
+TabWidth: 4
+UseTab: Always
