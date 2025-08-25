@@ -77,10 +77,10 @@ bool CpuBoundWork::TryAcquireSlot()
 	auto& ie (IoEngine::Get());
 	auto freeSlots (ie.m_CpuBoundSemaphore.load());
 
-	while (freeSlots > 0) {
+	while (freeSlots > 0u) {
 		// If ie.m_CpuBoundSemaphore was changed after the last load,
 		// compare_exchange_weak() will load its latest value into freeSlots for us to retry until...
-		if (ie.m_CpuBoundSemaphore.compare_exchange_weak(freeSlots, freeSlots - 1)) {
+		if (ie.m_CpuBoundSemaphore.compare_exchange_weak(freeSlots, freeSlots - 1u)) {
 			// ... either we successfully decrement ie.m_CpuBoundSemaphore by one, ...
 			return true;
 		}
@@ -106,7 +106,7 @@ void CpuBoundWork::Done()
 		// The constructor takes the slow path only if the semaphore is full,
 		// so we only have to wake up constructors if the semaphore was full.
 		// This works because after fetch_add(), TryAcquireSlot() (fast path) will succeed.
-		if (ie.m_CpuBoundSemaphore.fetch_add(1) == 0) {
+		if (ie.m_CpuBoundSemaphore.fetch_add(1) == 0u) {
 			// So now there are only slow path subscribers from just before the fetch_add() to be woken up.
 			// Precisely, only subscribers from just before the fetch_add() which turned 0 to 1.
 
