@@ -87,7 +87,10 @@ set(base_test_SOURCES
   icinga-notification.cpp
   icinga-perfdata.cpp
   methods-pluginnotificationtask.cpp
+  remote-certificate-fixture.cpp
   remote-configpackageutility.cpp
+  remote-httpserverconnection.cpp
+  remote-httpmessage.cpp
   remote-url.cpp
   ${base_OBJS}
   $<TARGET_OBJECTS:config>
@@ -271,6 +274,33 @@ add_boost_test(base
     icinga_perfdata/parse_edgecases
     icinga_perfdata/empty_warn_crit_min_max
     methods_pluginnotificationtask/truncate_long_output
+    remote_certs_fixture/prepare_directory
+    remote_certs_fixture/cleanup_certs
+    remote_httpmessage/request_parse
+    remote_httpmessage/request_params
+    remote_httpmessage/response_clear
+    remote_httpmessage/response_flush_nothrow
+    remote_httpmessage/response_flush_throw
+    remote_httpmessage/response_write_empty
+    remote_httpmessage/response_write_fixed
+    remote_httpmessage/response_write_chunked
+    remote_httpmessage/response_sendjsonbody
+    remote_httpmessage/response_sendjsonerror
+    remote_httpmessage/response_sendfile
+    remote_httpserverconnection/expect_100_continue
+    remote_httpserverconnection/bad_request
+    remote_httpserverconnection/error_access_control
+    remote_httpserverconnection/error_accept_header
+    remote_httpserverconnection/authenticate_cn
+    remote_httpserverconnection/authenticate_passwd
+    remote_httpserverconnection/authenticate_error_wronguser
+    remote_httpserverconnection/authenticate_error_wrongpasswd
+    remote_httpserverconnection/reuse_connection
+    remote_httpserverconnection/wg_abort
+    remote_httpserverconnection/client_shutdown
+    remote_httpserverconnection/handler_throw_error
+    remote_httpserverconnection/handler_throw_streaming
+    remote_httpserverconnection/liveness_disconnect
     remote_configpackageutility/ValidateName
     remote_url/id_and_path
     remote_url/parameters
@@ -278,6 +308,46 @@ add_boost_test(base
     remote_url/format
     remote_url/illegal_legal_strings
 )
+
+if(BUILD_TESTING)
+  set_tests_properties(
+    base-remote_httpmessage/request_parse
+    base-remote_httpmessage/request_params
+    base-remote_httpmessage/response_clear
+    base-remote_httpmessage/response_flush_nothrow
+    base-remote_httpmessage/response_flush_throw
+    base-remote_httpmessage/response_write_empty
+    base-remote_httpmessage/response_write_fixed
+    base-remote_httpmessage/response_write_chunked
+    base-remote_httpmessage/response_sendjsonbody
+    base-remote_httpmessage/response_sendjsonerror
+    base-remote_httpmessage/response_sendfile
+    base-remote_httpserverconnection/expect_100_continue
+    base-remote_httpserverconnection/bad_request
+    base-remote_httpserverconnection/error_access_control
+    base-remote_httpserverconnection/error_accept_header
+    base-remote_httpserverconnection/authenticate_cn
+    base-remote_httpserverconnection/authenticate_passwd
+    base-remote_httpserverconnection/authenticate_error_wronguser
+    base-remote_httpserverconnection/authenticate_error_wrongpasswd
+    base-remote_httpserverconnection/reuse_connection
+    base-remote_httpserverconnection/wg_abort
+    base-remote_httpserverconnection/client_shutdown
+    base-remote_httpserverconnection/handler_throw_error
+    base-remote_httpserverconnection/handler_throw_streaming
+    base-remote_httpserverconnection/liveness_disconnect
+    PROPERTIES FIXTURES_REQUIRED ssl_certs)
+
+  set_tests_properties(
+    base-remote_certs_fixture/prepare_directory
+    PROPERTIES FIXTURES_SETUP ssl_certs
+  )
+
+  set_tests_properties(
+    base-remote_certs_fixture/cleanup_certs
+    PROPERTIES FIXTURES_CLEANUP ssl_certs
+  )
+endif()
 
 if(ICINGA2_WITH_LIVESTATUS)
   set(livestatus_test_SOURCES
