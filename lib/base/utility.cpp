@@ -800,43 +800,67 @@ void Utility::RenameFile(const String& source, const String& target)
 #endif /* _WIN32 */
 }
 
-/*
- * Set file permissions
+/**
+ * Set the ownership of the specified file to the given user and group.
+ *
+ * In case of an error, false is returned and the error is logged.
+ *
+ * @note This operation will fail if the program is not run as root or the given user is
+ * not already the owner and member of the given group.
+ *
+ * @param file The path to the file as a string
+ * @param user Either the username or their UID as a string
+ * @param group Either the group's name or its GID as a string
+ *
+ * @return 'true' if the operation was successful, 'false' if an error occurred.
  */
 bool Utility::SetFileOwnership(const String& file, const String& user, const String& group)
 {
 #ifndef _WIN32
-	errno = 0;
-	struct passwd *pw = getpwnam(user.CStr());
+	uid_t uid = 0;
+	try {
+		uid = boost::lexical_cast<uid_t>(user);
+	} catch (const boost::bad_lexical_cast&) {
+		errno = 0;
+		struct passwd* pw = getpwnam(user.CStr());
 
-	if (!pw) {
-		if (errno == 0) {
-			Log(LogCritical, "cli")
-				<< "Invalid user specified: " << user;
-			return false;
-		} else {
-			Log(LogCritical, "cli")
-				<< "getpwnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-			return false;
-		}
-	}
-
-	errno = 0;
-	struct group *gr = getgrnam(group.CStr());
-
-	if (!gr) {
-		if (errno == 0) {
-			Log(LogCritical, "cli")
-				<< "Invalid group specified: " << group;
-			return false;
-		} else {
-			Log(LogCritical, "cli")
-				<< "getgrnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+		if (!pw) {
+			if (errno == 0) {
+				Log(LogCritical, "cli")
+					<< "Invalid user specified: " << user;
+			} else {
+				Log(LogCritical, "cli") << "getpwnam() failed with error code " << errno << ", \""
+					<< Utility::FormatErrorNumber(errno) << "\"";
+			}
 			return false;
 		}
+
+		uid = pw->pw_uid;
 	}
 
-	if (chown(file.CStr(), pw->pw_uid, gr->gr_gid) < 0) {
+
+	gid_t gid = 0;
+	try {
+		gid = boost::lexical_cast<gid_t>(group);
+	} catch (const boost::bad_lexical_cast&) {
+		errno = 0;
+		struct group* gr = getgrnam(group.CStr());
+
+		if (!gr) {
+			if (errno == 0) {
+				Log(LogCritical, "cli")
+					<< "Invalid group specified: " << group;
+			} else {
+				Log(LogCritical, "cli") << "getgrnam() failed with error code " << errno << ", \""
+					<< Utility::FormatErrorNumber(errno) << "\"";
+			}
+			return false;
+		}
+
+		gid = gr->gr_gid;
+	}
+
+	if (chown(file.CStr(), uid, gid) < 0) {
 		Log(LogCritical, "cli")
 			<< "chown() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 		return false;
