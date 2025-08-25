@@ -157,7 +157,7 @@ private:
 	std::vector<std::thread> m_Threads;
 	boost::asio::deadline_timer m_AlreadyExpiredTimer;
 
-	std::atomic_int_fast32_t m_CpuBoundSemaphore;
+	std::atomic_uint_fast32_t m_CpuBoundSemaphore;
 	std::mutex m_CpuBoundWaitingMutex;
 	std::vector<std::pair<boost::asio::io_context::strand, Shared<AsioConditionVariable>::Ptr>> m_CpuBoundWaiting;
 };
