@@ -50,6 +50,13 @@ public:
 	void AddMessageReceived(int bytes);
 	void AddMessageReceived(const intrusive_ptr<ApiFunction>& method);
 
+	void AddInputTimes(const AtomicDuration::Clock::duration& readTime, const AtomicDuration::Clock::duration& semaphoreTime, const AtomicDuration::Clock::duration& processTime)
+	{
+		m_InputReadTime += readTime;
+		m_InputSemaphoreTime += semaphoreTime;
+		m_InputProcessTime += processTime;
+	}
+
 	double GetMessagesSentPerSecond() const override;
 	double GetMessagesReceivedPerSecond() const override;
 
@@ -57,6 +64,10 @@ public:
 	double GetBytesReceivedPerSecond() const override;
 
 	Dictionary::Ptr GetMessagesReceivedPerType() const override;
+
+	double GetSecondsReadingMessages() const override;
+	double GetSecondsAwaitingSemaphore() const override;
+	double GetSecondsProcessingMessages() const override;
 
 protected:
 	void OnAllConfigLoaded() override;
@@ -71,6 +82,10 @@ private:
 	mutable RingBuffer m_MessagesReceived{60};
 	mutable RingBuffer m_BytesSent{60};
 	mutable RingBuffer m_BytesReceived{60};
+
+	AtomicDuration m_InputReadTime;
+	AtomicDuration m_InputSemaphoreTime;
+	AtomicDuration m_InputProcessTime;
 };
 
 }

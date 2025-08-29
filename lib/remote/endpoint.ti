@@ -58,6 +58,18 @@ class Endpoint : ConfigObject
 	[no_user_modify, no_storage] Dictionary::Ptr messages_received_per_type {
 		get;
 	};
+
+	[no_user_modify, no_storage] double seconds_reading_messages {
+		get;
+	};
+
+	[no_user_modify, no_storage] double seconds_awaiting_semaphore {
+		get;
+	};
+
+	[no_user_modify, no_storage] double seconds_processing_messages {
+		get;
+	};
 };
 
 }
