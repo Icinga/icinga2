@@ -57,6 +57,8 @@ int InternalSignalCommand::Run(const boost::program_options::variables_map& vm, 
 		return kill(vm["pid"].as<int>(), SIGCHLD);
 	if (signal == "SIGHUP")
 		return kill(vm["pid"].as<int>(), SIGHUP);
+	if (signal == "SIGUSR1")
+		return kill(vm["pid"].as<int>(), SIGUSR1);
 
 	Log(LogCritical, "cli") << "Unsupported signal \"" << signal << "\"";
 #else

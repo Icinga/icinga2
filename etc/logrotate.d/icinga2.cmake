@@ -6,7 +6,7 @@
 	missingok
 	notifempty@LOGROTATE_CREATE@
 	postrotate
-		/bin/kill -USR1 $(cat @ICINGA2_INITRUNDIR@/icinga2.pid 2> /dev/null) 2> /dev/null || true
+		@CMAKE_INSTALL_FULL_SBINDIR@/icinga2 internal signal --sig SIGUSR1 --pid "$(cat @ICINGA2_INITRUNDIR@/icinga2.pid 2> /dev/null)" 2> /dev/null || true
 	endscript
 }
 
