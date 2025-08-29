@@ -370,7 +370,7 @@ void TimePeriod::Dump()
 	Log(LogDebug, "TimePeriod", "---");
 }
 
-void TimePeriod::ValidateRanges(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)
+void TimePeriod::ValidateRanges(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils&)
 {
 	if (!lvalue())
 		return;
