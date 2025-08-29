@@ -33,11 +33,23 @@ public:
 	void StartDetectClientSideShutdown();
 	bool Disconnected();
 
+	/**
+	 * Sets the liveness timeout in seconds.
+	 *
+	 * If we don't receive any data from the client in this time frame, we consider the connection
+	 * dead and close it. The default is 10 seconds. This function should only be used for unit tests
+	 * to speed them up.
+	 *
+	 * @param seconds The timeout in seconds.
+	 */
+	void SetLivenessTimeout(double seconds);
+
 private:
 	WaitGroup::Ptr m_WaitGroup;
 	ApiUser::Ptr m_ApiUser;
 	Shared<AsioTlsStream>::Ptr m_Stream;
 	double m_Seen;
+	double m_LivenessTimeout{10.0}; // The liveness timeout in seconds. @see SetLivenessTimeout() for details.
 	String m_PeerAddress;
 	boost::asio::io_context::strand m_IoStrand;
 	bool m_ShuttingDown;
