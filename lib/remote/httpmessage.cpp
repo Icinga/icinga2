@@ -151,6 +151,12 @@ void HttpResponse::Flush(boost::asio::yield_context yc)
 
 void HttpResponse::StartStreaming(bool checkForDisconnect)
 {
+	auto work (m_CpuBoundWork.lock());
+
+	if (work) {
+		work->Done();
+	}
+
 	ASSERT(body().Size() == 0 && !m_SerializationStarted);
 	body().Start();
 	chunked(true);
