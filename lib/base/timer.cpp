@@ -53,6 +53,24 @@ typedef boost::multi_index_container<
 	>
 > TimerSet;
 
+/**
+ * A TimeProvider implementation that uses the system clock.
+ *
+ * This is the default TimeProvider used by Timer instances and is just a thin wrapper around std::chrono.
+ *
+ * @ingroup base
+ */
+class SystemTimeProvider : public TimeProvider
+{
+public:
+	DECLARE_PTR_TYPEDEFS(TimeProvider);
+
+	std::chrono::duration<double> Now() const override
+	{
+		return std::chrono::duration<double>(std::chrono::system_clock::now().time_since_epoch());
+	}
+};
+
 static std::mutex l_TimerMutex;
 static std::condition_variable l_TimerCV;
 static std::thread l_TimerThread;
@@ -62,11 +80,12 @@ static int l_AliveTimers = 0;
 
 static Defer l_ShutdownTimersCleanlyOnExit (&Timer::Uninitialize);
 
-Timer::Ptr Timer::Create()
+Timer::Ptr Timer::Create(const intrusive_ptr<TimeProvider const>& timeProvider)
 {
 	Ptr t (new Timer());
 
 	t->m_Self = t;
+	t->m_TimeProvider = timeProvider ? timeProvider : new SystemTimeProvider();
 
 	return t;
 }
@@ -324,7 +343,7 @@ void Timer::TimerThreadProc()
 
 		ch::time_point<ch::system_clock, ch::duration<double>> next (ch::duration<double>(timer->m_Next));
 
-		if (next - ch::system_clock::now() > ch::duration<double>(0.01)) {
+		if (next.time_since_epoch() - timer->m_TimeProvider->Now() > ch::duration<double>(0.01)) {
 			/* Wait for the next timer. */
 			l_TimerCV.wait_until(lock, next);
 
