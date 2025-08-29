@@ -152,6 +152,11 @@ bool HttpServerConnection::Disconnected()
 	return m_ShuttingDown;
 }
 
+void HttpServerConnection::SetLivenessTimeout(double seconds)
+{
+	m_LivenessTimeout = seconds;
+}
+
 static inline
 bool EnsureValidHeaders(
 	boost::beast::flat_buffer& buf,
@@ -542,14 +547,17 @@ void HttpServerConnection::CheckLiveness(boost::asio::yield_context yc)
 	boost::system::error_code ec;
 
 	for (;;) {
-		m_CheckLivenessTimer.expires_from_now(boost::posix_time::seconds(5));
+		// Wait for the half of the liveness timeout to give the connection some leeway to do other work.
+		// But never wait longer than 5 seconds to ensure timely shutdowns.
+		auto sleepTime = std::min(5ll*1000, static_cast<long long>(m_LivenessTimeout * 500));
+		m_CheckLivenessTimer.expires_from_now(boost::posix_time::milliseconds(sleepTime));
 		m_CheckLivenessTimer.async_wait(yc[ec]);
 
 		if (m_ShuttingDown) {
 			break;
 		}
 
-		if (m_Seen < Utility::GetTime() - 10) {
+		if (m_Seen < Utility::GetTime() - m_LivenessTimeout) {
 			Log(LogInformation, "HttpServerConnection")
 				<<  "No messages for HTTP connection have been received in the last 10 seconds.";
 
