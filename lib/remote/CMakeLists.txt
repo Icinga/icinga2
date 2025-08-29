@@ -27,6 +27,7 @@ set(remote_SOURCES
   eventshandler.cpp eventshandler.hpp
   filterutility.cpp filterutility.hpp
   httphandler.cpp httphandler.hpp
+  httpmessage.cpp httpmessage.hpp
   httpserverconnection.cpp httpserverconnection.hpp
   httputility.cpp httputility.hpp
   infohandler.cpp infohandler.hpp
