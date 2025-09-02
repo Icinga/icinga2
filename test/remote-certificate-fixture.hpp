@@ -60,7 +60,7 @@ struct CertificateFixture : ConfigurationDataDirFixture
 		cert.csrFile = (m_CertsDir / (name + ".csr")).string();
 
 		if (!Utility::PathExists(cert.crtFile)) {
-			PkiUtility::NewCert(name, cert.keyFile, cert.csrFile, cert.crtFile);
+			PkiUtility::NewCert(name, cert.keyFile, cert.csrFile, "");
 			PkiUtility::SignCsr(cert.csrFile, cert.crtFile);
 		}
 
