@@ -6,7 +6,8 @@
 
 using namespace icinga;
 
-BOOST_AUTO_TEST_SUITE(config_ops)
+BOOST_AUTO_TEST_SUITE(config_ops,
+	*boost::unit_test::label("config"))
 
 BOOST_AUTO_TEST_CASE(simple)
 {
@@ -241,6 +242,46 @@ BOOST_AUTO_TEST_CASE(advanced)
 	expr = ConfigCompiler::CompileText("<test>", "{{ 3 }}");
 	func = expr->Evaluate(frame).GetValue();
 	BOOST_CHECK(func->Invoke() == 3);
+}
+
+BOOST_AUTO_TEST_CASE(sandboxed_ticket_salt)
+{
+	ScriptFrame frame(true, new Namespace);
+	std::unique_ptr<Expression> expr;
+
+	auto ns = ScriptGlobal::GetGlobals();
+	ns->Set("TicketSalt", "testvalue");
+
+	expr = ConfigCompiler::CompileText("<test>", "TicketSalt");
+	BOOST_CHECK_EQUAL(expr->Evaluate(frame).GetValue(), "testvalue");
+
+	expr = ConfigCompiler::CompileText("<test>", "globals.TicketSalt");
+	BOOST_CHECK_EQUAL(expr->Evaluate(frame).GetValue(), "testvalue");
+
+	expr = ConfigCompiler::CompileText("<test>", "*&TicketSalt");
+	BOOST_CHECK_EQUAL(expr->Evaluate(frame).GetValue(), "testvalue");
+
+	expr = ConfigCompiler::CompileText("<test>", "globals.TicketSalt = {{{other}}}");
+	BOOST_CHECK_NO_THROW(expr->Evaluate(frame));
+
+	frame.Sandboxed = true;
+	ns->Set("TicketSalt", "testvalue", false);
+
+	// Accessing TicketSalt in a sandboxed context is like trying to access a variable that doesn't exist.
+	// In case of direct access, it will throw a ScriptError.
+	expr = ConfigCompiler::CompileText("<test>", "TicketSalt");
+	BOOST_CHECK_THROW(expr->Evaluate(frame).GetValue(), ScriptError);
+
+	// In case of other ways of accessing it, like through the global scope, it evaluates to Empty
+	expr = ConfigCompiler::CompileText("<test>", "globals.TicketSalt");
+	BOOST_CHECK_EQUAL(expr->Evaluate(frame).GetValue(), "");
+
+	// Same for (the different ways of) trying to access it via a reference.
+	expr = ConfigCompiler::CompileText("<test>", "*&TicketSalt");
+	BOOST_CHECK_EQUAL(expr->Evaluate(frame).GetValue(), "");
+
+	expr = ConfigCompiler::CompileText("<test>", "globals.TicketSalt = {{{other}}}");
+	BOOST_CHECK_THROW(expr->Evaluate(frame), ScriptError);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
