@@ -18,7 +18,6 @@
 #include "base/timer.hpp"
 #include "base/tlsstream.hpp"
 #include "base/utility.hpp"
-#include <chrono>
 #include <limits>
 #include <memory>
 #include <stdexcept>
@@ -41,7 +40,7 @@ HttpServerConnection::HttpServerConnection(const WaitGroup::Ptr& waitGroup, cons
 }
 
 HttpServerConnection::HttpServerConnection(const WaitGroup::Ptr& waitGroup, const String& identity, bool authenticated, const Shared<AsioTlsStream>::Ptr& stream, boost::asio::io_context& io)
-	: m_WaitGroup(waitGroup), m_Stream(stream), m_Seen(Utility::GetTime()), m_IoStrand(io), m_ShuttingDown(false), m_ConnectionReusable(true), m_CheckLivenessTimer(io)
+	: m_WaitGroup(waitGroup), m_Stream(stream), m_IoStrand(io), m_ShuttingDown(false), m_ConnectionReusable(true), m_CheckLivenessTimer(io)
 {
 	if (authenticated) {
 		m_ApiUser = ApiUser::GetByClientCN(identity);
@@ -152,9 +151,9 @@ bool HttpServerConnection::Disconnected()
 	return m_ShuttingDown;
 }
 
-void HttpServerConnection::SetLivenessTimeout(double seconds)
+void HttpServerConnection::SetLivenessTimeout(std::chrono::milliseconds timeout)
 {
-	m_LivenessTimeout = seconds;
+	m_LivenessTimeout = timeout;
 }
 
 static inline
@@ -458,7 +457,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 		beast::flat_buffer buf;
 
 		while (m_WaitGroup->IsLockable()) {
-			m_Seen = Utility::GetTime();
+			m_Seen = ch::steady_clock::now();
 
 			HttpRequest request(m_Stream);
 			HttpResponse response(m_Stream, this);
@@ -472,7 +471,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 				break;
 			}
 
-			m_Seen = Utility::GetTime();
+			m_Seen = ch::steady_clock::now();
 			auto start (ch::steady_clock::now());
 
 			{
@@ -524,7 +523,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 				break;
 			}
 
-			m_Seen = std::numeric_limits<decltype(m_Seen)>::max();
+			m_Seen = ch::steady_clock::time_point::max();
 
 			ProcessRequest(request, response, m_WaitGroup, cpuBoundWorkTime, yc);
 
@@ -549,17 +548,19 @@ void HttpServerConnection::CheckLiveness(boost::asio::yield_context yc)
 	for (;;) {
 		// Wait for the half of the liveness timeout to give the connection some leeway to do other work.
 		// But never wait longer than 5 seconds to ensure timely shutdowns.
-		auto sleepTime = std::min(5ll*1000, static_cast<long long>(m_LivenessTimeout * 500));
-		m_CheckLivenessTimer.expires_from_now(boost::posix_time::milliseconds(sleepTime));
+		auto sleepTime = std::min(5000ms, m_LivenessTimeout / 2);
+		m_CheckLivenessTimer.expires_from_now(boost::posix_time::milliseconds(sleepTime.count()));
 		m_CheckLivenessTimer.async_wait(yc[ec]);
 
 		if (m_ShuttingDown) {
 			break;
 		}
 
-		if (m_Seen < Utility::GetTime() - m_LivenessTimeout) {
+		if (m_LivenessTimeout < std::chrono::steady_clock::now() - m_Seen) {
 			Log(LogInformation, "HttpServerConnection")
-				<<  "No messages for HTTP connection have been received in the last 10 seconds.";
+				<<  "No messages for HTTP connection have been received in the last "
+				<< std::chrono::duration_cast<std::chrono::seconds>(m_LivenessTimeout).count()
+				<< " seconds, disconnecting (from " << m_PeerAddress << ").";
 
 			Disconnect(yc);
 			break;

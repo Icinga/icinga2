@@ -45,7 +45,7 @@ struct HttpServerConnectionFixture : TlsStreamFixture, ConfigurationCacheDirFixt
 		user->Register();
 	}
 
-	void SetupHttpServerConnection(bool authenticated, double livenessTimeout = 10.0)
+	void SetupHttpServerConnection(bool authenticated, std::chrono::milliseconds livenessTimeout = std::chrono::milliseconds(10000))
 	{
 		String identity = authenticated ? "client" : "invalid";
 		m_Connection = new HttpServerConnection(m_WaitGroup, identity, authenticated, server);
@@ -553,11 +553,11 @@ BOOST_AUTO_TEST_CASE(handler_throw_streaming)
 
 BOOST_AUTO_TEST_CASE(liveness_disconnect)
 {
-	SetupHttpServerConnection(false, .300); // 300ms liveness timeout is more than enough!
+	SetupHttpServerConnection(false, std::chrono::milliseconds(300)); // 300ms liveness timeout is more than enough!
 
 	BOOST_REQUIRE(AssertServerDisconnected(std::chrono::milliseconds(450))); // Give some leeway to Asio's timers
 	BOOST_REQUIRE(ExpectLogPattern("HTTP client disconnected .*"));
-	BOOST_REQUIRE(ExpectLogPattern("No messages for HTTP connection have been received in the last 10 seconds."));
+	BOOST_REQUIRE(ExpectLogPattern("No messages for HTTP connection have been received in the last \\d+ seconds, disconnecting .*"));
 	BOOST_REQUIRE(Shutdown(client));
 }
 
