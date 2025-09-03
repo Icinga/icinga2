@@ -88,6 +88,7 @@ set(base_test_SOURCES
   icinga-notification.cpp
   icinga-perfdata.cpp
   methods-pluginnotificationtask.cpp
+  remote-filterutility.cpp
   remote-configpackageutility.cpp
   remote-url.cpp
   ${base_OBJS}
@@ -226,6 +227,7 @@ add_boost_test(base
     config_apply/gettargetservices_noindexer_service
     config_ops/simple
     config_ops/advanced
+    config_ops/sandboxed_ticket_salt
     icinga_checkresult/host_1attempt
     icinga_checkresult/host_2attempts
     icinga_checkresult/host_3attempts
@@ -273,6 +275,8 @@ add_boost_test(base
     icinga_perfdata/empty_warn_crit_min_max
     methods_pluginnotificationtask/truncate_long_output
     remote_configpackageutility/ValidateName
+    remote_filterutility/safe_function_permissions
+    remote_filterutility/variable_expression_permissions
     remote_url/id_and_path
     remote_url/parameters
     remote_url/get_and_set
