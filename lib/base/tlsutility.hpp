@@ -54,8 +54,24 @@ Shared<boost::asio::ssl::context>::Ptr SetupSslContext(String certPath, String k
 
 String GetCertificateCN(const std::shared_ptr<X509>& certificate);
 std::shared_ptr<X509> GetX509Certificate(const String& pemfile);
-int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile = String(), const String& certfile = String(), bool ca = false);
-std::shared_ptr<X509> CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NAME *issuer, EVP_PKEY *cakey, bool ca);
+int MakeX509CSR(
+	const String& cn,
+	const String& keyfile,
+	const String& csrfile = String(),
+	const String& certfile = String(),
+	long validFrom = 0,
+	long validFor = LEAF_VALID_FOR,
+	bool ca = false
+);
+std::shared_ptr<X509> CreateCert(
+	EVP_PKEY* pubkey,
+	X509_NAME* subject,
+	X509_NAME* issuer,
+	EVP_PKEY* cakey,
+	long validFrom,
+	long validFor,
+	bool ca
+);
 
 String GetIcingaCADir();
 String CertificateToString(X509* cert);
@@ -66,10 +82,11 @@ inline String CertificateToString(const std::shared_ptr<X509>& cert)
 }
 
 std::shared_ptr<X509> StringToCertificate(const String& cert);
-std::shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject, bool ca = false);
-std::shared_ptr<X509> CreateCertIcingaCA(const std::shared_ptr<X509>& cert);
+std::shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject, long validFrom, long validFor, bool ca = false);
+std::shared_ptr<X509> CreateCertIcingaCA(const std::shared_ptr<X509>& cert, long validFrom = 0, long validFor = LEAF_VALID_FOR);
 bool IsCertUptodate(const std::shared_ptr<X509>& cert);
 bool IsCaUptodate(X509* cert);
+int Asn1TimeCompare(const ASN1_TIME* t1, const ASN1_TIME* t2);
 
 String PBKDF2_SHA1(const String& password, const String& salt, int iterations);
 String PBKDF2_SHA256(const String& password, const String& salt, int iterations);
