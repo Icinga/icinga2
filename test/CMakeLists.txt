@@ -118,6 +118,7 @@ set(base_test_SOURCES
   icinga-perfdata.cpp
   methods-pluginnotificationtask.cpp
   remote-certificate-fixture.cpp
+  remote-filterutility.cpp
   remote-configpackageutility.cpp
   remote-httpserverconnection.cpp
   remote-httpmessage.cpp
