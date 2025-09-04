@@ -38,6 +38,10 @@ jobs:
           Set-PSDebug -Trace 1
           & .\doc\win-dev.ps1
 
+      - name: Turn on Problem Matcher
+        run: |
+          Write-Host "::add-matcher::.github/problem-matchers/msvc.json"
+
       - name: Binary
         run: |
           Set-PSDebug -Trace 1
