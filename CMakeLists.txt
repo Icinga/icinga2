@@ -236,8 +236,10 @@ endif()
 
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH};${CMAKE_INSTALL_FULL_LIBDIR}/icinga2")
 
+include(CheckCXXCompilerFlag)
+
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Winconsistent-missing-override -Wrange-loop-construct")
+  add_compile_options(-Wall -Wextra)
 
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Qunused-arguments -fcolor-diagnostics -fno-limit-debug-info")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Qunused-arguments -fcolor-diagnostics -fno-limit-debug-info")
@@ -256,11 +258,7 @@ if(CMAKE_C_COMPILER_ID STREQUAL "SunPro")
 endif()
 
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsuggest-override")
-
-  if("${CMAKE_CXX_COMPILER_VERSION}" VERSION_GREATER_EQUAL "11.0.0")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wrange-loop-construct")
-  endif()
+  add_compile_options(-Wall -Wextra)
 
   if(CMAKE_SYSTEM_NAME MATCHES AIX)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -lpthread")
@@ -276,8 +274,6 @@ if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -pthread")
   endif()
 endif()
-
-include(CheckCXXCompilerFlag)
 
 function(check_cxx_linker_flag flag var)
   set(CMAKE_REQUIRED_FLAGS ${flag})
