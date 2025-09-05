@@ -416,16 +416,10 @@ void ProcessRequest(
 	HttpRequest& request,
 	HttpResponse& response,
 	const WaitGroup::Ptr& waitGroup,
-	std::chrono::steady_clock::duration& cpuBoundWorkTime,
 	boost::asio::yield_context& yc
 )
 {
 	try {
-		// Cache the elapsed time to acquire a CPU semaphore used to detect extremely heavy workloads.
-		auto start (std::chrono::steady_clock::now());
-		CpuBoundWork handlingRequest (yc);
-		cpuBoundWorkTime = std::chrono::steady_clock::now() - start;
-
 		HttpHandler::ProcessRequest(waitGroup, request, response, yc);
 		response.body().Finish();
 	} catch (const std::exception& ex) {
@@ -497,14 +491,9 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 				<< ", user: " << (request.User() ? request.User()->GetName() : "<unauthenticated>")
 				<< ", agent: " << request[http::field::user_agent]; //operator[] - Returns the value for a field, or "" if it does not exist.
 
-			ch::steady_clock::duration cpuBoundWorkTime(0);
-			Defer addRespCode ([&response, start, &logMsg, &cpuBoundWorkTime]() {
-				logMsg << ", status: " << response.result() << ")";
-				if (cpuBoundWorkTime >= ch::seconds(1)) {
-					logMsg << " waited " << ch::duration_cast<ch::milliseconds>(cpuBoundWorkTime).count() << "ms on semaphore and";
-				}
-
-				logMsg << " took total " << ch::duration_cast<ch::milliseconds>(ch::steady_clock::now() - start).count() << "ms.";
+			Defer addRespCode ([&response, start, &logMsg]() {
+				logMsg << ", status: " << response.result() << ")" << " took total "
+					<< ch::duration_cast<ch::milliseconds>(ch::steady_clock::now() - start).count() << "ms.";
 			});
 
 			if (!HandleAccessControl(request, response, yc)) {
@@ -525,7 +514,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 
 			m_Seen = ch::steady_clock::time_point::max();
 
-			ProcessRequest(request, response, m_WaitGroup, cpuBoundWorkTime, yc);
+			ProcessRequest(request, response, m_WaitGroup, yc);
 
 			if (!request.keep_alive() || !m_ConnectionReusable) {
 				break;

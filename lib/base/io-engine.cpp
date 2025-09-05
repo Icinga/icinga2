@@ -16,63 +16,6 @@
 
 using namespace icinga;
 
-CpuBoundWork::CpuBoundWork(boost::asio::yield_context yc)
-	: m_Done(false)
-{
-	auto& ioEngine (IoEngine::Get());
-
-	for (;;) {
-		auto availableSlots (ioEngine.m_CpuBoundSemaphore.fetch_sub(1));
-
-		if (availableSlots < 1) {
-			ioEngine.m_CpuBoundSemaphore.fetch_add(1);
-			IoEngine::YieldCurrentCoroutine(yc);
-			continue;
-		}
-
-		break;
-	}
-}
-
-CpuBoundWork::~CpuBoundWork()
-{
-	if (!m_Done) {
-		IoEngine::Get().m_CpuBoundSemaphore.fetch_add(1);
-	}
-}
-
-void CpuBoundWork::Done()
-{
-	if (!m_Done) {
-		IoEngine::Get().m_CpuBoundSemaphore.fetch_add(1);
-
-		m_Done = true;
-	}
-}
-
-IoBoundWorkSlot::IoBoundWorkSlot(boost::asio::yield_context yc)
-	: yc(yc)
-{
-	IoEngine::Get().m_CpuBoundSemaphore.fetch_add(1);
-}
-
-IoBoundWorkSlot::~IoBoundWorkSlot()
-{
-	auto& ioEngine (IoEngine::Get());
-
-	for (;;) {
-		auto availableSlots (ioEngine.m_CpuBoundSemaphore.fetch_sub(1));
-
-		if (availableSlots < 1) {
-			ioEngine.m_CpuBoundSemaphore.fetch_add(1);
-			IoEngine::YieldCurrentCoroutine(yc);
-			continue;
-		}
-
-		break;
-	}
-}
-
 LazyInit<std::unique_ptr<IoEngine>> IoEngine::m_Instance ([]() { return std::unique_ptr<IoEngine>(new IoEngine()); });
 
 IoEngine& IoEngine::Get()
@@ -88,7 +31,6 @@ boost::asio::io_context& IoEngine::GetIoContext()
 IoEngine::IoEngine() : m_IoContext(), m_KeepAlive(boost::asio::make_work_guard(m_IoContext)), m_Threads(decltype(m_Threads)::size_type(Configuration::Concurrency * 2u)), m_AlreadyExpiredTimer(m_IoContext)
 {
 	m_AlreadyExpiredTimer.expires_at(boost::posix_time::neg_infin);
-	m_CpuBoundSemaphore.store(Configuration::Concurrency * 3u / 2u);
 
 	for (auto& thread : m_Threads) {
 		thread = std::thread(&IoEngine::RunEventLoop, this);
