@@ -12,9 +12,12 @@
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/io_context_strand.hpp>
 #include <boost/asio/spawn.hpp>
+#include <chrono>
 
 namespace icinga
 {
+
+using namespace std::chrono_literals;
 
 /**
  * An API client connection.
@@ -33,11 +36,23 @@ public:
 	void StartDetectClientSideShutdown();
 	bool Disconnected();
 
+	/**
+	 * Sets the liveness timeout.
+	 *
+	 * If we don't receive any data from the client in this time frame, we consider the connection
+	 * dead and close it. The default is 10 seconds. This function should only be used for unit tests
+	 * to speed them up.
+	 *
+	 * @param timeout The timeout duration.
+	 */
+	void SetLivenessTimeout(std::chrono::milliseconds timeout);
+
 private:
 	WaitGroup::Ptr m_WaitGroup;
 	ApiUser::Ptr m_ApiUser;
 	Shared<AsioTlsStream>::Ptr m_Stream;
-	double m_Seen;
+	std::chrono::steady_clock::time_point m_Seen{std::chrono::steady_clock::now()};
+	std::chrono::milliseconds m_LivenessTimeout{10s};
 	String m_PeerAddress;
 	boost::asio::io_context::strand m_IoStrand;
 	bool m_ShuttingDown;
