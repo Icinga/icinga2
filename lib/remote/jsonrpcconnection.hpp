@@ -20,6 +20,8 @@
 namespace icinga
 {
 
+using namespace std::chrono_literals;
+
 enum ClientRole
 {
 	ClientInbound,
@@ -61,6 +63,9 @@ public:
 	void SendMessage(const Dictionary::Ptr& request);
 	void SendRawMessage(const String& request);
 
+	void SetLivenessTimeout(std::chrono::milliseconds timeout);
+	void SetHeartbeatInterval(std::chrono::milliseconds interval);
+
 	static Value HeartbeatAPIHandler(const intrusive_ptr<MessageOrigin>& origin, const Dictionary::Ptr& params);
 
 	static double GetWorkQueueRate();
@@ -74,14 +79,16 @@ private:
 	Shared<AsioTlsStream>::Ptr m_Stream;
 	ConnectionRole m_Role;
 	double m_Timestamp;
-	double m_Seen;
+	std::chrono::steady_clock::time_point m_Seen;
 	boost::asio::io_context::strand m_IoStrand;
 	std::vector<String> m_OutgoingMessagesQueue;
 	AsioEvent m_OutgoingMessagesQueued;
 	AsioEvent m_WriterDone;
 	Atomic<bool> m_ShuttingDown;
 	WaitGroup::Ptr m_WaitGroup;
-	boost::asio::deadline_timer m_CheckLivenessTimer, m_HeartbeatTimer;
+	std::chrono::milliseconds m_LivenessTimeout{60s};
+	std::chrono::milliseconds m_HeartbeatInterval{20s};
+	boost::asio::steady_timer m_CheckLivenessTimer, m_HeartbeatTimer;
 
 	JsonRpcConnection(const WaitGroup::Ptr& waitgroup, const String& identity, bool authenticated,
 		const Shared<AsioTlsStream>::Ptr& stream, ConnectionRole role, boost::asio::io_context& io);

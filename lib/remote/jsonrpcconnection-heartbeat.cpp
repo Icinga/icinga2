@@ -21,12 +21,17 @@ REGISTER_APIFUNCTION(Heartbeat, event, &JsonRpcConnection::HeartbeatAPIHandler);
  * cluster connection alive when there isn't much going on.
  */
 
+void JsonRpcConnection::SetHeartbeatInterval(std::chrono::milliseconds interval)
+{
+	m_HeartbeatInterval = interval;
+}
+
 void JsonRpcConnection::HandleAndWriteHeartbeats(boost::asio::yield_context yc)
 {
 	boost::system::error_code ec;
 
 	for (;;) {
-		m_HeartbeatTimer.expires_from_now(boost::posix_time::seconds(20));
+		m_HeartbeatTimer.expires_after(m_HeartbeatInterval);
 		m_HeartbeatTimer.async_wait(yc[ec]);
 
 		if (m_ShuttingDown) {
