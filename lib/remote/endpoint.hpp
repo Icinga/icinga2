@@ -59,6 +59,8 @@ public:
 
 	Dictionary::Ptr GetMessagesReceivedPerType() const override;
 
+	double GetSecondsProcessingMessages() const override;
+
 protected:
 	void OnAllConfigLoaded() override;
 
