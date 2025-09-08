@@ -130,6 +130,11 @@ void Endpoint::AddMessageReceived(const intrusive_ptr<ApiFunction>& method)
 	m_MessageCounters.at(method).fetch_add(1, std::memory_order_relaxed);
 }
 
+void Endpoint::AddMessageProcessed(const AtomicDuration::Clock::duration& duration)
+{
+	m_InputProcessingTime += duration;
+}
+
 double Endpoint::GetMessagesSentPerSecond() const
 {
 	return m_MessagesSent.CalculateRate(Utility::GetTime(), 60);
