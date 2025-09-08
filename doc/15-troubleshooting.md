@@ -2055,3 +2055,40 @@ Value data: 65534
 
 More details in [this blogpost](https://www.netways.de/blog/2019/01/24/windows-blocking-icinga-2-with-ephemeral-port-range/)
 and this [MS help entry](https://support.microsoft.com/en-us/help/196271/when-you-try-to-connect-from-tcp-ports-greater-than-5000-you-receive-t).
+
+### Cluster Troubleshooting: Overloaded JSON-RPC Connections <a id="troubleshooting-jsonrpc-overload"></a>
+
+If JSON-RPC connections are overloaded, messages are processed with a delay. This can show in symptoms like the master
+lagging behind, for example showing check results only minutes after they were available on a satellite.
+
+There are two ways this situation can be identified:
+
+First, if a connection is overloaded, Icinga 2 will read data from it slower than it arrives, so pending messages are
+accumulating in the TCP receive queue on the overloaded endpoint and the TCP send queue of other endpoints sending to
+it. This can be checked by querying information about open TCP connections using the command
+`ss --tcp --processes --numeric`. High values for Recv-Q on a socket used by the `icinga2` process can be a hint that
+the local endpoint is not able to keep up with the messages from this connection. Note that small values (a few
+kilobytes) are perfectly fine as messages can be in flight. Also, while the replay log is received, messages are
+processed as fast as possible and thus the connection is operating at capacity, thus the size of the TCP receive queue
+is only meaningful after processing the replay log has finished.
+
+Second, Icinga 2.15.1 introduced a metric that can be used to estimate how much load there is on a particular
+connection: the `seconds_processing_messages` attribute of `Endpoint` objects which can be
+[queried using the API](12-icinga2-api.md#icinga2-api-config-objects-query). This value accumulates the total time spent
+processing JSON-RPC messages from connections to that endpoint. In order to interpret this number, you have to query it
+at least twice and calculate the rate at which the number increased. For example, a rate of 0.4 (increases by 0.4s every
+second) means that the connection is at around 40% of its maximum capacity. In practice, the rate will never reach the
+theoretical maximum of 1 as there's also some time spent reading the messages, so if it's close to 1, the connection
+might be overloaded or is close to its capacity limit.
+
+This limit in capacity exists because all there can be implicit dependencies between different JSON-RPC messages,
+requiring them to be processed in the same order that they were sent. This is currently ensured by processing all
+messages from the same connection sequentially.
+
+To work around this limit, the following approaches are possible:
+1. Try to redistribute load between connections, for example if the overloaded connection is between the master and
+   a satellite zone, try splitting this zone into two, distributing the load across two connections.
+2. Reduce the load on that connection. Typically, the most frequent message type will be check results, so reducing
+   the check interval can be a first step.
+3. As the messages are processed sequentially, the throughput is limited by the single core CPU performance of the
+   machine Icinga 2 is running on, switching to a more powerful one can increase the capacity of individual connections.
