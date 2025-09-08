@@ -167,3 +167,8 @@ Dictionary::Ptr Endpoint::GetMessagesReceivedPerType() const
 
 	return new Dictionary(std::move(result));
 }
+
+double Endpoint::GetSecondsProcessingMessages() const
+{
+	return m_InputProcessingTime;
+}
