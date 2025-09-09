@@ -19,33 +19,18 @@ using namespace icinga;
 CpuBoundWork::CpuBoundWork(boost::asio::yield_context yc)
 	: m_Done(false)
 {
-	auto& ioEngine (IoEngine::Get());
-
-	for (;;) {
-		auto availableSlots (ioEngine.m_CpuBoundSemaphore.fetch_sub(1));
-
-		if (availableSlots < 1) {
-			ioEngine.m_CpuBoundSemaphore.fetch_add(1);
-			IoEngine::YieldCurrentCoroutine(yc);
-			continue;
-		}
-
-		break;
-	}
+	AsyncLock(yc);
 }
 
 CpuBoundWork::~CpuBoundWork()
 {
-	if (!m_Done) {
-		IoEngine::Get().m_CpuBoundSemaphore.fetch_add(1);
-	}
+	Done();
 }
 
 void CpuBoundWork::Done()
 {
 	if (!m_Done) {
-		IoEngine::Get().m_CpuBoundSemaphore.fetch_add(1);
-
+		Unlock();
 		m_Done = true;
 	}
 }
