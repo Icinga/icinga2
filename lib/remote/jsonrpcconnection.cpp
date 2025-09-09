@@ -106,6 +106,9 @@ void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 			l_TaskStats.InsertValue(Utility::GetTime(), 1);
 
 			auto total = ch::steady_clock::now() - start;
+			if (m_Endpoint) {
+				m_Endpoint->AddMessageProcessed(total);
+			}
 
 			Log msg(total >= ch::seconds(5) ? LogWarning : LogDebug, "JsonRpcConnection");
 			msg << "Processed JSON-RPC '" << rpcMethod << "' message for identity '" << m_Identity

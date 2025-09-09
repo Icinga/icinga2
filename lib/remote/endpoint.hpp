@@ -49,6 +49,7 @@ public:
 	void AddMessageSent(int bytes);
 	void AddMessageReceived(int bytes);
 	void AddMessageReceived(const intrusive_ptr<ApiFunction>& method);
+	void AddMessageProcessed(const AtomicDuration::Clock::duration& duration);
 
 	double GetMessagesSentPerSecond() const override;
 	double GetMessagesReceivedPerSecond() const override;
@@ -57,6 +58,8 @@ public:
 	double GetBytesReceivedPerSecond() const override;
 
 	Dictionary::Ptr GetMessagesReceivedPerType() const override;
+
+	double GetSecondsProcessingMessages() const override;
 
 protected:
 	void OnAllConfigLoaded() override;
@@ -71,6 +74,8 @@ private:
 	mutable RingBuffer m_MessagesReceived{60};
 	mutable RingBuffer m_BytesSent{60};
 	mutable RingBuffer m_BytesReceived{60};
+
+	AtomicDuration m_InputProcessingTime;
 };
 
 }
