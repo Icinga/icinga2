@@ -554,7 +554,7 @@ BOOST_AUTO_TEST_CASE(service_flapping_notification)
 BOOST_AUTO_TEST_CASE(service_flapping_problem_notifications)
 {
 #ifndef I2_DEBUG
-	BOOST_WARN_MESSAGE(false, "This test can only be run in a debug build!");
+	BOOST_TEST_MESSAGE("This test can only be run in a debug build!");
 #else /* I2_DEBUG */
 	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect([](const Checkable::Ptr& checkable, NotificationType type,
 		const CheckResult::Ptr&, const String&, const String&, const MessageOrigin::Ptr&) {
@@ -564,6 +564,7 @@ BOOST_AUTO_TEST_CASE(service_flapping_problem_notifications)
 	int timeStepInterval = 60;
 
 	Service::Ptr service = new Service();
+	service->SetActive(true);
 	service->Activate();
 	service->SetAuthority(true);
 	service->SetStateRaw(ServiceOK);
@@ -655,7 +656,7 @@ BOOST_AUTO_TEST_CASE(service_flapping_problem_notifications)
 BOOST_AUTO_TEST_CASE(service_flapping_ok_into_bad)
 {
 #ifndef I2_DEBUG
-	BOOST_WARN_MESSAGE(false, "This test can only be run in a debug build!");
+	BOOST_TEST_MESSAGE("This test can only be run in a debug build!");
 #else /* I2_DEBUG */
 	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect([](const Checkable::Ptr& checkable, NotificationType type,
 		const CheckResult::Ptr&, const String&, const String&, const MessageOrigin::Ptr&) {
@@ -665,6 +666,7 @@ BOOST_AUTO_TEST_CASE(service_flapping_ok_into_bad)
 	int timeStepInterval = 60;
 
 	Service::Ptr service = new Service();
+	service->SetActive(true);
 	service->Activate();
 	service->SetAuthority(true);
 	service->SetStateRaw(ServiceOK);
@@ -736,7 +738,7 @@ BOOST_AUTO_TEST_CASE(service_flapping_ok_into_bad)
 BOOST_AUTO_TEST_CASE(service_flapping_ok_over_bad_into_ok)
 {
 #ifndef I2_DEBUG
-	BOOST_WARN_MESSAGE(false, "This test can only be run in a debug build!");
+	BOOST_TEST_MESSAGE("This test can only be run in a debug build!");
 #else /* I2_DEBUG */
 	boost::signals2::connection c = Checkable::OnNotificationsRequested.connect([](const Checkable::Ptr& checkable, NotificationType type,
 		const CheckResult::Ptr&, const String&, const String&, const MessageOrigin::Ptr&) {
@@ -746,6 +748,7 @@ BOOST_AUTO_TEST_CASE(service_flapping_ok_over_bad_into_ok)
 	int timeStepInterval = 60;
 
 	Service::Ptr service = new Service();
+	service->SetActive(true);
 	service->Activate();
 	service->SetAuthority(true);
 	service->SetStateRaw(ServiceOK);
