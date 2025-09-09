@@ -28,7 +28,7 @@ case "$DISTRO" in
     (
       cd boost_1_69_0
       ./bootstrap.sh --with-libraries=context,coroutine,date_time,filesystem,iostreams,program_options,regex,system,test,thread
-      ./b2
+      ./b2 define=BOOST_COROUTINES_NO_DEPRECATION_WARNING
     )
 
     ln -vs /usr/bin/cmake3 /usr/local/bin/cmake
