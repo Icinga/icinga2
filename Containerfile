@@ -149,17 +149,15 @@ RUN apt-get update && \
         curl \
         dumb-init \
         file \
-        libboost1.83-dev \
-        libboost-context1.83-dev \
-        libboost-coroutine1.83-dev \
-        libboost-date-time1.83-dev \
-        libboost-filesystem1.83-dev \
-        libboost-iostreams1.83-dev \
-        libboost-program-options1.83-dev \
-        libboost-regex1.83-dev \
-        libboost-system1.83-dev \
-        libboost-thread1.83-dev \
-        libboost-test1.83-dev \
+        libboost-context1.83.0 \
+        libboost-coroutine1.83.0 \
+        libboost-date-time1.83.0 \
+        libboost-filesystem1.83.0 \
+        libboost-iostreams1.83.0 \
+        libboost-program-options1.83.0 \
+        libboost-regex1.83.0 \
+        libboost-system1.83.0 \
+        libboost-thread1.83.0 \
         libcap2-bin \
         libedit2 \
         libldap-common \
