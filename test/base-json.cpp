@@ -22,7 +22,7 @@ BOOST_AUTO_TEST_CASE(encode)
 	int emptyGenCounter = 0;
 	std::vector<int> empty;
 	std::vector<int> vec{1, 2, 3};
-	auto generate = [](int count) -> std::optional<Value> { return Value(count); };
+	auto generate = [](int count) -> Value { return Value(count); };
 
 	Dictionary::Ptr input (new Dictionary({
 		{ "array", new Array({ new Namespace() }) },
@@ -44,9 +44,9 @@ BOOST_AUTO_TEST_CASE(encode)
 			"empty_generator",
 			new ValueGenerator{
 				empty,
-				[&emptyGenCounter](int) -> std::optional<Value> {
+				[&emptyGenCounter](int) -> Value {
 					emptyGenCounter++;
-					return std::nullopt;
+					return Empty;
 				}
 			}
 		},
@@ -91,8 +91,8 @@ BOOST_AUTO_TEST_CASE(encode)
 	boost::algorithm::replace_all(output, "\n", "");
 
 	input->Set("generator", new ValueGenerator{vec, generate});
-	BOOST_CHECK_EQUAL(emptyGenCounter, 0); // Ensure the transformation function was never invoked.
 	BOOST_CHECK(JsonEncode(input, false) == output);
+	BOOST_CHECK_EQUAL(emptyGenCounter, 0); // Ensure the transformation function was never invoked.
 }
 
 BOOST_AUTO_TEST_CASE(decode)

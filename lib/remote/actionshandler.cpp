@@ -20,7 +20,7 @@ bool ActionsHandler::HandleRequest(
 	const WaitGroup::Ptr& waitGroup,
 	const HttpApiRequest& request,
 	HttpApiResponse& response,
-	boost::asio::yield_context&
+	boost::asio::yield_context& yc
 )
 {
 	namespace http = boost::beast::http;
@@ -126,6 +126,11 @@ bool ActionsHandler::HandleRequest(
 		}
 	}
 
+	if (wgLock.owns_lock()) {
+		// Unlock before starting to stream the response, so that we don't block the shutdown process.
+		wgLock.unlock();
+	}
+
 	int statusCode = 500;
 	std::set<int> okStatusCodes, nonOkStatusCodes;
 
@@ -156,11 +161,13 @@ bool ActionsHandler::HandleRequest(
 
 	response.result(statusCode);
 
-	Dictionary::Ptr result = new Dictionary({
-		{ "results", new Array(std::move(results)) }
-	});
+	Array::Ptr resultArray{new Array{std::move(results)}};
+	resultArray->Freeze(); // Allows the JSON encoder to yield while encoding the array.
 
-	HttpUtility::SendJsonBody(response, params, result);
+	Dictionary::Ptr result = new Dictionary{{"results", std::move(resultArray)}};
+	result->Freeze();
+
+	HttpUtility::SendJsonBody(response, params, result, yc);
 
 	return true;
 }

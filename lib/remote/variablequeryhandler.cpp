@@ -4,9 +4,8 @@
 #include "remote/variablequeryhandler.hpp"
 #include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
-#include "base/configtype.hpp"
+#include "base/generator.hpp"
 #include "base/scriptglobal.hpp"
-#include "base/logger.hpp"
 #include "base/serializer.hpp"
 #include "base/namespace.hpp"
 #include <set>
@@ -63,7 +62,7 @@ bool VariableQueryHandler::HandleRequest(
 	const WaitGroup::Ptr&,
 	const HttpApiRequest& request,
 	HttpApiResponse& response,
-	boost::asio::yield_context&
+	boost::asio::yield_context& yc
 )
 {
 	namespace http = boost::beast::http;
@@ -99,22 +98,19 @@ bool VariableQueryHandler::HandleRequest(
 		return true;
 	}
 
-	ArrayData results;
-
-	for (Dictionary::Ptr var : objs) {
-		results.emplace_back(new Dictionary({
+	auto generatorFunc = [](const Dictionary::Ptr& var) -> Value {
+		return new Dictionary{
 			{ "name", var->Get("name") },
 			{ "type", var->Get("type") },
 			{ "value", Serialize(var->Get("value"), 0) }
-		}));
-	}
+		};
+	};
 
-	Dictionary::Ptr result = new Dictionary({
-		{ "results", new Array(std::move(results)) }
-	});
+	Dictionary::Ptr result = new Dictionary{{"results", new ValueGenerator{objs, generatorFunc}}};
+	result->Freeze();
 
 	response.result(http::status::ok);
-	HttpUtility::SendJsonBody(response, params, result);
+	HttpUtility::SendJsonBody(response, params, result, yc);
 
 	return true;
 }
