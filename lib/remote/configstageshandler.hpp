@@ -21,7 +21,7 @@ public:
 	) override;
 
 private:
-	void HandleGet(const HttpApiRequest& request, HttpApiResponse& response);
+	void HandleGet(const HttpApiRequest& request, HttpApiResponse& response, boost::asio::yield_context& yc);
 	void HandlePost(const HttpApiRequest& request, HttpApiResponse& response);
 	void HandleDelete(const HttpApiRequest& request, HttpApiResponse& response);
 };

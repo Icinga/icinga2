@@ -209,7 +209,7 @@ bool ObjectQueryHandler::HandleRequest(
 	std::unordered_map<Type*, std::pair<bool, std::unique_ptr<Expression>>> typePermissions;
 	std::unordered_map<Object*, bool> objectAccessAllowed;
 
-	auto generatorFunc = [&](const ConfigObject::Ptr& obj) -> std::optional<Value> {
+	auto generatorFunc = [&](const ConfigObject::Ptr& obj) -> Value {
 		DictionaryData result1{
 			{ "name", obj->GetName() },
 			{ "type", obj->GetReflectionType()->GetName() }
