@@ -318,15 +318,11 @@ bool ObjectQueryHandler::HandleRequest(
 		return new Dictionary{std::move(result1)};
 	};
 
-	response.result(http::status::ok);
-	response.set(http::field::content_type, "application/json");
-	response.StartStreaming();
-
 	Dictionary::Ptr results = new Dictionary{{"results", new ValueGenerator{objs, generatorFunc}}};
 	results->Freeze();
 
-	bool pretty = HttpUtility::GetLastParameter(params, "pretty");
-	response.GetJsonEncoder(pretty).Encode(results, &yc);
+	response.result(http::status::ok);
+	HttpUtility::SendJsonBody(response, params, results, yc);
 
 	return true;
 }
