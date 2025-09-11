@@ -118,7 +118,7 @@ bool ActionsHandler::HandleRequest(
 	Dictionary::Ptr result = new Dictionary{{"results", new ValueGenerator{objs, generatorFunc}}};
 	result->Freeze();
 
-	response.result(http::status::ok);
+	response.result(http::status::accepted);
 	HttpUtility::SendJsonBody(response, params, result, yc);
 
 	return true;
