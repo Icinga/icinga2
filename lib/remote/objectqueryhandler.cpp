@@ -321,7 +321,7 @@ bool ObjectQueryHandler::HandleRequest(
 	Dictionary::Ptr results = new Dictionary{{"results", new ValueGenerator{objs, generatorFunc}}};
 	results->Freeze();
 
-	response.result(http::status::ok);
+	response.result(http::status::accepted);
 	HttpUtility::SendJsonBody(response, params, results, yc);
 
 	return true;
