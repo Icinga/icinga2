@@ -9,6 +9,7 @@
 #include "config/configitem.hpp"
 #include "base/exception.hpp"
 #include <boost/algorithm/string/case_conv.hpp>
+#include <optional>
 #include <set>
 
 using namespace icinga;
@@ -74,32 +75,26 @@ bool DeleteObjectHandler::HandleRequest(
 		return true;
 	}
 
-	ArrayData results;
-
-	bool success = true;
-
 	std::shared_lock wgLock{*waitGroup, std::try_to_lock};
 	if (!wgLock) {
 		HttpUtility::SendJsonError(response, params, 503, "Shutting down.");
 		return true;
 	}
 
-	for (ConfigObject::Ptr obj : objs) {
+	auto generatorFunc = [&type, &waitGroup, &wgLock, cascade, verbose](
+		const ConfigObject::Ptr& obj
+	) -> std::optional<Value> {
 		if (!waitGroup->IsLockable()) {
 			if (wgLock) {
 				wgLock.unlock();
 			}
 
-			results.emplace_back(new Dictionary({
+			return new Dictionary{
 				{ "type", type->GetName() },
 				{ "name", obj->GetName() },
 				{ "code", 503 },
 				{ "status", "Action skipped: Shutting down."}
-			}));
-
-			success = false;
-
-			continue;
+			};
 		}
 
 		int code;
@@ -113,36 +108,30 @@ bool DeleteObjectHandler::HandleRequest(
 		if (!ConfigObjectUtility::DeleteObject(obj, cascade, errors, diagnosticInformation)) {
 			code = 500;
 			status = "Object could not be deleted.";
-			success = false;
 		} else {
 			code = 200;
 			status = "Object was deleted.";
 		}
 
-		Dictionary::Ptr result = new Dictionary({
+		Dictionary::Ptr result = new Dictionary{
 			{ "type", type->GetName() },
 			{ "name", obj->GetName() },
 			{ "code", code },
 			{ "status", status },
 			{ "errors", errors }
-		});
+		};
 
 		if (verbose)
 			result->Set("diagnostic_information", diagnosticInformation);
 
-		results.push_back(result);
-	}
+		return result;
+	};
 
-	Dictionary::Ptr result = new Dictionary({
-		{ "results", new Array(std::move(results)) }
-	});
+	Dictionary::Ptr result = new Dictionary{{"results", new ValueGenerator{objs, generatorFunc}}};
+	result->Freeze();
 
-	if (!success)
-		response.result(http::status::internal_server_error);
-	else
-		response.result(http::status::ok);
-
-	HttpUtility::SendJsonBody(response, params, result);
+	response.result(http::status::ok);
+	HttpUtility::SendJsonBody(response, params, result, yc);
 
 	return true;
 }

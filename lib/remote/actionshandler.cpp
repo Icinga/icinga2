@@ -6,7 +6,9 @@
 #include "remote/apiaction.hpp"
 #include "base/defer.hpp"
 #include "base/exception.hpp"
+#include "base/generator.hpp"
 #include "base/logger.hpp"
+#include <optional>
 #include <set>
 
 using namespace icinga;
@@ -70,13 +72,10 @@ bool ActionsHandler::HandleRequest(
 		objs.emplace_back(nullptr);
 	}
 
-	ArrayData results;
-
 	Log(LogNotice, "ApiActionHandler")
 		<< "Running action " << actionName;
 
 	bool verbose = false;
-
 	if (params)
 		verbose = HttpUtility::GetLastParameter(params, "verbose");
 
@@ -86,73 +85,43 @@ bool ActionsHandler::HandleRequest(
 		return true;
 	}
 
-	for (ConfigObject::Ptr obj : objs) {
+	auto generatorFunc = [&action, &user, &params, &waitGroup, &wgLock, verbose](
+		const ConfigObject::Ptr& obj
+	) -> std::optional<Value> {
 		if (!waitGroup->IsLockable()) {
 			if (wgLock) {
 				wgLock.unlock();
 			}
 
-			results.emplace_back(new Dictionary({
+			return new Dictionary{
 				{ "type", obj->GetReflectionType()->GetName() },
 				{ "name", obj->GetName() },
 				{ "code", 503 },
 				{ "status", "Action skipped: Shutting down."}
-			}));
-
-			continue;
+			};
 		}
 
 		try {
-			results.emplace_back(action->Invoke(obj, user, params));
+			return action->Invoke(obj, user, params);
 		} catch (const std::exception& ex) {
-			Dictionary::Ptr fail = new Dictionary({
+			Dictionary::Ptr fail = new Dictionary{
 				{ "code", 500 },
 				{ "status", "Action execution failed: '" + DiagnosticInformation(ex, false) + "'." }
-			});
+			};
 
 			/* Exception for actions. Normally we would handle this inside SendJsonError(). */
 			if (verbose)
 				fail->Set("diagnostic_information", DiagnosticInformation(ex));
 
-			results.emplace_back(std::move(fail));
+			return fail;
 		}
-	}
+	};
 
-	int statusCode = 500;
-	std::set<int> okStatusCodes, nonOkStatusCodes;
+	Dictionary::Ptr result = new Dictionary{{"results", new ValueGenerator{objs, generatorFunc}}};
+	result->Freeze();
 
-	for (Dictionary::Ptr res : results) {
-		if (!res->Contains("code")) {
-			continue;
-		}
-
-		auto code = res->Get("code");
-
-		if (code >= 200 && code <= 299) {
-			okStatusCodes.insert(code);
-		} else {
-			nonOkStatusCodes.insert(code);
-		}
-	}
-
-	size_t okSize = okStatusCodes.size();
-	size_t nonOkSize = nonOkStatusCodes.size();
-
-	if (okSize == 1u && nonOkSize == 0u) {
-		statusCode = *okStatusCodes.begin();
-	} else if (nonOkSize == 1u) {
-		statusCode = *nonOkStatusCodes.begin();
-	} else if (okSize >= 2u && nonOkSize == 0u) {
-		statusCode = 200;
-	}
-
-	response.result(statusCode);
-
-	Dictionary::Ptr result = new Dictionary({
-		{ "results", new Array(std::move(results)) }
-	});
-
-	HttpUtility::SendJsonBody(response, params, result);
+	response.result(http::status::ok);
+	HttpUtility::SendJsonBody(response, params, result, yc);
 
 	return true;
 }
