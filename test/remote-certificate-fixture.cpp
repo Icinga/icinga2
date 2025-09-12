@@ -1,7 +1,7 @@
 /* Icinga 2 | (c) 2025 Icinga GmbH | GPLv2+ */
 
 #include "remote-certificate-fixture.hpp"
-#include <BoostTestTargetConfig.h>
+#include "test/test-ctest.hpp"
 
 using namespace icinga;
 
@@ -27,14 +27,14 @@ static void CleanupPersistentCertificateDir()
 	}
 }
 
-BOOST_FIXTURE_TEST_CASE(prepare_directory, ConfigurationDataDirFixture)
+BOOST_FIXTURE_TEST_CASE(prepare_directory, ConfigurationDataDirFixture, *CTestProperties("FIXTURES_SETUP ssl_certs"))
 {
 	// Remove any existing left-overs of the persistent certificate directory from a previous
 	// test run.
 	CleanupPersistentCertificateDir();
 }
 
-BOOST_FIXTURE_TEST_CASE(cleanup_certs, ConfigurationDataDirFixture)
+BOOST_FIXTURE_TEST_CASE(cleanup_certs, ConfigurationDataDirFixture, *CTestProperties("FIXTURES_CLEANUP ssl_certs"))
 {
 	CleanupPersistentCertificateDir();
 }

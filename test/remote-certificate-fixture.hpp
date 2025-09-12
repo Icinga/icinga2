@@ -2,10 +2,10 @@
 
 #pragma once
 
+#include <BoostTestTargetConfig.h>
 #include "remote/apilistener.hpp"
 #include "remote/pkiutility.hpp"
 #include "test/base-configuration-fixture.hpp"
-#include <BoostTestTargetConfig.h>
 
 namespace icinga {
 

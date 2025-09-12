@@ -6,6 +6,7 @@
 #include "remote/httpmessage.hpp"
 #include "remote/httputility.hpp"
 #include "test/base-tlsstream-fixture.hpp"
+#include "test/test-ctest.hpp"
 #include <fstream>
 #include <utility>
 
@@ -29,7 +30,11 @@ static std::future<void> SpawnSynchronizedCoroutine(std::function<void(boost::as
 	return future;
 }
 
-BOOST_FIXTURE_TEST_SUITE(remote_httpmessage, TlsStreamFixture)
+// clang-format off
+BOOST_FIXTURE_TEST_SUITE(remote_httpmessage, TlsStreamFixture,
+	*CTestProperties("FIXTURES_REQUIRED ssl_certs")
+	*boost::unit_test::label("http"))
+// clang-format on
 
 BOOST_AUTO_TEST_CASE(request_parse)
 {

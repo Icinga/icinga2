@@ -4,9 +4,8 @@
 #define BOOST_TEST_NO_MAIN
 #define BOOST_TEST_ALTERNATIVE_INIT_API
 
+#define TEST_INCLUDE_IMPLEMENTATION
 #include <BoostTestTargetConfig.h>
-#include <boost/test/unit_test.hpp>
-#include <cstdlib>
 
 int BOOST_TEST_CALL_DECL
 main(int argc, char **argv)
