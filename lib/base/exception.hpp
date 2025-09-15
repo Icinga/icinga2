@@ -118,12 +118,10 @@ String DiagnosticInformation(const boost::exception_ptr& eptr, bool verbose = tr
 
 class posix_error : virtual public std::exception, virtual public boost::exception {
 public:
-	~posix_error() throw() override;
-
-	const char *what(void) const throw() final;
+	const char* what() const noexcept final;
 
 private:
-	mutable char *m_Message{nullptr};
+	mutable String m_Message;
 };
 
 #ifdef _WIN32
