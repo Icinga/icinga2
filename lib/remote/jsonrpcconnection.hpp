@@ -102,8 +102,6 @@ private:
 
 	void MessageHandler(const Dictionary::Ptr& message);
 
-	void CertificateRequestResponseHandler(const Dictionary::Ptr& message);
-
 	void SendMessageInternal(const Dictionary::Ptr& request);
 };
 
