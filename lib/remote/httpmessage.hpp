@@ -3,6 +3,7 @@
 #pragma once
 
 #include "base/dictionary.hpp"
+#include "base/io-engine.hpp"
 #include "base/json.hpp"
 #include "base/tlsstream.hpp"
 #include "remote/apiuser.hpp"
@@ -10,6 +11,7 @@
 #include "remote/url.hpp"
 #include <boost/beast/http.hpp>
 #include <boost/version.hpp>
+#include <memory>
 #include <utility>
 
 namespace icinga {
@@ -327,8 +329,14 @@ public:
 	 */
 	[[nodiscard]] bool IsClientDisconnected() const;
 
+	void SetCpuBoundWork(std::weak_ptr<CpuBoundWork> cbw)
+	{
+		m_CpuBoundWork = std::move(cbw);
+	}
+
 private:
 	HttpServerConnection::Ptr m_Server;
+	std::weak_ptr<CpuBoundWork> m_CpuBoundWork;
 };
 
 // More general instantiations

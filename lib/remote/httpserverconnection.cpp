@@ -423,9 +423,10 @@ void ProcessRequest(
 	try {
 		// Cache the elapsed time to acquire a CPU semaphore used to detect extremely heavy workloads.
 		auto start (std::chrono::steady_clock::now());
-		CpuBoundWork handlingRequest (yc);
+		auto handlingRequest (std::make_shared<CpuBoundWork>(yc));
 		cpuBoundWorkTime = std::chrono::steady_clock::now() - start;
 
+		response.SetCpuBoundWork(handlingRequest);
 		HttpHandler::ProcessRequest(waitGroup, request, response, yc);
 		response.body().Finish();
 	} catch (const std::exception& ex) {
