@@ -22,40 +22,40 @@ BOOST_AUTO_TEST_CASE(interval)
 	BOOST_CHECK(timer->GetInterval() == 1.5);
 }
 
-int counter = 0;
-
-static void Callback(const Timer * const&)
-{
-	counter++;
-}
-
 BOOST_AUTO_TEST_CASE(invoke)
 {
-	Timer::Ptr timer = Timer::Create();
-	timer->OnTimerExpired.connect(&Callback);
-	timer->SetInterval(1);
+	int counter = 0;
 
-	counter = 0;
+	Timer::Ptr timer = Timer::Create();
+	timer->OnTimerExpired.connect([&counter](const Timer* const&) { counter++; });
+	timer->SetInterval(.1);
+
 	timer->Start();
-	Utility::Sleep(5.5);
+	Utility::Sleep(.55);
 	timer->Stop();
 
-	BOOST_CHECK(counter >= 4 && counter <= 6);
+	// At this point, the timer should have fired exactly 5 times (0.5 / 0.1) and the sixth time
+	// should not have fired yet as we stopped the timer after 0.55 seconds (0.6 would be needed).
+	BOOST_CHECK_EQUAL(5, counter);
 }
 
 BOOST_AUTO_TEST_CASE(scope)
 {
+	int counter = 0;
+
 	Timer::Ptr timer = Timer::Create();
-	timer->OnTimerExpired.connect(&Callback);
-	timer->SetInterval(1);
+	timer->OnTimerExpired.connect([&counter](const Timer* const&) { counter++; });
+	timer->SetInterval(.1);
 
-	counter = 0;
 	timer->Start();
-	Utility::Sleep(5.5);
+	Utility::Sleep(.55);
 	timer.reset();
-	Utility::Sleep(5.5);
+	Utility::Sleep(.1);
 
-	BOOST_CHECK(counter >= 4 && counter <= 6);
+	// At this point, the timer should have fired exactly 5 times (0.5 / 0.1) and the sixth time
+	// should not have fired yet as we destroyed the timer after 0.55 seconds (0.6 would be needed),
+	// and even if we wait another 0.1 seconds after its destruction, it should not fire again.
+	BOOST_CHECK_EQUAL(5, counter);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
