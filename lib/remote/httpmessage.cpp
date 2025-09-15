@@ -197,6 +197,12 @@ void HttpApiResponse::StartStreaming(bool checkForDisconnect)
 {
 	OutgoingHttpMessage::StartStreaming();
 
+	auto work (m_CpuBoundWork.lock());
+
+	if (work) {
+		work->Done();
+	}
+
 	if (checkForDisconnect) {
 		ASSERT(m_Server);
 		m_Server->StartDetectClientSideShutdown();
