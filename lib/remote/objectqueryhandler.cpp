@@ -210,15 +210,7 @@ bool ObjectQueryHandler::HandleRequest(
 	std::unordered_map<Type*, std::pair<bool, std::unique_ptr<Expression>>> typePermissions;
 	std::unordered_map<Object*, bool> objectAccessAllowed;
 
-	auto it = objs.begin();
-	auto generatorFunc = [&]() -> std::optional<Value> {
-		if (it == objs.end()) {
-			return std::nullopt;
-		}
-
-		ConfigObject::Ptr obj = *it;
-		++it;
-
+	auto generatorFunc = [&](const ConfigObject::Ptr& obj) -> std::optional<Value> {
 		DictionaryData result1{
 			{ "name", obj->GetName() },
 			{ "type", obj->GetReflectionType()->GetName() }
@@ -331,7 +323,7 @@ bool ObjectQueryHandler::HandleRequest(
 	response.set(http::field::content_type, "application/json");
 	response.StartStreaming(false);
 
-	Dictionary::Ptr results = new Dictionary{{"results", new ValueGenerator{generatorFunc}}};
+	Dictionary::Ptr results = new Dictionary{{"results", new ValueGenerator{objs, generatorFunc}}};
 	results->Freeze();
 
 	bool pretty = HttpUtility::GetLastParameter(params, "pretty");
