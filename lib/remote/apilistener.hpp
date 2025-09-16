@@ -170,6 +170,7 @@ public:
 protected:
 	void ValidateTlsProtocolmin(const Lazy<String>& lvalue, const ValidationUtils& utils) override;
 	void ValidateTlsHandshakeTimeout(const Lazy<double>& lvalue, const ValidationUtils& utils) override;
+	void ValidateHttpResponseHeaders(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils) override;
 
 private:
 	Shared<boost::asio::ssl::context>::Ptr m_SSLContext;
