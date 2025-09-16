@@ -494,31 +494,8 @@ void InfluxdbCommonWriter::FlushWQ()
 	auto& response (parser.get());
 
 	if (response.result() != http::status::no_content) {
-		Log(LogWarning, GetReflectionType()->GetName())
-			<< "Unexpected response code: " << response.result();
-
-		auto& contentType (response[http::field::content_type]);
-		if (contentType != "application/json") {
-			Log(LogWarning, GetReflectionType()->GetName())
-				<< "Unexpected Content-Type: " << contentType;
-			return;
-		}
-
-		Dictionary::Ptr jsonResponse;
-		auto& body (response.body());
-
-		try {
-			jsonResponse = JsonDecode(body);
-		} catch (...) {
-			Log(LogWarning, GetReflectionType()->GetName())
-				<< "Unable to parse JSON response:\n" << body;
-			return;
-		}
-
-		String error = jsonResponse->Get("error");
-
 		Log(LogCritical, GetReflectionType()->GetName())
-			<< "InfluxDB error message:\n" << error;
+			<< "Unexpected response code: " << response.result() << ", InfluxDB error message:\n" << response.body();
 	}
 }
 
