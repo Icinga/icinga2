@@ -2,6 +2,7 @@
 BasedOnStyle: LLVM
 AccessModifierOffset: -4
 AlignAfterOpenBracket: DontAlign
+AlignEscapedNewlines: LeftWithLastLine
 AllowShortFunctionsOnASingleLine: InlineOnly
 BreakBeforeBraces: Mozilla
 BreakTemplateDeclarations: Yes
