@@ -3,13 +3,20 @@
 #ifndef ELASTICSEARCHDATASTREAMWRITER_H
 #define ELASTICSEARCHDATASTREAMWRITER_H
 
-#include "perfdata/elasticsearchdatastreamwriter-ti.hpp"
-#include "icinga/checkable.hpp"
-#include "icinga/checkresult.hpp"
+#include <boost/beast/http/verb.hpp>
+
 #include "base/configobject.hpp"
 #include "base/workqueue.hpp"
 #include "base/timer.hpp"
 #include "base/tlsstream.hpp"
+#include "icinga/checkable.hpp"
+#include "icinga/checkresult.hpp"
+#include "remote/url.hpp"
+
+#include "perfdata/elasticsearchdatastreamwriter-ti.hpp"
+
+namespace beast = boost::beast;
+namespace http = beast::http;
 
 namespace icinga
 {
@@ -37,12 +44,15 @@ protected:
 	void OnConfigLoaded() override;
 	void Resume() override;
 	void Pause() override;
+	Value TrySend(Url::Ptr url, String body);
 
 private:
-	String m_EventPrefix;
 	WorkQueue m_WorkQueue{10000000, 1};
 	boost::signals2::connection m_HandleCheckResults;
 	Timer::Ptr m_FlushTimer;
+
+	// This buffer should only be accessed from the worker thread.
+	// Every other access will lead to a race-condition.
 	std::vector<EcsDocument::Ptr> m_DataBuffer;
 
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
