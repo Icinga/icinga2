@@ -1,23 +1,5 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "perfdata/elasticsearchdatastreamwriter.hpp"
-#include "base/dictionary.hpp"
-#include "perfdata/elasticsearchdatastreamwriter-ti.cpp"
-#include "remote/url.hpp"
-#include "icinga/compatutility.hpp"
-#include "icinga/service.hpp"
-#include "icinga/checkcommand.hpp"
-#include "base/application.hpp"
-#include "base/defer.hpp"
-#include "base/io-engine.hpp"
-#include "base/tcpsocket.hpp"
-#include "base/stream.hpp"
-#include "base/base64.hpp"
-#include "base/json.hpp"
-#include "base/utility.hpp"
-#include "base/perfdatavalue.hpp"
-#include "base/exception.hpp"
-#include "base/statsfunction.hpp"
 #include <boost/algorithm/string.hpp>
 #include <boost/asio/ssl/context.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
@@ -32,6 +14,27 @@
 #include <boost/scoped_array.hpp>
 #include <string>
 #include <utility>
+
+#include "base/application.hpp"
+#include "base/base64.hpp"
+#include "base/defer.hpp"
+#include "base/dictionary.hpp"
+#include "base/exception.hpp"
+#include "base/io-engine.hpp"
+#include "base/json.hpp"
+#include "base/perfdatavalue.hpp"
+#include "base/statsfunction.hpp"
+#include "base/stream.hpp"
+#include "base/string.hpp"
+#include "base/tcpsocket.hpp"
+#include "base/tlsstream.hpp"
+#include "base/utility.hpp"
+#include "icinga/compatutility.hpp"
+#include "icinga/service.hpp"
+#include "remote/url.hpp"
+
+#include "perfdata/elasticsearchdatastreamwriter.hpp"
+#include "perfdata/elasticsearchdatastreamwriter-ti.cpp"
 
 using namespace icinga;
 
@@ -79,8 +82,6 @@ void ElasticsearchDatastreamWriter::Resume()
 {
 	ObjectImpl<ElasticsearchDatastreamWriter>::Resume();
 
-	m_EventPrefix = "icinga2.event.";
-
 	Log(LogInformation, "ElasticsearchDatastreamWriter")
 		<< "'" << GetName() << "' resumed.";
 
@@ -90,7 +91,7 @@ void ElasticsearchDatastreamWriter::Resume()
 	m_FlushTimer = Timer::Create();
 	m_FlushTimer->SetInterval(GetFlushInterval());
 	m_FlushTimer->OnTimerExpired.connect([this](const Timer * const&) {
-	    m_WorkQueue.Enqueue([this]() { Flush(); });
+		m_WorkQueue.Enqueue([this]() { Flush(); });
 	});
 	m_FlushTimer->Start();
 	m_FlushTimer->Reschedule(0);
@@ -108,13 +109,15 @@ void ElasticsearchDatastreamWriter::Pause()
 {
 	m_HandleCheckResults.disconnect();
 	m_FlushTimer->Stop(true);
-	m_WorkQueue.Enqueue([this](){ Flush(); });
+	m_WorkQueue.Enqueue([this]() { Flush(); });
 	m_WorkQueue.Join();
+
 	Log(LogInformation, "ElasticsearchDatastreamWriter")
 		<< "'" << GetName() << "' paused.";
 
 	ObjectImpl<ElasticsearchDatastreamWriter>::Pause();
 }
+
 
 Dictionary::Ptr ElasticsearchDatastreamWriter::ExtractPerfData(const Checkable::Ptr checkable, const Array::Ptr& perfdata) {
 	Dictionary::Ptr pd_fields = new Dictionary();
@@ -271,60 +274,79 @@ void ElasticsearchDatastreamWriter::CheckResultHandler(const Checkable::Ptr& che
 
 void ElasticsearchDatastreamWriter::Flush()
 {
+	AssertOnWorkQueue();
+
 	/* Flush can be called from 1) Timeout 2) Threshold 3) on shutdown/reload. */
 	if (m_DataBuffer.empty())
 		return;
 
-	/* Ensure you hold a lock against m_DataBuffer so that things
-	 * don't go missing after creating the body and clearing the buffer.
-	 */
-	String body = "";
-	for (const auto& document : m_DataBuffer) {
-        Dictionary::Ptr index = new Dictionary({
-            { "_index", new Dictionary({
-                { "create", document->GetIndex() }
-            }) }
-        });
-
-		body += icinga::JsonEncode(index) + "\n";
-		body += icinga::JsonEncode(document->GetDocument()) + "\n";
-	}
-
-	m_DataBuffer.clear();
-
-	SendRequest(body);
-}
-
-void ElasticsearchDatastreamWriter::SendRequest(const String& body)
-{
-	namespace beast = boost::beast;
-	namespace http = beast::http;
-
 	Url::Ptr url = new Url();
-
 	url->SetScheme(GetEnableTls() ? "https" : "http");
 	url->SetHost(GetHost());
 	url->SetPort(GetPort());
 	url->SetPath({ "_bulk" });
 
-	OptionalTlsStream stream;
+	String body = String();
+	for (const auto &document : m_DataBuffer) {
+		Dictionary::Ptr index = new Dictionary({
+		    { "create", new Dictionary({ { "_index", document->GetIndex() } }) }
+		});
 
-	try {
-		stream = Connect();
-	} catch (const std::exception& ex) {
-		Log(LogWarning, "ElasticsearchDatastreamWriter")
-			<< "Flush failed, cannot connect to Elasticsearch: " << DiagnosticInformation(ex, false);
+		body += icinga::JsonEncode(index) + "\n";
+		body += icinga::JsonEncode(document->GetDocument()) + "\n";
+	}
+
+	Dictionary::Ptr jsonResponse;
+	while (true) {
+		// ToDo: does this need a timeout/retry limit when stopping icinga2?
+		try {
+			jsonResponse = TrySend(url, body);
+			m_DataBuffer.clear();
+			break;
+		} catch (const std::exception& ex) {
+			Log(LogWarning, "ElasticsearchDatastreamWriter")
+				<< "Flush failed, retrying in 5 seconds: " << DiagnosticInformation(ex, false);
+			Log(LogDebug, "ElasticsearchDatastreamWriter")
+				<< "Additional information:\n" << DiagnosticInformation(ex, true);
+			Utility::Sleep(5);
+		}
+	}
+
+	Log(LogInformation, "ElasticsearchDatastreamWriter")
+		<< "Successfully sent " << m_DataBuffer.size()
+		<< " documents to Elasticsearch. Took "
+		<< jsonResponse->Get("took") << "ms.";
+
+	Value errors = jsonResponse->Get("errors");
+	if (!errors.ToBool()) {
+		Log(LogDebug, "ElasticsearchDatastreamWriter") << "No errors during write operation.";
 		return;
 	}
 
-	Defer s ([&stream]() {
-		if (stream.first) {
-			stream.first->next_layer().shutdown();
+	Array::Ptr items = jsonResponse->Get("items");
+	int c = 0;
+	ObjectLock olock(items);
+	for (const Dictionary::Ptr value : items) {
+		Dictionary::Ptr item_result = value->Get("create");
+		int item_result_status = item_result->Get("status");
+		if (item_result_status > 299) {
+			Dictionary::Ptr item_error = item_result->Get("error");
+			String value = item_error->Get("type") + ": " + item_error->Get("reason");
+			Log(LogWarning, "ElasticsearchDatastreamWriter")
+				<< "Error during document creation: " << value;
+			Log(LogDebug, "ElasticsearchDatastreamWriter")
+				<< "Error response: " << JsonEncode(item_result) << "\n"
+				<< "Document: " << JsonEncode(m_DataBuffer[c]->GetDocument());
 		}
-	});
+		++c;
+	}
+}
+
+Value ElasticsearchDatastreamWriter::TrySend(Url::Ptr url, String body) {
+	// Make sure we are not randomly flushing from a timeout under load.
+	m_FlushTimer->Reschedule(-1);
 
 	http::request<http::string_body> request (http::verb::post, std::string(url->Format(true)), 10);
-
 	request.set(http::field::user_agent, "Icinga/" + Application::GetAppVersion());
 	request.set(http::field::host, url->GetHost() + ":" + url->GetPort());
 
@@ -352,81 +374,56 @@ void ElasticsearchDatastreamWriter::SendRequest(const String& body)
 		<< "Sending " << request.method_string() << " request" << ((!username.IsEmpty() && !password.IsEmpty()) ? " with basic auth" : "" )
 		<< " to '" << url->Format() << "'.";
 
+	http::parser<false, http::string_body> parser;
+	beast::flat_buffer buf;
+
+	OptionalTlsStream stream = Connect();
+	Defer closeStream([&stream]() {
+        if (stream.first) {
+            stream.first->lowest_layer().close();
+        } else if (stream.second) {
+            stream.second->lowest_layer().close();
+        }
+    });
+
 	try {
 		if (stream.first) {
 			http::write(*stream.first, request);
 			stream.first->flush();
+			http::read(*stream.first, buf, parser);
 		} else {
 			http::write(*stream.second, request);
 			stream.second->flush();
+			http::read(*stream.second, buf, parser);
 		}
 	} catch (const std::exception&) {
 		Log(LogWarning, "ElasticsearchDatastreamWriter")
-			<< "Cannot write to HTTP API on host '" << GetHost() << "' port '" << GetPort() << "'.";
-		throw;
-	}
-
-	http::parser<false, http::string_body> parser;
-	beast::flat_buffer buf;
-
-	try {
-		if (stream.first) {
-			http::read(*stream.first, buf, parser);
-		} else {
-			http::read(*stream.second, buf, parser);
-		}
-	} catch (const std::exception& ex) {
-		Log(LogWarning, "ElasticsearchDatastreamWriter")
-			<< "Failed to parse HTTP response from host '" << GetHost() << "' port '" << GetPort() << "': " << DiagnosticInformation(ex, false);
+			<< "Cannot perform http request API on host '" << GetHost() << "' port '" << GetPort() << "'.";
 		throw;
 	}
 
 	auto& response (parser.get());
-
 	if (response.result_int() > 299) {
-		if (response.result() == http::status::unauthorized) {
-			/* More verbose error logging with Elasticsearch is hidden behind a proxy. */
-			if (!username.IsEmpty() && !password.IsEmpty()) {
-				Log(LogCritical, "ElasticsearchDatastreamWriter")
-					<< "401 Unauthorized. Please ensure that the user '" << username
-					<< "' is able to authenticate against the HTTP API/Proxy.";
-			} else {
-				Log(LogCritical, "ElasticsearchDatastreamWriter")
-					<< "401 Unauthorized. The HTTP API requires authentication but no username/password has been configured.";
-			}
-
-			return;
-		}
-
-		std::ostringstream msgbuf;
-		msgbuf << "Unexpected response code " << response.result_int() << " from URL '" << url->Format() << "'";
-
-		auto& contentType (response[http::field::content_type]);
-
-		if (contentType != "application/json" && contentType != "application/json; charset=utf-8") {
-			msgbuf << "; Unexpected Content-Type: '" << contentType << "'";
-		}
-
-		auto& body (response.body());
-
-#ifdef I2_DEBUG
-		msgbuf << "; Response body: '" << body << "'";
-#endif /* I2_DEBUG */
-
-		Dictionary::Ptr jsonResponse;
-
-		try {
-			jsonResponse = JsonDecode(body);
-		} catch (...) {
-			Log(LogWarning, "ElasticsearchDatastreamWriter")
-				<< "Unable to parse JSON response:\n" << body;
-			return;
-		}
-
-		String error = jsonResponse->Get("error");
-
 		Log(LogCritical, "ElasticsearchDatastreamWriter")
-			<< "Error: '" << error << "'. " << msgbuf.str();
+			<< "Unexpected response code " << response.result_int() << " from URL '" << url->Format() << "'. Error: " << response.body();
+		BOOST_THROW_EXCEPTION(std::runtime_error("Unexpected response code " + std::to_string(response.result_int())));
+	}
+
+	auto& contentType (response[http::field::content_type]);
+	if (contentType != "application/json" && contentType != "application/json; charset=utf-8") {
+		Log(LogCritical, "ElasticsearchDatastreamWriter") << "Unexpected Content-Type: '" << contentType << "'";
+		BOOST_THROW_EXCEPTION(std::runtime_error(String("Unexpected Content-Type")));
+	}
+
+	auto& response_body (response.body());
+
+	Dictionary::Ptr jsonResponse;
+	try {
+		return JsonDecode(response_body);
+	} catch (...) {
+		Log(LogWarning, "ElasticsearchDatastreamWriter")
+			<< "Unable to parse JSON response:\n" << body;
+		throw;
 	}
 }
 
@@ -489,6 +486,7 @@ OptionalTlsStream ElasticsearchDatastreamWriter::Connect()
 
 	return stream;
 }
+
 
 void ElasticsearchDatastreamWriter::AssertOnWorkQueue()
 {
