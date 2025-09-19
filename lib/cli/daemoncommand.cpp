@@ -46,13 +46,18 @@ static po::variables_map g_AppParams;
 
 REGISTER_CLICOMMAND("daemon", DaemonCommand);
 
+#ifdef HAVE_SYSTEMD
 static inline
 void NotifyStatus(const char* status)
 {
-#ifdef HAVE_SYSTEMD
 	(void)sd_notifyf(0, "STATUS=%s", status);
-#endif /* HAVE_SYSTEMD */
 }
+#else /* HAVE_SYSTEMD */
+static inline
+void NotifyStatus(const char*)
+{
+}
+#endif /* HAVE_SYSTEMD */
 
 /*
  * Daemonize().  On error, this function logs by itself and exits (i.e. does not return).
@@ -171,7 +176,7 @@ String DaemonCommand::GetShortDescription() const
 }
 
 void DaemonCommand::InitParameters(boost::program_options::options_description& visibleDesc,
-	boost::program_options::options_description& hiddenDesc) const
+	[[maybe_unused]] boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
 		("config,c", po::value<std::vector<std::string> >(), "parse a configuration file")
@@ -614,7 +619,7 @@ public:
  *
  * @returns An exit status.
  */
-int DaemonCommand::Run(const po::variables_map& vm, const std::vector<std::string>& ap) const
+int DaemonCommand::Run(const po::variables_map& vm, [[maybe_unused]] const std::vector<std::string>& ap) const
 {
 #ifdef _WIN32
 	SetConsoleOutputCP(65001);
