@@ -22,7 +22,7 @@ struct ProcessResult;
 class PluginUtility
 {
 public:
-	static void ExecuteCommand(const Command::Ptr& commandObj, const Checkable::Ptr& checkable,
+	static void ExecuteCommand(const Command::Ptr& commandObj,
 		const CheckResult::Ptr& cr, const MacroProcessor::ResolverList& macroResolvers,
 		const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros, int timeout,
 		const std::function<void(const Value& commandLine, const ProcessResult&)>& callback = std::function<void(const Value& commandLine, const ProcessResult&)>());
