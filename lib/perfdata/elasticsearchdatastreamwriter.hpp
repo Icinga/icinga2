@@ -9,6 +9,7 @@
 #include "base/workqueue.hpp"
 #include "base/timer.hpp"
 #include "base/tlsstream.hpp"
+#include "config/expression.hpp"
 #include "icinga/checkable.hpp"
 #include "icinga/checkresult.hpp"
 #include "remote/url.hpp"
@@ -40,6 +41,11 @@ public:
 	static String FormatTimestamp(double ts);
 	static String FormatIcingaVersion(unsigned long version);
 
+	void ValidateHostTagsTemplate(const Lazy<Array::Ptr> &lvalue, const ValidationUtils &utils) override;
+	void ValidateServiceTagsTemplate(const Lazy<Array::Ptr> &lvalue, const ValidationUtils &utils) override;
+	void ValidateHostLabelsTemplate(const Lazy<Dictionary::Ptr> &lvalue, const ValidationUtils &utils) override;
+	void ValidateServiceLabelsTemplate(const Lazy<Dictionary::Ptr> &lvalue, const ValidationUtils &utils) override;
+
 protected:
 	void OnConfigLoaded() override;
 	void Resume() override;
@@ -58,12 +64,17 @@ private:
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 
 	Dictionary::Ptr ExtractPerfData(const Checkable::Ptr checkable, const Array::Ptr& perfdata);
+	Array::Ptr ExtractTemplateTags(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
+	Dictionary::Ptr ExtractTemplateLabels(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 
 	OptionalTlsStream Connect();
 	void AssertOnWorkQueue();
 	void ExceptionHandler(boost::exception_ptr exp);
 	void Flush();
 	void SendRequest(const String& body);
+
+	void ValidateTagsTemplate(Array::Ptr tags);
+	void ValidateLabelsTemplate(Dictionary::Ptr tags);
 };
 
 }

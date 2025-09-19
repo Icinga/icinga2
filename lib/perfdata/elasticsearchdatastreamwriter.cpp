@@ -30,6 +30,7 @@
 #include "base/tlsstream.hpp"
 #include "base/utility.hpp"
 #include "icinga/compatutility.hpp"
+#include "icinga/macroprocessor.hpp"
 #include "icinga/service.hpp"
 #include "remote/url.hpp"
 
@@ -98,7 +99,7 @@ void ElasticsearchDatastreamWriter::Resume()
 
 	/* Register for new metrics. */
 	m_HandleCheckResults = Checkable::OnNewCheckResult.connect(
-	    [this](const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const MessageOrigin::Ptr&) {
+		[this](const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const MessageOrigin::Ptr&) {
 			CheckResultHandler(checkable, cr);
 		}
 	);
@@ -117,7 +118,6 @@ void ElasticsearchDatastreamWriter::Pause()
 
 	ObjectImpl<ElasticsearchDatastreamWriter>::Pause();
 }
-
 
 Dictionary::Ptr ElasticsearchDatastreamWriter::ExtractPerfData(const Checkable::Ptr checkable, const Array::Ptr& perfdata) {
 	Dictionary::Ptr pd_fields = new Dictionary();
@@ -160,6 +160,77 @@ Dictionary::Ptr ElasticsearchDatastreamWriter::ExtractPerfData(const Checkable::
 	return pd_fields;
 }
 
+// user-defined tags, as specified in the ECS specification: https://www.elastic.co/docs/reference/ecs/ecs-base#field-tags
+Array::Ptr ElasticsearchDatastreamWriter::ExtractTemplateTags(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr) {
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
+
+	Array::Ptr tag_tmpl = service ? GetServiceTagsTemplate() : GetHostTagsTemplate();
+	if (tag_tmpl == nullptr) {
+		return nullptr;
+	}
+
+	MacroProcessor::ResolverList resolvers;
+	resolvers.emplace_back("host", host);
+	if (service) {
+		resolvers.emplace_back("service", service);
+	}
+
+	ObjectLock olock(tag_tmpl);
+	Array::Ptr tags = new Array();
+	for (const String tag : tag_tmpl) {
+		String missingMacro;
+		Value value = MacroProcessor::ResolveMacros(tag, resolvers, cr, &missingMacro);
+		if (!missingMacro.IsEmpty()) {
+			Log(LogDebug, "ElasticsearchDatastreamWriter")
+				<< "Missing macro for tag: " << tag
+				<< ". Missing: " << missingMacro
+				<< " for checkable '" << checkable->GetName() << "'. Skipping.";
+			continue;
+		}
+		tags->Add(value);
+	}
+
+	return tags;
+}
+
+// user-defined labels, as specified in the ECS specification: https://www.elastic.co/docs/reference/ecs/ecs-base#field-labels
+Dictionary::Ptr ElasticsearchDatastreamWriter::ExtractTemplateLabels(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr) {
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
+
+	Dictionary::Ptr labels_tmpl = service ? GetServiceLabelsTemplate() : GetHostLabelsTemplate();
+	if (labels_tmpl == nullptr) {
+		return nullptr;
+	}
+
+	MacroProcessor::ResolverList resolvers;
+	resolvers.emplace_back("host", host);
+	if (service) {
+		resolvers.emplace_back("service", service);
+	}
+
+	ObjectLock olock(labels_tmpl);
+	Dictionary::Ptr labels = new Dictionary();
+	for (const Dictionary::Pair& label_kv : labels_tmpl) {
+		String missingMacro;
+		Value value = MacroProcessor::ResolveMacros(label_kv.second, resolvers, cr, &missingMacro);
+		if (!missingMacro.IsEmpty()) {
+			Log(LogDebug, "ElasticsearchDatastreamWriter")
+				<< "Missing macro for label: " << label_kv.first
+				<< "Label: " << label_kv.second
+				<< ". Missing: " << missingMacro
+				<< " for checkable '" << checkable->GetName() << "'. Skipping.";
+			continue;
+		}
+		labels->Set(label_kv.first, value);
+	}
+
+	return labels;
+}
+
 void ElasticsearchDatastreamWriter::CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
 {
 	if (IsPaused())
@@ -173,47 +244,47 @@ void ElasticsearchDatastreamWriter::CheckResultHandler(const Checkable::Ptr& che
 	tie(host, service) = GetHostService(checkable);
 
 	Dictionary::Ptr ecs_metadata = new Dictionary({
-	    { "version", "8.0.0" }
+		{ "version", "8.0.0" }
 	});
 
 	String datastream_name = "metrics-icinga2." + checkable->GetCheckCommandRaw() + "-" + GetDatastreamNamespace();
 	Dictionary::Ptr data_stream = new Dictionary({
-	    {"type", "metrics"},
-        {"dataset", "icinga2." + checkable->GetCheckCommandRaw()},
-        {"namespace", GetDatastreamNamespace()}
+		{"type", "metrics"},
+		{"dataset", "icinga2." + checkable->GetCheckCommandRaw()},
+		{"namespace", GetDatastreamNamespace()}
 	});
 
 	Dictionary::Ptr ecs_host = new Dictionary({
-	    {"name", host->GetDisplayName()},
-        {"hostname", host->GetName()},
-        {"zone", host->GetZone()->GetZoneName()},
-        {"soft_state", host->GetState()},
-        {"hard_state", host->GetLastHardState()}
+		{"name", host->GetDisplayName()},
+		{"hostname", host->GetName()},
+		{"zone", host->GetZone()->GetZoneName()},
+		{"soft_state", host->GetState()},
+		{"hard_state", host->GetLastHardState()}
 	});
 
 	char _addr[16];
 	if (!host->GetAddress().IsEmpty() && inet_pton(AF_INET, host->GetAddress().CStr(), _addr) == 1) {
-	    ecs_host->Set("ip", host->GetAddress());
+		ecs_host->Set("ip", host->GetAddress());
 	} else if (!host->GetAddress6().IsEmpty() && inet_pton(AF_INET6, host->GetAddress6().CStr(), _addr) == 1) {
-	    ecs_host->Set("ip", host->GetAddress6());
+		ecs_host->Set("ip", host->GetAddress6());
 	} else if (!host->GetAddress().IsEmpty()) {
-	    ecs_host->Set("fqdn", host->GetAddress());
+		ecs_host->Set("fqdn", host->GetAddress());
 	}
 
 	Dictionary::Ptr ecs_service;
 	if (service) {
 	   	ecs_service = new Dictionary({
-       	    {"name", service->GetName()},
-            {"display_name", service->GetDisplayName()},
-            {"zone", host->GetZone()->GetZoneName()},
-            {"soft_state", service->GetState()},
-            {"hard_state", service->GetLastHardState()}
+	   		{"name", service->GetName()},
+			{"display_name", service->GetDisplayName()},
+			{"zone", host->GetZone()->GetZoneName()},
+			{"soft_state", service->GetState()},
+			{"hard_state", service->GetLastHardState()}
 		});
 	}
 
 	Dictionary::Ptr ecs_agent = new Dictionary({
-	    {"type", "icinga2"},
-        {"name", cr->GetCheckSource()}
+		{"type", "icinga2"},
+		{"name", cr->GetCheckSource()}
 	});
 	Endpoint::Ptr endpoint = checkable->GetCommandEndpoint();
 	if (endpoint) {
@@ -226,36 +297,38 @@ void ElasticsearchDatastreamWriter::CheckResultHandler(const Checkable::Ptr& che
 
 	Dictionary::Ptr ecs_event = new Dictionary({
 	   {"created", FormatTimestamp(cr->GetScheduleEnd())},
-       {"start", FormatTimestamp(cr->GetExecutionStart())},
-       {"end", FormatTimestamp(cr->GetExecutionEnd())},
-       {"kind", "metric"},
-       {"module", "icinga2"}
+	   {"start", FormatTimestamp(cr->GetExecutionStart())},
+	   {"end", FormatTimestamp(cr->GetExecutionEnd())},
+	   {"kind", "metric"},
+	   {"module", "icinga2"}
 	});
 
 	String checkable_name = service == nullptr ? host->GetName() : service->GetName();
 	Dictionary::Ptr check_result = new Dictionary({
-	    {"checkable", checkable_name},
-        {"exit_status", cr->GetExitStatus()},
-        {"execution_time", cr->CalculateExecutionTime()},
-        {"latency", cr->CalculateLatency()},
-        {"schedule_start", FormatTimestamp(cr->GetScheduleStart())},
-        {"schedule_end", FormatTimestamp(cr->GetScheduleEnd())},
-        {"active", cr->GetActive()}
+		{"checkable", checkable_name},
+		{"exit_status", cr->GetExitStatus()},
+		{"execution_time", cr->CalculateExecutionTime()},
+		{"latency", cr->CalculateLatency()},
+		{"schedule_start", FormatTimestamp(cr->GetScheduleStart())},
+		{"schedule_end", FormatTimestamp(cr->GetScheduleEnd())},
+		{"active", cr->GetActive()}
 	});
 
 	Dictionary::Ptr perf_data = ExtractPerfData(checkable, cr->GetPerformanceData());
 
 	Dictionary::Ptr document = new Dictionary({
-	    {"@timestamp", FormatTimestamp(cr->GetScheduleEnd())},
-        { "ecs", ecs_metadata },
-        { "data_stream", data_stream },
-        { "host", ecs_host },
-        { "service", ecs_service },
-        { "agent", ecs_agent },
-        { "event", ecs_event },
-        { "check", check_result },
-        { "message", cr->GetOutput() },
-        { "perf_data", perf_data }
+		{"@timestamp", FormatTimestamp(cr->GetScheduleEnd())},
+		{ "ecs", ecs_metadata },
+		{ "data_stream", data_stream },
+		{ "host", ecs_host },
+		{ "service", ecs_service },
+		{ "agent", ecs_agent },
+		{ "event", ecs_event },
+		{ "check", check_result },
+		{ "message", cr->GetOutput() },
+		{ "perf_data", perf_data },
+		{ "tags", ExtractTemplateTags(checkable, cr) },
+		{ "labels", ExtractTemplateLabels(checkable, cr) }
 	});
 
 	EcsDocument::Ptr workqueue_document = new EcsDocument(
@@ -289,7 +362,7 @@ void ElasticsearchDatastreamWriter::Flush()
 	String body = String();
 	for (const auto &document : m_DataBuffer) {
 		Dictionary::Ptr index = new Dictionary({
-		    { "create", new Dictionary({ { "_index", document->GetIndex() } }) }
+			{ "create", new Dictionary({ { "_index", document->GetIndex() } }) }
 		});
 
 		body += icinga::JsonEncode(index) + "\n";
@@ -525,6 +598,61 @@ String ElasticsearchDatastreamWriter::FormatIcingaVersion(unsigned long version)
 	auto minor = version % 100;
 	auto major = version / 100;
 	return String() + std::to_string(major) + "." + std::to_string(minor) + "." + std::to_string(bugfix);
+}
+
+
+void ElasticsearchDatastreamWriter::ValidateTagsTemplate(Array::Ptr tags) {
+	ObjectLock olock(tags);
+	for (const Value& tag : tags) {
+		if (!MacroProcessor::ValidateMacroString(tag)) {
+			BOOST_THROW_EXCEPTION(ValidationError(this, { "host_tags_template" }, "Closing $ not found in macro format string '" + tag + "'."));
+		}
+	}
+}
+
+void ElasticsearchDatastreamWriter::ValidateHostTagsTemplate(const Lazy<Array::Ptr>& lvalue, const ValidationUtils& utils)
+{
+	ObjectImpl<ElasticsearchDatastreamWriter>::ValidateHostTagsTemplate(lvalue, utils);
+	Array::Ptr tags = lvalue();
+	if (tags) {
+		ValidateTagsTemplate(tags);
+	}
+}
+
+void ElasticsearchDatastreamWriter::ValidateServiceTagsTemplate(const Lazy<Array::Ptr>& lvalue, const ValidationUtils& utils)
+{
+	ObjectImpl<ElasticsearchDatastreamWriter>::ValidateServiceTagsTemplate(lvalue, utils);
+	Array::Ptr tags = lvalue();
+	if (tags) {
+		ValidateTagsTemplate(tags);
+	}
+}
+
+void ElasticsearchDatastreamWriter::ValidateLabelsTemplate(Dictionary::Ptr labels) {
+	ObjectLock olock(labels);
+	for (const Dictionary::Pair& kv : labels) {
+		if (!MacroProcessor::ValidateMacroString(kv.second)) {
+			BOOST_THROW_EXCEPTION(ValidationError(this, { "host_tags_template", kv.first }, "Closing $ not found in macro format string '" + kv.second + "'."));
+		}
+	}
+}
+
+void ElasticsearchDatastreamWriter::ValidateHostLabelsTemplate(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)
+{
+	ObjectImpl<ElasticsearchDatastreamWriter>::ValidateHostLabelsTemplate(lvalue, utils);
+	Dictionary::Ptr labels = lvalue();
+	if (labels) {
+		ValidateLabelsTemplate(labels);
+	}
+}
+
+void ElasticsearchDatastreamWriter::ValidateServiceLabelsTemplate(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)
+{
+	ObjectImpl<ElasticsearchDatastreamWriter>::ValidateServiceLabelsTemplate(lvalue, utils);
+	Dictionary::Ptr labels = lvalue();
+	if (labels) {
+		ValidateLabelsTemplate(labels);
+	}
 }
 
 EcsDocument::EcsDocument(String index, Dictionary::Ptr document) {
