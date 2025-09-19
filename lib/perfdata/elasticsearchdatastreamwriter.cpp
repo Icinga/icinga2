@@ -61,22 +61,18 @@ void ElasticsearchDatastreamWriter::OnConfigLoaded()
 
 void ElasticsearchDatastreamWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
-	DictionaryData nodes;
-
-	for (const ElasticsearchDatastreamWriter::Ptr& elasticsearchdatastreamwriter : ConfigType::GetObjectsByType<ElasticsearchDatastreamWriter>()) {
-		size_t workQueueItems = elasticsearchdatastreamwriter->m_WorkQueue.GetLength();
-		double workQueueItemRate = elasticsearchdatastreamwriter->m_WorkQueue.GetTaskCount(60) / 60.0;
-
-		nodes.emplace_back(elasticsearchdatastreamwriter->GetName(), new Dictionary({
-			{ "work_queue_items", workQueueItems },
-			{ "work_queue_item_rate", workQueueItemRate }
-		}));
-
-		perfdata->Add(new PerfdataValue("elasticsearchdatastreamwriter_" + elasticsearchdatastreamwriter->GetName() + "_work_queue_items", workQueueItems));
-		perfdata->Add(new PerfdataValue("elasticsearchdatastreamwriter_" + elasticsearchdatastreamwriter->GetName() + "_work_queue_item_rate", workQueueItemRate));
+	for (const ElasticsearchDatastreamWriter::Ptr& writer : ConfigType::GetObjectsByType<ElasticsearchDatastreamWriter>()) {
+		status->Set(
+			writer->GetName(),
+			new Dictionary({
+				{ "work_queue_items", writer->m_WorkQueue.GetTaskCount(60) / 60.0 },
+				{ "work_queue_item_rate", writer->m_WorkQueue.GetLength() },
+				{ "documents_sent", writer->m_DocumentsSent },
+				{ "documents_sent_error", writer->m_DocumentsFailed },
+				{ "checkresults_filtered_out", writer->m_ItemsFilteredOut.load() }
+			})
+		);
 	}
-
-	status->Set("elasticsearchdatastreamwriter", new Dictionary(std::move(nodes)));
 }
 
 void ElasticsearchDatastreamWriter::Resume()
@@ -231,6 +227,24 @@ Dictionary::Ptr ElasticsearchDatastreamWriter::ExtractTemplateLabels(const Check
 	return labels;
 }
 
+bool ElasticsearchDatastreamWriter::Filter(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr) {
+	if (!m_CompiledFilter)
+		return true;
+
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
+
+	Namespace::Ptr frameNS = new Namespace();
+	frameNS->Set("checkable", checkable);
+	frameNS->Set("check_result", cr);
+	frameNS->Set("host", host);
+	frameNS->Set("service", service);
+
+	ScriptFrame frame(true, frameNS);
+	return Convert::ToBool(m_CompiledFilter->Evaluate(frame));
+}
+
 void ElasticsearchDatastreamWriter::CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
 {
 	if (IsPaused())
@@ -238,6 +252,13 @@ void ElasticsearchDatastreamWriter::CheckResultHandler(const Checkable::Ptr& che
 
 	if (!IcingaApplication::GetInstance()->GetEnablePerfdata() || !checkable->GetEnablePerfdata())
 		return;
+
+	if (!Filter(checkable, cr)) {
+		m_ItemsFilteredOut.fetch_add(1);
+		Log(LogDebug, "ElasticsearchDatastreamWriter")
+			<< "Check result for checkable '" << checkable->GetName() << "' filtered out.";
+		return;
+	}
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -374,6 +395,7 @@ void ElasticsearchDatastreamWriter::Flush()
 		// ToDo: does this need a timeout/retry limit when stopping icinga2?
 		try {
 			jsonResponse = TrySend(url, body);
+			m_DocumentsSent += m_DataBuffer.size();
 			m_DataBuffer.clear();
 			break;
 		} catch (const std::exception& ex) {
@@ -403,6 +425,7 @@ void ElasticsearchDatastreamWriter::Flush()
 		Dictionary::Ptr item_result = value->Get("create");
 		int item_result_status = item_result->Get("status");
 		if (item_result_status > 299) {
+			m_DocumentsFailed += 1;
 			Dictionary::Ptr item_error = item_result->Get("error");
 			String value = item_error->Get("type") + ": " + item_error->Get("reason");
 			Log(LogWarning, "ElasticsearchDatastreamWriter")
@@ -482,6 +505,7 @@ Value ElasticsearchDatastreamWriter::TrySend(Url::Ptr url, String body) {
 		BOOST_THROW_EXCEPTION(std::runtime_error("Unexpected response code " + std::to_string(response.result_int())));
 	}
 
+	m_DocumentsSent += m_DataBuffer.size();
 	auto& contentType (response[http::field::content_type]);
 	if (contentType != "application/json" && contentType != "application/json; charset=utf-8") {
 		Log(LogCritical, "ElasticsearchDatastreamWriter") << "Unexpected Content-Type: '" << contentType << "'";
@@ -653,6 +677,28 @@ void ElasticsearchDatastreamWriter::ValidateServiceLabelsTemplate(const Lazy<Dic
 	if (labels) {
 		ValidateLabelsTemplate(labels);
 	}
+}
+
+void ElasticsearchDatastreamWriter::ValidateFilter(const Lazy<Value> &lvalue, const ValidationUtils &utils) {
+	Value filter = lvalue();
+	if (filter.IsEmpty()) {
+		return;
+	}
+
+	if (!filter.IsObjectType<Function>()) {
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "filter" }, "Filter must be an expression."));
+	}
+
+
+	std::vector<std::unique_ptr<Expression> > args;
+	args.emplace_back(new GetScopeExpression(ScopeThis));
+	std::unique_ptr<Expression> indexer{new IndexerExpression(
+	std::unique_ptr<Expression>(MakeLiteral(filter)),
+	std::unique_ptr<Expression>(MakeLiteral("call"))
+	)};
+	FunctionCallExpression *fexpr = new FunctionCallExpression(std::move(indexer), std::move(args));
+
+	m_CompiledFilter = std::move(fexpr);
 }
 
 EcsDocument::EcsDocument(String index, Dictionary::Ptr document) {

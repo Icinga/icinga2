@@ -56,6 +56,7 @@ class ElasticsearchDatastreamWriter : ConfigObject
 	[config] Array::Ptr service_tags_template;
 	[config] Dictionary::Ptr host_labels_template;
 	[config] Dictionary::Ptr service_labels_template;
+	[config] Value filter;
 };
 
 validator ElasticsearchDatastreamWriter {
@@ -72,6 +73,8 @@ validator ElasticsearchDatastreamWriter {
 	Dictionary service_labels_template {
 		String "*";
 	};
+
+	Value filter;
 };
 
 class EcsDocument {
