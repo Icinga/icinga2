@@ -1,0 +1,65 @@
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+
+#ifndef ELASTICSEARCHDATASTREAMWRITER_H
+#define ELASTICSEARCHDATASTREAMWRITER_H
+
+#include "perfdata/elasticsearchdatastreamwriter-ti.hpp"
+#include "icinga/service.hpp"
+#include "base/configobject.hpp"
+#include "base/workqueue.hpp"
+#include "base/timer.hpp"
+#include "base/tlsstream.hpp"
+
+namespace icinga
+{
+
+class ElasticsearchDatastreamWriter final : public ObjectImpl<ElasticsearchDatastreamWriter>
+{
+public:
+	DECLARE_OBJECT(ElasticsearchDatastreamWriter);
+	DECLARE_OBJECTNAME(ElasticsearchDatastreamWriter);
+
+	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
+
+	static String FormatTimestamp(double ts);
+
+protected:
+	void OnConfigLoaded() override;
+	void Resume() override;
+	void Pause() override;
+
+private:
+	String m_EventPrefix;
+	WorkQueue m_WorkQueue{10000000, 1};
+	boost::signals2::connection m_HandleCheckResults, m_HandleStateChanges, m_HandleNotifications;
+	Timer::Ptr m_FlushTimer;
+	std::vector<String> m_DataBuffer;
+	std::mutex m_DataBufferMutex;
+
+	void AddCheckResult(const Dictionary::Ptr& fields, const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
+
+	void StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type);
+	void StateChangeHandlerInternal(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type);
+	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
+	void InternalCheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
+	void NotificationSentToAllUsersHandler(const Notification::Ptr& notification,
+		const Checkable::Ptr& checkable, const std::set<User::Ptr>& users, NotificationType type,
+		const CheckResult::Ptr& cr, const String& author, const String& text);
+	void NotificationSentToAllUsersHandlerInternal(const Notification::Ptr& notification,
+		const Checkable::Ptr& checkable, const std::set<User::Ptr>& users, NotificationType type,
+		const CheckResult::Ptr& cr, const String& author, const String& text);
+
+	void Enqueue(const Checkable::Ptr& checkable, const String& type,
+		const Dictionary::Ptr& fields, double ts);
+
+	OptionalTlsStream Connect();
+	void AssertOnWorkQueue();
+	void ExceptionHandler(boost::exception_ptr exp);
+	void FlushTimeout();
+	void Flush();
+	void SendRequest(const String& body);
+};
+
+}
+
+#endif /* ELASTICSEARCHWRITER_H */

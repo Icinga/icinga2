@@ -20,8 +20,13 @@ set(perfdata_SOURCES
   perfdatawriter.cpp perfdatawriter.hpp perfdatawriter-ti.hpp
 )
 
+if (ICINGA2_WITH_ELASTICSEARCHDATASTREAM)
+    mkclass_target(elasticsearchdatastreamwriter.ti elasticsearchdatastreamwriter-ti.cpp elasticsearchdatastreamwriter-ti.hpp)
+    list(APPEND perfdata_SOURCES elasticsearchdatastreamwriter.cpp elasticsearchdatastreamwriter.hpp elasticsearchdatastreamwriter-ti.hpp)
+endif()
+
 if(ICINGA2_UNITY_BUILD)
-  mkunity_target(perfdata perfdata perfdata_SOURCES)
+    mkunity_target(perfdata perfdata perfdata_SOURCES)
 endif()
 
 add_library(perfdata OBJECT ${perfdata_SOURCES})
