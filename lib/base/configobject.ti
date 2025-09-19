@@ -59,7 +59,7 @@ abstract class ConfigObject : ConfigObjectBase < ConfigType
 	[config, no_user_modify] String __name (Name);
 	[config, no_user_modify, required] String "name" (ShortName) {
 		get {{{
-			String shortName = m_ShortName.load();
+			String shortName = m_ShortName.load(m_FieldsMutex);
 			if (shortName.IsEmpty())
 				return GetName();
 			else

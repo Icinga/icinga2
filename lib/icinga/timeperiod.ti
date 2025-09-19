@@ -12,7 +12,7 @@ class TimePeriod : CustomVarObject
 {
 	[config] String display_name {
 		get {{{
-			String displayName = m_DisplayName.load();
+			String displayName = m_DisplayName.load(m_FieldsMutex);
 			if (displayName.IsEmpty())
 				return GetName();
 			else

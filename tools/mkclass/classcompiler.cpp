@@ -454,8 +454,14 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 	m_Header << "template<>" << std::endl
 		<< "class ObjectImpl<" << klass.Name << ">"
 		<< " : public " << (klass.Parent.empty() ? "Object" : klass.Parent) << std::endl
-		<< "{" << std::endl
-		<< "public:" << std::endl
+		<< "{" << std::endl;
+
+	if (klass.Parent.empty()) {
+		m_Header << "protected:" << std::endl
+			<< "\tmutable LockedMutex m_FieldsMutex;" << std::endl << std::endl;
+	}
+
+	m_Header << "public:" << std::endl
 		<< "\t" << "DECLARE_PTR_TYPEDEFS(ObjectImpl<" << klass.Name << ">);" << std::endl << std::endl;
 
 	/* Validate */
@@ -815,7 +821,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 					<< "{" << std::endl;
 
 				if (field.GetAccessor.empty() && !(field.Attributes & FANoStorage))
-					m_Impl << "\t" << "return m_" << field.GetFriendlyName() << ".load();" << std::endl;
+					m_Impl << "\treturn m_" << field.GetFriendlyName() << ".load(m_FieldsMutex);" << std::endl;
 				else
 					m_Impl << field.GetAccessor << std::endl;
 
@@ -853,7 +859,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 						<< "\t" << "auto *dobj = dynamic_cast<ConfigObject *>(this);" << std::endl;
 
 				if (field.SetAccessor.empty() && !(field.Attributes & FANoStorage))
-					m_Impl << "\t" << "m_" << field.GetFriendlyName() << ".store(value);" << std::endl;
+					m_Impl << "\tm_" << field.GetFriendlyName() << ".store(value, m_FieldsMutex);" << std::endl;
 				else
 					m_Impl << field.SetAccessor << std::endl << std::endl;
 
@@ -1068,7 +1074,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			if (field.Attributes & FANoStorage)
 				continue;
 
-			m_Header << "\tAtomicOrLocked<" << field.Type.GetRealType() << "> m_" << field.GetFriendlyName() << ";" << std::endl;
+			m_Header << "\tLocked<" << field.Type.GetRealType() << "> m_" << field.GetFriendlyName() << ";" << std::endl;
 		}
 		
 		/* signal */

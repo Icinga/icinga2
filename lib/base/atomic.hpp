@@ -5,8 +5,6 @@
 
 #include <atomic>
 #include <mutex>
-#include <type_traits>
-#include <utility>
 
 namespace icinga
 {
@@ -34,8 +32,10 @@ public:
 	}
 };
 
+class LockedMutex;
+
 /**
- * Wraps any T into a std::atomic<T>-like interface that locks using a mutex.
+ * Wraps any T into an interface similar to std::atomic<T>, that locks using a mutex.
  *
  * In contrast to std::atomic<T>, Locked<T> is also valid for types that are not trivially copyable.
  * In case T is trivially copyable, std::atomic<T> is almost certainly the better choice.
@@ -46,38 +46,44 @@ template<typename T>
 class Locked
 {
 public:
-	inline T load() const
-	{
-		std::unique_lock<std::mutex> lock(m_Mutex);
-
-		return m_Value;
-	}
-
-	inline void store(T desired)
-	{
-		std::unique_lock<std::mutex> lock(m_Mutex);
-
-		m_Value = std::move(desired);
-	}
+	T load(LockedMutex& mtx) const;
+	void store(T desired, LockedMutex& mtx);
 
 private:
-	mutable std::mutex m_Mutex;
 	T m_Value;
 };
 
 /**
- * Type alias for std::atomic<T> if possible, otherwise Locked<T> is used as a fallback.
+ * Wraps std::mutex, so that only Locked<T> can (un)lock it.
+ *
+ * The latter tiny lock scope is enforced this way to prevent deadlocks while passing around mutexes.
  *
  * @ingroup base
  */
-template <typename T>
-using AtomicOrLocked =
-#if defined(__GNUC__) && __GNUC__ < 5
-	// GCC does not implement std::is_trivially_copyable until version 5.
-	typename std::conditional<std::is_fundamental<T>::value || std::is_pointer<T>::value, std::atomic<T>, Locked<T>>::type;
-#else /* defined(__GNUC__) && __GNUC__ < 5 */
-	typename std::conditional<std::is_trivially_copyable<T>::value, std::atomic<T>, Locked<T>>::type;
-#endif /* defined(__GNUC__) && __GNUC__ < 5 */
+class LockedMutex
+{
+	template<class T>
+	friend class Locked;
+
+private:
+	std::mutex m_Mutex;
+};
+
+template<class T>
+T Locked<T>::load(LockedMutex& mtx) const
+{
+	std::unique_lock lock (mtx.m_Mutex);
+
+	return m_Value;
+}
+
+template<class T>
+void Locked<T>::store(T desired, LockedMutex& mtx)
+{
+	std::unique_lock lock (mtx.m_Mutex);
+
+	m_Value = std::move(desired);
+}
 
 }
 
