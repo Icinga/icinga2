@@ -7,7 +7,6 @@
 #include "base/logger.hpp"
 #include "base/application.hpp"
 #include "base/tcpsocket.hpp"
-#include "base/tlsutility.hpp"
 #include "base/console.hpp"
 #include "base/tlsstream.hpp"
 #include "base/tcpsocket.hpp"
@@ -37,7 +36,7 @@ int PkiUtility::NewCa()
 
 	Utility::MkDirP(caDir, 0700);
 
-	MakeX509CSR("Icinga CA", caKeyFile, String(), caCertFile, true);
+	MakeX509CSR("Icinga CA", caKeyFile, String(), caCertFile, ROOT_VALID_FOR, true);
 
 	return 0;
 }
@@ -53,7 +52,7 @@ int PkiUtility::NewCert(const String& cn, const String& keyfile, const String& c
 	return 0;
 }
 
-int PkiUtility::SignCsr(const String& csrfile, const String& certfile)
+int PkiUtility::SignCsr(const String& csrfile, const String& certfile, long validFor)
 {
 	char errbuf[256];
 
@@ -72,7 +71,7 @@ int PkiUtility::SignCsr(const String& csrfile, const String& certfile)
 	BIO_free(csrbio);
 
 	std::shared_ptr<EVP_PKEY> pubkey = std::shared_ptr<EVP_PKEY>(X509_REQ_get_pubkey(req), EVP_PKEY_free);
-	std::shared_ptr<X509> cert = CreateCertIcingaCA(pubkey.get(), X509_REQ_get_subject_name(req));
+	std::shared_ptr<X509> cert = CreateCertIcingaCA(pubkey.get(), X509_REQ_get_subject_name(req), validFor);
 
 	X509_REQ_free(req);
 
