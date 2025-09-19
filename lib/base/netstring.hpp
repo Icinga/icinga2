@@ -26,9 +26,9 @@ class NetString
 public:
 	static StreamReadStatus ReadStringFromStream(const Stream::Ptr& stream, String *message, StreamReadContext& context,
 		bool may_wait = false, ssize_t maxMessageLength = -1);
-	static String ReadStringFromStream(const Shared<AsioTlsStream>::Ptr& stream, ssize_t maxMessageLength = -1);
+	static String ReadStringFromStream(const Shared<AsioTlsStream>::Ptr& stream, size_t maxMessageLength = -1);
 	static String ReadStringFromStream(const Shared<AsioTlsStream>::Ptr& stream,
-		boost::asio::yield_context yc, ssize_t maxMessageLength = -1);
+		boost::asio::yield_context yc, size_t maxMessageLength = -1);
 	static size_t WriteStringToStream(const Stream::Ptr& stream, const String& message);
 	static size_t WriteStringToStream(const Shared<AsioTlsStream>::Ptr& stream, const String& message);
 	static size_t WriteStringToStream(const Shared<AsioTlsStream>::Ptr& stream, const String& message, boost::asio::yield_context yc);
