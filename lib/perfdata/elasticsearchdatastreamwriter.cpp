@@ -458,9 +458,13 @@ Value ElasticsearchDatastreamWriter::TrySend(Url::Ptr url, String body) {
 	/* Send authentication if configured. */
 	String username = GetUsername();
 	String password = GetPassword();
+	String api_token = GetPassword();
 
-	if (!username.IsEmpty() && !password.IsEmpty())
-		request.set(http::field::authorization, "Basic " + Base64::Encode(username + ":" + password));
+	if (!username.IsEmpty() && !password.IsEmpty()) {
+	    request.set(http::field::authorization, "Basic " + Base64::Encode(username + ":" + password));
+	} else if (!api_token.IsEmpty()) {
+        request.set(http::field::authorization, "ApiKey " + api_token);
+	}
 
 	request.body() = body;
 	request.content_length(request.body().size());
