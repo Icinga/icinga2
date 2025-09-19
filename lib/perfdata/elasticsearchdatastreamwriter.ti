@@ -51,11 +51,32 @@ class ElasticsearchDatastreamWriter : ConfigObject
 	[config] bool enable_ha {
 		default {{{ return false; }}}
 	};
+
+	[config] Array::Ptr host_tags_template;
+	[config] Array::Ptr service_tags_template;
+	[config] Dictionary::Ptr host_labels_template;
+	[config] Dictionary::Ptr service_labels_template;
+};
+
+validator ElasticsearchDatastreamWriter {
+	Array host_tags_template {
+		String "*";
+	};
+	Array service_tags_template {
+		String "*";
+	};
+
+	Dictionary host_labels_template {
+		String "*";
+	};
+	Dictionary service_labels_template {
+		String "*";
+	};
 };
 
 class EcsDocument {
-    String index;
-    Dictionary::Ptr document;
+	String index;
+	Dictionary::Ptr document;
 };
 
 }
