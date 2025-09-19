@@ -3,6 +3,7 @@
 #pragma once
 
 #include "base/dictionary.hpp"
+#include "base/io-engine.hpp"
 #include "base/json.hpp"
 #include "base/tlsstream.hpp"
 #include "remote/apiuser.hpp"
@@ -10,6 +11,8 @@
 #include "remote/url.hpp"
 #include <boost/beast/http.hpp>
 #include <boost/version.hpp>
+#include <memory>
+#include <utility>
 
 namespace icinga {
 
@@ -217,6 +220,11 @@ public:
 	 */
 	void Clear();
 
+	void SetCpuBoundWork(std::weak_ptr<CpuBoundWork> cbw)
+	{
+		m_CpuBoundWork = std::move(cbw);
+	}
+
 	/**
 	 * Writes as much of the response as is currently available.
 	 *
@@ -273,6 +281,7 @@ private:
 	using Serializer = boost::beast::http::response_serializer<HttpResponse::body_type>;
 	Serializer m_Serializer{*this};
 	bool m_SerializationStarted = false;
+	std::weak_ptr<CpuBoundWork> m_CpuBoundWork;
 
 	HttpServerConnection::Ptr m_Server;
 	Shared<AsioTlsStream>::Ptr m_Stream;
