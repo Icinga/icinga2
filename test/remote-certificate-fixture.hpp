@@ -29,8 +29,8 @@ struct CertificateFixture : ConfigurationDataDirFixture
 			fs::remove(m_DataDir / "certs");
 		}
 
-		fs::create_directory_symlink(m_PersistentCertsDir / "certs", m_DataDir / "certs");
-		fs::create_directory_symlink(m_PersistentCertsDir / "ca", m_DataDir / "ca");
+		fs::rename(m_PersistentCertsDir / "ca", m_DataDir / "ca");
+		fs::rename(m_PersistentCertsDir / "certs", m_DataDir / "certs");
 
 		if (!fs::exists(m_CaCrtFile)) {
 			PkiUtility::NewCa();
@@ -38,7 +38,14 @@ struct CertificateFixture : ConfigurationDataDirFixture
 		}
 	}
 
-	auto EnsureCertFor(const std::string& name)
+	~CertificateFixture()
+	{
+		namespace fs = boost::filesystem;
+		fs::rename(m_DataDir / "ca", m_PersistentCertsDir / "ca");
+		fs::rename(m_DataDir / "certs", m_PersistentCertsDir / "certs");
+	}
+
+	[[nodiscard]] auto EnsureCertFor(const std::string& name) const
 	{
 		struct Cert
 		{
