@@ -45,6 +45,7 @@ public:
 	void ValidateServiceTagsTemplate(const Lazy<Array::Ptr> &lvalue, const ValidationUtils &utils) override;
 	void ValidateHostLabelsTemplate(const Lazy<Dictionary::Ptr> &lvalue, const ValidationUtils &utils) override;
 	void ValidateServiceLabelsTemplate(const Lazy<Dictionary::Ptr> &lvalue, const ValidationUtils &utils) override;
+	void ValidateFilter(const Lazy<Value> &lvalue, const ValidationUtils &utils) override;
 
 protected:
 	void OnConfigLoaded() override;
@@ -61,11 +62,18 @@ private:
 	// Every other access will lead to a race-condition.
 	std::vector<EcsDocument::Ptr> m_DataBuffer;
 
+	std::uint64_t m_DocumentsSent = 0;
+	std::uint64_t m_DocumentsFailed = 0;
+	std::atomic_uint64_t m_ItemsFilteredOut = 0;
+
+	Expression::Ptr m_CompiledFilter;
+
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 
 	Dictionary::Ptr ExtractPerfData(const Checkable::Ptr checkable, const Array::Ptr& perfdata);
 	Array::Ptr ExtractTemplateTags(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 	Dictionary::Ptr ExtractTemplateLabels(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
+	bool Filter(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 
 	OptionalTlsStream Connect();
 	void AssertOnWorkQueue();
