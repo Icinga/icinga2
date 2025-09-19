@@ -4,7 +4,8 @@
 #define ELASTICSEARCHDATASTREAMWRITER_H
 
 #include "perfdata/elasticsearchdatastreamwriter-ti.hpp"
-#include "icinga/service.hpp"
+#include "icinga/checkable.hpp"
+#include "icinga/checkresult.hpp"
 #include "base/configobject.hpp"
 #include "base/workqueue.hpp"
 #include "base/timer.hpp"
@@ -12,6 +13,14 @@
 
 namespace icinga
 {
+
+class EcsDocument final : public ObjectImpl<EcsDocument> {
+	public:
+		DECLARE_PTR_TYPEDEFS(EcsDocument);
+
+		EcsDocument() = default;
+		EcsDocument(String index, Dictionary::Ptr document);
+};
 
 class ElasticsearchDatastreamWriter final : public ObjectImpl<ElasticsearchDatastreamWriter>
 {
@@ -22,6 +31,7 @@ public:
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 	static String FormatTimestamp(double ts);
+	static String FormatIcingaVersion(unsigned long version);
 
 protected:
 	void OnConfigLoaded() override;
@@ -31,31 +41,17 @@ protected:
 private:
 	String m_EventPrefix;
 	WorkQueue m_WorkQueue{10000000, 1};
-	boost::signals2::connection m_HandleCheckResults, m_HandleStateChanges, m_HandleNotifications;
+	boost::signals2::connection m_HandleCheckResults;
 	Timer::Ptr m_FlushTimer;
-	std::vector<String> m_DataBuffer;
-	std::mutex m_DataBufferMutex;
+	std::vector<EcsDocument::Ptr> m_DataBuffer;
 
-	void AddCheckResult(const Dictionary::Ptr& fields, const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
-
-	void StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type);
-	void StateChangeHandlerInternal(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type);
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
-	void InternalCheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
-	void NotificationSentToAllUsersHandler(const Notification::Ptr& notification,
-		const Checkable::Ptr& checkable, const std::set<User::Ptr>& users, NotificationType type,
-		const CheckResult::Ptr& cr, const String& author, const String& text);
-	void NotificationSentToAllUsersHandlerInternal(const Notification::Ptr& notification,
-		const Checkable::Ptr& checkable, const std::set<User::Ptr>& users, NotificationType type,
-		const CheckResult::Ptr& cr, const String& author, const String& text);
 
-	void Enqueue(const Checkable::Ptr& checkable, const String& type,
-		const Dictionary::Ptr& fields, double ts);
+	Dictionary::Ptr ExtractPerfData(const Checkable::Ptr checkable, const Array::Ptr& perfdata);
 
 	OptionalTlsStream Connect();
 	void AssertOnWorkQueue();
 	void ExceptionHandler(boost::exception_ptr exp);
-	void FlushTimeout();
 	void Flush();
 	void SendRequest(const String& body);
 };

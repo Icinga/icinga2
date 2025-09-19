@@ -1,6 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "perfdata/elasticsearchdatastreamwriter.hpp"
+#include "base/dictionary.hpp"
 #include "perfdata/elasticsearchdatastreamwriter-ti.cpp"
 #include "remote/url.hpp"
 #include "icinga/compatutility.hpp"
@@ -14,7 +15,6 @@
 #include "base/base64.hpp"
 #include "base/json.hpp"
 #include "base/utility.hpp"
-#include "base/networkstream.hpp"
 #include "base/perfdatavalue.hpp"
 #include "base/exception.hpp"
 #include "base/statsfunction.hpp"
@@ -30,7 +30,6 @@
 #include <boost/beast/http/verb.hpp>
 #include <boost/beast/http/write.hpp>
 #include <boost/scoped_array.hpp>
-#include <memory>
 #include <string>
 #include <utility>
 
@@ -90,132 +89,78 @@ void ElasticsearchDatastreamWriter::Resume()
 	/* Setup timer for periodically flushing m_DataBuffer */
 	m_FlushTimer = Timer::Create();
 	m_FlushTimer->SetInterval(GetFlushInterval());
-	m_FlushTimer->OnTimerExpired.connect([this](const Timer * const&) { FlushTimeout(); });
+	m_FlushTimer->OnTimerExpired.connect([this](const Timer * const&) {
+	    m_WorkQueue.Enqueue([this]() { Flush(); });
+	});
 	m_FlushTimer->Start();
 	m_FlushTimer->Reschedule(0);
 
 	/* Register for new metrics. */
-	m_HandleCheckResults = Checkable::OnNewCheckResult.connect([this](const Checkable::Ptr& checkable,
-		const CheckResult::Ptr& cr, const MessageOrigin::Ptr&) {
-		CheckResultHandler(checkable, cr);
-	});
-	m_HandleStateChanges = Checkable::OnStateChange.connect([this](const Checkable::Ptr& checkable,
-		const CheckResult::Ptr& cr, StateType type, const MessageOrigin::Ptr&) {
-		StateChangeHandler(checkable, cr, type);
-	});
-	m_HandleNotifications = Checkable::OnNotificationSentToAllUsers.connect([this](const Notification::Ptr& notification,
-		const Checkable::Ptr& checkable, const std::set<User::Ptr>& users, const NotificationType& type,
-		const CheckResult::Ptr& cr, const String& author, const String& text, const MessageOrigin::Ptr&) {
-		NotificationSentToAllUsersHandler(notification, checkable, users, type, cr, author, text);
-	});
+	m_HandleCheckResults = Checkable::OnNewCheckResult.connect(
+	    [this](const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const MessageOrigin::Ptr&) {
+			CheckResultHandler(checkable, cr);
+		}
+	);
 }
 
 /* Pause is equivalent to Stop, but with HA capabilities to resume at runtime. */
 void ElasticsearchDatastreamWriter::Pause()
 {
 	m_HandleCheckResults.disconnect();
-	m_HandleStateChanges.disconnect();
-	m_HandleNotifications.disconnect();
-
 	m_FlushTimer->Stop(true);
+	m_WorkQueue.Enqueue([this](){ Flush(); });
 	m_WorkQueue.Join();
-
-	{
-		std::unique_lock<std::mutex> lock (m_DataBufferMutex);
-		Flush();
-	}
-
 	Log(LogInformation, "ElasticsearchDatastreamWriter")
 		<< "'" << GetName() << "' paused.";
 
 	ObjectImpl<ElasticsearchDatastreamWriter>::Pause();
 }
 
-void ElasticsearchDatastreamWriter::AddCheckResult(const Dictionary::Ptr& fields, const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
-{
-	String prefix = "check_result.";
+Dictionary::Ptr ElasticsearchDatastreamWriter::ExtractPerfData(const Checkable::Ptr checkable, const Array::Ptr& perfdata) {
+	Dictionary::Ptr pd_fields = new Dictionary();
+	if (!perfdata)
+		return pd_fields;
 
-	fields->Set(prefix + "output", cr->GetOutput());
-	fields->Set(prefix + "check_source", cr->GetCheckSource());
-	fields->Set(prefix + "exit_status", cr->GetExitStatus());
-	fields->Set(prefix + "command", cr->GetCommand());
-	fields->Set(prefix + "state", cr->GetState());
-	fields->Set(prefix + "vars_before", cr->GetVarsBefore());
-	fields->Set(prefix + "vars_after", cr->GetVarsAfter());
+	ObjectLock olock(perfdata);
+	for (const Value& val : perfdata) {
+		PerfdataValue::Ptr pdv;
 
-	fields->Set(prefix + "execution_start", FormatTimestamp(cr->GetExecutionStart()));
-	fields->Set(prefix + "execution_end", FormatTimestamp(cr->GetExecutionEnd()));
-	fields->Set(prefix + "schedule_start", FormatTimestamp(cr->GetScheduleStart()));
-	fields->Set(prefix + "schedule_end", FormatTimestamp(cr->GetScheduleEnd()));
-
-	/* Add extra calculated field. */
-	fields->Set(prefix + "latency", cr->CalculateLatency());
-	fields->Set(prefix + "execution_time", cr->CalculateExecutionTime());
-
-	if (!GetEnableSendPerfdata())
-		return;
-
-	Array::Ptr perfdata = cr->GetPerformanceData();
-
-	CheckCommand::Ptr checkCommand = checkable->GetCheckCommand();
-
-	if (perfdata) {
-		ObjectLock olock(perfdata);
-		for (const Value& val : perfdata) {
-			PerfdataValue::Ptr pdv;
-
-			if (val.IsObjectType<PerfdataValue>())
-				pdv = val;
-			else {
-				try {
-					pdv = PerfdataValue::Parse(val);
-				} catch (const std::exception&) {
-					Log(LogWarning, "ElasticsearchDatastreamWriter")
-						<< "Ignoring invalid perfdata for checkable '"
-						<< checkable->GetName() << "' and command '"
-						<< checkCommand->GetName() << "' with value: " << val;
-					continue;
-				}
+		if (val.IsObjectType<PerfdataValue>())
+			pdv = val;
+		else {
+			try {
+				pdv = PerfdataValue::Parse(val);
+			} catch (const std::exception&) {
+				Log(LogWarning, "ElasticsearchDatastreamWriter")
+					<< "Ignoring invalid perfdata for checkable '"
+					<< checkable->GetName() << "' with value: " << val;
+				continue;
 			}
-
-			String escapedKey = pdv->GetLabel();
-			boost::replace_all(escapedKey, " ", "_");
-			boost::replace_all(escapedKey, ".", "_");
-			boost::replace_all(escapedKey, "\\", "_");
-			boost::algorithm::replace_all(escapedKey, "::", ".");
-
-			String perfdataPrefix = prefix + "perfdata." + escapedKey;
-
-			fields->Set(perfdataPrefix + ".value", pdv->GetValue());
-
-			if (!pdv->GetMin().IsEmpty())
-				fields->Set(perfdataPrefix + ".min", pdv->GetMin());
-			if (!pdv->GetMax().IsEmpty())
-				fields->Set(perfdataPrefix + ".max", pdv->GetMax());
-			if (!pdv->GetWarn().IsEmpty())
-				fields->Set(perfdataPrefix + ".warn", pdv->GetWarn());
-			if (!pdv->GetCrit().IsEmpty())
-				fields->Set(perfdataPrefix + ".crit", pdv->GetCrit());
-
-			if (!pdv->GetUnit().IsEmpty())
-				fields->Set(perfdataPrefix + ".unit", pdv->GetUnit());
 		}
+
+		Dictionary::Ptr metric = new Dictionary();
+		metric->Set("value", pdv->GetValue());
+		metric->Set("counter", pdv->GetCounter());
+
+		if (!pdv->GetMin().IsEmpty()) metric->Set("min", pdv->GetMin());
+		if (!pdv->GetMax().IsEmpty()) metric->Set("max", pdv->GetMax());
+		if (!pdv->GetUnit().IsEmpty()) metric->Set("unit", pdv->GetUnit());
+
+		if (!pdv->GetWarn().IsEmpty() && GetEnableSendThresholds())
+			metric->Set("warn", pdv->GetWarn());
+		if (!pdv->GetCrit().IsEmpty() && GetEnableSendThresholds())
+			metric->Set("crit", pdv->GetCrit());
+
+		pd_fields->Set(pdv->GetLabel(), metric);
 	}
+
+	return pd_fields;
 }
 
 void ElasticsearchDatastreamWriter::CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
 {
 	if (IsPaused())
 		return;
-
-	m_WorkQueue.Enqueue([this, checkable, cr]() { InternalCheckResultHandler(checkable, cr); });
-}
-
-void ElasticsearchDatastreamWriter::InternalCheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
-{
-	AssertOnWorkQueue();
-
-	CONTEXT("Elasticwriter processing check result for '" << checkable->GetName() << "'");
 
 	if (!IcingaApplication::GetInstance()->GetEnablePerfdata() || !checkable->GetEnablePerfdata())
 		return;
@@ -224,207 +169,104 @@ void ElasticsearchDatastreamWriter::InternalCheckResultHandler(const Checkable::
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
-	Dictionary::Ptr fields = new Dictionary();
-
-	if (service) {
-		fields->Set("service", service->GetShortName());
-		fields->Set("state", service->GetState());
-		fields->Set("last_state", service->GetLastState());
-		fields->Set("last_hard_state", service->GetLastHardState());
-	} else {
-		fields->Set("state", host->GetState());
-		fields->Set("last_state", host->GetLastState());
-		fields->Set("last_hard_state", host->GetLastHardState());
-	}
-
-	fields->Set("host", host->GetName());
-	fields->Set("state_type", checkable->GetStateType());
-
-	fields->Set("current_check_attempt", checkable->GetCheckAttempt());
-	fields->Set("max_check_attempts", checkable->GetMaxCheckAttempts());
-
-	fields->Set("reachable", checkable->IsReachable());
-
-	CheckCommand::Ptr commandObj = checkable->GetCheckCommand();
-
-	if (commandObj)
-		fields->Set("check_command", commandObj->GetName());
-
-	double ts = Utility::GetTime();
-
-	if (cr) {
-		AddCheckResult(fields, checkable, cr);
-		ts = cr->GetExecutionEnd();
-	}
-
-	Enqueue(checkable, "checkresult", fields, ts);
-}
-
-void ElasticsearchDatastreamWriter::StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type)
-{
-	if (IsPaused())
-		return;
-
-	m_WorkQueue.Enqueue([this, checkable, cr, type]() { StateChangeHandlerInternal(checkable, cr, type); });
-}
-
-void ElasticsearchDatastreamWriter::StateChangeHandlerInternal(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type)
-{
-	AssertOnWorkQueue();
-
-	CONTEXT("Elasticwriter processing state change '" << checkable->GetName() << "'");
-
-	Host::Ptr host;
-	Service::Ptr service;
-	tie(host, service) = GetHostService(checkable);
-
-	Dictionary::Ptr fields = new Dictionary();
-
-	fields->Set("current_check_attempt", checkable->GetCheckAttempt());
-	fields->Set("max_check_attempts", checkable->GetMaxCheckAttempts());
-	fields->Set("host", host->GetName());
-
-	if (service) {
-		fields->Set("service", service->GetShortName());
-		fields->Set("state", service->GetState());
-		fields->Set("last_state", service->GetLastState());
-		fields->Set("last_hard_state", service->GetLastHardState());
-	} else {
-		fields->Set("state", host->GetState());
-		fields->Set("last_state", host->GetLastState());
-		fields->Set("last_hard_state", host->GetLastHardState());
-	}
-
-	CheckCommand::Ptr commandObj = checkable->GetCheckCommand();
-
-	if (commandObj)
-		fields->Set("check_command", commandObj->GetName());
-
-	double ts = Utility::GetTime();
-
-	if (cr) {
-		AddCheckResult(fields, checkable, cr);
-		ts = cr->GetExecutionEnd();
-	}
-
-	Enqueue(checkable, "statechange", fields, ts);
-}
-
-void ElasticsearchDatastreamWriter::NotificationSentToAllUsersHandler(const Notification::Ptr& notification,
-	const Checkable::Ptr& checkable, const std::set<User::Ptr>& users, NotificationType type,
-	const CheckResult::Ptr& cr, const String& author, const String& text)
-{
-	if (IsPaused())
-		return;
-
-	m_WorkQueue.Enqueue([this, notification, checkable, users, type, cr, author, text]() {
-		NotificationSentToAllUsersHandlerInternal(notification, checkable, users, type, cr, author, text);
+	Dictionary::Ptr ecs_metadata = new Dictionary({
+	    { "version", "8.0.0" }
 	});
-}
 
-void ElasticsearchDatastreamWriter::NotificationSentToAllUsersHandlerInternal(const Notification::Ptr& notification,
-	const Checkable::Ptr& checkable, const std::set<User::Ptr>& users, NotificationType type,
-	const CheckResult::Ptr& cr, const String& author, const String& text)
-{
-	AssertOnWorkQueue();
+	String datastream_name = "metrics-icinga2." + checkable->GetCheckCommandRaw() + "-" + GetDatastreamNamespace();
+	Dictionary::Ptr data_stream = new Dictionary({
+	    {"type", "metrics"},
+        {"dataset", "icinga2." + checkable->GetCheckCommandRaw()},
+        {"namespace", GetDatastreamNamespace()}
+	});
 
-	CONTEXT("Elasticwriter processing notification to all users '" << checkable->GetName() << "'");
+	Dictionary::Ptr ecs_host = new Dictionary({
+	    {"name", host->GetDisplayName()},
+        {"hostname", host->GetName()},
+        {"zone", host->GetZone()->GetZoneName()},
+        {"soft_state", host->GetState()},
+        {"hard_state", host->GetLastHardState()}
+	});
 
-	Log(LogDebug, "ElasticsearchDatastreamWriter")
-		<< "Processing notification for '" << checkable->GetName() << "'";
+	char _addr[16];
+	if (!host->GetAddress().IsEmpty() && inet_pton(AF_INET, host->GetAddress().CStr(), _addr) == 1) {
+	    ecs_host->Set("ip", host->GetAddress());
+	} else if (!host->GetAddress6().IsEmpty() && inet_pton(AF_INET6, host->GetAddress6().CStr(), _addr) == 1) {
+	    ecs_host->Set("ip", host->GetAddress6());
+	} else if (!host->GetAddress().IsEmpty()) {
+	    ecs_host->Set("fqdn", host->GetAddress());
+	}
 
-	Host::Ptr host;
-	Service::Ptr service;
-	tie(host, service) = GetHostService(checkable);
-
-	String notificationTypeString = Notification::NotificationTypeToStringCompat(type); //TODO: Change that to our own types.
-
-	Dictionary::Ptr fields = new Dictionary();
-
+	Dictionary::Ptr ecs_service;
 	if (service) {
-		fields->Set("service", service->GetShortName());
-		fields->Set("state", service->GetState());
-		fields->Set("last_state", service->GetLastState());
-		fields->Set("last_hard_state", service->GetLastHardState());
+	   	ecs_service = new Dictionary({
+       	    {"name", service->GetName()},
+            {"display_name", service->GetDisplayName()},
+            {"zone", host->GetZone()->GetZoneName()},
+            {"soft_state", service->GetState()},
+            {"hard_state", service->GetLastHardState()}
+		});
+	}
+
+	Dictionary::Ptr ecs_agent = new Dictionary({
+	    {"type", "icinga2"},
+        {"name", cr->GetCheckSource()}
+	});
+	Endpoint::Ptr endpoint = checkable->GetCommandEndpoint();
+	if (endpoint) {
+		ecs_agent->Set("id", endpoint->GetName());
+		ecs_agent->Set("version", FormatIcingaVersion(endpoint->GetIcingaVersion()));
 	} else {
-		fields->Set("state", host->GetState());
-		fields->Set("last_state", host->GetLastState());
-		fields->Set("last_hard_state", host->GetLastHardState());
+		ecs_agent->Set("id", IcingaApplication::GetInstance()->GetName());
+		ecs_agent->Set("version", FormatIcingaVersion((unsigned long) IcingaApplication::GetInstance()->GetVersion()));
 	}
 
-	fields->Set("host", host->GetName());
+	Dictionary::Ptr ecs_event = new Dictionary({
+	   {"created", FormatTimestamp(cr->GetScheduleEnd())},
+       {"start", FormatTimestamp(cr->GetExecutionStart())},
+       {"end", FormatTimestamp(cr->GetExecutionEnd())},
+       {"kind", "metric"},
+       {"module", "icinga2"}
+	});
 
-	ArrayData userNames;
+	String checkable_name = service == nullptr ? host->GetName() : service->GetName();
+	Dictionary::Ptr check_result = new Dictionary({
+	    {"checkable", checkable_name},
+        {"exit_status", cr->GetExitStatus()},
+        {"execution_time", cr->CalculateExecutionTime()},
+        {"latency", cr->CalculateLatency()},
+        {"schedule_start", FormatTimestamp(cr->GetScheduleStart())},
+        {"schedule_end", FormatTimestamp(cr->GetScheduleEnd())},
+        {"active", cr->GetActive()}
+	});
 
-	for (const User::Ptr& user : users) {
-		userNames.push_back(user->GetName());
-	}
+	Dictionary::Ptr perf_data = ExtractPerfData(checkable, cr->GetPerformanceData());
 
-	fields->Set("users", new Array(std::move(userNames)));
-	fields->Set("notification_type", notificationTypeString);
-	fields->Set("author", author);
-	fields->Set("text", text);
+	Dictionary::Ptr document = new Dictionary({
+	    {"@timestamp", FormatTimestamp(cr->GetScheduleEnd())},
+        { "ecs", ecs_metadata },
+        { "data_stream", data_stream },
+        { "host", ecs_host },
+        { "service", ecs_service },
+        { "agent", ecs_agent },
+        { "event", ecs_event },
+        { "check", check_result },
+        { "message", cr->GetOutput() },
+        { "perf_data", perf_data }
+	});
 
-	CheckCommand::Ptr commandObj = checkable->GetCheckCommand();
+	EcsDocument::Ptr workqueue_document = new EcsDocument(
+		datastream_name,
+		document
+	);
 
-	if (commandObj)
-		fields->Set("check_command", commandObj->GetName());
-
-	double ts = Utility::GetTime();
-
-	if (cr) {
-		AddCheckResult(fields, checkable, cr);
-		ts = cr->GetExecutionEnd();
-	}
-
-	Enqueue(checkable, "notification", fields, ts);
-}
-
-void ElasticsearchDatastreamWriter::Enqueue(const Checkable::Ptr& checkable, const String& type,
-	const Dictionary::Ptr& fields, double ts)
-{
-	/* Atomically buffer the data point. */
-	std::unique_lock<std::mutex> lock(m_DataBufferMutex);
-
-	/* Format the timestamps to dynamically select the date datatype inside the index. */
-	fields->Set("@timestamp", FormatTimestamp(ts));
-	fields->Set("timestamp", FormatTimestamp(ts));
-
-	String eventType = m_EventPrefix + type;
-	fields->Set("type", eventType);
-
-	/* Every payload needs a line describing the index.
-	 * We do it this way to avoid problems with a near full queue.
-	 */
-	String indexBody = "{\"index\": {} }\n";
-	String fieldsBody = JsonEncode(fields);
-
-	Log(LogDebug, "ElasticsearchDatastreamWriter")
-		<< "Checkable '" << checkable->GetName() << "' adds to metric list: '" << fieldsBody << "'.";
-
-	m_DataBuffer.emplace_back(indexBody + fieldsBody);
-
-	/* Flush if we've buffered too much to prevent excessive memory use. */
-	if (static_cast<int>(m_DataBuffer.size()) >= GetFlushThreshold()) {
-		Log(LogDebug, "ElasticsearchDatastreamWriter")
-			<< "Data buffer overflow writing " << m_DataBuffer.size() << " data points";
-		Flush();
-	}
-}
-
-void ElasticsearchDatastreamWriter::FlushTimeout()
-{
-	/* Prevent new data points from being added to the array, there is a
-	 * race condition where they could disappear.
-	 */
-	std::unique_lock<std::mutex> lock(m_DataBufferMutex);
-
-	/* Flush if there are any data available. */
-	if (m_DataBuffer.size() > 0) {
-		Log(LogDebug, "ElasticsearchDatastreamWriter")
-			<< "Timer expired writing " << m_DataBuffer.size() << " data points";
-		Flush();
-	}
+	//ToDo: This will block on a full queue. Consider a drop policy.
+	m_WorkQueue.Enqueue([this, workqueue_document, checkable]() {
+		m_DataBuffer.emplace_back(workqueue_document);
+		if (static_cast<int>(m_DataBuffer.size()) >= GetFlushThreshold()) {
+			Flush();
+		}
+	});
 }
 
 void ElasticsearchDatastreamWriter::Flush()
@@ -436,13 +278,19 @@ void ElasticsearchDatastreamWriter::Flush()
 	/* Ensure you hold a lock against m_DataBuffer so that things
 	 * don't go missing after creating the body and clearing the buffer.
 	 */
-	String body = boost::algorithm::join(m_DataBuffer, "\n");
-	m_DataBuffer.clear();
+	String body = "";
+	for (const auto& document : m_DataBuffer) {
+        Dictionary::Ptr index = new Dictionary({
+            { "_index", new Dictionary({
+                { "create", document->GetIndex() }
+            }) }
+        });
 
-	/* Elasticsearch 6.x requires a new line. This is compatible to 5.x.
-	 * Tested with 6.0.0 and 5.6.4.
-	 */
-	body += "\n";
+		body += icinga::JsonEncode(index) + "\n";
+		body += icinga::JsonEncode(document->GetDocument()) + "\n";
+	}
+
+	m_DataBuffer.clear();
 
 	SendRequest(body);
 }
@@ -457,18 +305,7 @@ void ElasticsearchDatastreamWriter::SendRequest(const String& body)
 	url->SetScheme(GetEnableTls() ? "https" : "http");
 	url->SetHost(GetHost());
 	url->SetPort(GetPort());
-
-	std::vector<String> path;
-
-	/* Specify the index path. Best practice is a daily rotation.
-	 * Example: http://localhost:9200/icinga2-2017.09.11?pretty=1
-	 */
-	path.emplace_back(GetIndex() + "-" + Utility::FormatDateTime("%Y.%m.%d", Utility::GetTime()));
-
-	/* Use the bulk message format. */
-	path.emplace_back("_bulk");
-
-	url->SetPath(path);
+	url->SetPath({ "_bulk" });
 
 	OptionalTlsStream stream;
 
@@ -682,4 +519,17 @@ String ElasticsearchDatastreamWriter::FormatTimestamp(double ts)
 	auto milliSeconds = static_cast<int>((ts - static_cast<int>(ts)) * 1000);
 
 	return Utility::FormatDateTime("%Y-%m-%dT%H:%M:%S", ts) + "." + Convert::ToString(milliSeconds) + Utility::FormatDateTime("%z", ts);
+}
+
+String ElasticsearchDatastreamWriter::FormatIcingaVersion(unsigned long version) {
+	auto bugfix = version % 100;
+	version /= 100;
+	auto minor = version % 100;
+	auto major = version / 100;
+	return String() + std::to_string(major) + "." + std::to_string(minor) + "." + std::to_string(bugfix);
+}
+
+EcsDocument::EcsDocument(String index, Dictionary::Ptr document) {
+	SetIndex(index, true);
+	SetDocument(document, true);
 }
