@@ -44,14 +44,24 @@ INITIALIZE_ONCE_WITH_PRIORITY([]() {
 	l_StatsNS->Freeze();
 }, InitializePriority::FreezeNamespaces);
 
+/**
+ * Construct a @c ScriptFrame that has `Self` assigned to the global namespace.
+ *
+ * Prefer the other constructor if possible since if misused this may leak global variables
+ * without permissions or senstive variables like TicketSalt in a sandboxed context.
+ *
+ * @todo Remove this constructor and call the other with the global namespace in places where it's actually necessary.
+ */
 ScriptFrame::ScriptFrame(bool allocLocals)
-	: Locals(allocLocals ? new Dictionary() : nullptr), PermChecker(new ScriptPermissionChecker), Self(ScriptGlobal::GetGlobals()), Sandboxed(false), Depth(0)
+	: Locals(allocLocals ? new Dictionary() : nullptr), PermChecker(new ScriptPermissionChecker),
+	  Self(ScriptGlobal::GetGlobals()), Sandboxed(false), Depth(0), Globals(nullptr)
 {
 	InitializeFrame();
 }
 
 ScriptFrame::ScriptFrame(bool allocLocals, Value self)
-	: Locals(allocLocals ? new Dictionary() : nullptr), PermChecker(new ScriptPermissionChecker), Self(std::move(self)), Sandboxed(false), Depth(0)
+	: Locals(allocLocals ? new Dictionary() : nullptr), PermChecker(new ScriptPermissionChecker), Self(std::move(self)),
+	  Sandboxed(false), Depth(0), Globals(nullptr)
 {
 	InitializeFrame();
 }
@@ -63,6 +73,7 @@ void ScriptFrame::InitializeFrame()
 	if (frames && !frames->empty()) {
 		ScriptFrame *frame = frames->top();
 
+		// See the documentation of `ScriptFrame::Globals` for why these two are inherited and Globals isn't.
 		PermChecker = frame->PermChecker;
 		Sandboxed = frame->Sandboxed;
 	}
@@ -78,6 +89,41 @@ ScriptFrame::~ScriptFrame()
 #ifndef I2_DEBUG
 	(void)frame;
 #endif /* I2_DEBUG */
+}
+
+/**
+ * Returns a sanitized copy of the global variables namespace when sandboxed.
+ *
+ * This filters out the TicketSalt variable specifically and any variable for which the
+ * PermChecker does not return 'true'.
+ *
+ * However it specifically keeps the Types, System, and Icinga sub-namespaces, because they're
+ * accessed through globals in ScopeExpression and the user should have access to all Values
+ * contained in these namespaces.
+ *
+ * @return a sanitized copy of the global namespace if sandboxed, a pointer to the global namespace otherwise.
+ */
+Namespace::Ptr ScriptFrame::GetGlobals()
+{
+	if (Sandboxed) {
+		if (!Globals) {
+			Globals = new Namespace;
+			auto globals = ScriptGlobal::GetGlobals();
+			ObjectLock lock{globals};
+			for (auto& [key, val] : globals) {
+				if (key == "TicketSalt") {
+					continue;
+				}
+
+				if (key == "Types" || key == "System" || key == "Icinga" || PermChecker->CanAccessGlobalVariable(key)) {
+					Globals->Set(key, val.Val, val.Const);
+				}
+			}
+		}
+		return Globals;
+	}
+
+	return ScriptGlobal::GetGlobals();
 }
 
 void ScriptFrame::IncreaseStackDepth()
