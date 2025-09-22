@@ -19,15 +19,6 @@ class VariableTargetProvider final : public TargetProvider
 public:
 	DECLARE_PTR_TYPEDEFS(VariableTargetProvider);
 
-	static Dictionary::Ptr GetTargetForVar(const String& name, const Value& value)
-	{
-		return new Dictionary({
-			{ "name", name },
-			{ "type", value.GetReflectionType()->GetName() },
-			{ "value", value }
-		});
-	}
-
 	void FindTargets(const String& type,
 		const std::function<void (const Value&)>& addTarget) const override
 	{
@@ -35,14 +26,14 @@ public:
 			Namespace::Ptr globals = ScriptGlobal::GetGlobals();
 			ObjectLock olock(globals);
 			for (const Namespace::Pair& kv : globals) {
-				addTarget(GetTargetForVar(kv.first, kv.second.Val));
+				addTarget(FilterUtility::GetTargetForVar(kv.first, kv.second.Val));
 			}
 		}
 	}
 
 	Value GetTargetByName(const String& type, const String& name) const override
 	{
-		return GetTargetForVar(name, ScriptGlobal::Get(name));
+		return FilterUtility::GetTargetForVar(name, ScriptGlobal::Get(name));
 	}
 
 	bool IsValidType(const String& type) const override
