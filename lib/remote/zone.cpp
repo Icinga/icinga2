@@ -27,7 +27,7 @@ void Zone::OnAllConfigLoaded()
 
 	if (endpoints) {
 		ObjectLock olock(endpoints);
-		for (const String& endpoint : endpoints) {
+		for (String endpoint : endpoints) {
 			Endpoint::Ptr ep = Endpoint::GetByName(endpoint);
 
 			if (ep)
@@ -51,22 +51,21 @@ Zone::Ptr Zone::GetParent() const
 	return m_Parent;
 }
 
-std::set<Endpoint::Ptr> Zone::GetEndpoints() const
+std::vector<Endpoint::Ptr> Zone::GetEndpoints() const
 {
-	std::set<Endpoint::Ptr> result;
-
+	std::vector<Endpoint::Ptr> result;
 	Array::Ptr endpoints = GetEndpointsRaw();
 
 	if (endpoints) {
 		ObjectLock olock(endpoints);
 
-		for (const String& name : endpoints) {
+		for (String name : endpoints) {
 			Endpoint::Ptr endpoint = Endpoint::GetByName(name);
 
 			if (!endpoint)
 				continue;
 
-			result.insert(endpoint);
+			result.emplace_back(std::move(endpoint));
 		}
 	}
 
@@ -125,10 +124,10 @@ bool Zone::IsGlobal() const
 	return GetGlobal();
 }
 
-bool Zone::IsSingleInstance() const
+bool Zone::IsHACluster() const
 {
-	Array::Ptr endpoints = GetEndpointsRaw();
-	return !endpoints || endpoints->GetLength() < 2;
+	auto endpoints = GetEndpointsRaw();
+	return endpoints && endpoints->GetLength() >= 2;
 }
 
 Zone::Ptr Zone::GetLocalZone()

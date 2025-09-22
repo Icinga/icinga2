@@ -1,6 +1,8 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "remote/objectqueryhandler.hpp"
+#include "base/generator.hpp"
+#include "base/json.hpp"
 #include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
 #include "base/serializer.hpp"
@@ -9,6 +11,7 @@
 #include <boost/algorithm/string/case_conv.hpp>
 #include <set>
 #include <unordered_map>
+#include <memory>
 
 using namespace icinga;
 
@@ -23,7 +26,7 @@ Dictionary::Ptr ObjectQueryHandler::SerializeObjectAttrs(const Object::Ptr& obje
 
 	if (isJoin && attrs) {
 		ObjectLock olock(attrs);
-		for (const String& attr : attrs) {
+		for (String attr : attrs) {
 			if (attr == attrPrefix) {
 				allAttrs = true;
 				break;
@@ -31,7 +34,7 @@ Dictionary::Ptr ObjectQueryHandler::SerializeObjectAttrs(const Object::Ptr& obje
 		}
 	}
 
-	if (!isJoin && (!attrs || attrs->GetLength() == 0))
+	if (!isJoin && !attrs)
 		allAttrs = true;
 
 	if (allAttrs) {
@@ -40,7 +43,7 @@ Dictionary::Ptr ObjectQueryHandler::SerializeObjectAttrs(const Object::Ptr& obje
 		}
 	} else if (attrs) {
 		ObjectLock olock(attrs);
-		for (const String& attr : attrs) {
+		for (String attr : attrs) {
 			String userAttr;
 
 			if (isJoin) {
@@ -89,17 +92,17 @@ Dictionary::Ptr ObjectQueryHandler::SerializeObjectAttrs(const Object::Ptr& obje
 }
 
 bool ObjectQueryHandler::HandleRequest(
-	AsioTlsStream& stream,
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params,
-	boost::asio::yield_context& yc,
-	HttpServerConnection& server
+	const WaitGroup::Ptr&,
+	const HttpRequest& request,
+	HttpResponse& response,
+	boost::asio::yield_context& yc
 )
 {
 	namespace http = boost::beast::http;
+
+	auto url = request.Url();
+	auto user = request.User();
+	auto params = request.Params();
 
 	if (url->GetPath().size() < 3 || url->GetPath().size() > 4)
 		return false;
@@ -144,6 +147,22 @@ bool ObjectQueryHandler::HandleRequest(
 		return true;
 	}
 
+	bool includeUsedBy = false;
+	bool includeLocation = false;
+	if (umetas) {
+		ObjectLock olock(umetas);
+		for (String meta : umetas) {
+			if (meta == "used_by") {
+				includeUsedBy = true;
+			} else if (meta == "location") {
+				includeLocation = true;
+			} else {
+				HttpUtility::SendJsonError(response, params, 400, "Invalid field specified for meta: " + meta);
+				return true;
+			}
+		}
+	}
+
 	bool allJoins = HttpUtility::GetLastParameter(params, "all_joins");
 
 	params->Set("type", type->GetName());
@@ -165,15 +184,12 @@ bool ObjectQueryHandler::HandleRequest(
 		return true;
 	}
 
-	ArrayData results;
-	results.reserve(objs.size());
-
-	std::set<String> joinAttrs;
+	std::set<int> joinAttrs;
 	std::set<String> userJoinAttrs;
 
 	if (ujoins) {
 		ObjectLock olock(ujoins);
-		for (const String& ujoin : ujoins) {
+		for (String ujoin : ujoins) {
 			userJoinAttrs.insert(ujoin.SubStr(0, ujoin.FindFirstOf(".")));
 		}
 	}
@@ -187,46 +203,41 @@ bool ObjectQueryHandler::HandleRequest(
 		if (!allJoins && userJoinAttrs.find(field.NavigationName) == userJoinAttrs.end())
 			continue;
 
-		joinAttrs.insert(field.Name);
+		joinAttrs.insert(fid);
 	}
 
 	std::unordered_map<Type*, std::pair<bool, std::unique_ptr<Expression>>> typePermissions;
 	std::unordered_map<Object*, bool> objectAccessAllowed;
 
-	for (const ConfigObject::Ptr& obj : objs) {
+	auto it = objs.begin();
+	auto generatorFunc = [&]() -> std::optional<Value> {
+		if (it == objs.end()) {
+			return std::nullopt;
+		}
+
+		ConfigObject::Ptr obj = *it;
+		++it;
+
 		DictionaryData result1{
 			{ "name", obj->GetName() },
 			{ "type", obj->GetReflectionType()->GetName() }
 		};
 
 		DictionaryData metaAttrs;
+		if (includeUsedBy) {
+			Array::Ptr used_by = new Array();
+			metaAttrs.emplace_back("used_by", used_by);
 
-		if (umetas) {
-			ObjectLock olock(umetas);
-			for (const String& meta : umetas) {
-				if (meta == "used_by") {
-					Array::Ptr used_by = new Array();
-					metaAttrs.emplace_back("used_by", used_by);
-
-					for (const Object::Ptr& pobj : DependencyGraph::GetParents((obj)))
-					{
-						ConfigObject::Ptr configObj = dynamic_pointer_cast<ConfigObject>(pobj);
-
-						if (!configObj)
-							continue;
-
-						used_by->Add(new Dictionary({
-							{ "type", configObj->GetReflectionType()->GetName() },
-							{ "name", configObj->GetName() }
-						}));
-					}
-				} else if (meta == "location") {
-					metaAttrs.emplace_back("location", obj->GetSourceLocation());
-				} else {
-					HttpUtility::SendJsonError(response, params, 400, "Invalid field specified for meta: " + meta);
-					return true;
-				}
+			for (auto& configObj : DependencyGraph::GetChildren(obj)) {
+				used_by->Add(new Dictionary({
+					{"type", configObj->GetReflectionType()->GetName()},
+					{"name", configObj->GetName()}
+				}));
 			}
+		}
+
+		if (includeLocation) {
+			metaAttrs.emplace_back("location", obj->GetSourceLocation());
 		}
 
 		result1.emplace_back("meta", new Dictionary(std::move(metaAttrs)));
@@ -234,29 +245,21 @@ bool ObjectQueryHandler::HandleRequest(
 		try {
 			result1.emplace_back("attrs", SerializeObjectAttrs(obj, String(), uattrs, false, false));
 		} catch (const ScriptError& ex) {
-			HttpUtility::SendJsonError(response, params, 400, ex.what());
-			return true;
+			return new Dictionary{
+				{"type", type->GetName()},
+				{"name", obj->GetName()},
+				{"code", 400},
+				{"status", ex.what()}
+			};
 		}
 
 		DictionaryData joins;
 
-		for (const String& joinAttr : joinAttrs) {
+		for (auto joinAttr : joinAttrs) {
 			Object::Ptr joinedObj;
-			int fid = type->GetFieldId(joinAttr);
+			Field field = type->GetFieldInfo(joinAttr);
 
-			if (fid < 0) {
-				HttpUtility::SendJsonError(response, params, 400, "Invalid field specified for join: " + joinAttr);
-				return true;
-			}
-
-			Field field = type->GetFieldInfo(fid);
-
-			if (!(field.Attributes & FANavigation)) {
-				HttpUtility::SendJsonError(response, params, 400, "Not a joinable field: " + joinAttr);
-				return true;
-			}
-
-			joinedObj = obj->NavigateField(fid);
+			joinedObj = obj->NavigateField(joinAttr);
 
 			if (!joinedObj)
 				continue;
@@ -309,22 +312,29 @@ bool ObjectQueryHandler::HandleRequest(
 			try {
 				joins.emplace_back(prefix, SerializeObjectAttrs(joinedObj, prefix, ujoins, true, allJoins));
 			} catch (const ScriptError& ex) {
-				HttpUtility::SendJsonError(response, params, 400, ex.what());
-				return true;
+				return new Dictionary{
+					{"type", type->GetName()},
+					{"name", obj->GetName()},
+					{"code", 400},
+					{"status", ex.what()}
+				};
 			}
 		}
 
 		result1.emplace_back("joins", new Dictionary(std::move(joins)));
 
-		results.push_back(new Dictionary(std::move(result1)));
-	}
-
-	Dictionary::Ptr result = new Dictionary({
-		{ "results", new Array(std::move(results)) }
-	});
+		return new Dictionary{std::move(result1)};
+	};
 
 	response.result(http::status::ok);
-	HttpUtility::SendJsonBody(response, params, result);
+	response.set(http::field::content_type, "application/json");
+	response.StartStreaming();
+
+	Dictionary::Ptr results = new Dictionary{{"results", new ValueGenerator{generatorFunc}}};
+	results->Freeze();
+
+	bool pretty = HttpUtility::GetLastParameter(params, "pretty");
+	response.GetJsonEncoder(pretty).Encode(results, &yc);
 
 	return true;
 }

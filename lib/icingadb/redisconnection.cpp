@@ -30,18 +30,18 @@ namespace asio = boost::asio;
 
 boost::regex RedisConnection::m_ErrAuth ("\\AERR AUTH ");
 
-RedisConnection::RedisConnection(const String& host, int port, const String& path, const String& password, int db,
+RedisConnection::RedisConnection(const String& host, int port, const String& path, const String& username, const String& password, int db,
 	bool useTls, bool insecure, const String& certPath, const String& keyPath, const String& caPath, const String& crlPath,
 	const String& tlsProtocolmin, const String& cipherList, double connectTimeout, DebugInfo di, const RedisConnection::Ptr& parent)
-	: RedisConnection(IoEngine::Get().GetIoContext(), host, port, path, password, db,
+	: RedisConnection(IoEngine::Get().GetIoContext(), host, port, path, username, password, db,
 	  useTls, insecure, certPath, keyPath, caPath, crlPath, tlsProtocolmin, cipherList, connectTimeout, std::move(di), parent)
 {
 }
 
-RedisConnection::RedisConnection(boost::asio::io_context& io, String host, int port, String path, String password,
+RedisConnection::RedisConnection(boost::asio::io_context& io, String host, int port, String path, String username, String password,
 	int db, bool useTls, bool insecure, String certPath, String keyPath, String caPath, String crlPath,
 	String tlsProtocolmin, String cipherList, double connectTimeout, DebugInfo di, const RedisConnection::Ptr& parent)
-	: m_Host(std::move(host)), m_Port(port), m_Path(std::move(path)), m_Password(std::move(password)),
+	: m_Host(std::move(host)), m_Port(port), m_Path(std::move(path)), m_Username(std::move(username)), m_Password(std::move(password)),
 	  m_DbIndex(db), m_CertPath(std::move(certPath)), m_KeyPath(std::move(keyPath)), m_Insecure(insecure),
 	  m_CaPath(std::move(caPath)), m_CrlPath(std::move(crlPath)), m_TlsProtocolmin(std::move(tlsProtocolmin)),
 	  m_CipherList(std::move(cipherList)), m_ConnectTimeout(connectTimeout), m_DebugInfo(std::move(di)), m_Connecting(false), m_Connected(false),
@@ -302,12 +302,6 @@ void RedisConnection::Connect(asio::yield_context& yc)
 
 	boost::asio::deadline_timer timer (m_Strand.context());
 
-	auto waitForReadLoop ([this, &yc]() {
-		while (!m_Queues.FutureResponseActions.empty()) {
-			IoEngine::YieldCurrentCoroutine(yc);
-		}
-	});
-
 	for (;;) {
 		try {
 			if (m_Path.IsEmpty()) {
@@ -318,7 +312,6 @@ void RedisConnection::Connect(asio::yield_context& yc)
 					auto conn (Shared<AsioTlsStream>::Make(m_Strand.context(), *m_TLSContext, m_Host));
 					auto& tlsConn (conn->next_layer());
 					auto connectTimeout (MakeTimeout(conn));
-					Defer cancelTimeout ([&connectTimeout]() { connectTimeout->Cancel(); });
 
 					icinga::Connect(conn->lowest_layer(), m_Host, Convert::ToString(m_Port), yc);
 					tlsConn.async_handshake(tlsConn.client, yc);
@@ -340,7 +333,7 @@ void RedisConnection::Connect(asio::yield_context& yc)
 					}
 
 					Handshake(conn, yc);
-					waitForReadLoop();
+					m_QueuedReads.WaitForClear(yc);
 					m_TlsConn = std::move(conn);
 				} else {
 					Log(m_Parent ? LogNotice : LogInformation, "IcingaDB")
@@ -348,11 +341,10 @@ void RedisConnection::Connect(asio::yield_context& yc)
 
 					auto conn (Shared<TcpConn>::Make(m_Strand.context()));
 					auto connectTimeout (MakeTimeout(conn));
-					Defer cancelTimeout ([&connectTimeout]() { connectTimeout->Cancel(); });
 
 					icinga::Connect(conn->next_layer(), m_Host, Convert::ToString(m_Port), yc);
 					Handshake(conn, yc);
-					waitForReadLoop();
+					m_QueuedReads.WaitForClear(yc);
 					m_TcpConn = std::move(conn);
 				}
 			} else {
@@ -361,11 +353,10 @@ void RedisConnection::Connect(asio::yield_context& yc)
 
 				auto conn (Shared<UnixConn>::Make(m_Strand.context()));
 				auto connectTimeout (MakeTimeout(conn));
-				Defer cancelTimeout ([&connectTimeout]() { connectTimeout->Cancel(); });
 
 				conn->next_layer().async_connect(Unix::endpoint(m_Path.CStr()), yc);
 				Handshake(conn, yc);
-				waitForReadLoop();
+				m_QueuedReads.WaitForClear(yc);
 				m_UnixConn = std::move(conn);
 			}
 
@@ -380,8 +371,6 @@ void RedisConnection::Connect(asio::yield_context& yc)
 			}
 
 			break;
-		} catch (const boost::coroutines::detail::forced_unwind&) {
-			throw;
 		} catch (const std::exception& ex) {
 			Log(LogCritical, "IcingaDB")
 				<< "Cannot connect to " << m_Host << ":" << m_Port << ": " << ex.what();
@@ -399,7 +388,7 @@ void RedisConnection::Connect(asio::yield_context& yc)
 void RedisConnection::ReadLoop(asio::yield_context& yc)
 {
 	for (;;) {
-		m_QueuedReads.Wait(yc);
+		m_QueuedReads.WaitForSet(yc);
 
 		while (!m_Queues.FutureResponseActions.empty()) {
 			auto item (std::move(m_Queues.FutureResponseActions.front()));
@@ -411,16 +400,9 @@ void RedisConnection::ReadLoop(asio::yield_context& yc)
 						for (auto i (item.Amount); i; --i) {
 							ReadOne(yc);
 						}
-					} catch (const boost::coroutines::detail::forced_unwind&) {
-						throw;
 					} catch (const std::exception& ex) {
 						Log(LogCritical, "IcingaDB")
 							<< "Error during receiving the response to a query which has been fired and forgotten: " << ex.what();
-
-						continue;
-					} catch (...) {
-						Log(LogCritical, "IcingaDB")
-							<< "Error during receiving the response to a query which has been fired and forgotten";
 
 						continue;
 					}
@@ -435,9 +417,7 @@ void RedisConnection::ReadLoop(asio::yield_context& yc)
 
 						try {
 							reply = ReadOne(yc);
-						} catch (const boost::coroutines::detail::forced_unwind&) {
-							throw;
-						} catch (...) {
+						} catch (const std::exception&) {
 							promise.set_exception(std::current_exception());
 
 							continue;
@@ -458,9 +438,7 @@ void RedisConnection::ReadLoop(asio::yield_context& yc)
 						for (auto i (item.Amount); i; --i) {
 							try {
 								replies.emplace_back(ReadOne(yc));
-							} catch (const boost::coroutines::detail::forced_unwind&) {
-								throw;
-							} catch (...) {
+							} catch (const std::exception&) {
 								promise.set_exception(std::current_exception());
 								break;
 							}
@@ -554,18 +532,10 @@ void RedisConnection::WriteItem(boost::asio::yield_context& yc, RedisConnection:
 
 		try {
 			WriteOne(item, yc);
-		} catch (const boost::coroutines::detail::forced_unwind&) {
-			throw;
 		} catch (const std::exception& ex) {
 			Log msg (LogCritical, "IcingaDB", "Error during sending query");
 			LogQuery(item, msg);
 			msg << " which has been fired and forgotten: " << ex.what();
-
-			return;
-		} catch (...) {
-			Log msg (LogCritical, "IcingaDB", "Error during sending query");
-			LogQuery(item, msg);
-			msg << " which has been fired and forgotten";
 
 			return;
 		}
@@ -590,18 +560,10 @@ void RedisConnection::WriteItem(boost::asio::yield_context& yc, RedisConnection:
 				WriteOne(query, yc);
 				++i;
 			}
-		} catch (const boost::coroutines::detail::forced_unwind&) {
-			throw;
 		} catch (const std::exception& ex) {
 			Log msg (LogCritical, "IcingaDB", "Error during sending query");
 			LogQuery(item[i], msg);
 			msg << " which has been fired and forgotten: " << ex.what();
-
-			return;
-		} catch (...) {
-			Log msg (LogCritical, "IcingaDB", "Error during sending query");
-			LogQuery(item[i], msg);
-			msg << " which has been fired and forgotten";
 
 			return;
 		}
@@ -621,9 +583,7 @@ void RedisConnection::WriteItem(boost::asio::yield_context& yc, RedisConnection:
 
 		try {
 			WriteOne(item.first, yc);
-		} catch (const boost::coroutines::detail::forced_unwind&) {
-			throw;
-		} catch (...) {
+		} catch (const std::exception&) {
 			item.second.set_exception(std::current_exception());
 
 			return;
@@ -648,9 +608,7 @@ void RedisConnection::WriteItem(boost::asio::yield_context& yc, RedisConnection:
 			for (auto& query : item.first) {
 				WriteOne(query, yc);
 			}
-		} catch (const boost::coroutines::detail::forced_unwind&) {
-			throw;
-		} catch (...) {
+		} catch (const std::exception&) {
 			item.second.set_exception(std::current_exception());
 
 			return;

@@ -12,12 +12,14 @@
 #include "icinga/notification.hpp"
 #include "icinga/comment.hpp"
 #include "icinga/downtime.hpp"
+#include "base/wait-group.hpp"
 #include "remote/endpoint.hpp"
 #include "remote/messageorigin.hpp"
 #include <condition_variable>
 #include <cstdint>
 #include <functional>
 #include <limits>
+#include <variant>
 
 namespace icinga
 {
@@ -57,6 +59,7 @@ enum FlappingStateFilter
 class CheckCommand;
 class EventCommand;
 class Dependency;
+class DependencyGroup;
 
 /**
  * An Icinga service.
@@ -77,10 +80,12 @@ public:
 	std::set<Checkable::Ptr> GetParents() const;
 	std::set<Checkable::Ptr> GetChildren() const;
 	std::set<Checkable::Ptr> GetAllChildren() const;
+	size_t GetAllChildrenCount() const;
 
 	void AddGroup(const String& name);
 
-	bool IsReachable(DependencyType dt = DependencyState, intrusive_ptr<Dependency> *failedDependency = nullptr, int rstack = 0) const;
+	bool IsReachable(DependencyType dt = DependencyState) const;
+	bool AffectsChildren() const;
 
 	AcknowledgementType GetAcknowledgement();
 
@@ -101,6 +106,8 @@ public:
 
 	void UpdateNextCheck(const MessageOrigin::Ptr& origin = nullptr);
 
+	static String StateTypeToString(StateType type);
+
 	bool HasBeenChecked() const;
 	virtual bool IsStateOK(ServiceState state) const = 0;
 
@@ -110,16 +117,17 @@ public:
 
 	static void UpdateStatistics(const CheckResult::Ptr& cr, CheckableType type);
 
-	void ExecuteRemoteCheck(const Dictionary::Ptr& resolvedMacros = nullptr);
-	void ExecuteCheck();
+	void ExecuteRemoteCheck(const WaitGroup::Ptr& producer, const Dictionary::Ptr& resolvedMacros = nullptr);
+	void ExecuteCheck(const WaitGroup::Ptr& producer);
+
 	enum class ProcessingResult
 	{
 		Ok,
-		NoCheckResult,
 		CheckableInactive,
 		NewerCheckResultPresent,
 	};
-	ProcessingResult ProcessCheckResult(const CheckResult::Ptr& cr, const MessageOrigin::Ptr& origin = nullptr);
+
+	ProcessingResult ProcessCheckResult(const CheckResult::Ptr& cr, const WaitGroup::Ptr& producer, const MessageOrigin::Ptr& origin = nullptr);
 
 	Endpoint::Ptr GetCommandEndpoint() const;
 
@@ -182,9 +190,12 @@ public:
 	bool IsFlapping() const;
 
 	/* Dependencies */
-	void AddDependency(const intrusive_ptr<Dependency>& dep);
-	void RemoveDependency(const intrusive_ptr<Dependency>& dep);
-	std::vector<intrusive_ptr<Dependency> > GetDependencies() const;
+	void PushDependencyGroupsToRegistry();
+	std::vector<intrusive_ptr<DependencyGroup>> GetDependencyGroups() const;
+	void AddDependency(const intrusive_ptr<Dependency>& dependency);
+	void RemoveDependency(const intrusive_ptr<Dependency>& dependency, bool runtimeRemoved = false);
+	std::vector<intrusive_ptr<Dependency> > GetDependencies(bool includePending = false) const;
+	bool HasAnyDependencies() const;
 
 	void AddReverseDependency(const intrusive_ptr<Dependency>& dep);
 	void RemoveReverseDependency(const intrusive_ptr<Dependency>& dep);
@@ -204,8 +215,6 @@ public:
 	static void DecreasePendingChecks();
 	static int GetPendingChecks();
 	static void AquirePendingCheckSlot(int maxPendingChecks);
-
-	static Object::Ptr GetPrototype();
 
 protected:
 	void Start(bool runtimeCreated) override;
@@ -244,10 +253,21 @@ private:
 
 	/* Dependencies */
 	mutable std::mutex m_DependencyMutex;
-	std::set<intrusive_ptr<Dependency> > m_Dependencies;
+	std::map<std::variant<Checkable*, String>, intrusive_ptr<DependencyGroup>> m_DependencyGroups;
 	std::set<intrusive_ptr<Dependency> > m_ReverseDependencies;
+	/**
+	 * Registering a checkable to its parent DependencyGroups is delayed during config loading until all dependencies
+	 * were registered on the checkable. m_PendingDependencies is used to temporarily store the dependencies until then.
+	 * It is a pointer type for two reasons:
+	 * 1. The field is no longer needed after the DependencyGroups were registered, having it as a pointer reduces the
+	 *    overhead from sizeof(std::map<>) to sizeof(std::map<>*).
+	 * 2. It allows the field to also be used as a flag: the delayed group registration is only done until it is reset
+	 *    to nullptr.
+	 */
+	std::unique_ptr<std::map<std::variant<Checkable*, String>, std::set<intrusive_ptr<Dependency>>>>
+		m_PendingDependencies {std::make_unique<decltype(m_PendingDependencies)::element_type>()};
 
-	void GetAllChildrenInternal(std::set<Checkable::Ptr>& children, int level = 0) const;
+	void GetAllChildrenInternal(std::set<Checkable::Ptr>& seenChildren, int level = 0) const;
 
 	/* Flapping */
 	static const std::map<String, int> m_FlappingStateFilterMap;

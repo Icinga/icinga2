@@ -115,7 +115,7 @@ You can also use [jq](https://stedolan.github.io/jq/) or `python -m json.tool`
 in combination with curl on the CLI.
 
 ```bash
-curl ... | jq 
+curl ... | jq
 curl ... | python -m json.tool
 ```
 
@@ -288,6 +288,7 @@ Available permissions for specific URL endpoints:
   config/query                  | /v1/config    | No                | 1
   config/modify                 | /v1/config    | No                | 512
   console                       | /v1/console   | No                | 1
+  debug                         | /v1/debug     | No                | 1
   events/&lt;type&gt;           | /v1/events    | No                | 1
   objects/query/&lt;type&gt;    | /v1/objects   | Yes               | 1
   objects/create/&lt;type&gt;   | /v1/objects   | No                | 1
@@ -497,7 +498,7 @@ The example below is not valid:
 -d '{ "type": "Host", "filter": ""linux-servers" in host.groups" }'
 ```
 
-The double quotes need to be escaped with a preceeding backslash:
+The double quotes need to be escaped with a preceding backslash:
 
 ```
 -d '{ "type": "Host", "filter": "\"linux-servers\" in host.groups" }'
@@ -565,7 +566,7 @@ created by the API.
 ### Querying Objects <a id="icinga2-api-config-objects-query"></a>
 
 You can request information about configuration objects by sending
-a `GET` query to the `/v1/objects/<type>` URL endpoint. `<type` has
+a `GET` query to the `/v1/objects/<type>` URL endpoint. `<type>` has
 to be replaced with the plural name of the object type you are interested
 in:
 
@@ -1008,7 +1009,7 @@ curl -k -s -S -i -u root:icinga -H 'Accept: application/json' \
 There are several actions available for Icinga 2 provided by the `/v1/actions`
 URL endpoint. You can run actions by sending a `POST` request.
 
-The following actions are also used by [Icinga Web 2](https://icinga.com/products/icinga-web-2/):
+The following actions are also used by [Icinga Web 2](https://icinga.com/docs/icinga-web/latest/):
 
 * sending check results to Icinga from scripts, remote agents, etc.
 * scheduling downtimes from external scripts or cronjobs
@@ -1072,7 +1073,7 @@ Send a `POST` request to the URL endpoint `/v1/actions/process-check-result`.
   exit\_status       | Number                         | **Required.** For services: 0=OK, 1=WARNING, 2=CRITICAL, 3=UNKNOWN, for hosts: 0=UP, 1=DOWN.
   plugin\_output     | String                         | **Required.** One or more lines of the plugin main output. Does **not** contain the performance data.
   performance\_data  | Array<code>&#124;</code>String | **Optional.** The performance data as array of strings. The raw performance data string can be used too.
-  check\_command     | Array<code>&#124;</code>String | **Optional.** The first entry should be the check commands path, then one entry for each command line option followed by an entry for each of its argument. Alternativly a single string can be used.
+  check\_command     | Array<code>&#124;</code>String | **Optional.** The first entry should be the check commands path, then one entry for each command line option followed by an entry for each of its argument. Alternatively a single string can be used.
   check\_source      | String                         | **Optional.** Usually the name of the `command_endpoint`
   execution\_start   | Timestamp                      | **Optional.** The timestamp where a script/process started its execution.
   execution\_end     | Timestamp                      | **Optional.** The timestamp where a script/process ended its execution. This timestamp is used in features to determine e.g. the metric timestamp.
@@ -1657,14 +1658,14 @@ Send a `POST` request to the URL endpoint `/v1/actions/execute-command`.
   --------------|------------|--------------
   ttl           | Number     | **Required.** The time to live of the execution expressed in seconds.
   command_type  | String     | **Optional.** The command type: `CheckCommand` or `EventCommand` or `NotificationCommand`. Default: `EventCommand`
-  command       | String     | **Optional.** The command to execute. Its type must the same as `command_type`. It can be a macro string. Default: depending on the `command_type` it's either `$check_command$`, `$event_command$` or `$notification_command$`   
+  command       | String     | **Optional.** The command to execute. Its type must the same as `command_type`. It can be a macro string. Default: depending on the `command_type` it's either `$check_command$`, `$event_command$` or `$notification_command$`
   endpoint      | String     | **Optional.** The endpoint to execute the command on. It can be a macro string. Default: `$command_endpoint$`.
   macros        | Dictionary | **Optional.** Macro overrides. Default: `{}`
-  user          | String     | **Optional.** The user used for the notification command. 
+  user          | String     | **Optional.** The user used for the notification command.
   notification  | String     | **Optional.** The notification used for the notification command.
-  
+
 Example:
-  
+
 ```bash
 curl -k -s -S -i -u root:icinga -H 'Accept: application/json' \
  -X POST 'https://localhost:5665/v1/actions/execute-command' \
@@ -2018,7 +2019,7 @@ validate the configuration asynchronously and populate a status log which
 can be fetched in a separated request. Once the validation succeeds,
 a reload is triggered by default.
 
-This functionality was primarly developed for the [Icinga Director](https://icinga.com/docs/director/latest/)
+This functionality was primarily developed for the [Icinga Director](https://icinga.com/docs/director/latest/)
 but can be used with your own deployments too. It also solves the problem
 with certain runtime objects (zones, endpoints) and can be used to
 deploy global templates in [global cluster zones](06-distributed-monitoring.md#distributed-monitoring-global-zone-config-sync).
@@ -2373,7 +2374,7 @@ Creation, modification and deletion of templates at runtime is not supported.
 ### Querying Templates <a id="icinga2-api-config-templates-query"></a>
 
 You can request information about configuration templates by sending
-a `GET` query to the `/v1/templates/<type>` URL endpoint. `<type` has
+a `GET` query to the `/v1/templates/<type>` URL endpoint. `<type>` has
 to be replaced with the plural name of the object type you are interested
 in:
 
@@ -2528,6 +2529,72 @@ curl -k -s -S -i -u root:icinga -H 'Accept: application/json' \
 }
 ```
 
+## Memory Usage Analysis <a id="icinga2-api-memory"></a>
+
+The GNU libc function `malloc_info(3)` provides memory allocation and usage
+statistics of Icinga 2 itself. You can call it directly by sending a `GET`
+request to the URL endpoint `/v1/debug/malloc_info`.
+
+The [API permission](12-icinga2-api.md#icinga2-api-permissions) `debug` is required.
+
+Example:
+
+```bash
+curl -k -s -S -i -u root:icinga https://localhost:5665/v1/debug/malloc_info
+```
+
+In contrast to other API endpoints, the response is not JSON,
+but the raw XML output from `malloc_info(3)`. See also the
+[glibc malloc(3) internals](https://sourceware.org/glibc/wiki/MallocInternals).
+
+```xml
+<malloc version="1">
+  <heap nr="0">
+    <sizes>
+      <size from="33" to="48" total="96" count="2"/>
+      <size from="49" to="64" total="192" count="3"/>
+      <size from="65" to="80" total="80" count="1"/>
+      <unsorted from="84817" to="84817" total="84817" count="1"/>
+    </sizes>
+    <total type="fast" count="6" size="368"/>
+    <total type="rest" count="2" size="859217"/>
+    <system type="current" size="7409664"/>
+    <system type="max" size="7409664"/>
+    <aspace type="total" size="7409664"/>
+    <aspace type="mprotect" size="7409664"/>
+  </heap>
+  <!-- ... -->
+  <heap nr="30">
+    <sizes>
+      <size from="17" to="32" total="96" count="3"/>
+      <size from="33" to="48" total="576" count="12"/>
+      <size from="49" to="64" total="64" count="1"/>
+      <size from="97" to="112" total="3584" count="32"/>
+      <size from="49" to="49" total="98" count="2"/>
+      <size from="81" to="81" total="810" count="10"/>
+      <size from="257" to="257" total="2827" count="11"/>
+      <size from="689" to="689" total="689" count="1"/>
+      <size from="705" to="705" total="705" count="1"/>
+      <unsorted from="81" to="81" total="81" count="1"/>
+    </sizes>
+    <total type="fast" count="48" size="4320"/>
+    <total type="rest" count="27" size="118618"/>
+    <system type="current" size="135168"/>
+    <system type="max" size="135168"/>
+    <aspace type="total" size="135168"/>
+    <aspace type="mprotect" size="135168"/>
+    <aspace type="subheaps" size="1"/>
+  </heap>
+  <total type="fast" count="938" size="79392"/>
+  <total type="rest" count="700" size="4409469"/>
+  <total type="mmap" count="0" size="0"/>
+  <system type="current" size="15114240"/>
+  <system type="max" size="15114240"/>
+  <aspace type="total" size="15114240"/>
+  <aspace type="mprotect" size="15114240"/>
+</malloc>
+```
+
 ## API Clients <a id="icinga2-api-clients"></a>
 
 After its initial release in 2015, community members
@@ -2571,7 +2638,7 @@ Name												| Language	| Description
 [BitBar for OSX](https://getbitbar.com/plugins/Dev/Icinga2/icinga2.24m.py)			| Python	| macOS tray app for highlighting the host/service status
 [Icinga 2 Multistatus](https://chrome.google.com/webstore/detail/icinga-multi-status/khabbhcojgkibdeipanmiphceeoiijal/related)	| - 	| Chrome Extension
 [Naglite4](https://github.com/wftech/icinga2-naglite4)						| Python	| Naglite3 rewrite using the Icinga 2 REST API.
-[icinga-telegram-bot](https://github.com/joni1993/icinga-telegram-bot)				| Python	| Telegram Bot using the Icinga 2 REST API 
+[icinga-telegram-bot](https://github.com/joni1993/icinga-telegram-bot)				| Python	| Telegram Bot using the Icinga 2 REST API
 
 ### Manage Objects <a id="icinga2-api-clients-management"></a>
 
@@ -2632,7 +2699,7 @@ The following languages are covered:
 * [Golang](12-icinga2-api.md#icinga2-api-clients-programmatic-examples-golang)
 * [Powershell](12-icinga2-api.md#icinga2-api-clients-programmatic-examples-powershell)
 
-The [request method](icinga2-api-requests) is `POST` using [X-HTTP-Method-Override: GET](12-icinga2-api.md#icinga2-api-requests-method-override)
+The [request method](#icinga2-api-requests) is `POST` using [X-HTTP-Method-Override: GET](12-icinga2-api.md#icinga2-api-requests-method-override)
 which allows you to send a JSON request body. The examples request specific service
 attributes joined with host attributes. `attrs` and `joins` are therefore specified
 as array.

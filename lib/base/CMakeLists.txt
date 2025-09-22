@@ -37,7 +37,9 @@ set(base_SOURCES
   fifo.cpp fifo.hpp
   filelogger.cpp filelogger.hpp filelogger-ti.hpp
   function.cpp function.hpp function-ti.hpp function-script.cpp functionwrapper.hpp
+  generator.hpp
   initialize.cpp initialize.hpp
+  intrusive-ptr.hpp
   io-engine.cpp io-engine.hpp
   journaldlogger.cpp journaldlogger.hpp journaldlogger-ti.hpp
   json.cpp json.hpp json-script.cpp
@@ -86,6 +88,7 @@ set(base_SOURCES
   unixsocket.cpp unixsocket.hpp
   utility.cpp utility.hpp
   value.cpp value.hpp value-operators.cpp
+  wait-group.cpp wait-group.hpp
   win32.hpp
   workqueue.cpp workqueue.hpp
 )
@@ -130,7 +133,7 @@ if(HAVE_SYSTEMD)
   find_path(SYSTEMD_INCLUDE_DIR
     NAMES systemd/sd-daemon.h
     HINTS ${SYSTEMD_ROOT_DIR})
-  include_directories(${SYSTEMD_INCLUDE_DIR})
+  include_directories(SYSTEM ${SYSTEMD_INCLUDE_DIR})
   set_property(
     SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/journaldlogger.cpp
     APPEND PROPERTY COMPILE_DEFINITIONS
@@ -140,13 +143,13 @@ endif()
 
 add_library(base OBJECT ${base_SOURCES})
 
-include_directories(${icinga2_SOURCE_DIR}/third-party/execvpe)
+include_directories(SYSTEM ${icinga2_SOURCE_DIR}/third-party/execvpe)
 link_directories(${icinga2_BINARY_DIR}/third-party/execvpe)
 
-include_directories(${icinga2_SOURCE_DIR}/third-party/mmatch)
+include_directories(SYSTEM ${icinga2_SOURCE_DIR}/third-party/mmatch)
 link_directories(${icinga2_BINARY_DIR}/third-party/mmatch)
 
-include_directories(${icinga2_SOURCE_DIR}/third-party/socketpair)
+include_directories(SYSTEM ${icinga2_SOURCE_DIR}/third-party/socketpair)
 link_directories(${icinga2_BINARY_DIR}/third-party/socketpair)
 
 set_target_properties (
@@ -154,7 +157,9 @@ set_target_properties (
   FOLDER Lib
 )
 
-install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${ICINGA2_FULL_CACHEDIR}\")")
-install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${ICINGA2_FULL_LOGDIR}/crash\")")
+if(NOT WIN32)
+  install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${ICINGA2_FULL_CACHEDIR}\")")
+  install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${ICINGA2_FULL_LOGDIR}/crash\")")
+endif()
 
 set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}" PARENT_SCOPE)

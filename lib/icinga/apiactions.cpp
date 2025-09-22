@@ -126,12 +126,11 @@ Dictionary::Ptr ApiActions::ProcessCheckResult(const ConfigObject::Ptr& object,
 	if (params->Contains("ttl"))
 		cr->SetTtl(HttpUtility::GetLastParameter(params, "ttl"));
 
-	Result result = checkable->ProcessCheckResult(cr);
+	Result result = checkable->ProcessCheckResult(cr, ApiListener::GetInstance()->GetWaitGroup());
+
 	switch (result) {
 		case Result::Ok:
 			return ApiActions::CreateResult(200, "Successfully processed check result for object '" + checkable->GetName() + "'.");
-		case Result::NoCheckResult:
-			return ApiActions::CreateResult(400, "Could not process check result for object '" + checkable->GetName() + "' because no check result was passed.");
 		case Result::CheckableInactive:
 			return ApiActions::CreateResult(503, "Could not process check result for object '" + checkable->GetName() + "' because the object is inactive.");
 		case Result::NewerCheckResultPresent:
@@ -316,11 +315,11 @@ Dictionary::Ptr ApiActions::AddComment(const ConfigObject::Ptr& object,
 		return ApiActions::CreateResult(503, "Icinga is reloading.");
 	}
 
-	String commentName = Comment::AddComment(checkable, CommentUser,
+	Comment::Ptr comment = Comment::AddComment(checkable, CommentUser,
 		HttpUtility::GetLastParameter(params, "author"),
 		HttpUtility::GetLastParameter(params, "comment"), false, timestamp);
 
-	Comment::Ptr comment = Comment::GetByName(commentName);
+	String commentName = comment->GetName();
 
 	Dictionary::Ptr additional = new Dictionary({
 		{ "name", commentName },
@@ -494,7 +493,7 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 				<< "Scheduling downtime for child object " << child->GetName();
 
 			Downtime::Ptr childDowntime = Downtime::AddDowntime(child, author, comment, startTime, endTime,
-				fixed, trigger, duration);
+				fixed, trigger, duration, String(), String(), downtimeName);
 			String childDowntimeName = childDowntime->GetName();
 
 			Log(LogNotice, "ApiActions")
@@ -789,7 +788,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object, cons
 			Defer resetCheckCommandOverride([]() {
 				CheckCommand::ExecuteOverride = nullptr;
 			});
-			cmd->Execute(checkable, cr, execMacros, false);
+			cmd->Execute(checkable, cr, listener->GetWaitGroup(), execMacros, false);
 		}
 	} else if (command_type == "EventCommand") {
 		EventCommand::Ptr cmd = GetSingleObjectByNameUsingPermissions(EventCommand::GetTypeName(), resolved_command, ActionsHandler::AuthenticatedApiUser);
@@ -932,7 +931,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object, cons
 		for (const Zone::Ptr& zone : ConfigType::GetObjectsByType<Zone>()) {
 			/* Fetch immediate child zone members */
 			if (zone->GetParent() == localZone && zone->CanAccessObject(endpointPtr->GetZone())) {
-				std::set<Endpoint::Ptr> endpoints = zone->GetEndpoints();
+				auto endpoints (zone->GetEndpoints());
 
 				for (const Endpoint::Ptr& childEndpoint : endpoints) {
 					if (!(childEndpoint->GetCapabilities() & (uint_fast64_t)ApiCapabilities::ExecuteArbitraryCommand)) {

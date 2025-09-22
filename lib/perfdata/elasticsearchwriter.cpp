@@ -5,6 +5,7 @@
 #include "remote/url.hpp"
 #include "icinga/compatutility.hpp"
 #include "icinga/service.hpp"
+#include "icinga/macroprocessor.hpp"
 #include "icinga/checkcommand.hpp"
 #include "base/application.hpp"
 #include "base/defer.hpp"
@@ -100,13 +101,13 @@ void ElasticsearchWriter::Resume()
 		CheckResultHandler(checkable, cr);
 	});
 	m_HandleStateChanges = Checkable::OnStateChange.connect([this](const Checkable::Ptr& checkable,
-		const CheckResult::Ptr& cr, StateType type, const MessageOrigin::Ptr&) {
-		StateChangeHandler(checkable, cr, type);
+		const CheckResult::Ptr& cr, StateType, const MessageOrigin::Ptr&) {
+		StateChangeHandler(checkable, cr);
 	});
-	m_HandleNotifications = Checkable::OnNotificationSentToAllUsers.connect([this](const Notification::Ptr& notification,
+	m_HandleNotifications = Checkable::OnNotificationSentToAllUsers.connect([this](const Notification::Ptr&,
 		const Checkable::Ptr& checkable, const std::set<User::Ptr>& users, const NotificationType& type,
 		const CheckResult::Ptr& cr, const String& author, const String& text, const MessageOrigin::Ptr&) {
-		NotificationSentToAllUsersHandler(notification, checkable, users, type, cr, author, text);
+		NotificationSentToAllUsersHandler(checkable, users, type, cr, author, text);
 	});
 }
 
@@ -129,6 +130,33 @@ void ElasticsearchWriter::Pause()
 		<< "'" << GetName() << "' paused.";
 
 	ObjectImpl<ElasticsearchWriter>::Pause();
+}
+
+void ElasticsearchWriter::AddTemplateTags(const Dictionary::Ptr& fields, const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
+{
+	Host::Ptr host;
+	Service::Ptr service;
+	tie(host, service) = GetHostService(checkable);
+
+	Dictionary::Ptr tmpl = service ? GetServiceTagsTemplate() : GetHostTagsTemplate();
+
+	if (tmpl) {
+		MacroProcessor::ResolverList resolvers;
+		resolvers.emplace_back("host", host);
+		if (service) {
+			resolvers.emplace_back("service", service);
+		}
+
+		ObjectLock olock(tmpl);
+		for (const Dictionary::Pair& pair : tmpl) {
+			String missingMacro;
+			Value value = MacroProcessor::ResolveMacros(pair.second, resolvers, cr, &missingMacro);
+
+			if (missingMacro.IsEmpty()) {
+				fields->Set(pair.first, value);
+			}
+		}
+	}
 }
 
 void ElasticsearchWriter::AddCheckResult(const Dictionary::Ptr& fields, const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
@@ -208,15 +236,6 @@ void ElasticsearchWriter::CheckResultHandler(const Checkable::Ptr& checkable, co
 	if (IsPaused())
 		return;
 
-	m_WorkQueue.Enqueue([this, checkable, cr]() { InternalCheckResultHandler(checkable, cr); });
-}
-
-void ElasticsearchWriter::InternalCheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
-{
-	AssertOnWorkQueue();
-
-	CONTEXT("Elasticwriter processing check result for '" << checkable->GetName() << "'");
-
 	if (!IcingaApplication::GetInstance()->GetEnablePerfdata() || !checkable->GetEnablePerfdata())
 		return;
 
@@ -244,35 +263,23 @@ void ElasticsearchWriter::InternalCheckResultHandler(const Checkable::Ptr& check
 	fields->Set("max_check_attempts", checkable->GetMaxCheckAttempts());
 
 	fields->Set("reachable", checkable->IsReachable());
+	fields->Set("check_command", checkable->GetCheckCommand()->GetName());
 
-	CheckCommand::Ptr commandObj = checkable->GetCheckCommand();
+	AddTemplateTags(fields, checkable, cr);
 
-	if (commandObj)
-		fields->Set("check_command", commandObj->GetName());
+	m_WorkQueue.Enqueue([this, checkable, cr, fields = std::move(fields)]() {
+		CONTEXT("Elasticwriter processing check result for '" << checkable->GetName() << "'");
 
-	double ts = Utility::GetTime();
-
-	if (cr) {
 		AddCheckResult(fields, checkable, cr);
-		ts = cr->GetExecutionEnd();
-	}
 
-	Enqueue(checkable, "checkresult", fields, ts);
+		Enqueue(checkable, "checkresult", fields, cr->GetExecutionEnd());
+	});
 }
 
-void ElasticsearchWriter::StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type)
+void ElasticsearchWriter::StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
 {
 	if (IsPaused())
 		return;
-
-	m_WorkQueue.Enqueue([this, checkable, cr, type]() { StateChangeHandlerInternal(checkable, cr, type); });
-}
-
-void ElasticsearchWriter::StateChangeHandlerInternal(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type)
-{
-	AssertOnWorkQueue();
-
-	CONTEXT("Elasticwriter processing state change '" << checkable->GetName() << "'");
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -295,43 +302,24 @@ void ElasticsearchWriter::StateChangeHandlerInternal(const Checkable::Ptr& check
 		fields->Set("last_hard_state", host->GetLastHardState());
 	}
 
-	CheckCommand::Ptr commandObj = checkable->GetCheckCommand();
+	fields->Set("check_command", checkable->GetCheckCommand()->GetName());
 
-	if (commandObj)
-		fields->Set("check_command", commandObj->GetName());
+	AddTemplateTags(fields, checkable, cr);
 
-	double ts = Utility::GetTime();
+	m_WorkQueue.Enqueue([this, checkable, cr, fields = std::move(fields)]() {
+		CONTEXT("Elasticwriter processing state change '" << checkable->GetName() << "'");
 
-	if (cr) {
 		AddCheckResult(fields, checkable, cr);
-		ts = cr->GetExecutionEnd();
-	}
 
-	Enqueue(checkable, "statechange", fields, ts);
-}
-
-void ElasticsearchWriter::NotificationSentToAllUsersHandler(const Notification::Ptr& notification,
-	const Checkable::Ptr& checkable, const std::set<User::Ptr>& users, NotificationType type,
-	const CheckResult::Ptr& cr, const String& author, const String& text)
-{
-	if (IsPaused())
-		return;
-
-	m_WorkQueue.Enqueue([this, notification, checkable, users, type, cr, author, text]() {
-		NotificationSentToAllUsersHandlerInternal(notification, checkable, users, type, cr, author, text);
+		Enqueue(checkable, "statechange", fields, cr->GetExecutionEnd());
 	});
 }
 
-void ElasticsearchWriter::NotificationSentToAllUsersHandlerInternal(const Notification::Ptr& notification,
-	const Checkable::Ptr& checkable, const std::set<User::Ptr>& users, NotificationType type,
-	const CheckResult::Ptr& cr, const String& author, const String& text)
+void ElasticsearchWriter::NotificationSentToAllUsersHandler(const Checkable::Ptr& checkable, const std::set<User::Ptr>& users,
+	NotificationType type, const CheckResult::Ptr& cr, const String& author, const String& text)
 {
-	AssertOnWorkQueue();
-
-	CONTEXT("Elasticwriter processing notification to all users '" << checkable->GetName() << "'");
-
-	Log(LogDebug, "ElasticsearchWriter")
-		<< "Processing notification for '" << checkable->GetName() << "'";
+	if (IsPaused())
+		return;
 
 	Host::Ptr host;
 	Service::Ptr service;
@@ -364,25 +352,32 @@ void ElasticsearchWriter::NotificationSentToAllUsersHandlerInternal(const Notifi
 	fields->Set("notification_type", notificationTypeString);
 	fields->Set("author", author);
 	fields->Set("text", text);
+	fields->Set("check_command", checkable->GetCheckCommand()->GetName());
 
-	CheckCommand::Ptr commandObj = checkable->GetCheckCommand();
+	AddTemplateTags(fields, checkable, cr);
 
-	if (commandObj)
-		fields->Set("check_command", commandObj->GetName());
+	m_WorkQueue.Enqueue([this, checkable, cr, fields = std::move(fields)]() {
+		CONTEXT("Elasticwriter processing notification to all users '" << checkable->GetName() << "'");
 
-	double ts = Utility::GetTime();
+		Log(LogDebug, "ElasticsearchWriter")
+			<< "Processing notification for '" << checkable->GetName() << "'";
 
-	if (cr) {
-		AddCheckResult(fields, checkable, cr);
-		ts = cr->GetExecutionEnd();
-	}
+		double ts = Utility::GetTime();
 
-	Enqueue(checkable, "notification", fields, ts);
+		if (cr) {
+			AddCheckResult(fields, checkable, cr);
+			ts = cr->GetExecutionEnd();
+		}
+
+		Enqueue(checkable, "notification", fields, ts);
+	});
 }
 
 void ElasticsearchWriter::Enqueue(const Checkable::Ptr& checkable, const String& type,
 	const Dictionary::Ptr& fields, double ts)
 {
+	AssertOnWorkQueue();
+
 	/* Atomically buffer the data point. */
 	std::unique_lock<std::mutex> lock(m_DataBufferMutex);
 
@@ -682,4 +677,50 @@ String ElasticsearchWriter::FormatTimestamp(double ts)
 	auto milliSeconds = static_cast<int>((ts - static_cast<int>(ts)) * 1000);
 
 	return Utility::FormatDateTime("%Y-%m-%dT%H:%M:%S", ts) + "." + Convert::ToString(milliSeconds) + Utility::FormatDateTime("%z", ts);
+}
+
+void ElasticsearchWriter::ValidateHostTagsTemplate(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)
+{
+	ObjectImpl<ElasticsearchWriter>::ValidateHostTagsTemplate(lvalue, utils);
+
+	Dictionary::Ptr tags = lvalue();
+	if (tags) {
+		ObjectLock olock(tags);
+		for (const Dictionary::Pair& pair : tags) {
+			if (pair.second.IsObjectType<Array>()) {
+				Array::Ptr arrObject = pair.second;
+				ObjectLock arrLock(arrObject);
+				for (const Value& arrValue : arrObject) {
+					if (!MacroProcessor::ValidateMacroString(arrValue)) {
+						BOOST_THROW_EXCEPTION(ValidationError(this, { "host_tags_template", pair.first }, "Closing $ not found in macro format string '" + arrValue + "'."));
+					}
+				}
+			} else if (!MacroProcessor::ValidateMacroString(pair.second)) {
+				BOOST_THROW_EXCEPTION(ValidationError(this, { "host_tags_template", pair.first }, "Closing $ not found in macro format string '" + pair.second + "'."));
+			}
+		}
+	}
+}
+
+void ElasticsearchWriter::ValidateServiceTagsTemplate(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)
+{
+	ObjectImpl<ElasticsearchWriter>::ValidateServiceTagsTemplate(lvalue, utils);
+
+	Dictionary::Ptr tags = lvalue();
+	if (tags) {
+		ObjectLock olock(tags);
+		for (const Dictionary::Pair& pair : tags) {
+			if (pair.second.IsObjectType<Array>()) {
+				Array::Ptr arrObject = pair.second;
+				ObjectLock arrLock(arrObject);
+				for (const Value& arrValue : arrObject) {
+					if (!MacroProcessor::ValidateMacroString(arrValue)) {
+						BOOST_THROW_EXCEPTION(ValidationError(this, { "service_tags_template", pair.first }, "Closing $ not found in macro format string '" + arrValue + "'."));
+					}
+				}
+			} else if (!MacroProcessor::ValidateMacroString(pair.second)) {
+				BOOST_THROW_EXCEPTION(ValidationError(this, { "service_tags_template", pair.first }, "Closing $ not found in macro format string '" + pair.second + "'."));
+			}
+		}
+	}
 }

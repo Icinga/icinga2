@@ -30,7 +30,7 @@ set(icinga_SOURCES
   checkable.cpp checkable.hpp checkable-ti.hpp
   checkable-check.cpp checkable-comment.cpp checkable-dependency.cpp
   checkable-downtime.cpp checkable-event.cpp checkable-flapping.cpp
-  checkable-notification.cpp checkable-script.cpp
+  checkable-notification.cpp
   checkcommand.cpp checkcommand.hpp checkcommand-ti.hpp
   checkresult.cpp checkresult.hpp checkresult-ti.hpp
   cib.cpp cib.hpp
@@ -39,7 +39,7 @@ set(icinga_SOURCES
   comment.cpp comment.hpp comment-ti.hpp
   compatutility.cpp compatutility.hpp
   customvarobject.cpp customvarobject.hpp customvarobject-ti.hpp
-  dependency.cpp dependency.hpp dependency-ti.hpp dependency-apply.cpp
+  dependency.cpp dependency-group.cpp dependency-state.cpp dependency.hpp dependency-ti.hpp dependency-apply.cpp
   downtime.cpp downtime.hpp downtime-ti.hpp
   envresolver.cpp envresolver.hpp
   eventcommand.cpp eventcommand.hpp eventcommand-ti.hpp

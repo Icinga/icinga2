@@ -57,17 +57,17 @@ public:
 };
 
 bool VariableQueryHandler::HandleRequest(
-	AsioTlsStream& stream,
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params,
-	boost::asio::yield_context& yc,
-	HttpServerConnection& server
+	const WaitGroup::Ptr&,
+	const HttpRequest& request,
+	HttpResponse& response,
+	boost::asio::yield_context& yc
 )
 {
 	namespace http = boost::beast::http;
+
+	auto url = request.Url();
+	auto user = request.User();
+	auto params = request.Params();
 
 	if (url->GetPath().size() > 3)
 		return false;
@@ -98,7 +98,7 @@ bool VariableQueryHandler::HandleRequest(
 
 	ArrayData results;
 
-	for (const Dictionary::Ptr& var : objs) {
+	for (Dictionary::Ptr var : objs) {
 		if (var->Get("name") == "TicketSalt")
 			continue;
 

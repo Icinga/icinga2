@@ -2,21 +2,323 @@
 
 #include "base/json.hpp"
 #include "base/debug.hpp"
-#include "base/namespace.hpp"
 #include "base/dictionary.hpp"
-#include "base/array.hpp"
+#include "base/namespace.hpp"
 #include "base/objectlock.hpp"
-#include "base/convert.hpp"
 #include "base/utility.hpp"
-#include <bitset>
-#include <boost/exception_ptr.hpp>
-#include <cstdint>
-#include <json.hpp>
+#include <boost/numeric/conversion/cast.hpp>
 #include <stack>
 #include <utility>
 #include <vector>
 
 using namespace icinga;
+
+JsonEncoder::JsonEncoder(std::string& output, bool prettify)
+	: JsonEncoder{nlohmann::detail::output_adapter<char>(output), prettify}
+{
+}
+
+JsonEncoder::JsonEncoder(std::basic_ostream<char>& stream, bool prettify)
+	: JsonEncoder{nlohmann::detail::output_adapter<char>(stream), prettify}
+{
+}
+
+JsonEncoder::JsonEncoder(nlohmann::detail::output_adapter_t<char> w, bool prettify)
+	: m_Pretty(prettify), m_Writer(std::move(w)), m_Flusher{m_Writer}
+{
+}
+
+/**
+ * Encodes a single value into JSON and writes it to the underlying output stream.
+ *
+ * This method is the main entry point for encoding JSON data. It takes a value of any type that can
+ * be represented by our @c Value class recursively and encodes it into JSON in an efficient manner.
+ * If prettifying is enabled, the JSON output will be formatted with indentation and newlines for better
+ * readability, and the final JSON will also be terminated by a newline character.
+ *
+ * @note If the used output adapter performs asynchronous I/O operations (it's derived from @c AsyncJsonWriter),
+ * please provide a @c boost::asio::yield_context object to allow the encoder to flush the output stream in a
+ * safe manner. The encoder will try to regularly give the output stream a chance to flush its data when it is
+ * safe to do so, but for this to work, there must be a valid yield context provided. Otherwise, the encoder
+ * will not attempt to flush the output stream at all, which may lead to huge memory consumption when encoding
+ * large JSON objects or arrays.
+ *
+ * @param value The value to be JSON serialized.
+ * @param yc The optional yield context for asynchronous operations. If provided, it allows the encoder
+ * to flush the output stream safely when it has not acquired any object lock on the parent containers.
+ */
+void JsonEncoder::Encode(const Value& value, boost::asio::yield_context* yc)
+{
+	switch (value.GetType()) {
+		case ValueEmpty:
+			Write("null");
+			break;
+		case ValueBoolean:
+			Write(value.ToBool() ? "true" : "false");
+			break;
+		case ValueString:
+			EncodeNlohmannJson(value.Get<String>());
+			break;
+		case ValueNumber:
+			EncodeNumber(value.Get<double>());
+			break;
+		case ValueObject: {
+			const auto& obj = value.Get<Object::Ptr>();
+			const auto& type = obj->GetReflectionType();
+			if (type == Namespace::TypeInstance) {
+				static constexpr auto extractor = [](const NamespaceValue& v) -> const Value& { return v.Val; };
+				EncodeObject(static_pointer_cast<Namespace>(obj), extractor, yc);
+			} else if (type == Dictionary::TypeInstance) {
+				static constexpr auto extractor = [](const Value& v) -> const Value& { return v; };
+				EncodeObject(static_pointer_cast<Dictionary>(obj), extractor, yc);
+			} else if (type == Array::TypeInstance) {
+				EncodeArray(static_pointer_cast<Array>(obj), yc);
+			} else if (auto gen(dynamic_pointer_cast<ValueGenerator>(obj)); gen) {
+				EncodeValueGenerator(gen, yc);
+			} else {
+				// Some other non-serializable object type!
+				EncodeNlohmannJson(obj->ToString());
+			}
+			break;
+		}
+		default:
+			VERIFY(!"Invalid variant type.");
+	}
+
+	// If we are at the top level of the JSON object and prettifying is enabled, we need to end
+	// the JSON with a newline character to ensure that the output is properly formatted.
+	if (m_Indent == 0 && m_Pretty) {
+		Write("\n");
+	}
+}
+
+/**
+ * Encodes an Array object into JSON and writes it to the output stream.
+ *
+ * @param array The Array object to be serialized into JSON.
+ * @param yc The optional yield context for asynchronous operations. If provided, it allows the encoder
+ * to flush the output stream safely when it has not acquired any object lock.
+ */
+void JsonEncoder::EncodeArray(const Array::Ptr& array, boost::asio::yield_context* yc)
+{
+	BeginContainer('[');
+	auto olock = array->LockIfRequired();
+	if (olock) {
+		yc = nullptr; // We've acquired an object lock, never allow asynchronous operations.
+	}
+
+	bool isEmpty = true;
+	for (const auto& item : array) {
+		WriteSeparatorAndIndentStrIfNeeded(!isEmpty);
+		isEmpty = false;
+		Encode(item, yc);
+		m_Flusher.FlushIfSafe(yc);
+	}
+	EndContainer(']', isEmpty);
+}
+
+/**
+ * Encodes a ValueGenerator object into JSON and writes it to the output stream.
+ *
+ * This will iterate through the generator, encoding each value it produces until it is exhausted.
+ *
+ * @param generator The ValueGenerator object to be serialized into JSON.
+ * @param yc The optional yield context for asynchronous operations. If provided, it allows the encoder
+ * to flush the output stream safely when it has not acquired any object lock on the parent containers.
+ */
+void JsonEncoder::EncodeValueGenerator(const ValueGenerator::Ptr& generator, boost::asio::yield_context* yc)
+{
+	BeginContainer('[');
+	bool isEmpty = true;
+	while (auto result = generator->Next()) {
+		WriteSeparatorAndIndentStrIfNeeded(!isEmpty);
+		isEmpty = false;
+		Encode(*result, yc);
+		m_Flusher.FlushIfSafe(yc);
+	}
+	EndContainer(']', isEmpty);
+}
+
+/**
+ * Encodes an Icinga 2 object (Namespace or Dictionary) into JSON and writes it to @c m_Writer.
+ *
+ * @tparam Iterable Type of the container (Namespace or Dictionary).
+ * @tparam ValExtractor Type of the value extractor function used to extract values from the container's iterator.
+ *
+ * @param container The container to JSON serialize.
+ * @param extractor The value extractor function used to extract values from the container's iterator.
+ * @param yc The optional yield context for asynchronous operations. It will only be set when the encoder
+ * has not acquired any object lock on the parent containers, allowing safe asynchronous operations.
+ */
+template<typename Iterable, typename ValExtractor>
+void JsonEncoder::EncodeObject(const Iterable& container, const ValExtractor& extractor, boost::asio::yield_context* yc)
+{
+	static_assert(std::is_same_v<Iterable, Namespace::Ptr> || std::is_same_v<Iterable, Dictionary::Ptr>,
+		"Container must be a Namespace or Dictionary");
+
+	BeginContainer('{');
+	auto olock = container->LockIfRequired();
+	if (olock) {
+		yc = nullptr; // We've acquired an object lock, never allow asynchronous operations.
+	}
+
+	bool isEmpty = true;
+	for (const auto& [key, val] : container) {
+		WriteSeparatorAndIndentStrIfNeeded(!isEmpty);
+		isEmpty = false;
+
+		EncodeNlohmannJson(key);
+		Write(m_Pretty ? ": " : ":");
+
+		Encode(extractor(val), yc);
+		m_Flusher.FlushIfSafe(yc);
+	}
+	EndContainer('}', isEmpty);
+}
+
+/**
+ * Dumps a nlohmann::json object to the output stream using the serializer.
+ *
+ * This function uses the @c nlohmann::detail::serializer to dump the provided @c nlohmann::json
+ * object to the output stream managed by the @c JsonEncoder. Strings will be properly escaped, and
+ * if any invalid UTF-8 sequences are encountered, it will replace them with the Unicode replacement
+ * character (U+FFFD).
+ *
+ * @param json The nlohmann::json object to encode.
+ */
+void JsonEncoder::EncodeNlohmannJson(const nlohmann::json& json) const
+{
+	nlohmann::detail::serializer<nlohmann::json> s(m_Writer, ' ', nlohmann::json::error_handler_t::replace);
+	s.dump(json, m_Pretty, true, 0, 0);
+}
+
+/**
+ * Encodes a double value into JSON format and writes it to the output stream.
+ *
+ * This function checks if the double value can be safely cast to an integer or unsigned integer type
+ * without loss of precision. If it can, it will serialize it as such; otherwise, it will serialize
+ * it as a double. This is particularly useful for ensuring that values like 0.0 are serialized as 0,
+ * which can be important for compatibility with clients like Icinga DB that expect integers in such cases.
+ *
+ * @param value The double value to encode as JSON.
+ */
+void JsonEncoder::EncodeNumber(double value) const
+{
+	try {
+		if (value < 0) {
+			if (auto ll(boost::numeric_cast<nlohmann::json::number_integer_t>(value)); ll == value) {
+				EncodeNlohmannJson(ll);
+				return;
+			}
+		} else if (auto ull(boost::numeric_cast<nlohmann::json::number_unsigned_t>(value)); ull == value) {
+			EncodeNlohmannJson(ull);
+			return;
+		}
+		// If we reach this point, the value cannot be safely cast to a signed or unsigned integer
+		// type because it would otherwise lose its precision. If the value was just too large to fit
+		// into the above types, then boost will throw an exception and end up in the below catch block.
+		// So, in either case, serialize the number as-is without any casting.
+	} catch (const boost::bad_numeric_cast&) {}
+
+	EncodeNlohmannJson(value);
+}
+
+/**
+ * Writes a string to the underlying output stream.
+ *
+ * This function writes the provided string view directly to the output stream without any additional formatting.
+ *
+ * @param sv The string view to write to the output stream.
+ */
+void JsonEncoder::Write(const std::string_view& sv) const
+{
+	m_Writer->write_characters(sv.data(), sv.size());
+}
+
+/**
+ * Begins a JSON container (object or array) by writing the opening character and adjusting the
+ * indentation level if pretty-printing is enabled.
+ *
+ * @param openChar The character that opens the container (either '{' for objects or '[' for arrays).
+ */
+void JsonEncoder::BeginContainer(char openChar)
+{
+	if (m_Pretty) {
+		m_Indent += m_IndentSize;
+		if (m_IndentStr.size() < m_Indent) {
+			m_IndentStr.resize(m_IndentStr.size() * 2, ' ');
+		}
+	}
+	m_Writer->write_character(openChar);
+}
+
+/**
+ * Ends a JSON container (object or array) by writing the closing character and adjusting the
+ * indentation level if pretty-printing is enabled.
+ *
+ * @param closeChar The character that closes the container (either '}' for objects or ']' for arrays).
+ * @param isContainerEmpty Whether the container is empty, used to determine if a newline should be written.
+ */
+void JsonEncoder::EndContainer(char closeChar, bool isContainerEmpty)
+{
+	if (m_Pretty) {
+		ASSERT(m_Indent >= m_IndentSize); // Ensure we don't underflow the indent size.
+		m_Indent -= m_IndentSize;
+		if (!isContainerEmpty) {
+			Write("\n");
+			m_Writer->write_characters(m_IndentStr.c_str(), m_Indent);
+		}
+	}
+	m_Writer->write_character(closeChar);
+}
+
+/**
+ * Writes a separator (comma) and an indentation string if pretty-printing is enabled.
+ *
+ * This function is used to separate items in a JSON array or object and to maintain the correct indentation level.
+ *
+ * @param emitComma Whether to emit a comma. This is typically true for all but the first item in a container.
+ */
+void JsonEncoder::WriteSeparatorAndIndentStrIfNeeded(bool emitComma) const
+{
+	if (emitComma) {
+		Write(",");
+	}
+	if (m_Pretty) {
+		Write("\n");
+		m_Writer->write_characters(m_IndentStr.c_str(), m_Indent);
+	}
+}
+
+/**
+ * Wraps any writer of type @c nlohmann::detail::output_adapter_t<char> into a Flusher
+ *
+ * @param w The writer to wrap.
+ */
+JsonEncoder::Flusher::Flusher(const nlohmann::detail::output_adapter_t<char>& w)
+	: m_AsyncWriter(dynamic_cast<AsyncJsonWriter*>(w.get()))
+{
+}
+
+/**
+ * Flushes the underlying writer if it supports that operation and is safe to do so.
+ *
+ * Safe flushing means that it only performs the flush operation if the @c JsonEncoder has not acquired
+ * any object lock so far. This is to ensure that the stream can safely perform asynchronous operations
+ * without risking undefined behaviour due to coroutines being suspended while the stream is being flushed.
+ *
+ * When the @c yc parameter is provided, it indicates that it's safe to perform asynchronous operations,
+ * and the function will attempt to flush if the writer is an instance of @c AsyncJsonWriter. Otherwise,
+ * this function does nothing.
+ *
+ * @param yc The yield context to use for asynchronous operations.
+ */
+void JsonEncoder::Flusher::FlushIfSafe(boost::asio::yield_context* yc) const
+{
+	if (yc && m_AsyncWriter) {
+		m_AsyncWriter->MayFlush(*yc);
+	}
+}
 
 class JsonSax : public nlohmann::json_sax<nlohmann::json>
 {
@@ -45,165 +347,25 @@ private:
 	void FillCurrentTarget(Value value);
 };
 
-const char l_Null[] = "null";
-const char l_False[] = "false";
-const char l_True[] = "true";
-const char l_Indent[] = "    ";
-
-// https://github.com/nlohmann/json/issues/1512
-template<bool prettyPrint>
-class JsonEncoder
+String icinga::JsonEncode(const Value& value, bool prettify)
 {
-public:
-	void Null();
-	void Boolean(bool value);
-	void NumberFloat(double value);
-	void Strng(String value);
-	void StartObject();
-	void Key(String value);
-	void EndObject();
-	void StartArray();
-	void EndArray();
-
-	String GetResult();
-
-private:
-	std::vector<char> m_Result;
-	String m_CurrentKey;
-	std::stack<std::bitset<2>> m_CurrentSubtree;
-
-	void AppendChar(char c);
-
-	template<class Iterator>
-	void AppendChars(Iterator begin, Iterator end);
-
-	void AppendJson(nlohmann::json json);
-
-	void BeforeItem();
-
-	void FinishContainer(char terminator);
-};
-
-template<bool prettyPrint>
-void Encode(JsonEncoder<prettyPrint>& stateMachine, const Value& value);
-
-template<bool prettyPrint>
-inline
-void EncodeNamespace(JsonEncoder<prettyPrint>& stateMachine, const Namespace::Ptr& ns)
-{
-	stateMachine.StartObject();
-
-	ObjectLock olock(ns);
-	for (const Namespace::Pair& kv : ns) {
-		stateMachine.Key(Utility::ValidateUTF8(kv.first));
-		Encode(stateMachine, kv.second.Val);
-	}
-
-	stateMachine.EndObject();
+	std::string output;
+	JsonEncoder encoder(output, prettify);
+	encoder.Encode(value);
+	return String(std::move(output));
 }
 
-template<bool prettyPrint>
-inline
-void EncodeDictionary(JsonEncoder<prettyPrint>& stateMachine, const Dictionary::Ptr& dict)
+/**
+ * Serializes an Icinga Value into a JSON object and writes it to the given output stream.
+ *
+ * @param value The value to be JSON serialized.
+ * @param os The output stream to write the JSON data to.
+ * @param prettify Whether to pretty print the serialized JSON.
+ */
+void icinga::JsonEncode(const Value& value, std::ostream& os, bool prettify)
 {
-	stateMachine.StartObject();
-
-	ObjectLock olock(dict);
-	for (const Dictionary::Pair& kv : dict) {
-		stateMachine.Key(Utility::ValidateUTF8(kv.first));
-		Encode(stateMachine, kv.second);
-	}
-
-	stateMachine.EndObject();
-}
-
-template<bool prettyPrint>
-inline
-void EncodeArray(JsonEncoder<prettyPrint>& stateMachine, const Array::Ptr& arr)
-{
-	stateMachine.StartArray();
-
-	ObjectLock olock(arr);
-	for (const Value& value : arr) {
-		Encode(stateMachine, value);
-	}
-
-	stateMachine.EndArray();
-}
-
-template<bool prettyPrint>
-void Encode(JsonEncoder<prettyPrint>& stateMachine, const Value& value)
-{
-	switch (value.GetType()) {
-		case ValueNumber:
-			stateMachine.NumberFloat(value.Get<double>());
-			break;
-
-		case ValueBoolean:
-			stateMachine.Boolean(value.ToBool());
-			break;
-
-		case ValueString:
-			stateMachine.Strng(Utility::ValidateUTF8(value.Get<String>()));
-			break;
-
-		case ValueObject:
-			{
-				const Object::Ptr& obj = value.Get<Object::Ptr>();
-
-				{
-					Namespace::Ptr ns = dynamic_pointer_cast<Namespace>(obj);
-					if (ns) {
-						EncodeNamespace(stateMachine, ns);
-						break;
-					}
-				}
-
-				{
-					Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(obj);
-					if (dict) {
-						EncodeDictionary(stateMachine, dict);
-						break;
-					}
-				}
-
-				{
-					Array::Ptr arr = dynamic_pointer_cast<Array>(obj);
-					if (arr) {
-						EncodeArray(stateMachine, arr);
-						break;
-					}
-				}
-
-				// obj is most likely a function => "Object of type 'Function'"
-				Encode(stateMachine, obj->ToString());
-				break;
-			}
-
-		case ValueEmpty:
-			stateMachine.Null();
-			break;
-
-		default:
-			VERIFY(!"Invalid variant type.");
-	}
-}
-
-String icinga::JsonEncode(const Value& value, bool pretty_print)
-{
-	if (pretty_print) {
-		JsonEncoder<true> stateMachine;
-
-		Encode(stateMachine, value);
-
-		return stateMachine.GetResult() + "\n";
-	} else {
-		JsonEncoder<false> stateMachine;
-
-		Encode(stateMachine, value);
-
-		return stateMachine.GetResult();
-	}
+	JsonEncoder encoder(os, prettify);
+	encoder.Encode(value);
 }
 
 Value icinga::JsonDecode(const String& data)
@@ -348,178 +510,4 @@ void JsonSax::FillCurrentTarget(Value value)
 			node.second->Add(value);
 		}
 	}
-}
-
-template<bool prettyPrint>
-inline
-void JsonEncoder<prettyPrint>::Null()
-{
-	BeforeItem();
-	AppendChars((const char*)l_Null, (const char*)l_Null + 4);
-}
-
-template<bool prettyPrint>
-inline
-void JsonEncoder<prettyPrint>::Boolean(bool value)
-{
-	BeforeItem();
-
-	if (value) {
-		AppendChars((const char*)l_True, (const char*)l_True + 4);
-	} else {
-		AppendChars((const char*)l_False, (const char*)l_False + 5);
-	}
-}
-
-template<bool prettyPrint>
-inline
-void JsonEncoder<prettyPrint>::NumberFloat(double value)
-{
-	BeforeItem();
-
-	// Make sure 0.0 is serialized as 0, so e.g. Icinga DB can parse it as int.
-	if (value < 0) {
-		long long i = value;
-
-		if (i == value) {
-			AppendJson(i);
-		} else {
-			AppendJson(value);
-		}
-	} else {
-		unsigned long long i = value;
-
-		if (i == value) {
-			AppendJson(i);
-		} else {
-			AppendJson(value);
-		}
-	}
-}
-
-template<bool prettyPrint>
-inline
-void JsonEncoder<prettyPrint>::Strng(String value)
-{
-	BeforeItem();
-	AppendJson(std::move(value));
-}
-
-template<bool prettyPrint>
-inline
-void JsonEncoder<prettyPrint>::StartObject()
-{
-	BeforeItem();
-	AppendChar('{');
-
-	m_CurrentSubtree.push(2);
-}
-
-template<bool prettyPrint>
-inline
-void JsonEncoder<prettyPrint>::Key(String value)
-{
-	m_CurrentKey = std::move(value);
-}
-
-template<bool prettyPrint>
-inline
-void JsonEncoder<prettyPrint>::EndObject()
-{
-	FinishContainer('}');
-}
-
-template<bool prettyPrint>
-inline
-void JsonEncoder<prettyPrint>::StartArray()
-{
-	BeforeItem();
-	AppendChar('[');
-
-	m_CurrentSubtree.push(0);
-}
-
-template<bool prettyPrint>
-inline
-void JsonEncoder<prettyPrint>::EndArray()
-{
-	FinishContainer(']');
-}
-
-template<bool prettyPrint>
-inline
-String JsonEncoder<prettyPrint>::GetResult()
-{
-	return String(m_Result.begin(), m_Result.end());
-}
-
-template<bool prettyPrint>
-inline
-void JsonEncoder<prettyPrint>::AppendChar(char c)
-{
-	m_Result.emplace_back(c);
-}
-
-template<bool prettyPrint>
-template<class Iterator>
-inline
-void JsonEncoder<prettyPrint>::AppendChars(Iterator begin, Iterator end)
-{
-	m_Result.insert(m_Result.end(), begin, end);
-}
-
-template<bool prettyPrint>
-inline
-void JsonEncoder<prettyPrint>::AppendJson(nlohmann::json json)
-{
-	nlohmann::detail::serializer<nlohmann::json>(nlohmann::detail::output_adapter<char>(m_Result), ' ').dump(std::move(json), prettyPrint, true, 0);
-}
-
-template<bool prettyPrint>
-inline
-void JsonEncoder<prettyPrint>::BeforeItem()
-{
-	if (!m_CurrentSubtree.empty()) {
-		auto& node (m_CurrentSubtree.top());
-
-		if (node[0]) {
-			AppendChar(',');
-		} else {
-			node[0] = true;
-		}
-
-		if (prettyPrint) {
-			AppendChar('\n');
-
-			for (auto i (m_CurrentSubtree.size()); i; --i) {
-				AppendChars((const char*)l_Indent, (const char*)l_Indent + 4);
-			}
-		}
-
-		if (node[1]) {
-			AppendJson(std::move(m_CurrentKey));
-			AppendChar(':');
-
-			if (prettyPrint) {
-				AppendChar(' ');
-			}
-		}
-	}
-}
-
-template<bool prettyPrint>
-inline
-void JsonEncoder<prettyPrint>::FinishContainer(char terminator)
-{
-	if (prettyPrint && m_CurrentSubtree.top()[0]) {
-		AppendChar('\n');
-
-		for (auto i (m_CurrentSubtree.size() - 1u); i; --i) {
-			AppendChars((const char*)l_Indent, (const char*)l_Indent + 4);
-		}
-	}
-
-	AppendChar(terminator);
-
-	m_CurrentSubtree.pop();
 }

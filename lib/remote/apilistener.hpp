@@ -8,6 +8,7 @@
 #include "remote/httpserverconnection.hpp"
 #include "remote/endpoint.hpp"
 #include "remote/messageorigin.hpp"
+#include "base/atomic.hpp"
 #include "base/configobject.hpp"
 #include "base/process.hpp"
 #include "base/shared.hpp"
@@ -16,6 +17,7 @@
 #include "base/tcpsocket.hpp"
 #include "base/tlsstream.hpp"
 #include "base/threadpool.hpp"
+#include "base/wait-group.hpp"
 #include <atomic>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/tcp.hpp>
@@ -69,6 +71,9 @@ enum class ApiCapabilities : uint_fast64_t
 {
 	ExecuteArbitraryCommand = 1u << 0u,
 	IfwApiCheckCommand = 1u << 1u,
+	HostChildrenInheritObjectAuthority = 1u << 2u,
+
+	MyCapabilities = ExecuteArbitraryCommand | IfwApiCheckCommand | HostChildrenInheritObjectAuthority
 };
 
 /**
@@ -110,6 +115,7 @@ public:
 	bool AddAnonymousClient(const JsonRpcConnection::Ptr& aclient);
 	void RemoveAnonymousClient(const JsonRpcConnection::Ptr& aclient);
 	std::set<JsonRpcConnection::Ptr> GetAnonymousClients() const;
+	void DisconnectJsonRpcConnections();
 
 	void AddHttpClient(const HttpServerConnection::Ptr& aclient);
 	void RemoveHttpClient(const HttpServerConnection::Ptr& aclient);
@@ -151,12 +157,17 @@ public:
 	double GetTlsHandshakeTimeout() const override;
 	void SetTlsHandshakeTimeout(double value, bool suppress_events, const Value& cookie) override;
 
-protected:
+	WaitGroup::Ptr GetWaitGroup() const
+	{
+		return m_WaitGroup;
+	}
+
 	void OnConfigLoaded() override;
 	void OnAllConfigLoaded() override;
 	void Start(bool runtimeCreated) override;
 	void Stop(bool runtimeDeleted) override;
 
+protected:
 	void ValidateTlsProtocolmin(const Lazy<String>& lvalue, const ValidationUtils& utils) override;
 	void ValidateTlsHandshakeTimeout(const Lazy<double>& lvalue, const ValidationUtils& utils) override;
 
@@ -177,9 +188,14 @@ private:
 	Timer::Ptr m_RenewOwnCertTimer;
 
 	Endpoint::Ptr m_LocalEndpoint;
+	Atomic<Endpoint*> m_CurrentParentEndpoint {nullptr};
+	StoppableWaitGroup::Ptr m_WaitGroup = new StoppableWaitGroup();
 
 	static ApiListener::Ptr m_Instance;
 	static std::atomic<bool> m_UpdatedObjectAuthority;
+
+	boost::signals2::signal<void()> m_OnListenerShutdown;
+	StoppableWaitGroup::Ptr m_ListenerWaitGroup = new StoppableWaitGroup();
 
 	void ApiTimerHandler();
 	void ApiReconnectTimerHandler();
@@ -187,6 +203,7 @@ private:
 	void CheckApiPackageIntegrity();
 
 	bool AddListener(const String& node, const String& service);
+	void StopListener();
 	void AddConnection(const Endpoint::Ptr& endpoint);
 
 	void NewClientHandler(
@@ -247,6 +264,8 @@ private:
 	/* configsync */
 	void UpdateConfigObject(const ConfigObject::Ptr& object, const MessageOrigin::Ptr& origin,
 		const JsonRpcConnection::Ptr& client = nullptr);
+	void UpdateConfigObjectWithParents(const ConfigObject::Ptr& object, const Zone::Ptr& azone,
+		const JsonRpcConnection::Ptr& client, std::unordered_set<ConfigObject*>& syncedObjects);
 	void DeleteConfigObject(const ConfigObject::Ptr& object, const MessageOrigin::Ptr& origin,
 		const JsonRpcConnection::Ptr& client = nullptr);
 	void SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient);

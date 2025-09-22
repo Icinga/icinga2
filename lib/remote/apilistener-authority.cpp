@@ -25,6 +25,7 @@ void ApiListener::UpdateObjectAuthority()
 
 	std::vector<Endpoint::Ptr> endpoints;
 	Endpoint::Ptr my_endpoint;
+	int hostChildrenInheritObjectAuthority = 0;
 
 	if (my_zone) {
 		my_endpoint = Endpoint::GetLocalEndpoint();
@@ -38,6 +39,10 @@ void ApiListener::UpdateObjectAuthority()
 				continue;
 
 			endpoints.push_back(endpoint);
+
+			if (endpoint == my_endpoint || endpoint->GetCapabilities() & static_cast<uint_fast64_t>(ApiCapabilities::HostChildrenInheritObjectAuthority)) {
+				++hostChildrenInheritObjectAuthority;
+			}
 		}
 
 		double startTime = Application::GetStartTime();
@@ -65,10 +70,24 @@ void ApiListener::UpdateObjectAuthority()
 
 			bool authority;
 
-			if (!my_zone)
+			if (my_zone) {
+				auto name (object->GetName());
+
+				// If all endpoints know this algorithm, we can use it.
+				if (hostChildrenInheritObjectAuthority == endpoints.size()) {
+					auto exclamation (name.FindFirstOf('!'));
+
+					// Pin child objects of hosts (HOST!...) to the same endpoint as the host.
+					// This reduces cross-object action latency withing the same host.
+					if (exclamation != String::NPos) {
+						name.erase(name.Begin() + exclamation, name.End());
+					}
+				}
+
+				authority = endpoints[Utility::SDBM(name) % endpoints.size()] == my_endpoint;
+			} else {
 				authority = true;
-			else
-				authority = endpoints[Utility::SDBM(object->GetName()) % endpoints.size()] == my_endpoint;
+			}
 
 #ifdef I2_DEBUG
 // 			//Enable on demand, causes heavy logging on each run.

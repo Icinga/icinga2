@@ -14,17 +14,17 @@ using namespace icinga;
 REGISTER_URLHANDLER("/v1/objects", ModifyObjectHandler);
 
 bool ModifyObjectHandler::HandleRequest(
-	AsioTlsStream& stream,
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params,
-	boost::asio::yield_context& yc,
-	HttpServerConnection& server
+	const WaitGroup::Ptr& waitGroup,
+	const HttpRequest& request,
+	HttpResponse& response,
+	boost::asio::yield_context& yc
 )
 {
 	namespace http = boost::beast::http;
+
+	auto url = request.Url();
+	auto user = request.User();
+	auto params = request.Params();
 
 	if (url->GetPath().size() < 3 || url->GetPath().size() > 4)
 		return false;
@@ -104,13 +104,35 @@ bool ModifyObjectHandler::HandleRequest(
 
 	ArrayData results;
 
-	for (const ConfigObject::Ptr& obj : objs) {
+	std::shared_lock wgLock{*waitGroup, std::try_to_lock};
+	if (!wgLock) {
+		HttpUtility::SendJsonError(response, params, 503, "Shutting down.");
+		return true;
+	}
+
+	for (ConfigObject::Ptr obj : objs) {
 		Dictionary::Ptr result1 = new Dictionary();
 
 		result1->Set("type", type->GetName());
 		result1->Set("name", obj->GetName());
 
+		if (!waitGroup->IsLockable()) {
+			if (wgLock) {
+				wgLock.unlock();
+			}
+
+			result1->Set("code", 503);
+			result1->Set("status", "Action skipped: Shutting down.");
+
+			results.emplace_back(std::move(result1));
+
+			continue;
+		}
+
 		String key;
+
+		// Lock the object name of the given type to prevent from being modified/deleted concurrently.
+		ObjectNameLock objectNameLock(type, obj->GetName());
 
 		try {
 			if (restoreAttrs) {

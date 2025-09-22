@@ -44,7 +44,7 @@ public:
 	String(std::string data);
 	String(String::SizeType n, char c);
 	String(const String& other);
-	String(String&& other);
+	String(String&& other) noexcept;
 
 #ifndef _MSC_VER
 	String(Value&& other);
@@ -56,7 +56,7 @@ public:
 	{ }
 
 	String& operator=(const String& rhs);
-	String& operator=(String&& rhs);
+	String& operator=(String&& rhs) noexcept;
 	String& operator=(Value&& rhs);
 	String& operator=(const std::string& rhs);
 	String& operator=(const char *rhs);

@@ -40,18 +40,18 @@ const std::map<String, EventType> l_EventTypes ({
 const String l_ApiQuery ("<API query>");
 
 bool EventsHandler::HandleRequest(
-	AsioTlsStream& stream,
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params,
-	boost::asio::yield_context& yc,
-	HttpServerConnection& server
+	const WaitGroup::Ptr&,
+	const HttpRequest& request,
+	HttpResponse& response,
+	boost::asio::yield_context& yc
 )
 {
 	namespace asio = boost::asio;
 	namespace http = boost::beast::http;
+
+	auto url = request.Url();
+	auto user = request.User();
+	auto params = request.Params();
 
 	if (url->GetPath().size() != 2)
 		return false;
@@ -73,7 +73,7 @@ bool EventsHandler::HandleRequest(
 
 	{
 		ObjectLock olock(types);
-		for (const String& type : types) {
+		for (String type : types) {
 			FilterUtility::CheckPermission(user, "events/" + type);
 		}
 	}
@@ -89,7 +89,7 @@ bool EventsHandler::HandleRequest(
 
 	{
 		ObjectLock olock(types);
-		for (const String& type : types) {
+		for (String type : types) {
 			auto typeId (l_EventTypes.find(type));
 
 			if (typeId != l_EventTypes.end()) {
@@ -100,33 +100,27 @@ bool EventsHandler::HandleRequest(
 
 	EventsSubscriber subscriber (std::move(eventTypes), HttpUtility::GetLastParameter(params, "filter"), l_ApiQuery);
 
-	server.StartStreaming();
+	IoBoundWorkSlot dontLockTheIoThread (yc);
 
 	response.result(http::status::ok);
 	response.set(http::field::content_type, "application/json");
+	response.StartStreaming(true);
+	// Send response headers before waiting for the first event.
+	response.Flush(yc);
 
-	IoBoundWorkSlot dontLockTheIoThread (yc);
-
-	http::async_write(stream, response, yc);
-	stream.async_flush(yc);
-
-	asio::const_buffer newLine ("\n", 1);
+	auto encoder = response.GetJsonEncoder();
 
 	for (;;) {
 		auto event (subscriber.GetInbox()->Shift(yc));
 
-		if (event) {
-			String body = JsonEncode(event);
-
-			boost::algorithm::replace_all(body, "\n", "");
-
-			asio::const_buffer payload (body.CStr(), body.GetLength());
-
-			asio::async_write(stream, payload, yc);
-			asio::async_write(stream, newLine, yc);
-			stream.async_flush(yc);
-		} else if (server.Disconnected()) {
+		if (response.IsClientDisconnected()) {
 			return true;
+		}
+
+		if (event) {
+			encoder.Encode(event);
+			response.body() << '\n';
+			response.Flush(yc);
 		}
 	}
 }

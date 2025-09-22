@@ -4,6 +4,7 @@
 #include "base/utility.hpp"
 #include "base/convert.hpp"
 #include "base/application.hpp"
+#include "base/defer.hpp"
 #include "base/logger.hpp"
 #include "base/exception.hpp"
 #include "base/socket.hpp"
@@ -19,6 +20,7 @@
 #include <boost/thread/tss.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <boost/numeric/conversion/cast.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/regex.hpp>
@@ -798,43 +800,67 @@ void Utility::RenameFile(const String& source, const String& target)
 #endif /* _WIN32 */
 }
 
-/*
- * Set file permissions
+/**
+ * Set the ownership of the specified file to the given user and group.
+ *
+ * In case of an error, false is returned and the error is logged.
+ *
+ * @note This operation will fail if the program is not run as root or the given user is
+ * not already the owner and member of the given group.
+ *
+ * @param file The path to the file as a string
+ * @param user Either the username or their UID as a string
+ * @param group Either the group's name or its GID as a string
+ *
+ * @return 'true' if the operation was successful, 'false' if an error occurred.
  */
 bool Utility::SetFileOwnership(const String& file, const String& user, const String& group)
 {
 #ifndef _WIN32
-	errno = 0;
-	struct passwd *pw = getpwnam(user.CStr());
+	uid_t uid = 0;
+	try {
+		uid = boost::lexical_cast<uid_t>(user);
+	} catch (const boost::bad_lexical_cast&) {
+		errno = 0;
+		struct passwd* pw = getpwnam(user.CStr());
 
-	if (!pw) {
-		if (errno == 0) {
-			Log(LogCritical, "cli")
-				<< "Invalid user specified: " << user;
-			return false;
-		} else {
-			Log(LogCritical, "cli")
-				<< "getpwnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-			return false;
-		}
-	}
-
-	errno = 0;
-	struct group *gr = getgrnam(group.CStr());
-
-	if (!gr) {
-		if (errno == 0) {
-			Log(LogCritical, "cli")
-				<< "Invalid group specified: " << group;
-			return false;
-		} else {
-			Log(LogCritical, "cli")
-				<< "getgrnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+		if (!pw) {
+			if (errno == 0) {
+				Log(LogCritical, "cli")
+					<< "Invalid user specified: " << user;
+			} else {
+				Log(LogCritical, "cli") << "getpwnam() failed with error code " << errno << ", \""
+					<< Utility::FormatErrorNumber(errno) << "\"";
+			}
 			return false;
 		}
+
+		uid = pw->pw_uid;
 	}
 
-	if (chown(file.CStr(), pw->pw_uid, gr->gr_gid) < 0) {
+
+	gid_t gid = 0;
+	try {
+		gid = boost::lexical_cast<gid_t>(group);
+	} catch (const boost::bad_lexical_cast&) {
+		errno = 0;
+		struct group* gr = getgrnam(group.CStr());
+
+		if (!gr) {
+			if (errno == 0) {
+				Log(LogCritical, "cli")
+					<< "Invalid group specified: " << group;
+			} else {
+				Log(LogCritical, "cli") << "getgrnam() failed with error code " << errno << ", \""
+					<< Utility::FormatErrorNumber(errno) << "\"";
+			}
+			return false;
+		}
+
+		gid = gr->gr_gid;
+	}
+
+	if (chown(file.CStr(), uid, gid) < 0) {
 		Log(LogCritical, "cli")
 			<< "chown() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 		return false;
@@ -1049,22 +1075,19 @@ String Utility::FormatDuration(double duration)
 	return NaturalJoin(tokens);
 }
 
-String Utility::FormatDateTime(const char *format, double ts)
+String Utility::FormatDateTime(const char* format, double ts)
 {
-	char timestamp[128];
-	auto tempts = (time_t)ts; /* We don't handle sub-second timestamps here just yet. */
+	// Sub-second precision is removed, strftime() has no format specifiers for that anyway.
+	auto tempts = boost::numeric_cast<time_t>(ts);
 	tm tmthen;
 
 #ifdef _MSC_VER
-	tm *temp = localtime(&tempts);
-
-	if (!temp) {
+	errno_t err = localtime_s(&tmthen, &tempts);
+	if (err) {
 		BOOST_THROW_EXCEPTION(posix_error()
-			<< boost::errinfo_api_function("localtime")
-			<< boost::errinfo_errno(errno));
+			<< boost::errinfo_api_function("localtime_s")
+			<< boost::errinfo_errno(err));
 	}
-
-	tmthen = *temp;
 #else /* _MSC_VER */
 	if (!localtime_r(&tempts, &tmthen)) {
 		BOOST_THROW_EXCEPTION(posix_error()
@@ -1073,9 +1096,61 @@ String Utility::FormatDateTime(const char *format, double ts)
 	}
 #endif /* _MSC_VER */
 
-	strftime(timestamp, sizeof(timestamp), format, &tmthen);
+	return FormatDateTime(format, &tmthen);
+}
 
-	return timestamp;
+String Utility::FormatDateTime(const char* format, const tm* t) {
+	/* Known limitations of the implementation: Only works if the result is at most 127 bytes, otherwise returns an
+	 * empty string. An empty string is also returned in all other error cases as proper error handling for strftime()
+	 * is impossible.
+	 *
+	 * From strftime(3):
+	 *
+	 *     If the output string would exceed max bytes, errno is not set. This makes it impossible to distinguish this
+	 *     error case from cases where the format string legitimately produces a zero-length output string. POSIX.1-2001
+	 *     does not specify any errno settings for strftime().
+	 *
+	 * https://manpages.debian.org/bookworm/manpages-dev/strftime.3.en.html#BUGS
+	 *
+	 * There's also std::put_time() from C++ which works with an ostream and does not have a fixed size output buffer
+	 * and should allow using the error handling of the ostream. However, there seem to be an unfortunate implementation
+	 * of this on some Windows versions where passing an invalid format string results in std::bad_alloc and the process
+	 * allocating more and more memory before throwing the exception. In case someone in the future wants to try
+	 * std::put_time() again: better build packages for Windows and test them across all supported versions.
+	 * Hypothesis: it's implemented using a fixed output buffer and retrying with a larger buffer on error, assuming
+	 * the error was due to the buffer being too small.
+	 */
+
+#ifdef _MSC_VER
+	/* On Windows, the strftime() function family invokes an invalid parameter handler when the format string is
+	 * invalid (see the "Remarks" section in their documentation). std::put_time() shows the same behavior as it
+	 * uses _wcsftime_l() internally. The default invalid parameter handler may terminate the process, which can
+	 * be a problem given that the format string can be specified by the user from the Icinga DSL.
+	 *
+	 * Thus, temporarily set a thread-local no-op handler to disable the default one allowing the program to
+	 * continue. This then simply results in the function returning an error which then results in an exception as
+	 * we ask the stream to throw one.
+	 *
+	 * See also:
+	 * https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/strftime-wcsftime-strftime-l-wcsftime-l?view=msvc-170
+	 * https://learn.microsoft.com/en-us/cpp/c-runtime-library/parameter-validation?view=msvc-170
+	 * https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/set-invalid-parameter-handler-set-thread-local-invalid-parameter-handler?view=msvc-170
+	 */
+
+	auto oldHandler = _set_thread_local_invalid_parameter_handler(
+		[](const wchar_t*, const wchar_t*, const wchar_t*, unsigned int, uintptr_t) {
+			// Intentionally do nothing to continue executing.
+		});
+
+	Defer resetHandler([oldHandler]() {
+		_set_thread_local_invalid_parameter_handler(oldHandler);
+	});
+#endif /* _MSC_VER */
+
+	char buf[128];
+	size_t n = strftime(buf, sizeof(buf), format, t);
+	// On error, n == 0 and an empty string is returned.
+	return std::string(buf, n);
 }
 
 String Utility::FormatErrorNumber(int code) {
@@ -1598,37 +1673,8 @@ static bool ReleaseHelper(String *platformName, String *platformVersion)
 		return true;
 	}
 
-	/* You are using a distribution which supports LSB. */
-	FILE *fp = popen("type lsb_release >/dev/null 2>&1 && lsb_release -s -i 2>&1", "r");
-
-	if (fp) {
-		std::ostringstream msgbuf;
-		char line[1024];
-		while (fgets(line, sizeof(line), fp))
-			msgbuf << line;
-		int status = pclose(fp);
-		if (WEXITSTATUS(status) == 0) {
-			if (platformName)
-				*platformName = msgbuf.str();
-		}
-	}
-
-	fp = popen("type lsb_release >/dev/null 2>&1 && lsb_release -s -r 2>&1", "r");
-
-	if (fp) {
-		std::ostringstream msgbuf;
-		char line[1024];
-		while (fgets(line, sizeof(line), fp))
-			msgbuf << line;
-		int status = pclose(fp);
-		if (WEXITSTATUS(status) == 0) {
-			if (platformVersion)
-				*platformVersion = msgbuf.str();
-		}
-	}
-
 	/* OS X */
-	fp = popen("type sw_vers >/dev/null 2>&1 && sw_vers -productName 2>&1", "r");
+	FILE* fp = popen("type sw_vers >/dev/null 2>&1 && sw_vers -productName 2>&1", "r");
 
 	if (fp) {
 		std::ostringstream msgbuf;
@@ -1662,43 +1708,6 @@ static bool ReleaseHelper(String *platformName, String *platformVersion)
 
 			return true;
 		}
-	}
-
-	/* Centos/RHEL < 7 */
-	release.close();
-	release.open("/etc/redhat-release");
-	if (release.is_open()) {
-		std::string release_line;
-		getline(release, release_line);
-
-		String info = release_line;
-
-		/* example: Red Hat Enterprise Linux Server release 6.7 (Santiago) */
-		if (platformName)
-			*platformName = info.SubStr(0, info.Find("release") - 1);
-
-		if (platformVersion)
-			*platformVersion = info.SubStr(info.Find("release") + 8);
-
-		return true;
-	}
-
-	/* sles 11 sp3, opensuse w/e */
-	release.close();
-	release.open("/etc/SuSE-release");
-	if (release.is_open()) {
-		std::string release_line;
-		getline(release, release_line);
-
-		String info = release_line;
-
-		if (platformName)
-			*platformName = info.SubStr(0, info.FindFirstOf(" "));
-
-		if (platformVersion)
-			*platformVersion = info.SubStr(info.FindFirstOf(" ") + 1);
-
-		return true;
 	}
 
 	/* Just give up */
@@ -1972,4 +1981,52 @@ bool Utility::ComparePasswords(const String& enteredPassword, const String& actu
 	}
 
 	return result;
+}
+
+/**
+ * Normalizes the given struct tm like mktime() from libc does with some exception for DST handling: If the given time
+ * exists twice on a day, the instance in the DST timezone is picked. If the time does not actually exist on a day, it's
+ * interpreted using the UTC offset of the standard timezone and then normalized.
+ *
+ * This is done in order to provide consistent behavior across operating systems. Historically, Icinga 2 just relied on
+ * whatever mktime() of the operating system did and this function mimics what glibc does as that's what most systems
+ * use.
+ *
+ * @param t tm struct to be normalized
+ * @return time_t representing the timestamp given by t
+ */
+time_t Utility::NormalizeTm(tm *t)
+{
+	// If tm_isdst already specifies the timezone (0 or 1), just use the mktime() behavior.
+	if (t->tm_isdst >= 0) {
+		return mktime(t);
+	}
+
+	const tm copy = *t;
+
+	t->tm_isdst = 1;
+	time_t result = mktime(t);
+	if (result != -1 && t->tm_isdst == 1) {
+		return result;
+	}
+
+	// Restore the original input. mktime() can (and does) change more fields than just tm_isdst by converting from
+	// daylight saving time to standard time (it moves the contents by (typically) an hour, which can move across
+	// days/weeks/months/years changing all other fields).
+	*t = copy;
+
+	t->tm_isdst = 0;
+	return mktime(t);
+}
+
+/**
+ * Returns the same as NormalizeTm() but takes a const pointer as argument and thus does not modify it.
+ *
+ * @param t struct tm to convert to time_t
+ * @return time_t representing the timestamp given by t
+ */
+time_t Utility::TmToTimestamp(const tm *t)
+{
+	tm copy = *t;
+	return NormalizeTm(&copy);
 }

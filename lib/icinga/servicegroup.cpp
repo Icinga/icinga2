@@ -94,7 +94,7 @@ bool ServiceGroup::ResolveGroupMembership(const Service::Ptr& service, bool add,
 	if (groups && groups->GetLength() > 0) {
 		ObjectLock olock(groups);
 
-		for (const String& name : groups) {
+		for (String name : groups) {
 			ServiceGroup::Ptr group = ServiceGroup::GetByName(name);
 
 			if (group && !group->ResolveGroupMembership(service, add, rstack + 1))

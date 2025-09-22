@@ -376,19 +376,28 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		<< "}" << std::endl << std::endl;
 
 	/* GetLoadDependencies */
-	m_Header << "\t" << "const std::unordered_set<Type*>& GetLoadDependencies() const override;" << std::endl;
+	if (!klass.LoadDependencies.empty()) {
+		m_Header << "\tconst std::unordered_set<Type*>& GetLoadDependencies() const override;" << std::endl;
 
-	m_Impl << "const std::unordered_set<Type*>& TypeImpl<" << klass.Name << ">::GetLoadDependencies() const" << std::endl
-		<< "{" << std::endl
-		<< "\t" << "static const std::unordered_set<Type*> deps ({" << std::endl;
+		m_Impl << "const std::unordered_set<Type*>& TypeImpl<" << klass.Name << ">::GetLoadDependencies() const" << std::endl
+			<< "{" << std::endl
+			<< "\tstatic const auto deps ([] {" << std::endl;
 
-	for (const std::string& dep : klass.LoadDependencies)
-		m_Impl << "\t\t" << "GetByName(\"" << dep << "\").get()," << std::endl;
+		for (auto& dep : klass.LoadDependencies)
+			m_Impl << "\t\tauto type" << dep << " (GetByName(\"" << dep << "\").get());" << std::endl
+				<< "\t\tVERIFY(type" << dep << ");" << std::endl
+				<< "\t\tVERIFY(ConfigObject::TypeInstance->IsAssignableFrom(type" << dep << "));" << std::endl << std::endl;
 
-	m_Impl << "\t" << "});" << std::endl;
+		m_Impl << "\t\treturn std::unordered_set<Type*>{";
 
-	m_Impl << "\t" << "return deps;" << std::endl
-		<< "}" << std::endl << std::endl;
+		for (const std::string& dep : klass.LoadDependencies)
+			m_Impl << " type" << dep << ",";
+
+		m_Impl << " };" << std::endl
+			<< "\t}());" << std::endl << std::endl
+			<< "\treturn deps;" << std::endl
+			<< "}" << std::endl << std::endl;
+	}
 
 	/* GetActivationPriority */
 	m_Header << "\t" << "int GetActivationPriority() const override;" << std::endl;
@@ -893,51 +902,51 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 				if (field.Type.ArrayRank > 0) {
 					m_Impl << "\t" << "if (oldValue) {" << std::endl
 						<< "\t\t" << "ObjectLock olock(oldValue);" << std::endl
-						<< "\t\t" << "for (const String& ref : oldValue) {" << std::endl
-						<< "\t\t\t" << "DependencyGraph::RemoveDependency(this, ConfigObject::GetObject";
+						<< "\t\t" << "for (auto& ref : oldValue) {" << std::endl
+						<< "\t\t\tDependencyGraph::RemoveDependency(";
 
 					/* Ew */
 					if (field.Type.TypeName == "Zone" && m_Library == "base")
-						m_Impl << "(\"Zone\", ";
+						m_Impl << "dynamic_cast<ConfigObject*>(this), ConfigObject::GetObject(\"Zone\", ";
 					else
-						m_Impl << "<" << field.Type.TypeName << ">(";
+						m_Impl << "this, ConfigObject::GetObject<" << field.Type.TypeName << ">(";
 
 					m_Impl << "ref).get());" << std::endl
 						<< "\t\t" << "}" << std::endl
 						<< "\t" << "}" << std::endl
 						<< "\t" << "if (newValue) {" << std::endl
 						<< "\t\t" << "ObjectLock olock(newValue);" << std::endl
-						<< "\t\t" << "for (const String& ref : newValue) {" << std::endl
-						<< "\t\t\t" << "DependencyGraph::AddDependency(this, ConfigObject::GetObject";
+						<< "\t\t" << "for (auto& ref : newValue) {" << std::endl
+						<< "\t\t\tDependencyGraph::AddDependency(";
 
 					/* Ew */
 					if (field.Type.TypeName == "Zone" && m_Library == "base")
-						m_Impl << "(\"Zone\", ";
+						m_Impl << "dynamic_cast<ConfigObject*>(this), ConfigObject::GetObject(\"Zone\", ";
 					else
-						m_Impl << "<" << field.Type.TypeName << ">(";
+						m_Impl << "this, ConfigObject::GetObject<" << field.Type.TypeName << ">(";
 
 					m_Impl << "ref).get());" << std::endl
 						<< "\t\t" << "}" << std::endl
 						<< "\t" << "}" << std::endl;
 				} else {
 					m_Impl << "\t" << "if (!oldValue.IsEmpty())" << std::endl
-						<< "\t\t" << "DependencyGraph::RemoveDependency(this, ConfigObject::GetObject";
+						<< "\t\tDependencyGraph::RemoveDependency(";
 
 					/* Ew */
 					if (field.Type.TypeName == "Zone" && m_Library == "base")
-						m_Impl << "(\"Zone\", ";
+						m_Impl << "dynamic_cast<ConfigObject*>(this), ConfigObject::GetObject(\"Zone\", ";
 					else
-						m_Impl << "<" << field.Type.TypeName << ">(";
+						m_Impl << "this, ConfigObject::GetObject<" << field.Type.TypeName << ">(";
 
 					m_Impl << "oldValue).get());" << std::endl
 						<< "\t" << "if (!newValue.IsEmpty())" << std::endl
-						<< "\t\t" << "DependencyGraph::AddDependency(this, ConfigObject::GetObject";
+						<< "\t\tDependencyGraph::AddDependency(";
 
 					/* Ew */
 					if (field.Type.TypeName == "Zone" && m_Library == "base")
-						m_Impl << "(\"Zone\", ";
+						m_Impl << "dynamic_cast<ConfigObject*>(this), ConfigObject::GetObject(\"Zone\", ";
 					else
-						m_Impl << "<" << field.Type.TypeName << ">(";
+						m_Impl << "this, ConfigObject::GetObject<" << field.Type.TypeName << ">(";
 
 					m_Impl << "newValue).get());" << std::endl;
 				}
@@ -1463,9 +1472,11 @@ void ClassCompiler::CompileStream(const std::string& path, std::istream& input,
 		<< "#include \"base/objectlock.hpp\"" << std::endl
 		<< "#include \"base/utility.hpp\"" << std::endl
 		<< "#include \"base/convert.hpp\"" << std::endl
+		<< "#include \"base/debug.hpp\"" << std::endl
 		<< "#include \"base/dependencygraph.hpp\"" << std::endl
 		<< "#include \"base/logger.hpp\"" << std::endl
 		<< "#include \"base/function.hpp\"" << std::endl
+		<< "#include \"base/configobject.hpp\"" << std::endl
 		<< "#include \"base/configtype.hpp\"" << std::endl
 		<< "#ifdef _MSC_VER" << std::endl
 		<< "#pragma warning( push )" << std::endl

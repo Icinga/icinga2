@@ -16,17 +16,17 @@ using namespace icinga;
 REGISTER_URLHANDLER("/v1/objects", CreateObjectHandler);
 
 bool CreateObjectHandler::HandleRequest(
-	AsioTlsStream& stream,
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params,
-	boost::asio::yield_context& yc,
-	HttpServerConnection& server
+	const WaitGroup::Ptr& waitGroup,
+	const HttpRequest& request,
+	HttpResponse& response,
+	boost::asio::yield_context& yc
 )
 {
 	namespace http = boost::beast::http;
+
+	auto url = request.Url();
+	auto user = request.User();
+	auto params = request.Params();
 
 	if (url->GetPath().size() != 4)
 		return false;
@@ -102,6 +102,12 @@ bool CreateObjectHandler::HandleRequest(
 		return true;
 	}
 
+	std::shared_lock wgLock{*waitGroup, std::try_to_lock};
+	if (!wgLock) {
+		HttpUtility::SendJsonError(response, params, 503, "Shutting down.");
+		return true;
+	}
+
 	/* Object creation can cause multiple errors and optionally diagnostic information.
 	 * We can't use SendJsonError() here.
 	 */
@@ -123,6 +129,9 @@ bool CreateObjectHandler::HandleRequest(
 
 		return true;
 	}
+
+	// Lock the object name of the given type to prevent from being created concurrently.
+	ObjectNameLock objectNameLock(type, name);
 
 	if (!ConfigObjectUtility::CreateObject(type, name, config, errors, diagnosticInformation)) {
 		result1->Set("errors", errors);

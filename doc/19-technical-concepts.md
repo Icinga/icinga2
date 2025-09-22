@@ -204,7 +204,7 @@ You can read the full story [here](https://github.com/Icinga/icinga2/issues/7309
 
 With 2.11 you'll now see 3 processes:
 
-- The umbrella process which takes care about signal handling and process spawning/stopping
+- The umbrella process which takes care of signal handling and process spawning/stopping
 - The main process with the check scheduler, notifications, etc.
 - The execution helper process
 
@@ -622,25 +622,23 @@ The algorithm works like this:
 
 * Determine whether this instance is assigned to a local zone and endpoint.
 * Collects all endpoints in this zone if they are connected.
-* If there's two endpoints, but only us seeing ourselves and the application start is less than 60 seconds in the past, do nothing (wait for cluster reconnect to take place, grace period).
+* If there's two endpoints, but only us seeing ourselves and the application start is less than
+  30 seconds in the past, do nothing (wait for cluster reconnect to take place, grace period).
 * Sort the collected endpoints by name.
 * Iterate over all config types and their respective objects
- * Ignore !active objects
- * Ignore objects which are !HARunOnce. This means, they can run multiple times in a zone and don't need an authority update.
- * If this instance doesn't have a local zone, set authority to true. This is for non-clustered standalone environments where everything belongs to this instance.
- * Calculate the object authority based on the connected endpoint names.
- * Set the authority (true or false)
+    * Ignore !active objects
+    * Ignore objects which are !HARunOnce. This means, they can run multiple times in a zone and don't need an authority update.
+    * If this instance doesn't have a local zone, set authority to true. This is for non-clustered standalone environments where everything belongs to this instance.
+    * Calculate the object authority based on the connected endpoint names.
+    * Set the authority (true or false)
 
 The object authority calculation works "offline" without any message exchange.
-Each instance alculates the SDBM hash of the config object name, puts that in contrast
-modulo the connected endpoints size.
-This index is used to lookup the corresponding endpoint in the connected endpoints array,
-including the local endpoint. Whether the local endpoint is equal to the selected endpoint,
-or not, this sets the authority to `true` or `false`.
-
-```cpp
-authority = endpoints[Utility::SDBM(object->GetName()) % endpoints.size()] == my_endpoint;
-```
+Each instance calculates the SDBM hash of the config object name. However, for objects bound to some
+host, i.e. the object name is composed of `<host_name>!<object_name>`, the SDBM hash is calculated based
+on the host name only instead of the full object name. That way, each child object like services, downtimes,
+etc. will be assigned to the same endpoint as the host object itself. The resulting hash modulo (`%`) the number of
+connected endpoints produces the index of the endpoint which is authoritative for this config object. If the
+endpoint at this index is equal to the local endpoint, the authority is set to `true`, otherwise it is set to `false`.
 
 `ConfigObject::SetAuthority(bool authority)` triggers the following events:
 
@@ -651,7 +649,7 @@ authority = endpoints[Utility::SDBM(object->GetName()) % endpoints.size()] == my
 that by querying the `paused` attribute for all objects via REST API
 or debug console on both endpoints.
 
-Endpoints inside a HA zone calculate the object authority independent from each other.
+Endpoints inside an HA zone calculate the object authority independent from each other.
 This object authority is important for selected features explained below.
 
 Since features are configuration objects too, you must ensure that all nodes
@@ -1887,7 +1885,7 @@ source         | String        | The execution UUID
 
 Special handling, calls `ClusterEvents::EnqueueCheck()` for command endpoint checks.
 This function enqueues check tasks into a queue which is controlled in `RemoteCheckThreadProc()`.
-If the `endpoint` parameter is specified and is not equal to the local endpoint then the message is forwarded to the correct endpoint zone. 
+If the `endpoint` parameter is specified and is not equal to the local endpoint then the message is forwarded to the correct endpoint zone.
 
 ##### Permissions
 
@@ -1932,7 +1930,7 @@ executions     | Dictionary    | Executions to be updated
 ##### Functions
 
 **Event Sender:** `ClusterEvents::ExecutedCommandAPIHandler`, `ClusterEvents::UpdateExecutionsAPIHandler`, `ApiActions::ExecuteCommand`
-**Event Receiver:** `ClusterEvents::UpdateExecutionsAPIHandler` 
+**Event Receiver:** `ClusterEvents::UpdateExecutionsAPIHandler`
 
 ##### Permissions
 
@@ -1962,7 +1960,7 @@ Key            | Type          | Description
 host           | String        | Host name.
 service        | String        | Service name.
 execution      | String        | The execution ID executed.
-exitStatus     | Number        | The command exit status. 
+exitStatus     | Number        | The command exit status.
 output         | String        | The command output.
 start          | Number        | The unix timestamp at the start of the command execution
 end            | Number        | The unix timestamp at the end of the command execution
@@ -1970,7 +1968,7 @@ end            | Number        | The unix timestamp at the end of the command ex
 ##### Functions
 
 **Event Sender:** `ClusterEvents::ExecuteCheckFromQueue`, `ClusterEvents::ExecuteCommandAPIHandler`
-**Event Receiver:** `ClusterEvents::ExecutedCommandAPIHandler` 
+**Event Receiver:** `ClusterEvents::ExecutedCommandAPIHandler`
 
 ##### Permissions
 

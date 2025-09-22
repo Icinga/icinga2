@@ -16,17 +16,17 @@ using namespace icinga;
 REGISTER_URLHANDLER("/v1/objects", DeleteObjectHandler);
 
 bool DeleteObjectHandler::HandleRequest(
-	AsioTlsStream& stream,
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params,
-	boost::asio::yield_context& yc,
-	HttpServerConnection& server
+	const WaitGroup::Ptr& waitGroup,
+	const HttpRequest& request,
+	HttpResponse& response,
+	boost::asio::yield_context& yc
 )
 {
 	namespace http = boost::beast::http;
+
+	auto url = request.Url();
+	auto user = request.User();
+	auto params = request.Params();
 
 	if (url->GetPath().size() < 3 || url->GetPath().size() > 4)
 		return false;
@@ -78,11 +78,37 @@ bool DeleteObjectHandler::HandleRequest(
 
 	bool success = true;
 
-	for (const ConfigObject::Ptr& obj : objs) {
+	std::shared_lock wgLock{*waitGroup, std::try_to_lock};
+	if (!wgLock) {
+		HttpUtility::SendJsonError(response, params, 503, "Shutting down.");
+		return true;
+	}
+
+	for (ConfigObject::Ptr obj : objs) {
+		if (!waitGroup->IsLockable()) {
+			if (wgLock) {
+				wgLock.unlock();
+			}
+
+			results.emplace_back(new Dictionary({
+				{ "type", type->GetName() },
+				{ "name", obj->GetName() },
+				{ "code", 503 },
+				{ "status", "Action skipped: Shutting down."}
+			}));
+
+			success = false;
+
+			continue;
+		}
+
 		int code;
 		String status;
 		Array::Ptr errors = new Array();
 		Array::Ptr diagnosticInformation = new Array();
+
+		// Lock the object name of the given type to prevent from being modified/deleted concurrently.
+		ObjectNameLock objectNameLock(type, obj->GetName());
 
 		if (!ConfigObjectUtility::DeleteObject(obj, cascade, errors, diagnosticInformation)) {
 			code = 500;

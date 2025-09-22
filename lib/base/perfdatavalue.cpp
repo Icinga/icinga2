@@ -259,12 +259,21 @@ PerfdataValue::Ptr PerfdataValue::Parse(const String& perfdata)
 
 	double value = Convert::ToDouble(tokens[0].SubStr(0, pos));
 
+	if (!std::isfinite(value)) {
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid performance data value: " + perfdata + " is outside of any reasonable range"));
+	}
+
 	bool counter = false;
 	String unit;
 	Value warn, crit, min, max;
 
 	if (pos != String::NPos)
 		unit = tokens[0].SubStr(pos, String::NPos);
+
+	// UoM.Out is an empty string for "c". So set counter before parsing.
+	if (unit == "c") {
+		counter = true;
+	}
 
 	double base;
 
@@ -289,10 +298,6 @@ PerfdataValue::Ptr PerfdataValue::Parse(const String& perfdata)
 			unit = uom->second.Out;
 			base = uom->second.Factor;
 		}
-	}
-
-	if (unit == "c") {
-		counter = true;
 	}
 
 	warn = ParseWarnCritMinMaxToken(tokens, 1, "warning");

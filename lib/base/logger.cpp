@@ -27,6 +27,7 @@ template Log& Log::operator<<(const int&);
 template Log& Log::operator<<(const unsigned long&);
 template Log& Log::operator<<(const long&);
 template Log& Log::operator<<(const double&);
+template Log& Log::operator<<(const char*&);
 
 REGISTER_TYPE(Logger);
 
@@ -246,21 +247,25 @@ void Logger::UpdateMinLogSeverity()
 Log::Log(LogSeverity severity, String facility, const String& message)
 	: Log(severity, std::move(facility))
 {
-	if (!m_IsNoOp) {
-		m_Buffer << message;
-	}
+	*this << message;
 }
 
 Log::Log(LogSeverity severity, String facility)
-	: m_Severity(severity), m_Facility(std::move(facility)), m_IsNoOp(severity < Logger::GetMinLogSeverity())
-{ }
+{
+	// Only fully initialize the object if it's actually going to be logged.
+	if (severity >= Logger::GetMinLogSeverity()) {
+		m_Severity = severity;
+		m_Facility = std::move(facility);
+		m_Buffer.emplace();
+	}
+}
 
 /**
  * Writes the message to the application's log.
  */
 Log::~Log()
 {
-	if (m_IsNoOp) {
+	if (!m_Buffer) {
 		return;
 	}
 
@@ -270,7 +275,7 @@ Log::~Log()
 	entry.Facility = m_Facility;
 
 	{
-		auto msg (m_Buffer.str());
+		auto msg (m_Buffer->str());
 		msg.erase(msg.find_last_not_of("\n") + 1u);
 
 		entry.Message = std::move(msg);
@@ -314,13 +319,4 @@ Log::~Log()
 		WindowsEventLogLogger::WriteToWindowsEventLog(entry);
 	}
 #endif /* _WIN32 */
-}
-
-Log& Log::operator<<(const char *val)
-{
-	if (!m_IsNoOp) {
-		m_Buffer << val;
-	}
-
-	return *this;
 }

@@ -23,6 +23,7 @@ enum class InitializePriority {
 	RegisterBuiltinTypes,
 	RegisterFunctions,
 	RegisterTypes,
+	SortTypes,
 	EvaluateConfigFragments,
 	Default,
 	FreezeNamespaces,

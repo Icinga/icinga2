@@ -54,6 +54,10 @@ class Endpoint : ConfigObject
 	[no_user_modify, no_storage] double bytes_received_per_second {
 		get;
 	};
+
+	[no_user_modify, no_storage] Dictionary::Ptr messages_received_per_type {
+		get;
+	};
 };
 
 }

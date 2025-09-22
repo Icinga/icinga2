@@ -12,7 +12,7 @@
 
 using namespace icinga;
 
-REGISTER_TYPE_WITH_PROTOTYPE(Checkable, Checkable::GetPrototype());
+REGISTER_TYPE(Checkable);
 INITIALIZE_ONCE(&Checkable::StaticInitialize);
 
 const std::map<String, int> Checkable::m_FlappingStateFilterMap ({
@@ -80,6 +80,8 @@ void Checkable::OnAllConfigLoaded()
 
 void Checkable::Start(bool runtimeCreated)
 {
+	PushDependencyGroupsToRegistry();
+
 	double now = Utility::GetTime();
 
 	{
@@ -320,3 +322,9 @@ void Checkable::CleanDeadlinedExecutions(const Timer * const&)
 		}
 	}
 }
+
+String Checkable::StateTypeToString(StateType type)
+{
+	return type == StateTypeSoft ? "SOFT" : "HARD";
+}
+

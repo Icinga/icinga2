@@ -4,6 +4,7 @@
 #define ARRAY_H
 
 #include "base/i2-base.hpp"
+#include "base/atomic.hpp"
 #include "base/objectlock.hpp"
 #include "base/value.hpp"
 #include <boost/range/iterator.hpp>
@@ -38,9 +39,9 @@ public:
 	Array(std::initializer_list<Value> init);
 
 	Value Get(SizeType index) const;
-	void Set(SizeType index, const Value& value, bool overrideFrozen = false);
-	void Set(SizeType index, Value&& value, bool overrideFrozen = false);
-	void Add(Value value, bool overrideFrozen = false);
+	void Set(SizeType index, const Value& value);
+	void Set(SizeType index, Value&& value);
+	void Add(Value value);
 
 	Iterator Begin();
 	Iterator End();
@@ -48,14 +49,14 @@ public:
 	size_t GetLength() const;
 	bool Contains(const Value& value) const;
 
-	void Insert(SizeType index, Value value, bool overrideFrozen = false);
-	void Remove(SizeType index, bool overrideFrozen = false);
-	void Remove(Iterator it, bool overrideFrozen = false);
+	void Insert(SizeType index, Value value);
+	void Remove(SizeType index);
+	void Remove(Iterator it);
 
-	void Resize(SizeType newSize, bool overrideFrozen = false);
-	void Clear(bool overrideFrozen = false);
+	void Resize(SizeType newSize);
+	void Clear();
 
-	void Reserve(SizeType newSize, bool overrideFrozen = false);
+	void Reserve(SizeType newSize);
 
 	void CopyTo(const Array::Ptr& dest) const;
 	Array::Ptr ShallowClone() const;
@@ -91,20 +92,22 @@ public:
 
 	Array::Ptr Reverse() const;
 
-	void Sort(bool overrideFrozen = false);
+	void Sort();
 
 	String ToString() const override;
 	Value Join(const Value& separator) const;
 
 	Array::Ptr Unique() const;
 	void Freeze();
+	bool Frozen() const;
+	ObjectLock LockIfRequired();
 
 	Value GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const override;
-	void SetFieldByName(const String& field, const Value& value, bool overrideFrozen, const DebugInfo& debugInfo) override;
+	void SetFieldByName(const String& field, const Value& value, const DebugInfo& debugInfo) override;
 
 private:
 	std::vector<Value> m_Data; /**< The data for the array. */
-	bool m_Frozen{false};
+	Atomic<bool> m_Frozen{false};
 };
 
 Array::Iterator begin(const Array::Ptr& x);

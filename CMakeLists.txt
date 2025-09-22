@@ -1,17 +1,12 @@
 # Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+
 
-cmake_minimum_required(VERSION 2.8.12)
+# CMake 3.8 is required, CMake policy compatibility was verified up to 3.17.
+cmake_minimum_required(VERSION 3.8...3.17)
 set(BOOST_MIN_VERSION "1.66.0")
 
-if("${CMAKE_VERSION}" VERSION_LESS "3.8") # SLES 12.5
-  if(NOT MSVC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
-  endif()
-else()
-  set(CMAKE_CXX_STANDARD 17)
-  set(CMAKE_CXX_STANDARD_REQUIRED ON)
-  set(CMAKE_CXX_EXTENSIONS OFF)
-endif()
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 project(icinga2)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
@@ -22,6 +17,10 @@ if(NOT CMAKE_BUILD_TYPE)
     "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
     FORCE)
 endif()
+
+# Include symbols in executables so that function names can be printed in stack traces, for example in crash dumps.
+set(CMAKE_ENABLE_EXPORTS ON) # Added in CMake 3.4
+set(CMAKE_EXECUTABLE_ENABLE_EXPORTS ON) # Added in CMake 3.27 and supersedes the above one.
 
 if(WIN32)
   set(ICINGA2_MASTER OFF)
@@ -173,7 +172,7 @@ else()
   set(LOGROTATE_CREATE "\n\tcreate 644 ${ICINGA2_USER} ${ICINGA2_GROUP}")
 endif()
 
-find_package(Boost ${BOOST_MIN_VERSION} COMPONENTS coroutine context date_time filesystem iostreams thread system program_options regex REQUIRED)
+find_package(Boost ${BOOST_MIN_VERSION} COMPONENTS coroutine context date_time filesystem iostreams thread program_options regex REQUIRED)
 
 # Boost.Coroutine2 (the successor of Boost.Coroutine)
 # (1) doesn't even exist in old Boost versions and
@@ -186,21 +185,21 @@ add_definitions(-DBOOST_FILESYSTEM_NO_DEPRECATED)
 add_definitions(-DBOOST_ASIO_USE_TS_EXECUTOR_AS_DEFAULT)
 
 link_directories(${Boost_LIBRARY_DIRS})
-include_directories(${Boost_INCLUDE_DIRS})
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
 find_package(OpenSSL REQUIRED)
-include_directories(${OPENSSL_INCLUDE_DIR})
+include_directories(SYSTEM ${OPENSSL_INCLUDE_DIR})
 
 set(base_DEPS ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES})
 set(base_OBJS $<TARGET_OBJECTS:mmatch> $<TARGET_OBJECTS:socketpair> $<TARGET_OBJECTS:base>)
 
 # JSON
 find_package(JSON)
-include_directories(${JSON_INCLUDE})
+include_directories(SYSTEM ${JSON_INCLUDE})
 
 # UTF8CPP
 find_package(UTF8CPP)
-include_directories(${UTF8CPP_INCLUDE})
+include_directories(SYSTEM ${UTF8CPP_INCLUDE})
 
 find_package(Editline)
 set(HAVE_EDITLINE "${EDITLINE_FOUND}")
@@ -223,22 +222,23 @@ endif()
 
 if(EDITLINE_FOUND)
   list(APPEND base_DEPS ${EDITLINE_LIBRARIES})
-  include_directories(${EDITLINE_INCLUDE_DIR})
+  include_directories(SYSTEM ${EDITLINE_INCLUDE_DIR})
 endif()
 
 if(TERMCAP_FOUND)
   list(APPEND base_DEPS ${TERMCAP_LIBRARIES})
-  include_directories(${TERMCAP_INCLUDE_DIR})
+  include_directories(SYSTEM ${TERMCAP_INCLUDE_DIR})
 endif()
 
 if(WIN32)
   list(APPEND base_DEPS ws2_32 dbghelp shlwapi msi)
 endif()
 
-set(CMAKE_MACOSX_RPATH 1)
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH};${CMAKE_INSTALL_FULL_LIBDIR}/icinga2")
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Winconsistent-missing-override -Wrange-loop-construct")
+
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Qunused-arguments -fcolor-diagnostics -fno-limit-debug-info")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Qunused-arguments -fcolor-diagnostics -fno-limit-debug-info")
 
@@ -256,6 +256,12 @@ if(CMAKE_C_COMPILER_ID STREQUAL "SunPro")
 endif()
 
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsuggest-override")
+
+  if("${CMAKE_CXX_COMPILER_VERSION}" VERSION_GREATER_EQUAL "11.0.0")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wrange-loop-construct")
+  endif()
+
   if(CMAKE_SYSTEM_NAME MATCHES AIX)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -lpthread")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -lpthread")
@@ -365,6 +371,7 @@ check_function_exists(vfork HAVE_VFORK)
 check_function_exists(backtrace_symbols HAVE_BACKTRACE_SYMBOLS)
 check_function_exists(pipe2 HAVE_PIPE2)
 check_function_exists(nice HAVE_NICE)
+check_function_exists(malloc_info HAVE_MALLOC_INFO)
 check_library_exists(dl dladdr "dlfcn.h" HAVE_DLADDR)
 check_library_exists(execinfo backtrace_symbols "" HAVE_LIBEXECINFO)
 check_include_file_cxx(cxxabi.h HAVE_CXXABI_H)

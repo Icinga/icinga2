@@ -5,6 +5,7 @@
 
 #include "base/i2-base.hpp"
 #include "base/object.hpp"
+#include "base/objectlock.hpp"
 #include "base/shared-object.hpp"
 #include "base/value.hpp"
 #include "base/debuginfo.hpp"
@@ -73,6 +74,8 @@ public:
 	bool Contains(const String& field) const;
 	void Remove(const String& field);
 	void Freeze();
+	bool Frozen() const;
+	ObjectLock LockIfRequired();
 
 	Iterator Begin();
 	Iterator End();
@@ -80,7 +83,7 @@ public:
 	size_t GetLength() const;
 
 	Value GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const override;
-	void SetFieldByName(const String& field, const Value& value, bool overrideFrozen, const DebugInfo& debugInfo) override;
+	void SetFieldByName(const String& field, const Value& value, const DebugInfo& debugInfo) override;
 	bool HasOwnField(const String& field) const override;
 	bool GetOwnField(const String& field, Value *result) const override;
 

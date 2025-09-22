@@ -4,8 +4,10 @@
 #define HTTPHANDLER_H
 
 #include "remote/i2-remote.hpp"
+#include "base/io-engine.hpp"
 #include "remote/url.hpp"
 #include "remote/httpserverconnection.hpp"
+#include "remote/httpmessage.hpp"
 #include "remote/apiuser.hpp"
 #include "base/registry.hpp"
 #include "base/tlsstream.hpp"
@@ -27,24 +29,18 @@ public:
 	DECLARE_PTR_TYPEDEFS(HttpHandler);
 
 	virtual bool HandleRequest(
-		AsioTlsStream& stream,
-		const ApiUser::Ptr& user,
-		boost::beast::http::request<boost::beast::http::string_body>& request,
-		const Url::Ptr& url,
-		boost::beast::http::response<boost::beast::http::string_body>& response,
-		const Dictionary::Ptr& params,
-		boost::asio::yield_context& yc,
-		HttpServerConnection& server
+		const WaitGroup::Ptr& waitGroup,
+		const HttpRequest& request,
+		HttpResponse& response,
+		boost::asio::yield_context& yc
 	) = 0;
 
 	static void Register(const Url::Ptr& url, const HttpHandler::Ptr& handler);
 	static void ProcessRequest(
-		AsioTlsStream& stream,
-		const ApiUser::Ptr& user,
-		boost::beast::http::request<boost::beast::http::string_body>& request,
-		boost::beast::http::response<boost::beast::http::string_body>& response,
-		boost::asio::yield_context& yc,
-		HttpServerConnection& server
+		const WaitGroup::Ptr& waitGroup,
+		HttpRequest& request,
+		HttpResponse& response,
+		boost::asio::yield_context& yc
 	);
 
 private:

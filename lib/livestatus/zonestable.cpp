@@ -70,8 +70,7 @@ Value ZonesTable::EndpointsAccessor(const Value& row)
 	if (!zone)
 		return Empty;
 
-	std::set<Endpoint::Ptr> endpoints = zone->GetEndpoints();
-
+	auto endpoints (zone->GetEndpoints());
 	ArrayData result;
 
 	for (const Endpoint::Ptr& endpoint : endpoints) {

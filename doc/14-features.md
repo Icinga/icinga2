@@ -52,7 +52,7 @@ Icinga DB is a set of components for publishing, synchronizing and
 visualizing monitoring data in the Icinga ecosystem, consisting of:
 
 * Icinga 2 with its `icingadb` feature enabled,
-  responsible for publishing monitoring data to a Redis server, i.e. configuration and its runtime updates,  
+  responsible for publishing monitoring data to a Redis server, i.e. configuration and its runtime updates,
   check results, state changes, downtimes, acknowledgements, notifications, and other events such as flapping
 * The [Icinga DB daemon](https://icinga.com/docs/icinga-db),
   which synchronizes the data between the Redis server and a database
@@ -106,7 +106,7 @@ The current naming schema is defined as follows. The [Icinga Web 2 Graphite modu
 depends on this schema.
 
 The default prefix for hosts and services is configured using
-[runtime macros](03-monitoring-basics.md#runtime-macros)like this:
+[runtime macros](03-monitoring-basics.md#runtime-macros) like this:
 
 ```
 icinga2.$host.name$.host.$host.check_command$
@@ -147,7 +147,7 @@ parsed from plugin output:
 
 Note that labels may contain dots (`.`) allowing to
 add more subsequent levels inside the Graphite tree.
-`::` adds support for [multi performance labels](http://my-plugin.de/wiki/projects/check_multi/configuration/performance)
+`::` adds support for [multi performance labels](https://github.com/flackem/check_multi/blob/next/doc/configuration/performance.md)
 and is therefore replaced by `.`.
 
 By enabling `enable_send_thresholds` Icinga 2 automatically adds the following threshold metrics:
@@ -246,7 +246,7 @@ resolved, it will be dropped and not sent to the target host.
 
 Backslashes are allowed in tag keys, tag values and field keys, however they are also
 escape characters when followed by a space or comma, but cannot be escaped themselves.
-As a result all trailling slashes in these fields are replaced with an underscore.  This
+As a result all trailing slashes in these fields are replaced with an underscore.  This
 predominantly affects Windows paths e.g. `C:\` becomes `C:_`.
 
 The database/bucket is assumed to exist so this object will make no attempt to create it currently.
@@ -335,16 +335,14 @@ More integrations:
 #### Elasticsearch Writer <a id="elasticsearch-writer"></a>
 
 This feature forwards check results, state changes and notification events
-to an [Elasticsearch](https://www.elastic.co/products/elasticsearch) installation over its HTTP API.
+to an [Elasticsearch](https://www.elastic.co/products/elasticsearch) or an [OpenSearch](https://opensearch.org/) installation over its HTTP API.
 
 The check results include parsed performance data metrics if enabled.
 
 > **Note**
 >
-> Elasticsearch 5.x or 6.x are required. This feature has been successfully tested with
-> Elasticsearch 5.6.7 and 6.3.1.
-
-
+> Elasticsearch 7.x, 8.x or Opensearch 2.12.x are required. This feature has been successfully tested with
+> Elasticsearch 7.17.10, 8.8.1 and OpenSearch 2.13.0.
 
 Enable the feature and restart Icinga 2.
 
@@ -366,7 +364,8 @@ The following event types are written to Elasticsearch:
 * icinga2.event.notification
 
 Performance data metrics must be explicitly enabled with the `enable_send_perfdata`
-attribute.
+attribute. Be aware that this will create a new field mapping in the index for each performance data metric in a check plugin.
+See: [ElasticsearchWriter](09-object-types.md#objecttype-elasticsearchwriter)
 
 Metric values are stored like this:
 
@@ -385,7 +384,7 @@ The following characters are escaped in perfdata labels:
 
 Note that perfdata labels may contain dots (`.`) allowing to
 add more subsequent levels inside the tree.
-`::` adds support for [multi performance labels](http://my-plugin.de/wiki/projects/check_multi/configuration/performance)
+`::` adds support for [multi performance labels](https://github.com/flackem/check_multi/blob/next/doc/configuration/performance.md)
 and is therefore replaced by `.`.
 
 Icinga 2 automatically adds the following threshold metrics
@@ -396,6 +395,28 @@ check_result.perfdata.<perfdata-label>.min
 check_result.perfdata.<perfdata-label>.max
 check_result.perfdata.<perfdata-label>.warn
 check_result.perfdata.<perfdata-label>.crit
+```
+
+Additionally it is possible to configure custom tags that are applied to the metrics via `host_tags_template` or `service_tags_template`.
+Depending on whether the write event was triggered on a service or host object, additional tags are added to the ElasticSearch entries.
+
+A host metrics entry configured with the following `host_tags_template`:
+
+```
+host_tags_template = {
+
+  os_name = "$host.vars.os$"
+  custom_label = "A Custom Label"
+  list = [ "$host.groups$", "$host.vars.foo$" ]
+}
+```
+
+Will in addition to the above mentioned lines also contain:
+
+```
+os_name = "Linux"
+custom_label = "A Custom Label"
+list = [ "group-A;linux-servers", "bar" ]
 ```
 
 #### Elasticsearch in Cluster HA Zones <a id="elasticsearch-writer-cluster-ha"></a>
@@ -422,11 +443,11 @@ or Logstash for additional filtering.
 
 #### GELF Writer <a id="gelfwriter"></a>
 
-The `Graylog Extended Log Format` (short: [GELF](https://docs.graylog.org/en/latest/pages/gelf.html))
+The `Graylog Extended Log Format` (short: GELF)
 can be used to send application logs directly to a TCP socket.
 
 While it has been specified by the [Graylog](https://www.graylog.org) project as their
-[input resource standard](https://docs.graylog.org/en/latest/pages/sending_data.html), other tools such as
+[input resource standard](https://go2docs.graylog.org/current/getting_in_log_data/inputs.htm), other tools such as
 [Logstash](https://www.elastic.co/products/logstash) also support `GELF` as
 [input type](https://www.elastic.co/guide/en/logstash/current/plugins-inputs-gelf.html).
 
@@ -554,7 +575,7 @@ with the following tags
 Functionality exists to modify the built in OpenTSDB metric names that the plugin
 writes to. By default this is `icinga.host` and `icinga.service.<servicename>`.
 
-These prefixes can be modified as necessary to any arbitary string. The prefix
+These prefixes can be modified as necessary to any arbitrary string. The prefix
 configuration also supports Icinga macros, so if you rather use `<checkcommand>`
 or any other variable instead of `<servicename>` you may do so.
 
@@ -815,16 +836,6 @@ apt-get install icinga2-ido-mysql
     default. You can skip the automated setup and install/upgrade the
     database manually if you prefer.
 
-###### CentOS 7
-
-!!! info
-
-    Note that installing `icinga2-ido-mysql` is only supported on CentOS 7 as CentOS 8 is EOL.
-
-```bash
-yum install icinga2-ido-mysql
-```
-
 ###### RHEL 8
 
 ```bash
@@ -913,16 +924,6 @@ apt-get install icinga2-ido-pgsql
     Upstream Debian packages provide a database configuration wizard by default.
     You can skip the automated setup and install/upgrade the database manually
     if you prefer that.
-
-###### CentOS 7
-
-!!! info
-
-    Note that installing `icinga2-ido-pgsql` is only supported on CentOS 7 as CentOS 8 is EOL.
-
-```bash
-yum install icinga2-ido-pgsql
-```
 
 ###### RHEL 8
 
@@ -1118,7 +1119,7 @@ As with any application database, there are ways to optimize and tune the databa
 
 General tips for performance tuning:
 
-* [MariaDB KB](https://mariadb.com/kb/en/library/optimization-and-tuning/)
+* [MariaDB KB](https://mariadb.com/docs/server/ha-and-performance/optimization-and-tuning)
 * [PostgreSQL Wiki](https://wiki.postgresql.org/wiki/Performance_Optimization)
 
 Re-creation of indexes, changed column values, etc. will increase the database size. Ensure to
@@ -1235,7 +1236,7 @@ on the [Icinga 1.x documentation](https://docs.icinga.com/latest/en/extcommands2
 > This feature is DEPRECATED and may be removed in future releases.
 > Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
 
-The [MK Livestatus](https://mathias-kettner.de/checkmk_livestatus.html) project
+The [MK Livestatus](https://exchange.nagios.org/directory/Documentation/MK-Livestatus/details) project
 implements a query protocol that lets users query their Icinga instance for
 status information. It can also be used to send commands.
 

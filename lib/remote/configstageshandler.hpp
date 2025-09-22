@@ -4,7 +4,6 @@
 #define CONFIGSTAGESHANDLER_H
 
 #include "remote/httphandler.hpp"
-#include <atomic>
 
 namespace icinga
 {
@@ -15,40 +14,16 @@ public:
 	DECLARE_PTR_TYPEDEFS(ConfigStagesHandler);
 
 	bool HandleRequest(
-		AsioTlsStream& stream,
-		const ApiUser::Ptr& user,
-		boost::beast::http::request<boost::beast::http::string_body>& request,
-		const Url::Ptr& url,
-		boost::beast::http::response<boost::beast::http::string_body>& response,
-		const Dictionary::Ptr& params,
-		boost::asio::yield_context& yc,
-		HttpServerConnection& server
+		const WaitGroup::Ptr& waitGroup,
+		const HttpRequest& request,
+		HttpResponse& response,
+		boost::asio::yield_context& yc
 	) override;
 
 private:
-	void HandleGet(
-		const ApiUser::Ptr& user,
-		boost::beast::http::request<boost::beast::http::string_body>& request,
-		const Url::Ptr& url,
-		boost::beast::http::response<boost::beast::http::string_body>& response,
-		const Dictionary::Ptr& params
-	);
-	void HandlePost(
-		const ApiUser::Ptr& user,
-		boost::beast::http::request<boost::beast::http::string_body>& request,
-		const Url::Ptr& url,
-		boost::beast::http::response<boost::beast::http::string_body>& response,
-		const Dictionary::Ptr& params
-	);
-	void HandleDelete(
-		const ApiUser::Ptr& user,
-		boost::beast::http::request<boost::beast::http::string_body>& request,
-		const Url::Ptr& url,
-		boost::beast::http::response<boost::beast::http::string_body>& response,
-		const Dictionary::Ptr& params
-	);
-
-	static std::atomic<bool> m_RunningPackageUpdates;
+	void HandleGet(const HttpRequest& request, HttpResponse& response);
+	void HandlePost(const HttpRequest& request, HttpResponse& response);
+	void HandleDelete(const HttpRequest& request, HttpResponse& response);
 };
 
 }

@@ -776,6 +776,12 @@ void Application::SigAbrtHandler(int)
 	}
 
 	AttachDebugger(fname, interactive_debugger);
+	
+#ifdef __linux__
+	prctl(PR_SET_DUMPABLE, 1);
+#endif /* __linux __ */
+	
+	abort();
 }
 
 #ifdef _WIN32

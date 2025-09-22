@@ -593,7 +593,7 @@ Read more on that topic [here](03-monitoring-basics.md#notification-commands).
 
 #### groups.conf <a id="groups-conf"></a>
 
-The example host defined in [hosts.conf](hosts-conf) already has the
+The example host defined in [hosts.conf](#hosts-conf) already has the
 custom variable `os` set to `Linux` and is therefore automatically
 a member of the host group `linux-servers`.
 

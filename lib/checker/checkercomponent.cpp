@@ -81,6 +81,7 @@ void CheckerComponent::Stop(bool runtimeRemoved)
 		m_CV.notify_all();
 	}
 
+	m_WaitGroup->Join();
 	m_ResultTimer->Stop(true);
 	m_Thread.join();
 
@@ -135,6 +136,7 @@ void CheckerComponent::CheckThreadProc()
 		bool forced = checkable->GetForceNextCheck();
 		bool check = true;
 		bool notifyNextCheck = false;
+		double nextCheck = -1;
 
 		if (!forced) {
 			if (!checkable->IsReachable(DependencyCheckExecution)) {
@@ -162,13 +164,25 @@ void CheckerComponent::CheckThreadProc()
 
 			TimePeriod::Ptr tp = checkable->GetCheckPeriod();
 
-			if (tp && !tp->IsInside(Utility::GetTime())) {
-				Log(LogNotice, "CheckerComponent")
-					<< "Skipping check for object '" << checkable->GetName()
-					<< "': not in check period '" << tp->GetName() << "'";
+			if (tp) {
+				auto ts (Utility::GetTime());
+				ObjectLock oLock (tp);
 
-				check = false;
-				notifyNextCheck = true;
+				if (!tp->IsInside(ts)) {
+					nextCheck = tp->FindNextTransition(ts);
+
+					if (nextCheck <= 0) {
+						nextCheck = tp->GetValidEnd();
+					}
+
+					Log(LogNotice, "CheckerComponent")
+						<< "Skipping check for object '" << checkable->GetName()
+						<< "', as not in check period '" << tp->GetName() << "', until "
+						<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", nextCheck);
+
+					check = false;
+					notifyNextCheck = true;
+				}
 			}
 		}
 
@@ -177,10 +191,14 @@ void CheckerComponent::CheckThreadProc()
 			m_IdleCheckables.insert(GetCheckableScheduleInfo(checkable));
 			lock.unlock();
 
-			Log(LogDebug, "CheckerComponent")
-				<< "Checks for checkable '" << checkable->GetName() << "' are disabled. Rescheduling check.";
+			if (nextCheck > 0) {
+				checkable->SetNextCheck(nextCheck);
+			} else {
+				Log(LogDebug, "CheckerComponent")
+					<< "Checks for checkable '" << checkable->GetName() << "' are disabled. Rescheduling check.";
 
-			checkable->UpdateNextCheck();
+				checkable->UpdateNextCheck();
+			}
 
 			if (notifyNextCheck) {
 				// Trigger update event for Icinga DB
@@ -199,7 +217,8 @@ void CheckerComponent::CheckThreadProc()
 			<< "Scheduling info for checkable '" << checkable->GetName() << "' ("
 			<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", checkable->GetNextCheck()) << "): Object '"
 			<< csi.Object->GetName() << "', Next Check: "
-			<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", csi.NextCheck) << "(" << csi.NextCheck << ").";
+			<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", csi.NextCheck)
+			<< " (" << std::fixed << std::setprecision(0) << csi.NextCheck << ").";
 
 		m_PendingCheckables.insert(csi);
 
@@ -230,7 +249,7 @@ void CheckerComponent::CheckThreadProc()
 void CheckerComponent::ExecuteCheckHelper(const Checkable::Ptr& checkable)
 {
 	try {
-		checkable->ExecuteCheck();
+		checkable->ExecuteCheck(m_WaitGroup);
 	} catch (const std::exception& ex) {
 		CheckResult::Ptr cr = new CheckResult();
 		cr->SetState(ServiceUnknown);
@@ -244,7 +263,7 @@ void CheckerComponent::ExecuteCheckHelper(const Checkable::Ptr& checkable)
 		cr->SetExecutionStart(now);
 		cr->SetExecutionEnd(now);
 
-		checkable->ProcessCheckResult(cr);
+		checkable->ProcessCheckResult(cr, m_WaitGroup);
 
 		Log(LogCritical, "checker", output);
 	}

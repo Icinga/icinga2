@@ -18,7 +18,7 @@ class IcingadbCheckTask
 {
 public:
 	static void ScriptFunc(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
-		const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros);
+		const WaitGroup::Ptr& producer, const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros);
 
 private:
 	IcingadbCheckTask();

@@ -69,7 +69,7 @@ BOOST_AUTO_TEST_CASE(host_1attempt)
 	CheckNotification(host, false);
 
 	std::cout << "First check result (unknown)" << std::endl;
-	host->ProcessCheckResult(MakeCheckResult(ServiceUnknown));
+	host->ProcessCheckResult(MakeCheckResult(ServiceUnknown), new StoppableWaitGroup());
 	BOOST_CHECK(host->GetState() == HostDown);
 	BOOST_CHECK(host->GetStateType() == StateTypeHard);
 	BOOST_CHECK(host->GetCheckAttempt() == 1);
@@ -77,7 +77,7 @@ BOOST_AUTO_TEST_CASE(host_1attempt)
 	CheckNotification(host, true, NotificationProblem);
 
 	std::cout << "Second check result (ok)" << std::endl;
-	host->ProcessCheckResult(MakeCheckResult(ServiceOK));
+	host->ProcessCheckResult(MakeCheckResult(ServiceOK), new StoppableWaitGroup());
 	BOOST_CHECK(host->GetState() == HostUp);
 	BOOST_CHECK(host->GetStateType() == StateTypeHard);
 	BOOST_CHECK(host->GetCheckAttempt() == 1);
@@ -85,7 +85,7 @@ BOOST_AUTO_TEST_CASE(host_1attempt)
 	CheckNotification(host, true, NotificationRecovery);
 
 	std::cout << "Third check result (critical)" << std::endl;
-	host->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	host->ProcessCheckResult(MakeCheckResult(ServiceCritical), new StoppableWaitGroup());
 	BOOST_CHECK(host->GetState() == HostDown);
 	BOOST_CHECK(host->GetStateType() == StateTypeHard);
 	BOOST_CHECK(host->GetCheckAttempt() == 1);
@@ -93,7 +93,7 @@ BOOST_AUTO_TEST_CASE(host_1attempt)
 	CheckNotification(host, true, NotificationProblem);
 
 	std::cout << "Fourth check result (ok)" << std::endl;
-	host->ProcessCheckResult(MakeCheckResult(ServiceOK));
+	host->ProcessCheckResult(MakeCheckResult(ServiceOK), new StoppableWaitGroup());
 	BOOST_CHECK(host->GetState() == HostUp);
 	BOOST_CHECK(host->GetStateType() == StateTypeHard);
 	BOOST_CHECK(host->GetCheckAttempt() == 1);
@@ -126,7 +126,7 @@ BOOST_AUTO_TEST_CASE(host_2attempts)
 	CheckNotification(host, false);
 
 	std::cout << "First check result (unknown)" << std::endl;
-	host->ProcessCheckResult(MakeCheckResult(ServiceUnknown));
+	host->ProcessCheckResult(MakeCheckResult(ServiceUnknown), new StoppableWaitGroup());
 	BOOST_CHECK(host->GetState() == HostDown);
 	BOOST_CHECK(host->GetStateType() == StateTypeSoft);
 	BOOST_CHECK(host->GetCheckAttempt() == 1);
@@ -134,7 +134,7 @@ BOOST_AUTO_TEST_CASE(host_2attempts)
 	CheckNotification(host, false);
 
 	std::cout << "Second check result (critical)" << std::endl;
-	host->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	host->ProcessCheckResult(MakeCheckResult(ServiceCritical), new StoppableWaitGroup());
 	BOOST_CHECK(host->GetState() == HostDown);
 	BOOST_CHECK(host->GetStateType() == StateTypeHard);
 	BOOST_CHECK(host->GetCheckAttempt() == 1);
@@ -142,7 +142,7 @@ BOOST_AUTO_TEST_CASE(host_2attempts)
 	CheckNotification(host, true, NotificationProblem);
 
 	std::cout << "Third check result (ok)" << std::endl;
-	host->ProcessCheckResult(MakeCheckResult(ServiceOK));
+	host->ProcessCheckResult(MakeCheckResult(ServiceOK), new StoppableWaitGroup());
 	BOOST_CHECK(host->GetState() == HostUp);
 	BOOST_CHECK(host->GetStateType() == StateTypeHard);
 	BOOST_CHECK(host->GetCheckAttempt() == 1);
@@ -150,7 +150,7 @@ BOOST_AUTO_TEST_CASE(host_2attempts)
 	CheckNotification(host, true, NotificationRecovery);
 
 	std::cout << "Fourth check result (critical)" << std::endl;
-	host->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	host->ProcessCheckResult(MakeCheckResult(ServiceCritical), new StoppableWaitGroup());
 	BOOST_CHECK(host->GetState() == HostDown);
 	BOOST_CHECK(host->GetStateType() == StateTypeSoft);
 	BOOST_CHECK(host->GetCheckAttempt() == 1);
@@ -158,7 +158,7 @@ BOOST_AUTO_TEST_CASE(host_2attempts)
 	CheckNotification(host, false);
 
 	std::cout << "Fifth check result (ok)" << std::endl;
-	host->ProcessCheckResult(MakeCheckResult(ServiceOK));
+	host->ProcessCheckResult(MakeCheckResult(ServiceOK), new StoppableWaitGroup());
 	BOOST_CHECK(host->GetState() == HostUp);
 	BOOST_CHECK(host->GetStateType() == StateTypeHard);
 	BOOST_CHECK(host->GetCheckAttempt() == 1);
@@ -191,7 +191,7 @@ BOOST_AUTO_TEST_CASE(host_3attempts)
 	CheckNotification(host, false);
 
 	std::cout << "First check result (unknown)" << std::endl;
-	host->ProcessCheckResult(MakeCheckResult(ServiceUnknown));
+	host->ProcessCheckResult(MakeCheckResult(ServiceUnknown), new StoppableWaitGroup());
 	BOOST_CHECK(host->GetState() == HostDown);
 	BOOST_CHECK(host->GetStateType() == StateTypeSoft);
 	BOOST_CHECK(host->GetCheckAttempt() == 1);
@@ -199,7 +199,7 @@ BOOST_AUTO_TEST_CASE(host_3attempts)
 	CheckNotification(host, false);
 
 	std::cout << "Second check result (critical)" << std::endl;
-	host->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	host->ProcessCheckResult(MakeCheckResult(ServiceCritical), new StoppableWaitGroup());
 	BOOST_CHECK(host->GetState() == HostDown);
 	BOOST_CHECK(host->GetStateType() == StateTypeSoft);
 	BOOST_CHECK(host->GetCheckAttempt() == 2);
@@ -207,7 +207,7 @@ BOOST_AUTO_TEST_CASE(host_3attempts)
 	CheckNotification(host, false);
 
 	std::cout << "Third check result (critical)" << std::endl;
-	host->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	host->ProcessCheckResult(MakeCheckResult(ServiceCritical), new StoppableWaitGroup());
 	BOOST_CHECK(host->GetState() == HostDown);
 	BOOST_CHECK(host->GetStateType() == StateTypeHard);
 	BOOST_CHECK(host->GetCheckAttempt() == 1);
@@ -215,7 +215,7 @@ BOOST_AUTO_TEST_CASE(host_3attempts)
 	CheckNotification(host, true, NotificationProblem);
 
 	std::cout << "Fourth check result (ok)" << std::endl;
-	host->ProcessCheckResult(MakeCheckResult(ServiceOK));
+	host->ProcessCheckResult(MakeCheckResult(ServiceOK), new StoppableWaitGroup());
 	BOOST_CHECK(host->GetState() == HostUp);
 	BOOST_CHECK(host->GetStateType() == StateTypeHard);
 	BOOST_CHECK(host->GetCheckAttempt() == 1);
@@ -223,7 +223,7 @@ BOOST_AUTO_TEST_CASE(host_3attempts)
 	CheckNotification(host, true, NotificationRecovery);
 
 	std::cout << "Fifth check result (critical)" << std::endl;
-	host->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	host->ProcessCheckResult(MakeCheckResult(ServiceCritical), new StoppableWaitGroup());
 	BOOST_CHECK(host->GetState() == HostDown);
 	BOOST_CHECK(host->GetStateType() == StateTypeSoft);
 	BOOST_CHECK(host->GetCheckAttempt() == 1);
@@ -231,7 +231,7 @@ BOOST_AUTO_TEST_CASE(host_3attempts)
 	CheckNotification(host, false);
 
 	std::cout << "Sixth check result (ok)" << std::endl;
-	host->ProcessCheckResult(MakeCheckResult(ServiceOK));
+	host->ProcessCheckResult(MakeCheckResult(ServiceOK), new StoppableWaitGroup());
 	BOOST_CHECK(host->GetState() == HostUp);
 	BOOST_CHECK(host->GetStateType() == StateTypeHard);
 	BOOST_CHECK(host->GetCheckAttempt() == 1);
@@ -264,7 +264,7 @@ BOOST_AUTO_TEST_CASE(service_1attempt)
 	CheckNotification(service, false);
 
 	std::cout << "First check result (unknown)" << std::endl;
-	service->ProcessCheckResult(MakeCheckResult(ServiceUnknown));
+	service->ProcessCheckResult(MakeCheckResult(ServiceUnknown), new StoppableWaitGroup());
 	BOOST_CHECK(service->GetState() == ServiceUnknown);
 	BOOST_CHECK(service->GetStateType() == StateTypeHard);
 	BOOST_CHECK(service->GetCheckAttempt() == 1);
@@ -272,7 +272,7 @@ BOOST_AUTO_TEST_CASE(service_1attempt)
 	CheckNotification(service, true, NotificationProblem);
 
 	std::cout << "Second check result (ok)" << std::endl;
-	service->ProcessCheckResult(MakeCheckResult(ServiceOK));
+	service->ProcessCheckResult(MakeCheckResult(ServiceOK), new StoppableWaitGroup());
 	BOOST_CHECK(service->GetState() == ServiceOK);
 	BOOST_CHECK(service->GetStateType() == StateTypeHard);
 	BOOST_CHECK(service->GetCheckAttempt() == 1);
@@ -280,7 +280,7 @@ BOOST_AUTO_TEST_CASE(service_1attempt)
 	CheckNotification(service, true, NotificationRecovery);
 
 	std::cout << "Third check result (critical)" << std::endl;
-	service->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	service->ProcessCheckResult(MakeCheckResult(ServiceCritical), new StoppableWaitGroup());
 	BOOST_CHECK(service->GetState() == ServiceCritical);
 	BOOST_CHECK(service->GetStateType() == StateTypeHard);
 	BOOST_CHECK(service->GetCheckAttempt() == 1);
@@ -288,7 +288,7 @@ BOOST_AUTO_TEST_CASE(service_1attempt)
 	CheckNotification(service, true, NotificationProblem);
 
 	std::cout << "Fourth check result (ok)" << std::endl;
-	service->ProcessCheckResult(MakeCheckResult(ServiceOK));
+	service->ProcessCheckResult(MakeCheckResult(ServiceOK), new StoppableWaitGroup());
 	BOOST_CHECK(service->GetState() == ServiceOK);
 	BOOST_CHECK(service->GetStateType() == StateTypeHard);
 	BOOST_CHECK(service->GetCheckAttempt() == 1);
@@ -321,7 +321,7 @@ BOOST_AUTO_TEST_CASE(service_2attempts)
 	CheckNotification(service, false);
 
 	std::cout << "First check result (unknown)" << std::endl;
-	service->ProcessCheckResult(MakeCheckResult(ServiceUnknown));
+	service->ProcessCheckResult(MakeCheckResult(ServiceUnknown), new StoppableWaitGroup());
 	BOOST_CHECK(service->GetState() == ServiceUnknown);
 	BOOST_CHECK(service->GetStateType() == StateTypeSoft);
 	BOOST_CHECK(service->GetCheckAttempt() == 1);
@@ -329,7 +329,7 @@ BOOST_AUTO_TEST_CASE(service_2attempts)
 	CheckNotification(service, false);
 
 	std::cout << "Second check result (critical)" << std::endl;
-	service->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	service->ProcessCheckResult(MakeCheckResult(ServiceCritical), new StoppableWaitGroup());
 	BOOST_CHECK(service->GetState() == ServiceCritical);
 	BOOST_CHECK(service->GetStateType() == StateTypeHard);
 	BOOST_CHECK(service->GetCheckAttempt() == 1);
@@ -337,7 +337,7 @@ BOOST_AUTO_TEST_CASE(service_2attempts)
 	CheckNotification(service, true, NotificationProblem);
 
 	std::cout << "Third check result (ok)" << std::endl;
-	service->ProcessCheckResult(MakeCheckResult(ServiceOK));
+	service->ProcessCheckResult(MakeCheckResult(ServiceOK), new StoppableWaitGroup());
 	BOOST_CHECK(service->GetState() == ServiceOK);
 	BOOST_CHECK(service->GetStateType() == StateTypeHard);
 	BOOST_CHECK(service->GetCheckAttempt() == 1);
@@ -345,7 +345,7 @@ BOOST_AUTO_TEST_CASE(service_2attempts)
 	CheckNotification(service, true, NotificationRecovery);
 
 	std::cout << "Fourth check result (critical)" << std::endl;
-	service->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	service->ProcessCheckResult(MakeCheckResult(ServiceCritical), new StoppableWaitGroup());
 	BOOST_CHECK(service->GetState() == ServiceCritical);
 	BOOST_CHECK(service->GetStateType() == StateTypeSoft);
 	BOOST_CHECK(service->GetCheckAttempt() == 1);
@@ -353,7 +353,7 @@ BOOST_AUTO_TEST_CASE(service_2attempts)
 	CheckNotification(service, false);
 
 	std::cout << "Fifth check result (ok)" << std::endl;
-	service->ProcessCheckResult(MakeCheckResult(ServiceOK));
+	service->ProcessCheckResult(MakeCheckResult(ServiceOK), new StoppableWaitGroup());
 	BOOST_CHECK(service->GetState() == ServiceOK);
 	BOOST_CHECK(service->GetStateType() == StateTypeHard);
 	BOOST_CHECK(service->GetCheckAttempt() == 1);
@@ -386,7 +386,7 @@ BOOST_AUTO_TEST_CASE(service_3attempts)
 	CheckNotification(service, false);
 
 	std::cout << "First check result (unknown)" << std::endl;
-	service->ProcessCheckResult(MakeCheckResult(ServiceUnknown));
+	service->ProcessCheckResult(MakeCheckResult(ServiceUnknown), new StoppableWaitGroup());
 	BOOST_CHECK(service->GetState() == ServiceUnknown);
 	BOOST_CHECK(service->GetStateType() == StateTypeSoft);
 	BOOST_CHECK(service->GetCheckAttempt() == 1);
@@ -394,7 +394,7 @@ BOOST_AUTO_TEST_CASE(service_3attempts)
 	CheckNotification(service, false);
 
 	std::cout << "Second check result (critical)" << std::endl;
-	service->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	service->ProcessCheckResult(MakeCheckResult(ServiceCritical), new StoppableWaitGroup());
 	BOOST_CHECK(service->GetState() == ServiceCritical);
 	BOOST_CHECK(service->GetStateType() == StateTypeSoft);
 	BOOST_CHECK(service->GetCheckAttempt() == 2);
@@ -402,7 +402,7 @@ BOOST_AUTO_TEST_CASE(service_3attempts)
 	CheckNotification(service, false);
 
 	std::cout << "Third check result (critical)" << std::endl;
-	service->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	service->ProcessCheckResult(MakeCheckResult(ServiceCritical), new StoppableWaitGroup());
 	BOOST_CHECK(service->GetState() == ServiceCritical);
 	BOOST_CHECK(service->GetStateType() == StateTypeHard);
 	BOOST_CHECK(service->GetCheckAttempt() == 1);
@@ -410,7 +410,7 @@ BOOST_AUTO_TEST_CASE(service_3attempts)
 	CheckNotification(service, true, NotificationProblem);
 
 	std::cout << "Fourth check result (ok)" << std::endl;
-	service->ProcessCheckResult(MakeCheckResult(ServiceOK));
+	service->ProcessCheckResult(MakeCheckResult(ServiceOK), new StoppableWaitGroup());
 	BOOST_CHECK(service->GetState() == ServiceOK);
 	BOOST_CHECK(service->GetStateType() == StateTypeHard);
 	BOOST_CHECK(service->GetCheckAttempt() == 1);
@@ -418,7 +418,7 @@ BOOST_AUTO_TEST_CASE(service_3attempts)
 	CheckNotification(service, true, NotificationRecovery);
 
 	std::cout << "Fifth check result (critical)" << std::endl;
-	service->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	service->ProcessCheckResult(MakeCheckResult(ServiceCritical), new StoppableWaitGroup());
 	BOOST_CHECK(service->GetState() == ServiceCritical);
 	BOOST_CHECK(service->GetStateType() == StateTypeSoft);
 	BOOST_CHECK(service->GetCheckAttempt() == 1);
@@ -426,7 +426,7 @@ BOOST_AUTO_TEST_CASE(service_3attempts)
 	CheckNotification(service, false);
 
 	std::cout << "Sixth check result (ok)" << std::endl;
-	service->ProcessCheckResult(MakeCheckResult(ServiceOK));
+	service->ProcessCheckResult(MakeCheckResult(ServiceOK), new StoppableWaitGroup());
 	BOOST_CHECK(service->GetState() == ServiceOK);
 	BOOST_CHECK(service->GetStateType() == StateTypeHard);
 	BOOST_CHECK(service->GetCheckAttempt() == 1);
@@ -470,7 +470,7 @@ BOOST_AUTO_TEST_CASE(host_flapping_notification)
 
 	for (int i = 0; i < 10; i++) {
 		ServiceState state = (i % 2 == 0 ? ServiceOK : ServiceCritical);
-		host->ProcessCheckResult(MakeCheckResult(state));
+		host->ProcessCheckResult(MakeCheckResult(state), new StoppableWaitGroup());
 		Utility::IncrementTime(timeStepInterval);
 	}
 
@@ -481,7 +481,7 @@ BOOST_AUTO_TEST_CASE(host_flapping_notification)
 	std::cout << "Now calm down..." << std::endl;
 
 	for (int i = 0; i < 20; i++) {
-		host->ProcessCheckResult(MakeCheckResult(ServiceOK));
+		host->ProcessCheckResult(MakeCheckResult(ServiceOK), new StoppableWaitGroup());
 		Utility::IncrementTime(timeStepInterval);
 	}
 
@@ -527,7 +527,7 @@ BOOST_AUTO_TEST_CASE(service_flapping_notification)
 
 	for (int i = 0; i < 10; i++) {
 		ServiceState state = (i % 2 == 0 ? ServiceOK : ServiceCritical);
-		service->ProcessCheckResult(MakeCheckResult(state));
+		service->ProcessCheckResult(MakeCheckResult(state), new StoppableWaitGroup());
 		Utility::IncrementTime(timeStepInterval);
 	}
 
@@ -540,7 +540,7 @@ BOOST_AUTO_TEST_CASE(service_flapping_notification)
 	std::cout << "Now calm down..." << std::endl;
 
 	for (int i = 0; i < 20; i++) {
-		service->ProcessCheckResult(MakeCheckResult(ServiceOK));
+		service->ProcessCheckResult(MakeCheckResult(ServiceOK), new StoppableWaitGroup());
 		Utility::IncrementTime(timeStepInterval);
 	}
 
@@ -585,7 +585,7 @@ BOOST_AUTO_TEST_CASE(service_flapping_problem_notifications)
 
 	for (int i = 0; i < 10; i++) {
 		ServiceState state = (i % 2 == 0 ? ServiceOK : ServiceCritical);
-		service->ProcessCheckResult(MakeCheckResult(state));
+		service->ProcessCheckResult(MakeCheckResult(state), new StoppableWaitGroup());
 		Utility::IncrementTime(timeStepInterval);
 	}
 
@@ -595,11 +595,11 @@ BOOST_AUTO_TEST_CASE(service_flapping_problem_notifications)
 
 	//Insert enough check results to get into hard problem state but staying flapping
 
-	service->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	service->ProcessCheckResult(MakeCheckResult(ServiceCritical), new StoppableWaitGroup());
 	Utility::IncrementTime(timeStepInterval);
-	service->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	service->ProcessCheckResult(MakeCheckResult(ServiceCritical), new StoppableWaitGroup());
 	Utility::IncrementTime(timeStepInterval);
-	service->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	service->ProcessCheckResult(MakeCheckResult(ServiceCritical), new StoppableWaitGroup());
 	Utility::IncrementTime(timeStepInterval);
 
 
@@ -611,7 +611,7 @@ BOOST_AUTO_TEST_CASE(service_flapping_problem_notifications)
 
 	// Calm down
 	while (service->IsFlapping()) {
-		service->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+		service->ProcessCheckResult(MakeCheckResult(ServiceCritical), new StoppableWaitGroup());
 		Utility::IncrementTime(timeStepInterval);
 	}
 
@@ -641,7 +641,7 @@ BOOST_AUTO_TEST_CASE(service_flapping_problem_notifications)
 	// Known failure, see #5713
 	// CheckNotification(service, true, NotificationProblem);
 
-	service->ProcessCheckResult(MakeCheckResult(ServiceOK));
+	service->ProcessCheckResult(MakeCheckResult(ServiceOK), new StoppableWaitGroup());
 	Utility::IncrementTime(timeStepInterval);
 
 	// Known failure, see #5713
@@ -686,7 +686,7 @@ BOOST_AUTO_TEST_CASE(service_flapping_ok_into_bad)
 
 	for (int i = 0; i < 10; i++) {
 		ServiceState state = (i % 2 == 0 ? ServiceOK : ServiceCritical);
-		service->ProcessCheckResult(MakeCheckResult(state));
+		service->ProcessCheckResult(MakeCheckResult(state), new StoppableWaitGroup());
 		Utility::IncrementTime(timeStepInterval);
 	}
 
@@ -696,11 +696,11 @@ BOOST_AUTO_TEST_CASE(service_flapping_ok_into_bad)
 
 	//Insert enough check results to get into hard problem state but staying flapping
 
-	service->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	service->ProcessCheckResult(MakeCheckResult(ServiceCritical), new StoppableWaitGroup());
 	Utility::IncrementTime(timeStepInterval);
-	service->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	service->ProcessCheckResult(MakeCheckResult(ServiceCritical), new StoppableWaitGroup());
 	Utility::IncrementTime(timeStepInterval);
-	service->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	service->ProcessCheckResult(MakeCheckResult(ServiceCritical), new StoppableWaitGroup());
 	Utility::IncrementTime(timeStepInterval);
 
 
@@ -712,13 +712,13 @@ BOOST_AUTO_TEST_CASE(service_flapping_ok_into_bad)
 
 	// Calm down
 	while (service->IsFlapping()) {
-		service->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+		service->ProcessCheckResult(MakeCheckResult(ServiceCritical), new StoppableWaitGroup());
 		Utility::IncrementTime(timeStepInterval);
 	}
 
 	CheckNotification(service, true, NotificationFlappingEnd);
 
-	service->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	service->ProcessCheckResult(MakeCheckResult(ServiceCritical), new StoppableWaitGroup());
 	Utility::IncrementTime(timeStepInterval);
 
 	BOOST_CHECK(service->IsFlapping() == false);
@@ -767,7 +767,7 @@ BOOST_AUTO_TEST_CASE(service_flapping_ok_over_bad_into_ok)
 
 	for (int i = 0; i < 10; i++) {
 		ServiceState state = (i % 2 == 0 ? ServiceOK : ServiceCritical);
-		service->ProcessCheckResult(MakeCheckResult(state));
+		service->ProcessCheckResult(MakeCheckResult(state), new StoppableWaitGroup());
 		Utility::IncrementTime(timeStepInterval);
 	}
 
@@ -777,11 +777,11 @@ BOOST_AUTO_TEST_CASE(service_flapping_ok_over_bad_into_ok)
 
 	//Insert enough check results to get into hard problem state but staying flapping
 
-	service->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	service->ProcessCheckResult(MakeCheckResult(ServiceCritical), new StoppableWaitGroup());
 	Utility::IncrementTime(timeStepInterval);
-	service->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	service->ProcessCheckResult(MakeCheckResult(ServiceCritical), new StoppableWaitGroup());
 	Utility::IncrementTime(timeStepInterval);
-	service->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	service->ProcessCheckResult(MakeCheckResult(ServiceCritical), new StoppableWaitGroup());
 	Utility::IncrementTime(timeStepInterval);
 
 
@@ -793,13 +793,13 @@ BOOST_AUTO_TEST_CASE(service_flapping_ok_over_bad_into_ok)
 
 	// Calm down
 	while (service->IsFlapping()) {
-		service->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+		service->ProcessCheckResult(MakeCheckResult(ServiceCritical), new StoppableWaitGroup());
 		Utility::IncrementTime(timeStepInterval);
 	}
 
 	CheckNotification(service, true, NotificationFlappingEnd);
 
-	service->ProcessCheckResult(MakeCheckResult(ServiceOK));
+	service->ProcessCheckResult(MakeCheckResult(ServiceOK), new StoppableWaitGroup());
 	Utility::IncrementTime(timeStepInterval);
 
 	BOOST_CHECK(service->IsFlapping() == false);
@@ -894,7 +894,7 @@ BOOST_AUTO_TEST_CASE(suppressed_notification)
 					for (int i = 0; i < checkAttempts; i++) {
 						std::cout << "  ProcessCheckResult("
 							<< Service::StateToString(initialState) << ")" << std::endl;
-						service->ProcessCheckResult(MakeCheckResult(initialState));
+						service->ProcessCheckResult(MakeCheckResult(initialState), new StoppableWaitGroup());
 					}
 
 					BOOST_CHECK(service->GetState() == initialState);
@@ -972,7 +972,7 @@ BOOST_AUTO_TEST_CASE(suppressed_notification)
 					// Process check results for the state sequence.
 					for (ServiceState s : sequence) {
 						std::cout << "  ProcessCheckResult(" << Service::StateToString(s) << ")" << std::endl;
-						service->ProcessCheckResult(MakeCheckResult(s));
+						service->ProcessCheckResult(MakeCheckResult(s), new StoppableWaitGroup());
 						BOOST_CHECK(service->GetState() == s);
 						if (checkAttempts == 1) {
 							BOOST_CHECK(service->GetStateType() == StateTypeHard);
@@ -1002,7 +1002,7 @@ BOOST_AUTO_TEST_CASE(suppressed_notification)
 						for (int i = 0; i < checkAttempts && service->GetStateType() == StateTypeSoft; i++) {
 							std::cout << "  ProcessCheckResult(" << Service::StateToString(sequence.back()) << ")"
 									  << std::endl;
-							service->ProcessCheckResult(MakeCheckResult(sequence.back()));
+							service->ProcessCheckResult(MakeCheckResult(sequence.back()), new StoppableWaitGroup());
 							BOOST_CHECK(service->GetState() == sequence.back());
 						}
 					}

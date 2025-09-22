@@ -5,6 +5,7 @@
 
 #include "base/i2-base.hpp"
 #include "base/debug.hpp"
+#include "base/intrusive-ptr.hpp"
 #include <boost/smart_ptr/intrusive_ptr.hpp>
 #include <atomic>
 #include <cstddef>
@@ -27,10 +28,11 @@ class String;
 struct DebugInfo;
 class ValidationUtils;
 
-extern Value Empty;
+extern const Value Empty;
 
 #define DECLARE_PTR_TYPEDEFS(klass) \
-	typedef intrusive_ptr<klass> Ptr
+	typedef intrusive_ptr<klass> Ptr; \
+	typedef intrusive_ptr<const klass> ConstPtr
 
 #define IMPL_TYPE_LOOKUP_SUPER() 					\
 
@@ -170,7 +172,7 @@ public:
 	virtual void SetField(int id, const Value& value, bool suppress_events = false, const Value& cookie = Empty);
 	virtual Value GetField(int id) const;
 	virtual Value GetFieldByName(const String& field, bool sandboxed, const DebugInfo& debugInfo) const;
-	virtual void SetFieldByName(const String& field, const Value& value, bool overrideFrozen, const DebugInfo& debugInfo);
+	virtual void SetFieldByName(const String& field, const Value& value, const DebugInfo& debugInfo);
 	virtual bool HasOwnField(const String& field) const;
 	virtual bool GetOwnField(const String& field, Value *result) const;
 	virtual void ValidateField(int id, const Lazy<Value>& lvalue, const ValidationUtils& utils);
@@ -191,7 +193,7 @@ private:
 	Object(const Object& other) = delete;
 	Object& operator=(const Object& rhs) = delete;
 
-	std::atomic<uint_fast64_t> m_References;
+	mutable std::atomic<uint_fast64_t> m_References;
 	mutable std::recursive_mutex m_Mutex;
 
 #ifdef I2_DEBUG
@@ -201,17 +203,17 @@ private:
 
 	friend struct ObjectLock;
 
-	friend void intrusive_ptr_add_ref(Object *object);
-	friend void intrusive_ptr_release(Object *object);
+	friend void intrusive_ptr_add_ref(const Object *object);
+	friend void intrusive_ptr_release(const Object *object);
 };
 
 Value GetPrototypeField(const Value& context, const String& field, bool not_found_error, const DebugInfo& debugInfo);
 
-void TypeAddObject(Object *object);
-void TypeRemoveObject(Object *object);
+void TypeAddObject(const Object *object);
+void TypeRemoveObject(const Object *object);
 
-void intrusive_ptr_add_ref(Object *object);
-void intrusive_ptr_release(Object *object);
+void intrusive_ptr_add_ref(const Object *object);
+void intrusive_ptr_release(const Object *object);
 
 template<typename T>
 class ObjectImpl

@@ -97,6 +97,7 @@ Character                 | Escape sequence
 --------------------------|------------------------------------
 "                         | \\"
 \\                        | \\\\
+$                         | $$
 &lt;TAB&gt;               | \\t
 &lt;CARRIAGE-RETURN&gt;   | \\r
 &lt;LINE-FEED&gt;         | \\n
@@ -106,6 +107,10 @@ Character                 | Escape sequence
 In addition to these pre-defined escape sequences you can specify
 arbitrary ASCII characters using the backslash character (\\) followed
 by an ASCII character in octal encoding.
+
+In Icinga 2, the `$` character is reserved for resolving [runtime macros](03-monitoring-basics.md#runtime-macros).
+However, in situations where a string that isn't intended to be used as a runtime macro contains the `$` character,
+it is necessary to escape it with another `$` character.
 
 ### Multi-line String Literals <a id="multiline-string-literals"></a>
 
@@ -661,7 +666,7 @@ setting the `check_command` attribute or custom variables as command parameters.
 and afterwards the `assign where` and `ignore where` conditions are evaluated.
 
 It is not necessary to check attributes referenced in the `for loop` expression
-for their existance using an additional `assign where` condition.
+for their existence using an additional `assign where` condition.
 
 More usage examples are documented in the [monitoring basics](03-monitoring-basics.md#using-apply-for)
 chapter.

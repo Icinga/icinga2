@@ -125,7 +125,7 @@ Value Object::GetFieldByName(const String& field, bool sandboxed, const DebugInf
 	return GetField(fid);
 }
 
-void Object::SetFieldByName(const String& field, const Value& value, bool overrideFrozen, const DebugInfo& debugInfo)
+void Object::SetFieldByName(const String& field, const Value& value, const DebugInfo& debugInfo)
 {
 	Type::Ptr type = GetReflectionType();
 
@@ -201,14 +201,14 @@ Value icinga::GetPrototypeField(const Value& context, const String& field, bool 
 }
 
 #ifdef I2_LEAK_DEBUG
-void icinga::TypeAddObject(Object *object)
+void icinga::TypeAddObject(const Object *object)
 {
 	std::unique_lock<std::mutex> lock(l_ObjectCountLock);
 	String typeName = Utility::GetTypeName(typeid(*object));
 	l_ObjectCounts[typeName]++;
 }
 
-void icinga::TypeRemoveObject(Object *object)
+void icinga::TypeRemoveObject(const Object *object)
 {
 	std::unique_lock<std::mutex> lock(l_ObjectCountLock);
 	String typeName = Utility::GetTypeName(typeid(*object));
@@ -239,7 +239,7 @@ INITIALIZE_ONCE([]() {
 });
 #endif /* I2_LEAK_DEBUG */
 
-void icinga::intrusive_ptr_add_ref(Object *object)
+void icinga::intrusive_ptr_add_ref(const Object *object)
 {
 #ifdef I2_LEAK_DEBUG
 	if (object->m_References.fetch_add(1) == 0u)
@@ -249,7 +249,7 @@ void icinga::intrusive_ptr_add_ref(Object *object)
 #endif /* I2_LEAK_DEBUG */
 }
 
-void icinga::intrusive_ptr_release(Object *object)
+void icinga::intrusive_ptr_release(const Object *object)
 {
 	auto previous (object->m_References.fetch_sub(1));
 

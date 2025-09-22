@@ -1134,7 +1134,7 @@ for a more secure configuration is provided by the [Mozilla Wiki](https://wiki.m
 Ensure to use the same configuration for both attributes on **all** endpoints to avoid communication problems which
 requires to use `cipher_list` compatible with the endpoint using the oldest version of the OpenSSL library. If using
 other tools to connect to the API ensure also compatibility with them as this setting affects not only inter-cluster
-communcation but also the REST API.
+communication but also the REST API.
 
 ### CheckerComponent <a id="objecttype-checkercomponent"></a>
 
@@ -1181,7 +1181,7 @@ Configuration Attributes:
 
 ### ElasticsearchWriter <a id="objecttype-elasticsearchwriter"></a>
 
-Writes check result metrics and performance data to an Elasticsearch instance.
+Writes check result metrics and performance data to an Elasticsearch or OpenSearch instance.
 This configuration object is available as [elasticsearch feature](14-features.md#elasticsearch-writer).
 
 Example:
@@ -1193,6 +1193,10 @@ object ElasticsearchWriter "elasticsearch" {
   index = "icinga2"
 
   enable_send_perfdata = true
+
+  host_tags_template = {
+    os_name = "$host.vars.os$"
+  }
 
   flush_threshold = 1024
   flush_interval = 10
@@ -1207,7 +1211,7 @@ Configuration Attributes:
   --------------------------|-----------------------|----------------------------------
   host                      | String                | **Required.** Elasticsearch host address. Defaults to `127.0.0.1`.
   port                      | Number                | **Required.** Elasticsearch port. Defaults to `9200`.
-  index                     | String                | **Required.** Elasticsearch index name. Defaults to `icinga2`.
+  index                     | String                | **Required.** Prefix for the index names. Defaults to `icinga2`.
   enable\_send\_perfdata    | Boolean               | **Optional.** Send parsed performance data metrics for check results. Defaults to `false`.
   flush\_interval           | Duration              | **Optional.** How long to buffer data points before transferring to Elasticsearch. Defaults to `10s`.
   flush\_threshold          | Number                | **Optional.** How many data points to buffer before forcing a transfer to Elasticsearch.  Defaults to `1024`.
@@ -1215,6 +1219,8 @@ Configuration Attributes:
   password                  | String                | **Optional.** Basic auth password if Elasticsearch is hidden behind an HTTP proxy.
   enable\_tls               | Boolean               | **Optional.** Whether to use a TLS stream. Defaults to `false`. Requires an HTTP proxy.
   insecure\_noverify        | Boolean               | **Optional.** Disable TLS peer verification.
+  host\_tags\_template      | Dictionary            | **Optional.** Allows to apply additional tags to the Elasticsearch host entries.
+  service\_tags\_template   | Dictionary            | **Optional.** Allows to apply additional tags to the Elasticsearch service entries.
   ca\_path                  | String                | **Optional.** Path to CA certificate to validate the remote host. Requires `enable_tls` set to `true`.
   cert\_path                | String                | **Optional.** Path to host certificate to present to the remote host for mutual verification. Requires `enable_tls` set to `true`.
   key\_path                 | String                | **Optional.** Path to host key to accompany the cert\_path. Requires `enable_tls` set to `true`.
@@ -1222,6 +1228,11 @@ Configuration Attributes:
 
 Note: If `flush_threshold` is set too low, this will force the feature to flush all data to Elasticsearch too often.
 Experiment with the setting, if you are processing more than 1024 metrics per second or similar.
+
+> **Note**
+>
+> Be aware that `enable_send_perfdata` will create a new field mapping in the index for each performance data metric in a check plugin.
+> Elasticsearch/OpenSearch have a maximum number of fields in an index. The default value is usually 1000 fields. See [mapping settings limit](https://www.elastic.co/guide/en/elasticsearch/reference/8.18/mapping-settings-limit.html)
 
 Basic auth is supported with the `username` and `password` attributes. This requires an
 HTTP proxy (Nginx, etc.) in front of the Elasticsearch instance. Check [this blogpost](https://blog.netways.de/2017/09/14/secure-elasticsearch-and-kibana-with-an-nginx-http-proxy/)
@@ -1387,7 +1398,9 @@ Configuration Attributes:
   host                      | String                | **Optional.** Redis host. Defaults to `127.0.0.1`.
   port                      | Number                | **Optional.** Redis port. Defaults to `6380` since the Redis server provided by the `icingadb-redis` package listens on that port.
   path                      | String                | **Optional.** Redis unix socket path. Can be used instead of `host` and `port` attributes.
+  username                  | String                | **Optional.** Redis auth username. Only possible if Redis ACLs are used. Requires `password` to be set as well.
   password                  | String                | **Optional.** Redis auth password.
+  db\_index                 | Number                | **Optional.** Redis logical database by its number. Defaults to `0`.
   enable\_tls               | Boolean               | **Optional.** Whether to use TLS.
   cert\_path                | String                | **Optional.** Path to the certificate.
   key\_path                 | String                | **Optional.** Path to the private key.
@@ -1672,11 +1685,11 @@ Configuration Attributes:
   flush\_threshold          | Number                | **Optional.** How many data points to buffer before forcing a transfer to InfluxDB.  Defaults to `1024`.
   enable\_ha                | Boolean               | **Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-features). Defaults to `false`.
 
-Note: If `flush_threshold` is set too low, this will always force the feature to flush all data
-to InfluxDB. Experiment with the setting, if you are processing more than 1024 metrics per second
-or similar.
-
-
+> **Note**
+>
+> If `flush_threshold` is set too low, this will always force the feature to flush all data
+> to InfluxDB. Experiment with the setting, if you are processing more than 1024 metrics per second
+> or similar.
 
 ### Influxdb2Writer <a id="objecttype-influxdb2writer"></a>
 

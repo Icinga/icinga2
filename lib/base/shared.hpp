@@ -4,6 +4,7 @@
 #define SHARED_H
 
 #include "base/atomic.hpp"
+#include "base/intrusive-ptr.hpp"
 #include <boost/smart_ptr/intrusive_ptr.hpp>
 #include <cstdint>
 #include <utility>
@@ -15,13 +16,13 @@ template<class T>
 class Shared;
 
 template<class T>
-inline void intrusive_ptr_add_ref(Shared<T> *object)
+inline void intrusive_ptr_add_ref(const Shared<T> *object)
 {
 	object->m_References.fetch_add(1);
 }
 
 template<class T>
-inline void intrusive_ptr_release(Shared<T> *object)
+inline void intrusive_ptr_release(const Shared<T> *object)
 {
 	if (object->m_References.fetch_sub(1) == 1u) {
 		delete object;
@@ -37,11 +38,12 @@ inline void intrusive_ptr_release(Shared<T> *object)
 template<class T>
 class Shared : public T
 {
-	friend void intrusive_ptr_add_ref<>(Shared<T> *object);
-	friend void intrusive_ptr_release<>(Shared<T> *object);
+	friend void intrusive_ptr_add_ref<>(const Shared<T> *object);
+	friend void intrusive_ptr_release<>(const Shared<T> *object);
 
 public:
 	typedef boost::intrusive_ptr<Shared> Ptr;
+	typedef boost::intrusive_ptr<const Shared> ConstPtr;
 
 	/**
 	 * Like std::make_shared, but for this class.
@@ -93,7 +95,7 @@ public:
 	}
 
 private:
-	Atomic<uint_fast64_t> m_References;
+	mutable Atomic<uint_fast64_t> m_References;
 };
 
 }

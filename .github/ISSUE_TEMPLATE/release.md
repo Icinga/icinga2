@@ -13,6 +13,7 @@ assignees: ''
 - [ ] Update bundled Windows dependencies
 - [ ] Harden global TLS defaults (consult https://ssl-config.mozilla.org)
 - [ ] Update `CHANGELOG.md`
+- [ ] Update `doc/16-upgrading-icinga-2.md` if applicable
 - [ ] Create and push a signed tag for the version
 - [ ] Build and release DEB and RPM packages
 - [ ] Build and release Windows packages
@@ -35,7 +36,6 @@ https://packages.icinga.com/windows/dependencies/, e.g.:
 
 ### Update Build Server, CI/CD and Documentation
 
-* [doc/21-development.md](doc/21-development.md)
 * [doc/win-dev.ps1](doc/win-dev.ps1) (also affects CI/CD)
 * [tools/win32/configure.ps1](tools/win32/configure.ps1)
 * [tools/win32/configure-dev.ps1](tools/win32/configure-dev.ps1)

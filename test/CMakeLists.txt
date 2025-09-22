@@ -2,13 +2,68 @@
 
 include(BoostTestTargets)
 
+set(types_test_SOURCES
+  icingaapplication-fixture.cpp
+  base-type.cpp
+  ${base_OBJS}
+  $<TARGET_OBJECTS:config>
+  $<TARGET_OBJECTS:remote>
+  $<TARGET_OBJECTS:icinga>
+  $<TARGET_OBJECTS:methods>
+)
+
+if(ICINGA2_WITH_CHECKER)
+  list(APPEND types_test_SOURCES $<TARGET_OBJECTS:checker>)
+endif()
+
+if(ICINGA2_WITH_MYSQL)
+  list(APPEND types_test_SOURCES $<TARGET_OBJECTS:db_ido> $<TARGET_OBJECTS:db_ido_mysql>)
+endif()
+
+if(ICINGA2_WITH_PGSQL)
+  list(APPEND types_test_SOURCES $<TARGET_OBJECTS:db_ido> $<TARGET_OBJECTS:db_ido_pgsql>)
+endif()
+
+if(ICINGA2_WITH_ICINGADB)
+  list(APPEND types_test_SOURCES $<TARGET_OBJECTS:icingadb>)
+endif()
+
+if(ICINGA2_WITH_NOTIFICATION)
+  list(APPEND types_test_SOURCES $<TARGET_OBJECTS:notification>)
+endif()
+
+if(ICINGA2_WITH_PERFDATA)
+  list(APPEND types_test_SOURCES $<TARGET_OBJECTS:perfdata>)
+endif()
+
+if(ICINGA2_UNITY_BUILD)
+  mkunity_target(types test types_test_SOURCES)
+endif()
+
+# In order to test the order of all Icinga 2 config type load dependencies, we need to link against all the libraries,
+# but this results in boost signals e.g. in dbevents.cpp being triggered by icinga-checkresult.cpp test cases that
+# only pass partially initialised objects. Therefore, the types test cases are decoupled from base and moved to a
+# separate executable to not crash the base test cases.
+add_boost_test(types
+  SOURCES test-runner.cpp ${types_test_SOURCES}
+  LIBRARIES ${base_DEPS}
+  TESTS
+    types/gettype
+    types/assign
+    types/byname
+    types/instantiate
+    types/sort_by_load_after
+)
+
 set(base_test_SOURCES
   icingaapplication-fixture.cpp
+  utils.cpp
   base-array.cpp
   base-base64.cpp
   base-convert.cpp
   base-dictionary.cpp
   base-fifo.cpp
+  base-io-engine.cpp
   base-json.cpp
   base-match.cpp
   base-netstring.cpp
@@ -21,7 +76,6 @@ set(base_test_SOURCES
   base-string.cpp
   base-timer.cpp
   base-tlsutility.cpp
-  base-type.cpp
   base-utility.cpp
   base-value.cpp
   config-apply.cpp
@@ -33,7 +87,10 @@ set(base_test_SOURCES
   icinga-notification.cpp
   icinga-perfdata.cpp
   methods-pluginnotificationtask.cpp
+  remote-certificate-fixture.cpp
   remote-configpackageutility.cpp
+  remote-httpserverconnection.cpp
+  remote-httpmessage.cpp
   remote-url.cpp
   ${base_OBJS}
   $<TARGET_OBJECTS:config>
@@ -76,6 +133,11 @@ add_boost_test(base
     base_dictionary/keys_ordered
     base_fifo/construct
     base_fifo/io
+    base_io_engine/timeout_run
+    base_io_engine/timeout_cancelled
+    base_io_engine/timeout_scope
+    base_io_engine/timeout_due_cancelled
+    base_io_engine/timeout_due_scope
     base_json/encode
     base_json/decode
     base_json/invalid1
@@ -107,6 +169,8 @@ add_boost_test(base
     base_string/replace
     base_string/index
     base_string/find
+    base_string/vector_move
+    base_string/move_string_out_of_Value_type
     base_timer/construct
     base_timer/interval
     base_timer/invoke
@@ -117,10 +181,7 @@ add_boost_test(base
     base_tlsutility/iscertuptodate_ok
     base_tlsutility/iscertuptodate_expiring
     base_tlsutility/iscertuptodate_old
-    base_type/gettype
-    base_type/assign
-    base_type/byname
-    base_type/instantiate
+    base_tlsutility/VerifyCertificate_revalidate
     base_utility/parse_version
     base_utility/compare_version
     base_utility/comparepasswords_works
@@ -128,6 +189,8 @@ add_boost_test(base
     base_utility/validateutf8
     base_utility/EscapeCreateProcessArg
     base_utility/TruncateUsingHash
+    base_utility/FormatDateTime
+    base_utility/NormalizeTm
     base_value/scalar
     base_value/convert
     base_value/format
@@ -175,6 +238,10 @@ add_boost_test(base
     icinga_checkresult/service_flapping_notification
     icinga_checkresult/suppressed_notification
     icinga_dependencies/multi_parent
+    icinga_dependencies/push_dependency_groups_to_registry
+    icinga_dependencies/default_redundancy_group_registration_unregistration
+    icinga_dependencies/simple_redundancy_group_registration_unregistration
+    icinga_dependencies/mixed_redundancy_group_registration_unregsitration
     icinga_notification/strings
     icinga_notification/state_filter
     icinga_notification/type_filter
@@ -185,9 +252,13 @@ add_boost_test(base
     icinga_notification/recovery_filter_duplicate
     icinga_macros/simple
     icinga_legacytimeperiod/simple
+    icinga_legacytimeperiod/is_in_range
+    icinga_legacytimeperiod/out_of_range_segments
+    icinga_legacytimeperiod/include_exclude_timeperiods
     icinga_legacytimeperiod/advanced
     icinga_legacytimeperiod/dst
     icinga_legacytimeperiod/dst_isinside
+    icinga_legacytimeperiod/find_nth_weekday
     icinga_perfdata/empty
     icinga_perfdata/simple
     icinga_perfdata/quotes
@@ -203,6 +274,33 @@ add_boost_test(base
     icinga_perfdata/parse_edgecases
     icinga_perfdata/empty_warn_crit_min_max
     methods_pluginnotificationtask/truncate_long_output
+    remote_certs_fixture/prepare_directory
+    remote_certs_fixture/cleanup_certs
+    remote_httpmessage/request_parse
+    remote_httpmessage/request_params
+    remote_httpmessage/response_clear
+    remote_httpmessage/response_flush_nothrow
+    remote_httpmessage/response_flush_throw
+    remote_httpmessage/response_write_empty
+    remote_httpmessage/response_write_fixed
+    remote_httpmessage/response_write_chunked
+    remote_httpmessage/response_sendjsonbody
+    remote_httpmessage/response_sendjsonerror
+    remote_httpmessage/response_sendfile
+    remote_httpserverconnection/expect_100_continue
+    remote_httpserverconnection/bad_request
+    remote_httpserverconnection/error_access_control
+    remote_httpserverconnection/error_accept_header
+    remote_httpserverconnection/authenticate_cn
+    remote_httpserverconnection/authenticate_passwd
+    remote_httpserverconnection/authenticate_error_wronguser
+    remote_httpserverconnection/authenticate_error_wrongpasswd
+    remote_httpserverconnection/reuse_connection
+    remote_httpserverconnection/wg_abort
+    remote_httpserverconnection/client_shutdown
+    remote_httpserverconnection/handler_throw_error
+    remote_httpserverconnection/handler_throw_streaming
+    remote_httpserverconnection/liveness_disconnect
     remote_configpackageutility/ValidateName
     remote_url/id_and_path
     remote_url/parameters
@@ -210,6 +308,46 @@ add_boost_test(base
     remote_url/format
     remote_url/illegal_legal_strings
 )
+
+if(BUILD_TESTING)
+  set_tests_properties(
+    base-remote_httpmessage/request_parse
+    base-remote_httpmessage/request_params
+    base-remote_httpmessage/response_clear
+    base-remote_httpmessage/response_flush_nothrow
+    base-remote_httpmessage/response_flush_throw
+    base-remote_httpmessage/response_write_empty
+    base-remote_httpmessage/response_write_fixed
+    base-remote_httpmessage/response_write_chunked
+    base-remote_httpmessage/response_sendjsonbody
+    base-remote_httpmessage/response_sendjsonerror
+    base-remote_httpmessage/response_sendfile
+    base-remote_httpserverconnection/expect_100_continue
+    base-remote_httpserverconnection/bad_request
+    base-remote_httpserverconnection/error_access_control
+    base-remote_httpserverconnection/error_accept_header
+    base-remote_httpserverconnection/authenticate_cn
+    base-remote_httpserverconnection/authenticate_passwd
+    base-remote_httpserverconnection/authenticate_error_wronguser
+    base-remote_httpserverconnection/authenticate_error_wrongpasswd
+    base-remote_httpserverconnection/reuse_connection
+    base-remote_httpserverconnection/wg_abort
+    base-remote_httpserverconnection/client_shutdown
+    base-remote_httpserverconnection/handler_throw_error
+    base-remote_httpserverconnection/handler_throw_streaming
+    base-remote_httpserverconnection/liveness_disconnect
+    PROPERTIES FIXTURES_REQUIRED ssl_certs)
+
+  set_tests_properties(
+    base-remote_certs_fixture/prepare_directory
+    PROPERTIES FIXTURES_SETUP ssl_certs
+  )
+
+  set_tests_properties(
+    base-remote_certs_fixture/cleanup_certs
+    PROPERTIES FIXTURES_CLEANUP ssl_certs
+  )
+endif()
 
 if(ICINGA2_WITH_LIVESTATUS)
   set(livestatus_test_SOURCES

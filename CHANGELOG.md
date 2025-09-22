@@ -7,6 +7,266 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.15.0 (2025-06-18)
+
+This Icinga 2 release is focused on adding Icinga 2 dependencies support to Icinga DB, but also includes a number
+of bugfixes, enhancements and code quality improvements. Below is a summary of the most important changes, for the
+complete list of issues and PRs, please see the [milestone on GitHub](https://github.com/Icinga/icinga2/issues?q=is%3Aclosed+milestone%3A2.15.0).
+
+### Notes
+
+Thanks to all contributors:
+[ChrLau](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.15.0+author%3AChrLau),
+[Josef-Friedrich](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.15.0+author%3AJosef-Friedrich),
+[LordHepipud](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.15.0+author%3ALordHepipud),
+[OdyX](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.15.0+author%3AOdyX),
+[RincewindsHat](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.15.0+author%3ARincewindsHat),
+[SebastianOpeni](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.15.0+author%3ASebastianOpeni),
+[SpeedD3](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.15.0+author%3ASpeedD3),
+[Tqnsls](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.15.0+author%3ATqnsls),
+[botovq](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.15.0+author%3Abotovq),
+[cycloon](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.15.0+author%3Acycloon),
+[legioner0](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.15.0+author%3Alegioner0),
+[legna-namor](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.15.0+author%3Alegna-namor),
+[macdems](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.15.0+author%3Amacdems),
+[mathiasaerts](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.15.0+author%3Amathiasaerts),
+[mcodato](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.15.0+author%3Amcodato),
+[n-rodriguez](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.15.0+author%3An-rodriguez),
+[netphantm](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.15.0+author%3Anetphantm),
+[nicolasberens](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.15.0+author%3Anicolasberens),
+[oldelvet](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.15.0+author%3Aoldelvet),
+[peteeckel](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.15.0+author%3Apeteeckel),
+[tbauriedel](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.15.0+author%3Atbauriedel),
+[w1ll-i-code](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.15.0+author%3Aw1ll-i-code),
+[ymartin-ovh](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.15.0+author%3Aymartin-ovh)
+
+### Breaking Changes
+
+* API: Fix `/v1/objects/*` queries with `attrs` set to `[]` to return empty attributes instead of all of them. #8169
+* Drop the undocumented `Checkable#process_check_result` and broken `System#track_parents` DSL functions. #10457
+
+### Enhancements
+
+* Gracefully disconnect all clients on shutdown and prevent from accepting new connections. #10460
+* Icinga DB: Send data to Redis® exactly as they're stored in the database to avoid extra value-mapping routines by the Go daemon. #10452
+* Add support for Icinga 2 dependencies in Icinga DB. #10290
+* Take host/service reachability into account when computing its severity. #10399
+* Rework the dependency cycle detection to efficiently handle large configs and provide better error messages. #10360
+* Don't log next check timestamp in scientific notation. #10352
+* Automatically remove child downtimes when removing parent downtime. #10345
+* Ensure compatibility with Boost version up to v1.88. #10278 #10419
+* Reject infinite performance data values. #10077
+* Support `host_template` and `service_template` tags in `ElasticsearchWriter`. #10074
+* Icinga DB: Support Redis® username authentication. #10102
+* Cluster: Distribute host child objects (e.g. services, notifications, etc.) based on the host's name. #10161
+* Icinga DB Check: Report an error if both Icinga DB instances are responsible in a HA setup. #10188
+* Windows: upgrade build toolchain to Visual Studio 2022. #9747
+
+### Bugfixes
+
+* Core
+  * Use `Checkable#check_timeout` also for rescheduling remote checks. #10443
+  * Log: Don't unnecessarily buffer log messages that are going to be dropped anyway. #10177
+  * Don't loose perfdata counter (`c`) unit when normalizing performance data for Icinga DB. #10432
+  * Fix broken SELinux policy on Fedora ≥ 41 due to the new `/usr/sbin` to `/usr/bin` equivalence. #10429
+  * Don't load `Notification` objects before `User` and `UserGroup` objects to allow them to be referenced in notifications. #10427
+  * Ensure consistent DST handling across different platforms. #10422
+  * Fix Icinga 2 doesn't generate a core dump when it crashes with SIGABRT. #10416
+  * Don't process concurrent checks for the same checkable. #10372
+  * Don't process check results after the checker and API listener have been stopped. #10397
+  * Avoid zombie processes on plugin execution timeout on busy systems. #10375
+  * Properly restore the notification object state on `Recovery` notification. #10361
+  * Fix incorrectly dropped acknowledgement and recovery notifications. #10211
+  * Prevent checks from always being rescheduled outside the configured `check_period`. #10070
+  * Don't send reminder notifications after a `Custom` notification while `interval` is set to `0`. #7818
+  * Reset all signal handlers of child processes to their defaults before starting a plugin. #8011
+  * tests: Fix `FormatDateTime` test cases with invalid formats on macOS and all BSD-based systems. #10149
+  * Mark move constructor and assignment operator in `String` as `noexcept` to allow optimizations. #10353 #10365
+* Cluster and API
+  * Fix an inverted condition in `ApiListener#IsHACluster()` that caused to always return `true` in a non-HA setup. #10417
+  * Don't silently accept authenticated JSON-RPC connections with no valid endpoint. #10415
+  * Sync `Notification#notified_problem_users` across the cluster to prevent lost recovery notifications. #10380
+  * Remove superfluous `)` from a HTTP request log message. #9966
+  * Disable TLS renegotiation (handshake on existing connection) on OpenBSD as well. #9943
+  * Log also the underlying error message when a HTTP request is closed with `No data received` by Icinga 2. #9928
+  * Fix a deadlock triggered by concurrent `/v1/actions/add-comment` and `/v1/actions/acknowledge-problem` requests on
+    the same checkable, as well as a crash that might occur when running perfectly timed `/v1/actions/add-comment`
+    and `/v1/actions/remove-comment` requests targeting the same comment. #9924
+* Icinga DB
+  * Fix missing acknowledgement and flapping history entries due to a number overflow. #10467
+  * Send downtime `cancel_time` only if it is cancelled. #10379
+  * Send only the necessary data to the `icinga:stats` Redis® stream. #10359
+  * Remove a spin lock in `RedisConnection#Connect()` to avoid busy waiting. #10265
+* Writers
+  * Serialize all required metrics before queueing them to a `WorkQueue`. #10420
+  * `OpenTsdbWriter`: Include checkable name in log messages to ease troubleshooting. #10009
+  * `OpenTsdbWriter`: Don't send custom empty tags. #7928
+  * `InfluxDBWriter`: Add missing closing quote in validation error message. #10174
+
+### ITL
+
+* Add `--maintenance_mode_state` (`$vmware_maintenance_mode_state`) argument to `vmware-esx-command` check command. #10435
+* Add `-n` (`$load_procs_to_show$`) argument to `load` check command. #10426
+* Add `--inode-perfdata` (`$disk_np_inode_perfdata$`) argument to `disk` check command. #10395
+* Add `-r` (`$ssh_remote_version$`) and `-P` (`$ssh_remote_protocol$`) arguments to `ssh` check command. #10283
+* Add `--unplugged_nics_state` (`$vmware_unplugged_nics_state$`) argument to `vmware-esx-soap-host-net` and `vmware-esx-soap-host-net-nic` check commands. #10261
+* Add `-X` (`$proc_exclude_process$`) argument to `procs` check command. #10232
+* Add `--dane` (`$ssl_cert_dane$`) argument to `ssl_cert` check command. #10196
+* Fix `check_ssl_cert` deprecation warnings. #9758
+* Fix `check_systemd` executable name add add all missing arguments. #10035
+* Add `-M` (`$snmp_multiplier$` & `$snmpv3_multiplier$`) argument to `snmp` and `snmpv3` check commands. #9975
+* Add `--continue-after-certificate` (`$http_certificate_continue$`) argument to `http` check command. #9974
+* Add `--ignore-maximum-validity` (`$ssl_cert_ignore_maximum_validity$`) argument to `ssl_cert` check command. #10396
+* Add `--maximum-validity` (`$ssl_cert_maximum_validity$`) argument to `ssl_cert` check command. #9881
+* Add `--url` (`$ssl_cert_http_url$`) argument to `ssl_cert` check command. #9759
+* Add `fuse.sshfs` and `fuse.*` (supported only by Monitoring Plugins) to the list of default disk exclude types. #9749
+* Add `check_curl` check command. #9205
+* Add the `--extra-opts` argument to various commands that support it. #8010
+
+### Documentation
+
+* Don't use `dnf config-manager` to configure Fedora repository and mention `icingadb-redis-selinux` package. #10479
+* Update the outdated cold startup duration documentation to reflect the current behavior. #10446
+* Indent second-level unordered lists with four spaces to correctly render them in the HTML documentation. #10441
+* Add a reference to the check result state documentation from within the Advanced Topics section. #10421
+* Improve the documentation of how to generate Icinga 2 core dumps. #10418
+* Update Icinga 2 CLI output examples to match the current output. #10323
+* Fix incorrect `ping_timeout` value in the `hostalive` check command documentation. #10069
+
+### Code Quality
+
+* Simplify deferred SSL shutdown in `ApiListener#NewClientHandlerInternal()`. #10301
+* Don't unnecessarily shuffle configuration items during config load. #10008
+* Sort config types by their load dependencies at namespace initialization time to save some round trips during config load. #10148
+* Fix `livestatus` build error on macOS without unity builds. #10176
+* Remove unused methods in `SharedObject` class. #10456
+* Remove unused `ProcessingResult#NoCheckResult` enum value. #10444
+* CMake: Drop all third-party cmake modules and use the ones shipped with CMake v3.8+. #10403
+* CMake: Raise the minimum required policy to `3.8`. #10402 #10478
+* CMake: Turn on `-Wsuggest-override` to warn about missing `override` specifiers. #10225 #10356
+* Make `icinga::Empty` a constant to prevent accidental modifications. #10224
+* Remove various unused methods in the `Registry` class. #10222
+* Fix missing parent `std::atomic<T>` constructor call in our `Atomic<T>` wrapper class. #10215
+* Drop unused `m_NextHeartbeat` member variable from `JsonRpcConnection`. #10208
+* Enhance some of the validation error messages. #10201
+* Don't allow `Type#GetLoadDependencies()` to return non-config object type dependencies. #10169
+* Don't allow `Type#GetLoadDependencies()` to return a set of nullptr type dependencies. #10155
+* Remove EOL distros detection code from `Utility::ReleaseHelper()` function. #10147
+* Remove dead code in TLS `GetSignatureAlgorithm()` function. #9882
+* Mark `Logger#GetSeverity()` as non-virtual to avoid unnecessary vtable lookups. #9851
+* Remove unused `Stream#Peak()` method and unused `allow_partial` parameter from `Stream#Read()`. #9734 #9736
+* Suppress compiler warnings in third-party libraries. #9732
+* Fix various compiler warnings. #9731 #10442
+* Reduce task function allocation overhead by using a per-thread created lambda in `WorkQueue`. #9575
+* Remove redundant trailing empty lines and add missing newlines in some files. #7799
+
+## 2.14.6 (2025-05-27)
+
+This security release fixes a critical issue in the certificate renewal logic in Icinga 2, which
+might incorrectly renew an invalid certificate. However, only nodes with access to the Icinga CA
+private key running with OpenSSL older than version 1.1.0 (released in 2016) are vulnerable. So this
+typically affects Icinga 2 masters running on operating systems like RHEL 7 and Amazon Linux 2.
+
+* CVE-2025-48057: Prevent invalid certificates from being renewed with OpenSSL older than v1.1.0.
+* Fix use-after-free in VerifyCertificate(): Additionally, a use-after-free was found in the same
+  function which is fixed as well, but in case it is triggered, typically only a wrong error code
+  may be shown in a log message.
+* Windows: Update OpenSSL shipped on Windows to v3.0.16.
+
+## 2.14.5 (2025-02-06)
+
+This release fixes a regression introduced in 2.14.4 that caused the `icinga2 node setup`,
+`icinga2 node wizard`, and `icinga2 pki request` commands to fail if a certificate was
+requested from a node that has to forward the request to another node for signing.
+Additionally, it fixes a small bug in the performance data normalization and includes
+various documentation improvements.
+
+### Bug Fixes
+
+* Don't close anonymous connections before sending the response for a certificate request #10337
+* Performance data: Don't discard min/max values even if crit/warn thresholds aren’t given #10339
+* Fix a failing test case on systems `time_t` is only 32 bits #10343
+
+### Documentation
+
+* Document the -X option for the mail-host-notification and mail-service-notification commands #10335
+* Include Nagios in the migration docs #10324
+* Remove RHEL 7 from installation instructions #10334
+* Add instructions for installing build dependencies on Windows Server #10336
+
+## 2.14.4 (2025-01-23)
+
+This bugfix release is focused on improving HA cluster stability and easing
+troubleshooting of issues in this area. It also addresses several crashes,
+in the core itself and both in Icinga DB and IDO (numbers out of range).
+In addition, it fixes several other issues such as lost notifications
+or TimePeriod/ScheduledDowntime exceeding specified date ranges.
+
+### Crash Fixes
+
+* Invalid `DateTime#format()` arguments in config and console on Windows Server 2016 and older. #10112
+* Downtime scheduling at runtime with non-existent trigger. #10049
+* Object creation at runtime during Icinga DB initialization. #10151
+* Comment on a service of a non-existent host. #9861
+
+### Miscellaneous Bugfixes
+
+* Lost notifications after recovery outside the notification time period. #10187
+* TimePeriod/ScheduledDowntime exceeding specified date range. #9983 #10107
+* Clean up failure for obsolete Downtimes. #10062
+* ifw-api check command: use correct process-finished handler. #10140
+* Email notification scripts: strip 0x0D (CR) for a proper Content-Type. #10061
+* Several fixes and improvements of the code quality. #10066 #10214 #10254 #10263 #10264
+
+### Cluster and API
+
+* Sync runtime objects in topological order to honor their dependencies. #10000
+* Make parallel config syncs more robust. #10013
+* After object creation via API fails, clean up properly for the next try. #10111
+* Close HTTPS connections properly to prevent leaks. #10005 #10006
+* Reduce the number of cluster messages in memory at the same time. #9991 #9999 #10210
+* Once a cluster connection shall be closed, stop communicating. #10213 #10221
+* Remove unnecessary blocking of semaphores. #9992 #9994
+* Reduce unnecessary cluster messages setting the next check time. #10011
+
+### Icinga DB and IDO
+
+* IDO: fix object relations after aborted synchronization. #10065
+* Icinga DB, IDO: limit all timestamps to four year digits. #10058 #10059
+* Icinga DB: limit execution\_time and latency (milliseconds) to database schema. #10060
+
+### Troubleshooting
+
+* Add `/v1/debug/malloc_info` which calls `malloc_info(3)` if available. #10015
+* Add log messages about own network I/O. #9993 #10141 #10207
+* Several fixes and improvements of log messages. #9997 #10021 #10209
+
+### Windows
+
+* Update OpenSSL shipped on Windows to v3.0.15. #10170
+* Update Boost shipped on Windows to v1.86. #10114
+* Support CMake v3.29. #10037
+* Don't require to build .msi as admin. #10137
+* Build configuration scripts: allow custom `$CMAKE_ARGS`. #10312
+
+### Documentation
+
+* Distributed Monitoring: add section "External CA/PKI". #9825
+* Explain how to enable/disable debug logging on the fly. #9981
+* Update supported OS versions and repository configuration. #10064 #10090 #10120 #10135 #10136 #10205
+* Several fixes and improvements. #9960 #10050 #10071 #10156 #10194
+* Replace broken links. #10115 #10118 #10282
+* Fix typographical and similarly trivial errors. #9953 #9967 #10056 #10116 #10152 #10153 #10204
+
+## 2.14.3 (2024-11-12)
+
+This security release fixes a TLS certificate validation bypass.
+Given the severity of that issue, users are advised to upgrade all nodes immediately.
+
+* Security: fix TLS certificate validation bypass. CVE-2024-49369
+* Security: update OpenSSL shipped on Windows to v3.0.15.
+* Windows: sign MSI packages with a certificate the OS trusts by default.
+
 ## 2.14.2 (2024-01-18)
 
 Version 2.14.2 is a hotfix release for master nodes that mainly
@@ -233,6 +493,58 @@ Add `linux_netdev` check command. #9045
 * Documentation: several fixes and improvements.  #8954 #9741 #9763 #9767 #9769 #9777
 * Several code quality improvements. #8815 #9106 #9250
   #9508 #9517 #9537 #9594 #9605 #9606 #9641 #9658 #9702 #9717 #9738
+
+## 2.13.12 (2025-05-27)
+
+This security release fixes a critical issue in the certificate renewal logic in Icinga 2, which
+might incorrectly renew an invalid certificate. However, only nodes with access to the Icinga CA
+private key running with OpenSSL older than version 1.1.0 (released in 2016) are vulnerable. So this
+typically affects Icinga 2 masters running on operating systems like RHEL 7 and Amazon Linux 2.
+
+* CVE-2025-48057: Prevent invalid certificates from being renewed with OpenSSL older than v1.1.0.
+* Fix use-after-free in VerifyCertificate(): Additionally, a use-after-free was found in the same
+  function which is fixed as well, but in case it is triggered, typically only a wrong error code
+  may be shown in a log message.
+* Windows: Update OpenSSL shipped on Windows to v3.0.16.
+* Fix a failing test case on systems `time_t` is only 32 bits #10344.
+
+## 2.13.11 (2025-01-23)
+
+This bugfix release addresses several crashes,
+both in the core itself and in Icinga DB (numbers out of range).
+In addition, it fixes several other issues such as lost notifications
+or TimePeriod/ScheduledDowntime exceeding specified date ranges.
+
+### Crash Fixes
+
+* Invalid `DateTime#format()` arguments in config and console on Windows Server 2016 and older. #10165
+* Downtime scheduling at runtime with non-existent trigger. #10127
+* Object creation at runtime during Icinga DB initialization. #10164
+* Icinga DB: several numbers out of database schema range. #10244
+
+### Miscellaneous Bugfixes
+
+* Lost notifications after recovery outside the notification time period. #10241
+* TimePeriod/ScheduledDowntime exceeding specified date range. #10128 #10133
+* Make parallel config syncs more robust. #10126
+* Reduce unnecessary cluster messages setting the next check time. #10168
+
+### Windows
+
+* Update OpenSSL shipped on Windows to v3.0.15. #10175
+* Update Boost shipped on Windows to v1.86. #10134
+* Support CMake v3.29. #10087
+* Don't require to build .msi as admin. #10305
+* Build configuration scripts: allow custom `$CMAKE_ARGS`. #10315
+
+## 2.13.10 (2024-11-12)
+
+This security release fixes a TLS certificate validation bypass.
+Given the severity of that issue, users are advised to upgrade all nodes immediately.
+
+* Security: fix TLS certificate validation bypass. CVE-2024-49369
+* Security: update OpenSSL shipped on Windows to v3.0.15.
+* Windows: sign MSI packages with a certificate the OS trusts by default.
 
 ## 2.13.9 (2023-12-21)
 
@@ -966,6 +1278,15 @@ Thanks to all contributors:
   * CheckCommand ssl: Fix wrong parameter `-N` #7741
   * Code quality fixes
   * Small documentation fixes
+
+## 2.11.12 (2024-11-12)
+
+This security release fixes a TLS certificate validation bypass.
+Given the severity of that issue, users are advised to upgrade all nodes immediately.
+
+* Security: fix TLS certificate validation bypass. CVE-2024-49369
+* Security: update OpenSSL shipped on Windows to v3.0.15.
+* Windows: sign MSI packages with a certificate the OS trusts by default.
 
 ## 2.11.11 (2021-08-19)
 

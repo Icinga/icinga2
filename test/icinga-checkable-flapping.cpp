@@ -73,7 +73,7 @@ BOOST_AUTO_TEST_CASE(host_not_flapping)
 	int i = 0;
 	while (i++ < 10) {
 		// For some reason, elusive to me, the first check is a state change
-		host->ProcessCheckResult(MakeCheckResult(ServiceOK));
+		host->ProcessCheckResult(MakeCheckResult(ServiceOK), new StoppableWaitGroup());
 
 		LogFlapping(host);
 		LogHostStatus(host);
@@ -107,9 +107,9 @@ BOOST_AUTO_TEST_CASE(host_flapping)
 	int i = 0;
 	while (i++ < 25) {
 		if (i % 2)
-			host->ProcessCheckResult(MakeCheckResult(ServiceOK));
+			host->ProcessCheckResult(MakeCheckResult(ServiceOK), new StoppableWaitGroup());
 		else
-			host->ProcessCheckResult(MakeCheckResult(ServiceWarning));
+			host->ProcessCheckResult(MakeCheckResult(ServiceWarning), new StoppableWaitGroup());
 
 		LogFlapping(host);
 		LogHostStatus(host);
@@ -144,18 +144,18 @@ BOOST_AUTO_TEST_CASE(host_flapping_recover)
 	Utility::SetTime(0);
 
 	// A few warning
-	host->ProcessCheckResult(MakeCheckResult(ServiceWarning));
-	host->ProcessCheckResult(MakeCheckResult(ServiceWarning));
-	host->ProcessCheckResult(MakeCheckResult(ServiceWarning));
-	host->ProcessCheckResult(MakeCheckResult(ServiceWarning));
+	host->ProcessCheckResult(MakeCheckResult(ServiceWarning), new StoppableWaitGroup());
+	host->ProcessCheckResult(MakeCheckResult(ServiceWarning), new StoppableWaitGroup());
+	host->ProcessCheckResult(MakeCheckResult(ServiceWarning), new StoppableWaitGroup());
+	host->ProcessCheckResult(MakeCheckResult(ServiceWarning), new StoppableWaitGroup());
 
 	LogFlapping(host);
 	LogHostStatus(host);
 	for (int i = 0; i <= 7; i++) {
 		if (i % 2)
-			host->ProcessCheckResult(MakeCheckResult(ServiceOK));
+			host->ProcessCheckResult(MakeCheckResult(ServiceOK), new StoppableWaitGroup());
 		else
-			host->ProcessCheckResult(MakeCheckResult(ServiceWarning));
+			host->ProcessCheckResult(MakeCheckResult(ServiceWarning), new StoppableWaitGroup());
 	}
 
 	LogFlapping(host);
@@ -171,7 +171,7 @@ BOOST_AUTO_TEST_CASE(host_flapping_recover)
 		BOOST_CHECK(host->GetFlappingCurrent() > 25.0);
 		BOOST_CHECK(host->IsFlapping());
 
-		host->ProcessCheckResult(MakeCheckResult(ServiceWarning));
+		host->ProcessCheckResult(MakeCheckResult(ServiceWarning), new StoppableWaitGroup());
 		LogFlapping(host);
 		LogHostStatus(host);
 		count++;
@@ -203,40 +203,40 @@ BOOST_AUTO_TEST_CASE(host_flapping_docs_example)
 
 	Utility::SetTime(0);
 
-	host->ProcessCheckResult(MakeCheckResult(ServiceCritical));
-	host->ProcessCheckResult(MakeCheckResult(ServiceCritical));
-	host->ProcessCheckResult(MakeCheckResult(ServiceCritical));
-	host->ProcessCheckResult(MakeCheckResult(ServiceWarning));
-	host->ProcessCheckResult(MakeCheckResult(ServiceCritical));
-	host->ProcessCheckResult(MakeCheckResult(ServiceWarning));
-	host->ProcessCheckResult(MakeCheckResult(ServiceOK));
-	host->ProcessCheckResult(MakeCheckResult(ServiceOK));
-	host->ProcessCheckResult(MakeCheckResult(ServiceOK));
-	host->ProcessCheckResult(MakeCheckResult(ServiceOK));
-	host->ProcessCheckResult(MakeCheckResult(ServiceWarning));
-	host->ProcessCheckResult(MakeCheckResult(ServiceWarning));
-	host->ProcessCheckResult(MakeCheckResult(ServiceWarning));
-	host->ProcessCheckResult(MakeCheckResult(ServiceWarning));
-	host->ProcessCheckResult(MakeCheckResult(ServiceOK));
-	host->ProcessCheckResult(MakeCheckResult(ServiceOK));
-	host->ProcessCheckResult(MakeCheckResult(ServiceOK));
-	host->ProcessCheckResult(MakeCheckResult(ServiceWarning));
-	host->ProcessCheckResult(MakeCheckResult(ServiceWarning));
-	host->ProcessCheckResult(MakeCheckResult(ServiceWarning));
-	host->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	host->ProcessCheckResult(MakeCheckResult(ServiceCritical), new StoppableWaitGroup());
+	host->ProcessCheckResult(MakeCheckResult(ServiceCritical), new StoppableWaitGroup());
+	host->ProcessCheckResult(MakeCheckResult(ServiceCritical), new StoppableWaitGroup());
+	host->ProcessCheckResult(MakeCheckResult(ServiceWarning), new StoppableWaitGroup());
+	host->ProcessCheckResult(MakeCheckResult(ServiceCritical), new StoppableWaitGroup());
+	host->ProcessCheckResult(MakeCheckResult(ServiceWarning), new StoppableWaitGroup());
+	host->ProcessCheckResult(MakeCheckResult(ServiceOK), new StoppableWaitGroup());
+	host->ProcessCheckResult(MakeCheckResult(ServiceOK), new StoppableWaitGroup());
+	host->ProcessCheckResult(MakeCheckResult(ServiceOK), new StoppableWaitGroup());
+	host->ProcessCheckResult(MakeCheckResult(ServiceOK), new StoppableWaitGroup());
+	host->ProcessCheckResult(MakeCheckResult(ServiceWarning), new StoppableWaitGroup());
+	host->ProcessCheckResult(MakeCheckResult(ServiceWarning), new StoppableWaitGroup());
+	host->ProcessCheckResult(MakeCheckResult(ServiceWarning), new StoppableWaitGroup());
+	host->ProcessCheckResult(MakeCheckResult(ServiceWarning), new StoppableWaitGroup());
+	host->ProcessCheckResult(MakeCheckResult(ServiceOK), new StoppableWaitGroup());
+	host->ProcessCheckResult(MakeCheckResult(ServiceOK), new StoppableWaitGroup());
+	host->ProcessCheckResult(MakeCheckResult(ServiceOK), new StoppableWaitGroup());
+	host->ProcessCheckResult(MakeCheckResult(ServiceWarning), new StoppableWaitGroup());
+	host->ProcessCheckResult(MakeCheckResult(ServiceWarning), new StoppableWaitGroup());
+	host->ProcessCheckResult(MakeCheckResult(ServiceWarning), new StoppableWaitGroup());
+	host->ProcessCheckResult(MakeCheckResult(ServiceCritical), new StoppableWaitGroup());
 
 	LogFlapping(host);
 	LogHostStatus(host);
 	BOOST_CHECK(host->GetFlappingCurrent() == 39.1);
 	BOOST_CHECK(host->IsFlapping());
 
-	host->ProcessCheckResult(MakeCheckResult(ServiceCritical));
-	host->ProcessCheckResult(MakeCheckResult(ServiceCritical));
-	host->ProcessCheckResult(MakeCheckResult(ServiceCritical));
-	host->ProcessCheckResult(MakeCheckResult(ServiceCritical));
-	host->ProcessCheckResult(MakeCheckResult(ServiceCritical));
-	host->ProcessCheckResult(MakeCheckResult(ServiceCritical));
-	host->ProcessCheckResult(MakeCheckResult(ServiceCritical));
+	host->ProcessCheckResult(MakeCheckResult(ServiceCritical), new StoppableWaitGroup());
+	host->ProcessCheckResult(MakeCheckResult(ServiceCritical), new StoppableWaitGroup());
+	host->ProcessCheckResult(MakeCheckResult(ServiceCritical), new StoppableWaitGroup());
+	host->ProcessCheckResult(MakeCheckResult(ServiceCritical), new StoppableWaitGroup());
+	host->ProcessCheckResult(MakeCheckResult(ServiceCritical), new StoppableWaitGroup());
+	host->ProcessCheckResult(MakeCheckResult(ServiceCritical), new StoppableWaitGroup());
+	host->ProcessCheckResult(MakeCheckResult(ServiceCritical), new StoppableWaitGroup());
 
 	LogFlapping(host);
 	LogHostStatus(host);

@@ -51,7 +51,7 @@ described. Try running the plugin after setup and [ensure it works](05-service-m
 Prior to using the check plugin with Icinga 2 you should ensure that it is working properly
 by trying to run it on the console using whichever user Icinga 2 is running as:
 
-RHEL/CentOS/Fedora
+RHEL/Fedora
 
 ```bash
 sudo -u icinga /usr/lib64/nagios/plugins/check_mysql_health --help
@@ -111,7 +111,7 @@ Can't locate Net/SNMP.pm in @INC (you may need to install the Net::SNMP module)
 
 Prior to installing the Perl module via CPAN, look for a distribution
 specific package, e.g. `libnet-snmp-perl` on Debian/Ubuntu or `perl-Net-SNMP`
-on RHEL/CentOS.
+on RHEL.
 
 
 #### Optional: Custom Path <a id="service-monitoring-plugins-custom-path"></a>
@@ -281,10 +281,10 @@ that [it works](05-service-monitoring.md#service-monitoring-plugins-it-works). T
 `--help` parameter to see the actual parameters (docs might be outdated).
 
 ```
-./check_systemd.py --help
+./check_systemd --help
 
-usage: check_systemd.py [-h] [-c SECONDS] [-e UNIT | -u UNIT] [-v] [-V]
-                        [-w SECONDS]
+usage: check_systemd [-h] [-c SECONDS] [-e UNIT | -u UNIT] [-v] [-V]
+                     [-w SECONDS]
 
 ...
 
@@ -319,14 +319,14 @@ Start with the basic plugin call without any parameters.
 
 ```
 object CheckCommand "systemd" { // Plugin name without 'check_' prefix
-  command = [ PluginContribDir + "/check_systemd.py" ] // Use the 'PluginContribDir' constant, see the contributed ITL commands
+  command = [ PluginContribDir + "/check_systemd" ] // Use the 'PluginContribDir' constant, see the contributed ITL commands
 }
 ```
 
 Run a config validation to see if that works, `icinga2 daemon -C`
 
 Next, analyse the plugin parameters. Plugins with a good help output show
-optional parameters in square brackes. This is the case for all parameters
+optional parameters in square brackets. This is the case for all parameters
 for this plugin. If there are required parameters, use the `required` key
 inside the argument.
 
@@ -689,7 +689,7 @@ liters (l)                  | ml, l, hl
 
 The UoM "c" represents a continuous counter (e.g. interface traffic counters).
 
-Unknown UoMs are discarted (as if none was given).
+Unknown UoMs are discarded (as if none was given).
 A value without any UoM may be an integer or floating point number
 for any type (processes, users, etc.).
 

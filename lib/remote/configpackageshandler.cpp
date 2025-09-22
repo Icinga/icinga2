@@ -2,6 +2,7 @@
 
 #include "remote/configpackageshandler.hpp"
 #include "remote/configpackageutility.hpp"
+#include "remote/configobjectslock.hpp"
 #include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
 #include "base/exception.hpp"
@@ -11,42 +12,40 @@ using namespace icinga;
 REGISTER_URLHANDLER("/v1/config/packages", ConfigPackagesHandler);
 
 bool ConfigPackagesHandler::HandleRequest(
-	AsioTlsStream& stream,
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params,
-	boost::asio::yield_context& yc,
-	HttpServerConnection& server
+	const WaitGroup::Ptr&,
+	const HttpRequest& request,
+	HttpResponse& response,
+	boost::asio::yield_context& yc
 )
 {
 	namespace http = boost::beast::http;
+
+	auto url = request.Url();
+	auto user = request.User();
+	auto params = request.Params();
 
 	if (url->GetPath().size() > 4)
 		return false;
 
 	if (request.method() == http::verb::get)
-		HandleGet(user, request, url, response, params);
+		HandleGet(request, response);
 	else if (request.method() == http::verb::post)
-		HandlePost(user, request, url, response, params);
+		HandlePost(request, response);
 	else if (request.method() == http::verb::delete_)
-		HandleDelete(user, request, url, response, params);
+		HandleDelete(request, response);
 	else
 		return false;
 
 	return true;
 }
 
-void ConfigPackagesHandler::HandleGet(
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params
-)
+void ConfigPackagesHandler::HandleGet(const HttpRequest& request, HttpResponse& response)
 {
 	namespace http = boost::beast::http;
+
+	auto url = request.Url();
+	auto user = request.User();
+	auto params = request.Params();
 
 	FilterUtility::CheckPermission(user, "config/query");
 
@@ -88,15 +87,13 @@ void ConfigPackagesHandler::HandleGet(
 	HttpUtility::SendJsonBody(response, params, result);
 }
 
-void ConfigPackagesHandler::HandlePost(
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params
-)
+void ConfigPackagesHandler::HandlePost(const HttpRequest& request, HttpResponse& response)
 {
 	namespace http = boost::beast::http;
+
+	auto url = request.Url();
+	auto user = request.User();
+	auto params = request.Params();
 
 	FilterUtility::CheckPermission(user, "config/modify");
 
@@ -107,6 +104,12 @@ void ConfigPackagesHandler::HandlePost(
 
 	if (!ConfigPackageUtility::ValidatePackageName(packageName)) {
 		HttpUtility::SendJsonError(response, params, 400, "Invalid package name '" + packageName + "'.");
+		return;
+	}
+
+	ConfigObjectsSharedLock configObjectsSharedLock(std::try_to_lock);
+	if (!configObjectsSharedLock) {
+		HttpUtility::SendJsonError(response, params, 503, "Icinga is reloading");
 		return;
 	}
 
@@ -134,15 +137,13 @@ void ConfigPackagesHandler::HandlePost(
 	HttpUtility::SendJsonBody(response, params, result);
 }
 
-void ConfigPackagesHandler::HandleDelete(
-	const ApiUser::Ptr& user,
-	boost::beast::http::request<boost::beast::http::string_body>& request,
-	const Url::Ptr& url,
-	boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params
-)
+void ConfigPackagesHandler::HandleDelete(const HttpRequest& request, HttpResponse& response)
 {
 	namespace http = boost::beast::http;
+
+	auto url = request.Url();
+	auto user = request.User();
+	auto params = request.Params();
 
 	FilterUtility::CheckPermission(user, "config/modify");
 
@@ -153,6 +154,12 @@ void ConfigPackagesHandler::HandleDelete(
 
 	if (!ConfigPackageUtility::ValidatePackageName(packageName)) {
 		HttpUtility::SendJsonError(response, params, 400, "Invalid package name '" + packageName + "'.");
+		return;
+	}
+
+	ConfigObjectsSharedLock lock(std::try_to_lock);
+	if (!lock) {
+		HttpUtility::SendJsonError(response, params, 503, "Icinga is reloading");
 		return;
 	}
 

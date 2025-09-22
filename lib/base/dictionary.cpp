@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "base/dictionary.hpp"
-#include "base/objectlock.hpp"
 #include "base/debug.hpp"
 #include "base/primitivetype.hpp"
 #include "base/configwriter.hpp"
@@ -86,14 +85,13 @@ const Value * Dictionary::GetRef(const String& key) const
  *
  * @param key The key.
  * @param value The value.
- * @param overrideFrozen Whether to allow modifying frozen dictionaries.
  */
-void Dictionary::Set(const String& key, Value value, bool overrideFrozen)
+void Dictionary::Set(const String& key, Value value)
 {
 	ObjectLock olock(this);
 	std::unique_lock<std::shared_timed_mutex> lock (m_DataMutex);
 
-	if (m_Frozen && !overrideFrozen)
+	if (m_Frozen)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Value in dictionary must not be modified."));
 
 	m_Data[key] = std::move(value);
@@ -133,7 +131,7 @@ bool Dictionary::Contains(const String& key) const
  */
 Dictionary::Iterator Dictionary::Begin()
 {
-	ASSERT(OwnsLock());
+	ASSERT(Frozen() || OwnsLock());
 
 	return m_Data.begin();
 }
@@ -147,7 +145,7 @@ Dictionary::Iterator Dictionary::Begin()
  */
 Dictionary::Iterator Dictionary::End()
 {
-	ASSERT(OwnsLock());
+	ASSERT(Frozen() || OwnsLock());
 
 	return m_Data.end();
 }
@@ -277,7 +275,26 @@ String Dictionary::ToString() const
 void Dictionary::Freeze()
 {
 	ObjectLock olock(this);
-	m_Frozen = true;
+	m_Frozen.store(true, std::memory_order_release);
+}
+
+bool Dictionary::Frozen() const
+{
+	return m_Frozen.load(std::memory_order_acquire);
+}
+
+/**
+ * Returns an already locked ObjectLock if the dictionary is frozen.
+ * Otherwise, returns an unlocked object lock.
+ *
+ * @returns An object lock.
+ */
+ObjectLock Dictionary::LockIfRequired()
+{
+	if (Frozen()) {
+		return ObjectLock(this, std::defer_lock);
+	}
+	return ObjectLock(this);
 }
 
 Value Dictionary::GetFieldByName(const String& field, bool, const DebugInfo& debugInfo) const
@@ -290,9 +307,9 @@ Value Dictionary::GetFieldByName(const String& field, bool, const DebugInfo& deb
 		return GetPrototypeField(const_cast<Dictionary *>(this), field, false, debugInfo);
 }
 
-void Dictionary::SetFieldByName(const String& field, const Value& value, bool overrideFrozen, const DebugInfo&)
+void Dictionary::SetFieldByName(const String& field, const Value& value, const DebugInfo&)
 {
-	Set(field, value, overrideFrozen);
+	Set(field, value);
 }
 
 bool Dictionary::HasOwnField(const String& field) const

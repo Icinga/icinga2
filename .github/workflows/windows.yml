@@ -21,33 +21,39 @@ jobs:
       matrix:
         bits: [32, 64]
 
-    runs-on: windows-2019
+    runs-on: windows-2025
 
     env:
       BITS: '${{ matrix.bits }}'
-      ICINGA_BUILD_TYPE: snapshot
-      UPSTREAM_GIT_URL: file://D:/a/icinga2/icinga2/.git
+      CMAKE_BUILD_TYPE: RelWithDebInfo
 
     steps:
       - name: Checkout HEAD
-        uses: actions/checkout@v1
-
-      - name: windows-icinga2
-        run: |
-          git clone https://git.icinga.com/packaging/windows-icinga2.git
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - name: Build tools
         run: |
+          Set-PSDebug -Trace 1
           & .\doc\win-dev.ps1
 
-      - name: Source
-        run: |
-          git checkout -B master
-          cd windows-icinga2
-          & .\source.ps1
-
       - name: Binary
-        working-directory: windows-icinga2
         run: |
-          New-Item -ItemType Directory -Path 'C:\Program Files\Icinga2\WillBeRemoved' -ErrorAction SilentlyContinue
-          & .\build.ps1
+          Set-PSDebug -Trace 1
+          & .\tools\win32\load-vsenv.ps1
+          & powershell.exe .\tools\win32\configure.ps1
+          if ($LastExitCode -ne 0) { throw "Error during configure" }
+          & powershell.exe .\tools\win32\build.ps1
+          if ($LastExitCode -ne 0) { throw "Error during build" }
+          & powershell.exe .\tools\win32\test.ps1
+          if ($LastExitCode -ne 0) { throw "Error during test" }
+
+      - name: Show Log Files
+        if: ${{ always() }}
+        run: |
+          foreach ($file in Get-ChildItem -Recurse -Filter "*.log") {
+            Write-Host "::group::$($file.FullName)"
+            Get-Content $file.FullName
+            Write-Host "::endgroup::"
+          }

@@ -643,8 +643,7 @@ void Process::IOThreadProc(int tid)
 #endif /* _WIN32 */
 
 			int i = 1;
-			typedef std::pair<ProcessHandle, Process::Ptr> kv_pair;
-			for (const kv_pair& kv : l_Processes[tid]) {
+			for (auto& kv : l_Processes[tid]) {
 				const Process::Ptr& process = kv.second;
 #ifdef _WIN32
 				handles[i] = kv.first;
@@ -1087,7 +1086,9 @@ bool Process::DoEvents()
 				Log(LogWarning, "Process")
 					<< "Couldn't kill the process group " << m_PID << " (" << PrettyPrintArguments(m_Arguments)
 					<< "): [errno " << error << "] " << strerror(error);
-				could_not_kill = true;
+				if (error != ESRCH) {
+					could_not_kill = true;
+				}
 			}
 #endif /* _WIN32 */
 

@@ -13,8 +13,8 @@ code {{{
 class NotificationNameComposer : public NameComposer
 {
 public:
-	virtual String MakeName(const String& shortName, const Object::Ptr& context) const;
-	virtual Dictionary::Ptr ParseName(const String& name) const;
+	virtual String MakeName(const String& shortName, const Object::Ptr& context) const override;
+	virtual Dictionary::Ptr ParseName(const String& name) const override;
 };
 }}}
 
@@ -22,6 +22,8 @@ class Notification : CustomVarObject < NotificationNameComposer
 {
 	load_after Host;
 	load_after Service;
+	load_after User;
+	load_after UserGroup;
 
 	[config, protected, required, navigation] name(NotificationCommand) command (CommandRaw) {
 		navigate {{{
@@ -39,9 +41,15 @@ class Notification : CustomVarObject < NotificationNameComposer
 	[config, signal_with_old_value] array(name(User)) users (UsersRaw);
 	[config, signal_with_old_value] array(name(UserGroup)) user_groups (UserGroupsRaw);
 	[config] Dictionary::Ptr times;
-	[config] array(Value) types;
+	[config, no_storage] array(Value) types {
+		get;
+		set;
+	};
 	[no_user_view, no_user_modify] int type_filter_real (TypeFilter);
-	[config] array(Value) states;
+	[config, no_storage] array(Value) states {
+		get;
+		set;
+	};
 	[no_user_view, no_user_modify] int state_filter_real (StateFilter);
 	[config, no_user_modify, protected, required, navigation(host)] name(Host) host_name {
 		navigate {{{

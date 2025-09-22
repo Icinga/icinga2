@@ -766,7 +766,7 @@ apply Notification "mail-icingaadmin" to Host {
 
 A more advanced example is to use [apply rules with for loops on arrays or
 dictionaries](03-monitoring-basics.md#using-apply-for) provided by
-[custom atttributes](03-monitoring-basics.md#custom-variables) or groups.
+[custom attributes](03-monitoring-basics.md#custom-variables) or groups.
 
 Remember the examples shown for [custom variable values](03-monitoring-basics.md#custom-variables-values):
 
@@ -1599,7 +1599,7 @@ A common pattern is to store the users and user groups
 on the host or service objects instead of the notification
 object itself.
 
-The sample configuration provided in [hosts.conf](04-configuration.md#hosts-conf) and [notifications.conf](notifications-conf)
+The sample configuration provided in [hosts.conf](04-configuration.md#hosts-conf) and [notifications.conf](04-configuration.md#notifications-conf)
 already provides an example for this question.
 
 > **Tip**
@@ -2135,7 +2135,7 @@ In order to find out about the command argument, call the plugin's help
 or consult the README.
 
 ```
-./check_systemd.py --help
+./check_systemd --help
 
 ...
 
@@ -2194,7 +2194,7 @@ With the [example above](03-monitoring-basics.md#command-arguments-value),
 inspect the parameter's help text.
 
 ```
-./check_systemd.py --help
+./check_systemd --help
 
 ...
 
@@ -2579,6 +2579,7 @@ information.
   `notification_useremail`       | **Required.** The notification's recipient(s). Defaults to `$user.email$`.
   `notification_hoststate`       | **Required.** Current state of host. Defaults to `$host.state$`.
   `notification_type`            | **Required.** Type of notification. Defaults to `$notification.type$`.
+  `notification_hostnotes`       | **Optional.** The host's notes. Defaults to `$host.notes$`.
   `notification_address`         | **Optional.** The host's IPv4 address. Defaults to `$address$`.
   `notification_address6`        | **Optional.** The host's IPv6 address. Defaults to `$address6$`.
   `notification_author`          | **Optional.** Comment author. Defaults to `$notification.author$`.
@@ -2607,6 +2608,8 @@ information.
   `notification_useremail`          | **Required.** The notification's recipient(s). Defaults to `$user.email$`.
   `notification_servicestate`       | **Required.** Current state of host. Defaults to `$service.state$`.
   `notification_type`               | **Required.** Type of notification. Defaults to `$notification.type$`.
+  `notification_hostnotes`          | **Optional.** The host's notes. Defaults to `$host.notes$`.
+  `notification_servicenotes`       | **Optional.** The service's notes. Defaults to `$service.notes$`.
   `notification_address`            | **Optional.** The host's IPv4 address. Defaults to `$address$`.
   `notification_address6`           | **Optional.** The host's IPv6 address. Defaults to `$address6$`.
   `notification_author`             | **Optional.** Comment author. Defaults to `$notification.author$`.
@@ -2729,7 +2732,7 @@ Requirements:
 * Icinga 2 as client on the remote node
 * icinga user with sudo permissions to the httpd daemon
 
-Example on CentOS 7:
+Example on RHEL:
 
 ```
 # visudo
@@ -3094,6 +3097,12 @@ via the [REST API](12-icinga2-api.md#icinga2-api).
 > Reachability calculation depends on fresh and processed check results. If dependencies
 > disable checks for child objects, this won't work reliably.
 
+> **Note**
+>
+> The parent of a dependency can have a parent itself and so on. The nesting depth of
+> dependencies is currently limited to 256 which should be more than enough for any practical
+> use. This is an implementation detail and may change in the future.
+
 ### Implicit Dependencies for Services on Host <a id="dependencies-implicit-host-service"></a>
 
 Icinga 2 automatically adds an implicit dependency for services on their host. That way
@@ -3169,16 +3178,16 @@ i.e. to consider the parent unreachable only if no dependency is fulfilled.
 Think of a host connected to both a network and a storage switch vs. a host connected to redundant routers.
 
 Sometimes you even want a mixture of both.
-Think of a service like SSH depeding on both LDAP and DNS to function,
+Think of a service like SSH depending on both LDAP and DNS to function,
 while operating redundant LDAP servers as well as redundant DNS resolvers.
 
-Before v2.12, Icinga regarded all dependecies as cumulative.
+Before v2.12, Icinga regarded all dependencies as cumulative.
 In v2.12 and v2.13, Icinga regarded all dependencies redundant.
-The latter led to unrelated services being inadvertantly regarded to be redundant to each other.
+The latter led to unrelated services being inadvertently regarded to be redundant to each other.
 
 v2.14 restored the former behavior and allowed to override it.
-I.e. all dependecies are regarded as essential for the parent by default.
-Specifying the `redundancy_group` attribute for two dependecies of a child object with the equal value
+I.e. all dependencies are regarded as essential for the parent by default.
+Specifying the `redundancy_group` attribute for two dependencies of a child object with the equal value
 causes them to be regarded as redundant (only inside that redundancy group).
 
 <!-- Keep this for compatibility -->

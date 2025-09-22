@@ -48,7 +48,7 @@ or `icinga2-ido-mysql`.
 Distribution       | Command
 -------------------|------------------------------------------
 Debian/Ubuntu      | `apt-get install icinga2-dbg`
-RHEL/CentOS        | `yum install icinga2-debuginfo`
+RHEL               | `yum install icinga2-debuginfo`
 Fedora             | `dnf install icinga2-debuginfo icinga2-bin-debuginfo icinga2-ido-mysql-debuginfo`
 SLES/openSUSE      | `zypper install icinga2-bin-debuginfo icinga2-ido-mysql-debuginfo`
 
@@ -65,7 +65,7 @@ Install GDB in your development environment.
 Distribution       | Command
 -------------------|------------------------------------------
 Debian/Ubuntu      | `apt-get install gdb`
-RHEL/CentOS        | `yum install gdb`
+RHEL               | `yum install gdb`
 Fedora             | `dnf install gdb`
 SLES/openSUSE      | `zypper install gdb`
 
@@ -267,73 +267,130 @@ $3 = std::vector of length 11, capacity 16 = {{static NPos = 1844674407370955161
 
 ### Core Dump <a id="development-debug-core-dump"></a>
 
-When the Icinga 2 daemon crashes with a `SIGSEGV` signal
-a core dump file should be written. This will help
-developers to analyze and fix the problem.
+When the Icinga 2 daemon is terminated by `SIGSEGV` or `SIGABRT`, a core dump file
+should be written. This will help developers to analyze and fix the problem.
 
-#### Core Dump File Size Limit <a id="development-debug-core-dump-limit"></a>
+#### Core Dump Kernel Pattern <a id="development-debug-core-dump-format"></a>
 
-This requires setting the core dump file size to `unlimited`.
+Core dumps are generated according to the format specified in
+`/proc/sys/kernel/core_pattern`. This can either be a path relative to the
+directory the program was started in, an absolute path or a pipe to a different
+program.
 
+For more information see the [core(5)](https://man7.org/linux/man-pages/man5/core.5.html) man page.
 
-##### Systemd
+#### Systemd Coredumpctl <a id="development-debug-core-dump-systemd"></a>
 
+Most distributions offer systemd's coredumpctl either by default or as a package.
+Distributions that offer it by default include RHEL and SLES, on others like
+Debian or Ubuntu it can be installed via the `systemd-coredump` package.
+When set up correctly, `core_pattern` will look something like this:
 ```
-systemctl edit icinga2.service
-
-[Service]
-...
-LimitCORE=infinity
-
-systemctl daemon-reload
-
-systemctl restart icinga2
-```
-
-##### Init Script
-
-```
-vim /etc/init.d/icinga2
-...
-ulimit -c unlimited
-
-service icinga2 restart
+# cat /proc/sys/kernel/core_pattern
+|/usr/lib/systemd/systemd-coredump %P %u %g %s %t %c %h`
 ```
 
-##### Verify
+You can look at the generated core dumps with the `coredumpctl list` command.
+You can show information, including a stack trace using
+`coredumpctl show icinga2 -1` and retrieve the actual core dump file with
+`coredumpctl dump icinga2 -1 --output <file>`.
 
-Verify that the Icinga 2 process core file size limit is set to `unlimited`.
+For further information on how to configure and use coredumpctl, read the man pages
+[coredumpctl(1)](https://man7.org/linux/man-pages/man1/coredumpctl.1.html) and
+[coredump.conf(5)](https://man7.org/linux/man-pages/man5/coredump.conf.5.html).
 
+#### Ubuntu Apport <a id="development-debug-core-dump-apport"></a>
+
+Ubuntu uses their own application `apport` to record core dumps. When it is
+enabled, your `core_pattern` will look like this:
 ```
-for pid in $(pidof icinga2); do cat /proc/$pid/limits; done
-
-...
-Max core file size        unlimited            unlimited            bytes
+# cat /proc/sys/kernel/core_pattern
+|/usr/share/apport/apport -p%p -s%s -c%c -d%d -P%P -u%u -g%g -- %E
 ```
 
+Apport is unsuitable for development work, because by default it only works
+with Ubuntu packages and it has a rather complicated interface for retrieving
+the core dump. So unless you rely on Apport for some other workflow, systemd's
+coredumpctl is a much better option and is available on Ubuntu in the
+`systemd-coredump` package that can replace Apport on your system with no
+further setup required.
 
-#### Core Dump Kernel Format <a id="development-debug-core-dump-format"></a>
+If you still want to use Apport however, to set it up to work with unpackaged programs,
+add the following (create the file if it doesn't exist) to `/etc/apport/settings`:
+```
+[main]
+unpackaged=true
+```
+and restart Apport:
+```
+systemctl restart apport.service
+```
 
-The Icinga 2 daemon runs with the SUID bit set. Therefore you need
-to explicitly enable core dumps for SUID on Linux.
+When the program crashes you can then find an Apport crash report in `/var/crash/`
+that you can read with the interactive `apport-cli` command. To extract the core
+dump you run `apport-unpack /var/crash/<crash-file> <output-dir>` which then
+saves a `<outputdir>/CoreDump` file that contains the actual core dump.
+
+#### Directly to a File <a id="development-debug-core-dump-direct"></a>
+
+If coredumpctl is not available, simply writing the core dump directly to a file
+is also sufficient. You can set up your `core_pattern` to write a file to a
+suitable path:
 
 ```bash
-sysctl -w fs.suid_dumpable=2
-```
-
-Adjust the coredump kernel format and file location on Linux:
-
-```bash
-sysctl -w kernel.core_pattern=/var/lib/cores/core.%e.%p
-
+sysctl -w kernel.core_pattern=/var/lib/cores/core.%e.%p.%h.%t
 install -m 1777 -d /var/lib/cores
 ```
 
-MacOS:
+If you want to make this setting permanent you can also add a file to
+`/etc/sysctl.d`, named something like `80-coredumps.conf`:
+```
+kernel.core_pattern = /var/lib/cores/core.%e.%p.%h.%t
+```
+
+This will create core dump files in `/var/lib/cores` where `%e` is the truncated
+name of the program, `%p` is the programs PID, `%h` is the hostname, and `%t` a
+timestamp.
+
+Note that unlike the other methods this requires the core size limit to be set
+for the process. When starting Icinga 2 via systemd you can set it to unlimited
+by adding the following to `/etc/systemd/system/icinga2.service.d/limits.conf`:
+```
+[Service]
+LimitCORE=infinity
+```
+
+Then reload and restart icinga:
+```bash
+systemctl daemon-reload
+systemctl restart icinga2.service
+```
+
+Alternatively you edit and reload in one step:
+```bash
+systemctl edit --drop-in=limits icinga2.service`
+```
+
+When using an init script or starting manually, you need to run `ulimit -c unlimited`
+before starting the program:
+```bash
+ulimit -c unlimited
+./icinga2 daemon
+```
+
+To verify that the limit has been set to `unlimited` run the following:
+```bash
+for pid in $(pidof icinga2); do cat /proc/$pid/limits; done
+```
+And look for the line:
+```
+Max core file size        unlimited            unlimited            bytes
+```
+
+#### MacOS <a id="development-debug-core-dump-macos"></a>
 
 ```bash
 sysctl -w kern.corefile=/cores/core.%P
-
 chmod 777 /cores
 ```
 
@@ -537,7 +594,7 @@ packages.
 If you encounter a problem, please [open a new issue](https://github.com/Icinga/icinga2/issues/new/choose)
 on GitHub and mention that you're testing the snapshot packages.
 
-#### RHEL/CentOS <a id="development-tests-snapshot-packages-rhel"></a>
+#### RHEL <a id="development-tests-snapshot-packages-rhel"></a>
 
 2.11+ requires the EPEL repository for Boost 1.66+.
 
@@ -683,7 +740,7 @@ these tools:
 - vim
 - CLion (macOS, Linux)
 - MS Visual Studio (Windows)
-- Atom
+- Emacs
 
 Editors differ on the functionality. The more helpers you get for C++ development,
 the faster your development workflow will be.
@@ -741,12 +798,12 @@ perfdata       | Performance data related, including Graphite, Elastic, etc.
 db\_ido        | IDO database abstraction layer.
 db\_ido\_mysql | IDO database driver for MySQL.
 db\_ido\_pgsql | IDO database driver for PgSQL.
-mysql\_shin    | Library stub for linking against the MySQL client libraries.
+mysql\_shim    | Library stub for linking against the MySQL client libraries.
 pgsql\_shim    | Library stub for linking against the PgSQL client libraries.
 
 #### Class Compiler <a id="development-develop-design-patterns-class-compiler"></a>
 
-Another thing you will recognize are the `.ti` files which are compiled
+Something else you might notice are the `.ti` files which are compiled
 by our own class compiler into actual source code. The meta language allows
 developers to easily add object attributes and specify their behaviour.
 
@@ -792,17 +849,18 @@ The most common benefits:
 
 #### Unity Builds <a id="development-develop-builds-unity-builds"></a>
 
-Another thing you should be aware of: Unity builds on and off.
+You should be aware that by default unity builds are enabled. You can turn them
+off by setting the `ICINGA2_UNITY_BUILD` CMake option to `OFF`.
 
 Typically, we already use caching mechanisms to reduce recompile time with ccache.
 For release builds, there's always a new build needed as the difference is huge compared
 to a previous (major) release.
 
-Therefore we've invented the Unity builds, which basically concatenates all source files
-into one big library source code file. The compiler then doesn't need to load the many small
-files but compiles and links this huge one.
+Unity builds basically concatenate all source files into one big library source code file.
+The compiler then doesn't need to load many small files, each with all of their includes,
+but compiles and links only a few huge ones.
 
-Unity builds require more memory which is why you should disable them for development
+However, unity builds require more memory which is why you should disable them for development
 builds in small sized VMs (Linux, Windows) and also Docker containers.
 
 There's a couple of header files which are included everywhere. If you touch/edit them,
@@ -1228,7 +1286,7 @@ every second.
 
 Avoid log messages which could irritate the user. During
 implementation, developers can change log levels to better
-see what's going one, but remember to change this back to `debug`
+see what's going on, but remember to change this back to `debug`
 or remove it entirely.
 
 
@@ -1332,9 +1390,6 @@ autocmd BufWinLeave * call clearmatches()
 
 ### Linux Dev Environment <a id="development-linux-dev-env"></a>
 
-Based on CentOS 7, we have an early draft available inside the Icinga Vagrant boxes:
-[centos7-dev](https://github.com/Icinga/icinga-vagrant/tree/master/centos7-dev).
-
 If you're compiling Icinga 2 natively without any virtualization layer in between,
 this usually is faster. This is also the reason why developers on macOS prefer native builds
 over Linux or Windows VMs. Don't forget to test the actual code on Linux later! Socket specific
@@ -1357,21 +1412,20 @@ mkdir -p release debug
 Proceed with the specific distribution examples below. Keep in mind that these instructions
 are best effort and sometimes out-of-date. Git Master may contain updates.
 
-* [CentOS 7](21-development.md#development-linux-dev-env-centos)
+* [Fedora 40](21-development.md#development-linux-dev-env-fedora)
 * [Debian 10 Buster](21-development.md#development-linux-dev-env-debian)
 * [Ubuntu 18 Bionic](21-development.md#development-linux-dev-env-ubuntu)
 
-
-#### CentOS 7 <a id="development-linux-dev-env-centos"></a>
+#### Fedora 40 <a id="development-linux-dev-env-fedora"></a>
 
 ```bash
-yum -y install gdb vim git bash-completion htop centos-release-scl
+yum -y install gdb vim git bash-completion htop
 
 yum -y install rpmdevtools ccache \
- cmake make devtoolset-11-gcc-c++ flex bison \
- openssl-devel boost169-devel systemd-devel \
+ cmake make gcc-c++ flex bison \
+ openssl-devel boost-devel systemd-devel \
  mysql-devel postgresql-devel libedit-devel \
- devtoolset-11-libstdc++-devel
+ libstdc++-devel
 
 groupadd icinga
 groupadd icingacmd
@@ -1389,47 +1443,42 @@ slower but allows for better debugging insights.
 For benchmarks, change `CMAKE_BUILD_TYPE` to `RelWithDebInfo` and
 build inside the `release` directory.
 
-First, off export some generics for Boost.
+First, override the default prefix path.
 
 ```bash
-export I2_BOOST="-DBoost_NO_BOOST_CMAKE=TRUE -DBoost_NO_SYSTEM_PATHS=TRUE -DBOOST_LIBRARYDIR=/usr/lib64/boost169 -DBOOST_INCLUDEDIR=/usr/include/boost169 -DBoost_ADDITIONAL_VERSIONS='1.69;1.69.0'"
+export I2_GENERIC="-DCMAKE_INSTALL_PREFIX=/usr/local/icinga2"
 ```
 
-Second, add the prefix path to it.
-
-```bash
-export I2_GENERIC="$I2_BOOST -DCMAKE_INSTALL_PREFIX=/usr/local/icinga2"
-```
-
-Third, define the two build types with their specific CMake variables.
+Second, define the two build types with their specific CMake variables.
 
 ```bash
 export I2_DEBUG="-DCMAKE_BUILD_TYPE=Debug -DICINGA2_UNITY_BUILD=OFF $I2_GENERIC"
 export I2_RELEASE="-DCMAKE_BUILD_TYPE=RelWithDebInfo -DICINGA2_WITH_TESTS=ON -DICINGA2_UNITY_BUILD=ON $I2_GENERIC"
 ```
 
-Fourth, depending on your likings, you may add a bash alias for building,
+Third, depending on your likings, you may use a bash alias for building,
 or invoke the commands inside:
 
 ```bash
-alias i2_debug="cd /root/icinga2; mkdir -p debug; cd debug; scl enable devtoolset-11 -- cmake $I2_DEBUG ..; make -j2; sudo make -j2 install; cd .."
-alias i2_release="cd /root/icinga2; mkdir -p release; cd release; scl enable devtoolset-11 -- cmake $I2_RELEASE ..; make -j2; sudo make -j2 install; cd .."
+alias i2_debug="cd /root/icinga2; mkdir -p debug; cd debug; cmake $I2_DEBUG ..; make -j2; sudo make -j2 install; cd .."
+alias i2_release="cd /root/icinga2; mkdir -p release; cd release; cmake $I2_RELEASE ..; make -j2; sudo make -j2 install; cd .."
 ```
 
-This is taken from the [centos7-dev](https://github.com/Icinga/icinga-vagrant/tree/master/centos7-dev) Vagrant box.
-
+```bash
+i2_debug
+```
 
 The source installation doesn't set proper permissions, this is
 handled in the package builds which are officially supported.
 
 ```bash
-chown -R icinga:icinga /usr/local/icinga2/var/
+chown -R icinga:icinga /usr/local/icinga2/{etc,var}/
 
 /usr/local/icinga2/lib/icinga2/prepare-dirs /usr/local/icinga2/etc/sysconfig/icinga2
 /usr/local/icinga2/sbin/icinga2 api setup
 vim /usr/local/icinga2/etc/icinga2/conf.d/api-users.conf
 
-/usr/local/icinga2/lib/icinga2/sbin/icinga2 daemon
+/usr/local/icinga2/lib64/icinga2/sbin/icinga2 daemon
 ```
 
 #### Debian 10 <a id="development-linux-dev-env-debian"></a>
@@ -1476,7 +1525,7 @@ The source installation doesn't set proper permissions, this is
 handled in the package builds which are officially supported.
 
 ```bash
-chown -R icinga:icinga /usr/local/icinga2/var/
+chown -R icinga:icinga /usr/local/icinga2/{etc,var}/
 
 /usr/local/icinga2/lib/icinga2/prepare-dirs /usr/local/icinga2/etc/sysconfig/icinga2
 /usr/local/icinga2/sbin/icinga2 api setup
@@ -1540,7 +1589,7 @@ The source installation doesn't set proper permissions, this is
 handled in the package builds which are officially supported.
 
 ```bash
-chown -R icinga:icinga /usr/local/icinga2/var/
+chown -R icinga:icinga /usr/local/icinga2/{etc,var}/
 
 /usr/local/icinga2/lib/icinga2/prepare-dirs /usr/local/icinga2/etc/sysconfig/icinga2
 /usr/local/icinga2/sbin/icinga2 api setup
@@ -1745,10 +1794,12 @@ and don't care for the details,
 
 1. ensure there are 35 GB free space on C:
 2. run the following in an administrative Powershell:
-  1. `Enable-WindowsOptionalFeature -FeatureName "NetFx3" -Online`
-     (reboot when asked!)
-  2. `powershell -NoProfile -ExecutionPolicy Bypass -Command "Invoke-Expression (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/Icinga/icinga2/master/doc/win-dev.ps1')"`
-    (will take some time)
+    1. Windows Server only:
+       `Enable-WindowsOptionalFeature -FeatureName NetFx3ServerFeatures -Online`
+    2. `Enable-WindowsOptionalFeature -FeatureName NetFx3 -Online`
+       (reboot when asked!)
+    3. `powershell -NoProfile -ExecutionPolicy Bypass -Command "Invoke-Expression (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/Icinga/icinga2/master/doc/win-dev.ps1')"`
+       (will take some time)
 
 This installs everything needed for cloning and building Icinga 2
 on the command line (Powershell) as follows:
@@ -1935,7 +1986,7 @@ Download the [boost-binaries](https://sourceforge.net/projects/boost/files/boost
 - 64 for 64 bit builds
 
 ```
-https://sourceforge.net/projects/boost/files/boost-binaries/1.82.0/boost_1_85_0-msvc-14.2-64.exe/download
+https://sourceforge.net/projects/boost/files/boost-binaries/1.85.0/boost_1_85_0-msvc-14.2-64.exe/download
 ```
 
 Run the installer and leave the default installation path in `C:\local\boost_1_85_0`.
@@ -2203,7 +2254,7 @@ Icinga application using a dist tarball (including notes for distributions):
     * Debian/Ubuntu: libpq-dev
     * postgresql-dev on Alpine
 * libedit (CLI console)
-    * RHEL/Fedora: libedit-devel on CentOS (RHEL requires rhel-7-server-optional-rpms)
+    * RHEL/Fedora: libedit-devel (RHEL requires rhel-7-server-optional-rpms)
     * Debian/Ubuntu/Alpine: libedit-dev
 * Termcap (only required if libedit doesn't already link against termcap/ncurses)
     * RHEL/Fedora: libtermcap-devel
@@ -2269,7 +2320,7 @@ cmake .. -DCMAKE_INSTALL_PREFIX=/tmp/icinga2
 
 ### CMake Variables <a id="development-package-builds-cmake-variables"></a>
 
-In addition to `CMAKE_INSTALL_PREFIX` here are most of the supported Icinga-specific cmake variables.
+In addition to `CMAKE_INSTALL_PREFIX` here are most of the supported Icinga-specific CMake variables.
 
 For all variables regarding defaults paths on in CMake, see
 [GNUInstallDirs](https://cmake.org/cmake/help/latest/module/GNUInstallDirs.html).
@@ -2283,12 +2334,12 @@ Also see `CMakeLists.txt` for details.
 * `ICINGA2_CONFIGDIR`: Main config directory; defaults to `CMAKE_INSTALL_SYSCONFDIR/icinga2` usually `/etc/icinga2`
 * `ICINGA2_CACHEDIR`: Directory for cache files; defaults to `CMAKE_INSTALL_LOCALSTATEDIR/cache/icinga2` usually `/var/cache/icinga2`
 * `ICINGA2_DATADIR`: Data directory  for the daemon; defaults to `CMAKE_INSTALL_LOCALSTATEDIR/lib/icinga2` usually `/var/lib/icinga2`
-* `ICINGA2_LOGDIR`: Logfiles of the daemon; defaults to `CMAKE_INSTALL_LOCALSTATEDIR/log/icinga2 usually `/var/log/icinga2`
+* `ICINGA2_LOGDIR`: Logfiles of the daemon; defaults to `CMAKE_INSTALL_LOCALSTATEDIR/log/icinga2` usually `/var/log/icinga2`
 * `ICINGA2_SPOOLDIR`: Spooling directory ; defaults to `CMAKE_INSTALL_LOCALSTATEDIR/spool/icinga2` usually `/var/spool/icinga2`
 * `ICINGA2_INITRUNDIR`: Runtime data for the init system; defaults to `CMAKE_INSTALL_LOCALSTATEDIR/run/icinga2` usually `/run/icinga2`
 * `ICINGA2_GIT_VERSION_INFO`: Whether to use Git to determine the version number; defaults to `ON`
-* `ICINGA2_USER`: The user Icinga 2 should run as; defaults to `icinga`
-* `ICINGA2_GROUP`: The group Icinga 2 should run as; defaults to `icinga`
+* `ICINGA2_USER`: The user or user-id Icinga 2 should run as; defaults to `icinga`
+* `ICINGA2_GROUP`: The group or group-id Icinga 2 should run as; defaults to `icinga`
 * `ICINGA2_COMMAND_GROUP`: The command group Icinga 2 should use; defaults to `icingacmd`
 * `ICINGA2_SYSCONFIGFILE`: Where to put the config file the initscript/systemd pulls it's dirs from;
 * defaults to `CMAKE_INSTALL_PREFIX/etc/sysconfig/icinga2`
@@ -2343,7 +2394,7 @@ for implementation details.
 
 CMake determines the Icinga 2 version number using `git describe` if the
 source directory is contained in a Git repository. Otherwise the version number
-is extracted from the [ICINGA2_VERSION](ICINGA2_VERSION) file. This behavior can be
+is extracted from the `ICINGA2_VERSION` file. This behavior can be
 overridden by creating a file called `icinga-version.h.force` in the source
 directory. Alternatively the `-DICINGA2_GIT_VERSION_INFO=OFF` option for CMake
 can be used to disable the usage of `git describe`.
@@ -2351,7 +2402,7 @@ can be used to disable the usage of `git describe`.
 
 ### Building RPMs <a id="development-package-builds-rpms"></a>
 
-#### Build Environment on RHEL, CentOS, Fedora, Amazon Linux
+#### Build Environment on RHEL, Fedora, Amazon Linux
 
 Setup your build environment:
 
@@ -2407,7 +2458,7 @@ spectool -g ../SPECS/icinga2.spec
 cd $HOME/rpmbuild
 ```
 
-Install the build dependencies. Example for CentOS 7:
+Install the build dependencies:
 
 ```bash
 yum -y install libedit-devel ncurses-devel gcc-c++ libstdc++-devel openssl-devel \
@@ -2436,20 +2487,8 @@ rpmbuild -ba SPECS/icinga2.spec
 The following packages are required to build the SELinux policy module:
 
 * checkpolicy
-* selinux-policy (selinux-policy on CentOS 6, selinux-policy-devel on CentOS 7)
+* selinux-policy-devel
 * selinux-policy-doc
-
-##### RHEL/CentOS 7
-
-The RedHat Developer Toolset is required for building Icinga 2 beforehand.
-This contains a C++ compiler which supports C++17 features.
-
-```bash
-yum install centos-release-scl
-```
-
-Dependencies to devtools-11 are used in the RPM SPEC, so the correct tools
-should be used for building.
 
 ##### Amazon Linux
 
@@ -2541,7 +2580,7 @@ chmod +x /etc/init.d/icinga2
 
 Icinga 2 reads a single configuration file which is used to specify all
 configuration settings (global settings, hosts, services, etc.). The
-configuration format is explained in detail in the [doc/](doc/) directory.
+configuration format is explained in detail in the `doc/` directory.
 
 By default `make install` installs example configuration files in
 `/usr/local/etc/icinga2` unless you have specified a different prefix or

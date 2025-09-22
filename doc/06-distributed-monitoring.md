@@ -264,7 +264,7 @@ The setup wizard will ensure that the following steps are taken:
 * Update the [ApiListener](06-distributed-monitoring.md#distributed-monitoring-apilistener) and [constants](04-configuration.md#constants-conf) configuration.
 * Update the [icinga2.conf](04-configuration.md#icinga2-conf) to disable the `conf.d` inclusion, and add the `api-users.conf` file inclusion.
 
-Here is an example of a master setup for the `icinga2-master1.localdomain` node on CentOS 7:
+Here is an example of a master setup for the `icinga2-master1.localdomain` node:
 
 ```
 [root@icinga2-master1.localdomain /]# icinga2 node wizard
@@ -1031,9 +1031,7 @@ in `/etc/icinga2/icinga2.conf`.
 > Defaults to disabled.
 
 Now it is time to validate the configuration and to restart the Icinga 2 daemon
-on both nodes.
-
-Example on CentOS 7:
+on both nodes:
 
 ```
 [root@icinga2-agent1.localdomain /]# icinga2 daemon -C
@@ -1112,7 +1110,8 @@ Save the changes and validate the configuration on the master node:
 ```
 [root@icinga2-master1.localdomain /]# icinga2 daemon -C
 ```
-Restart the Icinga 2 daemon (example for CentOS 7):
+
+Restart the Icinga 2 daemon:
 
 ```
 [root@icinga2-master1.localdomain /]# systemctl restart icinga2
@@ -1221,9 +1220,7 @@ object ApiListener "api" {
 ```
 
 Now it is time to validate the configuration and to restart the Icinga 2 daemon
-on both nodes.
-
-Example on CentOS 7:
+on both nodes:
 
 ```
 [root@icinga2-satellite1.localdomain /]# icinga2 daemon -C
@@ -1285,7 +1282,7 @@ Save the changes and validate the configuration on the master node:
 [root@icinga2-master1.localdomain /]# icinga2 daemon -C
 ```
 
-Restart the Icinga 2 daemon (example for CentOS 7):
+Restart the Icinga 2 daemon:
 
 ```
 [root@icinga2-master1.localdomain /]# systemctl restart icinga2
@@ -2208,7 +2205,7 @@ object Zone "icinga2-agent2.localdomain" {
 The two agent nodes do not need to know about each other. The only important thing
 is that they know about the parent zone (the satellite) and their endpoint members (and optionally the global zone).
 
-> **Tipp**
+> **Tip**
 >
 > In the example above we've specified the `host` attribute in the agent endpoint configuration. In this mode,
 > the satellites actively connect to the agents. This costs some resources on the satellite -- if you prefer to
@@ -3134,7 +3131,7 @@ object Endpoint "icinga2-master2.localdomain" {
 > **Note**
 >
 > This is required if you decide to change an already running single endpoint production
-> environment into a HA-enabled cluster zone with two endpoints.
+> environment into an HA-enabled cluster zone with two endpoints.
 > The [initial setup](06-distributed-monitoring.md#distributed-monitoring-scenarios-ha-master-clients)
 > with 2 HA masters doesn't require this step.
 
@@ -3229,6 +3226,53 @@ information/pki: Writing certificate to file 'icinga2-satellite1.localdomain.crt
 ```
 
 Copy and move these certificates to the respective instances e.g. with SSH/SCP.
+
+#### External CA/PKI
+
+Icinga works best with its own certificates.
+The commands described above take care of the optimal certificate properties.
+Also, Icinga renews them periodically at runtime to avoid expiry.
+But you can also provide your own certificates,
+just like to any other application which uses TLS.
+
+!!! warning
+
+    The only serious reasons to generate own certificates are company policies.
+    You are responsible for making Icinga working with your certificates,
+    as well as for [expiry monitoring](10-icinga-template-library.md#plugin-check-command-ssl_cert)
+    and renewal.
+    
+    Especially `icinga2 pki` CLI commands do not expect such certificates.
+    
+    Also, do not provide your custom CA private key to Icinga 2!
+    Otherwise, it will automatically renew leaf certificates
+    with our hardcoded properties, not your custom ones.
+
+The CA certificate must be located in `/var/lib/icinga2/certs/ca.crt`.
+The basic requirements for all leaf certificates are:
+
+* Located in `/var/lib/icinga2/certs/NODENAME.crt`
+  and `/var/lib/icinga2/certs/NODENAME.key`
+* Subject with CN matching the endpoint name
+* A DNS SAN matching the endpoint name
+
+Pretty much everything else is limited only by your company policy
+and the OpenSSL versions your Icinga nodes use. E.g. the following works:
+
+* Custom key sizes, e.g. 2048 bits
+* Custom key types, e.g. ECC
+* Any number of intermediate CAs (but see limitations below)
+* Multiple trusted root CAs in `/var/lib/icinga2/certs/ca.crt`
+* Different root CAs per cluster subtree, as long as each node trusts the
+  certificate issuers of all nodes it's directly connected to
+
+Intermediate CA restrictions:
+
+* Each side has to provide its intermediate CAs along with the leaf certificate
+  in `/var/lib/icinga2/certs/NODENAME.crt`, ordered from leaf to root.
+* Intermediate CAs may not be used directly as root CAs. To trust only specific
+  intermediate CAs, cross-sign them with themselves, so that you get equal
+  certificates except that they're self-signed. Use them as root CAs in Icinga.
 
 ## Automation <a id="distributed-monitoring-automation"></a>
 

@@ -65,7 +65,7 @@ void Comment::OnAllConfigLoaded()
 
 	Host::Ptr host = Host::GetByName(GetHostName());
 
-	if (GetServiceName().IsEmpty())
+	if (GetServiceName().IsEmpty() || ! host)
 		m_Checkable = host;
 	else
 		m_Checkable = host->GetServiceByShortName(GetServiceName());
@@ -130,7 +130,7 @@ int Comment::GetNextCommentID()
 	return l_NextCommentID;
 }
 
-String Comment::AddComment(const Checkable::Ptr& checkable, CommentType entryType, const String& author,
+Comment::Ptr Comment::AddComment(const Checkable::Ptr& checkable, CommentType entryType, const String& author,
 	const String& text, bool persistent, double expireTime, bool sticky, const String& id, const MessageOrigin::Ptr& origin)
 {
 	String fullName;
@@ -169,7 +169,7 @@ String Comment::AddComment(const Checkable::Ptr& checkable, CommentType entryTyp
 
 	if (!ConfigObjectUtility::CreateObject(Comment::TypeInstance, fullName, config, errors, nullptr)) {
 		ObjectLock olock(errors);
-		for (const String& error : errors) {
+		for (String error : errors) {
 			Log(LogCritical, "Comment", error);
 		}
 
@@ -184,7 +184,7 @@ String Comment::AddComment(const Checkable::Ptr& checkable, CommentType entryTyp
 	Log(LogNotice, "Comment")
 		<< "Added comment '" << comment->GetName() << "'.";
 
-	return fullName;
+	return comment;
 }
 
 void Comment::RemoveComment(const String& id, bool removedManually, const String& removedBy,
@@ -206,7 +206,7 @@ void Comment::RemoveComment(const String& id, bool removedManually, const String
 
 	if (!ConfigObjectUtility::DeleteObject(comment, false, errors, nullptr)) {
 		ObjectLock olock(errors);
-		for (const String& error : errors) {
+		for (String error : errors) {
 			Log(LogCritical, "Comment", error);
 		}
 

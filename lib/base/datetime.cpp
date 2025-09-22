@@ -35,7 +35,7 @@ DateTime::DateTime(const std::vector<Value>& args)
 
 		tms.tm_isdst = -1;
 
-		m_Value = mktime(&tms);
+		m_Value = Utility::TmToTimestamp(&tms);
 	} else if (args.size() == 1)
 		m_Value = args[0];
 	else

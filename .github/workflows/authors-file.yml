@@ -10,7 +10,7 @@ jobs:
 
     steps:
       - name: Checkout HEAD
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -21,7 +21,7 @@ jobs:
           git add AUTHORS
           git log --format='format:%aN <%aE>' "$(
             git merge-base HEAD^1 HEAD^2
-          )..HEAD^2" >> AUTHORS
+          )..HEAD^2" | sed '/^dependabot\[bot] /d' >> AUTHORS
           sort -uo AUTHORS AUTHORS
           git diff AUTHORS >> AUTHORS.diff
 

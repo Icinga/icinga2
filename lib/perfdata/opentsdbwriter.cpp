@@ -376,8 +376,8 @@ void OpenTsdbWriter::SendMetric(const Checkable::Ptr& checkable, const String& m
 {
 	String tags_string = "";
 
-	for (const Dictionary::Pair& tag : tags) {
-		tags_string += " " + tag.first + "=" + Convert::ToString(tag.second);
+	for (auto& tag : tags) {
+		tags_string += " " + tag.first + "=" + tag.second;
 	}
 
 	std::ostringstream msgbuf;

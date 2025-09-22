@@ -401,7 +401,7 @@ static int Main()
 #endif /* _WIN32 */
 
 	if (vm.count("define")) {
-		for (const String& define : vm["define"].as<std::vector<std::string> >()) {
+		for (String define : vm["define"].as<std::vector<std::string>>()) {
 			String key, value;
 			size_t pos = define.FindFirstOf('=');
 			if (pos != String::NPos) {
@@ -420,12 +420,10 @@ static int Main()
 
 			for (size_t i = 1; i < keyTokens.size(); i++) {
 				std::unique_ptr<IndexerExpression> indexerExpr{new IndexerExpression(std::move(expr), MakeLiteral(keyTokens[i]))};
-				indexerExpr->SetOverrideFrozen();
 				expr = std::move(indexerExpr);
 			}
 
 			std::unique_ptr<SetExpression> setExpr{new SetExpression(std::move(expr), OpSetLiteral, MakeLiteral(value))};
-			setExpr->SetOverrideFrozen();
 
 			try {
 				ScriptFrame frame(true);
@@ -460,7 +458,7 @@ static int Main()
 	ConfigCompiler::AddIncludeSearchDir(Configuration::IncludeConfDir);
 
 	if (!autocomplete && vm.count("include")) {
-		for (const String& includePath : vm["include"].as<std::vector<std::string> >()) {
+		for (String includePath : vm["include"].as<std::vector<std::string>>()) {
 			ConfigCompiler::AddIncludeSearchDir(includePath);
 		}
 	}
@@ -571,42 +569,60 @@ static int Main()
 		} else if (command && command->GetImpersonationLevel() == ImpersonateIcinga) {
 			String group = Configuration::RunAsGroup;
 			String user = Configuration::RunAsUser;
+			gid_t gid = 0;
 
 			errno = 0;
-			struct group *gr = getgrnam(group.CStr());
-
-			if (!gr) {
-				if (errno == 0) {
-					Log(LogCritical, "cli")
-						<< "Invalid group specified: " << group;
-					return EXIT_FAILURE;
-				} else {
-					Log(LogCritical, "cli")
-						<< "getgrnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+			try {
+				gid = boost::lexical_cast<gid_t>(group);
+			} catch (const boost::bad_lexical_cast&) {
+				struct group* gr = getgrnam(group.CStr());
+				if (!gr) {
+					if (errno == 0) {
+						Log(LogCritical, "cli")
+							<< "Invalid group specified: " << group;
+					} else {
+						Log(LogCritical, "cli")
+							<< "getgrnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+					}
 					return EXIT_FAILURE;
 				}
+
+				gid = gr->gr_gid;
 			}
 
-			if (getgid() != gr->gr_gid) {
+			if (getgid() != gid) {
 				if (!vm.count("reload-internal") && setgroups(0, nullptr) < 0) {
 					Log(LogCritical, "cli")
 						<< "setgroups() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 					Log(LogCritical, "cli")
-						<< "Please re-run this command as a privileged user or using the \"" << user << "\" account.";
+						<< "Please rerun this command as a privileged user or using the \"" << user << "\" account.";
 					return EXIT_FAILURE;
 				}
 
-				if (setgid(gr->gr_gid) < 0) {
+				if (setgid(gid) < 0) {
 					Log(LogCritical, "cli")
 						<< "setgid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
+					Log(LogCritical, "cli")
+						<< "Please rerun this command as a privileged user or using the \"" << user << "\" account.";
 					return EXIT_FAILURE;
 				}
 			}
 
-			errno = 0;
-			struct passwd *pw = getpwnam(user.CStr());
+			std::optional<uid_t> uid;
+			struct passwd *pw = nullptr;
 
-			if (!pw) {
+			errno = 0;
+			try {
+				uid = boost::lexical_cast<uid_t>(user);
+				pw = getpwuid(*uid);
+			} catch (const boost::bad_lexical_cast&) {
+				pw = getpwnam(user.CStr());
+				if (pw) {
+					uid = pw->pw_uid;
+				}
+			}
+
+			if (!uid) {
 				if (errno == 0) {
 					Log(LogCritical, "cli")
 						<< "Invalid user specified: " << user;
@@ -619,20 +635,22 @@ static int Main()
 			}
 
 			// also activate the additional groups the configured user is member of
-			if (getuid() != pw->pw_uid) {
-				if (!vm.count("reload-internal") && initgroups(user.CStr(), pw->pw_gid) < 0) {
+			if (getuid() != *uid) {
+				// initgroups() is only called when either getpwuid() or getpwnam() returned a valid user entry.
+				// Otherwise it makes no sense to set any additional groups.
+				if (!vm.count("reload-internal") && pw && initgroups(user.CStr(), pw->pw_gid) < 0) {
 					Log(LogCritical, "cli")
 						<< "initgroups() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 					Log(LogCritical, "cli")
-						<< "Please re-run this command as a privileged user or using the \"" << user << "\" account.";
+						<< "Please rerun this command as a privileged user or using the \"" << user << "\" account.";
 					return EXIT_FAILURE;
 				}
 
-				if (setuid(pw->pw_uid) < 0) {
+				if (setuid(*uid) < 0) {
 					Log(LogCritical, "cli")
 						<< "setuid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 					Log(LogCritical, "cli")
-						<< "Please re-run this command as a privileged user or using the \"" << user << "\" account.";
+						<< "Please rerun this command as a privileged user or using the \"" << user << "\" account.";
 					return EXIT_FAILURE;
 				}
 			}

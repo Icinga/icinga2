@@ -176,9 +176,9 @@ Value ClusterEvents::CheckResultAPIHandler(const MessageOrigin::Ptr& origin, con
 	}
 
 	if (!checkable->IsPaused() && Zone::GetLocalZone() == checkable->GetZone() && endpoint == checkable->GetCommandEndpoint())
-		checkable->ProcessCheckResult(cr);
+		checkable->ProcessCheckResult(cr, ApiListener::GetInstance()->GetWaitGroup());
 	else
-		checkable->ProcessCheckResult(cr, origin);
+		checkable->ProcessCheckResult(cr, ApiListener::GetInstance()->GetWaitGroup(), origin);
 
 	return Empty;
 }
@@ -966,7 +966,7 @@ Value ClusterEvents::ExecuteCommandAPIHandler(const MessageOrigin::Ptr& origin, 
 			for (const Zone::Ptr &zone : ConfigType::GetObjectsByType<Zone>()) {
 				/* Fetch immediate child zone members */
 				if (zone->GetParent() == localZone && zone->CanAccessObject(endpointZone)) {
-					std::set<Endpoint::Ptr> endpoints = zone->GetEndpoints();
+					auto endpoints (zone->GetEndpoints());
 
 					for (const Endpoint::Ptr &childEndpoint : endpoints) {
 						if (!(childEndpoint->GetCapabilities() & (uint_fast64_t)ApiCapabilities::ExecuteArbitraryCommand)) {
@@ -1281,6 +1281,7 @@ void ClusterEvents::NotificationSentToAllUsersHandler(const Notification::Ptr& n
 	params->Set("notification_number", notification->GetNotificationNumber());
 	params->Set("last_problem_notification", notification->GetLastProblemNotification());
 	params->Set("no_more_notifications", notification->GetNoMoreNotifications());
+	params->Set("notified_problem_users", notification->GetNotifiedProblemUsers());
 
 	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
@@ -1357,7 +1358,7 @@ Value ClusterEvents::NotificationSentToAllUsersAPIHandler(const MessageOrigin::P
 
 	{
 		ObjectLock olock(ausers);
-		for (const String& auser : ausers) {
+		for (String auser : ausers) {
 			User::Ptr user = User::GetByName(auser);
 
 			if (!user)
@@ -1373,12 +1374,16 @@ Value ClusterEvents::NotificationSentToAllUsersAPIHandler(const MessageOrigin::P
 	notification->SetLastProblemNotification(params->Get("last_problem_notification"));
 	notification->SetNoMoreNotifications(params->Get("no_more_notifications"));
 
-	ArrayData notifiedProblemUsers;
-	for (const User::Ptr& user : users) {
-		notifiedProblemUsers.push_back(user->GetName());
-	}
+	if (params->Contains("notified_problem_users")) {
+		notification->SetNotifiedProblemUsers(params->Get("notified_problem_users"));
+	} else {
+		ArrayData notifiedProblemUsers;
+		for (const User::Ptr& user : users) {
+			notifiedProblemUsers.push_back(user->GetName());
+		}
 
-	notification->SetNotifiedProblemUsers(new Array(std::move(notifiedProblemUsers)));
+		notification->SetNotifiedProblemUsers(new Array(std::move(notifiedProblemUsers)));
+	}
 
 	Checkable::OnNotificationSentToAllUsers(notification, checkable, users, type, cr, author, text, origin);
 

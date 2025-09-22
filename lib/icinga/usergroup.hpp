@@ -4,6 +4,7 @@
 #define USERGROUP_H
 
 #include "icinga/i2-icinga.hpp"
+#include "icinga/notification.hpp"
 #include "icinga/usergroup-ti.hpp"
 #include "icinga/user.hpp"
 
