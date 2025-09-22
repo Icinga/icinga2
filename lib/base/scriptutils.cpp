@@ -475,7 +475,15 @@ ConfigObject::Ptr ScriptUtils::GetObject(const Value& vtype, const String& name)
 	if (!ctype)
 		return nullptr;
 
-	return ctype->GetObject(name);
+	auto cfgObj = ctype->GetObject(name);
+	if (cfgObj) {
+		auto* frame = ScriptFrame::GetCurrentFrame();
+		if (frame->PermChecker->CanAccessConfigObject(cfgObj)) {
+			return cfgObj;
+		}
+	}
+
+	return nullptr;
 }
 
 Array::Ptr ScriptUtils::GetObjects(const Type::Ptr& type)
