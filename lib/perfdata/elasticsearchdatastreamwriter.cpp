@@ -13,6 +13,7 @@
 #include <boost/beast/http/write.hpp>
 #include <boost/scoped_array.hpp>
 #include <fstream>
+#include <sstream>
 #include <string>
 #include <utility>
 
@@ -124,14 +125,15 @@ void ElasticsearchDatastreamWriter::ManageIndexTemplate() {
 	AssertOnWorkQueue();
 
 	String template_path = ICINGA_PKGDATADIR "/elasticsearch/index-template.json";
-	String template_json = "";
-	std::fstream template_file{ template_path, std::fstream::in };
+	std::ifstream template_file{ template_path, std::ifstream::in };
 	if (!template_file.is_open()) {
 		Log(LogCritical, "ElasticsearchDatastreamWriter")
 			<< "Could not open index template file: " << template_path;
 		return;
 	}
-	template_file >> template_json;
+	std::ostringstream template_stream;
+	template_stream << template_file.rdbuf();
+	String template_json = template_stream.str();
 	template_file.close();
 	Log(LogDebug, "ElasticsearchDatastreamWriter")
 		<< "Read index template from " << template_path;
@@ -158,15 +160,8 @@ void ElasticsearchDatastreamWriter::ManageIndexTemplate() {
 		} catch (const StatusCodeException es) {
 		  int status_code = es.GetStatusCode();
 		  if (status_code == 400) {
-<<<<<<< Updated upstream
-			  Log(LogInformation, "ElasticsearchDatastreamWriter")
-				  << "Component template 'icinga2@custom' already exists, skipping creation.";
-			  // Continue to install/update index template
-=======
 			Log(LogInformation, "ElasticsearchDatastreamWriter")
 				<< "Component template 'metrics-icinga2@custom' already exists, skipping creation.";
-			// Continue to install/update index template
->>>>>>> Stashed changes
 		  } else {
 			  Log(LogWarning, "ElasticsearchDatastreamWriter")
 				  << "Failed to install component template 'icinga2@custom', retrying in 5 seconds: " << DiagnosticInformation(es, false);
@@ -482,7 +477,6 @@ void ElasticsearchDatastreamWriter::Flush()
 		try {
 			jsonResponse = TrySend(url, body);
 			m_DocumentsSent += m_DataBuffer.size();
-			m_DataBuffer.clear();
 			break;
 		} catch (const std::exception& ex) {
 			Log(LogWarning, "ElasticsearchDatastreamWriter")
@@ -501,6 +495,7 @@ void ElasticsearchDatastreamWriter::Flush()
 	Value errors = jsonResponse->Get("errors");
 	if (!errors.ToBool()) {
 		Log(LogDebug, "ElasticsearchDatastreamWriter") << "No errors during write operation.";
+		m_DataBuffer.clear();
 		return;
 	}
 
@@ -522,6 +517,7 @@ void ElasticsearchDatastreamWriter::Flush()
 		}
 		++c;
 	}
+	m_DataBuffer.clear();
 }
 
 Value ElasticsearchDatastreamWriter::TrySend(Url::Ptr url, String body) {
