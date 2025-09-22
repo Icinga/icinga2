@@ -5,7 +5,7 @@
 
 #include "base/i2-base.hpp"
 #include "base/dictionary.hpp"
-#include "base/array.hpp"
+#include "base/scriptpermission.hpp"
 #include <boost/thread/tss.hpp>
 #include <stack>
 
@@ -15,8 +15,9 @@ namespace icinga
 struct ScriptFrame
 {
 	Dictionary::Ptr Locals;
+	ScriptPermissionChecker::Ptr PermChecker; /* inherited by next frame */
 	Value Self;
-	bool Sandboxed;
+	bool Sandboxed; /* inherited by next frame */
 	int Depth;
 
 	ScriptFrame(bool allocLocals);
