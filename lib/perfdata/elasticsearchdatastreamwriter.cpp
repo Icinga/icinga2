@@ -12,6 +12,7 @@
 #include <boost/beast/http/verb.hpp>
 #include <boost/beast/http/write.hpp>
 #include <boost/scoped_array.hpp>
+#include <fstream>
 #include <string>
 #include <utility>
 
@@ -84,6 +85,11 @@ void ElasticsearchDatastreamWriter::Resume()
 
 	m_WorkQueue.SetExceptionCallback([this](boost::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
 
+	if (GetManageIndexTemplate()) {
+		// Ensure index template exists/is updated as the first item on the work queue.
+		m_WorkQueue.Enqueue([this]() { ManageIndexTemplate(); });
+	}
+
 	/* Setup timer for periodically flushing m_DataBuffer */
 	m_FlushTimer = Timer::Create();
 	m_FlushTimer->SetInterval(GetFlushInterval());
@@ -91,7 +97,6 @@ void ElasticsearchDatastreamWriter::Resume()
 		m_WorkQueue.Enqueue([this]() { Flush(); });
 	});
 	m_FlushTimer->Start();
-	m_FlushTimer->Reschedule(0);
 
 	/* Register for new metrics. */
 	m_HandleCheckResults = Checkable::OnNewCheckResult.connect(
@@ -113,6 +118,87 @@ void ElasticsearchDatastreamWriter::Pause()
 		<< "'" << GetName() << "' paused.";
 
 	ObjectImpl<ElasticsearchDatastreamWriter>::Pause();
+}
+
+void ElasticsearchDatastreamWriter::ManageIndexTemplate() {
+	AssertOnWorkQueue();
+
+	String template_path = ICINGA_PKGDATADIR "/elasticsearch/index-template.json";
+	String template_json = "";
+	std::fstream template_file{ template_path, std::fstream::in };
+	if (!template_file.is_open()) {
+		Log(LogCritical, "ElasticsearchDatastreamWriter")
+			<< "Could not open index template file: " << template_path;
+		return;
+	}
+	template_file >> template_json;
+	template_file.close();
+	Log(LogDebug, "ElasticsearchDatastreamWriter")
+		<< "Read index template from " << template_path;
+	Log(LogDebug, "ElasticsearchDatastreamWriter") << template_json;
+
+	Url::Ptr index_template_url = new Url();
+	index_template_url->SetScheme(GetEnableTls() ? "https" : "http");
+	index_template_url->SetHost(GetHost());
+	index_template_url->SetPort(GetPort());
+	index_template_url->SetPath({ "_index_template", "icinga2-metrics" });
+
+	Url::Ptr component_template_url = new Url();
+	component_template_url->SetScheme(GetEnableTls() ? "https" : "http");
+	component_template_url->SetHost(GetHost());
+	component_template_url->SetPort(GetPort());
+	component_template_url->SetPath({ "_component_template", "metrics-icinga2@custom" });
+	component_template_url->SetQuery({ {"create", "true"} });
+
+	while (true) {
+		try {
+			Dictionary::Ptr jsonResponse = TrySend(component_template_url, "{\"template\":{}}");
+			Log(LogInformation, "ElasticsearchDatastreamWriter")
+				<< "Successfully installed component template 'icinga2@custom'.";
+		} catch (const StatusCodeException es) {
+		  int status_code = es.GetStatusCode();
+		  if (status_code == 400) {
+<<<<<<< Updated upstream
+			  Log(LogInformation, "ElasticsearchDatastreamWriter")
+				  << "Component template 'icinga2@custom' already exists, skipping creation.";
+			  // Continue to install/update index template
+=======
+			Log(LogInformation, "ElasticsearchDatastreamWriter")
+				<< "Component template 'metrics-icinga2@custom' already exists, skipping creation.";
+			// Continue to install/update index template
+>>>>>>> Stashed changes
+		  } else {
+			  Log(LogWarning, "ElasticsearchDatastreamWriter")
+				  << "Failed to install component template 'icinga2@custom', retrying in 5 seconds: " << DiagnosticInformation(es, false);
+			  Log(LogDebug, "ElasticsearchDatastreamWriter")
+				  << "Additional information:\n" << DiagnosticInformation(es, true);
+			  Utility::Sleep(5);
+			  continue;
+		  }
+		} catch (const std::exception& ex) {
+			Log(LogWarning, "ElasticsearchDatastreamWriter")
+				<< "Failed to install component template 'icinga2@custom', retrying in 5 seconds: " << DiagnosticInformation(ex, false);
+			Log(LogDebug, "ElasticsearchDatastreamWriter")
+				<< "Additional information:\n" << DiagnosticInformation(ex, true);
+			Utility::Sleep(5);
+			continue;
+		}
+
+		try {
+			Dictionary::Ptr jsonResponse = TrySend(index_template_url, template_json);
+			Log(LogInformation, "ElasticsearchDatastreamWriter")
+				<< "Successfully installed/updated index template 'icinga2-metrics'.";
+			Log(LogDebug, "ElasticsearchDatastreamWriter")
+				<< "Response: " << JsonEncode(jsonResponse);
+			break;
+		} catch (const std::exception& ex) {
+			Log(LogWarning, "ElasticsearchDatastreamWriter")
+				<< "Failed to install/update index template 'icinga2-metrics', retrying in 5 seconds: " << DiagnosticInformation(ex, false);
+			Log(LogDebug, "ElasticsearchDatastreamWriter")
+				<< "Additional information:\n" << DiagnosticInformation(ex, true);
+			Utility::Sleep(5);
+		}
+	}
 }
 
 Dictionary::Ptr ElasticsearchDatastreamWriter::ExtractPerfData(const Checkable::Ptr checkable, const Array::Ptr& perfdata) {
@@ -386,8 +472,8 @@ void ElasticsearchDatastreamWriter::Flush()
 			{ "create", new Dictionary({ { "_index", document->GetIndex() } }) }
 		});
 
-		body += icinga::JsonEncode(index) + "\n";
-		body += icinga::JsonEncode(document->GetDocument()) + "\n";
+		body += JsonEncode(index) + "\n";
+		body += JsonEncode(document->GetDocument()) + "\n";
 	}
 
 	Dictionary::Ptr jsonResponse;
@@ -461,9 +547,9 @@ Value ElasticsearchDatastreamWriter::TrySend(Url::Ptr url, String body) {
 	String api_token = GetPassword();
 
 	if (!username.IsEmpty() && !password.IsEmpty()) {
-	    request.set(http::field::authorization, "Basic " + Base64::Encode(username + ":" + password));
+		request.set(http::field::authorization, "Basic " + Base64::Encode(username + ":" + password));
 	} else if (!api_token.IsEmpty()) {
-        request.set(http::field::authorization, "ApiKey " + api_token);
+		request.set(http::field::authorization, "ApiKey " + api_token);
 	}
 
 	request.body() = body;
@@ -506,7 +592,11 @@ Value ElasticsearchDatastreamWriter::TrySend(Url::Ptr url, String body) {
 	if (response.result_int() > 299) {
 		Log(LogCritical, "ElasticsearchDatastreamWriter")
 			<< "Unexpected response code " << response.result_int() << " from URL '" << url->Format() << "'. Error: " << response.body();
-		BOOST_THROW_EXCEPTION(std::runtime_error("Unexpected response code " + std::to_string(response.result_int())));
+		BOOST_THROW_EXCEPTION(StatusCodeException(
+			response.result_int(),
+			"Unexpected response code from Elasticsearch",
+			response.body()
+		));
 	}
 
 	m_DocumentsSent += m_DataBuffer.size();

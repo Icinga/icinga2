@@ -34,6 +34,9 @@ class ElasticsearchDatastreamWriter : ConfigObject
 	[config] bool enable_send_thresholds {
 		default {{{ return false; }}}
 	};
+	[config] bool manage_index_template {
+		default {{{ return true; }}}
+	};
 	[config] bool insecure_noverify {
 		default {{{ return false; }}}
 	};

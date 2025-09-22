@@ -73,6 +73,13 @@ install_if_not_exists(
   ${ICINGA2_CONFIGDIR}/features-available
 )
 
+if (ICINGA2_WITH_ELASTICSEARCHDATASTREAM)
+  install_if_not_exists(
+    ${PROJECT_SOURCE_DIR}/usr/elasticsearch/index-template.json
+    ${ICINGA2_PKGDATADIR}/elasticsearch
+  )
+endif()
+
 install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${ICINGA2_FULL_SPOOLDIR}/perfdata\")")
 install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${ICINGA2_FULL_SPOOLDIR}/tmp\")")
 

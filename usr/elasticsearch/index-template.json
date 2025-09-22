@@ -1,0 +1,111 @@
+{
+  "index_patterns": ["metrics-icinga2.*-*"],
+  "_meta": {
+    "managed": true,
+    "managed_by": "icinga2"
+  },
+  "composed_of": ["ecs@mappings", "metrics-icinga2@custom"],
+  "priority": 500,
+  "data_stream": {},
+  "template": {
+    "settings": {
+      "index": {
+        "mode": "time_series",
+        "routing_path": "check.checkable"
+      }
+    },
+    "mappings": {
+      "dynamic_templates": [
+        {
+          "perfdata_fields": {
+            "path_match": "perfdata.*",
+            "match_mapping_type": "object",
+            "mapping": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "double"
+                },
+                "min": {
+                  "type": "double"
+                },
+                "max": {
+                  "type": "double"
+                },
+                "warn": {
+                  "type": "double"
+                },
+                "crit": {
+                  "type": "double"
+                },
+                "unit": {
+                  "type": "keyword"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "properties": {
+        "perfdata": {
+          "type": "object"
+        },
+        "check": {
+          "properties": {
+            "checkable": {
+              "time_series_dimension": true,
+              "type": "keyword"
+            },
+            "exit_status": {
+              "type": "integer"
+            },
+            "execution_time": {
+              "type": "double"
+            },
+            "latency": {
+              "type": "double"
+            },
+            "schedule_start": {
+              "type": "date"
+            },
+            "schedule_end": {
+              "type": "date"
+            },
+            "active": {
+              "type": "boolean"
+            }
+          }
+        },
+        "host": {
+          "properties": {
+            "soft_state": {
+              "type": "keyword"
+            },
+            "hard_state": {
+              "type": "keyword"
+            },
+            "zone": {
+              "type": "keyword"
+            }
+          }
+        },
+        "service": {
+          "properties": {
+            "display_name": {
+              "type": "keyword"
+            },
+            "zone": {
+              "type": "keyword"
+            },
+            "hard_state": {
+              "type": "keyword"
+            },
+            "soft_state": {
+              "type": "keyword"
+            }
+          }
+        }
+      }
+    }
+  }
+}
