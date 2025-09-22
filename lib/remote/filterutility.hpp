@@ -50,6 +50,8 @@ struct QueryDescription
 class FilterUtility
 {
 public:
+	
+	static Dictionary::Ptr GetTargetForVar(const String& name, const Value& value);
 	static Type::Ptr TypeFromPluralName(const String& pluralName);
 	static void CheckPermission(const ApiUser::Ptr& user, const String& permission, Expression **filter = nullptr);
 	static bool HasPermission(const ApiUser::Ptr& user, const String& permission, Expression **permissionFilter = nullptr);

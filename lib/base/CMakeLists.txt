@@ -60,6 +60,7 @@ set(base_SOURCES
   ringbuffer.cpp ringbuffer.hpp
   scriptframe.cpp scriptframe.hpp
   scriptglobal.cpp scriptglobal.hpp
+  scriptpermission.cpp scriptpermission.hpp
   scriptutils.cpp scriptutils.hpp
   serializer.cpp serializer.hpp
   shared.hpp

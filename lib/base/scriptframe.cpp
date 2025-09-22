@@ -45,13 +45,13 @@ INITIALIZE_ONCE_WITH_PRIORITY([]() {
 }, 0);
 
 ScriptFrame::ScriptFrame(bool allocLocals)
-	: Locals(allocLocals ? new Dictionary() : nullptr), Self(ScriptGlobal::GetGlobals()), Sandboxed(false), Depth(0)
+	: Locals(allocLocals ? new Dictionary() : nullptr), PermChecker(new ScriptPermissionChecker), Self(ScriptGlobal::GetGlobals()), Sandboxed(false), Depth(0)
 {
 	InitializeFrame();
 }
 
 ScriptFrame::ScriptFrame(bool allocLocals, Value self)
-	: Locals(allocLocals ? new Dictionary() : nullptr), Self(std::move(self)), Sandboxed(false), Depth(0)
+	: Locals(allocLocals ? new Dictionary() : nullptr), PermChecker(new ScriptPermissionChecker), Self(std::move(self)), Sandboxed(false), Depth(0)
 {
 	InitializeFrame();
 }
@@ -63,6 +63,7 @@ void ScriptFrame::InitializeFrame()
 	if (frames && !frames->empty()) {
 		ScriptFrame *frame = frames->top();
 
+		PermChecker = frame->PermChecker;
 		Sandboxed = frame->Sandboxed;
 	}
 
