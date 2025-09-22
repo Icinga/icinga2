@@ -69,6 +69,7 @@ private:
 	Expression::Ptr m_CompiledFilter;
 
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
+	void ManageIndexTemplate();
 
 	Dictionary::Ptr ExtractPerfData(const Checkable::Ptr checkable, const Array::Ptr& perfdata);
 	Array::Ptr ExtractTemplateTags(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
@@ -83,6 +84,20 @@ private:
 
 	void ValidateTagsTemplate(Array::Ptr tags);
 	void ValidateLabelsTemplate(Dictionary::Ptr tags);
+};
+
+class StatusCodeException : public std::runtime_error
+{
+public:
+	StatusCodeException(int status_code, String message, String body)
+		: std::runtime_error(std::move(message)), m_StatusCode(status_code), m_Body(std::move(body)) {}
+
+	int GetStatusCode() const { return m_StatusCode; }
+	const String& GetBody() const { return m_Body; }
+
+private:
+	int m_StatusCode;
+	String m_Body;
 };
 
 }
