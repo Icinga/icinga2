@@ -55,6 +55,9 @@ void CheckerComponent::OnConfigLoaded()
 	Checkable::OnNextCheckChanged.connect([this](const Checkable::Ptr& checkable, const Value&) {
 		NextCheckChangedHandler(checkable);
 	});
+	Checkable::OnRescheduleCheck.connect([this](const Checkable::Ptr& checkable, double nextCheck) {
+		NextCheckChangedHandler(checkable, nextCheck);
+	});
 }
 
 void CheckerComponent::Start(bool runtimeCreated)
@@ -341,7 +344,7 @@ CheckableScheduleInfo CheckerComponent::GetCheckableScheduleInfo(const Checkable
 	return csi;
 }
 
-void CheckerComponent::NextCheckChangedHandler(const Checkable::Ptr& checkable)
+void CheckerComponent::NextCheckChangedHandler(const Checkable::Ptr& checkable, double nextCheck)
 {
 	std::unique_lock<std::mutex> lock(m_Mutex);
 
@@ -356,7 +359,13 @@ void CheckerComponent::NextCheckChangedHandler(const Checkable::Ptr& checkable)
 
 	idx.erase(checkable);
 
-	CheckableScheduleInfo csi = GetCheckableScheduleInfo(checkable);
+	CheckableScheduleInfo csi;
+	if (nextCheck < 0) {
+		csi = GetCheckableScheduleInfo(checkable);
+	} else {
+		csi.NextCheck = nextCheck;
+		csi.Object = checkable;
+	}
 	idx.insert(csi);
 
 	m_CV.notify_all();

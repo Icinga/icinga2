@@ -88,14 +88,26 @@ void Checkable::Start(bool runtimeCreated)
 		auto cr (GetLastCheckResult());
 
 		if (GetLastCheckStarted() > (cr ? cr->GetExecutionEnd() : 0.0)) {
-			SetNextCheck(GetLastCheckStarted());
+			/**
+			 * Each node performs a check immediately after startup before the object authority is determined.
+			 * Meaning, for runtime created objects we should not enter this branch and for non-runtime created
+			 * objects we're going to call `ApiListener::UpdateObjectAuthority()` after all objects have been
+			 * started, so we can safely assume that this timestamp is only relevant for our own checker.
+			 *
+			 * However, until the authority is determined, by default all objects are paused and thus triggering
+			 * `OnRescheduleCheck` would have no effect, as the checker component ignores paused objects. Therefore,
+			 * our only option is to set this dummy ts silently here, so that when the object is unpaused later,
+			 * the checker component will pick it up and schedule the next check properly.
+			 */
+			SetNextCheck(GetLastCheckStarted(), true);
 		}
 	}
 
 	if (GetNextCheck() < now + 60) {
 		double delta = std::min(GetCheckInterval(), 60.0);
 		delta *= (double)std::rand() / RAND_MAX;
-		SetNextCheck(now + delta);
+		// We only want to jitter the next check a bit, and inform the scheduler about it, so not setting it directly.
+		SetNextCheck(now + delta, true);
 	}
 
 	ObjectImpl<Checkable>::Start(runtimeCreated);
