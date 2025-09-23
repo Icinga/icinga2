@@ -335,40 +335,40 @@ void ScriptError::SetHandledByDebugger(bool handled)
 	m_HandledByDebugger = handled;
 }
 
-posix_error::~posix_error() throw()
+const char* posix_error::what() const noexcept
 {
-	free(m_Message);
-}
+	if (m_Message.IsEmpty()) {
+		try {
+			const char* const* func = boost::get_error_info<boost::errinfo_api_function>(*this);
+			if (func) {
+				m_Message += "Function call '" + std::string(*func) + "'";
+			} else {
+				m_Message += "Function call";
+			}
 
-const char *posix_error::what() const throw()
-{
-	if (!m_Message) {
-		std::ostringstream msgbuf;
+			const std::string* fname = boost::get_error_info<boost::errinfo_file_name>(*this);
 
-		const char * const *func = boost::get_error_info<boost::errinfo_api_function>(*this);
+			if (fname) {
+				m_Message += " for file '" + *fname + "'";
+			}
 
-		if (func)
-			msgbuf << "Function call '" << *func << "'";
-		else
-			msgbuf << "Function call";
+			m_Message += " failed";
 
-		const std::string *fname = boost::get_error_info<boost::errinfo_file_name>(*this);
+			const int* errnum = boost::get_error_info<boost::errinfo_errno>(*this);
 
-		if (fname)
-			msgbuf << " for file '" << *fname << "'";
-
-		msgbuf << " failed";
-
-		const int *errnum = boost::get_error_info<boost::errinfo_errno>(*this);
-
-		if (errnum)
-			msgbuf << " with error code " << *errnum << ", '" << strerror(*errnum) << "'";
-
-		String str = msgbuf.str();
-		m_Message = strdup(str.CStr());
+			if (errnum) {
+				m_Message += " with error code " + std::to_string(*errnum) + ", '" + strerror(*errnum) + "'";
+			}
+		} catch (const std::bad_alloc&) {
+			m_Message.Clear();
+			return "Exception in 'posix_error::what()': bad_alloc";
+		} catch (...) {
+			m_Message.Clear();
+			return "Exception in 'posix_error::what()'";
+		}
 	}
 
-	return m_Message;
+	return m_Message.CStr();
 }
 
 ValidationError::ValidationError(const ConfigObject::Ptr& object, const std::vector<String>& attributePath, const String& message)
