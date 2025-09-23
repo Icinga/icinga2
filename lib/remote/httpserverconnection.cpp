@@ -487,6 +487,16 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 			parser.body_limit(-1);
 
 			response.set(http::field::server, l_ServerHeader);
+			if (auto listener (ApiListener::GetInstance()); listener) {
+				if (Dictionary::Ptr headers = listener->GetHttpResponseHeaders(); headers) {
+					ObjectLock lock(headers);
+					for (auto& [header, value] : headers) {
+						if (value.IsString()) {
+							response.set(header, value.Get<String>());
+						}
+					}
+				}
+			}
 
 			if (!EnsureValidHeaders(*m_Stream, buf, parser, response, m_ShuttingDown, yc)) {
 				break;

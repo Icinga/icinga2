@@ -54,6 +54,7 @@ class ApiListener : ConfigObject
 	[config, deprecated] bool access_control_allow_credentials;
 	[config, deprecated] String access_control_allow_headers;
 	[config, deprecated] String access_control_allow_methods;
+	[config] Dictionary::Ptr http_response_headers;
 
 
 	[state, no_user_modify] Timestamp log_message_timestamp;
