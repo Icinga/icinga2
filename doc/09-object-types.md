@@ -1241,6 +1241,70 @@ for an example.
 TLS for the HTTP proxy can be enabled with `enable_tls`. In addition to that
 you can specify the certificates with the `ca_path`, `cert_path` and `cert_key` attributes.
 
+### ElasticsearchDatastreamWriter <a id="objecttype-elasticsearchdatastreamwriter"></a>
+
+Writes check result metrics and performance data to an Elasticsearch timeseries datastream.
+This configuration object is available as the [elasticsearch datastream feature](14-features.md#elasticsearchdatastream-writer).
+
+> **Note:**
+>
+> This feature is experimental right now and behind a compilation flag.
+
+Example:
+
+```
+object ElasticsearchDatastreamWriter "datastreamwriter" {
+  host = "127.0.0.1"
+  port = 9200
+  datastream_namespace = "production"
+
+  enable_send_perfdata = true
+
+  host_tags_template = ["icinga-production"]
+  filter = {{ "datastream" in host.groups }}
+
+  flush_threshold = 1024
+  flush_interval = 10
+}
+```
+
+Configuration Attributes:
+
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  host                      | String                | **Required.** Elasticsearch host address. Defaults to `127.0.0.1`.
+  port                      | Number                | **Required.** Elasticsearch port. Defaults to `9200`.
+  enable\_tls               | Boolean               | **Optional.** Whether to use a TLS stream. Defaults to `false`.
+  insecure\_noverify        | Boolean               | **Optional.** Disable TLS peer verification.
+  ca\_path                  | String                | **Optional.** Path to CA certificate to validate the remote host. Requires `enable_tls` set to `true`.
+  enable\_ha                | Boolean               | **Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-features). Defaults to `false`.
+  flush\_interval           | Duration              | **Optional.** How long to buffer data points before transferring to Elasticsearch. Defaults to `10s`.
+  flush\_threshold          | Number                | **Optional.** How many data points to buffer before forcing a transfer to Elasticsearch.  Defaults to `1024`.
+
+Auth:
+
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  username                  | String                | **Optional.** Basic auth username for Elasticsearch
+  password                  | String                | **Optional.** Basic auth password for Elasticsearch
+  api_token                 | String                | **Optional.** Authorization token for Elasticsearch
+  cert\_path                | String                | **Optional.** Path to host certificate to present to the remote host for mutual verification. Requires `enable_tls` set to `true`.
+  key\_path                 | String                | **Optional.** Path to host key to accompany the cert\_path. Requires `enable_tls` set to `true`.
+
+Changing the behavior of the writer:
+
+  Name                      | Type                  | Description
+  --------------------------|-----------------------|----------------------------------
+  datastream_namespace      | String                | **Required.** Suffix for the datastream names. Defaults to `default`.
+  manage\_index\_template   | Boolean               | **Optional.** Whether to create and manage the index template in Elasticsearch. This requires the user to have `manage_index_templates` permission in Elasticsearch. Defaults to `true`.
+  enable\_send\_perfdata    | Boolean               | **Optional.** Send parsed performance data metrics for check results. Defaults to `false`.
+  enable\_send\_thresholds  | Boolean               | **Optional.** Whether to send warn, crit, min & max performance data.
+  host\_tags\_template      | Array                 | **Optional.** Allows add [tags](https://www.elastic.co/docs/reference/ecs/ecs-base#field-tags) to the document for a Host check result.
+  service\_tags\_template   | Array                 | **Optional.** Allows add [tags](https://www.elastic.co/docs/reference/ecs/ecs-base#field-tags) to the document for a Service check result.
+  host\_labels\_template    | Dictionary            | **Optional.** Allows add [labels](https://www.elastic.co/docs/reference/ecs/ecs-base#field-labels) to the document for a Host check result.
+  service\_labels\_template | Array                 | **Optional.** Allows add [labels](https://www.elastic.co/docs/reference/ecs/ecs-base#field-labels) to the document for a Service check result.
+  filter                    | Function              | **Optional.** An expression to filter which check results should be sent to Elasticsearch. Defaults to sending all check results.
+
 ### ExternalCommandListener <a id="objecttype-externalcommandlistener"></a>
 
 Implements the Icinga 1.x command pipe which can be used to send commands to Icinga.

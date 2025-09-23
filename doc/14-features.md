@@ -439,6 +439,133 @@ The recommended way of running Elasticsearch in this scenario is a dedicated ser
 where you either have the Elasticsearch HTTP API, or a TLS secured HTTP proxy,
 or Logstash for additional filtering.
 
+
+#### Elasticsearch Writer <a id="elasticsearch-writer"></a>
+
+This feature sends check results with performance data to to an [Elasticsearch](https://www.elastic.co/products/elasticsearch) instance or cluster.
+
+> **Note**
+>
+> Elasticsearch 7.9, or later.
+
+Enable the feature and restart Icinga 2.
+
+```bash
+icinga2 feature enable elasticsearchdatastream
+```
+
+The default configuration expects an Elasticsearch instance running on `localhost` on port `9200`
+ and writes to an index called `icinga2`.
+
+More configuration details can be found [here](09-object-types.md#objecttype-elasticsearchdatastreamwriter).
+
+#### Current Elasticsearch Schema <a id="elasticsearch-datastream-writer-schema"></a>
+
+The documents for the ElasticsearchDatastreamWriter try to follow the [Elastic Common Schema (ECS)](https://www.elastic.co/guide/en/ecs/current/index.html)
+version `8.0` as close as possible, with some additional changes to fit the Icinga 2 data model.
+All documents are written to a data stream of the format `metrics-icinga.<check>-<datastream_namespace>`,
+where `<check>` is the name of the checkcommand being executed to keep the number of fields per index low
+and document with the same performance data grouped together. `<datastream_namespace>` is an optional
+configuration parameter to further separate documents, e.g. by environment like `production` or `development`.
+The `datastream_namespace` can also be used to separate documents e.g. by hostgroups or zones, by using the
+`filter` function to filter the check results and use several writers with different namespaces.
+
+Metric values are stored like this:
+
+```
+check_result.perfdata.<perfdata-label>.value
+```
+
+The following characters are escaped in perfdata labels:
+
+  Character   | Escaped character
+  ------------|--------------------------
+  whitespace  | _
+  \           | _
+  /           | _
+  ::          | .
+
+Note that perfdata labels may contain dots (`.`) allowing to
+add more subsequent levels inside the tree.
+`::` adds support for [multi performance labels](https://github.com/flackem/check_multi/blob/next/doc/configuration/performance.md)
+and is therefore replaced by `.`.
+
+Icinga 2 automatically adds the following threshold metrics
+if existing:
+
+```
+perfdata.<perfdata-label>.min
+perfdata.<perfdata-label>.max
+perfdata.<perfdata-label>.warn
+perfdata.<perfdata-label>.crit
+```
+
+#### Adding additional tags and labels <a id="elasticsearch-datastream-writer-custom-tags-labels"></a>
+
+Additionally it is possible to configure custom tags and labels that are applied to the metrics via
+`host_tags_template`/`service_tags_template` and `host_labels_template`/`service_labels_template`
+respectively. Depending on whether the write event was triggered on a service or host object,
+additional tags are added to the ElasticSearch entries.
+
+A host metrics entry configured with the following `host_tags_template`:
+
+```
+host_tags_template = ["production", "$host.groups"]
+host_labels_template = {
+  os = "$host.vars.os$"
+}
+```
+
+Will in addition to the above mentioned lines also contain:
+
+```
+"tags": ["production", "linux-servers;group-A"],
+"labels": { "os": "Linux" }
+```
+
+#### Filtering check results <a id="elasticsearch-datastream-writer-filtering"></a>
+
+It is possible to filter the check results that are sent to Elasticsearch by using the `filter`
+parameter. This parameter takes a function that is called for each check result and must return
+a boolean value. If the function returns `true`, the check result is sent to Elasticsearch,
+otherwise it is skipped.
+
+This function has access to the check result in the `cr` variable, which contains the check result
+object, the checkable object (host or service) in the `checkable` variable and the host and service
+object in the `host` and `service` variables respectively.
+
+An example configuration that only sends check results of services in the `linux-servers` hostgroup
+and with a critical state:
+
+```
+object ElasticsearchDatastreamWriter "elasticsearchdatastream" {
+  ...
+  datastream_namespace = "production"
+  filter = {{ service && "linux-server" in host.groups && cr.state == 2 }}
+}
+```
+
+#### Elasticsearch in Cluster HA Zones <a id="elasticsearch-writer-cluster-ha"></a>
+
+The Elasticsearch feature supports [high availability](06-distributed-monitoring.md#distributed-monitoring-high-availability-features)
+in cluster zones since 2.11.
+
+By default, all endpoints in a zone will activate the feature and start
+writing events to the Elasticsearch HTTP API. In HA enabled scenarios,
+it is possible to set `enable_ha = true` in all feature configuration
+files. This allows each endpoint to calculate the feature authority,
+and only one endpoint actively writes events, the other endpoints
+pause the feature.
+
+When the cluster connection breaks at some point, the remaining endpoint(s)
+in that zone will automatically resume the feature. This built-in failover
+mechanism ensures that events are written even if the cluster fails.
+
+The recommended way of running Elasticsearch in this scenario is a dedicated server
+where you either have the Elasticsearch HTTP API, or a TLS secured HTTP proxy,
+or Logstash for additional filtering.
+
+
 ### Graylog Integration <a id="graylog-integration"></a>
 
 #### GELF Writer <a id="gelfwriter"></a>
