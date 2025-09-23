@@ -4,10 +4,12 @@
 #include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
 #include "base/configtype.hpp"
+#include "base/generator.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/logger.hpp"
 #include "base/serializer.hpp"
 #include "base/namespace.hpp"
+#include <optional>
 #include <set>
 
 using namespace icinga;
@@ -96,25 +98,26 @@ bool VariableQueryHandler::HandleRequest(
 		return true;
 	}
 
-	ArrayData results;
+	auto generatorFunc = [](const Dictionary::Ptr& var) -> std::optional<Value> {
+		if (var->Get("name") == "TicketSalt") {
+			// Returning a nullopt here will cause the generator to skip this entry.
+			// Meaning, when this variable wasn't the last element in the container,
+			// the generator will directly call us again with the next element.
+			return std::nullopt;
+		}
 
-	for (Dictionary::Ptr var : objs) {
-		if (var->Get("name") == "TicketSalt")
-			continue;
-
-		results.emplace_back(new Dictionary({
+		return new Dictionary{
 			{ "name", var->Get("name") },
 			{ "type", var->Get("type") },
 			{ "value", Serialize(var->Get("value"), 0) }
-		}));
-	}
+		};
+	};
 
-	Dictionary::Ptr result = new Dictionary({
-		{ "results", new Array(std::move(results)) }
-	});
+	Dictionary::Ptr result = new Dictionary{{"results", new ValueGenerator{objs, generatorFunc}}};
+	result->Freeze();
 
 	response.result(http::status::ok);
-	HttpUtility::SendJsonBody(response, params, result);
+	HttpUtility::SendJsonBody(response, params, result, yc);
 
 	return true;
 }

@@ -154,6 +154,30 @@ was malformed.
 A status in the range of 500 generally means that there was a server-side problem
 and Icinga 2 is unable to process your request.
 
+Starting with Icinga 2 v2.16.0 we introduced HTTP chunked transfer encoding for some of the API endpoints.
+As a consequence, the `/v1/actions/` and `/v1/objects/` endpoints will always return a `202 Accepted` status code as a
+general HTTP status, but the status of each individual operation remains the same as before, and will continue to report
+`2xx`, `4xx` or `5xx` status codes. For example, you may see such a response when trying to delete multiple objects.
+
+```json
+{
+    "results": [
+        {
+            "code": 200,
+            "status": "Object was deleted."
+        },
+        {
+            "code": 500,
+            "status": "Object could not be deleted.",
+        }
+    ]
+}
+```
+
+In such cases, you should always check the individual result entries for their status code and not rely solely on the
+overall HTTP status code. There are also a number of other endpoints which use chunked transfer encoding, but have no
+behavioral difference in terms of the overall HTTP status code and will continue to return `200` for successful requests.
+
 ### Security <a id="icinga2-api-security"></a>
 
 * HTTPS only.
@@ -2742,7 +2766,7 @@ r = requests.post(request_url,
 print "Request URL: " + str(r.url)
 print "Status code: " + str(r.status_code)
 
-if (r.status_code == 200):
+if (r.status_code == 202):
         print "Result: " + json.dumps(r.json())
 else:
         print r.text
@@ -2791,7 +2815,7 @@ rescue => e
 end
 
 puts "Status: " + response.code.to_s
-if response.code == 200
+if response.code == 202
         puts "Result: " + (JSON.pretty_generate JSON.parse(response.body))
 else
         puts "Error: " + response
@@ -2846,7 +2870,7 @@ $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 curl_close($ch);
 print "Status: " . $code . "\n";
 
-if ($code == 200) {
+if ($code == 202) {
         $response = json_decode($response, true);
         print_r($response);
 }
@@ -2898,7 +2922,7 @@ $client->POST("/v1/objects/services", $data);
 my $status = $client->responseCode();
 print "Status: " . $status . "\n";
 my $response = $client->responseContent();
-if ($status == 200) {
+if ($status == 202) {
         print "Result: " . Dumper(decode_json($response)) . "\n";
 } else {
         print "Error: " . $response . "\n";
@@ -2921,14 +2945,13 @@ import (
 	"bytes"
 	"crypto/tls"
 	"log"
-	"io/ioutil"
 	"net/http"
 )
 
 func main() {
-	var urlBase= "https://localhost:5665"
-	var apiUser= "root"
-	var apiPass= "icinga"
+	var urlBase = "https://localhost:5665"
+	var apiUser = "root"
+	var apiPass = "icinga"
 
 	urlEndpoint := urlBase + "/v1/objects/services"
 
@@ -2943,7 +2966,7 @@ func main() {
 		"filter": "match(\"ping*\", service.name)"
 	}`)
 
-	req, err := http.NewRequest("POST", urlEndpoint, bytes.NewBuffer(requestBody))
+	req, err := http.NewRequest("POST", urlEndpoint, bytes.NewReader(requestBody))
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("X-HTTP-Method-Override", "GET")
 
@@ -2958,13 +2981,16 @@ func main() {
 
 	log.Print("Response status:", resp.Status)
 
-	bodyBytes, _ := ioutil.ReadAll(resp.Body)
-	bodyString := string(bodyBytes)
+	buf := new(bytes.Buffer)
+	if _, err := buf.ReadFrom(resp.Body); err != nil {
+		log.Fatal("Read error:", err)
+		return
+	}
 
-	if resp.StatusCode == http.StatusOK {
-		log.Print("Result: " + bodyString)
+	if resp.StatusCode == http.StatusAccepted {
+		log.Print("Result: " + buf.String())
 	} else {
-		log.Fatal(bodyString)
+		log.Fatal(buf.String())
 	}
 }
 ```
@@ -2972,8 +2998,7 @@ func main() {
 Build the binary:
 
 ```bash
-go build icinga.go
-./icinga
+go run ./icinga.go
 ```
 
 #### Example API Client in Powershell <a id="icinga2-api-clients-programmatic-examples-powershell"></a>
