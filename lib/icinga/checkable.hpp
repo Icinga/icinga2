@@ -148,7 +148,6 @@ public:
 		bool, bool, double, double, const MessageOrigin::Ptr&)> OnAcknowledgementSet;
 	static boost::signals2::signal<void (const Checkable::Ptr&, const String&, double, const MessageOrigin::Ptr&)> OnAcknowledgementCleared;
 	static boost::signals2::signal<void (const Checkable::Ptr&, double)> OnFlappingChange;
-	static boost::signals2::signal<void (const Checkable::Ptr&)> OnNextCheckUpdated;
 	/**
 	 * This signal is a very special and noisy one. It is emitted whenever someone wants to enforce the LOCAL
 	 * scheduler to reschedule the next check of a checkable at the given timestamp. This can be due to a number
