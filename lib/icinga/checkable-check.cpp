@@ -22,7 +22,6 @@ boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, co
 boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, StateType, const MessageOrigin::Ptr&)> Checkable::OnStateChange;
 boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, std::set<Checkable::Ptr>, const MessageOrigin::Ptr&)> Checkable::OnReachabilityChanged;
 boost::signals2::signal<void (const Checkable::Ptr&, NotificationType, const CheckResult::Ptr&, const String&, const String&, const MessageOrigin::Ptr&)> Checkable::OnNotificationsRequested;
-boost::signals2::signal<void (const Checkable::Ptr&)> Checkable::OnNextCheckUpdated;
 boost::signals2::signal<void (const Checkable::Ptr&, double)> Checkable::OnRescheduleCheck;
 
 Atomic<uint_fast64_t> Checkable::CurrentConcurrentChecks (0);

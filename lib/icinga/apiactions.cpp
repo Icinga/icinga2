@@ -159,9 +159,6 @@ Dictionary::Ptr ApiActions::RescheduleCheck(const ConfigObject::Ptr& object,
 
 	checkable->SetNextCheck(nextCheck);
 
-	/* trigger update event for DB IDO */
-	Checkable::OnNextCheckUpdated(checkable);
-
 	return ApiActions::CreateResult(200, "Successfully rescheduled check for object '" + checkable->GetName() + "'.");
 }
 

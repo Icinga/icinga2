@@ -147,7 +147,6 @@ public:
 		bool, bool, double, double, const MessageOrigin::Ptr&)> OnAcknowledgementSet;
 	static boost::signals2::signal<void (const Checkable::Ptr&, const String&, double, const MessageOrigin::Ptr&)> OnAcknowledgementCleared;
 	static boost::signals2::signal<void (const Checkable::Ptr&, double)> OnFlappingChange;
-	static boost::signals2::signal<void (const Checkable::Ptr&)> OnNextCheckUpdated;
 	/**
 	 * Think again! Are you really sure you want to subscribe to this signal?
 	 *
