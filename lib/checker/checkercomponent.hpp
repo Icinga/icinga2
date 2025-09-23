@@ -94,7 +94,7 @@ private:
 	void AdjustCheckTimer();
 
 	void ObjectHandler(const ConfigObject::Ptr& object);
-	void NextCheckChangedHandler(const Checkable::Ptr& checkable);
+	void NextCheckChangedHandler(const Checkable::Ptr& checkable, double nextCheck = -1);
 
 	void RescheduleCheckTimer();
 

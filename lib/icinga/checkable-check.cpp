@@ -24,6 +24,7 @@ boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, St
 boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, std::set<Checkable::Ptr>, const MessageOrigin::Ptr&)> Checkable::OnReachabilityChanged;
 boost::signals2::signal<void (const Checkable::Ptr&, NotificationType, const CheckResult::Ptr&, const String&, const String&, const MessageOrigin::Ptr&)> Checkable::OnNotificationsRequested;
 boost::signals2::signal<void (const Checkable::Ptr&)> Checkable::OnNextCheckUpdated;
+boost::signals2::signal<void (const Checkable::Ptr&, double)> Checkable::OnRescheduleCheck;
 
 Atomic<uint_fast64_t> Checkable::CurrentConcurrentChecks (0);
 
@@ -519,12 +520,15 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 	if (recovery) {
 		for (auto& child : children) {
 			if (child->GetProblem() && child->GetEnableActiveChecks()) {
-				auto nextCheck (now + Utility::Random() % 60);
-
-				ObjectLock oLock (child);
-
-				if (nextCheck < child->GetNextCheck()) {
-					child->SetNextCheck(nextCheck);
+				if (auto nextCheck{now + Utility::Random() % 60}; nextCheck < child->GetNextCheck()) {
+					/**
+					 * We only want to enforce the checker to pick this up sooner, and no need to actually change
+					 * the timesatmp. Plus, no other listeners should be informed about this other than the checker,
+					 * so we emit this signal directly. In case our checker isn't responsible for this child object,
+					 * we've already broadcasted the `CheckResult` event which will cause on the responsible node to
+					 * enter this exact branch and do the rescheduling for its own checker.
+					 */
+					OnRescheduleCheck(child, nextCheck);
 				}
 			}
 		}
@@ -540,8 +544,8 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 				continue;
 
 			if (parent->GetNextCheck() >= now + parent->GetRetryInterval()) {
-				ObjectLock olock(parent);
-				parent->SetNextCheck(now);
+				// See comment above for children. We want to just enforce an immediate check by our checker.
+				OnRescheduleCheck(parent, now);
 			}
 		}
 	}
