@@ -202,7 +202,7 @@ private:
 	static void CommentRemovedHandler(const Comment::Ptr& comment);
 	static void FlappingChangeHandler(const Checkable::Ptr& checkable, double changeTime);
 	static void NewCheckResultHandler(const Checkable::Ptr& checkable);
-	static void NextCheckUpdatedHandler(const Checkable::Ptr& checkable);
+	static void NextCheckChangedHandler(const Checkable::Ptr& checkable);
 	static void DependencyGroupChildRegisteredHandler(const Checkable::Ptr& child, const DependencyGroup::Ptr& dependencyGroup);
 	static void DependencyGroupChildRemovedHandler(const DependencyGroup::Ptr& dependencyGroup, const std::vector<Dependency::Ptr>& dependencies, bool removeGroup);
 	static void HostProblemChangedHandler(const Service::Ptr& service);
