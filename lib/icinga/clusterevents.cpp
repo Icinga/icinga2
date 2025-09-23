@@ -47,7 +47,9 @@ REGISTER_APIFUNCTION(SetRemovalInfo, event, &ClusterEvents::SetRemovalInfoAPIHan
 void ClusterEvents::StaticInitialize()
 {
 	Checkable::OnNewCheckResult.connect(&ClusterEvents::CheckResultHandler);
-	Checkable::OnNextCheckChanged.connect(&ClusterEvents::NextCheckChangedHandler);
+	Checkable::OnNextCheckChanged.connect([](const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin) {
+		NextCheckChangedHandler(checkable, origin);
+	});
 	Checkable::OnLastCheckStartedChanged.connect(&ClusterEvents::LastCheckStartedChangedHandler);
 	Checkable::OnStateBeforeSuppressionChanged.connect(&ClusterEvents::StateBeforeSuppressionChangedHandler);
 	Checkable::OnSuppressedNotificationsChanged.connect(&ClusterEvents::SuppressedNotificationsChangedHandler);
@@ -184,7 +186,7 @@ Value ClusterEvents::CheckResultAPIHandler(const MessageOrigin::Ptr& origin, con
 	return Empty;
 }
 
-void ClusterEvents::NextCheckChangedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin)
+void ClusterEvents::NextCheckChangedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin, uint_fast64_t originClientCapabilities)
 {
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
@@ -200,6 +202,10 @@ void ClusterEvents::NextCheckChangedHandler(const Checkable::Ptr& checkable, con
 	if (service)
 		params->Set("service", service->GetShortName());
 	params->Set("next_check", checkable->GetNextCheck());
+
+	if (originClientCapabilities > 0) {
+		params->Set("origin_client_caps", originClientCapabilities);
+	}
 
 	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
@@ -246,7 +252,29 @@ Value ClusterEvents::NextCheckChangedAPIHandler(const MessageOrigin::Ptr& origin
 	if (nextCheck < Application::GetStartTime() + 60)
 		return Empty;
 
-	checkable->SetNextCheck(params->Get("next_check"), false, origin);
+	auto capabilities = endpoint->GetCapabilities();
+	if (params->Contains("origin_client_caps")) {
+		capabilities &= static_cast<uint_fast64_t>(params->Get("origin_client_caps"));
+	}
+
+	if (capabilities & static_cast<uint_fast64_t>(ApiCapabilities::GranularNextCheckInvocation)) {
+		// Peer/original client has the expected Icinga 2 capability, so we can just do the normal flow.
+		// The `Checkable::OnNextCheckChanged` signal will be emitted as usual and all subscribers will
+		// be informed about this change.
+		checkable->SetNextCheck(nextCheck, false, origin);
+	} else {
+		// All older Icinga 2 versions trigger the `event::SetNextCheck` event endlessly, so we can't let the
+		// `Checkable::OnNextCheckChanged` know about this change, as it would cause too much noise in Icinga DB
+		// and the like. So, we just update the timestamp silently and manually call `Checkable::OnRescheduleCheck`
+		// to inform the checker about this change.
+		checkable->SetNextCheck(nextCheck, true, origin);
+		Checkable::OnRescheduleCheck(checkable, nextCheck);
+		// In case this message has to be relayed to other cluster nodes we directly call the `NextCheckChangedHandler`.
+		// The `originClientCapabilities` flag is necessary e.g. in a 3-level cluster setup where a very old agent
+		// sends the message to its satellite that then relays it to the master. The master then needs to know the
+		// capabilities of the original sender to decide whether to trigger the normal flow or not.
+		NextCheckChangedHandler(checkable, origin, capabilities);
+	}
 
 	return Empty;
 }
