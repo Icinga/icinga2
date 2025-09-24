@@ -576,12 +576,6 @@ void Checkable::ExecuteCheck(const WaitGroup::Ptr& producer)
 
 	SetLastCheckStarted(Utility::GetTime());
 
-	/* This calls SetNextCheck() which updates the CheckerComponent's idle/pending
-	 * queues and ensures that checks are not fired multiple times. ProcessCheckResult()
-	 * is called too late. See #6421.
-	 */
-	UpdateNextCheck();
-
 	bool reachable = IsReachable();
 
 	{
@@ -643,11 +637,16 @@ void Checkable::ExecuteCheck(const WaitGroup::Ptr& producer)
 			if (listener)
 				listener->SyncSendMessage(endpoint, message);
 
-			/* Re-schedule the check so we don't run it again until after we've received
-			 * a check result from the remote instance. The check will be re-scheduled
-			 * using the proper check interval once we've received a check result.
+			/*
+			 * Let the checker use a dummy next check time until we actually receive the check result from the
+			 * remote endpoint. This should be sufficiently far in the future to avoid excessive CPU load by
+			 * constantly re-running the check, but not too far in the future to avoid that the check is not
+			 * re-run for too long in case the remote endpoint never responds. We add a small grace period
+			 * to the check command timeout to account for network latency and processing time on the remote
+			 * endpoint. So, we only need to silently update this without notifying any listeners, and once
+			 * this function returns, the checker is going access it via GetNextCheck() again.
 			 */
-			SetNextCheck(Utility::GetTime() + checkTimeout + 30);
+			SetNextCheck(Utility::GetTime() + checkTimeout + 30, true);
 
 		/*
 		 * Let the user know that there was a problem with the check if
@@ -670,6 +669,13 @@ void Checkable::ExecuteCheck(const WaitGroup::Ptr& producer)
 			cr->SetOutput(output);
 
 			ProcessCheckResult(cr, producer);
+		} else {
+			/**
+			 * The endpoint is currently either syncing its state or not connected yet and we are within
+			 * the magical 5min cold startup window. In both cases, we just don't do anything and wait for
+			 * the next check interval to re-try the check again. So, this check is effectively skipped.
+			 */
+			UpdateNextCheck();
 		}
 
 		/**
