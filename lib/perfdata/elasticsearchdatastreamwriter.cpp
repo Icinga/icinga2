@@ -83,7 +83,7 @@ void ElasticsearchDatastreamWriter::Resume()
 
 	Log(LogInformation, "ElasticsearchDatastreamWriter")
 		<< "'" << GetName() << "' resumed.";
-
+	m_Paused = false;
 	m_WorkQueue.SetExceptionCallback([this](boost::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
 
 	if (GetManageIndexTemplate()) {
@@ -112,6 +112,7 @@ void ElasticsearchDatastreamWriter::Pause()
 {
 	m_HandleCheckResults.disconnect();
 	m_FlushTimer->Stop(true);
+	m_Paused = true;
 	m_WorkQueue.Enqueue([this]() { Flush(); });
 	m_WorkQueue.Join();
 
@@ -153,6 +154,12 @@ void ElasticsearchDatastreamWriter::ManageIndexTemplate() {
 	component_template_url->SetQuery({ {"create", "true"} });
 
 	while (true) {
+		if (m_Paused) {
+			Log(LogInformation, "ElasticsearchDatastreamWriter")
+				<< "Shutdown in progress, aborting index template management.";
+			return;
+		}
+
 		try {
 			Dictionary::Ptr jsonResponse = TrySend(component_template_url, "{\"template\":{}}");
 			Log(LogInformation, "ElasticsearchDatastreamWriter")
@@ -162,13 +169,14 @@ void ElasticsearchDatastreamWriter::ManageIndexTemplate() {
 		  if (status_code == 400) {
 			Log(LogInformation, "ElasticsearchDatastreamWriter")
 				<< "Component template 'metrics-icinga2@custom' already exists, skipping creation.";
+			// Continue to install/update index template
 		  } else {
-			  Log(LogWarning, "ElasticsearchDatastreamWriter")
-				  << "Failed to install component template 'icinga2@custom', retrying in 5 seconds: " << DiagnosticInformation(es, false);
-			  Log(LogDebug, "ElasticsearchDatastreamWriter")
-				  << "Additional information:\n" << DiagnosticInformation(es, true);
-			  Utility::Sleep(5);
-			  continue;
+			Log(LogWarning, "ElasticsearchDatastreamWriter")
+				<< "Failed to install component template 'icinga2@custom', retrying in 5 seconds: " << DiagnosticInformation(es, false);
+			Log(LogDebug, "ElasticsearchDatastreamWriter")
+				<< "Additional information:\n" << DiagnosticInformation(es, true);
+			Utility::Sleep(5);
+			continue;
 		  }
 		} catch (const std::exception& ex) {
 			Log(LogWarning, "ElasticsearchDatastreamWriter")
@@ -473,12 +481,19 @@ void ElasticsearchDatastreamWriter::Flush()
 
 	Dictionary::Ptr jsonResponse;
 	while (true) {
-		// ToDo: does this need a timeout/retry limit when stopping icinga2?
 		try {
 			jsonResponse = TrySend(url, body);
 			m_DocumentsSent += m_DataBuffer.size();
 			break;
 		} catch (const std::exception& ex) {
+			if (m_Paused) {
+				// We are shutting down, don't retry.
+				Log(LogWarning, "ElasticsearchDatastreamWriter")
+					<< "Flush failed during shutdown, dropping " << m_DataBuffer.size() << " documents: " << DiagnosticInformation(ex, false);
+				m_DataBuffer.clear();
+				break;
+			}
+
 			Log(LogWarning, "ElasticsearchDatastreamWriter")
 				<< "Flush failed, retrying in 5 seconds: " << DiagnosticInformation(ex, false);
 			Log(LogDebug, "ElasticsearchDatastreamWriter")
@@ -561,12 +576,12 @@ Value ElasticsearchDatastreamWriter::TrySend(Url::Ptr url, String body) {
 
 	OptionalTlsStream stream = Connect();
 	Defer closeStream([&stream]() {
-        if (stream.first) {
-            stream.first->lowest_layer().close();
-        } else if (stream.second) {
-            stream.second->lowest_layer().close();
-        }
-    });
+		if (stream.first) {
+			stream.first->lowest_layer().close();
+		} else if (stream.second) {
+			stream.second->lowest_layer().close();
+		}
+	});
 
 	try {
 		if (stream.first) {
