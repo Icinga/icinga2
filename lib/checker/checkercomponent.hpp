@@ -26,21 +26,25 @@ struct CheckableScheduleInfo
 {
 	Checkable::Ptr Object;
 	double NextCheck;
-};
-
-/**
- * @ingroup checker
- */
-struct CheckableNextCheckExtractor
-{
-	typedef double result_type;
 
 	/**
-	 * @threadsafety Always.
+	 * Get the index value for ordering in the multi-index container.
+	 *
+	 * This function returns a very large value for checkables that have a running check, effectively pushing
+	 * them to the end of the ordering. This ensures that checkables with running checks are not prioritized
+	 * for scheduling ahead of others. Rescheduling of such checkables is unnecessary because the checkable
+	 * is going to reject this anyway if it notices that a check is already running, so avoiding unnecessary
+	 * CPU load. Once the running check is finished, the checkable will be re-inserted into the set with its
+	 * actual next check time as the index value.
+	 *
+	 * @return The index value for ordering in the multi-index container.
 	 */
-	double operator()(const CheckableScheduleInfo& csi)
+	double Index() const
 	{
-		return csi.NextCheck;
+		if (Object->HasRunningCheck()) {
+			return std::numeric_limits<double>::max();
+		}
+		return NextCheck;
 	}
 };
 
@@ -57,7 +61,7 @@ public:
 		CheckableScheduleInfo,
 		boost::multi_index::indexed_by<
 			boost::multi_index::ordered_unique<boost::multi_index::member<CheckableScheduleInfo, Checkable::Ptr, &CheckableScheduleInfo::Object> >,
-			boost::multi_index::ordered_non_unique<CheckableNextCheckExtractor>
+			boost::multi_index::ordered_non_unique<boost::multi_index::const_mem_fun<CheckableScheduleInfo, double, &CheckableScheduleInfo::Index>>
 		>
 	> CheckableSet;
 
