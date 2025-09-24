@@ -1482,6 +1482,10 @@ void ClassCompiler::CompileStream(const std::string& path, std::istream& input,
 		<< "#pragma warning( push )" << std::endl
 		<< "#pragma warning( disable : 4244 )" << std::endl
 		<< "#pragma warning( disable : 4800 )" << std::endl
+		<< "#else /* _MSC_VER */" << std::endl
+		<< "#pragma GCC diagnostic push" << std::endl
+		<< "#pragma GCC diagnostic ignored \"-Wunused-parameter\"" << std::endl
+		<< "#pragma GCC diagnostic ignored \"-Wunused-variable\"" << std::endl
 		<< "#endif /* _MSC_VER */" << std::endl << std::endl;
 
 
@@ -1492,5 +1496,7 @@ void ClassCompiler::CompileStream(const std::string& path, std::istream& input,
 
 	oimpl << "#ifdef _MSC_VER" << std::endl
 		<< "#pragma warning ( pop )" << std::endl
+		<< "#else /* _MSC_VER */" << std::endl
+		<< "#pragma GCC diagnostic pop" << std::endl
 		<< "#endif /* _MSC_VER */" << std::endl;
 }

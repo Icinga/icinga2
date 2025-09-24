@@ -1,0 +1,49 @@
+{
+    "problemMatcher": [
+        {
+            "owner": "msvc-problem-matcher",
+            "pattern": [
+                {
+                    "regexp": "^([^\\s].*icinga2.*)\\((\\d+),?(\\d+)?(?:,\\d+,\\d+)?\\):\\s(error|warning|info)\\s(\\w{1,2}\\d+):\\s([^\\s].*?)\\s\\[(.*)\\]$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "code": 5,
+                    "message": 6,
+                    "fromPath": 7
+                }
+            ]
+        },
+        {
+            "owner": "msvc-template-problem-matcher",
+            "pattern": [
+                {
+                    "regexp": "^(?:[^\\s].*Microsoft.*)\\(\\d+,?\\d+?(?:,\\d+,\\d+)?\\):\\s(error|warning|info)\\s(\\w{1,2}\\d+):\\s([^\\s].*?)\\s\\[(.*)\\]$",
+                    "severity": 1,
+                    "code": 2,
+                    "message": 3,
+                    "fromPath": 4
+                },
+                {
+                    "regexp": "^\\s*(?:[^\\s].*Microsoft.*)\\(\\d+,?\\d+?(?:,\\d+,\\d+)?\\):.*$"
+                },
+                {
+                    "regexp": "^\\s*\\(compiling source file '.*?'\\)$"
+                },
+                {
+                    "regexp": "^\\s*(?:[^\\s].*Microsoft.*)\\(\\d+,?\\d+?(?:,\\d+,\\d+)?\\):.*$"
+                },
+                {
+                    "regexp": "^\\s+the template instantiation context \\(the oldest one first\\) is$"
+                },
+                {
+                    "regexp": "^\\s*([^\\s].*icinga2.*)\\((\\d+),?(\\d+)?(?:,\\d+,\\d+)?\\):$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3
+                }
+            ]
+        }
+    ]
+}
