@@ -57,6 +57,7 @@ private:
 	WorkQueue m_WorkQueue{10000000, 1};
 	boost::signals2::connection m_HandleCheckResults;
 	Timer::Ptr m_FlushTimer;
+	bool m_Paused = false;
 
 	// This buffer should only be accessed from the worker thread.
 	// Every other access will lead to a race-condition.
