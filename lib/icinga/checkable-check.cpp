@@ -46,7 +46,7 @@ void Checkable::SetSchedulingOffset(long offset)
 	m_SchedulingOffset = offset;
 }
 
-long Checkable::GetSchedulingOffset()
+long Checkable::GetSchedulingOffset() const
 {
 	return m_SchedulingOffset;
 }
@@ -87,6 +87,11 @@ bool Checkable::HasBeenChecked() const
 	return GetLastCheckResult() != nullptr;
 }
 
+bool Checkable::HasRunningCheck() const
+{
+	return m_CheckRunning.load(std::memory_order_acquire);
+}
+
 double Checkable::GetLastCheck() const
 {
 	CheckResult::Ptr cr = GetLastCheckResult();
@@ -106,7 +111,7 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 	VERIFY(producer);
 
 	ObjectLock olock(this);
-	m_CheckRunning = false;
+	m_CheckRunning.store(false, std::memory_order_release);
 
 	double now = Utility::GetTime();
 
@@ -562,6 +567,11 @@ void Checkable::ExecuteCheck(const WaitGroup::Ptr& producer)
 {
 	CONTEXT("Executing check for object '" << GetName() << "'");
 
+	/* don't run another check if there is one pending */
+	if (m_CheckRunning.exchange(true, std::memory_order_acq_rel)) {
+		return; // Should never happen as the checker already takes care of this.
+	}
+
 	/* keep track of scheduling info in case the check type doesn't provide its own information */
 	double scheduled_start = GetNextCheck();
 	double before_check = Utility::GetTime();
@@ -578,12 +588,6 @@ void Checkable::ExecuteCheck(const WaitGroup::Ptr& producer)
 
 	{
 		ObjectLock olock(this);
-
-		/* don't run another check if there is one pending */
-		if (m_CheckRunning)
-			return;
-
-		m_CheckRunning = true;
 
 		SetLastStateRaw(GetStateRaw());
 		SetLastStateType(GetLastStateType());
@@ -670,10 +674,13 @@ void Checkable::ExecuteCheck(const WaitGroup::Ptr& producer)
 			ProcessCheckResult(cr, producer);
 		}
 
-		{
-			ObjectLock olock(this);
-			m_CheckRunning = false;
-		}
+		/**
+		 * If this is a remote check, we don't know when the check result will be received and processed.
+		 * Therefore, we must mark the check as no longer running here, otherwise, no further checks
+		 * would be executed for this checkable as it would always appear as having a running check
+		 * (see the check at the start of this function).
+		 */
+		m_CheckRunning.store(false, std::memory_order_release);
 	}
 }
 

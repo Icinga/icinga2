@@ -102,7 +102,7 @@ public:
 	intrusive_ptr<CheckCommand> GetCheckCommand() const;
 	TimePeriod::Ptr GetCheckPeriod() const;
 
-	long GetSchedulingOffset();
+	long GetSchedulingOffset() const;
 	void SetSchedulingOffset(long offset);
 
 	void UpdateNextCheck(const MessageOrigin::Ptr& origin = nullptr);
@@ -110,6 +110,7 @@ public:
 	static String StateTypeToString(StateType type);
 
 	bool HasBeenChecked() const;
+	bool HasRunningCheck() const;
 	virtual bool IsStateOK(ServiceState state) const = 0;
 
 	double GetLastCheck() const final;
@@ -224,7 +225,7 @@ protected:
 
 private:
 	mutable std::mutex m_CheckableMutex;
-	bool m_CheckRunning{false};
+	std::atomic_bool m_CheckRunning{false};
 	long m_SchedulingOffset;
 
 	static std::mutex m_StatsMutex;
