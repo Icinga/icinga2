@@ -40,6 +40,9 @@
 #include "perfdata/elasticsearchdatastreamwriter-ti.cpp"
 
 using namespace icinga;
+namespace beast = boost::beast;
+namespace http = beast::http;
+
 
 REGISTER_TYPE(ElasticsearchDatastreamWriter);
 
@@ -246,20 +249,11 @@ Dictionary::Ptr ElasticsearchDatastreamWriter::ExtractPerfData(const Checkable::
 }
 
 // user-defined tags, as specified in the ECS specification: https://www.elastic.co/docs/reference/ecs/ecs-base#field-tags
-Array::Ptr ElasticsearchDatastreamWriter::ExtractTemplateTags(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr) {
-	Host::Ptr host;
-	Service::Ptr service;
-	tie(host, service) = GetHostService(checkable);
-
-	Array::Ptr tag_tmpl = service ? GetServiceTagsTemplate() : GetHostTagsTemplate();
+Array::Ptr ElasticsearchDatastreamWriter::ExtractTemplateTags(const MacroProcessor::ResolverList resolvers,
+	const Array::Ptr tag_tmpl, const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
+{
 	if (tag_tmpl == nullptr) {
 		return nullptr;
-	}
-
-	MacroProcessor::ResolverList resolvers;
-	resolvers.emplace_back("host", host);
-	if (service) {
-		resolvers.emplace_back("service", service);
 	}
 
 	ObjectLock olock(tag_tmpl);
@@ -281,20 +275,11 @@ Array::Ptr ElasticsearchDatastreamWriter::ExtractTemplateTags(const Checkable::P
 }
 
 // user-defined labels, as specified in the ECS specification: https://www.elastic.co/docs/reference/ecs/ecs-base#field-labels
-Dictionary::Ptr ElasticsearchDatastreamWriter::ExtractTemplateLabels(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr) {
-	Host::Ptr host;
-	Service::Ptr service;
-	tie(host, service) = GetHostService(checkable);
-
-	Dictionary::Ptr labels_tmpl = service ? GetServiceLabelsTemplate() : GetHostLabelsTemplate();
+Dictionary::Ptr ElasticsearchDatastreamWriter::ExtractTemplateLabels(const MacroProcessor::ResolverList resolvers,
+	const Dictionary::Ptr labels_tmpl, const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
+{
 	if (labels_tmpl == nullptr) {
 		return nullptr;
-	}
-
-	MacroProcessor::ResolverList resolvers;
-	resolvers.emplace_back("host", host);
-	if (service) {
-		resolvers.emplace_back("service", service);
 	}
 
 	ObjectLock olock(labels_tmpl);
@@ -314,6 +299,23 @@ Dictionary::Ptr ElasticsearchDatastreamWriter::ExtractTemplateLabels(const Check
 	}
 
 	return labels;
+}
+
+String ElasticsearchDatastreamWriter::ExtractDatastreamNamespace(MacroProcessor::ResolverList resolvers,
+	const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
+{
+	String namespace_tmpl = GetDatastreamNamespace();
+
+	String missingMacro;
+	Value value = MacroProcessor::ResolveMacros(namespace_tmpl, resolvers, cr, &missingMacro);
+	if (!missingMacro.IsEmpty() || value.IsEmpty()) {
+		Log(LogDebug, "ElasticsearchDatastreamWriter")
+			<< "Missing value for namespace. Missing: " << missingMacro
+			<< " for checkable '" << checkable->GetName() << "'. Skipping.";
+		return String("default");
+	}
+
+	return value;
 }
 
 bool ElasticsearchDatastreamWriter::Filter(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr) {
@@ -353,6 +355,12 @@ void ElasticsearchDatastreamWriter::CheckResultHandler(const Checkable::Ptr& che
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
+	MacroProcessor::ResolverList resolvers;
+	resolvers.emplace_back("host", host);
+	if (service) {
+		resolvers.emplace_back("service", service);
+	}
+
 	Dictionary::Ptr ecs_metadata = new Dictionary({
 		{ "version", "8.0.0" }
 	});
@@ -361,7 +369,7 @@ void ElasticsearchDatastreamWriter::CheckResultHandler(const Checkable::Ptr& che
 	Dictionary::Ptr data_stream = new Dictionary({
 		{"type", "metrics"},
 		{"dataset", "icinga2." + checkable->GetCheckCommandRaw()},
-		{"namespace", GetDatastreamNamespace()}
+		{"namespace", ExtractDatastreamNamespace(resolvers, checkable, cr)}
 	});
 
 	Dictionary::Ptr ecs_host = new Dictionary({
@@ -437,8 +445,10 @@ void ElasticsearchDatastreamWriter::CheckResultHandler(const Checkable::Ptr& che
 		{ "check", check_result },
 		{ "message", cr->GetOutput() },
 		{ "perf_data", perf_data },
-		{ "tags", ExtractTemplateTags(checkable, cr) },
-		{ "labels", ExtractTemplateLabels(checkable, cr) }
+		{ "tags", ExtractTemplateTags(
+			resolvers, service ? GetServiceTagsTemplate() : GetHostTagsTemplate(),  checkable, cr) },
+		{ "labels", ExtractTemplateLabels(
+			resolvers, service ? GetServiceLabelsTemplate() : GetHostLabelsTemplate(), checkable, cr) }
 	});
 
 	EcsDocument::Ptr workqueue_document = new EcsDocument(
