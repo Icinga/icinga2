@@ -133,6 +133,15 @@ set(base_test_SOURCES
   $<TARGET_OBJECTS:methods>
 )
 
+if (ICINGA2_WITH_CHECKER)
+  list(APPEND base_test_SOURCES
+    checker.cpp
+    checker-fixture.cpp
+    checker-fixture.hpp
+    $<TARGET_OBJECTS:checker>
+  )
+endif()
+
 if(ICINGA2_WITH_NOTIFICATION)
   list(APPEND base_test_SOURCES
     notification-notificationcomponent.cpp

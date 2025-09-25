@@ -58,9 +58,10 @@ public:
 	 */
 	static constexpr int MaxDependencyRecursionLevel{256};
 
-protected:
 	void OnConfigLoaded() override;
 	void OnAllConfigLoaded() override;
+
+protected:
 	void Stop(bool runtimeRemoved) override;
 	void InitChildParentReferences();
 

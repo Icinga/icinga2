@@ -66,6 +66,27 @@ public:
 		m_LogEntries.clear();
 	}
 
+	/**
+	 * Counts the number of log entries that match the given regex pattern.
+	 *
+	 * This only counts existing log entries, it does not wait for new ones to arrive.
+	 *
+	 * @param pattern The regex pattern the log message needs to match
+	 *
+	 * @return The number of log entries that match the given pattern
+	 */
+	std::size_t CountExpectedLogPattern(const std::string& pattern)
+	{
+		std::lock_guard lock(m_Mutex);
+		std::size_t count = 0;
+		for (const auto& logEntry : m_LogEntries) {
+			if (boost::regex_match(logEntry.Message.GetData(), boost::regex(pattern))) {
+				++count;
+			}
+		}
+		return count;
+	}
+
 private:
 	void ProcessLogEntry(const LogEntry& entry) override
 	{
@@ -107,6 +128,11 @@ struct TestLoggerFixture
 	}
 
 	~TestLoggerFixture()
+	{
+		DeactivateLogger();
+	}
+
+	void DeactivateLogger() const
 	{
 		testLogger->SetActive(false);
 		testLogger->Deactivate(true);
