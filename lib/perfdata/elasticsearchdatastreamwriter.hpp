@@ -6,18 +6,17 @@
 #include <boost/beast/http/verb.hpp>
 
 #include "base/configobject.hpp"
+#include "base/dictionary.hpp"
 #include "base/workqueue.hpp"
 #include "base/timer.hpp"
 #include "base/tlsstream.hpp"
 #include "config/expression.hpp"
 #include "icinga/checkable.hpp"
 #include "icinga/checkresult.hpp"
+#include "icinga/macroprocessor.hpp"
 #include "remote/url.hpp"
 
 #include "perfdata/elasticsearchdatastreamwriter-ti.hpp"
-
-namespace beast = boost::beast;
-namespace http = beast::http;
 
 namespace icinga
 {
@@ -73,8 +72,12 @@ private:
 	void ManageIndexTemplate();
 
 	Dictionary::Ptr ExtractPerfData(const Checkable::Ptr checkable, const Array::Ptr& perfdata);
-	Array::Ptr ExtractTemplateTags(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
-	Dictionary::Ptr ExtractTemplateLabels(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
+	Array::Ptr ExtractTemplateTags(const MacroProcessor::ResolverList resolvers, const Array::Ptr tags_tmpl,
+		const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
+	Dictionary::Ptr ExtractTemplateLabels(const MacroProcessor::ResolverList resolvers, const Dictionary::Ptr labels_tmpl,
+		const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
+	String ExtractDatastreamNamespace(const MacroProcessor::ResolverList resolvers, const Checkable::Ptr& checkable,
+		const CheckResult::Ptr& cr);
 	bool Filter(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 
 	OptionalTlsStream Connect();
