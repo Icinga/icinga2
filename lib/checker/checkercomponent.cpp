@@ -71,7 +71,7 @@ void CheckerComponent::Start(bool runtimeCreated)
 	m_Thread = std::thread([this]() { CheckThreadProc(); });
 
 	m_ResultTimer = Timer::Create();
-	m_ResultTimer->SetInterval(5);
+	m_ResultTimer->SetInterval(m_ResultTimerInterval);
 	m_ResultTimer->OnTimerExpired.connect([this](const Timer * const&) { ResultTimerHandler(); });
 	m_ResultTimer->Start();
 }
@@ -375,4 +375,19 @@ unsigned long CheckerComponent::GetPendingCheckables()
 	std::unique_lock<std::mutex> lock(m_Mutex);
 
 	return m_PendingCheckables.size();
+}
+
+/**
+ * Sets the interval in seconds for the result timer.
+ *
+ * The result timer periodically logs the number of pending and idle checkables
+ * as well as the checks per second rate. The default interval is 5 seconds.
+ *
+ * Note, this method must be called before the component is started to have an effect on the timer.
+ *
+ * @param interval Interval in seconds for the result timer.
+ */
+void CheckerComponent::SetResultTimerInterval(double interval)
+{
+	m_ResultTimerInterval = interval;
 }

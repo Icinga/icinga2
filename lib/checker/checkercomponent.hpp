@@ -73,11 +73,15 @@ public:
 	unsigned long GetIdleCheckables();
 	unsigned long GetPendingCheckables();
 
+	void SetResultTimerInterval(double interval);
+
 private:
 	std::mutex m_Mutex;
 	std::condition_variable m_CV;
 	bool m_Stopped{false};
 	std::thread m_Thread;
+
+	double m_ResultTimerInterval{5.0}; // Interval in seconds for the result timer.
 
 	CheckableSet m_IdleCheckables;
 	CheckableSet m_PendingCheckables;
@@ -90,12 +94,8 @@ private:
 
 	void ExecuteCheckHelper(const Checkable::Ptr& checkable);
 
-	void AdjustCheckTimer();
-
 	void ObjectHandler(const ConfigObject::Ptr& object);
 	void NextCheckChangedHandler(const Checkable::Ptr& checkable, double nextCheck = -1);
-
-	void RescheduleCheckTimer();
 
 	static CheckableScheduleInfo GetCheckableScheduleInfo(const Checkable::Ptr& checkable);
 };
