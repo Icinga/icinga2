@@ -598,7 +598,7 @@ void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const Sha
 						boost::system::error_code ec;
 						sslConn->lowest_layer().cancel(ec);
 					}
-				);
+				); 
 
 				NewClientHandler(yc, strand, sslConn, String(), RoleServer);
 			});

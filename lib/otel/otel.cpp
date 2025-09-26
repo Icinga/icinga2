@@ -133,7 +133,7 @@ void OTel::Stop()
 			}
 		}
 
-		Log(LogInformation, "OTelExporter")
+		Log(LogInformation, "OTelExporter") 
 			<< "Disconnected from OpenTelemetry backend.";
 
 		m_Stream.reset();
@@ -254,7 +254,7 @@ void OTel::Connect(boost::asio::yield_context& yc)
 				std::visit([&ec](auto& s) { s->lowest_layer().cancel(ec); }, *stream);
 			}};
 
-			std::visit([this, &yc](auto& streamArg) {
+			std::visit( [this, &yc](auto& streamArg) {
 				icinga::Connect(streamArg->lowest_layer(), m_ConnInfo.Host, std::to_string(m_ConnInfo.Port), yc);
 
 				if constexpr (std::is_same_v<std::decay_t<decltype(streamArg)>, Shared<AsioTlsStream>::Ptr>) {

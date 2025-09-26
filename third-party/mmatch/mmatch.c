@@ -186,7 +186,7 @@ int match(const char *mask, const char *str)
         if (!*s++)
           return 1;
     };
-  if (!ch)
+  if (! ch)
     return *s;
 
   /* We got a star: quickly find if/where we match the next char */
