@@ -5,6 +5,7 @@
 #include "base/dictionary.hpp"
 #include "base/json.hpp"
 #include "base/tlsstream.hpp"
+#include "remote/apilistener.hpp"
 #include "remote/apiuser.hpp"
 #include "remote/httpserverconnection.hpp"
 #include "remote/url.hpp"
@@ -269,6 +270,8 @@ public:
 
 	JsonEncoder GetJsonEncoder(bool pretty = false);
 
+	bool TryAcquireSlowSlot();
+
 private:
 	using Serializer = boost::beast::http::response_serializer<HttpResponse::body_type>;
 	Serializer m_Serializer{*this};
@@ -276,6 +279,7 @@ private:
 
 	HttpServerConnection::Ptr m_Server;
 	Shared<AsioTlsStream>::Ptr m_Stream;
+	IoEngine::SlowSlot m_SlowSlot;
 };
 
 } // namespace icinga

@@ -129,6 +129,10 @@ void HttpResponse::Flush(boost::asio::yield_context yc)
 		prepare_payload();
 	}
 
+	// If this request currently owns a slow request slot, release it as is must not be held while sending to the client
+	// (otherwise, waiting for a slow client to read its data would block the slot).
+	m_SlowSlot.reset();
+
 	m_SerializationStarted = true;
 
 	if (!m_Serializer.is_header_done()) {
@@ -193,4 +197,20 @@ void HttpResponse::SendFile(const String& path, const boost::asio::yield_context
 JsonEncoder HttpResponse::GetJsonEncoder(bool pretty)
 {
 	return JsonEncoder{std::make_shared<HttpResponseJsonWriter>(*this), pretty};
+}
+
+/**
+ * Tries to acquire a slow slot using ApiListener::TryAcquireSlowSlot(). If this was successful, that slot will be
+ * owned by this HttpResponse object and is automatically released when the next write operation is performed using
+ * Flush() or any other method that calls it.
+ *
+ * In case no ApiListener is configured (only relevant for tests), no limiting of concurrent requests takes place and
+ * this method always returns true to allow callers to just check the return value to determine whether to continue.
+ *
+ * @return Whether the operation was successful and the handler can continue.
+ */
+bool HttpResponse::TryAcquireSlowSlot()
+{
+	m_SlowSlot = IoEngine::Get().TryAcquireSlowSlot();
+	return bool(m_SlowSlot);
 }

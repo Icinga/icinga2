@@ -420,6 +420,34 @@ void ProcessRequest(
 )
 {
 	try {
+		/* Place some restrictions on the total number of HTTP requests handled concurrently to prevent HTTP requests
+		 * from hogging the entire coroutine thread pool by running too many requests handlers at once that don't
+		 * regularly yield, starving other coroutines.
+		 *
+		 * We need to consider two types of handlers here:
+		 *
+		 * 1. Those performing a more or less expensive operation and then returning the whole response at once.
+		 *    Not too many of such handlers should run concurrently.
+		 * 2. Those already streaming the response while they are running, for example using chunked transfer encoding.
+		 *    For these, we assume that they will frequently yield to other coroutines, in particular when writing parts
+		 *    of the response to the client, or in case of EventsHandler also when waiting for new events.
+		 *
+		 * The following approach handles both of this automatically: we acquire one of a limited number of slots for
+		 * each request and release it automatically the first time anything (either the full response after the handler
+		 * finished or the first chunk from within the handler) is written using the response object. This means that
+		 * we don't have to handle acquiring or releasing that slot inside individual handlers.
+		 *
+		 * Overall, this is more or less a safeguard preventing long-running HTTP handlers from taking down the entire
+		 * Icinga 2 process by blocking the execution of JSON-RPC message handlers. In general, (new) HTTP handlers
+		 * shouldn't rely on this behavior but rather ensure that they are quick or at least yield regularly.
+		 */
+		if (!response.TryAcquireSlowSlot()) {
+			HttpUtility::SendJsonError(response, request.Params(), 503,
+				"Too many requests already in progress, please try again later.");
+			response.Flush(yc);
+			return;
+		}
+
 		HttpHandler::ProcessRequest(waitGroup, request, response, yc);
 		response.body().Finish();
 	} catch (const std::exception& ex) {

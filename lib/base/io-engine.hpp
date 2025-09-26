@@ -5,6 +5,7 @@
 
 #include "base/atomic.hpp"
 #include "base/debug.hpp"
+#include "base/defer.hpp"
 #include "base/exception.hpp"
 #include "base/lazy-init.hpp"
 #include "base/logger.hpp"
@@ -96,6 +97,9 @@ public:
 		Get().m_AlreadyExpiredTimer.async_wait(yc);
 	}
 
+	using SlowSlot = std::unique_ptr<Defer>;
+	SlowSlot TryAcquireSlowSlot();
+
 private:
 	IoEngine();
 
@@ -107,6 +111,8 @@ private:
 	boost::asio::executor_work_guard<boost::asio::io_context::executor_type> m_KeepAlive;
 	std::vector<std::thread> m_Threads;
 	boost::asio::deadline_timer m_AlreadyExpiredTimer;
+	std::mutex m_SlowSlotsMutex;
+	int m_SlowSlotsAvailable;
 };
 
 class TerminateIoThread : public std::exception
