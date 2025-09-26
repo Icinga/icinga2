@@ -314,7 +314,7 @@ lterm_items_inner: lterm %dprec 2
 		$$ = new std::vector<std::pair<std::unique_ptr<Expression>, EItemInfo> >();
 		$$->emplace_back(std::unique_ptr<Expression>($1), EItemInfo{true, @1});
 	}
-	| rterm_no_side_effect
+	| rterm_no_side_effect %dprec 3
 	{
 		$$ = new std::vector<std::pair<std::unique_ptr<Expression>, EItemInfo> >();
 		$$->emplace_back(std::unique_ptr<Expression>($1), EItemInfo{false, @1});
@@ -330,7 +330,7 @@ lterm_items_inner: lterm %dprec 2
 			$$->emplace_back(std::unique_ptr<Expression>($3), EItemInfo{true, @3});
 		}
 	}
-	| lterm_items_inner sep rterm_no_side_effect %dprec 1
+	| lterm_items_inner sep rterm_no_side_effect %dprec 2
 	{
 		if ($1)
 			$$ = $1;

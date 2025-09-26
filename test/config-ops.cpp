@@ -241,6 +241,18 @@ BOOST_AUTO_TEST_CASE(advanced)
 	expr = ConfigCompiler::CompileText("<test>", "{{ 3 }}");
 	func = expr->Evaluate(frame).GetValue();
 	BOOST_CHECK(func->Invoke() == 3);
+
+	expr = ConfigCompiler::CompileText("<test>", "var something; var different; () => { {{ {{{foo}}} }} }()");
+	auto assertExpectedErr = [](const std::exception& e) {
+		String message = e.what();
+		bool isExpectedError = message.Contains("Value computed is not used.");
+		BOOST_REQUIRE_MESSAGE(isExpectedError, "Unexpected error message: " << message);
+		return isExpectedError;
+	};
+	BOOST_CHECK_EXCEPTION(expr->Evaluate(frame), ScriptError, assertExpectedErr);
+
+	expr = ConfigCompiler::CompileText("<test>", "() => { {{ {{{foo}}} }} }()");
+	BOOST_CHECK_EXCEPTION(expr->Evaluate(frame), ScriptError, assertExpectedErr);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
