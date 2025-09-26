@@ -41,7 +41,7 @@ JsonRpcConnection::JsonRpcConnection(const WaitGroup::Ptr& waitGroup, const Stri
 	: m_Identity(identity), m_Authenticated(authenticated), m_Stream(stream), m_Role(role),
 	m_Timestamp(Utility::GetTime()), m_Seen(Utility::GetTime()), m_IoStrand(io),
 	m_OutgoingMessagesQueued(io), m_WriterDone(io), m_ShuttingDown(false), m_WaitGroup(waitGroup),
-	m_CheckLivenessTimer(io), m_HeartbeatTimer(io)
+	m_CheckLivenessTimer(io), m_HeartbeatTimer(io) 
 {
 	if (authenticated)
 		m_Endpoint = Endpoint::GetByName(identity);
