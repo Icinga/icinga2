@@ -2,7 +2,7 @@
 
 # CMake 3.17 is required, CMake policy compatibility was verified up to 3.17.
 cmake_minimum_required(VERSION 3.17...3.17)
-set(BOOST_MIN_VERSION "1.66.0")
+set(BOOST_MIN_VERSION "1.69.0")
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
