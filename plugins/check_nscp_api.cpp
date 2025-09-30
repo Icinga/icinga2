@@ -1,7 +1,5 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include "icinga-version.h" /* include VERSION */
-
 // ensure to include base first
 #include "base/i2-base.hpp"
 #include "base/application.hpp"
@@ -365,7 +363,7 @@ static Dictionary::Ptr FetchData(const String& host, const String& port, const S
 
 	http::request<http::string_body> request (http::verb::get, std::string(url->Format(true)), 10);
 
-	request.set(http::field::user_agent, "Icinga/check_nscp_api/" + String(VERSION));
+	request.set(http::field::user_agent, "Icinga/check_nscp_api/" + Application::GetAppVersion());
 	request.set(http::field::host, host + ":" + port);
 
 	request.set(http::field::accept, "application/json");
@@ -451,12 +449,12 @@ int main(int argc, char **argv)
 			vm);
 
 		if (vm.count("version")) {
-			std::cout << "Version: " << VERSION << '\n';
+			std::cout << "Version: " << Application::GetAppVersion() << '\n';
 			Application::Exit(0);
 		}
 
 		if (vm.count("help")) {
-			std::cout << argv[0] << " Help\n\tVersion: " << VERSION << '\n';
+			std::cout << argv[0] << " Help\n\tVersion: " << Application::GetAppVersion() << '\n';
 			std::cout << "check_nscp_api is a program used to query the NSClient++ API.\n";
 			std::cout << desc;
 			std::cout << "For detailed information on possible queries and their arguments refer to the NSClient++ documentation.\n";

@@ -91,7 +91,11 @@ public:
 	static ThreadPool& GetTP();
 
 	static String GetAppVersion();
-	static String GetAppSpecVersion();
+
+	static bool GetAppIncludePackageInfo();
+	static String GetAppPackageVersion();
+	static String GetAppPackageRevision();
+	static String GetAppPackageVendor();
 
 	static String GetAppEnvironment();
 	static void SetAppEnvironment(const String& name);
