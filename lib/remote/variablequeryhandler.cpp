@@ -22,17 +22,28 @@ public:
 	void FindTargets(const String& type,
 		const std::function<void (const Value&)>& addTarget) const override
 	{
-		{
-			Namespace::Ptr globals = ScriptGlobal::GetGlobals();
-			ObjectLock olock(globals);
-			for (const Namespace::Pair& kv : globals) {
-				addTarget(FilterUtility::GetTargetForVar(kv.first, kv.second.Val));
+		Namespace::Ptr globals = ScriptGlobal::GetGlobals();
+		ObjectLock olock(globals);
+		for (auto& [key, value] : globals) {
+			/* We want wo avoid leaking the TicketSalt over the API, so we remove it here,
+			 * as early as possible, so it isn't possible to abuse the fact that all of the
+			 * global variables we return here later get checked against a user-provided
+			 * filter expression that can cause its content to be printed in an error message
+			 * or potentially access them otherwise.
+			 */
+			if (key == "TicketSalt") {
+				continue;
 			}
+
+			addTarget(FilterUtility::GetTargetForVar(key, value.Val));
 		}
 	}
 
 	Value GetTargetByName(const String& type, const String& name) const override
 	{
+		if (name == "TicketSalt") {
+			BOOST_THROW_EXCEPTION(std::invalid_argument{"Access to TicketSalt via /v1/variables is not permitted."});
+		}
 		return FilterUtility::GetTargetForVar(name, ScriptGlobal::Get(name));
 	}
 
@@ -90,9 +101,6 @@ bool VariableQueryHandler::HandleRequest(
 	ArrayData results;
 
 	for (const Dictionary::Ptr& var : objs) {
-		if (var->Get("name") == "TicketSalt")
-			continue;
-
 		results.emplace_back(new Dictionary({
 			{ "name", var->Get("name") },
 			{ "type", var->Get("type") },
