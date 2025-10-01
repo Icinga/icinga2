@@ -419,6 +419,9 @@ void JsonRpcConnection::CheckLiveness(boost::asio::yield_context yc)
 		auto anonymousTimeout = m_LivenessTimeout / 6;
 		m_CheckLivenessTimer.expires_after(anonymousTimeout);
 		m_CheckLivenessTimer.async_wait(yc[ec]);
+		if (ec) {
+			Log(LogCritical, "JsonRpcConnection") << "Error waiting for Liveness timer: " << ec.message();
+		}
 
 		if (m_ShuttingDown) {
 			return;
@@ -441,6 +444,9 @@ void JsonRpcConnection::CheckLiveness(boost::asio::yield_context yc)
 		for (;;) {
 			m_CheckLivenessTimer.expires_after(m_LivenessTimeout / 2);
 			m_CheckLivenessTimer.async_wait(yc[ec]);
+			if (ec) {
+				Log(LogCritical, "JsonRpcConnection") << "Error waiting for Liveness timer: " << ec.message();
+			}
 
 			if (m_ShuttingDown) {
 				break;
