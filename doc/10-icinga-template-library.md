@@ -3032,10 +3032,18 @@ uses the `smartctl` binary to monitor SMART values of SSDs and HDDs.
 
 Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
-Name                            | Description
---------------------------------|-----------------------------------------------------------------------
-smart_attributes_config_path    | **Required.** Path to the smart attributes config file (e.g. check_smartdb.json).
-smart_attributes_device         | **Required.** Device name (e.g. /dev/sda) to monitor.
+Name                                   | Description
+---------------------------------------|-----------------------------------------------------------------------
+smart_attributes_smartclt_path         | **Optional.** Path where the smartctl binary can be found.
+smart_attributes_device                | **Required.** Device name (e.g. /dev/sda) to monitor.
+smart_attributes_device_regex          | **Required.** Alternative to *smart_attributes_device* but with the availability to use regex.
+smart_attributes_config_path           | **Required.** Path to the smart attributes config file (e.g. check_smartdb.json).
+smart_attributes_user_config_path      | **Optional.** Path where the JSON user config file can be found.
+smart_attributes_critical_if_not_found | **Optional.** If set to true, the check enters cirical state if the device was not found in the database.
+smart_attributes_no_sudo               | **Optional.** If set to true, disable the usage of sudo for smartctl.
+smart_attributes_get_allperfs          | **Optional.** Get performance data for all monitor-able smart attributes and don't limit performance data to the 'Perfs' section in the smartdb.json.
+smart_attributes_ssd_only              | **Optional.** If set to true, only SSDs are checked, even if more devices are given
+smart_attributes_options               | **Optional.** Additional parameters forwarded to smartctl binary
 
 
 ### IcingaCLI <a id="plugin-contrib-icingacli"></a>
