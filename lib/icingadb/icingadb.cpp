@@ -81,9 +81,7 @@ void IcingaDB::Start(bool runtimeCreated)
 
 	m_WorkQueue.SetExceptionCallback([this](boost::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
 
-	m_Rcon = new RedisConnection(GetHost(), GetPort(), GetPath(), GetUsername(), GetPassword(), GetDbIndex(),
-		GetEnableTls(), GetInsecureNoverify(), GetCertPath(), GetKeyPath(), GetCaPath(), GetCrlPath(),
-		GetTlsProtocolmin(), GetCipherList(), GetConnectTimeout(), GetDebugInfo());
+	m_Rcon = new RedisConnection(ConstPtr(this));
 	m_RconLocked.store(m_Rcon);
 
 	for (const Type::Ptr& type : GetTypes()) {
@@ -91,9 +89,7 @@ void IcingaDB::Start(bool runtimeCreated)
 		if (!ctype)
 			continue;
 
-		RedisConnection::Ptr con = new RedisConnection(GetHost(), GetPort(), GetPath(), GetUsername(), GetPassword(), GetDbIndex(),
-			GetEnableTls(), GetInsecureNoverify(), GetCertPath(), GetKeyPath(), GetCaPath(), GetCrlPath(),
-			GetTlsProtocolmin(), GetCipherList(), GetConnectTimeout(), GetDebugInfo(), m_Rcon);
+		RedisConnection::Ptr con = new RedisConnection(ConstPtr(this), m_Rcon);
 
 		con->SetConnectedCallback([this, con](boost::asio::yield_context& yc) {
 			con->SetConnectedCallback(nullptr);
