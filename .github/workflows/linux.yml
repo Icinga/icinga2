@@ -41,6 +41,7 @@ jobs:
 
           - opensuse/leap:15.5
           - opensuse/leap:15.6
+          - opensuse/leap:16.0
 
           # We don't actually support Rocky Linux as such!
           # We just use that RHEL clone to test the original.
