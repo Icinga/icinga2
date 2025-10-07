@@ -13,6 +13,7 @@
 #include "base/string.hpp"
 #include "base/tlsstream.hpp"
 #include "base/value.hpp"
+#include "icingadb/icingadb-ti.hpp"
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/buffered_stream.hpp>
 #include <boost/asio/deadline_timer.hpp>
@@ -84,10 +85,7 @@ namespace icinga
 				: Config(config), State(state), History(history) { }
 		};
 
-		RedisConnection(const String& host, int port, const String& path, const String& username, const String& password, int db,
-			bool useTls, bool insecure, const String& certPath, const String& keyPath, const String& caPath, const String& crlPath,
-			const String& tlsProtocolmin, const String& cipherList, double connectTimeout, DebugInfo di, const Ptr& parent = nullptr);
-
+		explicit RedisConnection(const ObjectImpl<IcingaDB>::ConstPtr& icingadb, const Ptr& parent = nullptr);
 		void UpdateTLSContext();
 
 		void Start();
@@ -196,9 +194,7 @@ namespace icinga
 
 		static boost::regex m_ErrAuth;
 
-		RedisConnection(boost::asio::io_context& io, String host, int port, String path, String username, String password,
-			int db, bool useTls, bool insecure, String certPath, String keyPath, String caPath, String crlPath,
-			String tlsProtocolmin, String cipherList, double connectTimeout, DebugInfo di, const Ptr& parent);
+		RedisConnection(boost::asio::io_context& io, const ObjectImpl<IcingaDB>::ConstPtr& icingadb, const Ptr& parent);
 
 		void Connect(boost::asio::yield_context& yc);
 		void ReadLoop(boost::asio::yield_context& yc);
@@ -224,22 +220,7 @@ namespace icinga
 		template<class StreamPtr>
 		Timeout MakeTimeout(StreamPtr& stream);
 
-		String m_Path;
-		String m_Host;
-		int m_Port;
-		String m_Username;
-		String m_Password;
-		int m_DbIndex;
-
-		String m_CertPath;
-		String m_KeyPath;
-		bool m_Insecure;
-		String m_CaPath;
-		String m_CrlPath;
-		String m_TlsProtocolmin;
-		String m_CipherList;
-		double m_ConnectTimeout;
-		DebugInfo m_DebugInfo;
+		ObjectImpl<IcingaDB>::ConstPtr m_IcingaDB; // The IcingaDB object this connection belongs to.
 
 		boost::asio::io_context::strand m_Strand;
 		Shared<TcpConn>::Ptr m_TcpConn;
@@ -451,24 +432,28 @@ void RedisConnection::WriteOne(StreamPtr& stream, RedisConnection::Query& query,
 template<class StreamPtr>
 void RedisConnection::Handshake(StreamPtr& strm, boost::asio::yield_context& yc)
 {
-	if (m_Password.IsEmpty() && !m_DbIndex) {
+	auto password(m_IcingaDB->GetPassword());
+	auto username(m_IcingaDB->GetUsername());
+	auto dbIndex(m_IcingaDB->GetDbIndex());
+
+	if (password.IsEmpty() && !dbIndex) {
 		// Trigger NOAUTH
 		WriteRESP(*strm, {"PING"}, yc);
 	} else {
-		if (!m_Username.IsEmpty()) {
-			WriteRESP(*strm, {"AUTH", m_Username, m_Password}, yc);
-		} else if (!m_Password.IsEmpty()) {
-			WriteRESP(*strm, {"AUTH", m_Password}, yc);
+		if (!username.IsEmpty()) {
+			WriteRESP(*strm, {"AUTH", username, password}, yc);
+		} else if (!password.IsEmpty()) {
+			WriteRESP(*strm, {"AUTH", password}, yc);
 		}
 
-		if (m_DbIndex) {
-			WriteRESP(*strm, {"SELECT", Convert::ToString(m_DbIndex)}, yc);
+		if (dbIndex) {
+			WriteRESP(*strm, {"SELECT", Convert::ToString(dbIndex)}, yc);
 		}
 	}
 
 	strm->async_flush(yc);
 
-	if (m_Password.IsEmpty() && !m_DbIndex) {
+	if (password.IsEmpty() && !dbIndex) {
 		Reply pong (ReadRESP(*strm, yc));
 
 		if (pong.IsObjectType<RedisError>()) {
@@ -476,7 +461,7 @@ void RedisConnection::Handshake(StreamPtr& strm, boost::asio::yield_context& yc)
 			BOOST_THROW_EXCEPTION(std::runtime_error(RedisError::Ptr(pong)->GetMessage()));
 		}
 	} else {
-		if (!m_Password.IsEmpty()) {
+		if (!password.IsEmpty()) {
 			Reply auth (ReadRESP(*strm, yc));
 
 			if (auth.IsObjectType<RedisError>()) {
@@ -492,7 +477,7 @@ void RedisConnection::Handshake(StreamPtr& strm, boost::asio::yield_context& yc)
 			}
 		}
 
-		if (m_DbIndex) {
+		if (dbIndex) {
 			Reply select (ReadRESP(*strm, yc));
 
 			if (select.IsObjectType<RedisError>()) {
@@ -513,7 +498,7 @@ Timeout RedisConnection::MakeTimeout(StreamPtr& stream)
 {
 	return Timeout(
 		m_Strand,
-		boost::posix_time::microseconds(intmax_t(m_ConnectTimeout * 1000000)),
+		boost::posix_time::microseconds(intmax_t(m_IcingaDB->GetConnectTimeout() * 1000000)),
 		[stream] {
 			boost::system::error_code ec;
 			stream->lowest_layer().cancel(ec);
