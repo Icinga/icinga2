@@ -70,6 +70,7 @@ public:
 protected:
 	void ValidateTlsProtocolmin(const Lazy<String>& lvalue, const ValidationUtils& utils) override;
 	void ValidateConnectTimeout(const Lazy<double>& lvalue, const ValidationUtils& utils) override;
+	RedisConnInfo::ConstPtr GetRedisConnInfo() const;
 
 private:
 	class DumpedGlobals
