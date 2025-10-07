@@ -26,16 +26,12 @@ jobs:
 
           # Raspberry Pi OS is close enough to Debian to test just one of them.
           # Its architecture is different, though, and covered by the Docker job.
-          - debian:11
           - debian:12
           - debian:13
 
-          - fedora:39
-          - fedora:40
           - fedora:41
           - fedora:42
 
-          - opensuse/leap:15.5
           - opensuse/leap:15.6
 
           # We don't actually support Rocky Linux as such!
@@ -44,7 +40,6 @@ jobs:
           - rockylinux:9
           - rockylinux/rockylinux:10
 
-          - registry.suse.com/suse/sle15:15.5
           - registry.suse.com/suse/sle15:15.6
           - registry.suse.com/suse/sle15:15.7
 
@@ -57,8 +52,6 @@ jobs:
           - linux/amd64
 
         include:
-          - distro: debian:11
-            platform: linux/386
           - distro: debian:12
             platform: linux/386
 
