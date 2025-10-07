@@ -1,13 +1,11 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "icingadb/redisconnection.hpp"
-#include "base/array.hpp"
 #include "base/convert.hpp"
 #include "base/defer.hpp"
 #include "base/exception.hpp"
 #include "base/io-engine.hpp"
 #include "base/logger.hpp"
-#include "base/objectlock.hpp"
 #include "base/string.hpp"
 #include "base/tcpsocket.hpp"
 #include "base/tlsutility.hpp"
@@ -15,14 +13,11 @@
 #include <boost/asio.hpp>
 #include <boost/coroutine/exceptions.hpp>
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
-#include <boost/utility/string_view.hpp>
-#include <boost/variant/get.hpp>
 #include <exception>
 #include <future>
 #include <iterator>
 #include <memory>
 #include <openssl/ssl.h>
-#include <openssl/x509_vfy.h>
 #include <utility>
 
 using namespace icinga;
@@ -30,32 +25,31 @@ namespace asio = boost::asio;
 
 boost::regex RedisConnection::m_ErrAuth ("\\AERR AUTH ");
 
-RedisConnection::RedisConnection(const String& host, int port, const String& path, const String& username, const String& password, int db,
-	bool useTls, bool insecure, const String& certPath, const String& keyPath, const String& caPath, const String& crlPath,
-	const String& tlsProtocolmin, const String& cipherList, double connectTimeout, DebugInfo di, const RedisConnection::Ptr& parent)
-	: RedisConnection(IoEngine::Get().GetIoContext(), host, port, path, username, password, db,
-	  useTls, insecure, certPath, keyPath, caPath, crlPath, tlsProtocolmin, cipherList, connectTimeout, std::move(di), parent)
+RedisConnection::RedisConnection(const ObjectImpl<IcingaDB>::ConstPtr& icingadb, const Ptr& parent)
+	: RedisConnection{IoEngine::Get().GetIoContext(), icingadb, parent}
 {
 }
 
-RedisConnection::RedisConnection(boost::asio::io_context& io, String host, int port, String path, String username, String password,
-	int db, bool useTls, bool insecure, String certPath, String keyPath, String caPath, String crlPath,
-	String tlsProtocolmin, String cipherList, double connectTimeout, DebugInfo di, const RedisConnection::Ptr& parent)
-	: m_Path(std::move(path)), m_Host(std::move(host)), m_Port(port), m_Username(std::move(username)), m_Password(std::move(password)),
-	  m_DbIndex(db), m_CertPath(std::move(certPath)), m_KeyPath(std::move(keyPath)), m_Insecure(insecure),
-	  m_CaPath(std::move(caPath)), m_CrlPath(std::move(crlPath)), m_TlsProtocolmin(std::move(tlsProtocolmin)),
-	  m_CipherList(std::move(cipherList)), m_ConnectTimeout(connectTimeout), m_DebugInfo(std::move(di)), m_Strand(io),
-	  m_Connecting(false), m_Connected(false), m_Started(false), m_QueuedWrites(io), m_QueuedReads(io), m_LogStatsTimer(io), m_Parent(parent)
+RedisConnection::RedisConnection(boost::asio::io_context& io, const ObjectImpl<IcingaDB>::ConstPtr& icingadb, const Ptr& parent)
+	: m_IcingaDB{icingadb}, m_Strand(io), m_Connecting(false), m_Connected(false), m_Started(false),
+	m_QueuedWrites(io), m_QueuedReads(io), m_LogStatsTimer(io), m_Parent(parent)
 {
-	if (useTls && m_Path.IsEmpty()) {
+	if (icingadb->GetEnableTls() && icingadb->GetPath().IsEmpty()) {
 		UpdateTLSContext();
 	}
 }
 
 void RedisConnection::UpdateTLSContext()
 {
-	m_TLSContext = SetupSslContext(m_CertPath, m_KeyPath, m_CaPath,
-		m_CrlPath, m_CipherList, m_TlsProtocolmin, m_DebugInfo);
+	m_TLSContext = SetupSslContext(
+		m_IcingaDB->GetCertPath(),
+		m_IcingaDB->GetKeyPath(),
+		m_IcingaDB->GetCaPath(),
+		m_IcingaDB->GetCrlPath(),
+		m_IcingaDB->GetCipherList(),
+		m_IcingaDB->GetTlsProtocolmin(),
+		m_IcingaDB->GetDebugInfo()
+	);
 }
 
 void RedisConnection::Start()
@@ -303,20 +297,24 @@ void RedisConnection::Connect(asio::yield_context& yc)
 	boost::asio::deadline_timer timer (m_Strand.context());
 
 	for (;;) {
+		auto path = m_IcingaDB->GetPath();
+		auto host = m_IcingaDB->GetHost();
+		auto port = m_IcingaDB->GetPort();
+
 		try {
-			if (m_Path.IsEmpty()) {
+			if (path.IsEmpty()) {
 				if (m_TLSContext) {
 					Log(m_Parent ? LogNotice : LogInformation, "IcingaDB")
-						<< "Trying to connect to Redis server (async, TLS) on host '" << m_Host << ":" << m_Port << "'";
+						<< "Trying to connect to Redis server (async, TLS) on host '" << host << ":" << port << "'";
 
-					auto conn (Shared<AsioTlsStream>::Make(m_Strand.context(), *m_TLSContext, m_Host));
+					auto conn (Shared<AsioTlsStream>::Make(m_Strand.context(), *m_TLSContext, host));
 					auto& tlsConn (conn->next_layer());
 					auto connectTimeout (MakeTimeout(conn));
 
-					icinga::Connect(conn->lowest_layer(), m_Host, Convert::ToString(m_Port), yc);
+					icinga::Connect(conn->lowest_layer(), host, Convert::ToString(port), yc);
 					tlsConn.async_handshake(tlsConn.client, yc);
 
-					if (!m_Insecure) {
+					if (!m_IcingaDB->GetInsecureNoverify()) {
 						std::shared_ptr<X509> cert (tlsConn.GetPeerCertificate());
 
 						if (!cert) {
@@ -337,24 +335,24 @@ void RedisConnection::Connect(asio::yield_context& yc)
 					m_TlsConn = std::move(conn);
 				} else {
 					Log(m_Parent ? LogNotice : LogInformation, "IcingaDB")
-						<< "Trying to connect to Redis server (async) on host '" << m_Host << ":" << m_Port << "'";
+						<< "Trying to connect to Redis server (async) on host '" << host << ":" << port << "'";
 
 					auto conn (Shared<TcpConn>::Make(m_Strand.context()));
 					auto connectTimeout (MakeTimeout(conn));
 
-					icinga::Connect(conn->next_layer(), m_Host, Convert::ToString(m_Port), yc);
+					icinga::Connect(conn->next_layer(), host, Convert::ToString(port), yc);
 					Handshake(conn, yc);
 					m_QueuedReads.WaitForClear(yc);
 					m_TcpConn = std::move(conn);
 				}
 			} else {
 				Log(LogInformation, "IcingaDB")
-					<< "Trying to connect to Redis server (async) on unix socket path '" << m_Path << "'";
+					<< "Trying to connect to Redis server (async) on unix socket path '" << path << "'";
 
 				auto conn (Shared<UnixConn>::Make(m_Strand.context()));
 				auto connectTimeout (MakeTimeout(conn));
 
-				conn->next_layer().async_connect(Unix::endpoint(m_Path.CStr()), yc);
+				conn->next_layer().async_connect(Unix::endpoint(path.CStr()), yc);
 				Handshake(conn, yc);
 				m_QueuedReads.WaitForClear(yc);
 				m_UnixConn = std::move(conn);
@@ -373,7 +371,8 @@ void RedisConnection::Connect(asio::yield_context& yc)
 			break;
 		} catch (const std::exception& ex) {
 			Log(LogCritical, "IcingaDB")
-				<< "Cannot connect to " << m_Host << ":" << m_Port << ": " << ex.what();
+				<< "Cannot connect to Redis server ('" << (path.IsEmpty() ? host+":"+Convert::ToString(port) : path)
+				<< "'): " << ex.what();
 		}
 
 		timer.expires_from_now(boost::posix_time::seconds(5));
@@ -634,7 +633,7 @@ void RedisConnection::WriteItem(boost::asio::yield_context& yc, RedisConnection:
  */
 RedisConnection::Reply RedisConnection::ReadOne(boost::asio::yield_context& yc)
 {
-	if (m_Path.IsEmpty()) {
+	if (m_IcingaDB->GetPath().IsEmpty()) {
 		if (m_TLSContext) {
 			return ReadOne(m_TlsConn, yc);
 		} else {
@@ -652,7 +651,7 @@ RedisConnection::Reply RedisConnection::ReadOne(boost::asio::yield_context& yc)
  */
 void RedisConnection::WriteOne(RedisConnection::Query& query, asio::yield_context& yc)
 {
-	if (m_Path.IsEmpty()) {
+	if (m_IcingaDB->GetPath().IsEmpty()) {
 		if (m_TLSContext) {
 			WriteOne(m_TlsConn, query, yc);
 		} else {
