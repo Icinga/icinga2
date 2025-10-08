@@ -185,6 +185,10 @@ bool DerefExpression::GetReference(ScriptFrame& frame, bool init_dict, Value *pa
 
 	Reference::Ptr ref = operand.GetValue();
 
+	if (!ref) {
+		BOOST_THROW_EXCEPTION(ScriptError("Invalid reference specified.", GetDebugInfo()));
+	}
+
 	*parent = ref->GetParent();
 	*index = ref->GetIndex();
 	return true;

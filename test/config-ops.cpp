@@ -241,6 +241,10 @@ BOOST_AUTO_TEST_CASE(advanced)
 	expr = ConfigCompiler::CompileText("<test>", "{{ 3 }}");
 	func = expr->Evaluate(frame).GetValue();
 	BOOST_CHECK(func->Invoke() == 3);
+
+	// Regression test for CVE-2025-61908
+	expr = ConfigCompiler::CompileText("<test>", "&*null");
+	BOOST_CHECK_THROW(expr->Evaluate(frame).GetValue(), ScriptError);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
