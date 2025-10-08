@@ -60,7 +60,7 @@ case "$DISTRO" in
       libboost_{context,coroutine,filesystem,iostreams,program_options,regex,system,test,thread}-devel
     ;;
 
-  rockylinux:*)
+  *rockylinux:*)
     dnf install -y 'dnf-command(config-manager)' epel-release
 
     case "$DISTRO" in
