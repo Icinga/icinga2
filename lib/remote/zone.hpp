@@ -22,7 +22,7 @@ public:
 	void OnAllConfigLoaded() override;
 
 	Zone::Ptr GetParent() const;
-	std::set<Endpoint::Ptr> GetEndpoints() const;
+	std::vector<Endpoint::Ptr> GetEndpoints() const;
 	std::vector<Zone::Ptr> GetAllParentsRaw() const;
 	Array::Ptr GetAllParents() const override;
 

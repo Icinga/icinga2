@@ -931,7 +931,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object, cons
 		for (const Zone::Ptr& zone : ConfigType::GetObjectsByType<Zone>()) {
 			/* Fetch immediate child zone members */
 			if (zone->GetParent() == localZone && zone->CanAccessObject(endpointPtr->GetZone())) {
-				std::set<Endpoint::Ptr> endpoints = zone->GetEndpoints();
+				auto endpoints (zone->GetEndpoints());
 
 				for (const Endpoint::Ptr& childEndpoint : endpoints) {
 					if (!(childEndpoint->GetCapabilities() & (uint_fast64_t)ApiCapabilities::ExecuteArbitraryCommand)) {
