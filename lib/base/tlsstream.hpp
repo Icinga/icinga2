@@ -28,32 +28,31 @@ class SeenStream : public ARS
 {
 public:
 	template<class... Args>
-	SeenStream(Args&&... args) : ARS(std::forward<Args>(args)...)
+	explicit SeenStream(Args&&... args) : ARS(std::forward<Args>(args)...), m_Seen(nullptr)
 	{
-		m_Seen.store(nullptr);
 	}
 
 	template<class... Args>
 	auto async_read_some(Args&&... args) -> decltype(((ARS*)nullptr)->async_read_some(std::forward<Args>(args)...))
 	{
 		{
-			auto seen (m_Seen.load());
+			auto* seen (m_Seen.load());
 
 			if (seen) {
-				*seen = Utility::GetTime();
+				*seen = std::chrono::steady_clock::now();
 			}
 		}
 
 		return ((ARS*)this)->async_read_some(std::forward<Args>(args)...);
 	}
 
-	inline void SetSeen(double* seen)
+	void SetSeen(std::chrono::steady_clock::time_point* seen)
 	{
 		m_Seen.store(seen);
 	}
 
 private:
-	std::atomic<double*> m_Seen;
+	std::atomic<std::chrono::steady_clock::time_point*> m_Seen;
 };
 
 struct UnbufferedAsioTlsStreamParams
