@@ -1,0 +1,53 @@
+name: Backbot
+on:
+  pull_request:
+    types:
+      - closed
+      - labeled
+
+# Disable all permissions for the GITHUB_TOKEN, as we are using a GitHub App token instead.
+permissions: {}
+
+jobs:
+  backbot:
+    runs-on: ubuntu-latest
+    if: ${{ github.repository_owner == 'Icinga' && github.event.pull_request.merged == true && (github.event_name != 'labeled' || startsWith(github.event.label.name, 'backport-to-support/')) }}
+    steps:
+      - name: Generate GitHub Installation Access Token
+        # Use GitHub App to generate an installation access token to allow PRs created by Backbot to trigger workflows.
+        # This is necessary because PRs created using the default GITHUB_TOKEN do not trigger workflows plus
+        # GitHub doesn't allow to alter any file within the .github/workflows directory using the default GITHUB_TOKEN.
+        # This action will create a token with the permissions defined below and is valid only for 1 hour, but if the
+        # job completes before that 1 hour limit, the token will automatically be revoked.
+        uses: actions/create-github-app-token@v2.2.0
+        id: backbot-token
+        with:
+          app-id: ${{ secrets.BACKBOT_APP_ID }}
+          private-key: ${{ secrets.BACKBOT_APP_PRIVATE_KEY }}
+          skip-token-revoke: false # Revoke the token after the job is done (is the default behavior).
+          # GitHub recommends to explicitly list the permissions the token should have instead of inheriting all the
+          # permissions from the GitHub App itself. See https://github.com/actions/create-github-app-token
+          permission-contents: write # Allow to create, delete and update branches.
+          permission-pull-requests: write # Allow to create and update PRs.
+          permission-workflows: write # Allow to backport PRs that modify workflow files.
+          permission-issues: write # Needed to add comments to the PRs created by Backbot and the original PR.
+
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          token: ${{ steps.backbot-token.outputs.token }} # To make authenticated git operations.
+
+      - name: Run Backbot
+        uses: korthout/backport-action@d07416681cab29bf2661702f925f020aaa962997 # v3.4.1
+        with:
+          github_token: ${{ steps.backbot-token.outputs.token }}
+          copy_labels_pattern: '^(?!cla-signed$).*' # copy all labels other than the cla-signed label
+          label_pattern: 'backport-to-(support\/\d+\.\d+)' # regex to match labels like backport-to-support/2.14
+          conflict_resolution: 'draft_commit_conflicts' # create a draft PR if there are conflicts
+          copy_requested_reviewers: true # copy requested reviewers from the original PR
+          merge_commits: skip # skip merge commits found in the original PR history
+          pull_description: |-
+            Backport of #${pull_number} to `${target_branch}`, triggered by a label.
+  
+            ---
+            This is an automated backport PR. Please review it carefully before merging.
