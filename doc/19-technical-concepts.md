@@ -1148,21 +1148,6 @@ hidden in Boost ASIO, Beast, Coroutine and Context libraries.
 
 #### Data Exchange: Coroutines and I/O Engine <a id="technical-concepts-tls-network-io-connection-data-exchange-coroutines"></a>
 
-Light-weight and fast operations such as connection handling or TLS handshakes
-are performed in the default `IoBoundWorkSlot` pool inside the I/O engine.
-
-The I/O engine has another pool available: `CpuBoundWork`.
-
-This is used for processing CPU intensive tasks, such as handling a HTTP request.
-Depending on the available CPU cores, this is limited to `std::thread::hardware_concurrency() * 3u / 2u`.
-
-```
-1 core * 3 / 2 = 1
-2 cores * 3 / 2 = 3
-8 cores * 3 / 2 = 12
-16 cores * 3 / 2 = 24
-```
-
 The I/O engine itself is used with all network I/O in Icinga, not only the cluster
 and the REST API. Features such as Graphite, InfluxDB, etc. also consume its functionality.
 
