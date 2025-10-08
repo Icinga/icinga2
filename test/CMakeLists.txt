@@ -59,6 +59,7 @@ set(base_test_SOURCES
   icingaapplication-fixture.cpp
   utils.cpp
   base-array.cpp
+  base-atomic.cpp
   base-base64.cpp
   base-convert.cpp
   base-dictionary.cpp
