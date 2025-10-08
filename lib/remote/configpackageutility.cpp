@@ -3,6 +3,7 @@
 #include "remote/configpackageutility.hpp"
 #include "remote/apilistener.hpp"
 #include "base/application.hpp"
+#include "base/atomic-file.hpp"
 #include "base/exception.hpp"
 #include "base/utility.hpp"
 #include <boost/algorithm/string.hpp>
@@ -119,14 +120,9 @@ String ConfigPackageUtility::CreateStage(const String& packageName, const Dictio
 void ConfigPackageUtility::WritePackageConfig(const String& packageName)
 {
 	String stageName = GetActiveStage(packageName);
+	AtomicFile::Write(GetPackageDir() + "/" + packageName + "/include.conf", 0644, "include \"*/include.conf\"\n");
 
-	String includePath = GetPackageDir() + "/" + packageName + "/include.conf";
-	std::ofstream fpInclude(includePath.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc);
-	fpInclude << "include \"*/include.conf\"\n";
-	fpInclude.close();
-
-	String activePath = GetPackageDir() + "/" + packageName + "/active.conf";
-	std::ofstream fpActive(activePath.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc);
+	AtomicFile fpActive(GetPackageDir() + "/" + packageName + "/active.conf", 0644);
 	fpActive << "if (!globals.contains(\"ActiveStages\")) {\n"
 		<< "  globals.ActiveStages = {}\n"
 		<< "}\n"
@@ -145,19 +141,18 @@ void ConfigPackageUtility::WritePackageConfig(const String& packageName)
 		<< "if (!ActiveStages.contains(\"" << packageName << "\")) {\n"
 		<< "  ActiveStages[\"" << packageName << "\"] = \"" << stageName << "\"\n"
 		<< "}\n";
-	fpActive.close();
+	fpActive.Commit();
 }
 
 void ConfigPackageUtility::WriteStageConfig(const String& packageName, const String& stageName)
 {
-	String path = GetPackageDir() + "/" + packageName + "/" + stageName + "/include.conf";
-	std::ofstream fp(path.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc);
+	AtomicFile fp(GetPackageDir() + "/" + packageName + "/" + stageName + "/include.conf", 0644);
 	fp << "include \"../active.conf\"\n"
 		<< "if (ActiveStages[\"" << packageName << "\"] == \"" << stageName << "\") {\n"
 		<< "  include_recursive \"conf.d\"\n"
 		<< "  include_zones \"" << packageName << "\", \"zones.d\"\n"
 		<< "}\n";
-	fp.close();
+	fp.Commit();
 }
 
 void ConfigPackageUtility::ActivateStage(const String& packageName, const String& stageName)
@@ -284,12 +279,7 @@ String ConfigPackageUtility::GetActiveStageFromFile(const String& packageName)
 void ConfigPackageUtility::SetActiveStageToFile(const String& packageName, const String& stageName)
 {
 	std::unique_lock<std::mutex> lock(GetStaticActiveStageMutex());
-
-	String activeStagePath = GetPackageDir() + "/" + packageName + "/active-stage";
-
-	std::ofstream fpActiveStage(activeStagePath.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc); //TODO: fstream exceptions
-	fpActiveStage << stageName;
-	fpActiveStage.close();
+	AtomicFile::Write(GetPackageDir() + "/" + packageName + "/active-stage", 0644, stageName);
 }
 
 String ConfigPackageUtility::GetActiveStage(const String& packageName)
