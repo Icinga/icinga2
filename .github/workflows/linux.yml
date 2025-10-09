@@ -34,12 +34,9 @@ jobs:
           - debian:12
           - debian:13
 
-          - fedora:39
-          - fedora:40
           - fedora:41
           - fedora:42
 
-          - opensuse/leap:15.5
           - opensuse/leap:15.6
 
           # We don't actually support Rocky Linux as such!
@@ -48,7 +45,6 @@ jobs:
           - rockylinux:9
           - rockylinux/rockylinux:10
 
-          - registry.suse.com/suse/sle15:15.5
           - registry.suse.com/suse/sle15:15.6
           - registry.suse.com/suse/sle15:15.7
 
