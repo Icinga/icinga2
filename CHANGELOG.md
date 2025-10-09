@@ -219,6 +219,20 @@ Thanks to all contributors:
 * Reduce task function allocation overhead by using a per-thread created lambda in `WorkQueue`. #9575
 * Remove redundant trailing empty lines and add missing newlines in some files. #7799
 
+## 2.14.7 (2025-10-16)
+
+This version includes a fix for sending signals and updates dependencies used
+in Windows builds.
+
+Note that one fix affects the logrotate configuration. If it was modified
+locally, it might not be updated automatically by the package manager and
+applying the changes manually is necessary. For details, please check the
+[upgrading docs](https://icinga.com/docs/icinga-2/latest/doc/16-upgrading-icinga-2/#upgrading-to-2-15-1).
+
+* Don't send signals as root in safe-reload script and logrotate config. #10597
+* Windows: Update to OpenSSL 3.0.18. #10595
+* Windows: upgrade build toolchain to Visual Studio 2022. #10594
+
 ## 2.14.6 (2025-05-27)
 
 This security release fixes a critical issue in the certificate renewal logic in Icinga 2, which
