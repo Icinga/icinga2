@@ -202,7 +202,7 @@ int Type::GetActivationPriority() const
 	return 0;
 }
 
-void Type::RegisterAttributeHandler(int fieldId, const AttributeHandler& callback)
+void Type::RegisterAttributeHandler([[maybe_unused]] int fieldId, const AttributeHandler&)
 {
 	throw std::runtime_error("Invalid field ID.");
 }
