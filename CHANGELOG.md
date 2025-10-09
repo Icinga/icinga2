@@ -7,6 +7,12 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.14.7 (2025-10-XX)
+
+* Don't send signals as root in safe-reload script and logrotate config. #10597
+* Windows: Update to OpenSSL 3.0.18. #10595
+* Windows: upgrade build toolchain to Visual Studio 2022. #10594
+
 ## 2.14.6 (2025-05-27)
 
 This security release fixes a critical issue in the certificate renewal logic in Icinga 2, which
