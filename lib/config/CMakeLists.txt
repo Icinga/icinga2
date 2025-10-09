@@ -22,6 +22,7 @@ set(config_SOURCES
   i2-config.hpp
   activationcontext.cpp activationcontext.hpp
   applyrule.cpp applyrule-targeted.cpp applyrule.hpp
+  commitcontext.cpp commitcontext.hpp
   configcompiler.cpp configcompiler.hpp
   configcompilercontext.cpp configcompilercontext.hpp
   configfragment.hpp
