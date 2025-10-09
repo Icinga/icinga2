@@ -156,6 +156,12 @@ void HttpResponse::StartStreaming(bool checkForDisconnect)
 	chunked(true);
 
 	if (checkForDisconnect) {
+		auto work (m_CpuBoundWork.lock());
+
+		if (work) {
+			work->Done();
+		}
+
 		ASSERT(m_Server);
 		m_Server->StartDetectClientSideShutdown();
 	}
