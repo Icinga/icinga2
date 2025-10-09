@@ -20,8 +20,13 @@ set(perfdata_SOURCES
   perfdatawriter.cpp perfdatawriter.hpp perfdatawriter-ti.hpp
 )
 
+if (ICINGA2_WITH_ELASTICSEARCHDATASTREAM)
+    mkclass_target(elasticsearchdatastreamwriter.ti elasticsearchdatastreamwriter-ti.cpp elasticsearchdatastreamwriter-ti.hpp)
+    list(APPEND perfdata_SOURCES elasticsearchdatastreamwriter.cpp elasticsearchdatastreamwriter.hpp elasticsearchdatastreamwriter-ti.hpp)
+endif()
+
 if(ICINGA2_UNITY_BUILD)
-  mkunity_target(perfdata perfdata perfdata_SOURCES)
+    mkunity_target(perfdata perfdata perfdata_SOURCES)
 endif()
 
 add_library(perfdata OBJECT ${perfdata_SOURCES})
@@ -67,6 +72,17 @@ install_if_not_exists(
   ${PROJECT_SOURCE_DIR}/etc/icinga2/features-available/perfdata.conf
   ${ICINGA2_CONFIGDIR}/features-available
 )
+
+if (ICINGA2_WITH_ELASTICSEARCHDATASTREAM)
+  install_if_not_exists(
+    ${PROJECT_SOURCE_DIR}/usr/elasticsearch/index-template.json
+    ${ICINGA2_PKGDATADIR}/elasticsearch
+  )
+  install_if_not_exists(
+    ${PROJECT_SOURCE_DIR}/etc/icinga2/features-available/elasticsearchdatastream.conf
+    ${ICINGA2_CONFIGDIR}/features-available
+  )
+endif()
 
 install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${ICINGA2_FULL_SPOOLDIR}/perfdata\")")
 install(CODE "file(MAKE_DIRECTORY \"\$ENV{DESTDIR}${ICINGA2_FULL_SPOOLDIR}/tmp\")")
