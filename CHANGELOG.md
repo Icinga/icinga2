@@ -9,26 +9,49 @@ Released closed milestones can be found on [GitHub](https://github.com/Icinga/ic
 
 ## 2.15.1 (2025-10-16)
 
-This version includes bug fixes regarding config deployments and improvements
-to allow for better debugging of problems related to JSON-RPC cluster
-communication.
+This release fixes multiple security issues. Two of them allow authenticated
+API users to learn restricted information or crash Icinga 2. A third issue
+affects the scripts provided with Icinga 2 and allows a limited privilege
+escalation where the Icinga 2 daemon user can trick root into sending signals to
+arbitrary processes.
+
+In addition, this version also includes bug fixes regarding config deployments
+and improvements to allow for better debugging of problems related to JSON-RPC
+cluster communication.
 
 Note that one fix affects the logrotate configuration. If it was modified
 locally, it might not be updated automatically by the package manager and
 applying the changes manually is necessary. For details, please check the
 [upgrading docs](https://icinga.com/docs/icinga-2/latest/doc/16-upgrading-icinga-2/#upgrading-to-2-15-1).
 
-* Don't send signals as root in safe-reload script and logrotate config. #10590
+### Security
+
+* CVE-2025-61907: Prevent API users from accessing variables and objects they
+  don't have access to within filter expressions. This allowed authenticated
+  API users to learn information they aren't allowed to access directly.
+* CVE-2025-61908: Add a missing null pointer check while evaluating
+  expressions. This allowed authenticated API users to crash the Icinga 2
+  daemon by supplying a crafted filter expression.
+* CVE-2025-61909: Don't send signals as root in safe-reload script and
+  logrotate config. This allowed a limited privilege escalation from the Icinga
+  2 service user to root. The scope is limited to sending SIGHUP or SIGUSR1 to
+  an arbitrary process. #10590
+* Windows: Update to OpenSSL 3.0.18. #10591
+
+### Bugfixes
+
 * When a reload triggered from Icinga Director (or the /v1/config API) fails,
   the corresponding state is cleared, allowing to deploy a new config without
   having to restart Icinga 2 manually first. #10584
+
+### Enhancements
+
 * Add JSON-RPC utilization metrics and troubleshooting docs. #10586
 * When sending cluster messages to other zones, prefer endpoints in the order
   as specified in the zone configuration. #10587
 * Track the number of JSON-RPC messages received for each message type per
   endpoint. #10585
 * Add support for building with Boost v1.89 and use it on Windows. #10578
-* Windows: Update to OpenSSL 3.0.18. #10591
 
 ## 2.15.0 (2025-06-18)
 
