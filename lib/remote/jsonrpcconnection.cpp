@@ -87,15 +87,9 @@ void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 		}
 
 		String rpcMethod("UNKNOWN");
-		ch::steady_clock::duration cpuBoundDuration(0);
 		auto start (ch::steady_clock::now());
 
 		try {
-			CpuBoundWork handleMessage (yc);
-
-			// Cache the elapsed time to acquire a CPU semaphore used to detect extremely heavy workloads.
-			cpuBoundDuration = ch::steady_clock::now() - start;
-
 			Dictionary::Ptr message = JsonRpc::DecodeMessage(jsonString);
 			if (String method = message->Get("method"); !method.IsEmpty()) {
 				rpcMethod = std::move(method);
@@ -112,23 +106,14 @@ void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 
 			Log msg(total >= ch::seconds(5) ? LogWarning : LogDebug, "JsonRpcConnection");
 			msg << "Processed JSON-RPC '" << rpcMethod << "' message for identity '" << m_Identity
-				<< "' (took total " << toMilliseconds(total) << "ms";
-
-			if (cpuBoundDuration >= ch::seconds(1)) {
-				msg << ", waited " << toMilliseconds(cpuBoundDuration) << "ms on semaphore";
-			}
-			msg << ").";
+				<< "' (took total " << toMilliseconds(total) << "ms" << ").";
 		} catch (const std::exception& ex) {
 			auto total = ch::steady_clock::now() - start;
 
 			Log msg(m_ShuttingDown ? LogDebug : LogWarning, "JsonRpcConnection");
 			msg << "Error while processing JSON-RPC '" << rpcMethod << "' message for identity '"
-				<< m_Identity << "' (took total " << toMilliseconds(total) << "ms";
-
-			if (cpuBoundDuration >= ch::seconds(1)) {
-				msg << ", waited " << toMilliseconds(cpuBoundDuration) << "ms on semaphore";
-			}
-			msg << "): " << DiagnosticInformation(ex);
+				<< m_Identity << "' (took total " << toMilliseconds(total) << "ms" << "): "
+				<< DiagnosticInformation(ex);
 
 			break;
 		}
