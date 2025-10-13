@@ -8,6 +8,17 @@ Specific version upgrades are described below. Please note that version
 updates are incremental. An upgrade from v2.6 to v2.8 requires to
 follow the instructions for v2.7 too.
 
+## Upgrading to v2.14.7 <a id="upgrading-to-2-14-7"></a>
+
+This version includes a fix to the logrotate configuration in `/etc/logrotate.d/icinga2`. As this file is tracked as a
+configuration file by package managers, it may not be updated automatically if it was modified locally. After upgrading,
+make sure to check if there are any files with an extension like `.dpkg-dist` or `.rpmnew` next to it. If so, you need
+to incorporate the changes into your configuration manually.
+
+To verify that the fix was applied correctly, check the contents of `/etc/logrotate.d/icinga2`: If the file uses the
+command `"$DAEMON" internal signal --sig SIGHUP --pid "$pid"` (instead of `kill -HUP "$pid"`), it was upgraded
+correctly.
+
 ## Upgrading to v2.14 <a id="upgrading-to-2-14"></a>
 
 ### Dependencies and Redundancy Groups <a id="upgrading-to-2-14-dependencies"></a>
