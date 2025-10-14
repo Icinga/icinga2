@@ -36,7 +36,6 @@ option(ICINGA2_WITH_LIVESTATUS "Build the Livestatus module" ${ICINGA2_MASTER})
 option(ICINGA2_WITH_NOTIFICATION "Build the notification module" ON)
 option(ICINGA2_WITH_PERFDATA "Build the perfdata module" ${ICINGA2_MASTER})
 option(ICINGA2_WITH_ICINGADB "Build the IcingaDB module" ${ICINGA2_MASTER})
-option(ICINGA2_WITH_ELASTICSEARCHDATASTREAM "Build the Elasticsearchdatastream module" OFF)
 
 option (USE_SYSTEMD
  "Configure icinga as native systemd service instead of a SysV initscript" OFF)
