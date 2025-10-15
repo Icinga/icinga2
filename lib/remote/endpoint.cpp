@@ -14,6 +14,7 @@
 using namespace icinga;
 
 REGISTER_TYPE(Endpoint);
+static String FormatIcingaVersion(unsigned long version);
 
 boost::signals2::signal<void(const Endpoint::Ptr&, const JsonRpcConnection::Ptr&)> Endpoint::OnConnected;
 boost::signals2::signal<void(const Endpoint::Ptr&, const JsonRpcConnection::Ptr&)> Endpoint::OnDisconnected;
@@ -171,4 +172,16 @@ Dictionary::Ptr Endpoint::GetMessagesReceivedPerType() const
 double Endpoint::GetSecondsProcessingMessages() const
 {
 	return m_InputProcessingTime;
+}
+
+String Endpoint::GetIcingaVersionString() const {
+    return FormatIcingaVersion(GetIcingaVersion());
+}
+
+static String FormatIcingaVersion(unsigned long version) {
+	auto bugfix = version % 100;
+	version /= 100;
+	auto minor = version % 100;
+	auto major = version / 100;
+	return String() + std::to_string(major) + "." + std::to_string(minor) + "." + std::to_string(bugfix);
 }

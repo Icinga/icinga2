@@ -2,6 +2,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/asio/ssl/context.hpp>
+#include <boost/asio/ssl/stream.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/http/field.hpp>
 #include <boost/beast/http/message.hpp>
@@ -43,6 +44,11 @@ using namespace icinga;
 namespace beast = boost::beast;
 namespace http = beast::http;
 
+static void ExceptionHandler(const boost::exception_ptr& exp);
+static Array::Ptr ExtractTemplateTags(const MacroProcessor::ResolverList& resolvers, const Array::Ptr& tags_tmpl,
+	const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
+static Dictionary::Ptr ExtractTemplateLabels(const MacroProcessor::ResolverList& resolvers, const Dictionary::Ptr& labels_tmpl,
+	const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 
 REGISTER_TYPE(ElasticsearchDatastreamWriter);
 
@@ -87,7 +93,7 @@ void ElasticsearchDatastreamWriter::Resume()
 	Log(LogInformation, "ElasticsearchDatastreamWriter")
 		<< "'" << GetName() << "' resumed.";
 	m_Paused = false;
-	m_WorkQueue.SetExceptionCallback([this](boost::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
+	m_WorkQueue.SetExceptionCallback([](boost::exception_ptr exp) { ExceptionHandler(exp); });
 
 	if (GetManageIndexTemplate()) {
 		// Ensure index template exists/is updated as the first item on the work queue.
@@ -167,9 +173,9 @@ void ElasticsearchDatastreamWriter::ManageIndexTemplate() {
 			Dictionary::Ptr jsonResponse = TrySend(component_template_url, "{\"template\":{}}");
 			Log(LogInformation, "ElasticsearchDatastreamWriter")
 				<< "Successfully installed component template 'icinga2@custom'.";
-		} catch (const StatusCodeException es) {
+		} catch (const StatusCodeException& es) {
 		  int status_code = es.GetStatusCode();
-		  if (status_code == 400) {
+		  if (status_code == static_cast<int>(http::status::bad_request)) {
 			Log(LogInformation, "ElasticsearchDatastreamWriter")
 				<< "Component template 'metrics-icinga2@custom' already exists, skipping creation.";
 			// Continue to install/update index template
@@ -207,7 +213,7 @@ void ElasticsearchDatastreamWriter::ManageIndexTemplate() {
 	}
 }
 
-Dictionary::Ptr ElasticsearchDatastreamWriter::ExtractPerfData(const Checkable::Ptr checkable, const Array::Ptr& perfdata) {
+Dictionary::Ptr ElasticsearchDatastreamWriter::ExtractPerfData(const Checkable::Ptr& checkable, const Array::Ptr& perfdata) {
 	Dictionary::Ptr pd_fields = new Dictionary();
 	if (!perfdata)
 		return pd_fields;
@@ -249,8 +255,8 @@ Dictionary::Ptr ElasticsearchDatastreamWriter::ExtractPerfData(const Checkable::
 }
 
 // user-defined tags, as specified in the ECS specification: https://www.elastic.co/docs/reference/ecs/ecs-base#field-tags
-Array::Ptr ElasticsearchDatastreamWriter::ExtractTemplateTags(const MacroProcessor::ResolverList resolvers,
-	const Array::Ptr tag_tmpl, const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
+static Array::Ptr ExtractTemplateTags(const MacroProcessor::ResolverList& resolvers,
+	const Array::Ptr& tag_tmpl, const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
 {
 	if (tag_tmpl == nullptr) {
 		return nullptr;
@@ -275,8 +281,8 @@ Array::Ptr ElasticsearchDatastreamWriter::ExtractTemplateTags(const MacroProcess
 }
 
 // user-defined labels, as specified in the ECS specification: https://www.elastic.co/docs/reference/ecs/ecs-base#field-labels
-Dictionary::Ptr ElasticsearchDatastreamWriter::ExtractTemplateLabels(const MacroProcessor::ResolverList resolvers,
-	const Dictionary::Ptr labels_tmpl, const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
+static Dictionary::Ptr ExtractTemplateLabels(const MacroProcessor::ResolverList& resolvers,
+	const Dictionary::Ptr& labels_tmpl, const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
 {
 	if (labels_tmpl == nullptr) {
 		return nullptr;
@@ -301,7 +307,7 @@ Dictionary::Ptr ElasticsearchDatastreamWriter::ExtractTemplateLabels(const Macro
 	return labels;
 }
 
-String ElasticsearchDatastreamWriter::ExtractDatastreamNamespace(MacroProcessor::ResolverList resolvers,
+String ElasticsearchDatastreamWriter::ExtractDatastreamNamespace(const MacroProcessor::ResolverList& resolvers,
 	const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
 {
 	String namespace_tmpl = GetDatastreamNamespace();
@@ -407,10 +413,10 @@ void ElasticsearchDatastreamWriter::CheckResultHandler(const Checkable::Ptr& che
 	Endpoint::Ptr endpoint = checkable->GetCommandEndpoint();
 	if (endpoint) {
 		ecs_agent->Set("id", endpoint->GetName());
-		ecs_agent->Set("version", FormatIcingaVersion(endpoint->GetIcingaVersion()));
+		ecs_agent->Set("version", endpoint->GetIcingaVersionString());
 	} else {
 		ecs_agent->Set("id", IcingaApplication::GetInstance()->GetName());
-		ecs_agent->Set("version", FormatIcingaVersion((unsigned long) IcingaApplication::GetInstance()->GetVersion()));
+		ecs_agent->Set("version", IcingaApplication::GetAppSpecVersion());
 	}
 
 	Dictionary::Ptr ecs_event = new Dictionary({
@@ -550,7 +556,7 @@ Value ElasticsearchDatastreamWriter::TrySend(Url::Ptr url, String body) {
 	m_FlushTimer->Reschedule(-1);
 
 	http::request<http::string_body> request (http::verb::post, std::string(url->Format(true)), 10);
-	request.set(http::field::user_agent, "Icinga/" + Application::GetAppVersion());
+	request.set(http::field::user_agent, "Icinga/" + Application::GetAppSpecVersion());
 	request.set(http::field::host, url->GetHost() + ":" + url->GetPort());
 
 	/* Specify required headers by Elasticsearch. */
@@ -676,7 +682,7 @@ OptionalTlsStream ElasticsearchDatastreamWriter::Connect()
 		auto& tlsStream (stream.first->next_layer());
 
 		try {
-			tlsStream.handshake(tlsStream.client);
+			tlsStream.handshake(boost::asio::ssl::stream_base::client);
 		} catch (const std::exception&) {
 			Log(LogWarning, "ElasticsearchDatastreamWriter")
 				<< "TLS handshake with host '" << GetHost() << "' on port " << GetPort() << " failed.";
@@ -705,12 +711,12 @@ void ElasticsearchDatastreamWriter::AssertOnWorkQueue()
 	ASSERT(m_WorkQueue.IsWorkerThread());
 }
 
-void ElasticsearchDatastreamWriter::ExceptionHandler(boost::exception_ptr exp)
+static void ExceptionHandler(const boost::exception_ptr& exp)
 {
 	Log(LogCritical, "ElasticsearchDatastreamWriter", "Exception during Elastic operation: Verify that your backend is operational!");
 
 	Log(LogDebug, "ElasticsearchDatastreamWriter")
-		<< "Exception during Elasticsearch operation: " << DiagnosticInformation(std::move(exp));
+		<< "Exception during Elasticsearch operation: " << DiagnosticInformation(exp);
 }
 
 String ElasticsearchDatastreamWriter::FormatTimestamp(double ts)
@@ -731,16 +737,7 @@ String ElasticsearchDatastreamWriter::FormatTimestamp(double ts)
 	return Utility::FormatDateTime("%Y-%m-%dT%H:%M:%S", ts) + "." + Convert::ToString(milliSeconds) + Utility::FormatDateTime("%z", ts);
 }
 
-String ElasticsearchDatastreamWriter::FormatIcingaVersion(unsigned long version) {
-	auto bugfix = version % 100;
-	version /= 100;
-	auto minor = version % 100;
-	auto major = version / 100;
-	return String() + std::to_string(major) + "." + std::to_string(minor) + "." + std::to_string(bugfix);
-}
-
-
-void ElasticsearchDatastreamWriter::ValidateTagsTemplate(Array::Ptr tags) {
+void ElasticsearchDatastreamWriter::ValidateTagsTemplate(const Array::Ptr& tags) {
 	ObjectLock olock(tags);
 	for (const Value& tag : tags) {
 		if (!MacroProcessor::ValidateMacroString(tag)) {
@@ -752,7 +749,7 @@ void ElasticsearchDatastreamWriter::ValidateTagsTemplate(Array::Ptr tags) {
 void ElasticsearchDatastreamWriter::ValidateHostTagsTemplate(const Lazy<Array::Ptr>& lvalue, const ValidationUtils& utils)
 {
 	ObjectImpl<ElasticsearchDatastreamWriter>::ValidateHostTagsTemplate(lvalue, utils);
-	Array::Ptr tags = lvalue();
+	auto& tags = lvalue();
 	if (tags) {
 		ValidateTagsTemplate(tags);
 	}
@@ -761,13 +758,13 @@ void ElasticsearchDatastreamWriter::ValidateHostTagsTemplate(const Lazy<Array::P
 void ElasticsearchDatastreamWriter::ValidateServiceTagsTemplate(const Lazy<Array::Ptr>& lvalue, const ValidationUtils& utils)
 {
 	ObjectImpl<ElasticsearchDatastreamWriter>::ValidateServiceTagsTemplate(lvalue, utils);
-	Array::Ptr tags = lvalue();
+	auto& tags = lvalue();
 	if (tags) {
 		ValidateTagsTemplate(tags);
 	}
 }
 
-void ElasticsearchDatastreamWriter::ValidateLabelsTemplate(Dictionary::Ptr labels) {
+void ElasticsearchDatastreamWriter::ValidateLabelsTemplate(const Dictionary::Ptr& labels) {
 	ObjectLock olock(labels);
 	for (const Dictionary::Pair& kv : labels) {
 		if (!MacroProcessor::ValidateMacroString(kv.second)) {
@@ -779,7 +776,7 @@ void ElasticsearchDatastreamWriter::ValidateLabelsTemplate(Dictionary::Ptr label
 void ElasticsearchDatastreamWriter::ValidateHostLabelsTemplate(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)
 {
 	ObjectImpl<ElasticsearchDatastreamWriter>::ValidateHostLabelsTemplate(lvalue, utils);
-	Dictionary::Ptr labels = lvalue();
+	auto& labels = lvalue();
 	if (labels) {
 		ValidateLabelsTemplate(labels);
 	}
@@ -788,7 +785,7 @@ void ElasticsearchDatastreamWriter::ValidateHostLabelsTemplate(const Lazy<Dictio
 void ElasticsearchDatastreamWriter::ValidateServiceLabelsTemplate(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)
 {
 	ObjectImpl<ElasticsearchDatastreamWriter>::ValidateServiceLabelsTemplate(lvalue, utils);
-	Dictionary::Ptr labels = lvalue();
+	auto& labels = lvalue();
 	if (labels) {
 		ValidateLabelsTemplate(labels);
 	}
@@ -816,7 +813,6 @@ void ElasticsearchDatastreamWriter::ValidateFilter(const Lazy<Value> &lvalue, co
 	m_CompiledFilter = std::move(fexpr);
 }
 
-EcsDocument::EcsDocument(String index, Dictionary::Ptr document) {
-	SetIndex(index, true);
-	SetDocument(document, true);
+EcsDocument::EcsDocument(String index, Dictionary::Ptr document)
+	: m_Index(std::move(index)), m_Document(std::move(document)) {
 }
