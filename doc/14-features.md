@@ -440,13 +440,21 @@ where you either have the Elasticsearch HTTP API, or a TLS secured HTTP proxy,
 or Logstash for additional filtering.
 
 
-#### Elasticsearch Writer <a id="elasticsearch-writer"></a>
-
-This feature sends check results with performance data to to an [Elasticsearch](https://www.elastic.co/products/elasticsearch) instance or cluster.
+#### Elasticsearch Datastream Writer <a id="elasticsearch-datastream-writer"></a>
 
 > **Note**
 >
-> Elasticsearch 7.9, or later.
+> This is a newer alternative to the Elasticsearch Writer above. The Elasticsearch Datastream Writer uses
+> Elasticsearch's datastream feature and follows the Elastic Common Schema (ECS), providing better performance
+> and data organization. Use this writer for new installations. The original Elasticsearch Writer is still
+> available for backward compatibility.
+
+This feature sends check results with performance data to an [Elasticsearch](https://www.elastic.co/products/elasticsearch) instance or cluster.
+
+> **Note**
+>
+> This feature requires Elasticsearch to support timeseries datastreams and have the ecs component template installed.
+> This feature was tested successfully with Elasticsearch 8.12 and 9.0.8.
 
 Enable the feature and restart Icinga 2.
 
@@ -455,7 +463,7 @@ icinga2 feature enable elasticsearchdatastream
 ```
 
 The default configuration expects an Elasticsearch instance running on `localhost` on port `9200`
- and writes to an index called `icinga2`.
+ and writes to datastreams with the pattern `metrics-icinga2.<check>-<namespace>`.
 
 More configuration details can be found [here](09-object-types.md#objecttype-elasticsearchdatastreamwriter).
 
@@ -469,26 +477,6 @@ and document with the same performance data grouped together. `<datastream_names
 configuration parameter to further separate documents, e.g. by environment like `production` or `development`.
 The `datastream_namespace` can also be used to separate documents e.g. by hostgroups or zones, by using the
 `filter` function to filter the check results and use several writers with different namespaces.
-
-Metric values are stored like this:
-
-```
-check_result.perfdata.<perfdata-label>.value
-```
-
-The following characters are escaped in perfdata labels:
-
-  Character   | Escaped character
-  ------------|--------------------------
-  whitespace  | _
-  \           | _
-  /           | _
-  ::          | .
-
-Note that perfdata labels may contain dots (`.`) allowing to
-add more subsequent levels inside the tree.
-`::` adds support for [multi performance labels](https://github.com/flackem/check_multi/blob/next/doc/configuration/performance.md)
-and is therefore replaced by `.`.
 
 Icinga 2 automatically adds the following threshold metrics
 if existing:
@@ -545,10 +533,10 @@ object ElasticsearchDatastreamWriter "elasticsearchdatastream" {
 }
 ```
 
-#### Elasticsearch in Cluster HA Zones <a id="elasticsearch-writer-cluster-ha"></a>
+#### Elasticsearch Datastream Writer in Cluster HA Zones <a id="elasticsearch-datastream-writer-cluster-ha"></a>
 
-The Elasticsearch feature supports [high availability](06-distributed-monitoring.md#distributed-monitoring-high-availability-features)
-in cluster zones since 2.11.
+The Elasticsearch Datastream Writer feature supports [high availability](06-distributed-monitoring.md#distributed-monitoring-high-availability-features)
+in cluster zones.
 
 By default, all endpoints in a zone will activate the feature and start
 writing events to the Elasticsearch HTTP API. In HA enabled scenarios,

@@ -79,9 +79,4 @@ validator ElasticsearchDatastreamWriter {
 	Value filter;
 };
 
-class EcsDocument {
-	String index;
-	Dictionary::Ptr document;
-};
-
 }

@@ -11,7 +11,10 @@
     "settings": {
       "index": {
         "mode": "time_series",
-        "routing_path": "check.checkable"
+        "routing_path": "check.checkable",
+        "mapping": {
+          "total_fields.limit": 2000
+        }
       }
     },
     "mappings": {
