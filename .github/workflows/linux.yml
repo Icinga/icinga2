@@ -65,6 +65,9 @@ jobs:
       - name: Checkout HEAD
         uses: actions/checkout@v5
 
+      - name: Turn on Problem Matcher
+        run: echo "::add-matcher::.github/problem-matchers/gcc.json"
+
       - name: Restore/backup ccache
         uses: actions/cache@v4
         with:

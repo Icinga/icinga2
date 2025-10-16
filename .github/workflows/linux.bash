@@ -5,6 +5,11 @@ export PATH="/usr/lib/ccache/bin:/usr/lib/ccache:/usr/lib64/ccache:$PATH"
 export CCACHE_DIR=/icinga2/ccache
 export CTEST_OUTPUT_ON_FAILURE=1
 CMAKE_OPTS=()
+# -Wstringop-overflow is notorious for false positives and has been a problem for years.
+# See: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=88443
+# -Wtemplate-id-cdtor leaks from using the generated headers. We should reenable this once
+# we're considering moving to C++20 and/or the -ti.hpp files are generated differently.
+WARN_FLAGS="-Wall -Wextra -Wno-template-id-cdtor -Wno-stringop-overflow"
 
 case "$DISTRO" in
   alpine:*)
@@ -28,7 +33,7 @@ case "$DISTRO" in
     (
       cd boost_1_69_0
       ./bootstrap.sh --with-libraries=context,coroutine,date_time,filesystem,iostreams,program_options,regex,system,test,thread
-      ./b2
+      ./b2 define=BOOST_COROUTINES_NO_DEPRECATION_WARNING
     )
 
     ln -vs /usr/bin/cmake3 /usr/local/bin/cmake
@@ -79,14 +84,21 @@ esac
 
 case "$DISTRO" in
   alpine:*)
-    CMAKE_OPTS+=(-DUSE_SYSTEMD=OFF -DICINGA2_WITH_MYSQL=OFF -DICINGA2_WITH_PGSQL=OFF)
+    CMAKE_OPTS+=(
+      -DUSE_SYSTEMD=OFF
+      -DICINGA2_WITH_MYSQL=OFF
+      -DICINGA2_WITH_PGSQL=OFF
+      -DCMAKE_{C,CXX}_FLAGS="${WARN_FLAGS}"
+    )
     ;;
   debian:*|ubuntu:*)
     CMAKE_OPTS+=(-DICINGA2_LTO_BUILD=ON)
     source <(dpkg-buildflags --export=sh)
+    export CFLAGS="${CFLAGS} ${WARN_FLAGS}"
+    export CXXFLAGS="${CXXFLAGS} ${WARN_FLAGS}"
     ;;
   *)
-    CMAKE_OPTS+=(-DCMAKE_{C,CXX}_FLAGS="$(rpm -E '%{optflags} %{?march_flag}')")
+    CMAKE_OPTS+=(-DCMAKE_{C,CXX}_FLAGS="$(rpm -E '%{optflags} %{?march_flag}') ${WARN_FLAGS}")
     export LDFLAGS="$(rpm -E '%{?build_ldflags}')"
     ;;
 esac
