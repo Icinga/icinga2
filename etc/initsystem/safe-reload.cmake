@@ -25,7 +25,19 @@ if type selinuxenabled >/dev/null 2>&1; then
 	fi
 fi
 
-if ! "$DAEMON" daemon --validate --color > "$OUTPUTFILE"; then
+: "${FIRST_ARG:="@ICINGA2_SYSCONFIGFILE@"}"
+
+ICINGA2_ARGS=""
+
+for arg in "$@"; do
+	if [ "$arg" = "$FIRST_ARG" ]; then
+		continue;
+	fi
+
+	ICINGA2_ARGS=$(printf '%s%s' "$ICINGA2_ARGS" "$arg")
+done
+
+if ! "$DAEMON" daemon --validate --color "$ICINGA2_ARGS" > "$OUTPUTFILE"; then
 	echo "Failed"
 
 	cat "$OUTPUTFILE"
