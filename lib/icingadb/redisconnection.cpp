@@ -73,10 +73,6 @@ void RedisConnection::Start()
 	}
 }
 
-bool RedisConnection::IsConnected() {
-	return m_Connected.load();
-}
-
 /**
  * Append a Redis query to a log message
  *
