@@ -32,7 +32,7 @@ REGISTER_TYPE(IcingaDB);
 IcingaDB::IcingaDB()
 	: m_Rcon(nullptr)
 {
-	m_RconLocked.store(nullptr);
+	m_HistoryConLocked.store(nullptr);
 
 	m_WorkQueue.SetName("IcingaDB");
 
@@ -81,8 +81,10 @@ void IcingaDB::Start(bool runtimeCreated)
 
 	m_WorkQueue.SetExceptionCallback([this](boost::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
 
-	m_Rcon = new RedisConnection(ConstPtr(this));
-	m_RconLocked.store(m_Rcon);
+	m_HistoryCon = new RedisConnection(ConstPtr(this));
+	m_HistoryConLocked.store(m_HistoryCon);
+
+	m_Rcon = new RedisConnection(ConstPtr(this), m_HistoryCon);
 
 	for (const Type::Ptr& type : GetTypes()) {
 		auto ctype (dynamic_cast<ConfigType*>(type.get()));
@@ -113,7 +115,10 @@ void IcingaDB::Start(bool runtimeCreated)
 			kv.second->Start();
 		}
 	});
-	m_Rcon->Start();
+	m_HistoryCon->SetConnectedCallback([this](boost::asio::yield_context&) {
+		m_Rcon->Start();
+	});
+	m_HistoryCon->Start();
 
 	m_StatsTimer = Timer::Create();
 	m_StatsTimer->SetInterval(1);
@@ -163,7 +168,7 @@ void IcingaDB::PublishStatsTimerHandler(void)
 
 void IcingaDB::PublishStats()
 {
-	if (!m_Rcon || !m_Rcon->IsConnected())
+	if (!m_HistoryCon || !m_HistoryCon->IsConnected())
 		return;
 
 	Dictionary::Ptr status = GetStats();
@@ -181,7 +186,7 @@ void IcingaDB::PublishStats()
 		}
 	}
 
-	m_Rcon->FireAndForgetQuery(std::move(query), Prio::Heartbeat);
+	m_HistoryCon->FireAndForgetQuery(std::move(query), Prio::Heartbeat);
 }
 
 void IcingaDB::Stop(bool runtimeRemoved)
