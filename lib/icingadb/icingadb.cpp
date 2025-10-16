@@ -30,7 +30,7 @@ std::mutex IcingaDB::m_EnvironmentIdInitMutex;
 REGISTER_TYPE(IcingaDB);
 
 IcingaDB::IcingaDB()
-	: m_Rcon(nullptr)
+	: m_RconWorker(nullptr)
 {
 	m_RconLocked.store(nullptr);
 
@@ -86,6 +86,8 @@ void IcingaDB::Start(bool runtimeCreated)
 	m_Rcon = new RedisConnection(connInfo);
 	m_RconLocked.store(m_Rcon);
 
+	m_RconWorker = new RedisConnection(connInfo, m_Rcon);
+
 	for (const Type::Ptr& type : GetTypes()) {
 		auto ctype (dynamic_cast<ConfigType*>(type.get()));
 		if (!ctype)
@@ -107,10 +109,10 @@ void IcingaDB::Start(bool runtimeCreated)
 	}
 
 	m_PendingRcons = m_Rcons.size();
-
-	m_Rcon->SetConnectedCallback([this](boost::asio::yield_context& yc) {
+	m_Rcon->SetConnectedCallback([this](boost::asio::yield_context&) {
 		m_Rcon->SetConnectedCallback(nullptr);
 
+		m_RconWorker->Start();
 		for (auto& kv : m_Rcons) {
 			kv.second->Start();
 		}
@@ -124,8 +126,8 @@ void IcingaDB::Start(bool runtimeCreated)
 
 	m_WorkQueue.SetName("IcingaDB");
 
-	m_Rcon->SuppressQueryKind(Prio::CheckResult);
-	m_Rcon->SuppressQueryKind(Prio::RuntimeStateSync);
+	m_RconWorker->SuppressQueryKind(Prio::CheckResult);
+	m_RconWorker->SuppressQueryKind(Prio::RuntimeStateSync);
 
 	Ptr keepAlive (this);
 
