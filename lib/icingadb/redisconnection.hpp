@@ -85,7 +85,7 @@ namespace icinga
 				: Config(config), State(state), History(history) { }
 		};
 
-		explicit RedisConnection(const ObjectImpl<IcingaDB>::ConstPtr& icingadb, const Ptr& parent = nullptr);
+		explicit RedisConnection(const ObjectImpl<IcingaDB>::ConstPtr& icingadb, const Ptr& parent = nullptr, bool trackOwnPendingQueries = true);
 		void UpdateTLSContext();
 
 		void Start();
@@ -114,7 +114,7 @@ namespace icinga
 
 		int GetQueryCount(RingBuffer::SizeType span);
 
-		inline int GetPendingQueryCount()
+		inline int GetPendingQueryCount() const
 		{
 			return m_PendingQueries;
 		}
@@ -194,7 +194,7 @@ namespace icinga
 
 		static boost::regex m_ErrAuth;
 
-		RedisConnection(boost::asio::io_context& io, const ObjectImpl<IcingaDB>::ConstPtr& icingadb, const Ptr& parent);
+		RedisConnection(boost::asio::io_context& io, const ObjectImpl<IcingaDB>::ConstPtr& icingadb, const Ptr& parent, bool trackOwnPendingQueries);
 
 		void Connect(boost::asio::yield_context& yc);
 		void ReadLoop(boost::asio::yield_context& yc);
@@ -254,7 +254,9 @@ namespace icinga
 		RingBuffer m_WrittenConfig{15 * 60};
 		RingBuffer m_WrittenState{15 * 60};
 		RingBuffer m_WrittenHistory{15 * 60};
-		int m_PendingQueries{0};
+		// Number of pending Redis queries, always 0 if m_Parent is set unless m_TrackOwnPendingQueries is true.
+		std::atomic_int m_PendingQueries{0};
+		bool m_TrackOwnPendingQueries; // Whether to track pending queries even if m_Parent is set.
 		boost::asio::deadline_timer m_LogStatsTimer;
 		Ptr m_Parent;
 	};
