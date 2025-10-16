@@ -118,8 +118,10 @@ ExpressionResult VariableExpression::DoEvaluate(ScriptFrame& frame, DebugHint *d
 		return value;
 	else if (VMOps::FindVarImport(frame, m_Imports, m_Variable, &value, m_DebugInfo))
 		return value;
-	else
-		return ScriptGlobal::Get(m_Variable);
+	else if (frame.GetGlobals()->Get(m_Variable, &value))
+		return value;
+
+	BOOST_THROW_EXCEPTION(ScriptError{"Tried to access undefined script variable '" + m_Variable + "'"});
 }
 
 bool VariableExpression::GetReference(ScriptFrame& frame, bool init_dict, Value *parent, String *index, DebugHint **dhint) const
@@ -138,8 +140,8 @@ bool VariableExpression::GetReference(ScriptFrame& frame, bool init_dict, Value 
 			*dhint = new DebugHint((*dhint)->GetChild(m_Variable));
 	} else if (VMOps::FindVarImportRef(frame, m_Imports, m_Variable, parent, m_DebugInfo)) {
 		return true;
-	} else if (ScriptGlobal::Exists(m_Variable)) {
-		*parent = ScriptGlobal::GetGlobals();
+	} else if (frame.GetGlobals()->Contains(m_Variable)) {
+		*parent = frame.GetGlobals();
 
 		if (dhint)
 			*dhint = nullptr;
@@ -546,7 +548,7 @@ ExpressionResult GetScopeExpression::DoEvaluate(ScriptFrame& frame, DebugHint *d
 	else if (m_ScopeSpec == ScopeThis)
 		return frame.Self;
 	else if (m_ScopeSpec == ScopeGlobal)
-		return ScriptGlobal::GetGlobals();
+		return frame.GetGlobals();
 	else
 		VERIFY(!"Invalid scope.");
 }
