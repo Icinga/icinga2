@@ -9,15 +9,27 @@ Released closed milestones can be found on [GitHub](https://github.com/Icinga/ic
 
 ## 2.14.7 (2025-10-16)
 
-This version includes a fix for sending signals and updates dependencies used
-in Windows builds.
+This release fixes multiple security issues. Two of them allow authenticated
+API users to learn restricted information or crash Icinga 2. A third issue
+affects the scripts provided with Icinga 2 and allows a limited privilege
+escalation where the Icinga 2 daemon user can trick root into sending signals to
+arbitrary processes.
 
 Note that one fix affects the logrotate configuration. If it was modified
 locally, it might not be updated automatically by the package manager and
 applying the changes manually is necessary. For details, please check the
 [upgrading docs](https://icinga.com/docs/icinga-2/latest/doc/16-upgrading-icinga-2/#upgrading-to-2-15-1).
 
-* Don't send signals as root in safe-reload script and logrotate config. #10597
+* CVE-2025-61907: Prevent API users from accessing variables and objects they
+  don't have access to within filter expressions. This allowed authenticated
+  API users to learn information they aren't allowed to access directly.
+* CVE-2025-61908: Add a missing null pointer check while evaluating
+  expressions. This allowed authenticated API users to crash the Icinga 2
+  daemon by supplying a crafted filter expression.
+* CVE-2025-61909: Don't send signals as root in safe-reload script and
+  logrotate config. This allowed a limited privilege escalation from the Icinga
+  2 service user to root. The scope is limited to sending SIGHUP or SIGUSR1 to
+  an arbitrary process. #10597
 * Windows: Update to OpenSSL 3.0.18. #10595
 * Windows: upgrade build toolchain to Visual Studio 2022. #10594
 
