@@ -25,14 +25,15 @@ namespace asio = boost::asio;
 
 boost::regex RedisConnection::m_ErrAuth ("\\AERR AUTH ");
 
-RedisConnection::RedisConnection(const ObjectImpl<IcingaDB>::ConstPtr& icingadb, const Ptr& parent)
-	: RedisConnection{IoEngine::Get().GetIoContext(), icingadb, parent}
+RedisConnection::RedisConnection(const ObjectImpl<IcingaDB>::ConstPtr& icingadb, const Ptr& parent, bool trackOwnPendingQueries)
+	: RedisConnection{IoEngine::Get().GetIoContext(), icingadb, parent, trackOwnPendingQueries}
 {
 }
 
-RedisConnection::RedisConnection(boost::asio::io_context& io, const ObjectImpl<IcingaDB>::ConstPtr& icingadb, const Ptr& parent)
+RedisConnection::RedisConnection(asio::io_context& io, const ObjectImpl<IcingaDB>::ConstPtr& icingadb, const Ptr& parent, bool trackOwnPendingQueries)
 	: m_IcingaDB{icingadb}, m_Strand(io), m_Connecting(false), m_Connected(false), m_Started(false),
-	m_QueuedWrites(io), m_QueuedReads(io), m_LogStatsTimer(io), m_Parent(parent)
+	m_QueuedWrites(io), m_QueuedReads(io), m_TrackOwnPendingQueries{trackOwnPendingQueries}, m_LogStatsTimer(io),
+	m_Parent(parent)
 {
 	if (icingadb->GetEnableTls() && icingadb->GetPath().IsEmpty()) {
 		UpdateTLSContext();
@@ -686,8 +687,12 @@ void RedisConnection::IncreasePendingQueries(int count)
 		asio::post(parent->m_Strand, [parent, count]() {
 			parent->IncreasePendingQueries(count);
 		});
-	} else {
-		m_PendingQueries += count;
+	}
+
+	// Only track the pending queries of the root connection or if explicitly
+	// requested to do so for child connections as well.
+	if (!m_Parent || m_TrackOwnPendingQueries) {
+		m_PendingQueries.fetch_add(count);
 		m_InputQueries.InsertValue(Utility::GetTime(), count);
 	}
 }
@@ -700,8 +705,11 @@ void RedisConnection::DecreasePendingQueries(int count)
 		asio::post(parent->m_Strand, [parent, count]() {
 			parent->DecreasePendingQueries(count);
 		});
-	} else {
-		m_PendingQueries -= count;
+	}
+
+	// Same as in IncreasePendingQueries().
+	if (!m_Parent || m_TrackOwnPendingQueries) {
+		m_PendingQueries.fetch_sub(count);
 		m_OutputQueries.InsertValue(Utility::GetTime(), count);
 	}
 }
