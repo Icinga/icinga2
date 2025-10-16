@@ -180,7 +180,6 @@ void IcingaDB::ConfigStaticInitialize()
 
 void IcingaDB::UpdateAllConfigObjects()
 {
-	m_Rcon->Sync();
 	m_Rcon->FireAndForgetQuery({"XADD", "icinga:schema", "MAXLEN", "1", "*", "version", "6"}, Prio::Heartbeat);
 
 	Log(LogInformation, "IcingaDB") << "Starting initial config/status dump";
@@ -2670,9 +2669,9 @@ void IcingaDB::ForwardHistoryEntries()
 		for (;;) {
 			logPeriodically();
 
-			if (m_Rcon && m_Rcon->IsConnected()) {
+			if (m_HistoryCon && m_HistoryCon->IsConnected()) {
 				try {
-					m_Rcon->GetResultsOfQueries(haystack, Prio::History, {0, 0, haystack.size()});
+					m_HistoryCon->GetResultsOfQueries(haystack, Prio::History, {0, 0, haystack.size()});
 					break;
 				} catch (const std::exception& ex) {
 					logFailure(ex.what());
