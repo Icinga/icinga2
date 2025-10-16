@@ -46,7 +46,7 @@ public:
 
 	String GetEnvironmentId() const override;
 
-	inline RedisConnection::Ptr GetConnection()
+	inline RedisConnection::Ptr GetConnection() const
 	{
 		return m_RconLocked.load();
 	}
@@ -245,11 +245,29 @@ private:
 	bool m_ConfigDumpInProgress;
 	bool m_ConfigDumpDone;
 
+	/**
+	 * The primary Redis connection used to send history and heartbeat queries.
+	 *
+	 * This connection is used exclusively for sending history and heartbeat queries to Redis. It ensures that
+	 * history and heartbeat operations do not interfere with other Redis operations. Also, it is the leader for
+	 * all other Redis connections including @c m_RconWorker, and is the only source of truth for all IcingaDB Redis
+	 * related connection statistics.
+	 *
+	 * Note: This will still be shared with the icingadb check command, as that command also sends
+	 * only XREAD queries which are similar in nature to history/heartbeat queries.
+	 */
 	RedisConnection::Ptr m_Rcon;
-	// m_RconLocked containes a copy of the value in m_Rcon where all accesses are guarded by a mutex to allow safe
-	// concurrent access like from the icingadb check command. It's a copy to still allow fast access without additional
-	// syncronization to m_Rcon within the IcingaDB feature itself.
+	// m_RconLocked contains a copy of the value in m_Rcon where all accesses are guarded by a mutex to
+	// allow safe concurrent access like from the icingadb check command. It's a copy to still allow fast access
+	// without additional synchronization to m_Rcon within the IcingaDB feature itself.
 	Locked<RedisConnection::Ptr> m_RconLocked;
+	/**
+	 * A Redis connection for general queries.
+	 *
+	 * This connection is used for all non-history and non-heartbeat related queries to Redis.
+	 * It is a child of @c m_Rcon, meaning it forwards all its connection stats to @c m_Rcon as well.
+	 */
+	RedisConnection::Ptr m_RconWorker;
 	std::unordered_map<ConfigType*, RedisConnection::Ptr> m_Rcons;
 	std::atomic_size_t m_PendingRcons;
 

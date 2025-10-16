@@ -180,8 +180,7 @@ void IcingaDB::ConfigStaticInitialize()
 
 void IcingaDB::UpdateAllConfigObjects()
 {
-	m_Rcon->Sync();
-	m_Rcon->FireAndForgetQuery({"XADD", "icinga:schema", "MAXLEN", "1", "*", "version", "6"}, Prio::Heartbeat);
+	m_RconWorker->FireAndForgetQuery({"XADD", "icinga:schema", "MAXLEN", "1", "*", "version", "6"}, Prio::Heartbeat);
 
 	Log(LogInformation, "IcingaDB") << "Starting initial config/status dump";
 	double startTime = Utility::GetTime();
@@ -198,16 +197,16 @@ void IcingaDB::UpdateAllConfigObjects()
 
 	std::vector<Type::Ptr> types = GetTypes();
 
-	m_Rcon->SuppressQueryKind(Prio::CheckResult);
-	m_Rcon->SuppressQueryKind(Prio::RuntimeStateSync);
+	m_RconWorker->SuppressQueryKind(Prio::CheckResult);
+	m_RconWorker->SuppressQueryKind(Prio::RuntimeStateSync);
 
 	Defer unSuppress ([this]() {
-		m_Rcon->UnsuppressQueryKind(Prio::RuntimeStateSync);
-		m_Rcon->UnsuppressQueryKind(Prio::CheckResult);
+		m_RconWorker->UnsuppressQueryKind(Prio::RuntimeStateSync);
+		m_RconWorker->UnsuppressQueryKind(Prio::CheckResult);
 	});
 
 	// Add a new type=* state=wip entry to the stream and remove all previous entries (MAXLEN 1).
-	m_Rcon->FireAndForgetQuery({"XADD", "icinga:dump", "MAXLEN", "1", "*", "key", "*", "state", "wip"}, Prio::Config);
+	m_RconWorker->FireAndForgetQuery({"XADD", "icinga:dump", "MAXLEN", "1", "*", "key", "*", "state", "wip"}, Prio::Config);
 
 	const std::vector<String> globalKeys = {
 		m_PrefixConfigObject + "customvar",
@@ -224,9 +223,9 @@ void IcingaDB::UpdateAllConfigObjects()
 		m_PrefixConfigObject + "redundancygroup",
 		m_PrefixConfigObject + "redundancygroup:state",
 	};
-	DeleteKeys(m_Rcon, globalKeys, Prio::Config);
-	DeleteKeys(m_Rcon, {"icinga:nextupdate:host", "icinga:nextupdate:service"}, Prio::Config);
-	m_Rcon->Sync();
+	DeleteKeys(m_RconWorker, globalKeys, Prio::Config);
+	DeleteKeys(m_RconWorker, {"icinga:nextupdate:host", "icinga:nextupdate:service"}, Prio::Config);
+	m_RconWorker->Sync();
 
 	Defer resetDumpedGlobals ([this]() {
 		m_DumpedGlobals.CustomVar.Reset();
@@ -522,14 +521,14 @@ void IcingaDB::UpdateAllConfigObjects()
 	}
 
 	for (auto& key : globalKeys) {
-		m_Rcon->FireAndForgetQuery({"XADD", "icinga:dump", "*", "key", key, "state", "done"}, Prio::Config);
+		m_RconWorker->FireAndForgetQuery({"XADD", "icinga:dump", "*", "key", key, "state", "done"}, Prio::Config);
 	}
 
-	m_Rcon->FireAndForgetQuery({"XADD", "icinga:dump", "*", "key", "*", "state", "done"}, Prio::Config);
+	m_RconWorker->FireAndForgetQuery({"XADD", "icinga:dump", "*", "key", "*", "state", "done"}, Prio::Config);
 
 	// enqueue a callback that will notify us once all previous queries were executed and wait for this event
 	std::promise<void> p;
-	m_Rcon->EnqueueCallback([&p](boost::asio::yield_context& yc) { p.set_value(); }, Prio::Config);
+	m_RconWorker->EnqueueCallback([&p](boost::asio::yield_context& yc) { p.set_value(); }, Prio::Config);
 	p.get_future().wait();
 
 	auto endTime (Utility::GetTime());
@@ -1311,7 +1310,7 @@ void IcingaDB::InsertCheckableDependencies(
  */
 void IcingaDB::UpdateState(const Checkable::Ptr& checkable, StateUpdate mode)
 {
-	if (!m_Rcon || !m_Rcon->IsConnected())
+	if (!m_RconWorker || !m_RconWorker->IsConnected())
 		return;
 
 	String objectType = GetLowerCaseTypeNameDB(checkable);
@@ -1324,7 +1323,7 @@ void IcingaDB::UpdateState(const Checkable::Ptr& checkable, StateUpdate mode)
 	String checksum = HashValue(stateAttrs);
 
 	if (mode & StateUpdate::Volatile) {
-		m_Rcon->FireAndForgetQueries({
+		m_RconWorker->FireAndForgetQueries({
 			{"HSET", redisStateKey, objectKey, JsonEncode(stateAttrs)},
 			{"HSET", redisChecksumKey, objectKey, JsonEncode(new Dictionary({{"checksum", checksum}}))},
 		}, Prio::RuntimeStateSync);
@@ -1345,7 +1344,7 @@ void IcingaDB::UpdateState(const Checkable::Ptr& checkable, StateUpdate mode)
 			streamadd.emplace_back(IcingaToStreamValue(kv.second));
 		}
 
-		m_Rcon->FireAndForgetQuery(std::move(streamadd), Prio::RuntimeStateStream, {0, 1});
+		m_RconWorker->FireAndForgetQuery(std::move(streamadd), Prio::RuntimeStateStream, {0, 1});
 	}
 }
 
@@ -1362,7 +1361,7 @@ void IcingaDB::UpdateState(const Checkable::Ptr& checkable, StateUpdate mode)
 void IcingaDB::UpdateDependenciesState(const Checkable::Ptr& checkable, const DependencyGroup::Ptr& onlyDependencyGroup,
 	std::set<DependencyGroup*>* seenGroups) const
 {
-	if (!m_Rcon || !m_Rcon->IsConnected()) {
+	if (!m_RconWorker || !m_RconWorker->IsConnected()) {
 		return;
 	}
 
@@ -1453,15 +1452,15 @@ void IcingaDB::UpdateDependenciesState(const Checkable::Ptr& checkable, const De
 			queries.emplace_back(std::move(query));
 		}
 
-		m_Rcon->FireAndForgetQueries(std::move(queries), Prio::RuntimeStateSync);
-		m_Rcon->FireAndForgetQueries(std::move(streamStates), Prio::RuntimeStateStream, {0, 1});
+		m_RconWorker->FireAndForgetQueries(std::move(queries), Prio::RuntimeStateSync);
+		m_RconWorker->FireAndForgetQueries(std::move(streamStates), Prio::RuntimeStateStream, {0, 1});
 	}
 }
 
 // Used to update a single object, used for runtime updates
 void IcingaDB::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpdate)
 {
-	if (!m_Rcon || !m_Rcon->IsConnected())
+	if (!m_RconWorker || !m_RconWorker->IsConnected())
 		return;
 
 	String typeName = GetLowerCaseTypeNameDB(object);
@@ -1475,7 +1474,7 @@ void IcingaDB::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpd
 		UpdateState(checkable, runtimeUpdate ? StateUpdate::Full : StateUpdate::Volatile);
 	}
 
-	ExecuteRedisTransaction(m_Rcon, hMSets, runtimeUpdates);
+	ExecuteRedisTransaction(m_RconWorker, hMSets, runtimeUpdates);
 
 	if (checkable) {
 		SendNextUpdate(checkable);
@@ -1814,7 +1813,7 @@ IcingaDB::CreateConfigUpdate(const ConfigObject::Ptr& object, const String typeN
 		return;
 	*/
 
-	if (m_Rcon == nullptr)
+	if (m_RconWorker == nullptr)
 		return;
 
 	Dictionary::Ptr attr = new Dictionary;
@@ -1844,14 +1843,14 @@ IcingaDB::CreateConfigUpdate(const ConfigObject::Ptr& object, const String typeN
 
 void IcingaDB::SendConfigDelete(const ConfigObject::Ptr& object)
 {
-	if (!m_Rcon || !m_Rcon->IsConnected())
+	if (!m_RconWorker || !m_RconWorker->IsConnected())
 		return;
 
 	Type::Ptr type = object->GetReflectionType();
 	String typeName = type->GetName().ToLower();
 	String objectKey = GetObjectIdentifier(object);
 
-	m_Rcon->FireAndForgetQueries({
+	m_RconWorker->FireAndForgetQueries({
 		{"HDEL", m_PrefixConfigObject + typeName, objectKey},
 		{"HDEL", m_PrefixConfigCheckSum + typeName, objectKey},
 		{
@@ -1874,13 +1873,13 @@ void IcingaDB::SendConfigDelete(const ConfigObject::Ptr& object)
 		Service::Ptr service;
 		tie(host, service) = GetHostService(checkable);
 
-		m_Rcon->FireAndForgetQuery({
+		m_RconWorker->FireAndForgetQuery({
 			"ZREM",
 			service ? "icinga:nextupdate:service" : "icinga:nextupdate:host",
 			GetObjectIdentifier(checkable)
 		}, Prio::CheckResult);
 
-		m_Rcon->FireAndForgetQueries({
+		m_RconWorker->FireAndForgetQueries({
 			{"HDEL", m_PrefixConfigObject + typeName + ":state", objectKey},
 			{"HDEL", m_PrefixConfigCheckSum + typeName + ":state", objectKey}
 		}, Prio::RuntimeStateSync);
@@ -2486,11 +2485,11 @@ void IcingaDB::SendFlappingChange(const Checkable::Ptr& checkable, double change
 
 void IcingaDB::SendNextUpdate(const Checkable::Ptr& checkable)
 {
-	if (!m_Rcon || !m_Rcon->IsConnected())
+	if (!m_RconWorker || !m_RconWorker->IsConnected())
 		return;
 
 	if (checkable->GetEnableActiveChecks()) {
-		m_Rcon->FireAndForgetQuery(
+		m_RconWorker->FireAndForgetQuery(
 			{
 				"ZADD",
 				dynamic_pointer_cast<Service>(checkable) ? "icinga:nextupdate:service" : "icinga:nextupdate:host",
@@ -2500,7 +2499,7 @@ void IcingaDB::SendNextUpdate(const Checkable::Ptr& checkable)
 			Prio::CheckResult
 		);
 	} else {
-		m_Rcon->FireAndForgetQuery(
+		m_RconWorker->FireAndForgetQuery(
 			{
 				"ZREM",
 				dynamic_pointer_cast<Service>(checkable) ? "icinga:nextupdate:service" : "icinga:nextupdate:host",
@@ -2697,7 +2696,7 @@ void IcingaDB::ForwardHistoryEntries()
 }
 
 void IcingaDB::SendNotificationUsersChanged(const Notification::Ptr& notification, const Array::Ptr& oldValues, const Array::Ptr& newValues) {
-	if (!m_Rcon || !m_Rcon->IsConnected() || oldValues == newValues) {
+	if (!m_RconWorker || !m_RconWorker->IsConnected() || oldValues == newValues) {
 		return;
 	}
 
@@ -2711,7 +2710,7 @@ void IcingaDB::SendNotificationUsersChanged(const Notification::Ptr& notificatio
 }
 
 void IcingaDB::SendNotificationUserGroupsChanged(const Notification::Ptr& notification, const Array::Ptr& oldValues, const Array::Ptr& newValues) {
-	if (!m_Rcon || !m_Rcon->IsConnected() || oldValues == newValues) {
+	if (!m_RconWorker || !m_RconWorker->IsConnected() || oldValues == newValues) {
 		return;
 	}
 
@@ -2731,7 +2730,7 @@ void IcingaDB::SendNotificationUserGroupsChanged(const Notification::Ptr& notifi
 }
 
 void IcingaDB::SendTimePeriodRangesChanged(const TimePeriod::Ptr& timeperiod, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues) {
-	if (!m_Rcon || !m_Rcon->IsConnected() || oldValues == newValues) {
+	if (!m_RconWorker || !m_RconWorker->IsConnected() || oldValues == newValues) {
 		return;
 	}
 
@@ -2745,7 +2744,7 @@ void IcingaDB::SendTimePeriodRangesChanged(const TimePeriod::Ptr& timeperiod, co
 }
 
 void IcingaDB::SendTimePeriodIncludesChanged(const TimePeriod::Ptr& timeperiod, const Array::Ptr& oldValues, const Array::Ptr& newValues) {
-	if (!m_Rcon || !m_Rcon->IsConnected() || oldValues == newValues) {
+	if (!m_RconWorker || !m_RconWorker->IsConnected() || oldValues == newValues) {
 		return;
 	}
 
@@ -2758,7 +2757,7 @@ void IcingaDB::SendTimePeriodIncludesChanged(const TimePeriod::Ptr& timeperiod, 
 }
 
 void IcingaDB::SendTimePeriodExcludesChanged(const TimePeriod::Ptr& timeperiod, const Array::Ptr& oldValues, const Array::Ptr& newValues) {
-	if (!m_Rcon || !m_Rcon->IsConnected() || oldValues == newValues) {
+	if (!m_RconWorker || !m_RconWorker->IsConnected() || oldValues == newValues) {
 		return;
 	}
 
@@ -2772,7 +2771,7 @@ void IcingaDB::SendTimePeriodExcludesChanged(const TimePeriod::Ptr& timeperiod, 
 
 template<typename T>
 void IcingaDB::SendGroupsChanged(const ConfigObject::Ptr& object, const Array::Ptr& oldValues, const Array::Ptr& newValues) {
-	if (!m_Rcon || !m_Rcon->IsConnected() || oldValues == newValues) {
+	if (!m_RconWorker || !m_RconWorker->IsConnected() || oldValues == newValues) {
 		return;
 	}
 
@@ -2796,7 +2795,7 @@ void IcingaDB::SendGroupsChanged(const ConfigObject::Ptr& object, const Array::P
 }
 
 void IcingaDB::SendCommandEnvChanged(const ConfigObject::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues) {
-	if (!m_Rcon || !m_Rcon->IsConnected() || oldValues == newValues) {
+	if (!m_RconWorker || !m_RconWorker->IsConnected() || oldValues == newValues) {
 		return;
 	}
 
@@ -2810,7 +2809,7 @@ void IcingaDB::SendCommandEnvChanged(const ConfigObject::Ptr& command, const Dic
 }
 
 void IcingaDB::SendCommandArgumentsChanged(const ConfigObject::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues) {
-	if (!m_Rcon || !m_Rcon->IsConnected() || oldValues == newValues) {
+	if (!m_RconWorker || !m_RconWorker->IsConnected() || oldValues == newValues) {
 		return;
 	}
 
@@ -2828,7 +2827,7 @@ void IcingaDB::SendCustomVarsChanged(const ConfigObject::Ptr& object, const Dict
 		return;
 	}
 
-	if (!m_Rcon || !m_Rcon->IsConnected() || oldValues == newValues) {
+	if (!m_RconWorker || !m_RconWorker->IsConnected() || oldValues == newValues) {
 		return;
 	}
 
@@ -2846,14 +2845,14 @@ void IcingaDB::SendCustomVarsChanged(const ConfigObject::Ptr& object, const Dict
 
 void IcingaDB::SendDependencyGroupChildRegistered(const Checkable::Ptr& child, const DependencyGroup::Ptr& dependencyGroup)
 {
-	if (!m_Rcon || !m_Rcon->IsConnected()) {
+	if (!m_RconWorker || !m_RconWorker->IsConnected()) {
 		return;
 	}
 
 	std::vector<Dictionary::Ptr> runtimeUpdates;
 	std::map<String, RedisConnection::Query> hMSets;
 	InsertCheckableDependencies(child, hMSets, &runtimeUpdates, dependencyGroup);
-	ExecuteRedisTransaction(m_Rcon, hMSets, runtimeUpdates);
+	ExecuteRedisTransaction(m_RconWorker, hMSets, runtimeUpdates);
 
 	UpdateState(child, StateUpdate::Full);
 	UpdateDependenciesState(child, dependencyGroup);
@@ -2875,7 +2874,7 @@ void IcingaDB::SendDependencyGroupChildRemoved(
 	bool removeGroup
 )
 {
-	if (!m_Rcon || !m_Rcon->IsConnected() || dependencies.empty()) {
+	if (!m_RconWorker || !m_RconWorker->IsConnected() || dependencies.empty()) {
 		return;
 	}
 
@@ -3346,7 +3345,7 @@ void IcingaDB::DeleteRelationship(const String& id, const String& redisKeyWithou
 		"redis_key", redisKey, "id", id, "runtime_type", "delete"
 	});
 
-	m_Rcon->FireAndForgetQueries(queries, Prio::Config);
+	m_RconWorker->FireAndForgetQueries(queries, Prio::Config);
 }
 
 void IcingaDB::DeleteRelationship(const String& id, RedisKey redisKey, bool hasChecksum)
@@ -3389,7 +3388,7 @@ void IcingaDB::DeleteState(const String& id, RedisKey redisKey, bool hasChecksum
 	}
 	hdels.emplace_back(RedisConnection::Query{"HDEL", m_PrefixConfigObject + redisKeyWithoutPrefix, id});
 
-	m_Rcon->FireAndForgetQueries(std::move(hdels), Prio::RuntimeStateSync);
+	m_RconWorker->FireAndForgetQueries(std::move(hdels), Prio::RuntimeStateSync);
 	// TODO: This is currently purposefully commented out due to how Icinga DB (Go) handles runtime state
 	//       upsert and delete events. See https://github.com/Icinga/icingadb/pull/894 for more details.
 	/*m_Rcon->FireAndForgetQueries({{
