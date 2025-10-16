@@ -86,7 +86,7 @@ void IcingaDB::Start(bool runtimeCreated)
 	m_Rcon = new RedisConnection(connInfo);
 	m_RconLocked.store(m_Rcon);
 
-	m_RconWorker = new RedisConnection(connInfo, m_Rcon);
+	m_RconWorker = new RedisConnection(connInfo, m_Rcon, true);
 
 	for (const Type::Ptr& type : GetTypes()) {
 		auto ctype (dynamic_cast<ConfigType*>(type.get()));
