@@ -26,14 +26,15 @@ namespace asio = boost::asio;
 
 boost::regex RedisConnection::m_ErrAuth ("\\AERR AUTH ");
 
-RedisConnection::RedisConnection(const RedisConnInfo::ConstPtr& connInfo, const Ptr& parent)
-	: RedisConnection{IoEngine::Get().GetIoContext(), connInfo, parent}
+RedisConnection::RedisConnection(const RedisConnInfo::ConstPtr& connInfo, const Ptr& parent, bool trackOwnPendingQueries)
+	: RedisConnection{IoEngine::Get().GetIoContext(), connInfo, parent, trackOwnPendingQueries}
 {
 }
 
-RedisConnection::RedisConnection(boost::asio::io_context& io, const RedisConnInfo::ConstPtr& connInfo, const Ptr& parent)
+RedisConnection::RedisConnection(boost::asio::io_context& io, const RedisConnInfo::ConstPtr& connInfo, const Ptr& parent, bool trackOwnPendingQueries)
 	: m_ConnInfo{connInfo}, m_Strand(io), m_Connecting(false), m_Connected(false), m_Started(false),
-	m_QueuedWrites(io), m_QueuedReads(io), m_LogStatsTimer(io), m_Parent(parent)
+	m_QueuedWrites(io), m_QueuedReads(io), m_TrackOwnPendingQueries{trackOwnPendingQueries}, m_LogStatsTimer(io),
+	m_Parent(parent)
 {
 	if (connInfo->EnableTls && connInfo->Path.IsEmpty()) {
 		UpdateTLSContext();
@@ -679,13 +680,13 @@ int RedisConnection::GetQueryCount(RingBuffer::SizeType span)
 void RedisConnection::IncreasePendingQueries(int count)
 {
 	if (m_Parent) {
-		auto parent (m_Parent);
+		m_Parent->IncreasePendingQueries(count);
+	}
 
-		asio::post(parent->m_Strand, [parent, count]() {
-			parent->IncreasePendingQueries(count);
-		});
-	} else {
-		m_PendingQueries += count;
+	// Only track the pending queries of the root connection or if explicitly
+	// requested to do so for child connections as well.
+	if (!m_Parent || m_TrackOwnPendingQueries) {
+		m_PendingQueries.fetch_add(count);
 		m_InputQueries.InsertValue(Utility::GetTime(), count);
 	}
 }
@@ -693,13 +694,12 @@ void RedisConnection::IncreasePendingQueries(int count)
 void RedisConnection::DecreasePendingQueries(int count)
 {
 	if (m_Parent) {
-		auto parent (m_Parent);
+		m_Parent->DecreasePendingQueries(count);
+	}
 
-		asio::post(parent->m_Strand, [parent, count]() {
-			parent->DecreasePendingQueries(count);
-		});
-	} else {
-		m_PendingQueries -= count;
+	// Same as in IncreasePendingQueries().
+	if (!m_Parent || m_TrackOwnPendingQueries) {
+		m_PendingQueries.fetch_sub(count);
 		m_OutputQueries.InsertValue(Utility::GetTime(), count);
 	}
 }
