@@ -36,10 +36,10 @@ REGISTER_FUNCTION(System, exit, &Application::Exit, "status");
 REGISTER_SAFE_FUNCTION(System, typeof, &ScriptUtils::TypeOf, "value");
 REGISTER_SAFE_FUNCTION(System, keys, &ScriptUtils::Keys, "value");
 REGISTER_SAFE_FUNCTION(System, random, &Utility::Random, "");
-REGISTER_SAFE_FUNCTION(System, get_template, &ScriptUtils::GetTemplate, "type:name");
-REGISTER_SAFE_FUNCTION(System, get_templates, &ScriptUtils::GetTemplates, "type");
+REGISTER_FUNCTION(System, get_template, &ScriptUtils::GetTemplate, "type:name");
+REGISTER_FUNCTION(System, get_templates, &ScriptUtils::GetTemplates, "type");
 REGISTER_SAFE_FUNCTION(System, get_object, &ScriptUtils::GetObject, "type:name");
-REGISTER_SAFE_FUNCTION(System, get_objects, &ScriptUtils::GetObjects, "type");
+REGISTER_FUNCTION(System, get_objects, &ScriptUtils::GetObjects, "type");
 REGISTER_FUNCTION(System, assert, &ScriptUtils::Assert, "value");
 REGISTER_SAFE_FUNCTION(System, string, &ScriptUtils::CastString, "value");
 REGISTER_SAFE_FUNCTION(System, number, &ScriptUtils::CastNumber, "value");
@@ -47,7 +47,7 @@ REGISTER_SAFE_FUNCTION(System, bool, &ScriptUtils::CastBool, "value");
 REGISTER_SAFE_FUNCTION(System, get_time, &Utility::GetTime, "");
 REGISTER_SAFE_FUNCTION(System, basename, &Utility::BaseName, "path");
 REGISTER_SAFE_FUNCTION(System, dirname, &Utility::DirName, "path");
-REGISTER_SAFE_FUNCTION(System, getenv, &ScriptUtils::GetEnv, "value");
+REGISTER_FUNCTION(System, getenv, &ScriptUtils::GetEnv, "value");
 REGISTER_SAFE_FUNCTION(System, msi_get_component_path, &ScriptUtils::MsiGetComponentPathShim, "component");
 REGISTER_SAFE_FUNCTION(System, track_parents, &ScriptUtils::TrackParents, "child");
 REGISTER_SAFE_FUNCTION(System, escape_shell_cmd, &Utility::EscapeShellCmd, "cmd");
@@ -475,7 +475,15 @@ ConfigObject::Ptr ScriptUtils::GetObject(const Value& vtype, const String& name)
 	if (!ctype)
 		return nullptr;
 
-	return ctype->GetObject(name);
+	auto cfgObj = ctype->GetObject(name);
+	if (cfgObj) {
+		auto* frame = ScriptFrame::GetCurrentFrame();
+		if (frame->PermChecker->CanAccessConfigObject(cfgObj)) {
+			return cfgObj;
+		}
+	}
+
+	return nullptr;
 }
 
 Array::Ptr ScriptUtils::GetObjects(const Type::Ptr& type)
