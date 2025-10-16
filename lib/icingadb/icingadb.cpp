@@ -84,6 +84,8 @@ void IcingaDB::Start(bool runtimeCreated)
 	m_Rcon = new RedisConnection(connInfo);
 	m_RconLocked.store(m_Rcon);
 
+	m_RconWorker = new RedisConnection(connInfo, m_Rcon);
+
 	for (const auto& [type, _] : GetSyncableTypes()) {
 		auto ctype (dynamic_cast<ConfigType*>(type.get()));
 		if (!ctype)
@@ -109,6 +111,7 @@ void IcingaDB::Start(bool runtimeCreated)
 	m_Rcon->SetConnectedCallback([this](boost::asio::yield_context&) {
 		m_Rcon->SetConnectedCallback(nullptr);
 
+		m_RconWorker->Start();
 		for (auto& kv : m_Rcons) {
 			kv.second->Start();
 		}
@@ -122,8 +125,8 @@ void IcingaDB::Start(bool runtimeCreated)
 
 	m_WorkQueue.SetName("IcingaDB");
 
-	m_Rcon->SuppressQueryKind(Prio::CheckResult);
-	m_Rcon->SuppressQueryKind(Prio::RuntimeStateSync);
+	m_RconWorker->SuppressQueryKind(Prio::CheckResult);
+	m_RconWorker->SuppressQueryKind(Prio::RuntimeStateSync);
 
 	Ptr keepAlive (this);
 
