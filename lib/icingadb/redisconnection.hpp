@@ -114,7 +114,7 @@ struct RedisConnInfo final : SharedObject
 				: Config(config), State(state), History(history) { }
 		};
 
-		explicit RedisConnection(const RedisConnInfo::ConstPtr& connInfo, const Ptr& parent = nullptr);
+		explicit RedisConnection(const RedisConnInfo::ConstPtr& connInfo, const Ptr& parent = nullptr, bool trackOwnPendingQueries = true);
 		void UpdateTLSContext();
 
 		void Start();
@@ -143,7 +143,7 @@ struct RedisConnInfo final : SharedObject
 
 		int GetQueryCount(RingBuffer::SizeType span);
 
-		inline int GetPendingQueryCount()
+		inline int GetPendingQueryCount() const
 		{
 			return m_PendingQueries;
 		}
@@ -223,7 +223,7 @@ struct RedisConnInfo final : SharedObject
 
 		static boost::regex m_ErrAuth;
 
-		RedisConnection(boost::asio::io_context& io, const RedisConnInfo::ConstPtr& connInfo, const Ptr& parent);
+		RedisConnection(boost::asio::io_context& io, const RedisConnInfo::ConstPtr& connInfo, const Ptr& parent, bool trackOwnPendingQueries);
 
 		void Connect(boost::asio::yield_context& yc);
 		void ReadLoop(boost::asio::yield_context& yc);
@@ -283,7 +283,9 @@ struct RedisConnInfo final : SharedObject
 		RingBuffer m_WrittenConfig{15 * 60};
 		RingBuffer m_WrittenState{15 * 60};
 		RingBuffer m_WrittenHistory{15 * 60};
-		int m_PendingQueries{0};
+		// Number of pending Redis queries, always 0 if m_Parent is set unless m_TrackOwnPendingQueries is true.
+		std::atomic_int m_PendingQueries{0};
+		bool m_TrackOwnPendingQueries; // Whether to track pending queries even if m_Parent is set.
 		boost::asio::deadline_timer m_LogStatsTimer;
 		Ptr m_Parent;
 	};
