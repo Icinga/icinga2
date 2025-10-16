@@ -90,7 +90,7 @@ namespace icinga
 
 		void Start();
 
-		bool IsConnected();
+		bool IsConnected() const;
 
 		void FireAndForgetQuery(Query query, QueryPriority priority, QueryAffects affects = {});
 		void FireAndForgetQueries(Queries queries, QueryPriority priority, QueryAffects affects = {});
@@ -106,11 +106,6 @@ namespace icinga
 		void UnsuppressQueryKind(QueryPriority kind);
 
 		void SetConnectedCallback(std::function<void(boost::asio::yield_context& yc)> callback);
-
-		inline bool GetConnected()
-		{
-			return m_Connected.load();
-		}
 
 		int GetQueryCount(RingBuffer::SizeType span);
 

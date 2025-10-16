@@ -73,7 +73,8 @@ void RedisConnection::Start()
 	}
 }
 
-bool RedisConnection::IsConnected() {
+bool RedisConnection::IsConnected() const
+{
 	return m_Connected.load();
 }
 
