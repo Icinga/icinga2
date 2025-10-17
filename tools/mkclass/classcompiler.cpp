@@ -1477,26 +1477,32 @@ void ClassCompiler::CompileStream(const std::string& path, std::istream& input,
 		<< "#include \"base/logger.hpp\"" << std::endl
 		<< "#include \"base/function.hpp\"" << std::endl
 		<< "#include \"base/configobject.hpp\"" << std::endl
-		<< "#include \"base/configtype.hpp\"" << std::endl
-		<< "#ifdef _MSC_VER" << std::endl
-		<< "#pragma warning( push )" << std::endl
-		<< "#pragma warning( disable : 4244 )" << std::endl
-		<< "#pragma warning( disable : 4800 )" << std::endl
-		<< "#else /* _MSC_VER */" << std::endl
-		<< "#pragma GCC diagnostic push" << std::endl
-		<< "#pragma GCC diagnostic ignored \"-Wunused-parameter\"" << std::endl
-		<< "#pragma GCC diagnostic ignored \"-Wunused-variable\"" << std::endl
-		<< "#endif /* _MSC_VER */" << std::endl << std::endl;
+		<< "#include \"base/configtype.hpp\"" << std::endl;
 
+#ifdef _MSC_VER
+	oimpl << "#pragma warning( push )" << std::endl
+		<< "#pragma warning( disable : 4244 )" << std::endl
+		<< "#pragma warning( disable : 4800 )" << std::endl;
+#elif defined(__GNUC__) && !defined(__clang__)
+	oimpl << "#pragma GCC diagnostic push" << std::endl
+		<< "#pragma GCC diagnostic ignored \"-Wunused-parameter\"" << std::endl
+		<< "#pragma GCC diagnostic ignored \"-Wunused-variable\"" << std::endl;
+#elif defined(__clang__)
+	oimpl << "#pragma clang diagnostic push" << std::endl
+		<< "#pragma clang diagnostic ignored \"-Wunused-parameter\"" << std::endl
+		<< "#pragma clang diagnostic ignored \"-Wunused-variable\"" << std::endl;
+#endif /* _MSC_VER */
 
 	ClassCompiler ctx(path, input, oimpl, oheader);
 	ctx.Compile();
 
 	oheader << "#endif /* " << guard_name << " */" << std::endl;
 
-	oimpl << "#ifdef _MSC_VER" << std::endl
-		<< "#pragma warning ( pop )" << std::endl
-		<< "#else /* _MSC_VER */" << std::endl
-		<< "#pragma GCC diagnostic pop" << std::endl
-		<< "#endif /* _MSC_VER */" << std::endl;
+#ifdef _MSC_VER
+		oimpl << "#pragma warning ( pop )" << std::endl;
+#elif defined(__GNUC__) && !defined(__clang__)
+		oimpl << "#pragma GCC diagnostic pop" << std::endl;
+#elif defined(__clang__)
+		oimpl << "#pragma clang diagnostic pop" << std::endl;
+#endif /* _MSC_VER */
 }
