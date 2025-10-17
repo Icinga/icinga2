@@ -19,7 +19,6 @@ namespace icinga
 {
 
 static bool l_SSLInitialized = false;
-static std::mutex *l_Mutexes;
 static std::mutex l_RandomMutex;
 
 String GetOpenSSLVersion()
@@ -31,7 +30,9 @@ String GetOpenSSLVersion()
 #endif /* OPENSSL_VERSION_NUMBER >= 0x10100000L */
 }
 
-#ifdef CRYPTO_LOCK
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+static std::mutex *l_Mutexes;
+
 static void OpenSSLLockingCallback(int mode, int type, const char *, int)
 {
 	if (mode & CRYPTO_LOCK)
@@ -48,7 +49,7 @@ static unsigned long OpenSSLIDCallback()
 	return (unsigned long)pthread_self();
 #endif /* _WIN32 */
 }
-#endif /* CRYPTO_LOCK */
+#endif /* OPENSSL_VERSION_NUMBER < 0x10100000L */
 
 /**
  * Initializes the OpenSSL library.
@@ -63,11 +64,11 @@ void InitializeOpenSSL()
 
 	SSL_COMP_get_compression_methods();
 
-#ifdef CRYPTO_LOCK
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 	l_Mutexes = new std::mutex[CRYPTO_num_locks()];
 	CRYPTO_set_locking_callback(&OpenSSLLockingCallback);
 	CRYPTO_set_id_callback(&OpenSSLIDCallback);
-#endif /* CRYPTO_LOCK */
+#endif /* OPENSSL_VERSION_NUMBER < 0x10100000L */
 
 	l_SSLInitialized = true;
 }
