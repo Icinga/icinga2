@@ -40,7 +40,7 @@ void DbEvents::StaticInitialize()
 		DbEvents::RemoveAcknowledgement(checkable);
 	});
 
-	Checkable::OnNextCheckUpdated.connect([](const Checkable::Ptr& checkable) { NextCheckUpdatedHandler(checkable); });
+	Checkable::OnNextCheckChanged.connect([](const Checkable::Ptr& checkable, const Value&) { NextCheckUpdatedHandler(checkable); });
 	Checkable::OnFlappingChanged.connect([](const Checkable::Ptr& checkable, const Value&) { FlappingChangedHandler(checkable); });
 	Checkable::OnNotificationSentToAllUsers.connect([](const Notification::Ptr& notification, const Checkable::Ptr& checkable,
 		const std::set<User::Ptr>&, const NotificationType&, const CheckResult::Ptr&, const String&, const String&,

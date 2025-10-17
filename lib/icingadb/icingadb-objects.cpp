@@ -135,8 +135,8 @@ void IcingaDB::ConfigStaticInitialize()
 		IcingaDB::NewCheckResultHandler(checkable);
 	});
 
-	Checkable::OnNextCheckUpdated.connect([](const Checkable::Ptr& checkable) {
-		IcingaDB::NextCheckUpdatedHandler(checkable);
+	Checkable::OnNextCheckChanged.connect([](const Checkable::Ptr& checkable, const Value&) {
+		IcingaDB::NextCheckChangedHandler(checkable);
 	});
 
 	Service::OnHostProblemChanged.connect([](const Service::Ptr& service, const CheckResult::Ptr&, const MessageOrigin::Ptr&) {
@@ -3206,11 +3206,10 @@ void IcingaDB::NewCheckResultHandler(const Checkable::Ptr& checkable)
 {
 	for (auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 		rw->UpdateState(checkable, StateUpdate::Volatile);
-		rw->SendNextUpdate(checkable);
 	}
 }
 
-void IcingaDB::NextCheckUpdatedHandler(const Checkable::Ptr& checkable)
+void IcingaDB::NextCheckChangedHandler(const Checkable::Ptr& checkable)
 {
 	for (auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 		rw->UpdateState(checkable, StateUpdate::Volatile);

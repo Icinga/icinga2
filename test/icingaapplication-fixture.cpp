@@ -8,6 +8,12 @@ static bool IcingaInitialized = false;
 
 IcingaApplicationFixture::IcingaApplicationFixture()
 {
+	// This limits the number of threads in the thread pool, but does not limit the number of concurrent checks.
+	// By default, we'll have only 2 threads in the pool, which is too low for some heavy checker tests. So, we
+	// set the concurrency to the number of hardware threads available on the system and the global thread pool
+	// size will be the double of that (see threadpool.cpp).
+	Configuration::Concurrency = std::thread::hardware_concurrency();
+
 	if (!IcingaInitialized)
 		InitIcingaApplication();
 }

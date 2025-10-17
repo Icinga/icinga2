@@ -46,7 +46,9 @@ REGISTER_APIFUNCTION(SetRemovalInfo, event, &ClusterEvents::SetRemovalInfoAPIHan
 void ClusterEvents::StaticInitialize()
 {
 	Checkable::OnNewCheckResult.connect(&ClusterEvents::CheckResultHandler);
-	Checkable::OnNextCheckChanged.connect(&ClusterEvents::NextCheckChangedHandler);
+	Checkable::OnNextCheckChanged.connect([](const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin) {
+		NextCheckChangedHandler(checkable, origin);
+	});
 	Checkable::OnLastCheckStartedChanged.connect(&ClusterEvents::LastCheckStartedChangedHandler);
 	Checkable::OnStateBeforeSuppressionChanged.connect(&ClusterEvents::StateBeforeSuppressionChangedHandler);
 	Checkable::OnSuppressedNotificationsChanged.connect(&ClusterEvents::SuppressedNotificationsChangedHandler);
@@ -183,7 +185,7 @@ Value ClusterEvents::CheckResultAPIHandler(const MessageOrigin::Ptr& origin, con
 	return Empty;
 }
 
-void ClusterEvents::NextCheckChangedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin)
+void ClusterEvents::NextCheckChangedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin, bool isFromOldClient)
 {
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
@@ -199,6 +201,7 @@ void ClusterEvents::NextCheckChangedHandler(const Checkable::Ptr& checkable, con
 	if (service)
 		params->Set("service", service->GetShortName());
 	params->Set("next_check", checkable->GetNextCheck());
+	params->Set("origin_client_old", isFromOldClient);
 
 	Dictionary::Ptr message = new Dictionary();
 	message->Set("jsonrpc", "2.0");
@@ -245,7 +248,25 @@ Value ClusterEvents::NextCheckChangedAPIHandler(const MessageOrigin::Ptr& origin
 	if (nextCheck < Application::GetStartTime() + 60)
 		return Empty;
 
-	checkable->SetNextCheck(params->Get("next_check"), false, origin);
+	bool isOriginClientOld = params->Get("origin_client_old").ToBool();
+	if (isOriginClientOld || endpoint->GetIcingaVersion() < 21600) { // TODO: Exact required version??
+		// All older Icinga 2 versions trigger the `event::SetNextCheck` event endlessly, so we can't let the
+		// `Checkable::OnNextCheckChanged` know about this change, as it would cause too much noise in Icinga DB
+		// and the like. So, we just update the timestamp silently and manually call `Checkable::OnRescheduleCheck`
+		// to inform the checker about this change.
+		checkable->SetNextCheck(params->Get("next_check"), true, origin);
+		Checkable::OnRescheduleCheck(checkable, nextCheck);
+		// In case this message has to be relayed to other cluster nodes we directly call the `NextCheckChangedHandler`.
+		// The `isOriginClientOld` flag is necessary e.g. in a 3-level cluster setup where a very old agent sends
+		// the message to its satellite that then relays it to the master. The master then needs to know that this
+		// event originates from an old node and thus has to be treated specially.
+		NextCheckChangedHandler(checkable, origin, true);
+	} else {
+		// Peer is running the expected Icinga 2 version, so we can just do the normal flow.
+		// The `Checkable::OnNextCheckChanged` signal will be emitted as usual and all listeners
+		// will be informed about this change.
+		checkable->SetNextCheck(params->Get("next_check"), false, origin);
+	}
 
 	return Empty;
 }
