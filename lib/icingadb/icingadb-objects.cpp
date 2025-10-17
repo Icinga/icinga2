@@ -549,7 +549,7 @@ std::vector<std::vector<intrusive_ptr<ConfigObject>>> IcingaDB::ChunkObjects(std
 
 	chunks.reserve((std::distance(offset, end) + chunkSize - 1) / chunkSize);
 
-	while (std::distance(offset, end) >= chunkSize) {
+	while (static_cast<std::size_t>(std::distance(offset, end)) >= chunkSize) {
 		auto until (offset + chunkSize);
 		chunks.emplace_back(offset, until);
 		offset = until;
@@ -1931,7 +1931,7 @@ unsigned short GetPreviousState(const Checkable::Ptr& checkable, const Service::
 	if (service) {
 		return phs;
 	} else {
-		return phs == 99 ? phs : Host::CalculateState(ServiceState(phs));
+		return phs == 99 ? phs : decltype(phs){Host::CalculateState(ServiceState(phs))};
 	}
 }
 

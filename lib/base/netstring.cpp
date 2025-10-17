@@ -167,7 +167,7 @@ String NetString::ReadStringFromStream(const Shared<AsioTlsStream>::Ptr& stream,
 		}
 	}
 
-	if (maxMessageLength >= 0 && len > maxMessageLength) {
+	if (maxMessageLength >= 0 && len > static_cast<std::size_t>(maxMessageLength)) {
 		std::stringstream errorMessage;
 		errorMessage << "Max data length exceeded: " << (maxMessageLength / 1024) << " KB";
 
@@ -246,7 +246,7 @@ String NetString::ReadStringFromStream(const Shared<AsioTlsStream>::Ptr& stream,
 		}
 	}
 
-	if (maxMessageLength >= 0 && len > maxMessageLength) {
+	if (maxMessageLength >= 0 && len > static_cast<std::size_t>(maxMessageLength)) {
 		std::stringstream errorMessage;
 		errorMessage << "Max data length exceeded: " << (maxMessageLength / 1024) << " KB";
 
