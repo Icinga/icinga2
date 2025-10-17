@@ -25,7 +25,7 @@ void ApiListener::UpdateObjectAuthority()
 
 	std::vector<Endpoint::Ptr> endpoints;
 	Endpoint::Ptr my_endpoint;
-	int hostChildrenInheritObjectAuthority = 0;
+	std::size_t hostChildrenInheritObjectAuthority = 0;
 
 	if (my_zone) {
 		my_endpoint = Endpoint::GetLocalEndpoint();
