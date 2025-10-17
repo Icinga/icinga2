@@ -1929,10 +1929,10 @@ unsigned short GetPreviousState(const Checkable::Ptr& checkable, const Service::
 {
 	auto phs ((type == StateTypeHard ? checkable->GetLastHardStatesRaw() : checkable->GetLastSoftStatesRaw()) % 100u);
 
-	if (service) {
+	if (service || phs == 99) {
 		return phs;
 	} else {
-		return phs == 99 ? phs : Host::CalculateState(ServiceState(phs));
+		return Host::CalculateState(ServiceState(phs));
 	}
 }
 
