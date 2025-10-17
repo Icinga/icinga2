@@ -6220,14 +6220,14 @@ Custom variables passed as [command parameters](03-monitoring-basics.md#command-
 Name                    | Description
 ------------------------|----------------------------------------------------------------------------------
 squid_hostname		| **Optional.** The host's address. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
-squid_data		| **Optional.** Data to fetch (default: Connections) available data: Connections Cache Resources Memory FileDescriptors.
-squid_port		| **Optional.** Port number (default: 3128).
+squid_data		| **Optional.** Data to fetch; Available data: Connections Cache Resources Memory FileDescriptors.
+squid_port		| **Optional.** Port number.
 squid_user		| **Optional.** WWW user.
 squid_password		| **Optional.** WWW password.
 squid_warning		| **Optional.** Warning threshold. See http://nagiosplug.sourceforge.net/developer-guidelines.html#THRESHOLDFORMAT for the threshold format.
 squid_critical		| **Optional.** Critical threshold. See http://nagiosplug.sourceforge.net/developer-guidelines.html#THRESHOLDFORMAT for the threshold format.
-squid_client		| **Optional.** Path of squidclient (default: /usr/bin/squidclient).
-squid_timeout		| **Optional.** Seconds before plugin times out (default: 15).
+squid_client		| **Optional.** Path of squidclient.
+squid_timeout		| **Optional.** Seconds before plugin times out.
 
 
 #### webinject <a id="plugin-contrib-command-webinject"></a>
