@@ -56,7 +56,7 @@ struct HttpServerConnectionFixture : TlsStreamFixture, ConfigurationCacheDirFixt
 	template<class Rep, class Period>
 	bool AssertServerDisconnected(const std::chrono::duration<Rep, Period>& timeout)
 	{
-		auto iterations = timeout / std::chrono::milliseconds(50);
+		std::size_t iterations = timeout / std::chrono::milliseconds(50);
 		for (std::size_t i = 0; i < iterations && !m_Connection->Disconnected(); i++) {
 			Utility::Sleep(std::chrono::duration<double>(timeout).count() / iterations);
 		}
