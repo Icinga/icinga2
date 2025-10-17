@@ -1932,7 +1932,7 @@ unsigned short GetPreviousState(const Checkable::Ptr& checkable, const Service::
 	if (service) {
 		return phs;
 	} else {
-		return phs == 99 ? phs : Host::CalculateState(ServiceState(phs));
+		return phs == 99 ? phs : decltype(phs){Host::CalculateState(ServiceState(phs))};
 	}
 }
 
