@@ -146,7 +146,7 @@ std::unique_ptr<Expression> ConfigCompiler::HandleInclude(const String& relative
 
 	std::unique_ptr<DictExpression> expr{new DictExpression(std::move(expressions))};
 	expr->MakeInline();
-	return std::move(expr);
+	return expr;
 }
 
 /**
@@ -174,7 +174,7 @@ std::unique_ptr<Expression> ConfigCompiler::HandleIncludeRecursive(const String&
 
 	std::unique_ptr<DictExpression> dict{new DictExpression(std::move(expressions))};
 	dict->MakeInline();
-	return std::move(dict);
+	return dict;
 }
 
 void ConfigCompiler::HandleIncludeZone(const String& relativeBase, const String& tag, const String& path, const String& pattern, const String& package, std::vector<std::unique_ptr<Expression> >& expressions)
