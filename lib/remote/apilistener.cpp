@@ -1560,7 +1560,7 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 			}
 		}
 
-		allFiles.emplace_back(Utility::GetTime() + 1, GetApiDir() + "log/current");
+		allFiles.emplace_back(static_cast<int>(Utility::GetTime()) + 1, GetApiDir() + "log/current");
 
 		for (auto& file : allFiles) {
 			Log(LogNotice, "ApiListener")
