@@ -32,7 +32,7 @@ RedisConnection::RedisConnection(const RedisConnInfo::ConstPtr& connInfo, const 
 }
 
 RedisConnection::RedisConnection(boost::asio::io_context& io, const RedisConnInfo::ConstPtr& connInfo, const Ptr& parent, bool trackOwnPendingQueries)
-	: m_ConnInfo{connInfo}, m_Strand(io), m_Connecting(false), m_Connected(false), m_Started(false),
+	: m_ConnInfo{connInfo}, m_Strand(io), m_Connecting(false), m_Connected(false), m_Stopped(false),
 	m_QueuedWrites(io), m_QueuedReads(io), m_TrackOwnPendingQueries{trackOwnPendingQueries}, m_LogStatsTimer(io),
 	m_Parent(parent)
 {
@@ -56,21 +56,35 @@ void RedisConnection::UpdateTLSContext()
 
 void RedisConnection::Start()
 {
-	if (!m_Started.exchange(true)) {
-		Ptr keepAlive (this);
+	ASSERT(!m_Connected && !m_Connecting);
 
-		IoEngine::SpawnCoroutine(m_Strand, [this, keepAlive](asio::yield_context yc) { ReadLoop(yc); });
-		IoEngine::SpawnCoroutine(m_Strand, [this, keepAlive](asio::yield_context yc) { WriteLoop(yc); });
+	Ptr keepAlive (this);
+	m_Stopped.store(false);
 
-		if (!m_Parent) {
-			IoEngine::SpawnCoroutine(m_Strand, [this, keepAlive](asio::yield_context yc) { LogStats(yc); });
-		}
+	IoEngine::SpawnCoroutine(m_Strand, [this, keepAlive](asio::yield_context yc) { ReadLoop(yc); });
+	IoEngine::SpawnCoroutine(m_Strand, [this, keepAlive](asio::yield_context yc) { WriteLoop(yc); });
+
+	if (!m_Parent) {
+		IoEngine::SpawnCoroutine(m_Strand, [this, keepAlive](asio::yield_context yc) { LogStats(yc); });
 	}
 
-	if (!m_Connecting.exchange(true)) {
-		Ptr keepAlive (this);
+	m_Connecting.store(true);
+	IoEngine::SpawnCoroutine(m_Strand, [this, keepAlive](asio::yield_context yc) { Connect(yc); });
+}
 
-		IoEngine::SpawnCoroutine(m_Strand, [this, keepAlive](asio::yield_context yc) { Connect(yc); });
+/**
+ * Request disconnection from Redis once all pending queries have been processed.
+ *
+ * It is not guaranteed that the connection will actually be closed immediately after this call,
+ * but it will be closed eventually and no new queries will be accepted after this call.
+ */
+void RedisConnection::Disconnect()
+{
+	if (!m_Stopped.exchange(true)) {
+		boost::asio::post(m_Strand, [this, keepAlive = ConstPtr(this)] {
+			m_QueuedWrites.Set();
+			m_QueuedReads.Set();
+		});
 	}
 }
 
@@ -107,6 +121,8 @@ void LogQuery(RedisConnection::Query& query, Log& msg)
  */
 void RedisConnection::FireAndForgetQuery(RedisConnection::Query query, RedisConnection::QueryPriority priority, QueryAffects affects)
 {
+	ThrowIfStopped();
+
 	if (LogDebug >= Logger::GetMinLogSeverity()) {
 		Log msg (LogDebug, "IcingaDB", "Firing and forgetting query:");
 		LogQuery(query, msg);
@@ -130,6 +146,8 @@ void RedisConnection::FireAndForgetQuery(RedisConnection::Query query, RedisConn
  */
 void RedisConnection::FireAndForgetQueries(RedisConnection::Queries queries, RedisConnection::QueryPriority priority, QueryAffects affects)
 {
+	ThrowIfStopped();
+
 	if (LogDebug >= Logger::GetMinLogSeverity()) {
 		for (auto& query : queries) {
 			Log msg(LogDebug, "IcingaDB", "Firing and forgetting query:");
@@ -157,6 +175,8 @@ void RedisConnection::FireAndForgetQueries(RedisConnection::Queries queries, Red
  */
 RedisConnection::Reply RedisConnection::GetResultOfQuery(RedisConnection::Query query, RedisConnection::QueryPriority priority, QueryAffects affects)
 {
+	ThrowIfStopped();
+
 	if (LogDebug >= Logger::GetMinLogSeverity()) {
 		Log msg (LogDebug, "IcingaDB", "Executing query:");
 		LogQuery(query, msg);
@@ -188,6 +208,8 @@ RedisConnection::Reply RedisConnection::GetResultOfQuery(RedisConnection::Query 
  */
 RedisConnection::Replies RedisConnection::GetResultsOfQueries(RedisConnection::Queries queries, RedisConnection::QueryPriority priority, QueryAffects affects)
 {
+	ThrowIfStopped();
+
 	if (LogDebug >= Logger::GetMinLogSeverity()) {
 		for (auto& query : queries) {
 			Log msg(LogDebug, "IcingaDB", "Executing query:");
@@ -213,6 +235,8 @@ RedisConnection::Replies RedisConnection::GetResultsOfQueries(RedisConnection::Q
 
 void RedisConnection::EnqueueCallback(const std::function<void(boost::asio::yield_context&)>& callback, RedisConnection::QueryPriority priority)
 {
+	ThrowIfStopped();
+
 	auto ctime (Utility::GetTime());
 
 	asio::post(m_Strand, [this, callback, priority, ctime]() {
@@ -294,7 +318,7 @@ void RedisConnection::Connect(asio::yield_context& yc)
 
 	boost::asio::deadline_timer timer (m_Strand.context());
 
-	for (;;) {
+	while (!m_Stopped) {
 		try {
 			if (m_ConnInfo->Path.IsEmpty()) {
 				if (m_TLSContext) {
@@ -381,7 +405,7 @@ void RedisConnection::Connect(asio::yield_context& yc)
  */
 void RedisConnection::ReadLoop(asio::yield_context& yc)
 {
-	for (;;) {
+	while (!m_Stopped) {
 		m_QueuedReads.WaitForSet(yc);
 
 		while (!m_Queues.FutureResponseActions.empty()) {
@@ -450,6 +474,11 @@ void RedisConnection::ReadLoop(asio::yield_context& yc)
 
 		m_QueuedReads.Clear();
 	}
+	// The Connect method waits for the m_QueuedReads to be cleared before it considers the connection established,
+	// so we need to give it a chance to run after we've cleared m_QueuedReads above before we can safely disconnect.
+	boost::asio::post(yc);
+
+	Disconnect(yc);
 }
 
 /**
@@ -457,7 +486,7 @@ void RedisConnection::ReadLoop(asio::yield_context& yc)
  */
 void RedisConnection::WriteLoop(asio::yield_context& yc)
 {
-	for (;;) {
+	while (!m_Stopped) {
 		m_QueuedWrites.Wait(yc);
 
 	WriteFirstOfHighestPrio:
@@ -476,6 +505,34 @@ void RedisConnection::WriteLoop(asio::yield_context& yc)
 
 		m_QueuedWrites.Clear();
 	}
+	Disconnect(yc);
+}
+
+void RedisConnection::Disconnect(asio::yield_context& yc)
+{
+	if (!m_Connected) {
+		return;
+	}
+
+	Log(m_Parent ? LogNotice : LogInformation, "IcingaDB")
+		<< "Disconnecting Redis connection.";
+
+	boost::system::error_code ec;
+	if (m_TlsConn) {
+		m_TlsConn->GracefulDisconnect(m_Strand, yc);
+		m_TlsConn = nullptr;
+	} else if (m_TcpConn) {
+		m_TcpConn->lowest_layer().shutdown(Tcp::socket::shutdown_both, ec);
+		m_TcpConn->lowest_layer().close(ec);
+		m_TcpConn = nullptr;
+	} else if (m_UnixConn) {
+		m_UnixConn->lowest_layer().shutdown(Unix::socket::shutdown_both, ec);
+		m_UnixConn->lowest_layer().close(ec);
+		m_UnixConn = nullptr;
+	}
+
+	m_Connected.store(false);
+	m_Connecting.store(false);
 }
 
 /**
@@ -487,7 +544,7 @@ void RedisConnection::LogStats(asio::yield_context& yc)
 
 	m_LogStatsTimer.expires_from_now(boost::posix_time::seconds(10));
 
-	for (;;) {
+	while (!m_Stopped) {
 		m_LogStatsTimer.async_wait(yc);
 		m_LogStatsTimer.expires_from_now(boost::posix_time::seconds(10));
 
@@ -720,5 +777,12 @@ void RedisConnection::RecordAffected(RedisConnection::QueryAffects affected, dou
 		if (affected.History) {
 			m_WrittenHistory.InsertValue(when, affected.History);
 		}
+	}
+}
+
+void RedisConnection::ThrowIfStopped() const
+{
+	if (m_Stopped) {
+		throw RedisDisconnected();
 	}
 }
