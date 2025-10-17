@@ -32,8 +32,8 @@ void TcpSocket::Bind(const String& node, const String& service, int family)
 {
 	addrinfo hints;
 	addrinfo *result;
-	int error;
-	const char *func;
+	int error{};
+	const char *func{};
 
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = family;
@@ -126,8 +126,8 @@ void TcpSocket::Connect(const String& node, const String& service)
 {
 	addrinfo hints;
 	addrinfo *result;
-	int error;
-	const char *func;
+	int error{};
+	const char *func{};
 
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
