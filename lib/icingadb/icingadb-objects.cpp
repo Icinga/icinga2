@@ -503,9 +503,11 @@ void IcingaDB::UpdateAllConfigObjects()
 			rcon->FireAndForgetQuery({"XADD", "icinga:dump", "*", "key", key, "state", "done"}, Prio::Config);
 		}
 		rcon->Sync();
+		rcon->Disconnect(); // We're done with this connection, so close it.
 	});
 
 	upq.Join();
+	m_Rcons.clear();
 
 	if (upq.HasExceptions()) {
 		for (boost::exception_ptr exc : upq.GetExceptions()) {
