@@ -88,7 +88,7 @@ public:
 	}
 
 	void SetSeverity(const String& value, bool suppress_events = false, const Value& cookie = Empty) override;
-	void ValidateSeverity(const Lazy<String>& lvalue, const ValidationUtils& utils) final;
+	void ValidateSeverity(const Lazy<String>& lvalue, const ValidationUtils& utils) override final;
 
 protected:
 	void Start(bool runtimeCreated) override;
