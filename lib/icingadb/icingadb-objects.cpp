@@ -1494,7 +1494,7 @@ void IcingaDB::AddObjectDataToRuntimeUpdates(std::vector<Dictionary::Ptr>& runti
 
 // Takes object and collects IcingaDB relevant attributes and computes checksums. Returns whether the object is relevant
 // for IcingaDB.
-bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& attributes, Dictionary::Ptr& checksums)
+bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& attributes)
 {
 	auto originalAttrs (object->GetOriginalAttributes());
 
@@ -1818,9 +1818,8 @@ IcingaDB::CreateConfigUpdate(const ConfigObject::Ptr& object, const String typeN
 		return;
 
 	Dictionary::Ptr attr = new Dictionary;
-	Dictionary::Ptr chksm = new Dictionary;
 
-	if (!PrepareObject(object, attr, chksm))
+	if (!PrepareObject(object, attr))
 		return;
 
 	InsertObjectDependencies(object, typeName, hMSets, runtimeUpdates, runtimeUpdate);

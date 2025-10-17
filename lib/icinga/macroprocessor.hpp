@@ -61,7 +61,7 @@ private:
 		const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros,
 		int recursionLevel = 0);
 	static Value EvaluateFunction(const Function::Ptr& func, const ResolverList& resolvers,
-		const CheckResult::Ptr& cr, const MacroProcessor::EscapeCallback& escapeFn,
+		const CheckResult::Ptr& cr,
 		const Dictionary::Ptr& resolvedMacros, bool useResolvedMacros, int recursionLevel);
 
 	static void AddArgumentHelper(const Array::Ptr& args, const String& key, const String& value,

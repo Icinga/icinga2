@@ -107,7 +107,7 @@ void PluginNotificationTask::ScriptFunc(const Notification::Ptr& notification,
 		callback = [checkable](const Value& commandline, const ProcessResult& pr) { ProcessFinishedHandler(checkable, commandline, pr); };
 	}
 
-	PluginUtility::ExecuteCommand(commandObj, checkable, cr, resolvers,
+	PluginUtility::ExecuteCommand(commandObj, cr, resolvers,
 		resolvedMacros, useResolvedMacros, timeout, callback);
 }
 

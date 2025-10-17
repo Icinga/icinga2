@@ -30,8 +30,8 @@ protected:
 	void FetchRows(const AddRowFunction& addRowFn) override;
 
 	static Object::Ptr HostAccessor(const Value& row, const Column::ObjectAccessor& parentObjectAccessor);
-	static Object::Ptr ServiceGroupAccessor(const Value& row, LivestatusGroupByType groupByType, const Object::Ptr& groupByObject);
-	static Object::Ptr HostGroupAccessor(const Value& row, LivestatusGroupByType groupByType, const Object::Ptr& groupByObject);
+	static Object::Ptr ServiceGroupAccessor(LivestatusGroupByType groupByType, const Object::Ptr& groupByObject);
+	static Object::Ptr HostGroupAccessor(LivestatusGroupByType groupByType, const Object::Ptr& groupByObject);
 
 	static Value ShortNameAccessor(const Value& row);
 	static Value DisplayNameAccessor(const Value& row);

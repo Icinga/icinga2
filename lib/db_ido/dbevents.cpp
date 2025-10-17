@@ -64,9 +64,9 @@ void DbEvents::StaticInitialize()
 		DbEvents::EnableFlappingChangedHandler(checkable);
 	});
 
-	Checkable::OnReachabilityChanged.connect([](const Checkable::Ptr& checkable, const CheckResult::Ptr& cr,
+	Checkable::OnReachabilityChanged.connect([](const Checkable::Ptr&, const CheckResult::Ptr& cr,
 			std::set<Checkable::Ptr> children, const MessageOrigin::Ptr&) {
-		DbEvents::ReachabilityChangedHandler(checkable, cr, std::move(children));
+		DbEvents::ReachabilityChangedHandler(cr, std::move(children));
 	});
 
 	/* History */
@@ -77,23 +77,23 @@ void DbEvents::StaticInitialize()
 		DbEvents::AddAcknowledgementHistory(checkable, author, comment, type, notify, expiry);
 	});
 
-	Checkable::OnNotificationSentToAllUsers.connect([](const Notification::Ptr& notification, const Checkable::Ptr& checkable,
-		const std::set<User::Ptr>& users, const NotificationType& type, const CheckResult::Ptr& cr, const String& author,
-		const String& text, const MessageOrigin::Ptr&) {
-		DbEvents::AddNotificationHistory(notification, checkable, users, type, cr, author, text);
+	Checkable::OnNotificationSentToAllUsers.connect([](const Notification::Ptr&, const Checkable::Ptr& checkable,
+		const std::set<User::Ptr>& users, const NotificationType& type, const CheckResult::Ptr& cr, const String&,
+		const String&, const MessageOrigin::Ptr&) {
+		DbEvents::AddNotificationHistory(checkable, users, type, cr);
 	});
 
-	Checkable::OnStateChange.connect([](const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type, const MessageOrigin::Ptr&) {
-		DbEvents::AddStateChangeHistory(checkable, cr, type);
+	Checkable::OnStateChange.connect([](const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType, const MessageOrigin::Ptr&) {
+		DbEvents::AddStateChangeHistory(checkable, cr);
 	});
 
 	Checkable::OnNewCheckResult.connect([](const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const MessageOrigin::Ptr&) {
 		DbEvents::AddCheckResultLogHistory(checkable, cr);
 	});
-	Checkable::OnNotificationSentToUser.connect([](const Notification::Ptr& notification, const Checkable::Ptr& checkable,
+	Checkable::OnNotificationSentToUser.connect([](const Notification::Ptr&, const Checkable::Ptr& checkable,
 		const User::Ptr& users, const NotificationType& type, const CheckResult::Ptr& cr, const String& author, const String& text,
 		const String&, const MessageOrigin::Ptr&) {
-		DbEvents::AddNotificationSentLogHistory(notification, checkable, users, type, cr, author, text);
+		DbEvents::AddNotificationSentLogHistory(checkable, users, type, cr, author, text);
 	});
 	Checkable::OnFlappingChanged.connect([](const Checkable::Ptr& checkable, const Value&) {
 		DbEvents::AddFlappingChangedLogHistory(checkable);
@@ -219,7 +219,7 @@ void DbEvents::LastNotificationChangedHandler(const Notification::Ptr& notificat
 	DbObject::OnQuery(query1);
 }
 
-void DbEvents::ReachabilityChangedHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, std::set<Checkable::Ptr> children)
+void DbEvents::ReachabilityChangedHandler(const CheckResult::Ptr& cr, std::set<Checkable::Ptr> children)
 {
 	int is_reachable = 0;
 
@@ -834,8 +834,8 @@ void DbEvents::AddAcknowledgementInternal(const Checkable::Ptr& checkable, Ackno
 }
 
 /* notifications */
-void DbEvents::AddNotificationHistory(const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::set<User::Ptr>& users, NotificationType type,
-	const CheckResult::Ptr& cr, const String& author, const String& text)
+void DbEvents::AddNotificationHistory(const Checkable::Ptr& checkable, const std::set<User::Ptr>& users, NotificationType type,
+	const CheckResult::Ptr& cr)
 {
 	/* NotificationInsertID has to be tracked per IDO instance, therefore the OnQuery and OnMultipleQueries signals
 	 * cannot be called directly as all IDO instances would insert rows with the same ID which is (most likely) only
@@ -913,7 +913,7 @@ void DbEvents::AddNotificationHistory(const Notification::Ptr& notification, con
 }
 
 /* statehistory */
-void DbEvents::AddStateChangeHistory(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type)
+void DbEvents::AddStateChangeHistory(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
 {
 	double ts = cr->GetExecutionEnd();
 	std::pair<unsigned long, unsigned long> timeBag = ConvertTimestamp(ts);
@@ -1113,7 +1113,7 @@ void DbEvents::AddRemoveDowntimeLogHistory(const Downtime::Ptr& downtime)
 	AddLogHistory(checkable, msgbuf.str(), LogEntryTypeInfoMessage);
 }
 
-void DbEvents::AddNotificationSentLogHistory(const Notification::Ptr& notification, const Checkable::Ptr& checkable, const User::Ptr& user,
+void DbEvents::AddNotificationSentLogHistory(const Checkable::Ptr& checkable, const User::Ptr& user,
 	NotificationType notification_type, const CheckResult::Ptr& cr,
 	const String& author, const String& comment_text)
 {

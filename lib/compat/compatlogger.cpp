@@ -52,10 +52,10 @@ void CompatLogger::Start(bool runtimeCreated)
 	Checkable::OnNewCheckResult.connect([this](const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const MessageOrigin::Ptr&) {
 		CheckResultHandler(checkable, cr);
 	});
-	Checkable::OnNotificationSentToUser.connect([this](const Notification::Ptr& notification, const Checkable::Ptr& checkable,
+	Checkable::OnNotificationSentToUser.connect([this](const Notification::Ptr&, const Checkable::Ptr& checkable,
 		const User::Ptr& user, const NotificationType& type, const CheckResult::Ptr& cr, const String& author,
 		const String& commentText, const String& commandName, const MessageOrigin::Ptr&) {
-		NotificationSentHandler(notification, checkable, user, type, cr, author, commentText, commandName);
+		NotificationSentHandler(checkable, user, type, cr, author, commentText, commandName);
 	});
 
 	Downtime::OnDowntimeTriggered.connect([this](const Downtime::Ptr& downtime) { TriggerDowntimeHandler(downtime); });
@@ -240,7 +240,7 @@ void CompatLogger::RemoveDowntimeHandler(const Downtime::Ptr& downtime)
 /**
  * @threadsafety Always.
  */
-void CompatLogger::NotificationSentHandler(const Notification::Ptr& notification, const Checkable::Ptr& checkable,
+void CompatLogger::NotificationSentHandler(const Checkable::Ptr& checkable,
 	const User::Ptr& user, NotificationType notification_type, CheckResult::Ptr const& cr,
 	const String& author, const String& comment_text, const String& command_name)
 {

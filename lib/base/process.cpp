@@ -222,7 +222,7 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 	return response;
 }
 
-static Value ProcessKillImpl(struct msghdr *msgh, const Dictionary::Ptr& request)
+static Value ProcessKillImpl(const Dictionary::Ptr& request)
 {
 	pid_t pid = request->Get("pid");
 	int signum = request->Get("signum");
@@ -238,7 +238,7 @@ static Value ProcessKillImpl(struct msghdr *msgh, const Dictionary::Ptr& request
 	return response;
 }
 
-static Value ProcessWaitPIDImpl(struct msghdr *msgh, const Dictionary::Ptr& request)
+static Value ProcessWaitPIDImpl(const Dictionary::Ptr& request)
 {
 	pid_t pid = request->Get("pid");
 
@@ -321,9 +321,9 @@ static void ProcessHandler()
 		if (command == "spawn")
 			response = ProcessSpawnImpl(&msg, request);
 		else if (command == "waitpid")
-			response = ProcessWaitPIDImpl(&msg, request);
+			response = ProcessWaitPIDImpl(request);
 		else if (command == "kill")
-			response = ProcessKillImpl(&msg, request);
+			response = ProcessKillImpl(request);
 		else
 			response = Empty;
 
