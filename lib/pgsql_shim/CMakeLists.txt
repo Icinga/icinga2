@@ -22,7 +22,7 @@ target_link_libraries(pgsql_shim ${PostgreSQL_LIBRARIES})
 set_target_properties (
   pgsql_shim PROPERTIES
   FOLDER Lib
-  VERSION ${SPEC_VERSION}
+  VERSION ${ICINGA2_PACKAGE_VERSION}
 )
 
 install(
