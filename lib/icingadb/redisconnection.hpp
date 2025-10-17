@@ -89,6 +89,7 @@ namespace icinga
 		void UpdateTLSContext();
 
 		void Start();
+		void Disconnect();
 
 		bool IsConnected() const;
 
@@ -221,7 +222,7 @@ namespace icinga
 		Shared<TcpConn>::Ptr m_TcpConn;
 		Shared<UnixConn>::Ptr m_UnixConn;
 		Shared<AsioTlsStream>::Ptr m_TlsConn;
-		Atomic<bool> m_Connecting, m_Connected, m_Started;
+		Atomic<bool> m_Connecting, m_Connected, m_Stopped;
 
 		struct {
 			// Items to be send to Redis
@@ -369,7 +370,7 @@ RedisConnection::Reply RedisConnection::ReadOne(StreamPtr& stream, boost::asio::
 	try {
 		return ReadRESP(*strm, yc);
 	} catch (const std::exception&) {
-		if (m_Connecting.exchange(false)) {
+		if (!m_Stopped && m_Connecting.exchange(false)) {
 			m_Connected.store(false);
 			stream = nullptr;
 
@@ -405,7 +406,7 @@ void RedisConnection::WriteOne(StreamPtr& stream, RedisConnection::Query& query,
 		WriteRESP(*strm, query, yc);
 		strm->async_flush(yc);
 	} catch (const std::exception&) {
-		if (m_Connecting.exchange(false)) {
+		if (!m_Stopped && m_Connecting.exchange(false)) {
 			m_Connected.store(false);
 			stream = nullptr;
 
