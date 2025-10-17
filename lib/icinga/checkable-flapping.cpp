@@ -110,5 +110,6 @@ int Checkable::ServiceStateToFlappingFilter(ServiceState state)
 			return StateFilterUnknown;
 		default:
 			VERIFY(!"Invalid state type.");
+			return{};
 	}
 }
