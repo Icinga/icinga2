@@ -280,7 +280,7 @@ std::unique_ptr<Expression> ConfigCompiler::Compile()
 
 	std::unique_ptr<DictExpression> expr{new DictExpression(std::move(dlist))};
 	expr->MakeInline();
-	return std::move(expr);
+	return expr;
 }
 
 #define scanner (context->GetScanner())
