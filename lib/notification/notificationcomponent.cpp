@@ -83,37 +83,34 @@ void FireSuppressedNotifications(const Notification::Ptr& notification)
 	int subtract = 0;
 	auto checkable (notification->GetCheckable());
 
-	for (auto type : {NotificationProblem, NotificationRecovery, NotificationFlappingStart, NotificationFlappingEnd}) {
-		if ((suppressedTypes & type) && !checkable->NotificationReasonApplies(type)) {
-			subtract |= type;
-			suppressedTypes &= ~type;
-		}
-	}
+	auto tp (notification->GetPeriod());
 
-	if (suppressedTypes) {
-		auto tp (notification->GetPeriod());
+	if ((!tp || tp->IsInside(Utility::GetTime())) && !checkable->IsLikelyToBeCheckedSoon()) {
+		for (auto type : {NotificationProblem, NotificationRecovery, NotificationFlappingStart, NotificationFlappingEnd}) {
+			if (!(suppressedTypes & type) || checkable->NotificationReasonSuppressed(type)) {
+				continue;
+			}
 
-		if ((!tp || tp->IsInside(Utility::GetTime())) && !checkable->IsLikelyToBeCheckedSoon()) {
-			for (auto type : {NotificationProblem, NotificationRecovery, NotificationFlappingStart, NotificationFlappingEnd}) {
-				if (!(suppressedTypes & type) || checkable->NotificationReasonSuppressed(type))
-					continue;
-
-				auto notificationName (notification->GetName());
-
-				Log(LogNotice, "NotificationComponent")
-					<< "Attempting to re-send previously suppressed notification '" << notificationName << "'.";
-
+			if (!checkable->NotificationReasonApplies(type)) {
 				subtract |= type;
-				SubtractSuppressedNotificationTypes(notification, subtract);
-				subtract = 0;
+				continue;
+			}
 
-				try {
-					notification->BeginExecuteNotification(type, checkable->GetLastCheckResult(), false, false);
-				} catch (const std::exception& ex) {
-					Log(LogWarning, "NotificationComponent")
-						<< "Exception occurred during notification for object '"
-						<< notificationName << "': " << DiagnosticInformation(ex, false);
-				}
+			auto notificationName (notification->GetName());
+
+			Log(LogNotice, "NotificationComponent")
+				<< "Attempting to re-send previously suppressed notification '" << notificationName << "'.";
+
+			subtract |= type;
+			SubtractSuppressedNotificationTypes(notification, subtract);
+			subtract = 0;
+
+			try {
+				notification->BeginExecuteNotification(type, checkable->GetLastCheckResult(), false, false);
+			} catch (const std::exception& ex) {
+				Log(LogWarning, "NotificationComponent")
+					<< "Exception occurred during notification for object '"
+					<< notificationName << "': " << DiagnosticInformation(ex, false);
 			}
 		}
 	}
