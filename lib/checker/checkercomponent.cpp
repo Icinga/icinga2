@@ -55,6 +55,9 @@ void CheckerComponent::OnConfigLoaded()
 	Checkable::OnNextCheckChanged.connect([this](const Checkable::Ptr& checkable, const Value&) {
 		NextCheckChangedHandler(checkable);
 	});
+	Checkable::OnRescheduleCheck.connect([this](const Checkable::Ptr& checkable, double nextCheck) {
+		NextCheckChangedHandler(checkable, nextCheck);
+	});
 }
 
 void CheckerComponent::Start(bool runtimeCreated)
@@ -68,7 +71,7 @@ void CheckerComponent::Start(bool runtimeCreated)
 	m_Thread = std::thread([this]() { CheckThreadProc(); });
 
 	m_ResultTimer = Timer::Create();
-	m_ResultTimer->SetInterval(5);
+	m_ResultTimer->SetInterval(m_ResultTimerInterval);
 	m_ResultTimer->OnTimerExpired.connect([this](const Timer * const&) { ResultTimerHandler(); });
 	m_ResultTimer->Start();
 }
@@ -135,7 +138,6 @@ void CheckerComponent::CheckThreadProc()
 
 		bool forced = checkable->GetForceNextCheck();
 		bool check = true;
-		bool notifyNextCheck = false;
 		double nextCheck = -1;
 
 		if (!forced) {
@@ -144,7 +146,6 @@ void CheckerComponent::CheckThreadProc()
 					<< "Skipping check for object '" << checkable->GetName() << "': Dependency failed.";
 
 				check = false;
-				notifyNextCheck = true;
 			}
 
 			Host::Ptr host;
@@ -181,7 +182,6 @@ void CheckerComponent::CheckThreadProc()
 						<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", nextCheck);
 
 					check = false;
-					notifyNextCheck = true;
 				}
 			}
 		}
@@ -198,11 +198,6 @@ void CheckerComponent::CheckThreadProc()
 					<< "Checks for checkable '" << checkable->GetName() << "' are disabled. Rescheduling check.";
 
 				checkable->UpdateNextCheck();
-			}
-
-			if (notifyNextCheck) {
-				// Trigger update event for Icinga DB
-				Checkable::OnNextCheckUpdated(checkable);
 			}
 
 			lock.lock();
@@ -341,7 +336,7 @@ CheckableScheduleInfo CheckerComponent::GetCheckableScheduleInfo(const Checkable
 	return csi;
 }
 
-void CheckerComponent::NextCheckChangedHandler(const Checkable::Ptr& checkable)
+void CheckerComponent::NextCheckChangedHandler(const Checkable::Ptr& checkable, double nextCheck)
 {
 	std::unique_lock<std::mutex> lock(m_Mutex);
 
@@ -356,7 +351,13 @@ void CheckerComponent::NextCheckChangedHandler(const Checkable::Ptr& checkable)
 
 	idx.erase(checkable);
 
-	CheckableScheduleInfo csi = GetCheckableScheduleInfo(checkable);
+	CheckableScheduleInfo csi;
+	if (nextCheck < 0) {
+		csi = GetCheckableScheduleInfo(checkable);
+	} else {
+		csi.NextCheck = nextCheck;
+		csi.Object = checkable;
+	}
 	idx.insert(csi);
 
 	m_CV.notify_all();
@@ -374,4 +375,19 @@ unsigned long CheckerComponent::GetPendingCheckables()
 	std::unique_lock<std::mutex> lock(m_Mutex);
 
 	return m_PendingCheckables.size();
+}
+
+/**
+ * Sets the interval in seconds for the result timer.
+ *
+ * The result timer periodically logs the number of pending and idle checkables
+ * as well as the checks per second rate. The default interval is 5 seconds.
+ *
+ * Note, this method must be called before the component is started to have an effect on the timer.
+ *
+ * @param interval Interval in seconds for the result timer.
+ */
+void CheckerComponent::SetResultTimerInterval(double interval)
+{
+	m_ResultTimerInterval = interval;
 }

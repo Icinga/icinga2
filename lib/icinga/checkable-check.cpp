@@ -22,7 +22,7 @@ boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, co
 boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, StateType, const MessageOrigin::Ptr&)> Checkable::OnStateChange;
 boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, std::set<Checkable::Ptr>, const MessageOrigin::Ptr&)> Checkable::OnReachabilityChanged;
 boost::signals2::signal<void (const Checkable::Ptr&, NotificationType, const CheckResult::Ptr&, const String&, const String&, const MessageOrigin::Ptr&)> Checkable::OnNotificationsRequested;
-boost::signals2::signal<void (const Checkable::Ptr&)> Checkable::OnNextCheckUpdated;
+boost::signals2::signal<void (const Checkable::Ptr&, double)> Checkable::OnRescheduleCheck;
 
 Atomic<uint_fast64_t> Checkable::CurrentConcurrentChecks (0);
 
@@ -45,12 +45,22 @@ void Checkable::SetSchedulingOffset(long offset)
 	m_SchedulingOffset = offset;
 }
 
-long Checkable::GetSchedulingOffset()
+long Checkable::GetSchedulingOffset() const
 {
 	return m_SchedulingOffset;
 }
 
-void Checkable::UpdateNextCheck(const MessageOrigin::Ptr& origin)
+/**
+ * Update the next check time of this checkable based on its check interval and last check time.
+ *
+ * If onlyReschedule is true, the next check time is not actually updated, but the @c Checkable::OnRescheduleCheck
+ * signal is emitted with the new calculated next check time. Otherwise, the next check time is updated
+ * and the @c Checkable::OnNextCheckChanged signal is emitted accordingly.
+ *
+ * @param origin The origin of the message triggering this update, can be nullptr.
+ * @param onlyReschedule If true, only emit @c OnRescheduleCheck without updating the next check time.
+ */
+void Checkable::UpdateNextCheck(const MessageOrigin::Ptr& origin, bool onlyReschedule)
 {
 	double interval;
 
@@ -78,12 +88,24 @@ void Checkable::UpdateNextCheck(const MessageOrigin::Ptr& origin)
 		<< " (" << lastCheck << ") to next check time at "
 		<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", nextCheck) << " (" << nextCheck << ").";
 
-	SetNextCheck(nextCheck, false, origin);
+	if (onlyReschedule) {
+		// Someone requested to only reschedule the next check without actually changing it.
+		// So, just tell the checker about this new timestamp and return.
+		OnRescheduleCheck(this, nextCheck);
+	} else {
+		// Otherwise, set the next check to the newly calculated timestamp and inform all its listeners.
+		SetNextCheck(nextCheck, false, origin);
+	}
 }
 
 bool Checkable::HasBeenChecked() const
 {
 	return GetLastCheckResult() != nullptr;
+}
+
+bool Checkable::HasRunningCheck() const
+{
+	return m_CheckRunning;
 }
 
 double Checkable::GetLastCheck() const
@@ -105,7 +127,7 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 	VERIFY(producer);
 
 	ObjectLock olock(this);
-	m_CheckRunning = false;
+	m_CheckRunning.store(false);
 
 	double now = Utility::GetTime();
 
@@ -513,12 +535,15 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 	if (recovery) {
 		for (auto& child : children) {
 			if (child->GetProblem() && child->GetEnableActiveChecks()) {
-				auto nextCheck (now + Utility::Random() % 60);
-
-				ObjectLock oLock (child);
-
-				if (nextCheck < child->GetNextCheck()) {
-					child->SetNextCheck(nextCheck);
+				if (auto nextCheck (now + Utility::Random() % 60); nextCheck < child->GetNextCheck()) {
+					/**
+					 * We only want to enforce the checker to pick this up sooner, and no need to actually change
+					 * the timesatmp. Plus, no other listeners should be informed about this other than the checker,
+					 * so we emit the OnRescheduleCheck signal directly. In case our checker isn't responsible for
+					 * this child object, we've already broadcasted the `CheckResult` event which will cause on the
+					 * responsible node to enter this exact branch and do the rescheduling for its own checker.
+					 */
+					OnRescheduleCheck(child, nextCheck);
 				}
 			}
 		}
@@ -534,8 +559,8 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 				continue;
 
 			if (parent->GetNextCheck() >= now + parent->GetRetryInterval()) {
-				ObjectLock olock(parent);
-				parent->SetNextCheck(now);
+				// See comment above for children. We want to just enforce an immediate check by our checker.
+				OnRescheduleCheck(parent, now);
 			}
 		}
 	}
@@ -561,28 +586,20 @@ void Checkable::ExecuteCheck(const WaitGroup::Ptr& producer)
 {
 	CONTEXT("Executing check for object '" << GetName() << "'");
 
+	/* don't run another check if there is one pending */
+	if (m_CheckRunning.exchange(true))
+		return; // Should never happen as the checker already takes care of this.
+
 	/* keep track of scheduling info in case the check type doesn't provide its own information */
 	double scheduled_start = GetNextCheck();
 	double before_check = Utility::GetTime();
 
 	SetLastCheckStarted(Utility::GetTime());
 
-	/* This calls SetNextCheck() which updates the CheckerComponent's idle/pending
-	 * queues and ensures that checks are not fired multiple times. ProcessCheckResult()
-	 * is called too late. See #6421.
-	 */
-	UpdateNextCheck();
-
 	bool reachable = IsReachable();
 
 	{
 		ObjectLock olock(this);
-
-		/* don't run another check if there is one pending */
-		if (m_CheckRunning)
-			return;
-
-		m_CheckRunning = true;
 
 		SetLastStateRaw(GetStateRaw());
 		SetLastStateType(GetLastStateType());
@@ -640,11 +657,16 @@ void Checkable::ExecuteCheck(const WaitGroup::Ptr& producer)
 			if (listener)
 				listener->SyncSendMessage(endpoint, message);
 
-			/* Re-schedule the check so we don't run it again until after we've received
-			 * a check result from the remote instance. The check will be re-scheduled
-			 * using the proper check interval once we've received a check result.
+			/*
+			 * Let the checker use a dummy next check time until we actually receive the check result from the
+			 * remote endpoint. This should be sufficiently far in the future to avoid excessive CPU load by
+			 * constantly re-running the check, but not too far in the future to avoid that the check is not
+			 * re-run for too long in case the remote endpoint never responds. We add a small grace period
+			 * to the check command timeout to account for network latency and processing time on the remote
+			 * endpoint. So, we only need to silently update this without notifying any listeners, and once
+			 * this function returns, the checker is going access it via GetNextCheck() again.
 			 */
-			SetNextCheck(Utility::GetTime() + checkTimeout + 30);
+			SetNextCheck(Utility::GetTime() + checkTimeout + 30, true);
 
 		/*
 		 * Let the user know that there was a problem with the check if
@@ -667,12 +689,22 @@ void Checkable::ExecuteCheck(const WaitGroup::Ptr& producer)
 			cr->SetOutput(output);
 
 			ProcessCheckResult(cr, producer);
+		} else {
+			/**
+			 * The endpoint is currently either syncing its state or not connected yet and we are within
+			 * the magical 5min cold startup window. In both cases, we just don't do anything and wait for
+			 * the next check interval to re-try the check again. So, this check is effectively skipped.
+			 */
+			UpdateNextCheck();
 		}
 
-		{
-			ObjectLock olock(this);
-			m_CheckRunning = false;
-		}
+		/**
+		 * If this is a remote check, we don't know when the check result will be received and processed.
+		 * Therefore, we must mark the check as no longer running here, otherwise, no further checks
+		 * would be executed for this checkable as it would always appear as having a running check
+		 * (see the check at the start of this function).
+		 */
+		m_CheckRunning.store(false);
 	}
 }
 
