@@ -350,37 +350,32 @@ BOOST_AUTO_TEST_CASE(notify_multiple_state_changes_outside_timeperiod)
 	BOOST_REQUIRE(AssertNoAttemptedSendLogPattern());
 	BOOST_REQUIRE_EQUAL(GetNotificationCount(), 1);
 	BOOST_REQUIRE_EQUAL(GetLastNotification(), NotificationProblem);
-	// NOTE: This is the bug. The timer run above has reset the suppressed ServiceOK event
-	BOOST_REQUIRE_EQUAL(GetSuppressedNotifications(), 0);
+	BOOST_REQUIRE_EQUAL(GetSuppressedNotifications(), NotificationRecovery);
 
 	// Third Critical check result will set the Critical hard state.
 	ReceiveCheckResults(2, ServiceCritical);
 	BOOST_REQUIRE(AssertNoAttemptedSendLogPattern());
 	BOOST_REQUIRE_EQUAL(GetNotificationCount(), 1);
 	BOOST_REQUIRE_EQUAL(GetLastNotification(), NotificationProblem);
-	BOOST_REQUIRE_EQUAL(GetSuppressedNotifications(), NotificationProblem);
+	BOOST_REQUIRE_EQUAL(GetSuppressedNotifications(), 0);
 
 	NotificationTimerHandler();
-	BOOST_REQUIRE(AssertNoAttemptedSendLogPattern());
-	BOOST_REQUIRE_EQUAL(GetNotificationCount(), 1);
-	BOOST_REQUIRE_EQUAL(GetLastNotification(), NotificationProblem);
-	BOOST_REQUIRE_EQUAL(GetSuppressedNotifications(), NotificationProblem);
-
-	ReceiveCheckResults(1, ServiceOK);
 	BOOST_REQUIRE(AssertNoAttemptedSendLogPattern());
 	BOOST_REQUIRE_EQUAL(GetNotificationCount(), 1);
 	BOOST_REQUIRE_EQUAL(GetLastNotification(), NotificationProblem);
 	BOOST_REQUIRE_EQUAL(GetSuppressedNotifications(), 0);
 
-	// Resonably we would now expect a NotificationRecovered, but it will not arrive due to the bug.
-	BeginTimePeriod();
-
-	// No notification will be received because the suppressed notifications got borked
-	// when they were cleared previously in FireSuppressedNotifications()
-	NotificationTimerHandler();
+	ReceiveCheckResults(1, ServiceOK);
 	BOOST_REQUIRE(AssertNoAttemptedSendLogPattern());
 	BOOST_REQUIRE_EQUAL(GetNotificationCount(), 1);
 	BOOST_REQUIRE_EQUAL(GetLastNotification(), NotificationProblem);
+	BOOST_REQUIRE_EQUAL(GetSuppressedNotifications(), NotificationRecovery);
+
+	BeginTimePeriod();
+
+	NotificationTimerHandler();
+	BOOST_REQUIRE(WaitForExpectedNotificationCount(2));
+	BOOST_REQUIRE_EQUAL(GetLastNotification(), NotificationRecovery);
 	BOOST_REQUIRE_EQUAL(GetSuppressedNotifications(), 0);
 }
 
