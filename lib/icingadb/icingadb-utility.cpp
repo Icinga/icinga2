@@ -27,15 +27,15 @@
 using namespace icinga;
 
 /**
- * Checks if the given Redis key is a state key.
+ * Checks if the given key is a state key by verifying if it ends with ":state".
  *
- * @param key The Redis key to check.
+ * @param key The string view representing the key to check.
  *
  * @return true if the key is a state key, false otherwise.
  */
-bool IcingaDB::IsStateKey(RedisKey key)
+bool IcingaDB::IsStateKey(std::string_view key)
 {
-	return key > RedisKey::_state_keys_begin && key < RedisKey::_state_keys_end;
+	return boost::algorithm::ends_with(key, ":state");
 }
 
 String IcingaDB::FormatCheckSumBinary(const String& str)
@@ -374,6 +374,29 @@ String IcingaDB::HashValue(const Value& value, const std::set<String>& propertie
 String IcingaDB::GetLowerCaseTypeNameDB(const ConfigObject::Ptr& obj)
 {
 	return obj->GetReflectionType()->GetName().ToLower();
+}
+
+/**
+ * Determines the Redis key suffixes for environment variables and arguments based on the given command type.
+ *
+ * @param command The command object to get the environment variable and argument keys for.
+ * @return The Redis key suffixes for environment variables and arguments, respectively.
+ *
+ * @throws std::invalid_argument if the command type doesn't match any of the expected command types.
+ */
+std::pair<std::string_view, std::string_view> IcingaDB::GetCmdEnvArgKeys(const Command::Ptr& command)
+{
+	const auto& cmdType = command->GetReflectionType();
+	if (CheckCommand::TypeInstance->IsAssignableFrom(cmdType)) {
+		return {"checkcommand:envvar", "checkcommand:argument"};
+	}
+	if (NotificationCommand::TypeInstance->IsAssignableFrom(cmdType)) {
+		return {"notificationcommand:envvar", "notificationcommand:argument"};
+	}
+	if (EventCommand::TypeInstance->IsAssignableFrom(cmdType)) {
+		return {"eventcommand:envvar", "eventcommand:argument"};
+	}
+	BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid command type specified"));
 }
 
 long long IcingaDB::TimestampToMilliseconds(double timestamp) {

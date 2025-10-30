@@ -33,74 +33,6 @@ namespace icinga
 {
 
 /**
- * RedisKey is the enumeration of all Redis keys used by IcingaDB.
- *
- * Each enum value represents a specific Redis key type from which the actual Redis key strings are derived.
- * For instance, the `Host` enum value corresponds to the Redis key pattern `icinga:host`. These enums help
- * in organizing and managing the various Redis keys in a transparent and consistent manner and avoid hardcoding
- * key strings throughout the codebase.
- *
- * @ingroup icingadb
- */
-enum class RedisKey : uint8_t
-{
-	/* Command-related keys */
-	CheckCmdArg,
-	CheckCmdEnvVar,
-	CheckCmdCustomVar,
-
-	EventCmdArg,
-	EventCmdEnvVar,
-	EventCmdCustomVar,
-
-	NotificationCmdArg,
-	NotificationCmdEnvVar,
-	NotificationCmdCustomVar,
-
-	/* Dependency related config */
-	DependencyNode,
-	DependencyEdge,
-	RedundancyGroup,
-
-	/* Hosts & Services */
-	HostCustomVar,
-	HostGroupMember,
-	HostGroupCustomVar,
-
-	ServiceCustomVar,
-	ServiceGroupMember,
-	ServiceGroupCustomVar,
-
-	/* Users & Usergroups */
-	UserCustomVar,
-	UserGroupMember,
-	UserGroupCustomVar,
-
-	/* Notification */
-	NotificationUser,
-	NotificationUserGroup,
-	NotificationRecipient,
-	NotificationCustomVar,
-
-	/* Timeperiods */
-	TimePeriodRange,
-	TimePeriodInclude,
-	TimePeriodExclude,
-	TimePeriodCustomVar,
-
-	/* Downtimes */
-	ScheduledDowntimeCustomVar,
-
-	/* State keys marker and state entries */
-	_state_keys_begin,
-	HostState,
-	ServiceState,
-	RedundancyGroupState,
-	DependencyEdgeState,
-	_state_keys_end,
-};
-
-/**
  * Dirty bits for config/state changes.
  *
  * These are used to mark objects as "dirty" in order to trigger appropriate updates in Redis.
@@ -207,7 +139,7 @@ struct PendingDependencyEdgeItem : PendingQueueItem
 };
 
 // Map of Redis keys to a boolean indicating whether to delete the checksum key as well.
-using RelationsKeyMap = std::map<RedisKey, bool /* checksum? */>;
+using RelationsKeyMap = std::map<std::string_view, bool /* checksum? */>;
 
 /**
  * A pending relations deletion item.
@@ -283,13 +215,6 @@ private:
 		std::mutex m_Mutex;
 	};
 
-	enum StateUpdate
-	{
-		Volatile    = 1ull << 0,
-		RuntimeOnly = 1ull << 1,
-		Full        = Volatile | RuntimeOnly,
-	};
-
 	void OnConnectedHandler();
 
 	void PublishStatsTimerHandler();
@@ -305,20 +230,16 @@ private:
 		std::vector<Dictionary::Ptr>* runtimeUpdates, const DependencyGroup::Ptr& onlyDependencyGroup = nullptr);
 	void InsertObjectDependencies(const ConfigObject::Ptr& object, const String typeName, std::map<String, std::vector<String>>& hMSets,
 			std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate);
-	void UpdateDependenciesState(const Checkable::Ptr& checkable, const DependencyGroup::Ptr& onlyDependencyGroup = nullptr,
-		std::set<DependencyGroup*>* seenGroups = nullptr) const;
-	void UpdateState(const Checkable::Ptr& checkable, StateUpdate mode);
-	void SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpdate);
+	void UpdateState(const Checkable::Ptr& checkable, uint32_t mode);
+	void UpdateDependenciesState(const Checkable::Ptr& checkable, const DependencyGroup::Ptr& depGroup) const;
 	void CreateConfigUpdate(const ConfigObject::Ptr& object, const String type, std::map<String, std::vector<String>>& hMSets,
 			std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate);
 	void SendConfigDelete(const ConfigObject::Ptr& object);
 	void SendStateChange(const ConfigObject::Ptr& object, const CheckResult::Ptr& cr, StateType type);
 	void AddObjectDataToRuntimeUpdates(std::vector<Dictionary::Ptr>& runtimeUpdates, const String& objectKey,
 			const String& redisKey, const Dictionary::Ptr& data);
-	void DeleteRelationship(const String& id, const String& redisKeyWithoutPrefix, bool hasChecksum = false);
-	void DeleteRelationship(const String& id, RedisKey redisKey, bool hasChecksum = false);
-	void DeleteState(const String& id, RedisKey redisKey, bool hasChecksum = false) const;
-	void AddDataToHmSets(std::map<String, RedisConnection::Query>& hMSets, RedisKey redisKey, const String& id, const Dictionary::Ptr& data) const;
+	void DeleteRelationship(const std::string& id, std::string_view redisKeyWithoutPrefix, bool hasChecksum = false) const;
+	void DeleteState(const std::string& id, std::string_view redisKeyWithoutPrefix, bool hasChecksum = false) const;
 
 	void SendSentNotification(
 		const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::set<User::Ptr>& users,
@@ -340,11 +261,9 @@ private:
 	void SendTimePeriodExcludesChanged(const TimePeriod::Ptr& timeperiod, const Array::Ptr& oldValues, const Array::Ptr& newValues);
 	template<class T>
 	void SendGroupsChanged(const ConfigObject::Ptr& command, const Array::Ptr& oldValues, const Array::Ptr& newValues);
-	void SendCommandEnvChanged(const ConfigObject::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
-	void SendCommandArgumentsChanged(const ConfigObject::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
+	void SendCommandEnvChanged(const ConfigObject::Ptr& command, std::string_view keyType, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
+	void SendCommandArgumentsChanged(const ConfigObject::Ptr& command, std::string_view keyType, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
 	void SendCustomVarsChanged(const ConfigObject::Ptr& object, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
-	void SendDependencyGroupChildRegistered(const Checkable::Ptr& child, const DependencyGroup::Ptr& dependencyGroup);
-	void SendDependencyGroupChildRemoved(const DependencyGroup::Ptr& dependencyGroup, const std::vector<Dependency::Ptr>& dependencies, bool removeGroup);
 
 	void ForwardHistoryEntries();
 
@@ -355,7 +274,8 @@ private:
 	static Dictionary::Ptr GetStats();
 
 	/* utilities */
-	static bool IsStateKey(RedisKey key);
+	static void AddDataToHmSets(std::map<String, RedisConnection::Query>& hMSets, std::string_view redisKey, const String& id, const Dictionary::Ptr& data);
+	static bool IsStateKey(std::string_view key);
 	static String FormatCheckSumBinary(const String& str);
 	static String FormatCommandLine(const Value& commandLine);
 	static long long TimestampToMilliseconds(double timestamp);
@@ -373,6 +293,7 @@ private:
 	static Dictionary::Ptr SerializeDependencyEdgeState(const DependencyGroup::Ptr& dependencyGroup, const Dependency::Ptr& dep);
 	static Dictionary::Ptr SerializeRedundancyGroupState(const Checkable::Ptr& child, const DependencyGroup::Ptr& redundancyGroup);
 	static String GetDependencyEdgeStateId(const DependencyGroup::Ptr& dependencyGroup, const Dependency::Ptr& dep);
+	static std::pair<std::string_view, std::string_view> GetCmdEnvArgKeys(const Command::Ptr& command);
 
 	static String HashValue(const Value& value);
 	static String HashValue(const Value& value, const std::set<String>& propertiesBlacklist, bool propertiesWhitelist = false);
@@ -409,8 +330,8 @@ private:
 	static void UserGroupsChangedHandler(const User::Ptr& user, const Array::Ptr&, const Array::Ptr& newValues);
 	static void HostGroupsChangedHandler(const Host::Ptr& host, const Array::Ptr& oldValues, const Array::Ptr& newValues);
 	static void ServiceGroupsChangedHandler(const Service::Ptr& service, const Array::Ptr& oldValues, const Array::Ptr& newValues);
-	static void CommandEnvChangedHandler(const ConfigObject::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
-	static void CommandArgumentsChangedHandler(const ConfigObject::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
+	static void CommandEnvChangedHandler(const Command::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
+	static void CommandArgumentsChangedHandler(const Command::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
 	static void CustomVarsChangedHandler(const ConfigObject::Ptr& object, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
 
 	static void ExecuteRedisTransaction(const RedisConnection::Ptr& rcon, std::map<String, RedisConnection::Query>& hMSets,

@@ -380,7 +380,7 @@ void IcingaDB::EnqueueDependencyChildRemoved(
 		// This might be a no-op in some cases (e.g. if the child's only dependency was the one that we just canceled
 		// above), but since we can't reliably determine whether the node exists in Redis or not, we just enqueue the
 		// deletion anyway.
-		EnqueueRelationsDeletion(GetObjectIdentifier(child), {{RedisKey::DependencyNode, false}});
+		EnqueueRelationsDeletion(GetObjectIdentifier(child), {{"dependency:node", false}});
 	}
 
 	if (hadPendingRegistration && depGroup->GetIcingaDBIdentifier().IsEmpty()) {
@@ -412,8 +412,8 @@ void IcingaDB::EnqueueDependencyChildRemoved(
 					EnqueueRelationsDeletion(
 						GetDependencyEdgeStateId(depGroup, dependency),
 						{
-							{RedisKey::DependencyEdge, false},
-							{RedisKey::DependencyEdgeState, false},
+							{"dependency:edge", false},
+							{"dependency:edge:state", false},
 						}
 					);
 				}
@@ -428,7 +428,7 @@ void IcingaDB::EnqueueDependencyChildRemoved(
 				}
 			}
 
-			EnqueueRelationsDeletion(std::move(edgeId), {{RedisKey::DependencyEdge, false}});
+			EnqueueRelationsDeletion(std::move(edgeId), {{"dependency:edge", false}});
 
 			// The total_children and affects_children columns might now have different outcome, so update the parent
 			// Checkable as well. The grandparent Checkable may still have wrong numbers of total children, though it's
@@ -438,7 +438,7 @@ void IcingaDB::EnqueueDependencyChildRemoved(
 
 			if (!parent->HasAnyDependencies()) {
 				// If the parent Checkable isn't part of any other dependency chain anymore, drop its dependency node entry.
-				EnqueueRelationsDeletion(GetObjectIdentifier(parent), {{RedisKey::DependencyNode, false}});
+				EnqueueRelationsDeletion(GetObjectIdentifier(parent), {{"dependency:node", false}});
 			}
 		}
 	}
@@ -447,16 +447,16 @@ void IcingaDB::EnqueueDependencyChildRemoved(
 		EnqueueRelationsDeletion(
 			depGroup->GetIcingaDBIdentifier(),
 			{
-				{RedisKey::DependencyNode, false},
-				{RedisKey::RedundancyGroup, false},
-				{RedisKey::RedundancyGroupState, false},
-				{RedisKey::DependencyEdgeState, false}
+				{"dependency:node", false},
+				{"redundancygroup", false},
+				{"redundancygroup:state", false},
+				{"dependency:edge:state", false}
 			}
 		);
 	} else if (removeGroup) {
 		// Note: The Icinga DB identifier of a non-redundant dependency group is used as the edge state ID
 		// and shared by all of its dependency objects. See also SerializeDependencyEdgeState() for details.
-		EnqueueRelationsDeletion(depGroup->GetIcingaDBIdentifier(), {{RedisKey::DependencyEdgeState, false}});
+		EnqueueRelationsDeletion(depGroup->GetIcingaDBIdentifier(), {{"dependency:edge:state", false}});
 	}
 }
 
