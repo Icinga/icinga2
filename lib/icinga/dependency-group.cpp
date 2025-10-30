@@ -144,6 +144,24 @@ void DependencyGroup::LoadParents(std::set<Checkable::Ptr>& parents) const
 }
 
 /**
+ * Retrieve a random child Checkable from the current dependency group.
+ *
+ * It doesn't really randomly select a child, but just returns the first one it finds.
+ *
+ * @return - Returns the first child Checkable found in this group, or nullptr if there are no children.
+ */
+Checkable::Ptr DependencyGroup::GetRandomChild() const
+{
+	std::lock_guard lock(m_Mutex);
+	for (auto& [_, children] : m_Members) {
+		if (!children.empty()) {
+			return children.begin()->second->GetChild();
+		}
+	}
+	return nullptr;
+}
+
+/**
  * Retrieve the number of dependency objects in the current dependency group.
  *
  * This function mainly exists for optimization purposes, i.e. instead of getting a copy of the members and

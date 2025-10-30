@@ -133,6 +133,7 @@ void IcingaDB::Start(bool runtimeCreated)
 	Ptr keepAlive (this);
 
 	m_HistoryThread = std::async(std::launch::async, [this, keepAlive]() { ForwardHistoryEntries(); });
+	m_PendingItemsThread = std::thread([this, keepAlive] { PendingItemsThreadProc(); });
 }
 
 void IcingaDB::ExceptionHandler(boost::exception_ptr exp)
@@ -156,9 +157,9 @@ void IcingaDB::OnConnectedHandler()
 
 	UpdateAllConfigObjects();
 
-	m_ConfigDumpDone = true;
-
+	m_ConfigDumpDone.store(true);
 	m_ConfigDumpInProgress = false;
+	m_PendingItemsCV.notify_one(); // Wake up the pending items worker to start processing items.
 }
 
 void IcingaDB::PublishStatsTimerHandler(void)
@@ -201,6 +202,9 @@ void IcingaDB::Stop(bool runtimeRemoved)
 	}
 
 	m_StatsTimer->Stop(true);
+
+	m_PendingItemsCV.notify_all(); // Wake up the pending items worker to let it exit cleanly.
+	m_PendingItemsThread.join();
 
 	Log(LogInformation, "IcingaDB")
 		<< "'" << GetName() << "' stopped.";
