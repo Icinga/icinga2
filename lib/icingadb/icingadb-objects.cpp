@@ -220,14 +220,6 @@ void IcingaDB::UpdateAllConfigObjects()
 
 	std::vector<Type::Ptr> types = GetTypes();
 
-	m_Rcon->SuppressQueryKind(Prio::CheckResult);
-	m_Rcon->SuppressQueryKind(Prio::RuntimeStateSync);
-
-	Defer unSuppress ([this]() {
-		m_Rcon->UnsuppressQueryKind(Prio::RuntimeStateSync);
-		m_Rcon->UnsuppressQueryKind(Prio::CheckResult);
-	});
-
 	// Add a new type=* state=wip entry to the stream and remove all previous entries (MAXLEN 1).
 	m_Rcon->FireAndForgetQuery({"XADD", "icinga:dump", "MAXLEN", "1", "*", "key", "*", "state", "wip"}, Prio::Config);
 
