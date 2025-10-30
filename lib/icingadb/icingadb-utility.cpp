@@ -375,6 +375,31 @@ String IcingaDB::GetLowerCaseTypeNameDB(const ConfigObject::Ptr& obj)
 	return obj->GetReflectionType()->GetName().ToLower();
 }
 
+/**
+ * Determines the Redis keys for environment variables and arguments based on the command type.
+ *
+ * @param command The command object to get the keys for.
+ * @return The pair of Redis keys for environment variables and arguments.
+ */
+std::pair<RedisKey, RedisKey> IcingaDB::GetCmdEnvArgKeys(const Command::Ptr& command)
+{
+	RedisKey envKey, argKey;
+	const auto& cmdType = command->GetReflectionType();
+	if (CheckCommand::TypeInstance->IsAssignableFrom(cmdType)) {
+		envKey = RedisKey::CheckCmdEnvVar;
+		argKey = RedisKey::CheckCmdArg;
+	} else if (NotificationCommand::TypeInstance->IsAssignableFrom(cmdType)) {
+		envKey = RedisKey::NotificationCmdEnvVar;
+		argKey = RedisKey::NotificationCmdArg;
+	} else if (EventCommand::TypeInstance->IsAssignableFrom(cmdType)) {
+		envKey = RedisKey::EventCmdEnvVar;
+		argKey = RedisKey::EventCmdArg;
+	} else {
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid command type specified"));
+	}
+	return {envKey, argKey};
+}
+
 long long IcingaDB::TimestampToMilliseconds(double timestamp) {
 	// In addition to the limits of the Icinga DB MySQL (0 - 2^64) and PostgreSQL (0 - 2^63) schemata,
 	// years not fitting in YYYY may cause problems, see e.g. https://github.com/golang/go/issues/4556.
