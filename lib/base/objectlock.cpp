@@ -37,6 +37,24 @@ ObjectLock::ObjectLock(const Object *object)
 		Lock();
 }
 
+/**
+ * Tries to lock the object without blocking.
+ *
+ * @returns true if the lock was acquired, false otherwise.
+ */
+bool ObjectLock::TryLock() noexcept
+{
+	ASSERT(!m_Locked && m_Object);
+
+	m_Locked = m_Object->m_Mutex.try_lock();
+#ifdef I2_DEBUG
+	if (m_Locked && ++m_Object->m_LockCount == 1u) {
+		m_Object->m_LockOwner.store(std::this_thread::get_id());
+	}
+#endif /* I2_DEBUG */
+	return m_Locked;
+}
+
 void ObjectLock::Lock()
 {
 	ASSERT(!m_Locked && m_Object);

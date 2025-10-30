@@ -23,6 +23,7 @@ public:
 
 	~ObjectLock();
 
+	bool TryLock() noexcept;
 	void Lock();
 	void Unlock();
 
