@@ -12,9 +12,13 @@
 #include "base/workqueue.hpp"
 #include "icinga/customvarobject.hpp"
 #include "icinga/checkable.hpp"
+#include "icinga/command.hpp"
 #include "icinga/service.hpp"
 #include "icinga/downtime.hpp"
 #include "remote/messageorigin.hpp"
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/sequenced_index.hpp>
 #include <atomic>
 #include <chrono>
 #include <future>
@@ -27,6 +31,200 @@
 
 namespace icinga
 {
+
+/**
+ * RedisKey is the enumeration of all Redis keys used by IcingaDB.
+ *
+ * Each enum value represents a specific Redis key type from which the actual Redis key strings are derived.
+ * For instance, the `Host` enum value corresponds to the Redis key pattern `icinga:host`. These enums help
+ * in organizing and managing the various Redis keys in a transparent and consistent manner and avoid hardcoding
+ * key strings throughout the codebase.
+ *
+ * @ingroup icingadb
+ */
+enum class RedisKey : uint8_t
+{
+	/* Command-related keys */
+	CheckCmdArg,
+	CheckCmdEnvVar,
+	CheckCmdCustomVar,
+
+	EventCmdArg,
+	EventCmdEnvVar,
+	EventCmdCustomVar,
+
+	NotificationCmdArg,
+	NotificationCmdEnvVar,
+	NotificationCmdCustomVar,
+
+	/* Dependency related config */
+	DependencyNode,
+	DependencyEdge,
+	RedundancyGroup,
+
+	/* Hosts & Services */
+	HostCustomVar,
+	HostGroupMember,
+	HostGroupCustomVar,
+
+	ServiceCustomVar,
+	ServiceGroupMember,
+	ServiceGroupCustomVar,
+
+	/* Users & Usergroups */
+	UserCustomVar,
+	UserGroupMember,
+	UserGroupCustomVar,
+
+	/* Notification */
+	NotificationUser,
+	NotificationUserGroup,
+	NotificationRecipient,
+	NotificationCustomVar,
+
+	/* Timeperiods */
+	TimePeriodRange,
+	TimePeriodInclude,
+	TimePeriodExclude,
+	TimePeriodCustomVar,
+
+	/* Downtimes */
+	ScheduledDowntimeCustomVar,
+
+	/* State keys marker and state entries */
+	_state_keys_begin,
+	HostState,
+	ServiceState,
+	RedundancyGroupState,
+	DependencyEdgeState,
+	_state_keys_end,
+};
+
+/**
+ * Dirty bits for config/state changes.
+ *
+ * These are used to mark objects as "dirty" in order to trigger appropriate updates in Redis.
+ * Each bit represents a different type of change that requires a specific action to be taken.
+ *
+ * @ingroup icingadb
+ */
+enum DirtyBits : uint32_t
+{
+	ConfigUpdate  = 1<<0, // Trigger a Redis config update for the object.
+	ConfigDelete  = 1<<1, // Send a deletion command for the object to Redis.
+	VolatileState = 1<<2, // Send a volatile state update to Redis (affects only checkables).
+	RuntimeState  = 1<<3, // Send a runtime state update to Redis (affects only checkables).
+	NextUpdate    = 1<<4, // Update the `icinga:nextupdate:{host,service}` Redis keys (affects only checkables).
+
+	FullState = VolatileState | RuntimeState, // A combination of all (non-dependency) state-related dirty bits.
+
+	// All valid dirty bits combined used for masking input values.
+	DirtyBitsAll = ConfigUpdate | ConfigDelete | FullState | NextUpdate
+};
+
+/**
+ * A variant type representing the identifier of a pending item.
+ *
+ * This variant can hold either a string representing a real Redis hash key or a pair consisting of
+ * a configuration object pointer and a dependency group pointer. A pending item identified by the
+ * latter variant type operates primarily on the associated configuration object or dependency group,
+ * thus the pairs are used for uniqueness in the pending items container.
+ *
+ * @ingroup icingadb
+ */
+using PendingItemKey = std::variant<std::string /* Redis hash keys */, std::pair<ConfigObject::Ptr, DependencyGroup::Ptr>>;
+
+/**
+ * A pending queue item.
+ *
+ * This struct represents a generic pending item in the queue that is associated with a unique identifier
+ * and dirty bits indicating the type of updates required in Redis. The @c EnqueueTime field records the
+ * time when the item was added to the queue, which can be useful for tracking how long an item waits before
+ * being processed. This base struct is extended by more specific pending item types that operate on different
+ * kinds of objects, such as configuration objects or dependency groups.
+ *
+ * @ingroup icingadb
+ */
+struct PendingQueueItem
+{
+	uint32_t DirtyBits;
+	PendingItemKey ID;
+	const std::chrono::steady_clock::time_point EnqueueTime;
+
+	PendingQueueItem(PendingItemKey&& id, uint32_t dirtyBits);
+};
+
+/**
+ * A pending configuration object item.
+ *
+ * This struct represents a pending item in the queue that is associated with a configuration object.
+ * It contains a pointer to the configuration object and the dirty bits indicating the type of updates
+ * required for that object in Redis. A pending configuration item operates primarily on config objects,
+ * thus the @c ID field in the base struct is only used for uniqueness in the pending items container.
+ *
+ * @ingroup icingadb
+ */
+struct PendingConfigItem : PendingQueueItem
+{
+	ConfigObject::Ptr Object;
+
+	PendingConfigItem(const ConfigObject::Ptr& obj, uint32_t bits);
+};
+
+/**
+ * A pending dependency group state item.
+ *
+ * This struct represents a pending item in the queue that is associated with a dependency group.
+ * It contains a pointer to the dependency group for which state updates are required. The dirty bits
+ * in the base struct are not used for this item type, as the operation is specific to updating the
+ * state of the dependency group itself.
+ *
+ * @ingroup icingadb
+ */
+struct PendingDependencyGroupStateItem : PendingQueueItem
+{
+	DependencyGroup::Ptr DepGroup;
+
+	explicit PendingDependencyGroupStateItem(const DependencyGroup::Ptr& depGroup);
+};
+
+/**
+ * A pending dependency edge item.
+ *
+ * This struct represents a pending dependency child registration into a dependency group.
+ * It contains a pointer to the dependency group and the checkable child being registered.
+ * The dirty bits in the base struct are not used for this item type, as the operation is specific
+ * to registering the child into the dependency group.
+ *
+ * @ingroup icingadb
+ */
+struct PendingDependencyEdgeItem : PendingQueueItem
+{
+	DependencyGroup::Ptr DepGroup;
+	Checkable::Ptr Child;
+
+	PendingDependencyEdgeItem(const DependencyGroup::Ptr& depGroup, const Checkable::Ptr& child);
+};
+
+// Map of Redis keys to a boolean indicating whether to delete the checksum key as well.
+using RelationsKeyMap = std::map<RedisKey, bool /* checksum? */>;
+
+/**
+ * A pending relations deletion item.
+ *
+ * This struct represents a pending item in the queue that is associated with the deletion of relations
+ * in Redis. It contains a map of Redis keys from which the relation identified by the @c ID field should
+ * be deleted. The @c ID field represents the unique identifier of the relation to be deleted, and the
+ * @c Relations map specifies the Redis keys and whether to delete the corresponding checksum keys.
+ *
+ * @ingroup icingadb
+ */
+struct RelationsDeletionItem : PendingQueueItem
+{
+	RelationsKeyMap Relations;
+
+	RelationsDeletionItem(const String& id, RelationsKeyMap relations);
+};
 
 /**
  * @ingroup icingadb
@@ -90,15 +288,6 @@ private:
 		Volatile    = 1ull << 0,
 		RuntimeOnly = 1ull << 1,
 		Full        = Volatile | RuntimeOnly,
-	};
-
-	enum class RedisKey : uint8_t
-	{
-		RedundancyGroup,
-		DependencyNode,
-		DependencyEdge,
-		RedundancyGroupState,
-		DependencyEdgeState,
 	};
 
 	void OnConnectedHandler();
@@ -166,6 +355,7 @@ private:
 	static Dictionary::Ptr GetStats();
 
 	/* utilities */
+	static bool IsStateKey(RedisKey key);
 	static String FormatCheckSumBinary(const String& str);
 	static String FormatCommandLine(const Value& commandLine);
 	static long long TimestampToMilliseconds(double timestamp);
@@ -182,6 +372,7 @@ private:
 	static Dictionary::Ptr SerializeVars(const Dictionary::Ptr& vars);
 	static Dictionary::Ptr SerializeDependencyEdgeState(const DependencyGroup::Ptr& dependencyGroup, const Dependency::Ptr& dep);
 	static Dictionary::Ptr SerializeRedundancyGroupState(const Checkable::Ptr& child, const DependencyGroup::Ptr& redundancyGroup);
+	static String GetDependencyEdgeStateId(const DependencyGroup::Ptr& dependencyGroup, const Dependency::Ptr& dep);
 
 	static String HashValue(const Value& value);
 	static String HashValue(const Value& value, const std::set<String>& propertiesBlacklist, bool propertiesWhitelist = false);
@@ -283,6 +474,55 @@ private:
 	static std::mutex m_EnvironmentIdInitMutex;
 
 	static std::unordered_set<Type*> m_IndexedTypes;
+
+	// A variant type that can hold any of the pending item types used in the pending items container.
+	using PendingItemVariant = std::variant<
+		PendingConfigItem,
+		PendingDependencyGroupStateItem,
+		PendingDependencyEdgeItem,
+		RelationsDeletionItem
+	>;
+
+	struct PendingItemKeyExtractor
+	{
+		// The type of the key extracted from a pending item required by Boost.MultiIndex.
+		using result_type = const PendingItemKey&;
+
+		result_type operator()(const PendingItemVariant& item) const
+		{
+			return std::visit([](const auto& pendingItem) -> result_type { return pendingItem.ID; }, item);
+		}
+	};
+
+	// A multi-index container for managing pending items with unique IDs and maintaining insertion order.
+	// The first index is an ordered unique index based on the pending item key, allowing for efficient
+	// lookups and ensuring uniqueness of items. The second index is a sequenced index that maintains the
+	// order of insertion, enabling FIFO processing of pending items.
+	using PendingItemsSet = boost::multi_index_container<
+		PendingItemVariant,
+		boost::multi_index::indexed_by<
+			boost::multi_index::ordered_unique<PendingItemKeyExtractor>, // std::variant has operator< defined.
+			boost::multi_index::sequenced<>
+		>
+	>;
+
+	std::thread m_PendingItemsThread; // The background worker thread (consumer of m_PendingItems).
+	PendingItemsSet m_PendingItems; // Container for pending items with dirty bits (access protected by m_PendingItemsMutex).
+	std::mutex m_PendingItemsMutex; // Mutex to protect access to m_PendingItems.
+	std::condition_variable m_PendingItemsCV; // Condition variable to forcefully wake up the worker thread.
+
+	void PendingItemsThreadProc();
+	std::chrono::duration<double> DequeueAndProcessOne(std::unique_lock<std::mutex>& lock);
+	void ProcessPendingItem(const PendingConfigItem& item);
+	void ProcessPendingItem(const PendingDependencyGroupStateItem& item) const;
+	void ProcessPendingItem(const PendingDependencyEdgeItem& item);
+	void ProcessPendingItem(const RelationsDeletionItem& item);
+
+	void EnqueueConfigObject(const ConfigObject::Ptr& object, uint32_t bits);
+	void EnqueueDependencyGroupStateUpdate(const DependencyGroup::Ptr& depGroup);
+	void EnqueueDependencyChildRegistered(const DependencyGroup::Ptr& depGroup, const Checkable::Ptr& child);
+	void EnqueueDependencyChildRemoved(const DependencyGroup::Ptr& depGroup, const std::vector<Dependency::Ptr>& dependencies, bool removeGroup);
+	void EnqueueRelationsDeletion(const String& id, const RelationsKeyMap& relations);
 };
 }
 
