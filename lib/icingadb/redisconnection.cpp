@@ -295,7 +295,7 @@ double RedisConnection::GetOldestPendingQueryTs()
 		double oldest = 0;
 
 		for (auto& queue : m_Queues.Writes) {
-			if (m_SuppressedQueryKinds.find(queue.first) == m_SuppressedQueryKinds.end() && !queue.second.empty()) {
+			if (!queue.second.empty()) {
 				auto ctime (queue.second.front().CTime);
 
 				if (ctime < oldest || oldest == 0) {
@@ -309,29 +309,6 @@ double RedisConnection::GetOldestPendingQueryTs()
 
 	future.wait();
 	return future.get();
-}
-
-/**
- * Mark kind as kind of queries not to actually send yet
- *
- * @param kind Query kind
- */
-void RedisConnection::SuppressQueryKind(RedisConnection::QueryPriority kind)
-{
-	asio::post(m_Strand, [this, kind]() { m_SuppressedQueryKinds.emplace(kind); });
-}
-
-/**
- * Unmark kind as kind of queries not to actually send yet
- *
- * @param kind Query kind
- */
-void RedisConnection::UnsuppressQueryKind(RedisConnection::QueryPriority kind)
-{
-	asio::post(m_Strand, [this, kind]() {
-		m_SuppressedQueryKinds.erase(kind);
-		m_QueuedWrites.Set();
-	});
 }
 
 /**
@@ -511,7 +488,7 @@ void RedisConnection::WriteLoop(asio::yield_context& yc)
 
 	WriteFirstOfHighestPrio:
 		for (auto& queue : m_Queues.Writes) {
-			if (m_SuppressedQueryKinds.find(queue.first) != m_SuppressedQueryKinds.end() || queue.second.empty()) {
+			if (queue.second.empty()) {
 				continue;
 			}
 
