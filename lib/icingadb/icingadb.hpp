@@ -282,13 +282,6 @@ private:
 		std::mutex m_Mutex;
 	};
 
-	enum StateUpdate
-	{
-		Volatile    = 1ull << 0,
-		RuntimeOnly = 1ull << 1,
-		Full        = Volatile | RuntimeOnly,
-	};
-
 	void OnConnectedHandler();
 
 	void PublishStatsTimerHandler();
@@ -304,10 +297,8 @@ private:
 		std::vector<Dictionary::Ptr>* runtimeUpdates, const DependencyGroup::Ptr& onlyDependencyGroup = nullptr);
 	void InsertObjectDependencies(const ConfigObject::Ptr& object, const String typeName, std::map<String, std::vector<String>>& hMSets,
 			std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate);
-	void UpdateDependenciesState(const Checkable::Ptr& checkable, const DependencyGroup::Ptr& onlyDependencyGroup = nullptr,
-		std::set<DependencyGroup*>* seenGroups = nullptr) const;
-	void UpdateState(const Checkable::Ptr& checkable, StateUpdate mode);
-	void SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpdate);
+	void UpdateState(const Checkable::Ptr& checkable, uint32_t mode);
+	void UpdateDependenciesState(const Checkable::Ptr& checkable, const DependencyGroup::Ptr& depGroup) const;
 	void CreateConfigUpdate(const ConfigObject::Ptr& object, const String type, std::map<String, std::vector<String>>& hMSets,
 			std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate);
 	void SendConfigDelete(const ConfigObject::Ptr& object);
@@ -339,11 +330,9 @@ private:
 	void SendTimePeriodExcludesChanged(const TimePeriod::Ptr& timeperiod, const Array::Ptr& oldValues, const Array::Ptr& newValues);
 	template<class T>
 	void SendGroupsChanged(const ConfigObject::Ptr& command, const Array::Ptr& oldValues, const Array::Ptr& newValues);
-	void SendCommandEnvChanged(const ConfigObject::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
-	void SendCommandArgumentsChanged(const ConfigObject::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
+	void SendCommandEnvChanged(const ConfigObject::Ptr& command, RedisKey keyType, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
+	void SendCommandArgumentsChanged(const ConfigObject::Ptr& command, RedisKey keyType, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
 	void SendCustomVarsChanged(const ConfigObject::Ptr& object, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
-	void SendDependencyGroupChildRegistered(const Checkable::Ptr& child, const DependencyGroup::Ptr& dependencyGroup);
-	void SendDependencyGroupChildRemoved(const DependencyGroup::Ptr& dependencyGroup, const std::vector<Dependency::Ptr>& dependencies, bool removeGroup);
 
 	void ForwardHistoryEntries();
 
@@ -372,6 +361,7 @@ private:
 	static Dictionary::Ptr SerializeDependencyEdgeState(const DependencyGroup::Ptr& dependencyGroup, const Dependency::Ptr& dep);
 	static Dictionary::Ptr SerializeRedundancyGroupState(const Checkable::Ptr& child, const DependencyGroup::Ptr& redundancyGroup);
 	static String GetDependencyEdgeStateId(const DependencyGroup::Ptr& dependencyGroup, const Dependency::Ptr& dep);
+	static std::pair<RedisKey, RedisKey> GetCmdEnvArgKeys(const Command::Ptr& command);
 
 	static String HashValue(const Value& value);
 	static String HashValue(const Value& value, const std::set<String>& propertiesBlacklist, bool propertiesWhitelist = false);
@@ -408,8 +398,8 @@ private:
 	static void UserGroupsChangedHandler(const User::Ptr& user, const Array::Ptr&, const Array::Ptr& newValues);
 	static void HostGroupsChangedHandler(const Host::Ptr& host, const Array::Ptr& oldValues, const Array::Ptr& newValues);
 	static void ServiceGroupsChangedHandler(const Service::Ptr& service, const Array::Ptr& oldValues, const Array::Ptr& newValues);
-	static void CommandEnvChangedHandler(const ConfigObject::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
-	static void CommandArgumentsChangedHandler(const ConfigObject::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
+	static void CommandEnvChangedHandler(const Command::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
+	static void CommandArgumentsChangedHandler(const Command::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
 	static void CustomVarsChangedHandler(const ConfigObject::Ptr& object, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
 
 	static void ExecuteRedisTransaction(const RedisConnection::Ptr& rcon, std::map<String, RedisConnection::Query>& hMSets,
