@@ -158,6 +158,9 @@ void IcingaDB::OnConnectedHandler()
 	m_ConfigDumpDone = true;
 
 	m_ConfigDumpInProgress = false;
+
+	Ptr keepAlive(this);
+	m_PendingItemsThread = std::thread([this, keepAlive] { PendingItemsThreadProc(); });
 }
 
 void IcingaDB::PublishStatsTimerHandler(void)
@@ -193,6 +196,8 @@ void IcingaDB::Stop(bool runtimeRemoved)
 	Log(LogInformation, "IcingaDB")
 		<< "Flushing history data buffer to Redis.";
 
+	m_PendingItemsCV.notify_all(); // Wake up the pending items worker to let it exit cleanly.
+
 	if (m_HistoryThread.wait_for(std::chrono::minutes(1)) == std::future_status::timeout) {
 		Log(LogCritical, "IcingaDB")
 			<< "Flushing takes more than one minute (while we're about to shut down). Giving up and discarding "
@@ -200,6 +205,7 @@ void IcingaDB::Stop(bool runtimeRemoved)
 	}
 
 	m_StatsTimer->Stop(true);
+	m_PendingItemsThread.join();
 
 	Log(LogInformation, "IcingaDB")
 		<< "'" << GetName() << "' stopped.";

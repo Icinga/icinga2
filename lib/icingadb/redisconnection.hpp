@@ -142,7 +142,7 @@ struct RedisConnInfo final : SharedObject
 
 		int GetQueryCount(RingBuffer::SizeType span);
 
-		inline int GetPendingQueryCount() const
+		inline std::size_t GetPendingQueryCount() const
 		{
 			return m_PendingQueries;
 		}
@@ -285,7 +285,7 @@ struct RedisConnInfo final : SharedObject
 		RingBuffer m_WrittenState{15 * 60};
 		RingBuffer m_WrittenHistory{15 * 60};
 		// Number of pending Redis queries, always 0 if m_Parent is set unless m_TrackOwnPendingQueries is true.
-		std::atomic_int m_PendingQueries{0};
+		std::atomic_size_t m_PendingQueries{0};
 		bool m_TrackOwnPendingQueries; // Whether to track pending queries even if m_Parent is set.
 		boost::asio::deadline_timer m_LogStatsTimer;
 		Ptr m_Parent;
