@@ -233,13 +233,6 @@ private:
 		std::mutex m_Mutex;
 	};
 
-	enum StateUpdate
-	{
-		Volatile    = 1ull << 0,
-		RuntimeOnly = 1ull << 1,
-		Full        = Volatile | RuntimeOnly,
-	};
-
 	void OnConnectedHandler();
 
 	void PublishStatsTimerHandler();
@@ -253,8 +246,7 @@ private:
 	void InsertObjectDependencies(const ConfigObject::Ptr& object,
 		std::map<RedisConnection::QueryArg, RedisConnection::Query>& hMSets, std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate);
 	void UpdateDependenciesState(const Checkable::Ptr& checkable, const DependencyGroup::Ptr& dependencyGroup) const;
-	void UpdateState(const Checkable::Ptr& checkable, StateUpdate mode);
-	void SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpdate);
+	void UpdateState(const Checkable::Ptr& checkable, uint32_t mode);
 	void CreateConfigUpdate(const ConfigObject::Ptr& object, const QueryArgPair& redisKeyPair,
 		std::map<RedisConnection::QueryArg, RedisConnection::Query>& hMSets, std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate);
 	void SendConfigDelete(const ConfigObject::Ptr& object);
