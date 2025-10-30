@@ -195,7 +195,7 @@ struct RedisConnInfo final : SharedObject
 
 		int GetQueryCount(RingBuffer::SizeType span);
 
-		inline int GetPendingQueryCount() const
+		inline std::size_t GetPendingQueryCount() const
 		{
 			return m_PendingQueries;
 		}
