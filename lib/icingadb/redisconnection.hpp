@@ -38,7 +38,6 @@
 #include <map>
 #include <memory>
 #include <queue>
-#include <set>
 #include <stdexcept>
 #include <utility>
 #include <vector>
@@ -134,9 +133,6 @@ struct RedisConnInfo final : SharedObject
 		void EnqueueCallback(const std::function<void(boost::asio::yield_context&)>& callback, QueryPriority priority);
 		void Sync();
 		double GetOldestPendingQueryTs();
-
-		void SuppressQueryKind(QueryPriority kind);
-		void UnsuppressQueryKind(QueryPriority kind);
 
 		void SetConnectedCallback(std::function<void(boost::asio::yield_context& yc)> callback);
 
@@ -268,9 +264,6 @@ struct RedisConnInfo final : SharedObject
 			// Metadata about all of the above
 			std::queue<FutureResponseAction> FutureResponseActions;
 		} m_Queues;
-
-		// Kinds of queries not to actually send yet
-		std::set<QueryPriority> m_SuppressedQueryKinds;
 
 		// Indicate that there's something to send/receive
 		AsioEvent m_QueuedWrites;
