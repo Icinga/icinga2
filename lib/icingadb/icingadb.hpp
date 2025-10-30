@@ -233,13 +233,6 @@ private:
 		std::mutex m_Mutex;
 	};
 
-	enum StateUpdate
-	{
-		Volatile    = 1ull << 0,
-		RuntimeOnly = 1ull << 1,
-		Full        = Volatile | RuntimeOnly,
-	};
-
 	void OnConnectedHandler();
 
 	void PublishStatsTimerHandler();
@@ -253,8 +246,7 @@ private:
 	void InsertObjectDependencies(const ConfigObject::Ptr& object,
 		std::map<RedisConnection::QueryArg, RedisConnection::Query>& hMSets, std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate);
 	void UpdateDependenciesState(const Checkable::Ptr& checkable, const DependencyGroup::Ptr& dependencyGroup) const;
-	void UpdateState(const Checkable::Ptr& checkable, StateUpdate mode);
-	void SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpdate);
+	void UpdateState(const Checkable::Ptr& checkable, uint32_t mode);
 	void CreateConfigUpdate(const ConfigObject::Ptr& object, const QueryArgPair& redisKeyPair,
 		std::map<RedisConnection::QueryArg, RedisConnection::Query>& hMSets, std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate);
 	void SendConfigDelete(const ConfigObject::Ptr& object);
@@ -274,7 +266,7 @@ private:
 	void SendAddedComment(const Comment::Ptr& comment);
 	void SendRemovedComment(const Comment::Ptr& comment);
 	void SendFlappingChange(const Checkable::Ptr& checkable, double changeTime, double flappingLastChange);
-	void SendNextUpdate(const Checkable::Ptr& checkable);
+	void SendNextUpdate(const Checkable::Ptr& checkable) const;
 	void SendAcknowledgementSet(const Checkable::Ptr& checkable, const String& author, const String& comment, AcknowledgementType type, bool persistent, double changeTime, double expiry);
 	void SendAcknowledgementCleared(const Checkable::Ptr& checkable, const String& removedBy, double changeTime, double ackLastChange);
 	void SendNotificationUsersChanged(const Notification::Ptr& notification, const Array::Ptr& oldValues, const Array::Ptr& newValues);
