@@ -126,9 +126,6 @@ void IcingaDB::Start(bool runtimeCreated)
 
 	m_WorkQueue.SetName("IcingaDB");
 
-	m_RconWorker->SuppressQueryKind(Prio::CheckResult);
-	m_RconWorker->SuppressQueryKind(Prio::RuntimeStateSync);
-
 	Ptr keepAlive (this);
 
 	m_HistoryThread = std::async(std::launch::async, [this, keepAlive]() { ForwardHistoryEntries(); });
