@@ -47,8 +47,6 @@
 
 using namespace icinga;
 
-using Prio = RedisConnection::QueryPriority;
-
 std::unordered_set<Type*> IcingaDB::m_IndexedTypes;
 /**
  * Mapping of types to their custom variable Redis keys.
@@ -203,7 +201,9 @@ void IcingaDB::ConfigStaticInitialize()
 
 void IcingaDB::UpdateAllConfigObjects()
 {
-	m_RconWorker->FireAndForgetQuery({"XADD", "icinga:schema", "MAXLEN", "1", "*", "version", "6"}, Prio::Heartbeat);
+	// This function performs an initial dump of all configuration objects into Redis, thus there are no
+	// previously enqueued queries on m_Rcon that we need to wait for. So, no Sync() call is necessary here.
+	m_RconWorker->FireAndForgetQuery({"XADD", "icinga:schema", "MAXLEN", "1", "*", "version", "6"}, {}, true);
 
 	Log(LogInformation, "IcingaDB") << "Starting initial config/status dump";
 	double startTime = Utility::GetTime();
@@ -221,7 +221,7 @@ void IcingaDB::UpdateAllConfigObjects()
 	std::vector<Type::Ptr> types = GetTypes();
 
 	// Add a new type=* state=wip entry to the stream and remove all previous entries (MAXLEN 1).
-	m_RconWorker->FireAndForgetQuery({"XADD", "icinga:dump", "MAXLEN", "1", "*", "key", "*", "state", "wip"}, Prio::Config);
+	m_RconWorker->FireAndForgetQuery({"XADD", "icinga:dump", "MAXLEN", "1", "*", "key", "*", "state", "wip"});
 
 	const std::vector<String> globalKeys = {
 		m_PrefixConfigObject + "customvar",
@@ -238,8 +238,8 @@ void IcingaDB::UpdateAllConfigObjects()
 		m_PrefixConfigObject + "redundancygroup",
 		m_PrefixConfigObject + "redundancygroup:state",
 	};
-	DeleteKeys(m_RconWorker, globalKeys, Prio::Config);
-	DeleteKeys(m_RconWorker, {"icinga:nextupdate:host", "icinga:nextupdate:service"}, Prio::Config);
+	DeleteKeys(m_RconWorker, globalKeys);
+	DeleteKeys(m_RconWorker, {"icinga:nextupdate:host", "icinga:nextupdate:service"});
 	m_RconWorker->Sync();
 
 	Defer resetDumpedGlobals ([this]() {
@@ -259,7 +259,7 @@ void IcingaDB::UpdateAllConfigObjects()
 		auto& rcon (m_Rcons.at(ctype));
 
 		std::vector<String> keys = GetTypeOverwriteKeys(lcType);
-		DeleteKeys(rcon, keys, Prio::Config);
+		DeleteKeys(rcon, keys);
 
 		WorkQueue upqObjectType(25000, Configuration::Concurrency, LogNotice);
 		upqObjectType.SetName("IcingaDB:ConfigDump:" + lcType);
@@ -271,9 +271,7 @@ void IcingaDB::UpdateAllConfigObjects()
 			String cursor = "0";
 
 			do {
-				Array::Ptr res = rcon->GetResultOfQuery({
-					"HSCAN", configCheckSum, cursor, "COUNT", "1000"
-				}, Prio::Config);
+				Array::Ptr res = rcon->GetResultOfQuery({"HSCAN", configCheckSum, cursor, "COUNT", "1000"});
 
 				AddKvsToMap(res->Get(1), redisCheckSums);
 
@@ -416,7 +414,7 @@ void IcingaDB::UpdateAllConfigObjects()
 			setChecksum.clear();
 			setObject.clear();
 
-			rcon->FireAndForgetQueries(std::move(transaction), Prio::Config, {affectedConfig});
+			rcon->FireAndForgetQueries(std::move(transaction), {affectedConfig});
 		});
 
 		auto flushDels ([&]() {
@@ -435,7 +433,7 @@ void IcingaDB::UpdateAllConfigObjects()
 			delChecksum.clear();
 			delObject.clear();
 
-			rcon->FireAndForgetQueries(std::move(transaction), Prio::Config, {affectedConfig});
+			rcon->FireAndForgetQueries(std::move(transaction), {affectedConfig});
 		});
 
 		auto setOne ([&]() {
@@ -496,7 +494,7 @@ void IcingaDB::UpdateAllConfigObjects()
 		}
 
 		for (auto& key : GetTypeDumpSignalKeys(type)) {
-			rcon->FireAndForgetQuery({"XADD", "icinga:dump", "*", "key", key, "state", "done"}, Prio::Config);
+			rcon->FireAndForgetQuery({"XADD", "icinga:dump", "*", "key", key, "state", "done"});
 		}
 		rcon->Sync();
 		rcon->Disconnect(); // We're done with this connection, so close it.
@@ -519,14 +517,14 @@ void IcingaDB::UpdateAllConfigObjects()
 	}
 
 	for (auto& key : globalKeys) {
-		m_RconWorker->FireAndForgetQuery({"XADD", "icinga:dump", "*", "key", key, "state", "done"}, Prio::Config);
+		m_RconWorker->FireAndForgetQuery({"XADD", "icinga:dump", "*", "key", key, "state", "done"});
 	}
 
-	m_RconWorker->FireAndForgetQuery({"XADD", "icinga:dump", "*", "key", "*", "state", "done"}, Prio::Config);
+	m_RconWorker->FireAndForgetQuery({"XADD", "icinga:dump", "*", "key", "*", "state", "done"});
 
 	// enqueue a callback that will notify us once all previous queries were executed and wait for this event
 	std::promise<void> p;
-	m_RconWorker->EnqueueCallback([&p](boost::asio::yield_context& yc) { p.set_value(); }, Prio::Config);
+	m_RconWorker->EnqueueCallback([&p](boost::asio::yield_context&) { p.set_value(); });
 	p.get_future().wait();
 
 	auto endTime (Utility::GetTime());
@@ -559,13 +557,13 @@ std::vector<std::vector<intrusive_ptr<ConfigObject>>> IcingaDB::ChunkObjects(std
 	return chunks;
 }
 
-void IcingaDB::DeleteKeys(const RedisConnection::Ptr& conn, const std::vector<String>& keys, RedisConnection::QueryPriority priority) {
+void IcingaDB::DeleteKeys(const RedisConnection::Ptr& conn, const std::vector<String>& keys) {
 	std::vector<String> query = {"DEL"};
 	for (auto& key : keys) {
 		query.emplace_back(key);
 	}
 
-	conn->FireAndForgetQuery(std::move(query), priority);
+	conn->FireAndForgetQuery(std::move(query));
 }
 
 std::vector<String> IcingaDB::GetTypeOverwriteKeys(const String& type)
@@ -1324,7 +1322,7 @@ void IcingaDB::UpdateState(const Checkable::Ptr& checkable, uint32_t mode)
 		m_RconWorker->FireAndForgetQueries({
 			{"HSET", redisStateKey, objectKey, JsonEncode(stateAttrs)},
 			{"HSET", redisChecksumKey, objectKey, JsonEncode(new Dictionary({{"checksum", checksum}}))},
-		}, Prio::RuntimeStateSync);
+		});
 	}
 
 	if (mode & RuntimeState) {
@@ -1342,7 +1340,7 @@ void IcingaDB::UpdateState(const Checkable::Ptr& checkable, uint32_t mode)
 			streamadd.emplace_back(IcingaToStreamValue(kv.second));
 		}
 
-		m_RconWorker->FireAndForgetQuery(std::move(streamadd), Prio::RuntimeStateStream, {0, 1});
+		m_RconWorker->FireAndForgetQuery(std::move(streamadd), {0, 1});
 	}
 }
 
@@ -1416,8 +1414,8 @@ void IcingaDB::UpdateDependenciesState(const Checkable::Ptr& checkable, const De
 			queries.emplace_back(std::move(query));
 		}
 
-		m_RconWorker->FireAndForgetQueries(std::move(queries), Prio::RuntimeStateSync);
-		m_RconWorker->FireAndForgetQueries(std::move(streamStates), Prio::RuntimeStateStream, {0, 1});
+		m_RconWorker->FireAndForgetQueries(std::move(queries));
+		m_RconWorker->FireAndForgetQueries(std::move(streamStates), {0, 1});
 	}
 }
 
@@ -2422,8 +2420,7 @@ void IcingaDB::SendNextUpdate(const Checkable::Ptr& checkable)
 				dynamic_pointer_cast<Service>(checkable) ? "icinga:nextupdate:service" : "icinga:nextupdate:host",
 				Convert::ToString(checkable->GetNextUpdate()),
 				GetObjectIdentifier(checkable)
-			},
-			Prio::CheckResult
+			}
 		);
 	} else if (!checkable->GetEnableActiveChecks() || checkable->GetExtension("ConfigObjectDeleted")) {
 		m_RconWorker->FireAndForgetQuery(
@@ -2431,8 +2428,7 @@ void IcingaDB::SendNextUpdate(const Checkable::Ptr& checkable)
 				"ZREM",
 				dynamic_pointer_cast<Service>(checkable) ? "icinga:nextupdate:service" : "icinga:nextupdate:host",
 				GetObjectIdentifier(checkable)
-			},
-			Prio::CheckResult
+			}
 		);
 	}
 }
@@ -2598,7 +2594,7 @@ void IcingaDB::ForwardHistoryEntries()
 
 			if (m_Rcon && m_Rcon->IsConnected()) {
 				try {
-					m_Rcon->GetResultsOfQueries(haystack, Prio::History, {0, 0, haystack.size()});
+					m_Rcon->GetResultsOfQueries(haystack, {0, 0, haystack.size()});
 					break;
 				} catch (const std::exception& ex) {
 					logFailure(ex.what());
@@ -3230,7 +3226,7 @@ void IcingaDB::DeleteRelationship(const String& id, const String& redisKeyWithou
 		"redis_key", redisKey, "id", id, "runtime_type", "delete"
 	});
 
-	m_RconWorker->FireAndForgetQueries(queries, Prio::Config);
+	m_RconWorker->FireAndForgetQueries(queries);
 }
 
 void IcingaDB::DeleteRelationship(const String& id, RedisKey redisKey, bool hasChecksum)
@@ -3357,7 +3353,7 @@ void IcingaDB::DeleteState(const String& id, RedisKey redisKey, bool hasChecksum
 	}
 	hdels.emplace_back(RedisConnection::Query{"HDEL", m_PrefixConfigObject + redisKeyWithoutPrefix, id});
 
-	m_RconWorker->FireAndForgetQueries(std::move(hdels), Prio::RuntimeStateSync);
+	m_RconWorker->FireAndForgetQueries(std::move(hdels));
 	// TODO: This is currently purposefully commented out due to how Icinga DB (Go) handles runtime state
 	//       upsert and delete events. See https://github.com/Icinga/icingadb/pull/894 for more details.
 	/*m_Rcon->FireAndForgetQueries({{
@@ -3444,11 +3440,11 @@ void IcingaDB::ExecuteRedisTransaction(const RedisConnection::Ptr& rcon, std::ma
 	if (transaction.size() > 1) {
 		transaction.emplace_back(RedisConnection::Query{"EXEC"});
 		if (!runtimeUpdates.empty()) {
-			rcon->FireAndForgetQueries(std::move(transaction), Prio::Config, {1});
+			rcon->FireAndForgetQueries(std::move(transaction), {1});
 		} else {
 			// This is likely triggered by the initial Redis config dump, so a) we don't need to record the number of
 			// affected objects and b) we don't really know how many objects are going to be affected by this tx.
-			rcon->FireAndForgetQueries(std::move(transaction), Prio::Config);
+			rcon->FireAndForgetQueries(std::move(transaction));
 		}
 	}
 }
