@@ -290,7 +290,7 @@ private:
 
 	/* utilities */
 	static std::vector<RedisConnection::QueryArg> GetTypeDumpSignalKeys(const Type::Ptr& type);
-	static void DeleteKeys(const RedisConnection::Ptr& conn, const std::vector<RedisConnection::QueryArg>& keys, RedisConnection::QueryPriority priority);
+	static void DeleteKeys(const RedisConnection::Ptr& conn, const std::vector<RedisConnection::QueryArg>& keys);
 	static std::vector<RedisConnection::QueryArg> GetTypeOverwriteKeys(const Type::Ptr& type, bool skipChecksums = false);
 	static void AddDataToHmSets(std::map<RedisConnection::QueryArg, RedisConnection::Query>& hMSets, const RedisConnection::QueryArg& redisKey, const String& id, const Dictionary::Ptr& data);
 	static bool IsStateKey(const RedisConnection::QueryArg& key);
