@@ -102,6 +102,10 @@ allow icinga2_t self:unix_stream_socket create_stream_socket_perms;
 
 allow icinga2_t icinga2_exec_t:file execute_no_trans;
 
+allow icinga2_t nagios_mail_plugin_exec_t:process signal;
+allow icinga2_t nagios_checkdisk_plugin_t:process signal;
+allow icinga2_t nagios_unconfined_plugin_t:process signal;
+
 list_dirs_pattern(icinga2_t, icinga2_etc_t, icinga2_etc_t)
 read_files_pattern(icinga2_t, icinga2_etc_t, icinga2_etc_t)
 read_lnk_files_pattern(icinga2_t, icinga2_etc_t, icinga2_etc_t)
