@@ -185,8 +185,7 @@ void IcingaDB::ProcessPendingItem(const PendingConfigItem& item)
 					"runtime_type",
 					"delete"
 				}
-			},
-			RedisConnection::QueryPriority::Config
+			}
 		);
 	}
 

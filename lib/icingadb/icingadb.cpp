@@ -23,8 +23,6 @@ using namespace icinga;
 
 #define MAX_EVENTS_DEFAULT 5000
 
-using Prio = RedisConnection::QueryPriority;
-
 String IcingaDB::m_EnvironmentId;
 std::mutex IcingaDB::m_EnvironmentIdInitMutex;
 
@@ -187,7 +185,7 @@ void IcingaDB::PublishStats()
 		}
 	}
 
-	m_Rcon->FireAndForgetQuery(std::move(query), Prio::Heartbeat);
+	m_RconWorker->FireAndForgetQuery(std::move(query), {}, true /* high priority */);
 }
 
 void IcingaDB::Stop(bool runtimeRemoved)

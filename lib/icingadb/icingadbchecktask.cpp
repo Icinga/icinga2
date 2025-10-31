@@ -127,7 +127,8 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 					"0-0", "0-0", "0-0", "0-0", "0-0", "0-0",
 				}
 			},
-			RedisConnection::QueryPriority::Heartbeat
+			{},
+			true /* high priority */
 		));
 
 		redisTime = std::move(replies.at(0));

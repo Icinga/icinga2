@@ -223,7 +223,7 @@ private:
 	/* config & status dump */
 	void UpdateAllConfigObjects();
 	std::vector<std::vector<intrusive_ptr<ConfigObject>>> ChunkObjects(std::vector<intrusive_ptr<ConfigObject>> objects, size_t chunkSize);
-	void DeleteKeys(const RedisConnection::Ptr& conn, const std::vector<String>& keys, RedisConnection::QueryPriority priority);
+	void DeleteKeys(const RedisConnection::Ptr& conn, const std::vector<String>& keys);
 	std::vector<String> GetTypeOverwriteKeys(const String& type);
 	std::vector<String> GetTypeDumpSignalKeys(const Type::Ptr& type);
 	void InsertCheckableDependencies(const Checkable::Ptr& checkable, std::map<String, RedisConnection::Query>& hMSets,
