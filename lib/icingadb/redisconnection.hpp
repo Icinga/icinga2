@@ -37,6 +37,7 @@
 #include <map>
 #include <memory>
 #include <queue>
+#include <deque>
 #include <stdexcept>
 #include <utility>
 #include <vector>
@@ -57,22 +58,6 @@ namespace icinga
 		typedef std::vector<Query> Queries;
 		typedef Value Reply;
 		typedef std::vector<Reply> Replies;
-
-		/**
-		 * Redis query priorities, highest first.
-		 *
-		 * @ingroup icingadb
-		 */
-		enum class QueryPriority : unsigned char
-		{
-			Heartbeat,
-			RuntimeStateStream, // runtime state updates, doesn't affect initially synced states
-			Config, // includes initially synced states
-			RuntimeStateSync, // updates initially synced states at runtime, in parallel to config dump, therefore must be < Config
-			History,
-			CheckResult,
-			SyncConnection = 255
-		};
 
 		struct QueryAffects
 		{
@@ -95,15 +80,15 @@ namespace icinga
 			return m_Connected.load();
 		}
 
-		void FireAndForgetQuery(Query query, QueryPriority priority, QueryAffects affects = {});
-		void FireAndForgetQueries(Queries queries, QueryPriority priority, QueryAffects affects = {});
+		void FireAndForgetQuery(Query query, QueryAffects affects = {}, bool highPriority = false);
+		void FireAndForgetQueries(Queries queries, QueryAffects affects = {});
 
-		Reply GetResultOfQuery(Query query, QueryPriority priority, QueryAffects affects = {});
-		Replies GetResultsOfQueries(Queries queries, QueryPriority priority, QueryAffects affects = {});
+		Reply GetResultOfQuery(Query query, QueryAffects affects = {});
+		Replies GetResultsOfQueries(Queries queries, QueryAffects affects = {}, bool highPriority = false);
 
-		void EnqueueCallback(const std::function<void(boost::asio::yield_context&)>& callback, QueryPriority priority);
+		void EnqueueCallback(const std::function<void(boost::asio::yield_context&)>& callback);
 		void Sync();
-		double GetOldestPendingQueryTs();
+		double GetOldestPendingQueryTs() const;
 
 		void SetConnectedCallback(std::function<void(boost::asio::yield_context& yc)> callback);
 
@@ -166,8 +151,9 @@ namespace icinga
 			Shared<std::pair<Queries, std::promise<Replies>>>::Ptr GetResultsOfQueries;
 			std::function<void(boost::asio::yield_context&)> Callback;
 
-			double CTime;
+			double CTime; // When was this item queued?
 			QueryAffects Affects;
+			bool HighPriority; // Does this item have high priority?
 		};
 
 		typedef boost::asio::ip::tcp Tcp;
@@ -226,14 +212,32 @@ namespace icinga
 		Atomic<bool> m_Connecting, m_Connected, m_Stopped;
 
 		struct {
-			// Items to be send to Redis
-			std::map<QueryPriority, std::queue<WriteQueueItem>> Writes;
+			std::deque<WriteQueueItem> Writes; // Pending writes to be sent to Redis.
 			// Requestors, each waiting for a single response
 			std::queue<std::promise<Reply>> ReplyPromises;
 			// Requestors, each waiting for multiple responses at once
 			std::queue<std::promise<Replies>> RepliesPromises;
 			// Metadata about all of the above
 			std::queue<FutureResponseAction> FutureResponseActions;
+
+			void Push(WriteQueueItem&& item)
+			{
+				if (!Writes.empty() && Writes.front().HighPriority) {
+					// We can't push to the front as there are already queued items with high priority,
+					// thus we need to find the right position to insert the new item, which is after
+					// all existing high priority items.
+					auto it = Writes.begin();
+					while (it != Writes.end() && it->HighPriority) {
+						++it;
+					}
+					Writes.insert(it, std::move(item));
+				} else if (item.HighPriority) {
+					// Either the queue is empty or front item has no priority, so it's safe to push to the front.
+					Writes.push_front(std::move(item));
+				} else {
+					Writes.push_back(std::move(item));
+				}
+			}
 		} m_Queues;
 
 		// Indicate that there's something to send/receive

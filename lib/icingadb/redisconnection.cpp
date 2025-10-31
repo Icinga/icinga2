@@ -138,12 +138,22 @@ void LogQuery(RedisConnection::Query& query, Log& msg)
 }
 
 /**
- * Queue a Redis query for sending
+ * Queue a Redis query for sending without waiting for the response in a fire-and-forget manner.
  *
- * @param query Redis query
- * @param priority The query's priority
+ * If the highPriority flag is set to true, the query is treated with high priority and placed at the front of
+ * the write queue, ensuring it is sent before other queued queries. This is useful for time-sensitive operations
+ * that require to be executed promptly, which is the case for IcingaDB heartbeat queries. If there are already
+ * queries with high priority in the queue, the new query is inserted after all existing high priority queries but
+ * before any normal priority queries to maintain the order of high priority items.
+ *
+ * @note The highPriority flag should be used sparingly and only for critical queries, as it can affect the overall
+ * performance and responsiveness of the Redis connection by potentially delaying other queued queries.
+ *
+ * @param query The Redis query to be sent.
+ * @param affects Does the query affect config, state or history data.
+ * @param highPriority Whether the query should be treated with high priority.
  */
-void RedisConnection::FireAndForgetQuery(RedisConnection::Query query, RedisConnection::QueryPriority priority, QueryAffects affects)
+void RedisConnection::FireAndForgetQuery(Query query, QueryAffects affects, bool highPriority)
 {
 	AssertNotStopped();
 
@@ -153,10 +163,9 @@ void RedisConnection::FireAndForgetQuery(RedisConnection::Query query, RedisConn
 	}
 
 	auto item (Shared<Query>::Make(std::move(query)));
-	auto ctime (Utility::GetTime());
 
-	asio::post(m_Strand, [this, item, priority, ctime, affects]() {
-		m_Queues.Writes[priority].emplace(WriteQueueItem{item, nullptr, nullptr, nullptr, nullptr, ctime, affects});
+	asio::post(m_Strand, [this, item, highPriority, affects, ctime = Utility::GetTime()]() {
+		m_Queues.Push(WriteQueueItem{item, nullptr, nullptr, nullptr, nullptr, ctime, affects, highPriority});
 		m_QueuedWrites.Set();
 		IncreasePendingQueries(1);
 	});
@@ -166,9 +175,8 @@ void RedisConnection::FireAndForgetQuery(RedisConnection::Query query, RedisConn
  * Queue Redis queries for sending
  *
  * @param queries Redis queries
- * @param priority The queries' priority
  */
-void RedisConnection::FireAndForgetQueries(RedisConnection::Queries queries, RedisConnection::QueryPriority priority, QueryAffects affects)
+void RedisConnection::FireAndForgetQueries(RedisConnection::Queries queries, QueryAffects affects)
 {
 	AssertNotStopped();
 
@@ -180,10 +188,9 @@ void RedisConnection::FireAndForgetQueries(RedisConnection::Queries queries, Red
 	}
 
 	auto item (Shared<Queries>::Make(std::move(queries)));
-	auto ctime (Utility::GetTime());
 
-	asio::post(m_Strand, [this, item, priority, ctime, affects]() {
-		m_Queues.Writes[priority].emplace(WriteQueueItem{nullptr, item, nullptr, nullptr, nullptr, ctime, affects});
+	asio::post(m_Strand, [this, item, affects, ctime = Utility::GetTime()]() {
+		m_Queues.Push(WriteQueueItem{nullptr, item, nullptr, nullptr, nullptr, ctime, affects});
 		m_QueuedWrites.Set();
 		IncreasePendingQueries(item->size());
 	});
@@ -193,11 +200,10 @@ void RedisConnection::FireAndForgetQueries(RedisConnection::Queries queries, Red
  * Queue a Redis query for sending, wait for the response and return (or throw) it
  *
  * @param query Redis query
- * @param priority The query's priority
  *
  * @return The response
  */
-RedisConnection::Reply RedisConnection::GetResultOfQuery(RedisConnection::Query query, RedisConnection::QueryPriority priority, QueryAffects affects)
+RedisConnection::Reply RedisConnection::GetResultOfQuery(RedisConnection::Query query, QueryAffects affects)
 {
 	AssertNotStopped();
 
@@ -209,10 +215,9 @@ RedisConnection::Reply RedisConnection::GetResultOfQuery(RedisConnection::Query 
 	std::promise<Reply> promise;
 	auto future (promise.get_future());
 	auto item (Shared<std::pair<Query, std::promise<Reply>>>::Make(std::move(query), std::move(promise)));
-	auto ctime (Utility::GetTime());
 
-	asio::post(m_Strand, [this, item, priority, ctime, affects]() {
-		m_Queues.Writes[priority].emplace(WriteQueueItem{nullptr, nullptr, item, nullptr, nullptr, ctime, affects});
+	asio::post(m_Strand, [this, item, affects, ctime = Utility::GetTime()]() {
+		m_Queues.Push(WriteQueueItem{nullptr, nullptr, item, nullptr, nullptr, ctime, affects});
 		m_QueuedWrites.Set();
 		IncreasePendingQueries(1);
 	});
@@ -226,11 +231,10 @@ RedisConnection::Reply RedisConnection::GetResultOfQuery(RedisConnection::Query 
  * Queue Redis queries for sending, wait for the responses and return (or throw) them
  *
  * @param queries Redis queries
- * @param priority The queries' priority
  *
  * @return The responses
  */
-RedisConnection::Replies RedisConnection::GetResultsOfQueries(RedisConnection::Queries queries, RedisConnection::QueryPriority priority, QueryAffects affects)
+RedisConnection::Replies RedisConnection::GetResultsOfQueries(Queries queries, QueryAffects affects, bool highPriority)
 {
 	AssertNotStopped();
 
@@ -244,10 +248,9 @@ RedisConnection::Replies RedisConnection::GetResultsOfQueries(RedisConnection::Q
 	std::promise<Replies> promise;
 	auto future (promise.get_future());
 	auto item (Shared<std::pair<Queries, std::promise<Replies>>>::Make(std::move(queries), std::move(promise)));
-	auto ctime (Utility::GetTime());
 
-	asio::post(m_Strand, [this, item, priority, ctime, affects]() {
-		m_Queues.Writes[priority].emplace(WriteQueueItem{nullptr, nullptr, nullptr, item, nullptr, ctime, affects});
+	asio::post(m_Strand, [this, item, highPriority, affects, ctime = Utility::GetTime()]() {
+		m_Queues.Push(WriteQueueItem{nullptr, nullptr, nullptr, item, nullptr, ctime, affects, highPriority});
 		m_QueuedWrites.Set();
 		IncreasePendingQueries(item->first.size());
 	});
@@ -257,14 +260,12 @@ RedisConnection::Replies RedisConnection::GetResultsOfQueries(RedisConnection::Q
 	return future.get();
 }
 
-void RedisConnection::EnqueueCallback(const std::function<void(boost::asio::yield_context&)>& callback, RedisConnection::QueryPriority priority)
+void RedisConnection::EnqueueCallback(const std::function<void(boost::asio::yield_context&)>& callback)
 {
 	AssertNotStopped();
 
-	auto ctime (Utility::GetTime());
-
-	asio::post(m_Strand, [this, callback, priority, ctime]() {
-		m_Queues.Writes[priority].emplace(WriteQueueItem{nullptr, nullptr, nullptr, nullptr, callback, ctime, QueryAffects{}});
+	asio::post(m_Strand, [this, callback, ctime = Utility::GetTime()]() {
+		m_Queues.Push(WriteQueueItem{nullptr, nullptr, nullptr, nullptr, callback, ctime});
 		m_QueuedWrites.Set();
 	});
 }
@@ -277,7 +278,7 @@ void RedisConnection::EnqueueCallback(const std::function<void(boost::asio::yiel
  */
 void RedisConnection::Sync()
 {
-	GetResultOfQuery({"PING"}, RedisConnection::QueryPriority::SyncConnection);
+	GetResultOfQuery({"PING"});
 }
 
 /**
@@ -285,7 +286,7 @@ void RedisConnection::Sync()
  *
  * @return *nix timestamp or 0
  */
-double RedisConnection::GetOldestPendingQueryTs()
+double RedisConnection::GetOldestPendingQueryTs() const
 {
 	auto promise (Shared<std::promise<double>>::Make());
 	auto future (promise->get_future());
@@ -293,14 +294,16 @@ double RedisConnection::GetOldestPendingQueryTs()
 	asio::post(m_Strand, [this, promise]() {
 		double oldest = 0;
 
-		for (auto& queue : m_Queues.Writes) {
-			if (!queue.second.empty()) {
-				auto ctime (queue.second.front().CTime);
-
-				if (ctime < oldest || oldest == 0) {
-					oldest = ctime;
-				}
+		bool seenHighPrioItems = false;
+		for (const auto& item : m_Queues.Writes) {
+			// If we find a normal priority item, we can stop right away because all following items
+			// will also be normal priority that were queued later, thus can't be older.
+			if (!item.HighPriority) {
+				oldest = std::min(seenHighPrioItems ? oldest : item.CTime, item.CTime);
+				break;
 			}
+			oldest = std::min(oldest == 0 ? item.CTime : oldest, item.CTime);
+			seenHighPrioItems = item.HighPriority;
 		}
 
 		promise->set_value(oldest);
@@ -488,18 +491,11 @@ void RedisConnection::WriteLoop(asio::yield_context& yc)
 	while (!m_Stopped) {
 		m_QueuedWrites.Wait(yc);
 
-	WriteFirstOfHighestPrio:
-		for (auto& queue : m_Queues.Writes) {
-			if (queue.second.empty()) {
-				continue;
-			}
+		while (!m_Queues.Writes.empty()) {
+			auto queuedWrite(std::move(m_Queues.Writes.front()));
+			m_Queues.Writes.pop_front();
 
-			auto next (std::move(queue.second.front()));
-			queue.second.pop();
-
-			WriteItem(yc, std::move(next));
-
-			goto WriteFirstOfHighestPrio;
+			WriteItem(yc, std::move(queuedWrite));
 		}
 
 		m_QueuedWrites.Clear();
