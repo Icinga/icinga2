@@ -43,6 +43,7 @@
 #include <stdexcept>
 #include <utility>
 #include <vector>
+#include <variant>
 
 namespace icinga
 {
@@ -168,19 +169,20 @@ struct RedisConnInfo final : SharedObject
 			ResponseAction Action;
 		};
 
+		using FireAndForgetQ = Shared<Query>::Ptr; // A single query that does not expect a result.
+		using FireAndForgetQs = Shared<Queries>::Ptr; // Multiple queries that do not expect results.
+		using QueryWithPromise = Shared<std::pair<Query, std::promise<Reply>>>::Ptr; // A single query expecting a result.
+		using QueriesWithPromise = Shared<std::pair<Queries, std::promise<Replies>>>::Ptr; // Multiple queries expecting results.
+		using QueryCallback = std::function<void(boost::asio::yield_context&)>; // A callback to be executed.
+
 		/**
-		 * Something to be send to Redis.
+		 * An item in the write queue to be sent to Redis.
 		 *
 		 * @ingroup icingadb
 		 */
 		struct WriteQueueItem
 		{
-			Shared<Query>::Ptr FireAndForgetQuery;
-			Shared<Queries>::Ptr FireAndForgetQueries;
-			Shared<std::pair<Query, std::promise<Reply>>>::Ptr GetResultOfQuery;
-			Shared<std::pair<Queries, std::promise<Replies>>>::Ptr GetResultsOfQueries;
-			std::function<void(boost::asio::yield_context&)> Callback;
-
+			std::variant<FireAndForgetQ, FireAndForgetQs, QueryWithPromise, QueriesWithPromise, QueryCallback> Item;
 			double CTime; // When was this item queued?
 			QueryAffects Affects;
 		};
@@ -210,7 +212,11 @@ struct RedisConnInfo final : SharedObject
 		void ReadLoop(boost::asio::yield_context& yc);
 		void WriteLoop(boost::asio::yield_context& yc);
 		void LogStats(boost::asio::yield_context& yc);
-		void WriteItem(boost::asio::yield_context& yc, WriteQueueItem item);
+		bool WriteItem(const FireAndForgetQ& item, boost::asio::yield_context& yc);
+		bool WriteItem(const FireAndForgetQs& item, boost::asio::yield_context& yc);
+		bool WriteItem(const QueryWithPromise& item, boost::asio::yield_context& yc);
+		bool WriteItem(const QueriesWithPromise& item, boost::asio::yield_context& yc);
+		bool WriteItem(const QueryCallback& item, boost::asio::yield_context& yc);
 		Reply ReadOne(boost::asio::yield_context& yc);
 		void WriteOne(Query& query, boost::asio::yield_context& yc);
 
