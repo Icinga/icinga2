@@ -77,10 +77,10 @@ apt update
 
 !!! info
 
-    A paid repository subscription is required for RHEL repositories. Get more information on
-    [icinga.com/subscription](https://icinga.com/subscription)
+A paid repository subscription is required for RHEL repositories. Get more information on
+[icinga.com/subscription](https://icinga.com/subscription)
 
-    Don't forget to fill in the username and password section with your credentials in the local .repo file.
+Don't forget to fill in the username and password section with your credentials in the local .repo file.
 
 ```bash
 wget https://packages.icinga.com/subscription/rhel/ICINGA-release.repo -O /etc/yum.repos.d/ICINGA-release.repo
@@ -117,10 +117,10 @@ curl -o /etc/yum.repos.d/ICINGA-release.repo https://packages.icinga.com/fedora/
 
 !!! info
 
-    A paid repository subscription is required for SLES repositories. Get more information on
-    [icinga.com/subscription](https://icinga.com/subscription)
+A paid repository subscription is required for SLES repositories. Get more information on
+[icinga.com/subscription](https://icinga.com/subscription)
 
-    Don't forget to fill in the username and password section with your credentials in the local .repo file.
+Don't forget to fill in the username and password section with your credentials in the local .repo file.
 
 ```bash
 zypper ar https://packages.icinga.com/subscription/sles/ICINGA-release.repo
@@ -150,10 +150,10 @@ zypper ref
 
 !!! info
 
-    A paid repository subscription is required for Amazon Linux repositories. Get more information on
-    [icinga.com/subscription](https://icinga.com/subscription)
+A paid repository subscription is required for Amazon Linux repositories. Get more information on
+[icinga.com/subscription](https://icinga.com/subscription)
 
-    Don't forget to fill in the username and password section with your credentials in the local .repo file.
+Don't forget to fill in the username and password section with your credentials in the local .repo file.
 
 ```bash
 wget https://packages.icinga.com/subscription/amazon/ICINGA-release.repo -O /etc/yum.repos.d/ICINGA-release.repo
