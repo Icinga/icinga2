@@ -1246,9 +1246,6 @@ you can specify the certificates with the `ca_path`, `cert_path` and `cert_key` 
 Writes check result metrics and performance data to an Elasticsearch timeseries datastream.
 This configuration object is available as the [elasticsearch datastream feature](14-features.md#elasticsearchdatastream-writer).
 
-> **Note:**
->
-> This feature is experimental right now and behind a compilation flag.
 
 Example:
 
@@ -1302,8 +1299,71 @@ Changing the behavior of the writer:
   host\_tags\_template      | Array                 | **Optional.** Allows add [tags](https://www.elastic.co/docs/reference/ecs/ecs-base#field-tags) to the document for a Host check result.
   service\_tags\_template   | Array                 | **Optional.** Allows add [tags](https://www.elastic.co/docs/reference/ecs/ecs-base#field-tags) to the document for a Service check result.
   host\_labels\_template    | Dictionary            | **Optional.** Allows add [labels](https://www.elastic.co/docs/reference/ecs/ecs-base#field-labels) to the document for a Host check result.
-  service\_labels\_template | Array                 | **Optional.** Allows add [labels](https://www.elastic.co/docs/reference/ecs/ecs-base#field-labels) to the document for a Service check result.
+  service\_labels\_template | Dictionary            | **Optional.** Allows add [labels](https://www.elastic.co/docs/reference/ecs/ecs-base#field-labels) to the document for a Service check result.
   filter                    | Function              | **Optional.** An expression to filter which check results should be sent to Elasticsearch. Defaults to sending all check results.
+
+#### Macro Usage (Tags, Labels & Namespace)
+
+Macros can be used inside the following template attributes:
+
+- host_tags_template (array of strings)
+- service_tags_template (array of strings)
+- host_labels_template (dictionary of key -> string value)
+- service_labels_template (dictionary of key -> string value)
+- datastream_namespace (string)
+
+Behavior:
+- Tags: Each array element may contain zero or more macros. If at least one macro is missing/unresolvable, the entire tag element is skipped and a debug log entry is written.
+- Labels: Each dictionary value may contain macros. If at least one macro inside the value is missing, that label key/value pair is skipped and a debug log entry is written.
+- Namespace: The datastream_namespace string may contain macros. If a macro is missing or resolves to an empty value, the writer falls back to the default namespace "default".
+- Validation: A template string with an unterminated '$' (e.g. "$host.name") raises a configuration validation error referencing the original string.
+- Macros never partially substitute: either all macros in the string resolve and the rendered value is used, or (for tags/labels) the entry is skipped.
+- Normalization: Performance data metric labels and the resolved datastream namespace undergo normalization: any leading whitespace and leading special characters are trimmed; all remaining special (non-alphanumeric) characters are replaced with an underscore; consecutive underscores are collapsed; leading/trailing underscores are removed. This ensures stable, Elasticsearch-friendly field and namespace names.
+
+Examples:
+
+```
+object ElasticsearchDatastreamWriter "example-datastream" {
+  datastream_namespace = "$host.vars.env$" // Falls back to "default" if $host.vars.env$ is missing
+
+  host_tags_template = [
+    "env-$host.vars.env$",
+    "$host.name$"
+  ]
+
+  service_tags_template = [
+    "svc-$service.name$",
+    "$service.display_name$"
+  ]
+
+  host_labels_template = {
+    os = "$host.vars.os$"
+    fqdn = "$host.name$"
+  }
+
+  service_labels_template = {
+    check_cmd = "$service.check_command$"
+    attempted_env = "$host.vars.missing_env$" // Skipped if missing_env not set
+  }
+
+  filter = {{ service && "production" in host.groups }}
+}
+```
+
+A missing macro example for a host check result:
+- service_tags_template element "svc-$service.name$" is skipped (service not in scope).
+- service_labels_template value "$service.check_command$" is skipped for host check results.
+
+#### Filter Expression
+
+The filter accepts an expression (function literal) and only the variables host and service are available. (service is null / undefined for host check results.)
+
+Examples:
+```
+filter = {{ "production" in host.groups }}
+filter = {{ service && "linux" in host.groups }}
+```
+If the filter returns true, the check result is sent; otherwise it is skipped.
 
 ### ExternalCommandListener <a id="objecttype-externalcommandlistener"></a>
 

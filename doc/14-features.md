@@ -445,16 +445,23 @@ or Logstash for additional filtering.
 > **Note**
 >
 > This is a newer alternative to the Elasticsearch Writer above. The Elasticsearch Datastream Writer uses
-> Elasticsearch's datastream feature and follows the Elastic Common Schema (ECS), providing better performance
+> Elasticsearch's data stream feature and follows the Elastic Common Schema (ECS), providing better performance
 > and data organization. Use this writer for new installations. The original Elasticsearch Writer is still
 > available for backward compatibility.
+>
+> OpenSearch: The data stream mode and ECS component template usage differ slightly in OpenSearch. The
+> ElasticsearchDatastreamWriter focuses on Elasticsearch compatibility first. OpenSearch can ingest the data,
+> but you may need to adapt the installed index/component templates manually (e.g. remove time_series mode if
+> unsupported, adjust mappings). The option `manage_index_template` will not work with OpenSearch.
+
 
 This feature sends check results with performance data to an [Elasticsearch](https://www.elastic.co/products/elasticsearch) instance or cluster.
 
 > **Note**
 >
-> This feature requires Elasticsearch to support timeseries datastreams and have the ecs component template installed.
-> This feature was tested successfully with Elasticsearch 8.12 and 9.0.8.
+> This feature requires Elasticsearch to support time series data streams (Elasticsearch 8.x+), and to have the ECS
+> component template installed. It was tested successfully with Elasticsearch 8.12 and 9.0.8.
+
 
 Enable the feature and restart Icinga 2.
 
@@ -473,10 +480,13 @@ The documents for the ElasticsearchDatastreamWriter try to follow the [Elastic C
 version `8.0` as close as possible, with some additional changes to fit the Icinga 2 data model.
 All documents are written to a data stream of the format `metrics-icinga.<check>-<datastream_namespace>`,
 where `<check>` is the name of the checkcommand being executed to keep the number of fields per index low
-and document with the same performance data grouped together. `<datastream_namespace>` is an optional
+and documents with the same performance data grouped together. `<datastream_namespace>` is an optional
 configuration parameter to further separate documents, e.g. by environment like `production` or `development`.
 The `datastream_namespace` can also be used to separate documents e.g. by hostgroups or zones, by using the
 `filter` function to filter the check results and use several writers with different namespaces.
+Time‑series dimensions are applied to `host.name` and (when present) `service.name`, aligning with ECS host and service
+definitions: [ECS host fields](https://www.elastic.co/guide/en/ecs/current/ecs-host.html),
+[ECS service fields](https://www.elastic.co/guide/en/ecs/current/ecs-service.html).
 
 Icinga 2 automatically adds the following threshold metrics
 if existing:
@@ -513,23 +523,22 @@ Will in addition to the above mentioned lines also contain:
 
 #### Filtering check results <a id="elasticsearch-datastream-writer-filtering"></a>
 
-It is possible to filter the check results that are sent to Elasticsearch by using the `filter`
-parameter. This parameter takes a function that is called for each check result and must return
-a boolean value. If the function returns `true`, the check result is sent to Elasticsearch,
-otherwise it is skipped.
+You can filter which check results are sent to Elasticsearch by using the `filter` parameter.
+It takes a function (expression) evaluated for every check result and must return a boolean.
+If the function returns `true`, the check result is sent; otherwise it is skipped.
 
-This function has access to the check result in the `cr` variable, which contains the check result
-object, the checkable object (host or service) in the `checkable` variable and the host and service
-object in the `host` and `service` variables respectively.
+Only the variables `host` and `service` are available inside this expression.
+For host check results `service` is not set (null/undefined). No other variables (such as
+the raw check result object) are exposed.
 
-An example configuration that only sends check results of services in the `linux-servers` hostgroup
-and with a critical state:
+Example configuration that only sends service check results for hosts in the `linux-server` hostgroup:
+
 
 ```
 object ElasticsearchDatastreamWriter "elasticsearchdatastream" {
   ...
   datastream_namespace = "production"
-  filter = {{ service && "linux-server" in host.groups && cr.state == 2 }}
+  filter = {{ service && "linux-server" in host.groups }}
 }
 ```
 

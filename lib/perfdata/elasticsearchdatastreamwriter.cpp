@@ -1,5 +1,6 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
+#include <algorithm>
 #include <boost/algorithm/string.hpp>
 #include <boost/asio/ssl/context.hpp>
 #include <boost/asio/ssl/stream.hpp>
@@ -25,6 +26,7 @@
 #include "base/exception.hpp"
 #include "base/io-engine.hpp"
 #include "base/json.hpp"
+#include "base/logger.hpp"
 #include "base/perfdatavalue.hpp"
 #include "base/statsfunction.hpp"
 #include "base/stream.hpp"
@@ -45,10 +47,11 @@ namespace beast = boost::beast;
 namespace http = beast::http;
 
 static void ExceptionHandler(const boost::exception_ptr& exp);
-static Array::Ptr ExtractTemplateTags(const MacroProcessor::ResolverList& resolvers, const Array::Ptr& tags_tmpl,
+static Array::Ptr ExtractTemplateTags(const MacroProcessor::ResolverList& resolvers, const Array::Ptr& tagsTmpl,
 	const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
-static Dictionary::Ptr ExtractTemplateLabels(const MacroProcessor::ResolverList& resolvers, const Dictionary::Ptr& labels_tmpl,
+static Dictionary::Ptr ExtractTemplateLabels(const MacroProcessor::ResolverList& resolvers, const Dictionary::Ptr& labelsTmpl,
 	const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
+static String NormalizeElasticsearchFieldName(const String& fieldName);
 
 REGISTER_TYPE(ElasticsearchDatastreamWriter);
 
@@ -70,7 +73,7 @@ void ElasticsearchDatastreamWriter::OnConfigLoaded()
 	}
 }
 
-void ElasticsearchDatastreamWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
+void ElasticsearchDatastreamWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
 	for (const ElasticsearchDatastreamWriter::Ptr& writer : ConfigType::GetObjectsByType<ElasticsearchDatastreamWriter>()) {
 		status->Set(
@@ -131,36 +134,37 @@ void ElasticsearchDatastreamWriter::Pause()
 	ObjectImpl<ElasticsearchDatastreamWriter>::Pause();
 }
 
-void ElasticsearchDatastreamWriter::ManageIndexTemplate() {
+void ElasticsearchDatastreamWriter::ManageIndexTemplate()
+{
 	AssertOnWorkQueue();
 
-	String template_path = ICINGA_PKGDATADIR "/elasticsearch/index-template.json";
-	std::ifstream template_file{ template_path, std::ifstream::in };
-	if (!template_file.is_open()) {
+	String templatePath = ICINGA_PKGDATADIR "/elasticsearch/index-template.json";
+	std::ifstream templateFile{ templatePath, std::ifstream::in };
+	if (!templateFile.is_open()) {
 		Log(LogCritical, "ElasticsearchDatastreamWriter")
-			<< "Could not open index template file: " << template_path;
+			<< "Could not open index template file: " << templatePath;
 		return;
 	}
-	std::ostringstream template_stream;
-	template_stream << template_file.rdbuf();
-	String template_json = template_stream.str();
-	template_file.close();
+	std::ostringstream templateStream;
+	templateStream << templateFile.rdbuf();
+	String templateJson = templateStream.str();
+	templateFile.close();
 	Log(LogDebug, "ElasticsearchDatastreamWriter")
-		<< "Read index template from " << template_path;
-	Log(LogDebug, "ElasticsearchDatastreamWriter") << template_json;
+		<< "Read index template from " << templatePath;
+	Log(LogDebug, "ElasticsearchDatastreamWriter") << templateJson;
 
-	Url::Ptr index_template_url = new Url();
-	index_template_url->SetScheme(GetEnableTls() ? "https" : "http");
-	index_template_url->SetHost(GetHost());
-	index_template_url->SetPort(GetPort());
-	index_template_url->SetPath({ "_index_template", "icinga2-metrics" });
+	Url::Ptr indexTemplateUrl = new Url();
+	indexTemplateUrl->SetScheme(GetEnableTls() ? "https" : "http");
+	indexTemplateUrl->SetHost(GetHost());
+	indexTemplateUrl->SetPort(GetPort());
+	indexTemplateUrl->SetPath({ "_index_template", "icinga2-metrics" });
 
-	Url::Ptr component_template_url = new Url();
-	component_template_url->SetScheme(GetEnableTls() ? "https" : "http");
-	component_template_url->SetHost(GetHost());
-	component_template_url->SetPort(GetPort());
-	component_template_url->SetPath({ "_component_template", "metrics-icinga2@custom" });
-	component_template_url->SetQuery({ {"create", "true"} });
+	Url::Ptr componentTemplateUrl = new Url();
+	componentTemplateUrl->SetScheme(GetEnableTls() ? "https" : "http");
+	componentTemplateUrl->SetHost(GetHost());
+	componentTemplateUrl->SetPort(GetPort());
+	componentTemplateUrl->SetPath({ "_component_template", "metrics-icinga2@custom" });
+	componentTemplateUrl->SetQuery({ {"create", "true"} });
 
 	while (true) {
 		if (m_Paused) {
@@ -170,23 +174,22 @@ void ElasticsearchDatastreamWriter::ManageIndexTemplate() {
 		}
 
 		try {
-			Dictionary::Ptr jsonResponse = TrySend(component_template_url, "{\"template\":{}}");
+			Dictionary::Ptr jsonResponse = TrySend(componentTemplateUrl, "{\"template\":{}}");
 			Log(LogInformation, "ElasticsearchDatastreamWriter")
 				<< "Successfully installed component template 'icinga2@custom'.";
 		} catch (const StatusCodeException& es) {
-		  int status_code = es.GetStatusCode();
-		  if (status_code == static_cast<int>(http::status::bad_request)) {
-			Log(LogInformation, "ElasticsearchDatastreamWriter")
-				<< "Component template 'metrics-icinga2@custom' already exists, skipping creation.";
-			// Continue to install/update index template
-		  } else {
-			Log(LogWarning, "ElasticsearchDatastreamWriter")
-				<< "Failed to install component template 'icinga2@custom', retrying in 5 seconds: " << DiagnosticInformation(es, false);
-			Log(LogDebug, "ElasticsearchDatastreamWriter")
-				<< "Additional information:\n" << DiagnosticInformation(es, true);
-			Utility::Sleep(5);
-			continue;
-		  }
+			if (es.GetStatusCode() == http::status::bad_request) {
+				Log(LogInformation, "ElasticsearchDatastreamWriter")
+					<< "Component template 'metrics-icinga2@custom' already exists, skipping creation.";
+				// Continue to install/update index template
+			} else {
+				Log(LogWarning, "ElasticsearchDatastreamWriter")
+					<< "Failed to install component template 'icinga2@custom', retrying in 5 seconds: " << DiagnosticInformation(es, false);
+				Log(LogDebug, "ElasticsearchDatastreamWriter")
+					<< "Additional information:\n" << DiagnosticInformation(es, true);
+				Utility::Sleep(5);
+				continue;
+			}
 		} catch (const std::exception& ex) {
 			Log(LogWarning, "ElasticsearchDatastreamWriter")
 				<< "Failed to install component template 'icinga2@custom', retrying in 5 seconds: " << DiagnosticInformation(ex, false);
@@ -197,7 +200,8 @@ void ElasticsearchDatastreamWriter::ManageIndexTemplate() {
 		}
 
 		try {
-			Dictionary::Ptr jsonResponse = TrySend(index_template_url, template_json);
+		    // don't move, as we retry in a loop if it fails.
+			Dictionary::Ptr jsonResponse = TrySend(indexTemplateUrl, templateJson);
 			Log(LogInformation, "ElasticsearchDatastreamWriter")
 				<< "Successfully installed/updated index template 'icinga2-metrics'.";
 			Log(LogDebug, "ElasticsearchDatastreamWriter")
@@ -213,10 +217,11 @@ void ElasticsearchDatastreamWriter::ManageIndexTemplate() {
 	}
 }
 
-Dictionary::Ptr ElasticsearchDatastreamWriter::ExtractPerfData(const Checkable::Ptr& checkable, const Array::Ptr& perfdata) {
-	Dictionary::Ptr pd_fields = new Dictionary();
+Dictionary::Ptr ElasticsearchDatastreamWriter::ExtractPerfData(const Checkable::Ptr& checkable, const Array::Ptr& perfdata)
+{
+	Dictionary::Ptr pdFields = new Dictionary();
 	if (!perfdata)
-		return pd_fields;
+		return pdFields;
 
 	ObjectLock olock(perfdata);
 	for (const Value& val : perfdata) {
@@ -248,23 +253,24 @@ Dictionary::Ptr ElasticsearchDatastreamWriter::ExtractPerfData(const Checkable::
 		if (!pdv->GetCrit().IsEmpty() && GetEnableSendThresholds())
 			metric->Set("crit", pdv->GetCrit());
 
-		pd_fields->Set(pdv->GetLabel(), metric);
+		String label = NormalizeElasticsearchFieldName(pdv->GetLabel());
+		pdFields->Set(label, metric);
 	}
 
-	return pd_fields;
+	return pdFields;
 }
 
 // user-defined tags, as specified in the ECS specification: https://www.elastic.co/docs/reference/ecs/ecs-base#field-tags
 static Array::Ptr ExtractTemplateTags(const MacroProcessor::ResolverList& resolvers,
-	const Array::Ptr& tag_tmpl, const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
+	const Array::Ptr& tagsTmpl, const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
 {
-	if (tag_tmpl == nullptr) {
+	if (tagsTmpl == nullptr) {
 		return nullptr;
 	}
 
-	ObjectLock olock(tag_tmpl);
+	ObjectLock olock(tagsTmpl);
 	Array::Ptr tags = new Array();
-	for (const String tag : tag_tmpl) {
+	for (const String tag : tagsTmpl) {
 		String missingMacro;
 		Value value = MacroProcessor::ResolveMacros(tag, resolvers, cr, &missingMacro);
 		if (!missingMacro.IsEmpty()) {
@@ -282,26 +288,26 @@ static Array::Ptr ExtractTemplateTags(const MacroProcessor::ResolverList& resolv
 
 // user-defined labels, as specified in the ECS specification: https://www.elastic.co/docs/reference/ecs/ecs-base#field-labels
 static Dictionary::Ptr ExtractTemplateLabels(const MacroProcessor::ResolverList& resolvers,
-	const Dictionary::Ptr& labels_tmpl, const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
+	const Dictionary::Ptr& labelsTmpl, const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
 {
-	if (labels_tmpl == nullptr) {
+	if (labelsTmpl == nullptr) {
 		return nullptr;
 	}
 
-	ObjectLock olock(labels_tmpl);
+	ObjectLock olock(labelsTmpl);
 	Dictionary::Ptr labels = new Dictionary();
-	for (const Dictionary::Pair& label_kv : labels_tmpl) {
+	for (const Dictionary::Pair& labelKv : labelsTmpl) {
 		String missingMacro;
-		Value value = MacroProcessor::ResolveMacros(label_kv.second, resolvers, cr, &missingMacro);
+		Value value = MacroProcessor::ResolveMacros(labelKv.second, resolvers, cr, &missingMacro);
 		if (!missingMacro.IsEmpty()) {
 			Log(LogDebug, "ElasticsearchDatastreamWriter")
-				<< "Missing macro for label: " << label_kv.first
-				<< "Label: " << label_kv.second
+				<< "Missing macro for label: " << labelKv.first
+				<< "Label: " << labelKv.second
 				<< ". Missing: " << missingMacro
 				<< " for checkable '" << checkable->GetName() << "'. Skipping.";
 			continue;
 		}
-		labels->Set(label_kv.first, value);
+		labels->Set(labelKv.first, value);
 	}
 
 	return labels;
@@ -310,31 +316,28 @@ static Dictionary::Ptr ExtractTemplateLabels(const MacroProcessor::ResolverList&
 String ElasticsearchDatastreamWriter::ExtractDatastreamNamespace(const MacroProcessor::ResolverList& resolvers,
 	const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
 {
-	String namespace_tmpl = GetDatastreamNamespace();
+	String namespaceTmpl = GetDatastreamNamespace();
 
 	String missingMacro;
-	Value value = MacroProcessor::ResolveMacros(namespace_tmpl, resolvers, cr, &missingMacro);
+	Value value = MacroProcessor::ResolveMacros(namespaceTmpl, resolvers, cr, &missingMacro);
 	if (!missingMacro.IsEmpty() || value.IsEmpty()) {
 		Log(LogDebug, "ElasticsearchDatastreamWriter")
 			<< "Missing value for namespace. Missing: " << missingMacro
 			<< " for checkable '" << checkable->GetName() << "'. Skipping.";
-		return String("default");
+		return "default";
 	}
 
-	return value;
+	return NormalizeElasticsearchFieldName(value);
 }
 
-bool ElasticsearchDatastreamWriter::Filter(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr) {
+bool ElasticsearchDatastreamWriter::Filter(const Checkable::Ptr& checkable)
+{
 	if (!m_CompiledFilter)
 		return true;
 
-	Host::Ptr host;
-	Service::Ptr service;
-	tie(host, service) = GetHostService(checkable);
+	auto [host, service] = GetHostService(checkable);
 
 	Namespace::Ptr frameNS = new Namespace();
-	frameNS->Set("checkable", checkable);
-	frameNS->Set("check_result", cr);
 	frameNS->Set("host", host);
 	frameNS->Set("service", service);
 
@@ -350,135 +353,147 @@ void ElasticsearchDatastreamWriter::CheckResultHandler(const Checkable::Ptr& che
 	if (!IcingaApplication::GetInstance()->GetEnablePerfdata() || !checkable->GetEnablePerfdata())
 		return;
 
-	if (!Filter(checkable, cr)) {
+	if (!Filter(checkable)) {
 		m_ItemsFilteredOut.fetch_add(1);
 		Log(LogDebug, "ElasticsearchDatastreamWriter")
 			<< "Check result for checkable '" << checkable->GetName() << "' filtered out.";
 		return;
 	}
 
-	Host::Ptr host;
-	Service::Ptr service;
-	tie(host, service) = GetHostService(checkable);
+	auto [host, service] = GetHostService(checkable);
 
-	MacroProcessor::ResolverList resolvers;
-	resolvers.emplace_back("host", host);
-	if (service) {
-		resolvers.emplace_back("service", service);
-	}
-
-	Dictionary::Ptr ecs_metadata = new Dictionary({
-		{ "version", "8.0.0" }
-	});
-
-	String datastream_namespace = ExtractDatastreamNamespace(resolvers, checkable, cr);
-	String datastream_name = "metrics-icinga2." + checkable->GetCheckCommandRaw() + "-" + datastream_namespace;
-	Dictionary::Ptr data_stream = new Dictionary({
-		{"type", "metrics"},
-		{"dataset", "icinga2." + checkable->GetCheckCommandRaw()},
-		{"namespace", datastream_namespace}
-	});
-
-	Dictionary::Ptr ecs_host = new Dictionary({
+	/* ECS host object population
+	 * References:
+	 *   https://www.elastic.co/guide/en/ecs/current/ecs-host.html
+	 * The classic ECS host fields (name, hostname) are extended here with
+	 * Icinga-specific state information (soft_state, hard_state) to aid consumers
+	 * correlating monitoring state with metrics.
+	 */
+	Dictionary::Ptr ecsHost = new Dictionary({
 		{"name", host->GetDisplayName()},
 		{"hostname", host->GetName()},
 		{"soft_state", host->GetState()},
 		{"hard_state", host->GetLastHardState()}
 	});
-	if (!host->GetZoneName().IsEmpty()) ecs_host->Set("zone", host->GetZoneName());
+	if (!host->GetZoneName().IsEmpty()) ecsHost->Set("zone", host->GetZoneName());
 
-	char _addr[16];
-	if (!host->GetAddress().IsEmpty() && inet_pton(AF_INET, host->GetAddress().CStr(), _addr) == 1) {
-		ecs_host->Set("ip", host->GetAddress());
-	} else if (!host->GetAddress6().IsEmpty() && inet_pton(AF_INET6, host->GetAddress6().CStr(), _addr) == 1) {
-		ecs_host->Set("ip", host->GetAddress6());
-	} else if (!host->GetAddress().IsEmpty()) {
-		ecs_host->Set("fqdn", host->GetAddress());
-	}
-
-	Dictionary::Ptr ecs_service;
+	Dictionary::Ptr ecsService;
 	if (service) {
-	   	ecs_service = new Dictionary({
-	   		{"name", service->GetName()},
+		/* ECS service object population
+		 * References:
+		 *   https://www.elastic.co/guide/en/ecs/current/ecs-service.html
+		 * We include ECS service 'name' plus Icinga display/state details.
+		 * The added state fields (soft_state, hard_state) are Icinga-centric
+		 * extensions.
+		 */
+		ecsService = new Dictionary({
+			{"name", service->GetName()},
 			{"display_name", service->GetDisplayName()},
 			{"soft_state", service->GetState()},
 			{"hard_state", service->GetLastHardState()}
 		});
-		if (!service->GetZoneName().IsEmpty()) ecs_service->Set("zone", service->GetZoneName());
+		if (!service->GetZoneName().IsEmpty()) ecsService->Set("zone", service->GetZoneName());
 	}
 
-	Dictionary::Ptr ecs_agent = new Dictionary({
-		{"type", "icinga2"},
-		{"name", cr->GetCheckSource()}
-	});
-	Endpoint::Ptr endpoint = checkable->GetCommandEndpoint();
-	if (endpoint) {
-		ecs_agent->Set("id", endpoint->GetName());
-		ecs_agent->Set("version", endpoint->GetIcingaVersionString());
-	} else {
-		ecs_agent->Set("id", IcingaApplication::GetInstance()->GetName());
-		ecs_agent->Set("version", IcingaApplication::GetAppSpecVersion());
-	}
 
-	Dictionary::Ptr ecs_event = new Dictionary({
-	   {"created", FormatTimestamp(cr->GetScheduleEnd())},
-	   {"start", FormatTimestamp(cr->GetExecutionStart())},
-	   {"end", FormatTimestamp(cr->GetExecutionEnd())},
-	   {"kind", "metric"},
-	   {"module", "icinga2"}
+	Dictionary::Ptr checkResult = new Dictionary({
+		{"current_check_attempts", checkable->GetCheckAttempt()},
+		{"reachable", checkable->IsReachable()}
 	});
 
-	String checkable_name = service == nullptr ? host->GetName() : service->GetName();
-	Dictionary::Ptr check_result = new Dictionary({
-		{"checkable", checkable_name},
-		{"exit_status", cr->GetExitStatus()},
-		{"execution_time", cr->CalculateExecutionTime()},
-		{"latency", cr->CalculateLatency()},
-		{"schedule_start", FormatTimestamp(cr->GetScheduleStart())},
-		{"schedule_end", FormatTimestamp(cr->GetScheduleEnd())},
-		{"active", cr->GetActive()}
-	});
+	m_WorkQueue.Enqueue([this, cr, checkable, host = std::move(host), service = std::move(service), ecsHost = std::move(ecsHost),
+		ecsService = std::move(ecsService), checkResult = std::move(checkResult)]()
+	{
+		MacroProcessor::ResolverList resolvers;
+		resolvers.emplace_back("host", host);
+		if (service) {
+			resolvers.emplace_back("service", service);
+		}
 
-	Dictionary::Ptr document = new Dictionary({
-		{"@timestamp", FormatTimestamp(cr->GetScheduleEnd())},
-		{ "ecs", ecs_metadata },
-		{ "data_stream", data_stream },
-		{ "host", ecs_host },
-		{ "agent", ecs_agent },
-		{ "event", ecs_event },
-		{ "check", check_result },
-		{ "message", cr->GetOutput() },
-	});
+		Dictionary::Ptr ecs_metadata = new Dictionary({
+			{ "version", "8.0.0" }
+		});
 
-	Dictionary::Ptr perfdata = ExtractPerfData(checkable, cr->GetPerformanceData());
-	if (perfdata->GetLength() != 0) {
-        document->Set("perfdata", perfdata);
-    }
+		String datastreamNamespace = ExtractDatastreamNamespace(resolvers, checkable, cr);
+		String datastreamDataset = "icinga2." + NormalizeElasticsearchFieldName(checkable->GetCheckCommandRaw());
+		String datastreamName = "metrics-" + datastreamDataset + "-" + datastreamNamespace;
+		Dictionary::Ptr data_stream = new Dictionary({
+			{"type", "metrics"},
+			{"dataset", datastreamDataset},
+			{"namespace", datastreamNamespace}
+		});
 
-	Array::Ptr ecs_tags = ExtractTemplateTags(
-	    resolvers, service ? GetServiceTagsTemplate() : GetHostTagsTemplate(),  checkable, cr);
-	if (ecs_tags && ecs_tags->GetLength() != 0 ) {
-        document->Set("tags", ecs_tags);
-    }
+		char _addr[16];
+		if (!host->GetAddress().IsEmpty() && inet_pton(AF_INET, host->GetAddress().CStr(), _addr) == 1) {
+			ecsHost->Set("ip", host->GetAddress());
+		} else if (!host->GetAddress6().IsEmpty() && inet_pton(AF_INET6, host->GetAddress6().CStr(), _addr) == 1) {
+			ecsHost->Set("ip", host->GetAddress6());
+		} else if (!host->GetAddress().IsEmpty()) {
+			ecsHost->Set("fqdn", host->GetAddress());
+		}
 
-	Dictionary::Ptr ecs_labels = ExtractTemplateLabels(
-        resolvers, service ? GetServiceLabelsTemplate() : GetHostLabelsTemplate(), checkable, cr);
-	if (ecs_labels && ecs_labels->GetLength() != 0 ) {
-	        document->Set("labels", ecs_labels);
-    }
+		Dictionary::Ptr ecsAgent = new Dictionary({
+			{"type", "icinga2"},
+			{"name", cr->GetCheckSource()}
+		});
+		Endpoint::Ptr endpoint = checkable->GetCommandEndpoint();
+		if (endpoint) {
+			ecsAgent->Set("id", endpoint->GetName());
+			ecsAgent->Set("version", endpoint->GetIcingaVersionString());
+		} else {
+			ecsAgent->Set("id", IcingaApplication::GetInstance()->GetName());
+			ecsAgent->Set("version", IcingaApplication::GetAppSpecVersion());
+		}
 
-	if (ecs_service && ecs_service->GetLength() != 0 ) {
-	        document->Set("service", ecs_service);
-    }
+		Dictionary::Ptr ecsEvent = new Dictionary({
+			{"created", FormatTimestamp(cr->GetScheduleEnd())},
+			{"start", FormatTimestamp(cr->GetExecutionStart())},
+			{"end", FormatTimestamp(cr->GetExecutionEnd())},
+			{"kind", "metric"},
+			{"module", "icinga2"}
+		});
 
-	EcsDocument::Ptr workqueue_document = new EcsDocument(
-		datastream_name,
-		document
-	);
+		checkResult->Set("exit_status", cr->GetExitStatus());
+		checkResult->Set("execution_time", cr->CalculateExecutionTime());
+		checkResult->Set("latency", cr->CalculateLatency());
+		checkResult->Set("schedule_start", FormatTimestamp(cr->GetScheduleStart()));
+		checkResult->Set("schedule_end", FormatTimestamp(cr->GetScheduleEnd()));
+		checkResult->Set("active", cr->GetActive());
+		checkResult->Set("max_attempts", checkable->GetMaxCheckAttempts());
 
-	//ToDo: This will block on a full queue. Consider a drop policy.
-	m_WorkQueue.Enqueue([this, workqueue_document, checkable]() {
-		m_DataBuffer.emplace_back(workqueue_document);
+		Dictionary::Ptr document = new Dictionary({
+			{"@timestamp", FormatTimestamp(cr->GetExecutionEnd())},
+			{ "ecs", ecs_metadata },
+			{ "data_stream", data_stream },
+			{ "host", ecsHost },
+			{ "agent", ecsAgent },
+			{ "event", ecsEvent },
+			{ "check", checkResult },
+			{ "message", cr->GetOutput() },
+		});
+
+		Dictionary::Ptr perfdata = ExtractPerfData(checkable, cr->GetPerformanceData());
+		if (perfdata->GetLength() != 0) {
+			document->Set("perfdata", perfdata);
+		}
+
+		Array::Ptr ecsTags = ExtractTemplateTags(
+			resolvers, service ? GetServiceTagsTemplate() : GetHostTagsTemplate(), checkable, cr);
+		if (ecsTags && ecsTags->GetLength() != 0 ) {
+			document->Set("tags", ecsTags);
+		}
+
+		Dictionary::Ptr ecsLabels = ExtractTemplateLabels(
+			resolvers, service ? GetServiceLabelsTemplate() : GetHostLabelsTemplate(), checkable, cr);
+		if (ecsLabels && ecsLabels->GetLength() != 0 ) {
+			document->Set("labels", ecsLabels);
+		}
+
+		if (ecsService && ecsService->GetLength() != 0 ) {
+			document->Set("service", ecsService);
+		}
+
+		m_DataBuffer.emplace_back(new EcsDocument(datastreamName,document));
 		if (static_cast<int>(m_DataBuffer.size()) >= GetFlushThreshold()) {
 			Flush();
 		}
@@ -512,7 +527,7 @@ void ElasticsearchDatastreamWriter::Flush()
 	Dictionary::Ptr jsonResponse;
 	while (true) {
 		try {
-			jsonResponse = TrySend(url, body);
+			jsonResponse = TrySend(url, std::move(body));
 			m_DocumentsSent += m_DataBuffer.size();
 			break;
 		} catch (const std::exception& ex) {
@@ -548,16 +563,23 @@ void ElasticsearchDatastreamWriter::Flush()
 	int c = 0;
 	ObjectLock olock(items);
 	for (const Dictionary::Ptr value : items) {
-		Dictionary::Ptr item_result = value->Get("create");
-		int item_result_status = item_result->Get("status");
-		if (item_result_status > 299) {
+		Dictionary::Ptr itemResult = value->Get("create");
+		int itemResultStatus = itemResult->Get("status");
+		if (itemResultStatus > 299) {
 			m_DocumentsFailed += 1;
-			Dictionary::Ptr item_error = item_result->Get("error");
-			String value = item_error->Get("type") + ": " + item_error->Get("reason");
+			Dictionary::Ptr itemError = itemResult->Get("error");
+			String value = itemError->Get("type") + ": " + itemError->Get("reason");
 			Log(LogWarning, "ElasticsearchDatastreamWriter")
 				<< "Error during document creation: " << value;
+
+			if (c >= m_DataBuffer.size()) {
+				Log(LogCritical, "ElasticsearchDatastreamWriter")
+					<< "Got an error response from elasticsearch ouside the sent messages";
+				break;
+			}
+
 			Log(LogDebug, "ElasticsearchDatastreamWriter")
-				<< "Error response: " << JsonEncode(item_result) << "\n"
+				<< "Error response: " << JsonEncode(itemResult) << "\n"
 				<< "Document: " << JsonEncode(m_DataBuffer[c]->GetDocument());
 		}
 		++c;
@@ -565,7 +587,8 @@ void ElasticsearchDatastreamWriter::Flush()
 	m_DataBuffer.clear();
 }
 
-Value ElasticsearchDatastreamWriter::TrySend(Url::Ptr url, String body) {
+Value ElasticsearchDatastreamWriter::TrySend(const Url::Ptr& url, String body)
+{
 	// Make sure we are not randomly flushing from a timeout under load.
 	m_FlushTimer->Reschedule(-1);
 
@@ -585,18 +608,17 @@ Value ElasticsearchDatastreamWriter::TrySend(Url::Ptr url, String body) {
 	/* Send authentication if configured. */
 	String username = GetUsername();
 	String password = GetPassword();
-	String api_token = GetPassword();
+	String apiToken = GetApiToken();
 
 	if (!username.IsEmpty() && !password.IsEmpty()) {
 		request.set(http::field::authorization, "Basic " + Base64::Encode(username + ":" + password));
-	} else if (!api_token.IsEmpty()) {
-		request.set(http::field::authorization, "ApiKey " + api_token);
+	} else if (!apiToken.IsEmpty()) {
+		request.set(http::field::authorization, "ApiKey " + apiToken);
 	}
 
-	request.body() = body;
+	request.body() = std::move(body);
 	request.content_length(request.body().size());
 
-	/* Don't log the request body to debug log, this is already done above. */
 	Log(LogDebug, "ElasticsearchDatastreamWriter")
 		<< "Sending " << request.method_string() << " request" << ((!username.IsEmpty() && !password.IsEmpty()) ? " with basic auth" : "" )
 		<< " to '" << url->Format() << "'.";
@@ -631,30 +653,33 @@ Value ElasticsearchDatastreamWriter::TrySend(Url::Ptr url, String body) {
 
 	auto& response (parser.get());
 	if (response.result_int() > 299) {
-		Log(LogCritical, "ElasticsearchDatastreamWriter")
-			<< "Unexpected response code " << response.result_int() << " from URL '" << url->Format() << "'. Error: " << response.body();
+		Log(LogDebug, "ElasticsearchDatastreamWriter")
+			<< "Unexpected response code " << static_cast<unsigned>(response.result()) << " from URL '" << url->Format() << "'. Error: " << response.body();
 		BOOST_THROW_EXCEPTION(StatusCodeException(
-			response.result_int(),
+			response.result(),
 			"Unexpected response code from Elasticsearch",
 			response.body()
 		));
 	}
 
-	m_DocumentsSent += m_DataBuffer.size();
 	auto& contentType (response[http::field::content_type]);
-	if (contentType != "application/json" && contentType != "application/json; charset=utf-8") {
-		Log(LogCritical, "ElasticsearchDatastreamWriter") << "Unexpected Content-Type: '" << contentType << "'";
-		BOOST_THROW_EXCEPTION(std::runtime_error(String("Unexpected Content-Type")));
+	/* Accept application/json with optional charset (any variant), case-insensitive. */
+	String ctLower = String(contentType.data());
+	boost::trim(ctLower);
+	boost::to_lower(ctLower);
+	if (!(ctLower == "application/json" || ctLower == "application/json; charset=utf-8")) {
+		Log(LogCritical, "ElasticsearchDatastreamWriter") << "Unexpected Content-Type: '" << ctLower << "'";
+		BOOST_THROW_EXCEPTION(std::runtime_error(String("Unexpected Content-Type '" + ctLower + "'")));
 	}
 
-	auto& response_body (response.body());
+	auto& responseBody (response.body());
 
 	Dictionary::Ptr jsonResponse;
 	try {
-		return JsonDecode(response_body);
+		return JsonDecode(responseBody);
 	} catch (...) {
 		Log(LogWarning, "ElasticsearchDatastreamWriter")
-			<< "Unable to parse JSON response:\n" << body;
+			<< "Unable to parse JSON response:\n" << responseBody;
 		throw;
 	}
 }
@@ -719,7 +744,6 @@ OptionalTlsStream ElasticsearchDatastreamWriter::Connect()
 	return stream;
 }
 
-
 void ElasticsearchDatastreamWriter::AssertOnWorkQueue()
 {
 	ASSERT(m_WorkQueue.IsWorkerThread());
@@ -751,7 +775,8 @@ String ElasticsearchDatastreamWriter::FormatTimestamp(double ts)
 	return Utility::FormatDateTime("%Y-%m-%dT%H:%M:%S", ts) + "." + Convert::ToString(milliSeconds) + Utility::FormatDateTime("%z", ts);
 }
 
-void ElasticsearchDatastreamWriter::ValidateTagsTemplate(const Array::Ptr& tags) {
+void ElasticsearchDatastreamWriter::ValidateTagsTemplate(const Array::Ptr& tags)
+{
 	ObjectLock olock(tags);
 	for (const Value& tag : tags) {
 		if (!MacroProcessor::ValidateMacroString(tag)) {
@@ -778,7 +803,8 @@ void ElasticsearchDatastreamWriter::ValidateServiceTagsTemplate(const Lazy<Array
 	}
 }
 
-void ElasticsearchDatastreamWriter::ValidateLabelsTemplate(const Dictionary::Ptr& labels) {
+void ElasticsearchDatastreamWriter::ValidateLabelsTemplate(const Dictionary::Ptr& labels)
+{
 	ObjectLock olock(labels);
 	for (const Dictionary::Pair& kv : labels) {
 		if (!MacroProcessor::ValidateMacroString(kv.second)) {
@@ -805,8 +831,9 @@ void ElasticsearchDatastreamWriter::ValidateServiceLabelsTemplate(const Lazy<Dic
 	}
 }
 
-void ElasticsearchDatastreamWriter::ValidateFilter(const Lazy<Value> &lvalue, const ValidationUtils &utils) {
-	Value filter = lvalue();
+void ElasticsearchDatastreamWriter::ValidateFilter(const Lazy<Value> &lvalue, const ValidationUtils &)
+{
+	const Value &filter = lvalue();
 	if (filter.IsEmpty()) {
 		return;
 	}
@@ -815,18 +842,39 @@ void ElasticsearchDatastreamWriter::ValidateFilter(const Lazy<Value> &lvalue, co
 		BOOST_THROW_EXCEPTION(ValidationError(this, { "filter" }, "Filter must be an expression."));
 	}
 
-
 	std::vector<std::unique_ptr<Expression> > args;
 	args.emplace_back(new GetScopeExpression(ScopeThis));
 	std::unique_ptr<Expression> indexer{new IndexerExpression(
-	std::unique_ptr<Expression>(MakeLiteral(filter)),
-	std::unique_ptr<Expression>(MakeLiteral("call"))
+		std::unique_ptr<Expression>(MakeLiteral(filter)),
+		std::unique_ptr<Expression>(MakeLiteral("call"))
 	)};
 	FunctionCallExpression *fexpr = new FunctionCallExpression(std::move(indexer), std::move(args));
 
-	m_CompiledFilter = std::move(fexpr);
+	m_CompiledFilter = fexpr;
+}
+
+static String NormalizeElasticsearchFieldName(const String& fieldName)
+{
+	String normalized("");
+
+	bool first_char = true;
+	bool preceding_invalid = false;
+	for (char& c : boost::trim_copy(fieldName)) {
+		if (!std::isalnum(static_cast<unsigned char>(c))) {
+			if (first_char || preceding_invalid) continue;
+			preceding_invalid = true;
+			c = '_';
+		} else {
+			first_char = false;
+			preceding_invalid = false;
+		}
+
+		normalized += tolower(c);
+	}
+
+	return normalized;
 }
 
 EcsDocument::EcsDocument(String index, Dictionary::Ptr document)
-	: m_Index(std::move(index)), m_Document(std::move(document)) {
-}
+	: m_Index(std::move(index)), m_Document(std::move(document))
+{}

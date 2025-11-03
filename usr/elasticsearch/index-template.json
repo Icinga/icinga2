@@ -11,7 +11,7 @@
     "settings": {
       "index": {
         "mode": "time_series",
-        "routing_path": "check.checkable",
+        "routing_path": ["host.name", "service.name"],
         "mapping": {
           "total_fields.limit": 2000
         }
@@ -55,10 +55,6 @@
         },
         "check": {
           "properties": {
-            "checkable": {
-              "time_series_dimension": true,
-              "type": "keyword"
-            },
             "exit_status": {
               "type": "integer"
             },
@@ -76,11 +72,27 @@
             },
             "active": {
               "type": "boolean"
+            },
+            "current_attempt": {
+              "type": "integer"
+            },
+            "max_attempts": {
+              "type": "integer"
+            },
+            "reachable": {
+              "type": "boolean"
             }
           }
         },
         "host": {
           "properties": {
+            "name": {
+              "time_series_dimension": true,
+              "type": "keyword"
+            },
+            "hostname": {
+              "type": "keyword"
+            },
             "soft_state": {
               "type": "keyword"
             },
@@ -94,6 +106,10 @@
         },
         "service": {
           "properties": {
+            "name": {
+              "time_series_dimension": true,
+              "type": "keyword"
+            },
             "display_name": {
               "type": "keyword"
             },
