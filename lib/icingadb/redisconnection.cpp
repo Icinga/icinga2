@@ -30,6 +30,15 @@ namespace asio = boost::asio;
 
 boost::regex RedisConnection::m_ErrAuth ("\\AERR AUTH ");
 
+RedisConnection::QueryArg::operator std::string_view() const
+{
+	if (auto str (std::get_if<String>(&m_Data)); str) {
+		return *str;
+	}
+
+	return std::get<std::string_view>(m_Data);
+}
+
 RedisConnection::RedisConnection(const String& host, int port, const String& path, const String& username, const String& password, int db,
 	bool useTls, bool insecure, const String& certPath, const String& keyPath, const String& caPath, const String& crlPath,
 	const String& tlsProtocolmin, const String& cipherList, double connectTimeout, DebugInfo di, const RedisConnection::Ptr& parent)
@@ -99,10 +108,12 @@ void LogQuery(RedisConnection::Query& query, Log& msg)
 			break;
 		}
 
-		if (arg.GetLength() > 64) {
-			msg << " '" << arg.SubStr(0, 61) << "...'";
+		std::string_view sv (arg);
+
+		if (sv.length() > 64) {
+			msg << " '" << sv.substr(0, 61) << "...'";
 		} else {
-			msg << " '" << arg << '\'';
+			msg << " '" << sv << '\'';
 		}
 	}
 }
