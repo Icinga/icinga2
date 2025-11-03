@@ -242,7 +242,18 @@ optional_policy(`
     ')
 ')
 
+########################################
+#
+# Logrotate
+#
 
+# Allow logrotate to execute the Icinga 2 binary for sending USR1 signal to reopen log files.
+optional_policy(`
+    require {
+        type logrotate_t;
+    }
+	can_exec(logrotate_t, icinga2_exec_t)
+')
 
 ########################################
 #
