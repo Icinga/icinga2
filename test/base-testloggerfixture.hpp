@@ -52,6 +52,13 @@ public:
 		return ret;
 	}
 
+	void Clear()
+	{
+		std::lock_guard lock(m_Mutex);
+		m_Expects.clear();
+		m_LogEntries.clear();
+	}
+
 private:
 	void ProcessLogEntry(const LogEntry& entry) override
 	{
@@ -118,6 +125,8 @@ struct TestLoggerFixture
 	{
 		return testLogger->ExpectLogPattern(pattern, timeout);
 	}
+
+	void ClearTestLogger() const { testLogger->Clear(); }
 
 	TestLogger::Ptr testLogger = new TestLogger;
 };
