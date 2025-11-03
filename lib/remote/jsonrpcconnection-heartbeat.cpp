@@ -41,7 +41,7 @@ void JsonRpcConnection::HandleAndWriteHeartbeats(boost::asio::yield_context yc)
 	}
 }
 
-Value JsonRpcConnection::HeartbeatAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
+Value JsonRpcConnection::HeartbeatAPIHandler(const MessageOrigin::Ptr&, [[maybe_unused]] const Dictionary::Ptr& params)
 {
 	return Empty;
 }

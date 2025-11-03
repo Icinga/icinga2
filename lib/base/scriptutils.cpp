@@ -508,7 +508,7 @@ void ScriptUtils::Assert(const Value& arg)
 		BOOST_THROW_EXCEPTION(std::runtime_error("Assertion failed"));
 }
 
-String ScriptUtils::MsiGetComponentPathShim(const String& component)
+String ScriptUtils::MsiGetComponentPathShim([[maybe_unused]] const String& component)
 {
 #ifdef _WIN32
 	TCHAR productCode[39];
