@@ -4,6 +4,7 @@
 #define ELASTICSEARCHDATASTREAMWRITER_H
 
 #include <boost/beast/http/verb.hpp>
+#include <boost/beast/http/status.hpp>
 
 #include "base/configobject.hpp"
 #include "base/dictionary.hpp"
@@ -59,7 +60,7 @@ protected:
 	void OnConfigLoaded() override;
 	void Resume() override;
 	void Pause() override;
-	Value TrySend(Url::Ptr url, String body);
+	Value TrySend(const Url::Ptr& url, String body);
 
 private:
 	WorkQueue m_WorkQueue{10000000, 1};
@@ -83,7 +84,7 @@ private:
 	Dictionary::Ptr ExtractPerfData(const Checkable::Ptr& checkable, const Array::Ptr& perfdata);
 	String ExtractDatastreamNamespace(const MacroProcessor::ResolverList& resolvers, const Checkable::Ptr& checkable,
 		const CheckResult::Ptr& cr);
-	bool Filter(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
+	bool Filter(const Checkable::Ptr& checkable);
 
 	OptionalTlsStream Connect();
 	void AssertOnWorkQueue();
@@ -97,17 +98,18 @@ private:
 class StatusCodeException : public std::runtime_error
 {
 public:
-	StatusCodeException(int status_code, String message, String body)
-		: std::runtime_error(std::move(message)), m_StatusCode(status_code), m_Body(std::move(body)) {}
+	StatusCodeException(boost::beast::http::status statusCode, String message, String body)
+		: std::runtime_error((message + " (HTTP " + std::to_string(static_cast<unsigned>(statusCode)) + ")").CStr()),
+		  m_StatusCode(statusCode), m_Body(std::move(body)) {}
 
-	int GetStatusCode() const { return m_StatusCode; }
+	boost::beast::http::status GetStatusCode() const { return m_StatusCode; }
 	const String& GetBody() const { return m_Body; }
 
 private:
-	int m_StatusCode;
+	boost::beast::http::status m_StatusCode;
 	String m_Body;
 };
 
 }
 
-#endif /* ELASTICSEARCHWRITER_H */
+#endif /* ELASTICSEARCHDATASTREAM_H */
