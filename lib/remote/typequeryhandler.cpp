@@ -4,8 +4,10 @@
 #include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
 #include "base/configtype.hpp"
+#include "base/generator.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/logger.hpp"
+#include <optional>
 #include <set>
 
 using namespace icinga;
@@ -89,23 +91,19 @@ bool TypeQueryHandler::HandleRequest(
 		return true;
 	}
 
-	ArrayData results;
-
-	for (Type::Ptr obj : objs) {
-		Dictionary::Ptr result1 = new Dictionary();
-		results.push_back(result1);
-
+	auto generatorFunc = [](const Type::Ptr& obj) -> std::optional<Value> {
+		Dictionary::Ptr result = new Dictionary();
 		Dictionary::Ptr resultAttrs = new Dictionary();
-		result1->Set("name", obj->GetName());
-		result1->Set("plural_name", obj->GetPluralName());
+		result->Set("name", obj->GetName());
+		result->Set("plural_name", obj->GetPluralName());
 		if (obj->GetBaseType())
-			result1->Set("base", obj->GetBaseType()->GetName());
-		result1->Set("abstract", obj->IsAbstract());
-		result1->Set("fields", resultAttrs);
+			result->Set("base", obj->GetBaseType()->GetName());
+		result->Set("abstract", obj->IsAbstract());
+		result->Set("fields", resultAttrs);
 
 		Dictionary::Ptr prototype = dynamic_pointer_cast<Dictionary>(obj->GetPrototype());
 		Array::Ptr prototypeKeys = new Array();
-		result1->Set("prototype_keys", prototypeKeys);
+		result->Set("prototype_keys", prototypeKeys);
 
 		if (prototype) {
 			ObjectLock olock(prototype);
@@ -143,14 +141,14 @@ bool TypeQueryHandler::HandleRequest(
 				{ "deprecated", static_cast<bool>(field.Attributes & FADeprecated) }
 			}));
 		}
-	}
+		return result;
+	};
 
-	Dictionary::Ptr result = new Dictionary({
-		{ "results", new Array(std::move(results)) }
-	});
+	Dictionary::Ptr result = new Dictionary{{"results", new ValueGenerator{objs, generatorFunc}}};
+	result->Freeze();
 
 	response.result(http::status::ok);
-	HttpUtility::SendJsonBody(response, params, result);
+	HttpUtility::SendJsonBody(response, params, result, yc);
 
 	return true;
 }
