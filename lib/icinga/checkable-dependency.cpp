@@ -51,7 +51,7 @@ std::vector<DependencyGroup::Ptr> Checkable::GetDependencyGroups() const
 static std::variant<Checkable*, String> GetDependencyGroupKey(const Dependency::Ptr& dependency)
 {
 	if (auto redundancyGroup(dependency->GetRedundancyGroup()); !redundancyGroup.IsEmpty()) {
-		return std::move(redundancyGroup);
+		return redundancyGroup;
 	}
 
 	return dependency->GetParent().get();

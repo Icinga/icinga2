@@ -649,6 +649,7 @@ int icinga::ServiceStateToFilter(ServiceState state)
 			return StateFilterUnknown;
 		default:
 			VERIFY(!"Invalid state type.");
+			return {};
 	}
 }
 
@@ -661,6 +662,7 @@ int icinga::HostStateToFilter(HostState state)
 			return StateFilterDown;
 		default:
 			VERIFY(!"Invalid state type.");
+			return {};
 	}
 }
 
@@ -737,6 +739,7 @@ String Notification::NotificationServiceStateToString(ServiceState state)
 			return "Unknown";
 		default:
 			VERIFY(!"Invalid state type.");
+			return {};
 	}
 }
 
@@ -749,6 +752,7 @@ String Notification::NotificationHostStateToString(HostState state)
 			return "Down";
 		default:
 			VERIFY(!"Invalid state type.");
+			return {};
 	}
 }
 

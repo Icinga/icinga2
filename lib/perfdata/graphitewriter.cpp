@@ -288,7 +288,7 @@ void GraphiteWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 	std::vector<std::pair<String, double>> metadata;
 	if (GetEnableSendMetadata()) {
 		metadata = {
-			{"state", service ? service->GetState() : host->GetState()},
+			{"state", service ? static_cast<unsigned int>(service->GetState()) : static_cast<unsigned int>(host->GetState())},
 			{"current_attempt", checkable->GetCheckAttempt()},
 			{"max_check_attempts", checkable->GetMaxCheckAttempts()},
 			{"state_type", checkable->GetStateType()},
