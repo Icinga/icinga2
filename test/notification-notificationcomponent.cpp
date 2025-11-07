@@ -122,14 +122,17 @@ object NotificationComponent "nc" {}
 		m_NotificationCv.notify_all();
 	}
 
-	bool WaitForExpectedNotificationCount(std::size_t expectedCount, std::chrono::milliseconds timeout = 5s)
+	auto WaitForExpectedNotificationCount(std::size_t expectedCount, std::chrono::milliseconds timeout = 5s)
 	{
 		Defer clearLog{[this]() { ClearTestLogger(); }};
 		std::unique_lock lock(m_NotificationMutex);
-		if (m_NumNotifications > expectedCount) {
-			return false;
-		}
-		return m_NotificationCv.wait_for(lock, timeout, [&]() { return m_NumNotifications == expectedCount; });
+
+		m_NotificationCv.wait_for(lock, timeout, [&]() { return m_NumNotifications >= expectedCount; });
+
+		boost::test_tools::assertion_result res{m_NumNotifications == expectedCount};
+		res.message() << "(" << m_NumNotifications << " == " << expectedCount << ")";
+
+		return res;
 	}
 
 	boost::test_tools::assertion_result AssertNoAttemptedSendLogPattern()
@@ -496,6 +499,37 @@ BOOST_AUTO_TEST_CASE(no_notify_non_applicable_reason)
 	BOOST_REQUIRE_EQUAL(GetNotificationCount(), 0);
 	BOOST_REQUIRE_EQUAL(GetLastNotification(), 0);
 	BOOST_REQUIRE_EQUAL(GetSuppressedNotifications(), 0);
+}
+
+/* This tests for regressions of races around the NoMoreNotifications flag, like in #10623.
+ */
+BOOST_AUTO_TEST_CASE(no_more_notifications_race)
+{
+	constexpr auto numIterations = 20UL;
+
+	BeginTimePeriod();
+
+	// Run the handler in a loop to provoke any existing race conditions.
+	std::atomic_bool stop;
+	auto timerThread = std::thread{[&stop]() {
+		while (!stop) {
+			NotificationTimerHandler();
+		}
+	}};
+
+	ReceiveCheckResults(1, ServiceOK);
+
+	// With interval 0, no reminder notifications should ever be sent.
+	for(auto i = 0UL; i<numIterations; ++i){
+		ReceiveCheckResults(3, ServiceCritical);
+		ReceiveCheckResults(1, ServiceOK);
+	}
+
+	stop = true;
+	timerThread.join();
+
+	BOOST_REQUIRE(WaitForExpectedNotificationCount(2 * numIterations));
+	BOOST_REQUIRE(!ExpectLogPattern("^Sending reminder.*$", 0s));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
