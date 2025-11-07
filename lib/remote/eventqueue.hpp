@@ -61,8 +61,6 @@ private:
  */
 class EventQueueRegistry : public Registry<EventQueueRegistry, EventQueue::Ptr>
 {
-public:
-	static EventQueueRegistry *GetInstance();
 };
 
 enum class EventType : uint_fast8_t
