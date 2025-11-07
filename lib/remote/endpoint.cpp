@@ -36,7 +36,7 @@ void Endpoint::SetCachedZone(const Zone::Ptr& zone)
 	m_Zone = zone;
 }
 
-Endpoint::Endpoint()
+Endpoint::Endpoint() : m_ReplayLog([this]() { return ReplayLog(GetName()); })
 {
 	for (auto& [name, afunc] : ApiFunctionRegistry::GetInstance()->GetItems()) {
 		m_MessageCounters.emplace(afunc, 0);
