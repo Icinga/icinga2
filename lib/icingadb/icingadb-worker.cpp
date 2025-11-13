@@ -80,8 +80,8 @@ void IcingaDB::PendingItemsThreadProc()
 	// Redis queries when the Redis connection is saturated.
 	constexpr size_t maxPendingQueries = 512;
 
-	// Predicate to determine whether the worker thread is allowed to process pending items.
-	auto canContinue = [this] {
+	std::unique_lock lock(m_PendingItemsMutex);
+	m_PendingItemsCV.wait(lock, [this](){
 		if (!GetActive()) {
 			return true; // We're being shut down, exit the loop.
 		}
@@ -89,98 +89,69 @@ void IcingaDB::PendingItemsThreadProc()
 			return false; // Don't process anything until the initial config dump is done.
 		}
 		return !m_PendingItems.empty() && m_Rcon && m_Rcon->IsConnected() && m_Rcon->GetPendingQueryCount() < maxPendingQueries;
-	};
+	});
 
-	while (GetActive()) {
-		std::unique_lock lock(m_PendingItemsMutex);
-		// Even if someone notifies us, we still need to verify whether the precondition is actually fulfilled.
-		// However, in case we don't receive any notification, we still want to wake up periodically on our own
-		// to check whether we can proceed (e.g. the Redis connection might have become available again).
-		// Thus, we use a timed wait here.
-		while (!canContinue()) m_PendingItemsCV.wait_for(lock, 100ms);
+	while (GetActive() || (m_Rcon && m_Rcon->IsConnected())) {
+		ch::duration<double> retryAfter{10ms}; // If we can't process anything right now, how long to wait before retrying?
+		auto now = ch::steady_clock::now();
 
-		// If we're shutting down and the Redis connection is gone, nothing more to do here.
-		if (!GetActive() && (!m_Rcon || !m_Rcon->IsConnected())) {
-			break;
+		// Create a filtered view of only type of objects we may want to process, depending
+		// on their type and their age.
+		auto& view = m_PendingItems.get<1>();
+
+		auto it = view.begin();
+		while(it != view.end()){
+			if (std::holds_alternative<RelationsDeletionItem>(*it) && it != view.begin()) {
+				// We don't know whether the previous items are related to this deletion item or not,
+				// thus we can't just process this right now when there are older items in the queue.
+				// Otherwise, we might delete something that is going to be updated/created.
+				goto retry;
+			}
+
+			auto age = now - std::visit([](auto& item){return item.EnqueueTime;}, *it);
+			if (GetActive() && 1000ms > age) {
+				if (it == view.begin()) {
+					retryAfter = 1000ms - age;
+				}
+				goto retry;
+			}
+
+			ConfigObject::Ptr cobj;
+			if (std::holds_alternative<PendingConfigItem>(*it)) {
+				cobj = std::get<PendingConfigItem>(*it).Object;
+			}
+
+			ObjectLock olock(cobj, std::defer_lock);
+			if (cobj && !olock.TryLock()) {
+				++it;
+				continue; // Can't lock the object right now, try the next one.
+			}
+
+			try {
+				std::visit([&](auto& item) {
+					lock.unlock();
+					ProcessPendingItem(item);
+				}, *it);
+			} catch (const std::exception& ex) {
+				Log(LogCritical, "IcingaDB")
+					<< "Exception while processing pending item of type index '" << it->index()
+					<< "': " << DiagnosticInformation(ex, GetActive());
+			}
+			lock.lock();
+
+			view.erase(it);
+
+			goto retry;
 		}
 
-		do {
-			bool madeProgress = false; // Did we make any progress in this iteration?
-			ch::duration<double> retryAfter{0}; // If we can't process anything right now, how long to wait before retrying?
-			auto now = ch::steady_clock::now();
+		if (it == view.end()) {
+		retry:
+			m_PendingItemsCV.wait_for(lock, retryAfter);
+		}
 
-			// Iterate over the pending items in insertion order to process them. We only process one item at a time
-			// to avoid holding the lock for too long and to allow other threads to enqueue new items. We also want
-			// to avoid processing items that have just been enqueued to allow for potential additional changes to
-			// be merged into the same item. Thus, we wait for the first item in the list to be at least 1000ms old
-			// before processing it, unless we're not active anymore (shutting down). In that case, we don't require
-			// any waiting and just process all items as fast as possible.
-			SequencedView& view = m_PendingItems.get<1>();
-			for (auto it(view.begin()); it != view.end(); ++it) {
-				const PendingItemVariant itemToProcess = *it;
-				bool abort = std::visit(
-					[this, &view, &it, &lock, &itemToProcess, &now, &retryAfter, &madeProgress](const auto& item) {
-						using ItemType = std::decay_t<decltype(item)>;
-						if (it != view.begin()) {
-							if constexpr (std::is_same_v<ItemType, RelationsDeletionItem>) {
-								// We don't know whether the previous items are related to this deletion item or not,
-								// thus we can't just process this right now when there are older items in the queue.
-								// Otherwise, we might delete something that is going to be updated/created.
-								return true;
-							}
-						}
-
-						if (GetActive() && 1000ms > now - item.EnqueueTime) {
-							if (it == view.begin()) {
-								retryAfter = 1000ms - (now - item.EnqueueTime);
-							}
-							return true;
-						}
-
-						ConfigObject::Ptr cobj;
-						if constexpr (std::is_same_v<ItemType, PendingConfigItem>) {
-							cobj = item.Object;
-						}
-
-						ObjectLock olock(cobj, std::defer_lock);
-						if (cobj && !olock.TryLock()) {
-							return false; // Can't lock the object right now, try the next one.
-						}
-
-						view.erase(it);
-						lock.unlock();
-
-						// We're about to process an item, so we definitely made some progress.
-						madeProgress = true;
-
-						try {
-							ProcessPendingItem(item);
-						} catch (const std::exception& ex) {
-							Log(LogCritical, "IcingaDB")
-								<< "Exception while processing pending item of type index '" << itemToProcess.index()
-								<< "': " << DiagnosticInformation(ex, GetActive());
-						}
-						lock.lock();
-						return true;
-					},
-					itemToProcess
-				);
-				if (abort) {
-					break;
-				}
-			}
-
-			if (retryAfter > 0ms || !madeProgress) {
-				if (retryAfter == 0ms) {
-					// There are still pending items to process, but we couldn't make any progress right now,
-					// probably because we couldn't acquire the lock on the config object(s). So, instead of
-					// letting the while loop spin while blocking all the waiters on m_PendingItemsMutex, we
-					// need to relax a bit here.
-					retryAfter = 10ms;
-				}
-				m_PendingItemsCV.wait_for(lock, retryAfter);
-			}
-		} while (!m_PendingItems.empty());
+		m_PendingItemsCV.wait(lock, [this]() {
+			return !m_PendingItems.empty() && m_Rcon->IsConnected() && m_Rcon->GetPendingQueryCount() < maxPendingQueries;
+		});
 	}
 }
 
