@@ -372,6 +372,8 @@ void TimePeriod::Dump()
 
 void TimePeriod::ValidateRanges(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)
 {
+	ObjectImpl::ValidateRanges(lvalue, utils);
+
 	if (!lvalue())
 		return;
 
