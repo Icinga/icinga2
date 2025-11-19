@@ -4,12 +4,12 @@
 #define NAMESPACE_H
 
 #include "base/i2-base.hpp"
+#include "base/atomic.hpp"
 #include "base/object.hpp"
 #include "base/objectlock.hpp"
 #include "base/shared-object.hpp"
 #include "base/value.hpp"
 #include "base/debuginfo.hpp"
-#include <atomic>
 #include <map>
 #include <vector>
 #include <memory>
@@ -95,7 +95,7 @@ private:
 	std::map<String, NamespaceValue> m_Data;
 	mutable std::shared_timed_mutex m_DataMutex;
 	bool m_ConstValues;
-	std::atomic<bool> m_Frozen;
+	Atomic<bool> m_Frozen;
 };
 
 Namespace::Iterator begin(const Namespace::Ptr& x);

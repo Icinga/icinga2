@@ -4,10 +4,10 @@
 #define OBJECT_H
 
 #include "base/i2-base.hpp"
+#include "base/atomic.hpp"
 #include "base/debug.hpp"
 #include "base/intrusive-ptr.hpp"
 #include <boost/smart_ptr/intrusive_ptr.hpp>
-#include <atomic>
 #include <cstddef>
 #include <cstdint>
 #include <mutex>
@@ -193,11 +193,11 @@ private:
 	Object(const Object& other) = delete;
 	Object& operator=(const Object& rhs) = delete;
 
-	mutable std::atomic<uint_fast64_t> m_References;
+	mutable Atomic<uint_fast64_t> m_References {0};
 	mutable std::recursive_mutex m_Mutex;
 
 #ifdef I2_DEBUG
-	mutable std::atomic<std::thread::id> m_LockOwner;
+	mutable Atomic<std::thread::id> m_LockOwner {std::thread::id()};
 	mutable size_t m_LockCount = 0;
 #endif /* I2_DEBUG */
 
