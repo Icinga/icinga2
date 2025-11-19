@@ -397,10 +397,6 @@ void AdvancedHelper(const char *timestamp, DateTime from, DateTime to)
 BOOST_AUTO_TEST_CASE(advanced)
 {
 	String timestamp;
-	boost::posix_time::ptime begin;
-	boost::posix_time::ptime end;
-	boost::posix_time::ptime expectedBegin;
-	boost::posix_time::ptime expectedEnd;
 
 	//-----------------------------------------------------
 	// 2019-05-06 where Icinga celebrates 10 years #monitoringlove
