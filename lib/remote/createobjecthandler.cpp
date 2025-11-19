@@ -9,17 +9,17 @@
 #include "remote/apiaction.hpp"
 #include "remote/zone.hpp"
 #include "base/configtype.hpp"
+#include "base/io-future.hpp"
 #include <set>
 
 using namespace icinga;
 
 REGISTER_URLHANDLER("/v1/objects", CreateObjectHandler);
 
-bool CreateObjectHandler::HandleRequest(
+static bool HandleRequestImpl(
 	const WaitGroup::Ptr& waitGroup,
 	const HttpRequest& request,
-	HttpResponse& response,
-	boost::asio::yield_context& yc
+	HttpResponse& response
 )
 {
 	namespace http = boost::beast::http;
@@ -161,4 +161,16 @@ bool CreateObjectHandler::HandleRequest(
 	HttpUtility::SendJsonBody(response, params, result);
 
 	return true;
+}
+
+bool CreateObjectHandler::HandleRequest(
+	const WaitGroup::Ptr& waitGroup,
+	const HttpRequest& request,
+	HttpResponse& response,
+	boost::asio::yield_context& yc
+)
+{
+	return QueueAsioFutureCallback([&](){
+		return HandleRequestImpl(waitGroup, request, response);
+	})->Get(yc);
 }
