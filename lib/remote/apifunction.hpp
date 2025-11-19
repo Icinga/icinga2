@@ -49,8 +49,6 @@ private:
  */
 class ApiFunctionRegistry : public Registry<ApiFunctionRegistry, ApiFunction::Ptr>
 {
-public:
-	static ApiFunctionRegistry *GetInstance();
 };
 
 #define REGISTER_APIFUNCTION(name, ns, callback) \
