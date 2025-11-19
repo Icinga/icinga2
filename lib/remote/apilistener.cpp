@@ -1004,11 +1004,11 @@ void ApiListener::ApiTimerHandler()
 {
 	double now = Utility::GetTime();
 
-	std::vector<int> files;
+	std::vector<std::uint64_t> files;
 	Utility::Glob(GetApiDir() + "log/*", [&files](const String& file) { LogGlobHandler(files, file); }, GlobFile);
 	std::sort(files.begin(), files.end());
 
-	for (int ts : files) {
+	for (auto ts : files) {
 		bool need = false;
 		auto localZone (GetLocalEndpoint()->GetZone());
 
@@ -1468,7 +1468,7 @@ void ApiListener::RotateLogFile()
 		ts = Utility::GetTime();
 
 	String oldpath = GetApiDir() + "log/current";
-	String newpath = GetApiDir() + "log/" + Convert::ToString(static_cast<int>(ts)+1);
+	String newpath = GetApiDir() + "log/" + Convert::ToString(static_cast<std::uint64_t>(ts)+1);
 
 	// If the log is being rotated more than once per second,
 	// don't overwrite the previous one, but silently deny rotation.
@@ -1486,22 +1486,20 @@ void ApiListener::RotateLogFile()
 	}
 }
 
-void ApiListener::LogGlobHandler(std::vector<int>& files, const String& file)
+void ApiListener::LogGlobHandler(std::vector<std::uint64_t>& files, const String& file)
 {
 	String name = Utility::BaseName(file);
 
 	if (name == "current")
 		return;
 
-	int ts;
-
 	try {
-		ts = Convert::ToLong(name);
-	} catch (const std::exception&) {
+		files.emplace_back(boost::lexical_cast<std::uint64_t>(name));
+	} catch (const std::exception& ex) {
+		Log(LogCritical, "ApiListener")
+			<< "Error converting log file name " << file << " to uint64: " << ex.what();
 		return;
 	}
-
-	files.push_back(ts);
 }
 
 void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
@@ -1548,19 +1546,19 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 
 		count = 0;
 
-		std::vector<int> files;
+		std::vector<std::uint64_t> files;
 		Utility::Glob(GetApiDir() + "log/*", [&files](const String& file) { LogGlobHandler(files, file); }, GlobFile);
 		std::sort(files.begin(), files.end());
 
-		std::vector<std::pair<int, String>> allFiles;
+		std::vector<std::pair<std::uint64_t, String>> allFiles;
 
-		for (int ts : files) {
+		for (auto ts : files) {
 			if (ts >= peer_ts) {
 				allFiles.emplace_back(ts, GetApiDir() + "log/" + Convert::ToString(ts));
 			}
 		}
 
-		allFiles.emplace_back(Utility::GetTime() + 1, GetApiDir() + "log/current");
+		allFiles.emplace_back(static_cast<std::uint64_t>(Utility::GetTime()) + 1, GetApiDir() + "log/current");
 
 		for (auto& file : allFiles) {
 			Log(LogNotice, "ApiListener")

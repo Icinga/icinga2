@@ -230,7 +230,7 @@ private:
 	void OpenLogFile();
 	void RotateLogFile();
 	void CloseLogFile();
-	static void LogGlobHandler(std::vector<int>& files, const String& file);
+	static void LogGlobHandler(std::vector<std::uint64_t>& files, const String& file);
 	void ReplayLog(const JsonRpcConnection::Ptr& client);
 
 	static void CopyCertificateFile(const String& oldCertPath, const String& newCertPath);
