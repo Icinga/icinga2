@@ -444,7 +444,9 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 		<< "Committing " << total << " new items.";
 #endif /* I2_DEBUG */
 
+#ifdef I2_DEBUG
 	int itemsCount {0};
+#endif /* I2_DEBUG */
 
 	for (auto& type : Type::GetConfigTypesSortedByLoadDependencies()) {
 		std::atomic<int> committed_items(0);
@@ -475,9 +477,9 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 			}
 		}
 
+#ifdef I2_DEBUG
 		itemsCount += committed_items;
 
-#ifdef I2_DEBUG
 		if (committed_items > 0)
 			Log(LogDebug, "configitem")
 				<< "Committed " << committed_items << " items of type '" << type->GetName() << "'.";

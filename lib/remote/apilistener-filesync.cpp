@@ -104,9 +104,6 @@ void ApiListener::SyncLocalZoneDir(const Zone::Ptr& zone) const
 
 	Utility::MkDirP(productionZonesDir, 0700);
 
-	// Copy content and add additional meta data.
-	size_t numBytes = 0;
-
 	/* Note: We cannot simply copy directories here.
 	 *
 	 * Zone directories are registered from everywhere and we already
@@ -131,8 +128,6 @@ void ApiListener::SyncLocalZoneDir(const Zone::Ptr& zone) const
 
 			fp << content;
 			fp.close();
-
-			numBytes += content.GetLength();
 		}
 	}
 
