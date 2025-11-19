@@ -228,20 +228,16 @@ void CLICommand::ShowCommands(int argc, char **argv, po::options_description *vi
 	typedef std::map<std::vector<String>, CLICommand::Ptr>::value_type CLIKeyValue;
 
 	std::vector<String> best_match;
-	int arg_begin = 0;
 	CLICommand::Ptr command;
 
 	for (const CLIKeyValue& kv : GetRegistry()) {
 		const std::vector<String>& vname = kv.first;
-
-		arg_begin = 0;
 
 		std::vector<String>::size_type i;
 		int k;
 		for (i = 0, k = 1; i < vname.size() && k < argc; i++, k++) {
 			if (strcmp(argv[k], "--no-stack-rlimit") == 0 || strcmp(argv[k], "--autocomplete") == 0 || strcmp(argv[k], "--scm") == 0) {
 				i--;
-				arg_begin++;
 				continue;
 			}
 

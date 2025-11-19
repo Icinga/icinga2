@@ -101,9 +101,7 @@ IoEngine::~IoEngine()
 		boost::asio::post(m_IoContext, []() {
 			throw TerminateIoThread();
 		});
-	}
 
-	for (auto& thread : m_Threads) {
 		thread.join();
 	}
 }

@@ -35,7 +35,7 @@ public:
 	ScriptError(String message);
 	ScriptError(String message, DebugInfo di, bool incompleteExpr = false);
 
-	const char *what(void) const throw() final;
+	const char* what() const noexcept override final;
 
 	DebugInfo GetDebugInfo() const;
 	bool IsIncompleteExpression() const;
@@ -59,7 +59,7 @@ public:
 	ValidationError(const ConfigObject::Ptr& object, const std::vector<String>& attributePath, const String& message);
 	~ValidationError() throw() override;
 
-	const char *what() const throw() override;
+	const char *what() const noexcept override;
 
 	ConfigObject::Ptr GetObject() const;
 	std::vector<String> GetAttributePath() const;
@@ -118,7 +118,7 @@ String DiagnosticInformation(const boost::exception_ptr& eptr, bool verbose = tr
 
 class posix_error : virtual public std::exception, virtual public boost::exception {
 public:
-	const char* what() const noexcept final;
+	const char* what() const noexcept override final;
 
 private:
 	mutable String m_Message;
@@ -153,7 +153,7 @@ public:
 
 	~invalid_downtime_removal_error() noexcept override;
 
-	const char *what() const noexcept final;
+	const char* what() const noexcept override final;
 
 private:
 	String m_Message;

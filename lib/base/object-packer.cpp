@@ -239,8 +239,8 @@ static void PackAny(const Value& value, std::string& builder)
  */
 String icinga::PackObject(const Value& value)
 {
-	std::string builder;
-	PackAny(value, builder);
+	String builder;
+	PackAny(value, builder.GetData());
 
 	return builder;
 }

@@ -20,13 +20,14 @@ using namespace icinga;
  *  should be printed. If it looks somewhat meaningful, you can probably ignore a failure of this test case.
  */
 
-#ifndef _MSC_VER
+#if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC push_options
-#pragma GCC optimize ("O0")
+#pragma GCC optimize("O0")
+#elif defined(__clang__)
 #pragma clang optimize off
-#else /* _MSC_VER */
+#elif defined(_MSC_VER)
 #pragma optimize("", off)
-#endif /* _MSC_VER */
+#endif
 
 BOOST_AUTO_TEST_SUITE(base_stacktrace)
 
@@ -66,9 +67,10 @@ BOOST_AUTO_TEST_CASE(stacktrace)
 
 BOOST_AUTO_TEST_SUITE_END()
 
-#ifndef _MSC_VER
+#if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC pop_options
+#elif defined(__clang__)
 #pragma clang optimize on
-#else /* _MSC_VER */
+#elif defined(_MSC_VER)
 #pragma optimize("", on)
-#endif /* _MSC_VER */
+#endif

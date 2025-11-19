@@ -119,7 +119,7 @@ protected:
 
 	virtual void OnShutdown();
 
-	void ValidateName(const Lazy<String>& lvalue, const ValidationUtils& utils) final;
+	void ValidateName(const Lazy<String>& lvalue, const ValidationUtils& utils) override final;
 
 private:
 	static Application::Ptr m_Instance; /**< The application instance. */

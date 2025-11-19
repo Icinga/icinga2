@@ -554,7 +554,7 @@ ExpressionResult GetScopeExpression::DoEvaluate(ScriptFrame& frame, DebugHint *d
 	else if (m_ScopeSpec == ScopeGlobal)
 		return frame.GetGlobals();
 	else
-		VERIFY(!"Invalid scope.");
+		ABORT("Invalid scope.");
 }
 
 static inline

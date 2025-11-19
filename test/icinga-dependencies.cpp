@@ -35,7 +35,12 @@ static void RegisterDependency(Dependency::Ptr dep, const String& redundancyGrou
 	dep->GetParent()->AddReverseDependency(dep);
 }
 
-static void AssertCheckableRedundancyGroup(Checkable::Ptr checkable, int dependencyCount, int groupCount, int totalDependenciesCount)
+static void AssertCheckableRedundancyGroup(
+	Checkable::Ptr checkable,
+	std::size_t dependencyCount,
+	std::size_t groupCount,
+	std::size_t totalDependenciesCount
+)
 {
 	BOOST_CHECK_MESSAGE(
 		dependencyCount == checkable->GetDependencies().size(),

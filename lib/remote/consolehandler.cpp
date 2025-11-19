@@ -21,7 +21,6 @@ using namespace icinga;
 
 REGISTER_URLHANDLER("/v1/console", ConsoleHandler);
 
-static std::mutex l_QueryMutex;
 static std::map<String, ApiScriptFrame> l_ApiScriptFrames;
 static Timer::Ptr l_FrameCleanupTimer;
 static std::mutex l_ApiScriptMutex;
