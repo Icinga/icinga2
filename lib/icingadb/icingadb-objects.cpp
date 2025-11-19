@@ -1375,7 +1375,7 @@ void IcingaDB::UpdateDependenciesState(const Checkable::Ptr& checkable, const De
 	}
 
 	RedisConnection::Queries streamStates;
-	auto addDependencyStateToStream([this, &streamStates](const String& redisKey, const Dictionary::Ptr& stateAttrs) {
+	auto addDependencyStateToStream([&streamStates](const String& redisKey, const Dictionary::Ptr& stateAttrs) {
 		RedisConnection::Query xAdd{
 			"XADD", "icinga:runtime:state", "MAXLEN", "~", "1000000", "*", "runtime_type", "upsert",
 			"redis_key", redisKey
