@@ -28,9 +28,11 @@
 #include "icinga/checkcommand.hpp"
 #include "icinga/eventcommand.hpp"
 #include "icinga/notificationcommand.hpp"
+#include "icinga/scheduleddowntime.hpp"
 #include "icinga/timeperiod.hpp"
 #include "icinga/pluginutility.hpp"
 #include "remote/zone.hpp"
+#include <boost/range/algorithm/find_if.hpp>
 #include <algorithm>
 #include <chrono>
 #include <cmath>
@@ -45,9 +47,28 @@
 
 using namespace icinga;
 
-using Prio = RedisConnection::QueryPriority;
-
 std::unordered_set<Type*> IcingaDB::m_IndexedTypes;
+/**
+ * Mapping of types to their custom variable Redis keys.
+ *
+ * This array defines the association between various configuration object types and their corresponding
+ * Redis keys used for storing custom variables. Each entry in the array consists of a pair, where the
+ * first element is a reference to the type instance and the second element is the associated Redis key.
+ */
+static constexpr std::pair<Type::Ptr&, RedisKey> l_CustomVarKeys[] = {
+	{CheckCommand::TypeInstance, RedisKey::CheckCmdCustomVar},
+	{EventCommand::TypeInstance, RedisKey::EventCmdCustomVar},
+	{Host::TypeInstance, RedisKey::HostCustomVar},
+	{HostGroup::TypeInstance, RedisKey::HostGroupCustomVar},
+	{Notification::TypeInstance, RedisKey::NotificationCustomVar},
+	{NotificationCommand::TypeInstance, RedisKey::NotificationCmdCustomVar},
+	{ScheduledDowntime::TypeInstance, RedisKey::ScheduledDowntimeCustomVar},
+	{Service::TypeInstance, RedisKey::ServiceCustomVar},
+	{ServiceGroup::TypeInstance, RedisKey::ServiceGroupCustomVar},
+	{TimePeriod::TypeInstance, RedisKey::TimePeriodCustomVar},
+	{User::TypeInstance, RedisKey::UserCustomVar},
+	{UserGroup::TypeInstance, RedisKey::UserGroupCustomVar}
+};
 
 INITIALIZE_ONCE(&IcingaDB::ConfigStaticInitialize);
 
@@ -135,8 +156,8 @@ void IcingaDB::ConfigStaticInitialize()
 		IcingaDB::NewCheckResultHandler(checkable);
 	});
 
-	Checkable::OnNextCheckUpdated.connect([](const Checkable::Ptr& checkable) {
-		IcingaDB::NextCheckUpdatedHandler(checkable);
+	Checkable::OnNextCheckChanged.connect([](const Checkable::Ptr& checkable, const Value&) {
+		IcingaDB::NextCheckChangedHandler(checkable);
 	});
 
 	Service::OnHostProblemChanged.connect([](const Service::Ptr& service, const CheckResult::Ptr&, const MessageOrigin::Ptr&) {
@@ -167,10 +188,10 @@ void IcingaDB::ConfigStaticInitialize()
 	Service::OnGroupsChangedWithOldValue.connect([](const Service::Ptr& service, const Value& oldValues, const Value& newValues) {
 		IcingaDB::ServiceGroupsChangedHandler(service, oldValues, newValues);
 	});
-	Command::OnEnvChangedWithOldValue.connect([](const ConfigObject::Ptr& command, const Value& oldValues, const Value& newValues) {
+	Command::OnEnvChangedWithOldValue.connect([](const Command::Ptr& command, const Value& oldValues, const Value& newValues) {
 		IcingaDB::CommandEnvChangedHandler(command, oldValues, newValues);
 	});
-	Command::OnArgumentsChangedWithOldValue.connect([](const ConfigObject::Ptr& command, const Value& oldValues, const Value& newValues) {
+	Command::OnArgumentsChangedWithOldValue.connect([](const Command::Ptr& command, const Value& oldValues, const Value& newValues) {
 		IcingaDB::CommandArgumentsChangedHandler(command, oldValues, newValues);
 	});
 	CustomVarObject::OnVarsChangedWithOldValue.connect([](const ConfigObject::Ptr& object, const Value& oldValues, const Value& newValues) {
@@ -180,8 +201,9 @@ void IcingaDB::ConfigStaticInitialize()
 
 void IcingaDB::UpdateAllConfigObjects()
 {
-	m_Rcon->Sync();
-	m_Rcon->FireAndForgetQuery({"XADD", "icinga:schema", "MAXLEN", "1", "*", "version", "6"}, Prio::Heartbeat);
+	// This function performs an initial dump of all configuration objects into Redis, thus there are no
+	// previously enqueued queries on m_Rcon that we need to wait for. So, no Sync() call is necessary here.
+	m_Rcon->FireAndForgetQuery({"XADD", "icinga:schema", "MAXLEN", "1", "*", "version", "6"}, {}, true);
 
 	Log(LogInformation, "IcingaDB") << "Starting initial config/status dump";
 	double startTime = Utility::GetTime();
@@ -198,16 +220,8 @@ void IcingaDB::UpdateAllConfigObjects()
 
 	std::vector<Type::Ptr> types = GetTypes();
 
-	m_Rcon->SuppressQueryKind(Prio::CheckResult);
-	m_Rcon->SuppressQueryKind(Prio::RuntimeStateSync);
-
-	Defer unSuppress ([this]() {
-		m_Rcon->UnsuppressQueryKind(Prio::RuntimeStateSync);
-		m_Rcon->UnsuppressQueryKind(Prio::CheckResult);
-	});
-
 	// Add a new type=* state=wip entry to the stream and remove all previous entries (MAXLEN 1).
-	m_Rcon->FireAndForgetQuery({"XADD", "icinga:dump", "MAXLEN", "1", "*", "key", "*", "state", "wip"}, Prio::Config);
+	m_Rcon->FireAndForgetQuery({"XADD", "icinga:dump", "MAXLEN", "1", "*", "key", "*", "state", "wip"});
 
 	const std::vector<String> globalKeys = {
 		m_PrefixConfigObject + "customvar",
@@ -224,8 +238,8 @@ void IcingaDB::UpdateAllConfigObjects()
 		m_PrefixConfigObject + "redundancygroup",
 		m_PrefixConfigObject + "redundancygroup:state",
 	};
-	DeleteKeys(m_Rcon, globalKeys, Prio::Config);
-	DeleteKeys(m_Rcon, {"icinga:nextupdate:host", "icinga:nextupdate:service"}, Prio::Config);
+	DeleteKeys(m_Rcon, globalKeys);
+	DeleteKeys(m_Rcon, {"icinga:nextupdate:host", "icinga:nextupdate:service"});
 	m_Rcon->Sync();
 
 	Defer resetDumpedGlobals ([this]() {
@@ -245,7 +259,7 @@ void IcingaDB::UpdateAllConfigObjects()
 		auto& rcon (m_Rcons.at(ctype));
 
 		std::vector<String> keys = GetTypeOverwriteKeys(lcType);
-		DeleteKeys(rcon, keys, Prio::Config);
+		DeleteKeys(rcon, keys);
 
 		WorkQueue upqObjectType(25000, Configuration::Concurrency, LogNotice);
 		upqObjectType.SetName("IcingaDB:ConfigDump:" + lcType);
@@ -257,9 +271,7 @@ void IcingaDB::UpdateAllConfigObjects()
 			String cursor = "0";
 
 			do {
-				Array::Ptr res = rcon->GetResultOfQuery({
-					"HSCAN", configCheckSum, cursor, "COUNT", "1000"
-				}, Prio::Config);
+				Array::Ptr res = rcon->GetResultOfQuery({"HSCAN", configCheckSum, cursor, "COUNT", "1000"});
 
 				AddKvsToMap(res->Get(1), redisCheckSums);
 
@@ -276,8 +288,6 @@ void IcingaDB::UpdateAllConfigObjects()
 
 		upqObjectType.ParallelFor(objectChunks, [&](decltype(objectChunks)::const_reference chunk) {
 			std::map<String, std::vector<String>> hMSets;
-			std::vector<String> hostZAdds = {"ZADD", "icinga:nextupdate:host"}, serviceZAdds = {"ZADD", "icinga:nextupdate:service"};
-
 			auto skimObjects ([&]() {
 				std::lock_guard<std::mutex> l (ourContentMutex);
 
@@ -336,18 +346,7 @@ void IcingaDB::UpdateAllConfigObjects()
 				auto checkable (dynamic_pointer_cast<Checkable>(object));
 
 				if (checkable && checkable->GetEnableActiveChecks()) {
-					auto zAdds (dynamic_pointer_cast<Service>(checkable) ? &serviceZAdds : &hostZAdds);
-
-					zAdds->emplace_back(Convert::ToString(checkable->GetNextUpdate()));
-					zAdds->emplace_back(GetObjectIdentifier(checkable));
-
-					if (zAdds->size() >= 102u) {
-						std::vector<String> header (zAdds->begin(), zAdds->begin() + 2u);
-
-						rcon->FireAndForgetQuery(std::move(*zAdds), Prio::CheckResult);
-
-						*zAdds = std::move(header);
-					}
+					EnqueueConfigObject(checkable, NextUpdate);
 				}
 			}
 
@@ -355,14 +354,8 @@ void IcingaDB::UpdateAllConfigObjects()
 
 			ExecuteRedisTransaction(rcon, hMSets, {});
 
-			for (auto zAdds : {&hostZAdds, &serviceZAdds}) {
-				if (zAdds->size() > 2u) {
-					rcon->FireAndForgetQuery(std::move(*zAdds), Prio::CheckResult);
-				}
-			}
-
 			Log(LogNotice, "IcingaDB")
-					<< "Dumped " << bulkCounter << " objects of type " << lcType;
+				<< "Dumped " << bulkCounter << " objects of type " << lcType;
 		});
 
 		upqObjectType.Join();
@@ -421,7 +414,7 @@ void IcingaDB::UpdateAllConfigObjects()
 			setChecksum.clear();
 			setObject.clear();
 
-			rcon->FireAndForgetQueries(std::move(transaction), Prio::Config, {affectedConfig});
+			rcon->FireAndForgetQueries(std::move(transaction), {affectedConfig});
 		});
 
 		auto flushDels ([&]() {
@@ -440,7 +433,7 @@ void IcingaDB::UpdateAllConfigObjects()
 			delChecksum.clear();
 			delObject.clear();
 
-			rcon->FireAndForgetQueries(std::move(transaction), Prio::Config, {affectedConfig});
+			rcon->FireAndForgetQueries(std::move(transaction), {affectedConfig});
 		});
 
 		auto setOne ([&]() {
@@ -501,12 +494,14 @@ void IcingaDB::UpdateAllConfigObjects()
 		}
 
 		for (auto& key : GetTypeDumpSignalKeys(type)) {
-			rcon->FireAndForgetQuery({"XADD", "icinga:dump", "*", "key", key, "state", "done"}, Prio::Config);
+			rcon->FireAndForgetQuery({"XADD", "icinga:dump", "*", "key", key, "state", "done"});
 		}
 		rcon->Sync();
+		rcon->Disconnect(); // We're done with this connection, so close it.
 	});
 
 	upq.Join();
+	m_Rcons.clear();
 
 	if (upq.HasExceptions()) {
 		for (boost::exception_ptr exc : upq.GetExceptions()) {
@@ -522,14 +517,14 @@ void IcingaDB::UpdateAllConfigObjects()
 	}
 
 	for (auto& key : globalKeys) {
-		m_Rcon->FireAndForgetQuery({"XADD", "icinga:dump", "*", "key", key, "state", "done"}, Prio::Config);
+		m_Rcon->FireAndForgetQuery({"XADD", "icinga:dump", "*", "key", key, "state", "done"});
 	}
 
-	m_Rcon->FireAndForgetQuery({"XADD", "icinga:dump", "*", "key", "*", "state", "done"}, Prio::Config);
+	m_Rcon->FireAndForgetQuery({"XADD", "icinga:dump", "*", "key", "*", "state", "done"});
 
 	// enqueue a callback that will notify us once all previous queries were executed and wait for this event
 	std::promise<void> p;
-	m_Rcon->EnqueueCallback([&p](boost::asio::yield_context& yc) { p.set_value(); }, Prio::Config);
+	m_Rcon->EnqueueCallback([&p](boost::asio::yield_context&) { p.set_value(); });
 	p.get_future().wait();
 
 	auto endTime (Utility::GetTime());
@@ -562,13 +557,13 @@ std::vector<std::vector<intrusive_ptr<ConfigObject>>> IcingaDB::ChunkObjects(std
 	return chunks;
 }
 
-void IcingaDB::DeleteKeys(const RedisConnection::Ptr& conn, const std::vector<String>& keys, RedisConnection::QueryPriority priority) {
+void IcingaDB::DeleteKeys(const RedisConnection::Ptr& conn, const std::vector<String>& keys) {
 	std::vector<String> query = {"DEL"};
 	for (auto& key : keys) {
 		query.emplace_back(key);
 	}
 
-	conn->FireAndForgetQuery(std::move(query), priority);
+	conn->FireAndForgetQuery(std::move(query));
 }
 
 std::vector<String> IcingaDB::GetTypeOverwriteKeys(const String& type)
@@ -1297,19 +1292,19 @@ void IcingaDB::InsertCheckableDependencies(
  * Update the state information of a checkable in Redis.
  *
  * What is updated exactly depends on the mode parameter:
- *  - Volatile: Update the volatile state information stored in icinga:host:state or icinga:service:state as well as
- *    the corresponding checksum stored in icinga:checksum:host:state or icinga:checksum:service:state.
- *  - RuntimeOnly: Write a runtime update to the icinga:runtime:state stream. It is up to the caller to ensure that
+ *  - VolatileState: Update the volatile state information stored in icinga:host:state or icinga:service:state as well
+ *    as the corresponding checksum stored in icinga:checksum:host:state or icinga:checksum:service:state.
+ *  - RuntimeState: Write a runtime update to the icinga:runtime:state stream. It is up to the caller to ensure that
  *    identical volatile state information was already written before to avoid inconsistencies. This mode is only
  *    useful to upgrade a previous Volatile to a Full operation, otherwise Full should be used.
- *  - Full: Perform an update of all state information in Redis, that is updating the volatile information and sending
- *    a corresponding runtime update so that this state update gets written through to the persistent database by a
- *    running icingadb process.
+ *  - FullState: Perform an update of all state information in Redis, that is updating the volatile information and
+ *    sending a corresponding runtime update so that this state update gets written through to the persistent database
+ *    by a running icingadb process.
  *
  * @param checkable State of this checkable is updated in Redis
- * @param mode Mode of operation (StateUpdate::Volatile, StateUpdate::RuntimeOnly, or StateUpdate::Full)
+ * @param mode Mode of operation (DirtyBits:VolatileState, DirtyBits::RuntimeState, or DirtyBits::FullState)
  */
-void IcingaDB::UpdateState(const Checkable::Ptr& checkable, StateUpdate mode)
+void IcingaDB::UpdateState(const Checkable::Ptr& checkable, int mode)
 {
 	if (!m_Rcon || !m_Rcon->IsConnected())
 		return;
@@ -1323,14 +1318,14 @@ void IcingaDB::UpdateState(const Checkable::Ptr& checkable, StateUpdate mode)
 	String redisChecksumKey = m_PrefixConfigCheckSum + objectType + ":state";
 	String checksum = HashValue(stateAttrs);
 
-	if (mode & StateUpdate::Volatile) {
+	if (mode & VolatileState) {
 		m_Rcon->FireAndForgetQueries({
 			{"HSET", redisStateKey, objectKey, JsonEncode(stateAttrs)},
 			{"HSET", redisChecksumKey, objectKey, JsonEncode(new Dictionary({{"checksum", checksum}}))},
-		}, Prio::RuntimeStateSync);
+		});
 	}
 
-	if (mode & StateUpdate::RuntimeOnly) {
+	if (mode & RuntimeState) {
 		ObjectLock olock(stateAttrs);
 
 		std::vector<String> streamadd({
@@ -1345,35 +1340,23 @@ void IcingaDB::UpdateState(const Checkable::Ptr& checkable, StateUpdate mode)
 			streamadd.emplace_back(IcingaToStreamValue(kv.second));
 		}
 
-		m_Rcon->FireAndForgetQuery(std::move(streamadd), Prio::RuntimeStateStream, {0, 1});
+		m_Rcon->FireAndForgetQuery(std::move(streamadd), {0, 1});
 	}
 }
 
 /**
- * Send dependencies state information of the given Checkable to Redis.
+ * Update the dependency state information of the given checkable and its associated dependency groups in Redis.
  *
- * If the dependencyGroup parameter is set, only the dependencies state of that group are sent. Otherwise, all
- * dependency groups of the provided Checkable are processed.
+ * This function serializes the dependency state information of the provided Checkable object and its associated
+ * DependencyGroup into Redis HMSETs and streams the state updates to the runtime state stream. It's intended to
+ * be called by the background worker when processing runtime updates for Checkable objects that are part of some
+ * dependency graph.
  *
- * @param checkable The Checkable you want to send the dependencies state update for
- * @param onlyDependencyGroup If set, send state updates only for this dependency group and its dependencies.
- * @param seenGroups A container to track already processed DependencyGroups to avoid duplicate state updates.
+ * @param checkable The checkable object whose dependency state is to be updated.
+ * @param depGroup The dependency group to process for the given checkable.
  */
-void IcingaDB::UpdateDependenciesState(const Checkable::Ptr& checkable, const DependencyGroup::Ptr& onlyDependencyGroup,
-	std::set<DependencyGroup*>* seenGroups) const
+void IcingaDB::UpdateDependenciesState(const Checkable::Ptr& checkable, const DependencyGroup::Ptr& depGroup) const
 {
-	if (!m_Rcon || !m_Rcon->IsConnected()) {
-		return;
-	}
-
-	std::vector<DependencyGroup::Ptr> dependencyGroups{onlyDependencyGroup};
-	if (!onlyDependencyGroup) {
-		dependencyGroups = checkable->GetDependencyGroups();
-		if (dependencyGroups.empty()) {
-			return;
-		}
-	}
-
 	RedisConnection::Queries streamStates;
 	auto addDependencyStateToStream([&streamStates](const String& redisKey, const Dictionary::Ptr& stateAttrs) {
 		RedisConnection::Query xAdd{
@@ -1389,61 +1372,39 @@ void IcingaDB::UpdateDependenciesState(const Checkable::Ptr& checkable, const De
 	});
 
 	std::map<String, RedisConnection::Query> hMSets;
-	for (auto& dependencyGroup : dependencyGroups) {
-		bool isRedundancyGroup(dependencyGroup->IsRedundancyGroup());
-		if (isRedundancyGroup && dependencyGroup->GetIcingaDBIdentifier().IsEmpty()) {
-			// Way too soon! The Icinga DB hash will be set during the initial config dump, but this state
-			// update seems to occur way too early. So, we've to skip it for now and wait for the next one.
-			// The m_ConfigDumpInProgress flag is probably still set to true at this point!
-			continue;
-		}
+	auto dependencies(depGroup->GetDependenciesForChild(checkable.get()));
+	std::sort(dependencies.begin(), dependencies.end(), [](const Dependency::Ptr& lhs, const Dependency::Ptr& rhs) {
+		return lhs->GetParent() < rhs->GetParent();
+	});
+	for (auto it(dependencies.begin()); it != dependencies.end(); /* no increment */) {
+		const auto& dependency(*it);
 
-		if (seenGroups && !seenGroups->insert(dependencyGroup.get()).second) {
-			// Usually, if the seenGroups set is provided, IcingaDB is triggering a runtime state update for ALL
-			// children of a given initiator Checkable (parent). In such cases, we may end up with lots of useless
-			// state updates as all the children of a non-redundant group a) share the same entry in the database b)
-			// it doesn't matter which child triggers the state update first all the subsequent updates are just useless.
-			//
-			// Likewise, for redundancy groups, all children of a redundancy group share the same set of parents
-			// and thus the resulting state information would be the same from each child Checkable perspective.
-			// So, serializing the redundancy group state information only once is sufficient.
-			continue;
-		}
-
-		auto dependencies(dependencyGroup->GetDependenciesForChild(checkable.get()));
-		std::sort(dependencies.begin(), dependencies.end(), [](const Dependency::Ptr& lhs, const Dependency::Ptr& rhs) {
-			return lhs->GetParent() < rhs->GetParent();
-		});
-		for (auto it(dependencies.begin()); it != dependencies.end(); /* no increment */) {
-			const auto& dependency(*it);
-
-			Dictionary::Ptr stateAttrs;
-			// Note: The following loop is intended to cover some possible special cases but may not occur in practice
-			// that often. That is, having two or more dependency objects that point to the same parent Checkable.
-			// So, traverse all those duplicates and merge their relevant state information into a single edge.
-			for (; it != dependencies.end() && (*it)->GetParent() == dependency->GetParent(); ++it) {
-				if (!stateAttrs || stateAttrs->Get("failed") == false) {
-					stateAttrs = SerializeDependencyEdgeState(dependencyGroup, *it);
-				}
+		Dictionary::Ptr stateAttrs;
+		// Note: The following loop is intended to cover some possible special cases but may not occur in practice
+		// that often. That is, having two or more dependency objects that point to the same parent Checkable.
+		// So, traverse all those duplicates and merge their relevant state information into a single edge.
+		for (; it != dependencies.end() && (*it)->GetParent() == dependency->GetParent(); ++it) {
+			if (!stateAttrs || stateAttrs->Get("failed") == false) {
+				stateAttrs = SerializeDependencyEdgeState(depGroup, *it);
 			}
-
-			addDependencyStateToStream(m_PrefixConfigObject + "dependency:edge:state", stateAttrs);
-			AddDataToHmSets(hMSets, RedisKey::DependencyEdgeState, stateAttrs->Get("id"), stateAttrs);
 		}
 
-		if (isRedundancyGroup) {
-			Dictionary::Ptr stateAttrs(SerializeRedundancyGroupState(checkable, dependencyGroup));
+		addDependencyStateToStream(m_PrefixConfigObject + "dependency:edge:state", stateAttrs);
+		AddDataToHmSets(hMSets, RedisKey::DependencyEdgeState, stateAttrs->Get("id"), stateAttrs);
+	}
 
-			Dictionary::Ptr sharedGroupState(stateAttrs->ShallowClone());
-			sharedGroupState->Remove("redundancy_group_id");
-			sharedGroupState->Remove("is_reachable");
-			sharedGroupState->Remove("last_state_change");
+	if (depGroup->IsRedundancyGroup()) {
+		Dictionary::Ptr stateAttrs(SerializeRedundancyGroupState(checkable, depGroup));
 
-			addDependencyStateToStream(m_PrefixConfigObject + "redundancygroup:state", stateAttrs);
-			addDependencyStateToStream(m_PrefixConfigObject + "dependency:edge:state", sharedGroupState);
-			AddDataToHmSets(hMSets, RedisKey::RedundancyGroupState, dependencyGroup->GetIcingaDBIdentifier(), stateAttrs);
-			AddDataToHmSets(hMSets, RedisKey::DependencyEdgeState, dependencyGroup->GetIcingaDBIdentifier(), sharedGroupState);
-		}
+		Dictionary::Ptr sharedGroupState(stateAttrs->ShallowClone());
+		sharedGroupState->Remove("redundancy_group_id");
+		sharedGroupState->Remove("is_reachable");
+		sharedGroupState->Remove("last_state_change");
+
+		addDependencyStateToStream(m_PrefixConfigObject + "redundancygroup:state", stateAttrs);
+		addDependencyStateToStream(m_PrefixConfigObject + "dependency:edge:state", sharedGroupState);
+		AddDataToHmSets(hMSets, RedisKey::RedundancyGroupState, depGroup->GetIcingaDBIdentifier(), stateAttrs);
+		AddDataToHmSets(hMSets, RedisKey::DependencyEdgeState, depGroup->GetIcingaDBIdentifier(), sharedGroupState);
 	}
 
 	if (!streamStates.empty()) {
@@ -1453,32 +1414,8 @@ void IcingaDB::UpdateDependenciesState(const Checkable::Ptr& checkable, const De
 			queries.emplace_back(std::move(query));
 		}
 
-		m_Rcon->FireAndForgetQueries(std::move(queries), Prio::RuntimeStateSync);
-		m_Rcon->FireAndForgetQueries(std::move(streamStates), Prio::RuntimeStateStream, {0, 1});
-	}
-}
-
-// Used to update a single object, used for runtime updates
-void IcingaDB::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpdate)
-{
-	if (!m_Rcon || !m_Rcon->IsConnected())
-		return;
-
-	String typeName = GetLowerCaseTypeNameDB(object);
-
-	std::map<String, std::vector<String>> hMSets;
-	std::vector<Dictionary::Ptr> runtimeUpdates;
-
-	CreateConfigUpdate(object, typeName, hMSets, runtimeUpdates, runtimeUpdate);
-	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
-	if (checkable) {
-		UpdateState(checkable, runtimeUpdate ? StateUpdate::Full : StateUpdate::Volatile);
-	}
-
-	ExecuteRedisTransaction(m_Rcon, hMSets, runtimeUpdates);
-
-	if (checkable) {
-		SendNextUpdate(checkable);
+		m_Rcon->FireAndForgetQueries(std::move(queries));
+		m_Rcon->FireAndForgetQueries(std::move(streamStates), {0, 1});
 	}
 }
 
@@ -1847,26 +1784,11 @@ void IcingaDB::SendConfigDelete(const ConfigObject::Ptr& object)
 	if (!m_Rcon || !m_Rcon->IsConnected())
 		return;
 
-	Type::Ptr type = object->GetReflectionType();
-	String typeName = type->GetName().ToLower();
-	String objectKey = GetObjectIdentifier(object);
-
-	m_Rcon->FireAndForgetQueries({
-		{"HDEL", m_PrefixConfigObject + typeName, objectKey},
-		{"HDEL", m_PrefixConfigCheckSum + typeName, objectKey},
-		{
-			"XADD", "icinga:runtime", "MAXLEN", "~", "1000000", "*",
-			"redis_key", m_PrefixConfigObject + typeName, "id", objectKey, "runtime_type", "delete"
-		}
-   	}, Prio::Config);
-
-	CustomVarObject::Ptr customVarObject = dynamic_pointer_cast<CustomVarObject>(object);
-
-	if (customVarObject) {
-		Dictionary::Ptr vars = customVarObject->GetVars();
-		SendCustomVarsChanged(object, vars, nullptr);
+	if (auto customVarObject = dynamic_pointer_cast<CustomVarObject>(object); customVarObject) {
+		SendCustomVarsChanged(object, customVarObject->GetVars(), nullptr);
 	}
 
+	Type::Ptr type = object->GetReflectionType();
 	if (type == Host::TypeInstance || type == Service::TypeInstance) {
 		Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);
 
@@ -1874,16 +1796,11 @@ void IcingaDB::SendConfigDelete(const ConfigObject::Ptr& object)
 		Service::Ptr service;
 		tie(host, service) = GetHostService(checkable);
 
-		m_Rcon->FireAndForgetQuery({
-			"ZREM",
-			service ? "icinga:nextupdate:service" : "icinga:nextupdate:host",
-			GetObjectIdentifier(checkable)
-		}, Prio::CheckResult);
-
-		m_Rcon->FireAndForgetQueries({
-			{"HDEL", m_PrefixConfigObject + typeName + ":state", objectKey},
-			{"HDEL", m_PrefixConfigCheckSum + typeName + ":state", objectKey}
-		}, Prio::RuntimeStateSync);
+		EnqueueRelationsDeletion(
+			GetObjectIdentifier(checkable),
+			{{service ? RedisKey::ServiceState : RedisKey::HostState, true}}
+		);
+		EnqueueConfigObject(object, ConfigDelete | NextUpdate); // Send also ZREM for next update
 
 		if (service) {
 			SendGroupsChanged<ServiceGroup>(checkable, service->GetGroups(), nullptr);
@@ -1893,6 +1810,8 @@ void IcingaDB::SendConfigDelete(const ConfigObject::Ptr& object)
 
 		return;
 	}
+
+	EnqueueConfigObject(object, ConfigDelete);
 
 	if (type == TimePeriod::TypeInstance) {
 		TimePeriod::Ptr timeperiod = static_pointer_cast<TimePeriod>(object);
@@ -1917,8 +1836,9 @@ void IcingaDB::SendConfigDelete(const ConfigObject::Ptr& object)
 
 	if (type == CheckCommand::TypeInstance || type == NotificationCommand::TypeInstance || type == EventCommand::TypeInstance) {
 		Command::Ptr command = static_pointer_cast<Command>(object);
-		SendCommandArgumentsChanged(command, command->GetArguments(), nullptr);
-		SendCommandEnvChanged(command, command->GetEnv(), nullptr);
+		auto [cmdEnvKey, cmdArgKey] = GetCmdEnvArgKeys(command);
+		SendCommandArgumentsChanged(command, cmdArgKey, command->GetArguments(), nullptr);
+		SendCommandEnvChanged(command, cmdEnvKey, command->GetEnv(), nullptr);
 		return;
 	}
 }
@@ -1953,7 +1873,7 @@ void IcingaDB::SendStateChange(const ConfigObject::Ptr& object, const CheckResul
 
 	tie(host, service) = GetHostService(checkable);
 
-	UpdateState(checkable, StateUpdate::RuntimeOnly);
+	EnqueueConfigObject(checkable, RuntimeState);
 
 	int hard_state;
 	if (!cr) {
@@ -2105,7 +2025,7 @@ void IcingaDB::SendStartedDowntime(const Downtime::Ptr& downtime)
 		return;
 	}
 
-	SendConfigUpdate(downtime, true);
+	EnqueueConfigObject(downtime, ConfigUpdate);
 
 	auto checkable (downtime->GetCheckable());
 	auto triggeredBy (Downtime::GetByName(downtime->GetTriggeredBy()));
@@ -2115,7 +2035,7 @@ void IcingaDB::SendStartedDowntime(const Downtime::Ptr& downtime)
 	tie(host, service) = GetHostService(checkable);
 
 	/* Update checkable state as in_downtime may have changed. */
-	UpdateState(checkable, StateUpdate::Full);
+	EnqueueConfigObject(checkable, FullState);
 
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:downtime", "*",
@@ -2204,7 +2124,7 @@ void IcingaDB::SendRemovedDowntime(const Downtime::Ptr& downtime)
 		return;
 
 	/* Update checkable state as in_downtime may have changed. */
-	UpdateState(checkable, StateUpdate::Full);
+	EnqueueConfigObject(checkable, FullState);
 
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:downtime", "*",
@@ -2292,6 +2212,9 @@ void IcingaDB::SendAddedComment(const Comment::Ptr& comment)
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
 
+	// Update the checkable state to so that the "last_comment_id" is correctly reflected.
+	EnqueueConfigObject(checkable, FullState);
+
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:comment", "*",
 		"comment_id", GetObjectIdentifier(comment),
@@ -2334,7 +2257,6 @@ void IcingaDB::SendAddedComment(const Comment::Ptr& comment)
 	}
 
 	m_HistoryBulker.ProduceOne(std::move(xAdd));
-	UpdateState(checkable, StateUpdate::Full);
 }
 
 void IcingaDB::SendRemovedComment(const Comment::Ptr& comment)
@@ -2363,6 +2285,9 @@ void IcingaDB::SendRemovedComment(const Comment::Ptr& comment)
 	Host::Ptr host;
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
+
+	// Update the checkable state to so that the "last_comment_id" is correctly reflected.
+	EnqueueConfigObject(checkable, FullState);
 
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:comment", "*",
@@ -2414,7 +2339,6 @@ void IcingaDB::SendRemovedComment(const Comment::Ptr& comment)
 	}
 
 	m_HistoryBulker.ProduceOne(std::move(xAdd));
-	UpdateState(checkable, StateUpdate::Full);
 }
 
 void IcingaDB::SendFlappingChange(const Checkable::Ptr& checkable, double changeTime, double flappingLastChange)
@@ -2489,24 +2413,22 @@ void IcingaDB::SendNextUpdate(const Checkable::Ptr& checkable)
 	if (!m_Rcon || !m_Rcon->IsConnected())
 		return;
 
-	if (checkable->GetEnableActiveChecks()) {
+	if (checkable->GetEnableActiveChecks() && checkable->IsActive()) {
 		m_Rcon->FireAndForgetQuery(
 			{
 				"ZADD",
 				dynamic_pointer_cast<Service>(checkable) ? "icinga:nextupdate:service" : "icinga:nextupdate:host",
 				Convert::ToString(checkable->GetNextUpdate()),
 				GetObjectIdentifier(checkable)
-			},
-			Prio::CheckResult
+			}
 		);
-	} else {
+	} else if (!checkable->GetEnableActiveChecks() || checkable->GetExtension("ConfigObjectDeleted")) {
 		m_Rcon->FireAndForgetQuery(
 			{
 				"ZREM",
 				dynamic_pointer_cast<Service>(checkable) ? "icinga:nextupdate:service" : "icinga:nextupdate:host",
 				GetObjectIdentifier(checkable)
-			},
-			Prio::CheckResult
+			}
 		);
 	}
 }
@@ -2522,7 +2444,7 @@ void IcingaDB::SendAcknowledgementSet(const Checkable::Ptr& checkable, const Str
 	tie(host, service) = GetHostService(checkable);
 
 	/* Update checkable state as is_acknowledged may have changed. */
-	UpdateState(checkable, StateUpdate::Full);
+	EnqueueConfigObject(checkable, FullState);
 
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:acknowledgement", "*",
@@ -2580,7 +2502,7 @@ void IcingaDB::SendAcknowledgementCleared(const Checkable::Ptr& checkable, const
 	tie(host, service) = GetHostService(checkable);
 
 	/* Update checkable state as is_acknowledged may have changed. */
-	UpdateState(checkable, StateUpdate::Full);
+	EnqueueConfigObject(checkable, FullState);
 
 	std::vector<String> xAdd ({
 		"XADD", "icinga:history:stream:acknowledgement", "*",
@@ -2670,9 +2592,9 @@ void IcingaDB::ForwardHistoryEntries()
 		for (;;) {
 			logPeriodically();
 
-			if (m_Rcon && m_Rcon->IsConnected()) {
+			if (m_HistoryCon && m_HistoryCon->IsConnected()) {
 				try {
-					m_Rcon->GetResultsOfQueries(haystack, Prio::History, {0, 0, haystack.size()});
+					m_HistoryCon->GetResultsOfQueries(haystack, {0, 0, haystack.size()});
 					break;
 				} catch (const std::exception& ex) {
 					logFailure(ex.what());
@@ -2701,12 +2623,14 @@ void IcingaDB::SendNotificationUsersChanged(const Notification::Ptr& notificatio
 		return;
 	}
 
-	std::vector<Value> deletedUsers = GetArrayDeletedValues(oldValues, newValues);
-
-	for (const auto& userName : deletedUsers) {
-		String id = HashValue(new Array({m_EnvironmentId, "user", userName, notification->GetName()}));
-		DeleteRelationship(id, "notification:user");
-		DeleteRelationship(id, "notification:recipient");
+	for (const auto& userName : GetArrayDeletedValues(oldValues, newValues)) {
+		EnqueueRelationsDeletion(
+			HashValue(new Array{m_EnvironmentId, "user", userName, notification->GetName()}),
+			{
+				{RedisKey::NotificationUser, false},
+				{RedisKey::NotificationRecipient, false},
+			}
+		);
 	}
 }
 
@@ -2715,17 +2639,26 @@ void IcingaDB::SendNotificationUserGroupsChanged(const Notification::Ptr& notifi
 		return;
 	}
 
-	std::vector<Value> deletedUserGroups = GetArrayDeletedValues(oldValues, newValues);
-
-	for (const auto& userGroupName : deletedUserGroups) {
+	for (const auto& userGroupName : GetArrayDeletedValues(oldValues, newValues)) {
 		UserGroup::Ptr userGroup = UserGroup::GetByName(userGroupName);
-		String id = HashValue(new Array({m_EnvironmentId, "usergroup", userGroupName, notification->GetName()}));
-		DeleteRelationship(id, "notification:usergroup");
-		DeleteRelationship(id, "notification:recipient");
+		EnqueueRelationsDeletion(
+			HashValue(new Array{m_EnvironmentId, "usergroup", userGroupName, notification->GetName()}),
+			{{RedisKey::NotificationUserGroup, false}, {RedisKey::NotificationRecipient, false}}
+		);
 
 		for (const User::Ptr& user : userGroup->GetMembers()) {
-			String userId = HashValue(new Array({m_EnvironmentId, "usergroupuser", user->GetName(), userGroupName, notification->GetName()}));
-			DeleteRelationship(userId, "notification:recipient");
+			EnqueueRelationsDeletion(
+				HashValue(
+					new Array{
+						m_EnvironmentId,
+						"usergroupuser",
+						user->GetName(),
+						userGroupName,
+						notification->GetName(),
+					}
+				),
+				{{RedisKey::NotificationRecipient, false}}
+			);
 		}
 	}
 }
@@ -2735,12 +2668,11 @@ void IcingaDB::SendTimePeriodRangesChanged(const TimePeriod::Ptr& timeperiod, co
 		return;
 	}
 
-	std::vector<String> deletedKeys = GetDictionaryDeletedKeys(oldValues, newValues);
-	String typeName = GetLowerCaseTypeNameDB(timeperiod);
-
-	for (const auto& rangeKey : deletedKeys) {
-		String id = HashValue(new Array({m_EnvironmentId, rangeKey, oldValues->Get(rangeKey), timeperiod->GetName()}));
-		DeleteRelationship(id, "timeperiod:range");
+	for (const auto& rangeKey : GetDictionaryDeletedKeys(oldValues, newValues)) {
+		EnqueueRelationsDeletion(
+			HashValue(new Array{m_EnvironmentId, rangeKey, oldValues->Get(rangeKey), timeperiod->GetName()}),
+			{{RedisKey::TimePeriodRange, false}}
+		);
 	}
 }
 
@@ -2749,11 +2681,11 @@ void IcingaDB::SendTimePeriodIncludesChanged(const TimePeriod::Ptr& timeperiod, 
 		return;
 	}
 
-	std::vector<Value> deletedIncludes = GetArrayDeletedValues(oldValues, newValues);
-
-	for (const auto& includeName : deletedIncludes) {
-		String id = HashValue(new Array({m_EnvironmentId, includeName, timeperiod->GetName()}));
-		DeleteRelationship(id, "timeperiod:override:include");
+	for (const auto& includeName : GetArrayDeletedValues(oldValues, newValues)) {
+		EnqueueRelationsDeletion(
+			HashValue(new Array{m_EnvironmentId, includeName, timeperiod->GetName()}),
+			{{RedisKey::TimePeriodInclude, false}}
+		);
 	}
 }
 
@@ -2762,11 +2694,11 @@ void IcingaDB::SendTimePeriodExcludesChanged(const TimePeriod::Ptr& timeperiod, 
 		return;
 	}
 
-	std::vector<Value> deletedExcludes = GetArrayDeletedValues(oldValues, newValues);
-
-	for (const auto& excludeName : deletedExcludes) {
-		String id = HashValue(new Array({m_EnvironmentId, excludeName, timeperiod->GetName()}));
-		DeleteRelationship(id, "timeperiod:override:exclude");
+	for (const auto& excludeName : GetArrayDeletedValues(oldValues, newValues)) {
+		EnqueueRelationsDeletion(
+			HashValue(new Array{m_EnvironmentId, excludeName, timeperiod->GetName()}),
+			{{RedisKey::TimePeriodExclude, false}}
+		);
 	}
 }
 
@@ -2776,50 +2708,81 @@ void IcingaDB::SendGroupsChanged(const ConfigObject::Ptr& object, const Array::P
 		return;
 	}
 
-	std::vector<Value> deletedGroups = GetArrayDeletedValues(oldValues, newValues);
-	String typeName = GetLowerCaseTypeNameDB(object);
+	static_assert(std::is_same_v<T, UserGroup> || std::is_same_v<T, HostGroup> || std::is_same_v<T, ServiceGroup>,
+		"IcingaDB::SendGroupsChanged<T>: T must be UserGroup, HostGroup or ServiceGroup");
 
-	for (const auto& groupName : deletedGroups) {
+	RedisKey keyType;
+	if constexpr (std::is_same_v<T, UserGroup>) {
+		keyType = RedisKey::UserGroupMember;
+	} else if constexpr (std::is_same_v<T, HostGroup>) {
+		keyType = RedisKey::HostGroupMember;
+	} else {
+		keyType = RedisKey::ServiceGroupMember;
+	}
+
+	for (const auto& groupName : GetArrayDeletedValues(oldValues, newValues)) {
 		typename T::Ptr group = ConfigObject::GetObject<T>(groupName);
-		String id = HashValue(new Array({m_EnvironmentId, group->GetName(), object->GetName()}));
-		DeleteRelationship(id, typeName + "group:member");
+		EnqueueRelationsDeletion(
+			HashValue(new Array{m_EnvironmentId, group->GetName(), object->GetName()}),
+			{{keyType, false}}
+		);
 
-		if (std::is_same<T, UserGroup>::value) {
+		if constexpr (std::is_same_v<T, UserGroup>) {
 			UserGroup::Ptr userGroup = dynamic_pointer_cast<UserGroup>(group);
 
 			for (const auto& notification : userGroup->GetNotifications()) {
-				String userId = HashValue(new Array({m_EnvironmentId, "usergroupuser", object->GetName(), groupName, notification->GetName()}));
-				DeleteRelationship(userId, "notification:recipient");
+				EnqueueRelationsDeletion(
+					HashValue(
+						new Array{
+							m_EnvironmentId,
+							"usergroupuser",
+							object->GetName(),
+							groupName,
+							notification->GetName()
+						}
+					),
+					{{RedisKey::NotificationRecipient, false}}
+				);
 			}
 		}
 	}
 }
 
-void IcingaDB::SendCommandEnvChanged(const ConfigObject::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues) {
+void IcingaDB::SendCommandEnvChanged(
+	const ConfigObject::Ptr& command,
+	RedisKey keyType,
+	const Dictionary::Ptr& oldValues,
+	const Dictionary::Ptr& newValues
+)
+{
 	if (!m_Rcon || !m_Rcon->IsConnected() || oldValues == newValues) {
 		return;
 	}
 
-	std::vector<String> deletedKeys = GetDictionaryDeletedKeys(oldValues, newValues);
-	String typeName = GetLowerCaseTypeNameDB(command);
-
-	for (const auto& envvarKey : deletedKeys) {
-		String id = HashValue(new Array({m_EnvironmentId, envvarKey, command->GetName()}));
-		DeleteRelationship(id, typeName + ":envvar", true);
+	for (const auto& envvarKey : GetDictionaryDeletedKeys(oldValues, newValues)) {
+		EnqueueRelationsDeletion(
+			HashValue(new Array{m_EnvironmentId, envvarKey, command->GetName()}),
+			{{keyType, true}}
+		);
 	}
 }
 
-void IcingaDB::SendCommandArgumentsChanged(const ConfigObject::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues) {
+void IcingaDB::SendCommandArgumentsChanged(
+	const ConfigObject::Ptr& command,
+	RedisKey keyType,
+	const Dictionary::Ptr& oldValues,
+	const Dictionary::Ptr& newValues
+)
+{
 	if (!m_Rcon || !m_Rcon->IsConnected() || oldValues == newValues) {
 		return;
 	}
 
-	std::vector<String> deletedKeys = GetDictionaryDeletedKeys(oldValues, newValues);
-	String typeName = GetLowerCaseTypeNameDB(command);
-
-	for (const auto& argumentKey : deletedKeys) {
-		String id = HashValue(new Array({m_EnvironmentId, argumentKey, command->GetName()}));
-		DeleteRelationship(id, typeName + ":argument", true);
+	for (const auto& argumentKey : GetDictionaryDeletedKeys(oldValues, newValues)) {
+		EnqueueRelationsDeletion(
+			HashValue(new Array{m_EnvironmentId, argumentKey, command->GetName()}),
+			{{keyType, true}}
+		);
 	}
 }
 
@@ -2835,104 +2798,15 @@ void IcingaDB::SendCustomVarsChanged(const ConfigObject::Ptr& object, const Dict
 	Dictionary::Ptr oldVars = SerializeVars(oldValues);
 	Dictionary::Ptr newVars = SerializeVars(newValues);
 
-	std::vector<String> deletedVars = GetDictionaryDeletedKeys(oldVars, newVars);
-	String typeName = GetLowerCaseTypeNameDB(object);
+	const auto& typ = object->GetReflectionType();
+	const auto& it = boost::range::find_if(l_CustomVarKeys, [&typ](const auto& pair) { return pair.first == typ; });
+	VERIFY(it != boost::end(l_CustomVarKeys));
 
-	for (const auto& varId : deletedVars) {
-		String id = HashValue(new Array({m_EnvironmentId, varId, object->GetName()}));
-		DeleteRelationship(id, typeName + ":customvar");
-	}
-}
-
-void IcingaDB::SendDependencyGroupChildRegistered(const Checkable::Ptr& child, const DependencyGroup::Ptr& dependencyGroup)
-{
-	if (!m_Rcon || !m_Rcon->IsConnected()) {
-		return;
-	}
-
-	std::vector<Dictionary::Ptr> runtimeUpdates;
-	std::map<String, RedisConnection::Query> hMSets;
-	InsertCheckableDependencies(child, hMSets, &runtimeUpdates, dependencyGroup);
-	ExecuteRedisTransaction(m_Rcon, hMSets, runtimeUpdates);
-
-	UpdateState(child, StateUpdate::Full);
-	UpdateDependenciesState(child, dependencyGroup);
-
-	std::set<Checkable::Ptr> parents;
-	dependencyGroup->LoadParents(parents);
-	for (const auto& parent : parents) {
-		// The total_children and affects_children columns might now have different outcome, so update the parent
-		// Checkable as well. The grandparent Checkable may still have wrong numbers of total children, though it's not
-		// worth traversing the whole tree way up and sending config updates for each one of them, as the next Redis
-		// config dump is going to fix it anyway.
-		SendConfigUpdate(parent, true);
-	}
-}
-
-void IcingaDB::SendDependencyGroupChildRemoved(
-	const DependencyGroup::Ptr& dependencyGroup,
-	const std::vector<Dependency::Ptr>& dependencies,
-	bool removeGroup
-)
-{
-	if (!m_Rcon || !m_Rcon->IsConnected() || dependencies.empty()) {
-		return;
-	}
-
-	Checkable::Ptr child;
-	std::set<Checkable*> detachedParents;
-	for (const auto& dependency : dependencies) {
-		child = dependency->GetChild(); // All dependencies have the same child.
-		const auto& parent(dependency->GetParent());
-		if (auto [_, inserted] = detachedParents.insert(dependency->GetParent().get()); inserted) {
-			String edgeId;
-			if (dependencyGroup->IsRedundancyGroup()) {
-				// If the redundancy group has no members left, it's going to be removed as well, so we need to
-				// delete dependency edges from that group to the parent Checkables.
-				if (removeGroup) {
-					auto id(HashValue(new Array{dependencyGroup->GetIcingaDBIdentifier(), GetObjectIdentifier(parent)}));
-					DeleteRelationship(id, RedisKey::DependencyEdge);
-					DeleteState(id, RedisKey::DependencyEdgeState);
-				}
-
-				// Remove the connection from the child Checkable to the redundancy group.
-				edgeId = HashValue(new Array{GetObjectIdentifier(child), dependencyGroup->GetIcingaDBIdentifier()});
-			} else {
-				// Remove the edge between the parent and child Checkable linked through the removed dependency.
-				edgeId = HashValue(new Array{GetObjectIdentifier(child), GetObjectIdentifier(parent)});
-			}
-
-			DeleteRelationship(edgeId, RedisKey::DependencyEdge);
-
-			// The total_children and affects_children columns might now have different outcome, so update the parent
-			// Checkable as well. The grandparent Checkable may still have wrong numbers of total children, though it's
-			// not worth traversing the whole tree way up and sending config updates for each one of them, as the next
-			// Redis config dump is going to fix it anyway.
-			SendConfigUpdate(parent, true);
-
-			if (!parent->HasAnyDependencies()) {
-				// If the parent Checkable isn't part of any other dependency chain anymore, drop its dependency node entry.
-				DeleteRelationship(GetObjectIdentifier(parent), RedisKey::DependencyNode);
-			}
-		}
-	}
-
-	if (removeGroup && dependencyGroup->IsRedundancyGroup()) {
-		String redundancyGroupId(dependencyGroup->GetIcingaDBIdentifier());
-		DeleteRelationship(redundancyGroupId, RedisKey::DependencyNode);
-		DeleteRelationship(redundancyGroupId, RedisKey::RedundancyGroup);
-
-		DeleteState(redundancyGroupId, RedisKey::RedundancyGroupState);
-		DeleteState(redundancyGroupId, RedisKey::DependencyEdgeState);
-	} else if (removeGroup) {
-		// Note: The Icinga DB identifier of a non-redundant dependency group is used as the edge state ID
-		// and shared by all of its dependency objects. See also SerializeDependencyEdgeState() for details.
-		DeleteState(dependencyGroup->GetIcingaDBIdentifier(), RedisKey::DependencyEdgeState);
-	}
-
-	if (!child->HasAnyDependencies()) {
-		// If the child Checkable has no parent and reverse dependencies, we can safely remove the dependency node.
-		DeleteRelationship(GetObjectIdentifier(child), RedisKey::DependencyNode);
+	for (const auto& varId : GetDictionaryDeletedKeys(oldVars, newVars)) {
+		EnqueueRelationsDeletion(
+			HashValue(new Array{m_EnvironmentId, varId, object->GetName()}),
+			{{it->second, false}}
+		);
 	}
 }
 
@@ -3104,7 +2978,6 @@ IcingaDB::UpdateObjectAttrs(const ConfigObject::Ptr& object, int fieldType,
 		typeName = typeNameOverride.ToLower();
 
 	return {GetObjectIdentifier(object), JsonEncode(attrs)};
-	//m_Rcon->FireAndForgetQuery({"HSET", keyPrefix + typeName, GetObjectIdentifier(object), JsonEncode(attrs)});
 }
 
 void IcingaDB::StateChangeHandler(const ConfigObject::Ptr& object, const CheckResult::Ptr& cr, StateType type)
@@ -3117,10 +2990,11 @@ void IcingaDB::StateChangeHandler(const ConfigObject::Ptr& object, const CheckRe
 void IcingaDB::ReachabilityChangeHandler(const std::set<Checkable::Ptr>& children)
 {
 	for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
-		std::set<DependencyGroup*> seenGroups;
 		for (auto& checkable : children) {
-			rw->UpdateState(checkable, StateUpdate::Full);
-			rw->UpdateDependenciesState(checkable, nullptr, &seenGroups);
+			rw->EnqueueConfigObject(checkable, FullState);
+			for (const auto& dependencyGroup : checkable->GetDependencyGroups()) {
+				rw->EnqueueDependencyGroupStateUpdate(dependencyGroup, checkable);
+			}
 		}
 	}
 }
@@ -3134,17 +3008,13 @@ void IcingaDB::VersionChangedHandler(const ConfigObject::Ptr& object)
 	}
 
 	if (object->IsActive()) {
-		// Create or update the object config
 		for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
-			if (rw)
-				rw->SendConfigUpdate(object, true);
+			// A runtime config change triggers also a full state update as well as next update event.
+			rw->EnqueueConfigObject(object, ConfigUpdate | FullState | NextUpdate);
 		}
-	} else if (!object->IsActive() &&
-			   object->GetExtension("ConfigObjectDeleted")) { // same as in apilistener-configsync.cpp
-		// Delete object config
+	} else if (!object->IsActive() && object->GetExtension("ConfigObjectDeleted")) { // same as in apilistener-configsync.cpp
 		for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
-			if (rw)
-				rw->SendConfigDelete(object);
+			rw->SendConfigDelete(object);
 		}
 	}
 }
@@ -3204,37 +3074,47 @@ void IcingaDB::FlappingChangeHandler(const Checkable::Ptr& checkable, double cha
 void IcingaDB::NewCheckResultHandler(const Checkable::Ptr& checkable)
 {
 	for (auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
-		rw->UpdateState(checkable, StateUpdate::Volatile);
-		rw->SendNextUpdate(checkable);
+		rw->EnqueueConfigObject(checkable, VolatileState);
 	}
 }
 
-void IcingaDB::NextCheckUpdatedHandler(const Checkable::Ptr& checkable)
+void IcingaDB::NextCheckChangedHandler(const Checkable::Ptr& checkable)
 {
 	for (auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
-		rw->UpdateState(checkable, StateUpdate::Volatile);
-		rw->SendNextUpdate(checkable);
+		rw->EnqueueConfigObject(checkable, VolatileState | NextUpdate);
 	}
 }
 
 void IcingaDB::DependencyGroupChildRegisteredHandler(const Checkable::Ptr& child, const DependencyGroup::Ptr& dependencyGroup)
 {
 	for (const auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
-		rw->SendDependencyGroupChildRegistered(child, dependencyGroup);
+		rw->EnqueueConfigObject(child, FullState); // Child requires a full state update.
+		rw->EnqueueDependencyChildRegistered(dependencyGroup, child);
+		rw->EnqueueDependencyGroupStateUpdate(dependencyGroup, child);
+
+		std::set<Checkable::Ptr> parents;
+		dependencyGroup->LoadParents(parents);
+		for (const auto& parent : parents) {
+			// The total_children and affects_children columns might now have different outcome, so update the parent
+			// Checkable as well. The grandparent Checkable may still have wrong numbers of total children, though it's
+			// not worth traversing the whole tree way up and sending config updates for each one of them, as the next
+			// Redis config dump is going to fix it anyway.
+			rw->EnqueueConfigObject(parent, ConfigUpdate | FullState);
+		}
 	}
 }
 
 void IcingaDB::DependencyGroupChildRemovedHandler(const DependencyGroup::Ptr& dependencyGroup, const std::vector<Dependency::Ptr>& dependencies, bool removeGroup)
 {
 	for (const auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
-		rw->SendDependencyGroupChildRemoved(dependencyGroup, dependencies, removeGroup);
+		rw->EnqueueDependencyChildRemoved(dependencyGroup, dependencies, removeGroup);
 	}
 }
 
 void IcingaDB::HostProblemChangedHandler(const Service::Ptr& service) {
 	for (auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 		/* Host state changes affect is_handled and severity of services. */
-		rw->UpdateState(service, StateUpdate::Full);
+		rw->EnqueueConfigObject(service, FullState);
 	}
 }
 
@@ -3311,15 +3191,17 @@ void IcingaDB::ServiceGroupsChangedHandler(const Service::Ptr& service, const Ar
 	}
 }
 
-void IcingaDB::CommandEnvChangedHandler(const ConfigObject::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues) {
+void IcingaDB::CommandEnvChangedHandler(const Command::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues) {
 	for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
-		rw->SendCommandEnvChanged(command, oldValues, newValues);
+		auto [cmdEnvKey, _] = GetCmdEnvArgKeys(command);
+		rw->SendCommandEnvChanged(command, cmdEnvKey, oldValues, newValues);
 	}
 }
 
-void IcingaDB::CommandArgumentsChangedHandler(const ConfigObject::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues) {
+void IcingaDB::CommandArgumentsChangedHandler(const Command::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues) {
 	for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
-		rw->SendCommandArgumentsChanged(command, oldValues, newValues);
+		auto [_, cmdArgKey] = GetCmdEnvArgKeys(command);
+		rw->SendCommandArgumentsChanged(command, cmdArgKey, oldValues, newValues);
 	}
 }
 
@@ -3346,20 +3228,98 @@ void IcingaDB::DeleteRelationship(const String& id, const String& redisKeyWithou
 		"redis_key", redisKey, "id", id, "runtime_type", "delete"
 	});
 
-	m_Rcon->FireAndForgetQueries(queries, Prio::Config);
+	m_Rcon->FireAndForgetQueries(queries);
 }
 
 void IcingaDB::DeleteRelationship(const String& id, RedisKey redisKey, bool hasChecksum)
 {
 	switch (redisKey) {
-		case RedisKey::RedundancyGroup:
-			DeleteRelationship(id, "redundancygroup", hasChecksum);
+		case RedisKey::CheckCmdArg:
+			DeleteRelationship(id, "checkcommand:argument", hasChecksum);
+			break;
+		case RedisKey::CheckCmdCustomVar:
+			DeleteRelationship(id, "checkcommand:customvar", hasChecksum);
+			break;
+		case RedisKey::CheckCmdEnvVar:
+			DeleteRelationship(id, "checkcommand:envvar", hasChecksum);
+			break;
+		case RedisKey::DependencyEdge:
+			DeleteRelationship(id, "dependency:edge", hasChecksum);
 			break;
 		case RedisKey::DependencyNode:
 			DeleteRelationship(id, "dependency:node", hasChecksum);
 			break;
-		case RedisKey::DependencyEdge:
-			DeleteRelationship(id, "dependency:edge", hasChecksum);
+		case RedisKey::EventCmdArg:
+			DeleteRelationship(id, "eventcommand:argument", hasChecksum);
+			break;
+		case RedisKey::EventCmdCustomVar:
+			DeleteRelationship(id, "eventcommand:customvar", hasChecksum);
+			break;
+		case RedisKey::EventCmdEnvVar:
+			DeleteRelationship(id, "eventcommand:envvar", hasChecksum);
+			break;
+		case RedisKey::HostCustomVar:
+			DeleteRelationship(id, "host:customvar", hasChecksum);
+			break;
+		case RedisKey::HostGroupCustomVar:
+			DeleteRelationship(id, "hostgroup:customvar", hasChecksum);
+			break;
+		case RedisKey::HostGroupMember:
+			DeleteRelationship(id, "hostgroup:member", hasChecksum);
+			break;
+		case RedisKey::NotificationCmdArg:
+			DeleteRelationship(id, "notificationcommand:argument", hasChecksum);
+			break;
+		case RedisKey::NotificationCmdCustomVar:
+			DeleteRelationship(id, "notificationcommand:customvar", hasChecksum);
+			break;
+		case RedisKey::NotificationCmdEnvVar:
+			DeleteRelationship(id, "notificationcommand:envvar", hasChecksum);
+			break;
+		case RedisKey::NotificationCustomVar:
+			DeleteRelationship(id, "notification:customvar", hasChecksum);
+			break;
+		case RedisKey::NotificationRecipient:
+			DeleteRelationship(id, "notification:recipient", hasChecksum);
+			break;
+		case RedisKey::NotificationUser:
+			DeleteRelationship(id, "notification:user", hasChecksum);
+			break;
+		case RedisKey::NotificationUserGroup:
+			DeleteRelationship(id, "notification:usergroup", hasChecksum);
+			break;
+		case RedisKey::RedundancyGroup:
+			DeleteRelationship(id, "redundancygroup", hasChecksum);
+			break;
+		case RedisKey::ServiceCustomVar:
+			DeleteRelationship(id, "service:customvar", hasChecksum);
+			break;
+		case RedisKey::ServiceGroupCustomVar:
+			DeleteRelationship(id, "servicegroup:customvar", hasChecksum);
+			break;
+		case RedisKey::ServiceGroupMember:
+			DeleteRelationship(id, "servicegroup:member", hasChecksum);
+			break;
+		case RedisKey::TimePeriodCustomVar:
+			DeleteRelationship(id, "timeperiod:customvar", hasChecksum);
+			break;
+		case RedisKey::TimePeriodExclude:
+			DeleteRelationship(id, "timeperiod:override:exclude", hasChecksum);
+			break;
+		case RedisKey::TimePeriodInclude:
+			DeleteRelationship(id, "timeperiod:override:include", hasChecksum);
+			break;
+		case RedisKey::TimePeriodRange:
+			DeleteRelationship(id, "timeperiod:range", hasChecksum);
+			break;
+		case RedisKey::UserCustomVar:
+			DeleteRelationship(id, "user:customvar", hasChecksum);
+			break;
+		case RedisKey::UserGroupCustomVar:
+			DeleteRelationship(id, "usergroup:customvar", hasChecksum);
+			break;
+		case RedisKey::UserGroupMember:
+			DeleteRelationship(id, "usergroup:member", hasChecksum);
 			break;
 		default:
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid RedisKey provided"));
@@ -3370,6 +3330,12 @@ void IcingaDB::DeleteState(const String& id, RedisKey redisKey, bool hasChecksum
 {
 	String redisKeyWithoutPrefix;
 	switch (redisKey) {
+		case RedisKey::HostState:
+			redisKeyWithoutPrefix = "host:state";
+			break;
+		case RedisKey::ServiceState:
+			redisKeyWithoutPrefix = "service:state";
+			break;
 		case RedisKey::RedundancyGroupState:
 			redisKeyWithoutPrefix = "redundancygroup:state";
 			break;
@@ -3389,7 +3355,7 @@ void IcingaDB::DeleteState(const String& id, RedisKey redisKey, bool hasChecksum
 	}
 	hdels.emplace_back(RedisConnection::Query{"HDEL", m_PrefixConfigObject + redisKeyWithoutPrefix, id});
 
-	m_Rcon->FireAndForgetQueries(std::move(hdels), Prio::RuntimeStateSync);
+	m_Rcon->FireAndForgetQueries(std::move(hdels));
 	// TODO: This is currently purposefully commented out due to how Icinga DB (Go) handles runtime state
 	//       upsert and delete events. See https://github.com/Icinga/icingadb/pull/894 for more details.
 	/*m_Rcon->FireAndForgetQueries({{
@@ -3476,11 +3442,11 @@ void IcingaDB::ExecuteRedisTransaction(const RedisConnection::Ptr& rcon, std::ma
 	if (transaction.size() > 1) {
 		transaction.emplace_back(RedisConnection::Query{"EXEC"});
 		if (!runtimeUpdates.empty()) {
-			rcon->FireAndForgetQueries(std::move(transaction), Prio::Config, {1});
+			rcon->FireAndForgetQueries(std::move(transaction), {1});
 		} else {
 			// This is likely triggered by the initial Redis config dump, so a) we don't need to record the number of
 			// affected objects and b) we don't really know how many objects are going to be affected by this tx.
-			rcon->FireAndForgetQueries(std::move(transaction), Prio::Config);
+			rcon->FireAndForgetQueries(std::move(transaction));
 		}
 	}
 }

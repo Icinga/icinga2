@@ -100,7 +100,7 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 
 	auto redis (conn->GetConnection());
 
-	if (!redis || !redis->GetConnected()) {
+	if (!redis || !redis->IsConnected()) {
 		ReportIcingadbCheck(checkable, commandObj, cr, producer, "Icinga DB CRITICAL: Not connected to Redis.", ServiceCritical);
 		return;
 	}
@@ -126,7 +126,8 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 					"0-0", "0-0", "0-0", "0-0", "0-0", "0-0",
 				}
 			},
-			RedisConnection::QueryPriority::Heartbeat
+			{},
+			true /* high priority */
 		));
 
 		redisTime = std::move(replies.at(0));

@@ -22,8 +22,6 @@ using namespace icinga;
 
 #define MAX_EVENTS_DEFAULT 5000
 
-using Prio = RedisConnection::QueryPriority;
-
 String IcingaDB::m_EnvironmentId;
 std::mutex IcingaDB::m_EnvironmentIdInitMutex;
 
@@ -32,7 +30,7 @@ REGISTER_TYPE(IcingaDB);
 IcingaDB::IcingaDB()
 	: m_Rcon(nullptr)
 {
-	m_RconLocked.store(nullptr);
+	m_HistoryConLocked.store(nullptr);
 
 	m_WorkQueue.SetName("IcingaDB");
 
@@ -81,19 +79,17 @@ void IcingaDB::Start(bool runtimeCreated)
 
 	m_WorkQueue.SetExceptionCallback([this](boost::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
 
-	m_Rcon = new RedisConnection(GetHost(), GetPort(), GetPath(), GetUsername(), GetPassword(), GetDbIndex(),
-		GetEnableTls(), GetInsecureNoverify(), GetCertPath(), GetKeyPath(), GetCaPath(), GetCrlPath(),
-		GetTlsProtocolmin(), GetCipherList(), GetConnectTimeout(), GetDebugInfo());
-	m_RconLocked.store(m_Rcon);
+	m_HistoryCon = new RedisConnection(ConstPtr(this));
+	m_HistoryConLocked.store(m_HistoryCon);
+
+	m_Rcon = new RedisConnection(ConstPtr(this), m_HistoryCon, true);
 
 	for (const Type::Ptr& type : GetTypes()) {
 		auto ctype (dynamic_cast<ConfigType*>(type.get()));
 		if (!ctype)
 			continue;
 
-		RedisConnection::Ptr con = new RedisConnection(GetHost(), GetPort(), GetPath(), GetUsername(), GetPassword(), GetDbIndex(),
-			GetEnableTls(), GetInsecureNoverify(), GetCertPath(), GetKeyPath(), GetCaPath(), GetCrlPath(),
-			GetTlsProtocolmin(), GetCipherList(), GetConnectTimeout(), GetDebugInfo(), m_Rcon);
+		RedisConnection::Ptr con = new RedisConnection(ConstPtr(this), m_Rcon);
 
 		con->SetConnectedCallback([this, con](boost::asio::yield_context& yc) {
 			con->SetConnectedCallback(nullptr);
@@ -117,7 +113,10 @@ void IcingaDB::Start(bool runtimeCreated)
 			kv.second->Start();
 		}
 	});
-	m_Rcon->Start();
+	m_HistoryCon->SetConnectedCallback([this](boost::asio::yield_context&) {
+		m_Rcon->Start();
+	});
+	m_HistoryCon->Start();
 
 	m_StatsTimer = Timer::Create();
 	m_StatsTimer->SetInterval(1);
@@ -126,12 +125,10 @@ void IcingaDB::Start(bool runtimeCreated)
 
 	m_WorkQueue.SetName("IcingaDB");
 
-	m_Rcon->SuppressQueryKind(Prio::CheckResult);
-	m_Rcon->SuppressQueryKind(Prio::RuntimeStateSync);
-
 	Ptr keepAlive (this);
 
 	m_HistoryThread = std::async(std::launch::async, [this, keepAlive]() { ForwardHistoryEntries(); });
+	m_PendingItemsThread = std::thread([this, keepAlive] { PendingItemsThreadProc(); });
 }
 
 void IcingaDB::ExceptionHandler(boost::exception_ptr exp)
@@ -155,9 +152,9 @@ void IcingaDB::OnConnectedHandler()
 
 	UpdateAllConfigObjects();
 
-	m_ConfigDumpDone = true;
-
+	m_ConfigDumpDone.store(true);
 	m_ConfigDumpInProgress = false;
+	m_PendingItemsCV.notify_one(); // Wake up the pending items worker to start processing items.
 }
 
 void IcingaDB::PublishStatsTimerHandler(void)
@@ -167,7 +164,7 @@ void IcingaDB::PublishStatsTimerHandler(void)
 
 void IcingaDB::PublishStats()
 {
-	if (!m_Rcon || !m_Rcon->IsConnected())
+	if (!m_HistoryCon || !m_HistoryCon->IsConnected())
 		return;
 
 	Dictionary::Ptr status = GetStats();
@@ -185,7 +182,7 @@ void IcingaDB::PublishStats()
 		}
 	}
 
-	m_Rcon->FireAndForgetQuery(std::move(query), Prio::Heartbeat);
+	m_HistoryCon->FireAndForgetQuery(std::move(query), {}, true /* high priority */);
 }
 
 void IcingaDB::Stop(bool runtimeRemoved)
@@ -200,6 +197,9 @@ void IcingaDB::Stop(bool runtimeRemoved)
 	}
 
 	m_StatsTimer->Stop(true);
+
+	m_PendingItemsCV.notify_all(); // Wake up the pending items worker to let it exit cleanly.
+	m_PendingItemsThread.join();
 
 	Log(LogInformation, "IcingaDB")
 		<< "'" << GetName() << "' stopped.";
