@@ -4,6 +4,8 @@
 cmake_minimum_required(VERSION 3.17...3.17)
 set(BOOST_MIN_VERSION "1.66.0")
 
+set(ICINGA2_VERSION "2.15.0")
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -54,6 +56,11 @@ set(ICINGA2_GIT_VERSION_INFO ON CACHE BOOL "Whether to use git describe")
 set(ICINGA2_UNITY_BUILD ON CACHE BOOL "Whether to perform a unity build")
 set(ICINGA2_LTO_BUILD OFF CACHE BOOL "Whether to use LTO")
 
+option(ICINGA2_INCLUDE_PACKAGE_INFO "Include package version in 'icinga2 --version'" OFF)
+set(ICINGA2_PACKAGE_VERSION ${ICINGA2_VERSION} CACHE STRING "Version used when packaging Icinga 2")
+set(ICINGA2_PACKAGE_REVISION "1" CACHE STRING "Revision used when packaging Icinga 2")
+set(ICINGA2_PACKAGE_VENDOR "Icinga GmbH" CACHE STRING "Vendor string used when packaging Icinga 2")
+
 set(ICINGA2_CONFIGDIR "${CMAKE_INSTALL_SYSCONFDIR}/icinga2" CACHE FILEPATH "Main config directory, e.g. /etc/icinga2")
 set(ICINGA2_CACHEDIR "${CMAKE_INSTALL_LOCALSTATEDIR}/cache/icinga2" CACHE FILEPATH "Directory for cache files, e.g. /var/cache/icinga2")
 set(ICINGA2_DATADIR "${CMAKE_INSTALL_LOCALSTATEDIR}/lib/icinga2" CACHE FILEPATH "Data directory for the daemon, e.g. /var/lib/icinga2")
@@ -97,35 +104,20 @@ file(READ "${CMAKE_CURRENT_SOURCE_DIR}/COPYING" ICINGA2_LICENSE_GPL)
 set(ICINGA2_LICENSE "${ICINGA2_LICENSE_GPL}\n\n---\n\n${ICINGA2_LICENSE_ADDITIONS}")
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/LICENSE.txt" ${ICINGA2_LICENSE})
 
-file(STRINGS ICINGA2_VERSION SPEC_VERSION REGEX "^Version:")
-string(LENGTH "${SPEC_VERSION}" SPEC_VERSION_LENGTH)
-math(EXPR SPEC_VERSION_LENGTH "${SPEC_VERSION_LENGTH} - 9")
-string(SUBSTRING ${SPEC_VERSION} 9 ${SPEC_VERSION_LENGTH} SPEC_VERSION)
-
-configure_file(icinga-spec-version.h.cmake icinga-spec-version.h)
-
 include(GetGitRevisionDescription)
-git_describe(GIT_VERSION --tags)
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/icinga-version.h.force)
-  configure_file(icinga-version.h.force ${CMAKE_CURRENT_BINARY_DIR}/icinga-version.h COPYONLY)
-else()
-  if(NOT ICINGA2_GIT_VERSION_INFO OR GIT_VERSION MATCHES "-NOTFOUND$")
-    file(STRINGS ICINGA2_VERSION SPEC_REVISION REGEX "^Revision: ")
-    string(LENGTH "${SPEC_REVISION}" SPEC_REVISION_LENGTH)
-    math(EXPR SPEC_REVISION_LENGTH "${SPEC_REVISION_LENGTH} - 10")
-    string(SUBSTRING ${SPEC_REVISION} 10 ${SPEC_REVISION_LENGTH} SPEC_REVISION)
-
-    set(GIT_VERSION "r${SPEC_VERSION}-${SPEC_REVISION}")
-    set(ICINGA2_VERSION "${SPEC_VERSION}")
-  else()
-    # use GIT version as ICINGA2_VERSION
-    string(REGEX REPLACE "^[rv]" "" ICINGA2_VERSION "${GIT_VERSION}")
+git_describe(ICINGA2_VERSION)
+if(NOT ICINGA2_GIT_VERSION_INFO OR ICINGA2_VERSION MATCHES "-NOTFOUND$")
+  include(icinga-archive-version.cmake)
+  if(ICINGA2_VERSION MATCHES "^\\$.*")
+    set(ICINGA2_VERSION "v${ICINGA2_PACKAGE_VERSION}-${ICINGA2_PACKAGE_REVISION}")
   endif()
-  configure_file(icinga-version.h.cmake icinga-version.h)
 endif()
 
+# We need a version string that doesn't contain the leading 'v' for the icinga.rc file
+string(REGEX REPLACE "^[rv]" "" ICINGA2_RC_VERSION "${ICINGA2_VERSION}")
+
 # NuGet on Windows requires a semantic versioning, example: 2.10.4.123 (only 4 element, only numeric)
-string(REGEX REPLACE "-([0-9]+).*$" ".\\1" ICINGA2_VERSION_SAFE "${ICINGA2_VERSION}")
+string(REGEX REPLACE "-([0-9]+).*$" ".\\1" ICINGA2_VERSION_SAFE "${ICINGA2_RC_VERSION}")
 string(REGEX REPLACE "-[^\\.]*(.*)$" "\\1" ICINGA2_VERSION_SAFE "${ICINGA2_VERSION_SAFE}")
 string(REGEX REPLACE "^([0-9]+\\.[0-9]+\\.[0-9]+)[\\.]?[0-9]*" "\\1" CHOCO_VERSION_SHORT "${ICINGA2_VERSION_SAFE}")
 
@@ -496,7 +488,7 @@ if(BUILD_TESTING)
 endif()
 
 set(CPACK_PACKAGE_NAME "Icinga 2")
-set(CPACK_PACKAGE_VENDOR "Icinga GmbH")
+set(CPACK_PACKAGE_VENDOR ${ICINGA2_PACKAGE_VENDOR})
 set(CPACK_PACKAGE_VERSION ${ICINGA2_VERSION_SAFE})
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "ICINGA2")
 set(CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/icinga-app\\\\icinga.ico")

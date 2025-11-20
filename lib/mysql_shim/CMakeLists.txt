@@ -21,7 +21,7 @@ target_link_libraries(mysql_shim ${MYSQL_LIB})
 set_target_properties (
   mysql_shim PROPERTIES
   FOLDER Lib
-  VERSION ${SPEC_VERSION}
+  VERSION ${ICINGA2_PACKAGE_VERSION}
 )
 
 install(

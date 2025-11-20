@@ -570,6 +570,12 @@ void Application::DisplayInfoMessage(std::ostream& os, bool skipVersion)
 		<< "  Build host: " << systemNS->Get("BuildHostName") << "\n"
 		<< "  OpenSSL version: " << GetOpenSSLVersion() << "\n";
 
+	if (Application::GetAppIncludePackageInfo()) {
+		os << "\nPackage information:\n"
+		   << "  Version: " << Application::GetAppPackageVersion() << "-" << Application::GetAppPackageRevision() << "\n"
+		   << "  Vendor: " << Application::GetAppPackageVendor() << "\n";
+	}
+
 	os << "\nApplication information:\n"
 		<< "\nGeneral paths:\n"
 		<< "  Config directory: " << Configuration::ConfigDir << "\n"
