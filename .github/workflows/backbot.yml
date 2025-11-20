@@ -1,0 +1,45 @@
+name: Backbot
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  backbot:
+    runs-on: ubuntu-latest
+
+    # Disable all permissions for the GITHUB_TOKEN, as we are using a GitHub App token instead.
+    permissions: {}
+
+    # Never run this job for unmerged pull requests.
+    if: ${{ github.event.pull_request.merged == true }}
+    steps:
+      - name: Generate GitHub Installation Access Token
+        # Use GitHub App to generate an installation access token to allow PRs created by Backbot to trigger workflows.
+        # This is necessary because PRs created using the default GITHUB_TOKEN do not trigger workflows plus
+        # GitHub doesn't allow to alter any file within the .github/workflows directory using the default GITHUB_TOKEN.
+        # This action will create a token with the permissions defined below and is valid only for 1 hour, but if the
+        # job completes before that 1 hour limit, the token will automatically be revoked.
+        uses: actions/create-github-app-token@67018539274d69449ef7c02e8e71183d1719ab42 # v2.1.4
+        id: backbot-token
+        with:
+          app-id: ${{ secrets.BACKBOT_APP_ID }}
+          private-key: ${{ secrets.BACKBOT_APP_PRIVATE_KEY }}
+          skip-token-revoke: false # Revoke the token after the job is done (is the default behavior).
+          # GitHub recommends to explicitly list the permissions the token should have instead of inheriting all the
+          # permissions from the GitHub App itself. See https://github.com/actions/create-github-app-token
+          permission-contents: write # Allow to create, delete and update branches.
+          permission-pull-requests: write # Allow to create and update PRs.
+          permission-workflows: write # Allow to backport PRs that modify workflow files.
+          permission-issues: write # Needed to add comments to the PRs created by Backbot and the original PR.
+
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          token: ${{ steps.backbot-token.outputs.token }} # To make authenticated git operations.
+
+      - name: Run Backbot
+        uses: yhabteab/backbot@main
+        with:
+          github_token: ${{ steps.backbot-token.outputs.token }}
+          copy_labels_pattern: '^[^c]+[^l]+[^a]+[^-]+[^s]+[^i]+[^g]+[^n]+[^e][^d]+' # copy all labels other than the cla-signed label
+          conflict_handling: 'draft' # create a draft pull request if there are conflicts
