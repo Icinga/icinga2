@@ -123,6 +123,7 @@ set(base_test_SOURCES
   remote-configpackageutility.cpp
   remote-httpserverconnection.cpp
   remote-httpmessage.cpp
+  remote-jsonrpcconnection.cpp
   remote-url.cpp
   ${base_OBJS}
   $<TARGET_OBJECTS:config>
