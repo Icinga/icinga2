@@ -34,9 +34,9 @@
 #include <utf8.h>
 #include <vector>
 
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
 #	include <pthread_np.h>
-#endif /* __FreeBSD__ */
+#endif /* __FreeBSD__ || __OpenBSD__ || DragonFly */
 
 #ifdef HAVE_CXXABI_H
 #	include <cxxabi.h>
