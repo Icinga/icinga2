@@ -1322,10 +1322,12 @@ void Utility::SetThreadName(const String& name, bool os)
 	pthread_set_name_np(pthread_self(), name.CStr());
 #elif defined(HAVE_PTHREAD_SETNAME_NP) /* HAVE_PTHREAD_SET_NAME_NP */
 #	ifdef __APPLE__
-	pthread_setname_np(name.CStr());
-#	else /* __APPLE__ */
-	String tname = name.SubStr(0, 15);
-	pthread_setname_np(pthread_self(), tname.CStr());
+		pthread_setname_np(name.CStr());
+#	elif defined(__NetBSD__) /* __APPLE__ */
+		pthread_setname_np(pthread_self(), "%s", const_cast<char *>(name.CStr()));
+#	else /* __NetBSD__ */
+		String tname = name.SubStr(0, 15);
+		pthread_setname_np(pthread_self(), tname.CStr());
 #	endif /* __APPLE__ */
 #endif /* HAVE_PTHREAD_SETNAME_NP */
 }
