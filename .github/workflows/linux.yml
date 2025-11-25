@@ -47,6 +47,7 @@ jobs:
 
           - registry.suse.com/suse/sle15:15.6
           - registry.suse.com/suse/sle15:15.7
+          - registry.suse.com/bci/bci-base:16.0
 
           - ubuntu:22.04
           - ubuntu:24.04
