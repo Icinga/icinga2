@@ -1320,9 +1320,7 @@ void Utility::SetThreadName(const String& name, bool os)
 
 #ifdef HAVE_PTHREAD_SET_NAME_NP
 	pthread_set_name_np(pthread_self(), name.CStr());
-#endif /* HAVE_PTHREAD_SET_NAME_NP */
-
-#ifdef HAVE_PTHREAD_SETNAME_NP
+#elif defined(HAVE_PTHREAD_SETNAME_NP) /* HAVE_PTHREAD_SET_NAME_NP */
 #	ifdef __APPLE__
 	pthread_setname_np(name.CStr());
 #	else /* __APPLE__ */
