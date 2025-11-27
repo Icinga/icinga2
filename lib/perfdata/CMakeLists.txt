@@ -6,6 +6,7 @@ mkclass_target(influxdbcommonwriter.ti influxdbcommonwriter-ti.cpp influxdbcommo
 mkclass_target(influxdbwriter.ti influxdbwriter-ti.cpp influxdbwriter-ti.hpp)
 mkclass_target(influxdb2writer.ti influxdb2writer-ti.cpp influxdb2writer-ti.hpp)
 mkclass_target(elasticsearchwriter.ti elasticsearchwriter-ti.cpp elasticsearchwriter-ti.hpp)
+mkclass_target(elasticsearchdatastreamwriter.ti elasticsearchdatastreamwriter-ti.cpp elasticsearchdatastreamwriter-ti.hpp)
 mkclass_target(opentsdbwriter.ti opentsdbwriter-ti.cpp opentsdbwriter-ti.hpp)
 mkclass_target(perfdatawriter.ti perfdatawriter-ti.cpp perfdatawriter-ti.hpp)
 
@@ -18,6 +19,7 @@ set(perfdata_SOURCES
   influxdb2writer.cpp influxdb2writer.hpp influxdb2writer-ti.hpp
   opentsdbwriter.cpp opentsdbwriter.hpp opentsdbwriter-ti.hpp
   perfdatawriter.cpp perfdatawriter.hpp perfdatawriter-ti.hpp
+  elasticsearchdatastreamwriter.cpp elasticsearchdatastreamwriter.hpp elasticsearchdatastreamwriter-ti.hpp
 )
 
 if(ICINGA2_UNITY_BUILD)
@@ -55,6 +57,15 @@ install_if_not_exists(
 
 install_if_not_exists(
   ${PROJECT_SOURCE_DIR}/etc/icinga2/features-available/elasticsearch.conf
+  ${ICINGA2_CONFIGDIR}/features-available
+)
+
+install_if_not_exists(
+  ${PROJECT_SOURCE_DIR}/usr/elasticsearch/index-template.json
+  ${ICINGA2_PKGDATADIR}/elasticsearch
+)
+install_if_not_exists(
+  ${PROJECT_SOURCE_DIR}/etc/icinga2/features-available/elasticsearchdatastream.conf
   ${ICINGA2_CONFIGDIR}/features-available
 )
 

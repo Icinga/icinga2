@@ -1,0 +1,82 @@
+/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+
+#include "base/configobject.hpp"
+
+library perfdata;
+
+namespace icinga
+{
+
+class ElasticsearchDatastreamWriter : ConfigObject
+{
+	activation_priority 100;
+
+	[config, required] String host {
+		default {{{ return "127.0.0.1"; }}}
+	};
+	[config, required] String port {
+		default {{{ return "9200"; }}}
+	};
+	[config] bool enable_send_perfdata {
+		default {{{ return false; }}}
+	};
+	[config] String username;
+	[config, no_user_view, no_user_modify] String password;
+
+	[config, no_user_view, no_user_modify] String api_token;
+
+	[config] bool enable_tls {
+		default {{{ return false; }}}
+	};
+	[config] String datastream_namespace {
+		default {{{ return "default"; }}}
+	};
+	[config] bool enable_send_thresholds {
+		default {{{ return false; }}}
+	};
+	[config] bool manage_index_template {
+		default {{{ return true; }}}
+	};
+	[config] bool insecure_noverify {
+		default {{{ return false; }}}
+	};
+	[config] String ca_path;
+	[config] String cert_path;
+	[config] String key_path;
+
+	[config] int flush_interval {
+		default {{{ return 10; }}}
+	};
+	[config] int flush_threshold {
+		default {{{ return 1024; }}}
+	};
+	[config] bool enable_ha {
+		default {{{ return false; }}}
+	};
+
+	[config] Array::Ptr host_tags_template;
+	[config] Array::Ptr service_tags_template;
+	[config] Dictionary::Ptr host_labels_template;
+	[config] Dictionary::Ptr service_labels_template;
+	[config] Value filter;
+};
+
+validator ElasticsearchDatastreamWriter {
+	Array host_tags_template {
+		String "*";
+	};
+	Array service_tags_template {
+		String "*";
+	};
+
+	Dictionary host_labels_template {
+		String "*";
+	};
+	Dictionary service_labels_template {
+		String "*";
+	};
+
+	Value filter;
+};
+
+}
