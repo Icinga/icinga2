@@ -1,5 +1,5 @@
 ### Nano synteax file
-### Icinga2 object configuration file 
+### Icinga2 object configuration file
 
 syntax 	"icinga2" "/etc/icinga2/.*\.conf$" "/usr/share/icinga2/include/(plugin|itl|.*\.conf$)"
 
@@ -7,6 +7,7 @@ syntax 	"icinga2" "/etc/icinga2/.*\.conf$" "/usr/share/icinga2/include/(plugin|i
 icolor brightgreen 		"object[ \t]+(host|hostgroup|service|servicegroup|user|usergroup)"
 icolor brightgreen 		"object[ \t]+(checkcommand|notificationcommand|eventcommand|notification)"
 icolor brightgreen 		"object[ \t]+(timeperiod|scheduleddowntime|dependency|perfdatawriter)"
+icolor brightgreen 		"object[ \t]+(elasticsearchwriter|elasticsearchdatastreamwriter)"
 icolor brightgreen 		"object[ \t]+(graphitewriter|idomysqlconnection|idomysqlconnection)"
 icolor brightgreen 		"object[ \t]+(livestatuslistener|externalcommandlistener)"
 icolor brightgreen 		"object[ \t]+(compatlogger|checkcomponent|notificationcomponent)"
@@ -32,6 +33,9 @@ icolor red 		"(^|^\s+)(port|ranges|retry_interval|rotation_interval|rotation_met
 icolor red 		"(^|^\s+)(service_format_template|service_name|service_name_template|service_perfdata_path|service_temp_path)"
 icolor red 		"(^|^\s+)(severity|socket_path|socket_type|spool_dir|states|status_path|table_prefix)"
 icolor red 		"(^|^\s+)(timeout|times|types|update_interval|user|user_groups|users|volatile|zone)"
+icolor red 		"(^|^\s+)(insecure_noverify|flush_interval|flush_threshold|filter|api_token|username|enable_tls)"
+icolor red 		"(^|^\s+)(enable_send_perfdata|datastream_namespace|enable_send_thresholds|manage_index_template)"
+icolor red 		"(^|^\s+)(host_labels_template|service_labels_template|host_tags_template|service_tags_template)"
 icolor red 		"(^|^\s+)(vars\.\w+)"
 
 

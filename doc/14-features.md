@@ -439,6 +439,130 @@ The recommended way of running Elasticsearch in this scenario is a dedicated ser
 where you either have the Elasticsearch HTTP API, or a TLS secured HTTP proxy,
 or Logstash for additional filtering.
 
+
+#### Elasticsearch Datastream Writer <a id="elasticsearch-datastream-writer"></a>
+
+> **Note**
+>
+> This is a newer alternative to the Elasticsearch Writer above. The Elasticsearch Datastream Writer uses
+> Elasticsearch's data stream feature and follows the Elastic Common Schema (ECS), providing better performance
+> and data organization. Use this writer for new installations. The original Elasticsearch Writer is still
+> available for backward compatibility.
+>
+> OpenSearch: The data stream mode and ECS component template usage differ slightly in OpenSearch. The
+> ElasticsearchDatastreamWriter focuses on Elasticsearch compatibility first. OpenSearch can ingest the data,
+> but you may need to adapt the installed index/component templates manually (e.g. remove time_series mode if
+> unsupported, adjust mappings). The option `manage_index_template` will not work with OpenSearch.
+
+
+This feature sends check results with performance data to an [Elasticsearch](https://www.elastic.co/products/elasticsearch) instance or cluster.
+
+> **Note**
+>
+> This feature requires Elasticsearch to support time series data streams (Elasticsearch 8.x+), and to have the ECS
+> component template installed. It was tested successfully with Elasticsearch 8.12 and 9.0.8.
+
+
+Enable the feature and restart Icinga 2.
+
+```bash
+icinga2 feature enable elasticsearchdatastream
+```
+
+The default configuration expects an Elasticsearch instance running on `localhost` on port `9200`
+ and writes to datastreams with the pattern `metrics-icinga2.<check>-<namespace>`.
+
+More configuration details can be found [here](09-object-types.md#objecttype-elasticsearchdatastreamwriter).
+
+#### Current Elasticsearch Schema <a id="elasticsearch-datastream-writer-schema"></a>
+
+The documents for the ElasticsearchDatastreamWriter try to follow the [Elastic Common Schema (ECS)](https://www.elastic.co/guide/en/ecs/current/index.html)
+version `8.0` as close as possible, with some additional changes to fit the Icinga 2 data model.
+All documents are written to a data stream of the format `metrics-icinga.<check>-<datastream_namespace>`,
+where `<check>` is the name of the checkcommand being executed to keep the number of fields per index low
+and documents with the same performance data grouped together. `<datastream_namespace>` is an optional
+configuration parameter to further separate documents, e.g. by environment like `production` or `development`.
+The `datastream_namespace` can also be used to separate documents e.g. by hostgroups or zones, by using the
+`filter` function to filter the check results and use several writers with different namespaces.
+Time‑series dimensions are applied to `host.name` and (when present) `service.name`, aligning with ECS host and service
+definitions: [ECS host fields](https://www.elastic.co/guide/en/ecs/current/ecs-host.html),
+[ECS service fields](https://www.elastic.co/guide/en/ecs/current/ecs-service.html).
+
+Icinga 2 automatically adds the following threshold metrics
+if existing:
+
+```
+perfdata.<perfdata-label>.min
+perfdata.<perfdata-label>.max
+perfdata.<perfdata-label>.warn
+perfdata.<perfdata-label>.crit
+```
+
+#### Adding additional tags and labels <a id="elasticsearch-datastream-writer-custom-tags-labels"></a>
+
+Additionally it is possible to configure custom tags and labels that are applied to the metrics via
+`host_tags_template`/`service_tags_template` and `host_labels_template`/`service_labels_template`
+respectively. Depending on whether the write event was triggered on a service or host object,
+additional tags are added to the ElasticSearch entries.
+
+A host metrics entry configured with the following `host_tags_template`:
+
+```
+host_tags_template = ["production", "$host.groups"]
+host_labels_template = {
+  os = "$host.vars.os$"
+}
+```
+
+Will in addition to the above mentioned lines also contain:
+
+```
+"tags": ["production", "linux-servers;group-A"],
+"labels": { "os": "Linux" }
+```
+
+#### Filtering check results <a id="elasticsearch-datastream-writer-filtering"></a>
+
+You can filter which check results are sent to Elasticsearch by using the `filter` parameter.
+It takes a function (expression) evaluated for every check result and must return a boolean.
+If the function returns `true`, the check result is sent; otherwise it is skipped.
+
+Only the variables `host` and `service` are available inside this expression.
+For host check results `service` is not set (null/undefined). No other variables (such as
+the raw check result object) are exposed.
+
+Example configuration that only sends service check results for hosts in the `linux-server` hostgroup:
+
+
+```
+object ElasticsearchDatastreamWriter "elasticsearchdatastream" {
+  ...
+  datastream_namespace = "production"
+  filter = {{ service && "linux-server" in host.groups }}
+}
+```
+
+#### Elasticsearch Datastream Writer in Cluster HA Zones <a id="elasticsearch-datastream-writer-cluster-ha"></a>
+
+The Elasticsearch Datastream Writer feature supports [high availability](06-distributed-monitoring.md#distributed-monitoring-high-availability-features)
+in cluster zones.
+
+By default, all endpoints in a zone will activate the feature and start
+writing events to the Elasticsearch HTTP API. In HA enabled scenarios,
+it is possible to set `enable_ha = true` in all feature configuration
+files. This allows each endpoint to calculate the feature authority,
+and only one endpoint actively writes events, the other endpoints
+pause the feature.
+
+When the cluster connection breaks at some point, the remaining endpoint(s)
+in that zone will automatically resume the feature. This built-in failover
+mechanism ensures that events are written even if the cluster fails.
+
+The recommended way of running Elasticsearch in this scenario is a dedicated server
+where you either have the Elasticsearch HTTP API, or a TLS secured HTTP proxy,
+or Logstash for additional filtering.
+
+
 ### Graylog Integration <a id="graylog-integration"></a>
 
 #### GELF Writer <a id="gelfwriter"></a>

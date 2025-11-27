@@ -54,6 +54,7 @@ syn match 		Lambda		"{{}}"
 " Object types
 syn keyword		icinga2ObjType		ApiListener ApiUser CheckCommand CheckerComponent
 syn keyword		icinga2ObjType		Comment Dependency Downtime ElasticsearchWriter
+syn keyword		icinga2ObjType		ElasticsearchDatastreamWriter
 syn keyword		icinga2ObjType		Endpoint EventCommand ExternalCommandListener
 syn keyword		icinga2ObjType		FileLogger GelfWriter GraphiteWriter Host HostGroup
 syn keyword		icinga2ObjType		IcingaApplication IdoMysqlConnection IdoPgsqlConnection
@@ -95,6 +96,8 @@ syn keyword		icinga2ObjAttr		contained	ssl_ca ssl_capath ssl_ca_cert ssl_cert ss
 syn keyword		icinga2ObjAttr		contained	states status_path table_prefix ticket_salt
 syn keyword		icinga2ObjAttr		contained	timeout times tls_handshake_timeout tls_protocolmin
 syn keyword		icinga2ObjAttr		contained	types update_interval user user_groups username users volatile zone
+syn keyword		icinga2ObjAttr		contained   api_token datastream_namespace manage_index_template insecure_noverify
+syn keyword		icinga2ObjAttr		contained   host_tags_template service_tags_template host_labels_template service_labels_template
 syn match		icinga2ObjAttr		contained	"\(vars.\w\+\)"
 
 " keywords: https://icinga.com/docs/icinga2/latest/doc/17-language-reference/#reserved-keywords
