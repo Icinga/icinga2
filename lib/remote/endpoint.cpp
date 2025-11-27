@@ -6,10 +6,8 @@
 #include "remote/apilistener.hpp"
 #include "remote/jsonrpcconnection.hpp"
 #include "remote/zone.hpp"
-#include "base/configtype.hpp"
 #include "base/utility.hpp"
 #include "base/exception.hpp"
-#include "base/convert.hpp"
 
 using namespace icinga;
 
@@ -171,4 +169,13 @@ Dictionary::Ptr Endpoint::GetMessagesReceivedPerType() const
 double Endpoint::GetSecondsProcessingMessages() const
 {
 	return m_InputProcessingTime;
+}
+
+String Endpoint::GetIcingaVersionString() const {
+    unsigned long version = GetIcingaVersion();
+	auto bugfix = version % 100;
+	version /= 100;
+	auto minor = version % 100;
+	auto major = version / 100;
+	return String() + std::to_string(major) + "." + std::to_string(minor) + "." + std::to_string(bugfix);
 }
