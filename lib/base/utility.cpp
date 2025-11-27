@@ -1311,6 +1311,23 @@ void Utility::SetThreadName(const String& name, bool os)
 {
 	m_ThreadName.reset(new String(name));
 
+#if defined(HAVE_PTHREAD_SET_NAME_NP) || defined(HAVE_PTHREAD_SETNAME_NP)
+	unsigned int len;
+
+	/* https://github.com/llvm/llvm-project/blob/6412184891526690cff804f87f986b1fa039f011/llvm/lib/Support/Unix/Threading.inc#L157 */
+#	ifdef PTHREAD_MAX_NAMELEN_NP
+		len = PTHREAD_MAX_NAMELEN_NP;
+#	elif defined(__APPLE__) /* PTHREAD_MAX_NAMELEN_NP */
+		len = 64;
+#	elif defined(__OpenBSD__) /* __APPLE__ */
+		len = 24;
+#	else /* __OpenBSD__ */
+		len = 16;
+#	endif /* PTHREAD_MAX_NAMELEN_NP */
+
+	String tname = name.SubStr(0, len - 1);
+#endif
+
 	if (!os)
 		return;
 
@@ -1319,14 +1336,13 @@ void Utility::SetThreadName(const String& name, bool os)
 #endif /* _WIN32 */
 
 #ifdef HAVE_PTHREAD_SET_NAME_NP
-	pthread_set_name_np(pthread_self(), name.CStr());
+	pthread_set_name_np(pthread_self(), tname.CStr());
 #elif defined(HAVE_PTHREAD_SETNAME_NP) /* HAVE_PTHREAD_SET_NAME_NP */
 #	ifdef __APPLE__
-		pthread_setname_np(name.CStr());
+		pthread_setname_np(tname.CStr());
 #	elif defined(__NetBSD__) /* __APPLE__ */
-		pthread_setname_np(pthread_self(), "%s", const_cast<char *>(name.CStr()));
+		pthread_setname_np(pthread_self(), "%s", const_cast<char *>(tname.CStr()));
 #	else /* __NetBSD__ */
-		String tname = name.SubStr(0, 15);
 		pthread_setname_np(pthread_self(), tname.CStr());
 #	endif /* __APPLE__ */
 #endif /* HAVE_PTHREAD_SETNAME_NP */
