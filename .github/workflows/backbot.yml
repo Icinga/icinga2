@@ -11,7 +11,12 @@ permissions: {}
 jobs:
   backbot:
     runs-on: ubuntu-latest
-    if: ${{ github.repository_owner == 'Icinga' && github.event.pull_request.merged == true && (github.event_name != 'labeled' || startsWith(github.event.label.name, 'backport-to-support/')) }}
+    if: |
+      github.repository_owner == 'Icinga' &&
+      github.event.pull_request.merged == true && (
+        github.event.action != 'labeled' ||
+        startsWith(github.event.label.name, 'backport-to-support/')
+      )
     steps:
       - name: Generate GitHub Installation Access Token
         # Use GitHub App to generate an installation access token to allow PRs created by Backbot to trigger workflows.
