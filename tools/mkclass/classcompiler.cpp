@@ -577,7 +577,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 	/* destructor */
 	m_Header << "public:" << std::endl
-			<< "\t" << "~ObjectImpl<" << klass.Name << ">() override;" << std::endl;
+			<< "\t" << "~ObjectImpl() override;" << std::endl;
 
 	m_Impl << "ObjectImpl<" << klass.Name << ">::~ObjectImpl()" << std::endl
 		<< "{ }" << std::endl << std::endl;
