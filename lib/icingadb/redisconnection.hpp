@@ -388,9 +388,7 @@ RedisConnection::Reply RedisConnection::ReadOne(StreamPtr& stream, boost::asio::
 
 	try {
 		return ReadRESP(*strm, yc);
-	} catch (const boost::coroutines::detail::forced_unwind&) {
-		throw;
-	} catch (...) {
+	} catch (const std::exception&) {
 		if (m_Connecting.exchange(false)) {
 			m_Connected.store(false);
 			stream = nullptr;
@@ -426,9 +424,7 @@ void RedisConnection::WriteOne(StreamPtr& stream, RedisConnection::Query& query,
 	try {
 		WriteRESP(*strm, query, yc);
 		strm->async_flush(yc);
-	} catch (const boost::coroutines::detail::forced_unwind&) {
-		throw;
-	} catch (...) {
+	} catch (const std::exception&) {
 		if (m_Connecting.exchange(false)) {
 			m_Connected.store(false);
 			stream = nullptr;
