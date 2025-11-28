@@ -38,6 +38,7 @@ set(remote_SOURCES
   modifyobjecthandler.cpp modifyobjecthandler.hpp
   objectqueryhandler.cpp objectqueryhandler.hpp
   pkiutility.cpp pkiutility.hpp
+  replay-log.cpp replay-log.hpp
   statushandler.cpp statushandler.hpp
   templatequeryhandler.cpp templatequeryhandler.hpp
   typequeryhandler.cpp typequeryhandler.hpp
