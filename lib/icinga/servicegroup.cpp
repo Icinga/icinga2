@@ -50,7 +50,9 @@ void ServiceGroup::EvaluateObjectRules(const Service::Ptr& service)
 {
 	CONTEXT("Evaluating group membership for service '" << service->GetName() << "'");
 
-	for (const ConfigItem::Ptr& group : ConfigItem::GetItems(ServiceGroup::TypeInstance))
+	auto items (ConfigItem::GetItems(ServiceGroup::TypeInstance));
+
+	for (auto& group : *items)
 	{
 		if (!group->GetFilter())
 			continue;
