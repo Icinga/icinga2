@@ -1,6 +1,6 @@
 name: Backbot
 on:
-  pull_request:
+  pull_request_target:
     types:
       - closed
       - labeled
@@ -11,7 +11,12 @@ permissions: {}
 jobs:
   backbot:
     runs-on: ubuntu-latest
-    if: ${{ github.repository_owner == 'Icinga' && github.event.pull_request.merged == true && (github.event_name != 'labeled' || startsWith(github.event.label.name, 'backport-to-support/')) }}
+    if: |
+      github.repository_owner == 'Icinga' &&
+      github.event.pull_request.merged == true && (
+        github.event.action != 'labeled' ||
+        startsWith(github.event.label.name, 'backport-to-support/')
+      )
     steps:
       - name: Generate GitHub Installation Access Token
         # Use GitHub App to generate an installation access token to allow PRs created by Backbot to trigger workflows.
@@ -36,6 +41,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           token: ${{ steps.backbot-token.outputs.token }} # To make authenticated git operations.
+          sha: ${{ github.event.pull_request.head.sha }} # Checkout the latest commit of the merged PR.
 
       - name: Run Backbot
         uses: korthout/backport-action@d07416681cab29bf2661702f925f020aaa962997 # v3.4.1
