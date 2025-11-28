@@ -135,15 +135,11 @@ static void PersistModAttrHelper(AtomicFile& fp, ConfigObject::Ptr& previousObje
 			ConfigWriter::EmitRaw(fp, "\n}\n\n");
 		}
 
-		ConfigWriter::EmitRaw(fp, "var obj = ");
-
-		Array::Ptr args1 = new Array({
-			object->GetReflectionType()->GetName(),
-			object->GetName()
-		});
-		ConfigWriter::EmitFunctionCall(fp, "get_object", args1);
-
-		ConfigWriter::EmitRaw(fp, "\nif (obj) {\n");
+		ConfigWriter::EmitRaw(fp, "Internal.modified_attributes[");
+		ConfigWriter::EmitValue(fp, 0, object->GetReflectionType()->GetName());
+		ConfigWriter::EmitRaw(fp, "][");
+		ConfigWriter::EmitValue(fp, 0, object->GetName());
+		ConfigWriter::EmitRaw(fp, "] = obj => {\n");
 	}
 
 	ConfigWriter::EmitRaw(fp, "\tobj.");
