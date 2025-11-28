@@ -61,6 +61,8 @@ public:
 
 	double GetSecondsProcessingMessages() const override;
 
+	String GetIcingaVersionString() const;
+
 protected:
 	void OnAllConfigLoaded() override;
 
