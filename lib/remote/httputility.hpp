@@ -26,6 +26,9 @@ public:
 	static void SendJsonBody(HttpResponse& response, const Dictionary::Ptr& params, const Value& val);
 	static void SendJsonError(HttpResponse& response, const Dictionary::Ptr& params, const int code,
 		const String& info = {}, const String& diagnosticInformation = {});
+
+	static bool IsValidHeaderName(std::string_view name);
+	static bool IsValidHeaderValue(std::string_view value);
 };
 
 }

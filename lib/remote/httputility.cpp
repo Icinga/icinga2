@@ -78,3 +78,74 @@ void HttpUtility::SendJsonError(HttpResponse& response,
 
 	HttpUtility::SendJsonBody(response, params, result);
 }
+
+/**
+ * Check if the given string is suitable to be used as an HTTP header name.
+ *
+ * @param name The value to check for validity
+ * @return true if the argument is a valid header name, false otherwise
+ */
+bool HttpUtility::IsValidHeaderName(std::string_view name)
+{
+	/*
+	 * Derived from the following syntax definition in RFC9110:
+	 *
+	 *     field-name = token
+	 *     token = 1*tchar
+	 *     tchar = "!" / "#" / "$" / "%" / "&" / "'" / "*" / "+" / "-" / "." / "^" / "_" / "`" / "|" / "~" / DIGIT / ALPHA
+	 *     ALPHA = %x41-5A / %x61-7A   ; A-Z / a-z
+	 *     DIGIT = %x30-39   ; 0-9
+	 *
+	 * References:
+	 * - https://datatracker.ietf.org/doc/html/rfc9110#section-5.1
+	 * - https://datatracker.ietf.org/doc/html/rfc9110#appendix-A
+	 * - https://www.rfc-editor.org/rfc/rfc5234#appendix-B.1
+	 */
+
+	return !name.empty() && std::all_of(name.begin(), name.end(), [](char c) {
+		switch (c) {
+			case '!': case '#': case '$': case '%': case '&': case '\'': case '*': case '+':
+			case '-': case '.': case '^': case '_': case '`': case '|': case '~':
+				return true;
+			default:
+				return ('0' <= c && c <= '9') || ('A' <= c && c <= 'Z') || ('a' <= c && c <= 'z');
+		}
+	});
+}
+
+/**
+ * Check if the given string is suitable to be used as an HTTP header value.
+ *
+ * @param value The value to check for validity
+ * @return true if the argument is a valid header value, false otherwise
+ */
+bool HttpUtility::IsValidHeaderValue(std::string_view value)
+{
+	/*
+	 * Derived from the following syntax definition in RFC9110:
+	 *
+	 *     field-value = *field-content
+	 *     field-content = field-vchar [ 1*( SP / HTAB / field-vchar ) field-vchar ]
+	 *     field-vchar = VCHAR / obs-text
+	 *     obs-text = %x80-FF
+	 *     VCHAR = %x21-7E ; visible (printing) characters
+	 *
+	 * References:
+	 * - https://datatracker.ietf.org/doc/html/rfc9110#section-5.5
+	 * - https://datatracker.ietf.org/doc/html/rfc9110#appendix-A
+	 * - https://www.rfc-editor.org/rfc/rfc5234#appendix-B.1
+	 */
+
+	if (!value.empty()) {
+		// Must not start or end with space or tab.
+		for (char c : {*value.begin(), *value.rbegin()}) {
+			if (c == ' ' || c == '\t') {
+				return false;
+			}
+		}
+	}
+
+	return std::all_of(value.begin(), value.end(), [](char c) {
+		return c == ' ' || c == '\t' || ('\x21' <= c && c <= '\x7e') || ('\x80' <= c && c <= '\xff');
+	});
+}
