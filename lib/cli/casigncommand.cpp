@@ -55,7 +55,7 @@ ImpersonationLevel CASignCommand::GetImpersonationLevel() const
  *
  * @return An exit status.
  */
-int CASignCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
+int CASignCommand::Run(const boost::program_options::variables_map&, const std::vector<std::string>& ap) const
 {
 	String requestFile = ApiListener::GetCertificateRequestsDir() + "/" + ap[0] + ".json";
 
