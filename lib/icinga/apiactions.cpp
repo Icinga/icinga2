@@ -53,8 +53,11 @@ Dictionary::Ptr ApiActions::CreateResult(int code, const String& status,
 	return result;
 }
 
-Dictionary::Ptr ApiActions::ProcessCheckResult(const ConfigObject::Ptr& object,
-	const Dictionary::Ptr& params)
+Dictionary::Ptr ApiActions::ProcessCheckResult(
+	const ConfigObject::Ptr& object,
+	const ApiUser::Ptr&,
+	const Dictionary::Ptr& params
+)
 {
 	using Result = Checkable::ProcessingResult;
 
@@ -140,8 +143,11 @@ Dictionary::Ptr ApiActions::ProcessCheckResult(const ConfigObject::Ptr& object,
 	return ApiActions::CreateResult(500, "Unexpected result (" + std::to_string(static_cast<int>(result)) + ") for object '" + checkable->GetName() + "'. Please submit a bug report at https://github.com/Icinga/icinga2");
 }
 
-Dictionary::Ptr ApiActions::RescheduleCheck(const ConfigObject::Ptr& object,
-	const Dictionary::Ptr& params)
+Dictionary::Ptr ApiActions::RescheduleCheck(
+	const ConfigObject::Ptr& object,
+	const ApiUser::Ptr&,
+	const Dictionary::Ptr& params
+)
 {
 	Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);
 
@@ -165,8 +171,11 @@ Dictionary::Ptr ApiActions::RescheduleCheck(const ConfigObject::Ptr& object,
 	return ApiActions::CreateResult(200, "Successfully rescheduled check for object '" + checkable->GetName() + "'.");
 }
 
-Dictionary::Ptr ApiActions::SendCustomNotification(const ConfigObject::Ptr& object,
-	const Dictionary::Ptr& params)
+Dictionary::Ptr ApiActions::SendCustomNotification(
+	const ConfigObject::Ptr& object,
+	const ApiUser::Ptr&,
+	const Dictionary::Ptr& params
+)
 {
 	Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);
 
@@ -188,8 +197,11 @@ Dictionary::Ptr ApiActions::SendCustomNotification(const ConfigObject::Ptr& obje
 	return ApiActions::CreateResult(200, "Successfully sent custom notification for object '" + checkable->GetName() + "'.");
 }
 
-Dictionary::Ptr ApiActions::DelayNotification(const ConfigObject::Ptr& object,
-	const Dictionary::Ptr& params)
+Dictionary::Ptr ApiActions::DelayNotification(
+	const ConfigObject::Ptr& object,
+	const ApiUser::Ptr&,
+	const Dictionary::Ptr& params
+)
 {
 	Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);
 
@@ -206,8 +218,11 @@ Dictionary::Ptr ApiActions::DelayNotification(const ConfigObject::Ptr& object,
 	return ApiActions::CreateResult(200, "Successfully delayed notifications for object '" + checkable->GetName() + "'.");
 }
 
-Dictionary::Ptr ApiActions::AcknowledgeProblem(const ConfigObject::Ptr& object,
-	const Dictionary::Ptr& params)
+Dictionary::Ptr ApiActions::AcknowledgeProblem(
+	const ConfigObject::Ptr& object,
+	const ApiUser::Ptr&,
+	const Dictionary::Ptr& params
+)
 {
 	Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);
 
@@ -268,8 +283,11 @@ Dictionary::Ptr ApiActions::AcknowledgeProblem(const ConfigObject::Ptr& object,
 	return ApiActions::CreateResult(200, "Successfully acknowledged problem for object '" + checkable->GetName() + "'.");
 }
 
-Dictionary::Ptr ApiActions::RemoveAcknowledgement(const ConfigObject::Ptr& object,
-	const Dictionary::Ptr& params)
+Dictionary::Ptr ApiActions::RemoveAcknowledgement(
+	const ConfigObject::Ptr& object,
+	const ApiUser::Ptr&,
+	const Dictionary::Ptr& params
+)
 {
 	Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);
 
@@ -292,8 +310,11 @@ Dictionary::Ptr ApiActions::RemoveAcknowledgement(const ConfigObject::Ptr& objec
 	return ApiActions::CreateResult(200, "Successfully removed acknowledgement for object '" + checkable->GetName() + "'.");
 }
 
-Dictionary::Ptr ApiActions::AddComment(const ConfigObject::Ptr& object,
-	const Dictionary::Ptr& params)
+Dictionary::Ptr ApiActions::AddComment(
+	const ConfigObject::Ptr& object,
+	const ApiUser::Ptr&,
+	const Dictionary::Ptr& params
+)
 {
 	Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);
 
@@ -331,8 +352,11 @@ Dictionary::Ptr ApiActions::AddComment(const ConfigObject::Ptr& object,
 		+ "'.", additional);
 }
 
-Dictionary::Ptr ApiActions::RemoveComment(const ConfigObject::Ptr& object,
-	const Dictionary::Ptr& params)
+Dictionary::Ptr ApiActions::RemoveComment(
+	const ConfigObject::Ptr& object,
+	const ApiUser::Ptr&,
+	const Dictionary::Ptr& params
+)
 {
 	ConfigObjectsSharedLock lock (std::try_to_lock);
 
@@ -365,8 +389,11 @@ Dictionary::Ptr ApiActions::RemoveComment(const ConfigObject::Ptr& object,
 	return ApiActions::CreateResult(200, "Successfully removed comment '" + commentName + "'.");
 }
 
-Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
-	const Dictionary::Ptr& params)
+Dictionary::Ptr ApiActions::ScheduleDowntime(
+	const ConfigObject::Ptr& object,
+	const ApiUser::Ptr&,
+	const Dictionary::Ptr& params
+)
 {
 	Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);
 
@@ -535,8 +562,11 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(const ConfigObject::Ptr& object,
 		downtimeName + "' for object '" + checkable->GetName() + "'.", additional);
 }
 
-Dictionary::Ptr ApiActions::RemoveDowntime(const ConfigObject::Ptr& object,
-	const Dictionary::Ptr& params)
+Dictionary::Ptr ApiActions::RemoveDowntime(
+	const ConfigObject::Ptr& object,
+	const ApiUser::Ptr&,
+	const Dictionary::Ptr& params
+)
 {
 	ConfigObjectsSharedLock lock (std::try_to_lock);
 
@@ -588,24 +618,21 @@ Dictionary::Ptr ApiActions::RemoveDowntime(const ConfigObject::Ptr& object,
 	}
 }
 
-Dictionary::Ptr ApiActions::ShutdownProcess(const ConfigObject::Ptr& object,
-	const Dictionary::Ptr& params)
+Dictionary::Ptr ApiActions::ShutdownProcess(const ConfigObject::Ptr&, const ApiUser::Ptr&, const Dictionary::Ptr&)
 {
 	Application::RequestShutdown();
 
 	return ApiActions::CreateResult(200, "Shutting down Icinga 2.");
 }
 
-Dictionary::Ptr ApiActions::RestartProcess(const ConfigObject::Ptr& object,
-	const Dictionary::Ptr& params)
+Dictionary::Ptr ApiActions::RestartProcess(const ConfigObject::Ptr&, const ApiUser::Ptr&, const Dictionary::Ptr&)
 {
 	Application::RequestRestart();
 
 	return ApiActions::CreateResult(200, "Restarting Icinga 2.");
 }
 
-Dictionary::Ptr ApiActions::GenerateTicket(const ConfigObject::Ptr&,
-	const Dictionary::Ptr& params)
+Dictionary::Ptr ApiActions::GenerateTicket(const ConfigObject::Ptr&, const ApiUser::Ptr&, const Dictionary::Ptr& params)
 {
 	if (!params->Contains("cn"))
 		return ApiActions::CreateResult(400, "Option 'cn' is required");
@@ -653,7 +680,11 @@ Value ApiActions::GetSingleObjectByNameUsingPermissions(const String& type, cons
 	return objs.at(0);
 };
 
-Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object, const Dictionary::Ptr& params)
+Dictionary::Ptr ApiActions::ExecuteCommand(
+	const ConfigObject::Ptr& object,
+	const ApiUser::Ptr& apiUser,
+	const Dictionary::Ptr& params
+)
 {
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
@@ -717,11 +748,11 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object, cons
 		nullptr, MacroProcessor::EscapeCallback(), nullptr, false
 	);
 
-	if (!ActionsHandler::AuthenticatedApiUser)
+	if (!apiUser)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Can't find API user."));
 
 	/* Get endpoint */
-	Endpoint::Ptr endpointPtr = GetSingleObjectByNameUsingPermissions(Endpoint::GetTypeName(), resolved_endpoint, ActionsHandler::AuthenticatedApiUser);
+	Endpoint::Ptr endpointPtr = GetSingleObjectByNameUsingPermissions(Endpoint::GetTypeName(), resolved_endpoint, apiUser);
 
 	if (!endpointPtr)
 		return ApiActions::CreateResult(404, "Can't find a valid endpoint for '" + resolved_endpoint + "'.");
@@ -779,7 +810,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object, cons
 	Dictionary::Ptr execParams = new Dictionary();
 
 	if (command_type == "CheckCommand") {
-		CheckCommand::Ptr cmd = GetSingleObjectByNameUsingPermissions(CheckCommand::GetTypeName(), resolved_command, ActionsHandler::AuthenticatedApiUser);
+		CheckCommand::Ptr cmd = GetSingleObjectByNameUsingPermissions(CheckCommand::GetTypeName(), resolved_command, apiUser);
 
 		if (!cmd)
 			return ApiActions::CreateResult(404, "Can't find a valid " + command_type + " for '" + resolved_command + "'.");
@@ -791,7 +822,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object, cons
 			cmd->Execute(checkable, cr, listener->GetWaitGroup(), execMacros, false);
 		}
 	} else if (command_type == "EventCommand") {
-		EventCommand::Ptr cmd = GetSingleObjectByNameUsingPermissions(EventCommand::GetTypeName(), resolved_command, ActionsHandler::AuthenticatedApiUser);
+		EventCommand::Ptr cmd = GetSingleObjectByNameUsingPermissions(EventCommand::GetTypeName(), resolved_command, apiUser);
 
 		if (!cmd)
 			return ApiActions::CreateResult(404, "Can't find a valid " + command_type + " for '" + resolved_command + "'.");
@@ -803,7 +834,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object, cons
 			cmd->Execute(checkable, execMacros, false);
 		}
 	} else if (command_type == "NotificationCommand") {
-		NotificationCommand::Ptr cmd = GetSingleObjectByNameUsingPermissions(NotificationCommand::GetTypeName(), resolved_command, ActionsHandler::AuthenticatedApiUser);
+		NotificationCommand::Ptr cmd = GetSingleObjectByNameUsingPermissions(NotificationCommand::GetTypeName(), resolved_command, apiUser);
 
 		if (!cmd)
 			return ApiActions::CreateResult(404, "Can't find a valid " + command_type + " for '" + resolved_command + "'.");
@@ -820,7 +851,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object, cons
 				MacroProcessor::EscapeCallback(), nullptr, false
 			);
 
-			User::Ptr user = GetSingleObjectByNameUsingPermissions(User::GetTypeName(), resolved_user, ActionsHandler::AuthenticatedApiUser);
+			User::Ptr user = GetSingleObjectByNameUsingPermissions(User::GetTypeName(), resolved_user, apiUser);
 
 			if (!user)
 				return ApiActions::CreateResult(404, "Can't find a valid user for '" + resolved_user + "'.");
@@ -839,7 +870,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object, cons
 				MacroProcessor::EscapeCallback(), nullptr, false
 			);
 
-			Notification::Ptr notification = GetSingleObjectByNameUsingPermissions(Notification::GetTypeName(), resolved_notification, ActionsHandler::AuthenticatedApiUser);
+			Notification::Ptr notification = GetSingleObjectByNameUsingPermissions(Notification::GetTypeName(), resolved_notification, apiUser);
 
 			if (!notification)
 				return ApiActions::CreateResult(404, "Can't find a valid notification for '" + resolved_notification + "'.");
@@ -852,7 +883,7 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object, cons
 			});
 
 			cmd->Execute(notification, user, cr, NotificationType::NotificationCustom,
-				ActionsHandler::AuthenticatedApiUser->GetName(), "", execMacros, false);
+				apiUser->GetName(), "", execMacros, false);
 		}
 	}
 
