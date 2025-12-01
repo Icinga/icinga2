@@ -38,7 +38,7 @@ JsonRpcConnection::JsonRpcConnection(const WaitGroup::Ptr& waitGroup, const Stri
 JsonRpcConnection::JsonRpcConnection(const WaitGroup::Ptr& waitGroup, const String& identity, bool authenticated,
 	const Shared<AsioTlsStream>::Ptr& stream, ConnectionRole role, boost::asio::io_context& io)
 	: m_Identity(identity), m_Authenticated(authenticated), m_Stream(stream), m_Role(role),
-	m_Timestamp(Utility::GetTime()), m_Seen(Utility::GetTime()), m_IoStrand(io),
+	m_Timestamp(Utility::GetTime()), m_Seen(std::chrono::steady_clock::now()), m_IoStrand(io),
 	m_OutgoingMessagesQueued(io), m_WriterDone(io), m_ShuttingDown(false), m_WaitGroup(waitGroup),
 	m_CheckLivenessTimer(io), m_HeartbeatTimer(io)
 {
@@ -81,7 +81,7 @@ void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 			break;
 		}
 
-		m_Seen = Utility::GetTime();
+		m_Seen = std::chrono::steady_clock::now();
 		if (m_Endpoint) {
 			m_Endpoint->AddMessageReceived(jsonString.GetLength());
 		}
@@ -234,6 +234,11 @@ void JsonRpcConnection::SendRawMessage(const String& message)
 		m_OutgoingMessagesQueue.emplace_back(message);
 		m_OutgoingMessagesQueued.Set();
 	});
+}
+
+void JsonRpcConnection::SetLivenessTimeout(std::chrono::milliseconds timeout)
+{
+	m_LivenessTimeout = timeout;
 }
 
 void JsonRpcConnection::SendMessageInternal(const Dictionary::Ptr& message)
@@ -411,31 +416,53 @@ void JsonRpcConnection::CheckLiveness(boost::asio::yield_context yc)
 		 * leaking the connection. Therefore close it after a timeout.
 		 */
 
-		m_CheckLivenessTimer.expires_from_now(boost::posix_time::seconds(10));
+		auto anonymousTimeout = m_LivenessTimeout / 6;
+		m_CheckLivenessTimer.expires_after(anonymousTimeout);
 		m_CheckLivenessTimer.async_wait(yc[ec]);
+		if (ec) {
+			Log(LogCritical, "JsonRpcConnection") << "Error waiting for Liveness timer: " << ec.message();
+		}
 
 		if (m_ShuttingDown) {
 			return;
 		}
 
-		auto remote (m_Stream->lowest_layer().remote_endpoint());
+		{
+			auto remote(m_Stream->lowest_layer().remote_endpoint());
 
-		Log(LogInformation, "JsonRpcConnection")
-			<< "Closing anonymous connection [" << remote.address() << "]:" << remote.port() << " after 10 seconds.";
+			auto msg = Log(LogInformation, "JsonRpcConnection");
+			msg << "Closing anonymous connection [" << remote.address() << "]:" << remote.port() << " after ";
+			if (anonymousTimeout > 1s) {
+				msg << anonymousTimeout.count() / 1000 << " seconds.";
+			} else {
+				msg << anonymousTimeout.count() << " milliseconds";
+			}
+		}
 
 		Disconnect();
 	} else {
 		for (;;) {
-			m_CheckLivenessTimer.expires_from_now(boost::posix_time::seconds(30));
+			m_CheckLivenessTimer.expires_after(m_LivenessTimeout / 2);
 			m_CheckLivenessTimer.async_wait(yc[ec]);
+			if (ec) {
+				Log(LogCritical, "JsonRpcConnection") << "Error waiting for Liveness timer: " << ec.message();
+			}
 
 			if (m_ShuttingDown) {
 				break;
 			}
 
-			if (m_Seen < Utility::GetTime() - 60 && (!m_Endpoint || !m_Endpoint->GetSyncing())) {
-				Log(LogInformation, "JsonRpcConnection")
-					<<  "No messages for identity '" << m_Identity << "' have been received in the last 60 seconds.";
+			if (m_Seen + m_LivenessTimeout < std::chrono::steady_clock::now() &&
+				(!m_Endpoint || !m_Endpoint->GetSyncing())) {
+				{
+					auto msg = Log(LogInformation, "JsonRpcConnection");
+					msg << "No messages for identity '" << m_Identity << "' have been received in the last ";
+					if (m_LivenessTimeout > 1s) {
+						msg << m_LivenessTimeout.count() / 1000 << " seconds.";
+					} else {
+						msg << m_LivenessTimeout.count() << " milliseconds";
+					}
+				}
 
 				Disconnect();
 				break;

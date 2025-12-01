@@ -10,6 +10,12 @@
 #include <boost/test/test_tools.hpp>
 #include <future>
 
+#define CHECK_LOG_MESSAGE(pattern, timeout) BOOST_CHECK(ExpectLogPattern(pattern, timeout))
+#define REQUIRE_LOG_MESSAGE(pattern, timeout) BOOST_REQUIRE(ExpectLogPattern(pattern, timeout))
+
+#define CHECK_NO_LOG_MESSAGE(pattern, timeout) BOOST_CHECK(!ExpectLogPattern(pattern, timeout))
+#define REQUIRE_NO_LOG_MESSAGE(pattern, timeout) BOOST_REQUIRE(!ExpectLogPattern(pattern, timeout))
+
 namespace icinga {
 
 class TestLogger : public Logger
@@ -95,8 +101,8 @@ struct TestLoggerFixture
 	TestLoggerFixture()
 	{
 		testLogger->SetSeverity(testLogger->SeverityToString(LogDebug));
-		testLogger->Activate(true);
 		testLogger->SetActive(true);
+		testLogger->Activate(true);
 	}
 
 	~TestLoggerFixture()
