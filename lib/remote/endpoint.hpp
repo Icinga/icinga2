@@ -5,7 +5,9 @@
 
 #include "remote/i2-remote.hpp"
 #include "remote/endpoint-ti.hpp"
+#include "remote/replay-log.hpp"
 #include "base/atomic.hpp"
+#include "base/lazy-init.hpp"
 #include "base/ringbuffer.hpp"
 #include <cstdint>
 #include <set>
@@ -43,6 +45,12 @@ public:
 	bool GetConnected() const override;
 
 	static Endpoint::Ptr GetLocalEndpoint();
+	static void ConfigStaticInitialize();
+
+	inline ReplayLog& GetReplayLog()
+	{
+		return m_ReplayLog.Get();
+	}
 
 	void SetCachedZone(const intrusive_ptr<Zone>& zone);
 
@@ -69,6 +77,7 @@ private:
 	std::set<intrusive_ptr<JsonRpcConnection> > m_Clients;
 	intrusive_ptr<Zone> m_Zone;
 	std::unordered_map<intrusive_ptr<ApiFunction>, Atomic<uint_fast64_t>> m_MessageCounters;
+	LazyInit<ReplayLog> m_ReplayLog;
 
 	mutable RingBuffer m_MessagesSent{60};
 	mutable RingBuffer m_MessagesReceived{60};
