@@ -4,6 +4,7 @@
 #define WORKQUEUE_H
 
 #include "base/i2-base.hpp"
+#include "base/atomic.hpp"
 #include "base/timer.hpp"
 #include "base/ringbuffer.hpp"
 #include "base/logger.hpp"
@@ -13,7 +14,6 @@
 #include <mutex>
 #include <queue>
 #include <deque>
-#include <atomic>
 
 namespace icinga
 {
@@ -122,7 +122,7 @@ protected:
 private:
 	int m_ID;
 	String m_Name;
-	static std::atomic<int> m_NextID;
+	static Atomic<int> m_NextID;
 	int m_ThreadCount;
 	bool m_Spawned{false};
 
