@@ -8,6 +8,7 @@
 #include "remote/apifunction.hpp"
 #include "remote/configpackageutility.hpp"
 #include "remote/configobjectutility.hpp"
+#include "remote/httputility.hpp"
 #include "base/atomic-file.hpp"
 #include "base/convert.hpp"
 #include "base/defer.hpp"
@@ -2006,6 +2007,31 @@ void ApiListener::ValidateTlsHandshakeTimeout(const Lazy<double>& lvalue, const 
 
 	if (lvalue() <= 0)
 		BOOST_THROW_EXCEPTION(ValidationError(this, { "tls_handshake_timeout" }, "Value must be greater than 0."));
+}
+
+void ApiListener::ValidateHttpResponseHeaders(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)
+{
+	ObjectImpl::ValidateHttpResponseHeaders(lvalue, utils);
+
+	if (Dictionary::Ptr headers = lvalue(); headers) {
+		ObjectLock lock(headers);
+		for (auto& [name, value] : headers) {
+			if (!HttpUtility::IsValidHeaderName(name.GetData())) {
+				BOOST_THROW_EXCEPTION(ValidationError(this, { "http_response_headers", name },
+					"Header name is invalid."));
+			}
+
+			if (!value.IsString()) {
+				BOOST_THROW_EXCEPTION(ValidationError(this, { "http_response_headers", name },
+					"Header value must be a string."));
+			}
+
+			if (!HttpUtility::IsValidHeaderValue(value.Get<String>().GetData())) {
+				BOOST_THROW_EXCEPTION(ValidationError(this, { "http_response_headers", name },
+					"Header value is invalid."));
+			}
+		}
+	}
 }
 
 bool ApiListener::IsHACluster()
