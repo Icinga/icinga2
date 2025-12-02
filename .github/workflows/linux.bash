@@ -89,6 +89,7 @@ case "$DISTRO" in
       -DICINGA2_WITH_MYSQL=OFF
       -DICINGA2_WITH_PGSQL=OFF
       -DCMAKE_{C,CXX}_FLAGS="${WARN_FLAGS}"
+      -DICINGA2_UNITY_BUILD=OFF
     )
     ;;
   debian:*|ubuntu:*)
@@ -109,7 +110,6 @@ cd /icinga2/build
 cmake \
   -GNinja \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-  -DICINGA2_UNITY_BUILD=ON \
   -DUSE_SYSTEMD=ON \
   -DICINGA2_USER=$(id -un) \
   -DICINGA2_GROUP=$(id -gn) \
