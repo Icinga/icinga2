@@ -36,6 +36,7 @@ jobs:
 
           - fedora:41
           - fedora:42
+          - fedora:43
 
           - opensuse/leap:15.6
 
