@@ -20,7 +20,6 @@ RUN apt-get update && \
         cmake \
         flex \
         g++ \
-        git \
         libboost1.83-dev \
         libboost-context1.83-dev \
         libboost-coroutine1.83-dev \
