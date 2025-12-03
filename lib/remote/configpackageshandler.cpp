@@ -6,6 +6,7 @@
 #include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
 #include "base/exception.hpp"
+#include "base/io-future.hpp"
 
 using namespace icinga;
 
@@ -20,23 +21,25 @@ bool ConfigPackagesHandler::HandleRequest(
 {
 	namespace http = boost::beast::http;
 
-	auto url = request.Url();
-	auto user = request.User();
-	auto params = request.Params();
+	return QueueAsioFutureCallback([&]() {
+		auto url = request.Url();
+		auto user = request.User();
+		auto params = request.Params();
 
-	if (url->GetPath().size() > 4)
-		return false;
+		if (url->GetPath().size() > 4)
+			return false;
 
-	if (request.method() == http::verb::get)
-		HandleGet(request, response);
-	else if (request.method() == http::verb::post)
-		HandlePost(request, response);
-	else if (request.method() == http::verb::delete_)
-		HandleDelete(request, response);
-	else
-		return false;
+		if (request.method() == http::verb::get)
+			HandleGet(request, response);
+		else if (request.method() == http::verb::post)
+			HandlePost(request, response);
+		else if (request.method() == http::verb::delete_)
+			HandleDelete(request, response);
+		else
+			return false;
 
-	return true;
+		return true;
+	})->Get(yc);
 }
 
 void ConfigPackagesHandler::HandleGet(const HttpRequest& request, HttpResponse& response)
