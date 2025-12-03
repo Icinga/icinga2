@@ -138,7 +138,7 @@ bool HttpUtility::IsValidHeaderValue(std::string_view value)
 
 	if (!value.empty()) {
 		// Must not start or end with space or tab.
-		for (char c : {*value.begin(), *value.rbegin()}) {
+		for (char c : {value.front(), value.back()}) {
 			if (c == ' ' || c == '\t') {
 				return false;
 			}
