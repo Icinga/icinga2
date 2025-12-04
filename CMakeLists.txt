@@ -1,6 +1,7 @@
 # Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+
 
-cmake_minimum_required(VERSION 2.8.8)
+# CMake 3.8 is required, CMake policy compatibility was verified up to 3.17.
+cmake_minimum_required(VERSION 3.8...3.17)
 set(BOOST_MIN_VERSION "1.66.0")
 
 project(icinga2)
@@ -12,6 +13,10 @@ if(NOT CMAKE_BUILD_TYPE)
     "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
     FORCE)
 endif()
+
+# Include symbols in executables so that function names can be printed in stack traces, for example in crash dumps.
+set(CMAKE_ENABLE_EXPORTS ON) # Added in CMake 3.4
+set(CMAKE_EXECUTABLE_ENABLE_EXPORTS ON) # Added in CMake 3.27 and supersedes the above one.
 
 option(ICINGA2_WITH_MYSQL "Build the MySQL IDO module" ON)
 option(ICINGA2_WITH_PGSQL "Build the PostgreSQL IDO module" ON)
@@ -225,7 +230,6 @@ if(WIN32)
   list(APPEND base_DEPS ws2_32 dbghelp shlwapi msi)
 endif()
 
-set(CMAKE_MACOSX_RPATH 1)
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH};${CMAKE_INSTALL_FULL_LIBDIR}/icinga2")
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
