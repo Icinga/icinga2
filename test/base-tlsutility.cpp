@@ -1,5 +1,6 @@
 /* Icinga 2 | (c) 2021 Icinga GmbH | GPLv2+ */
 
+#include "test/base-tlsutility.hpp"
 #include "base/tlsutility.hpp"
 #include "base/utility.hpp"
 #include "remote/pkiutility.hpp"
@@ -115,6 +116,60 @@ static std::string FormatAsn1Time(const ASN1_TIME* t)
 	return result;
 }
 
+// Asserts that verifying the given leaf certificate against the given CA certificate results in a certificate
+// expiration error. This macro is used so that when the assertion fails, the test output refers to the exact
+// line where the macro was invoked, rather than the line inside the lambda function, which can be everywhere.
+#define ASSERT_CERT_EXPIRED(ca, leaf) \
+	do { \
+		BOOST_CHECK_EXCEPTION( \
+			VerifyCertificate(ca, leaf, String()), \
+			openssl_error, \
+			[](const openssl_error& e) { \
+				const unsigned long* opensslCode = boost::get_error_info<errinfo_openssl_error>(e); \
+				BOOST_REQUIRE(opensslCode); \
+				BOOST_REQUIRE_EQUAL(*opensslCode, X509_V_ERR_CERT_HAS_EXPIRED); \
+				return *opensslCode == X509_V_ERR_CERT_HAS_EXPIRED; \
+			} \
+		); \
+	} while (0)
+
+// Asserts that verifying the given leaf certificate against the given CA certificate results in a certificate
+// signature failure error. This macro serves the same purpose as ASSERT_CERT_EXPIRED.
+#define ASSERT_SIGNATURE_FAILURE(ca, leaf) \
+	do { \
+		BOOST_CHECK_EXCEPTION( \
+			VerifyCertificate(ca, leaf, String()), \
+			openssl_error, \
+			[](const openssl_error& e) { \
+				const unsigned long* opensslCode = boost::get_error_info<errinfo_openssl_error>(e); \
+				BOOST_REQUIRE(opensslCode); \
+				BOOST_REQUIRE_EQUAL(*opensslCode, X509_V_ERR_CERT_SIGNATURE_FAILURE); \
+				return *opensslCode == X509_V_ERR_CERT_SIGNATURE_FAILURE; \
+			} \
+		); \
+	} while (0)
+
+BOOST_AUTO_TEST_CASE(verify_static_certs)
+{
+	BOOST_CHECK(VerifyCertificate(StringToCertificate(l_IcingaCa), StringToCertificate(l_ExampleCrt), String()));
+	ASSERT_CERT_EXPIRED(StringToCertificate(l_IcingaCa), StringToCertificate(l_ExpiredCrt));
+	ASSERT_CERT_EXPIRED(StringToCertificate(l_ExpiredCa), StringToCertificate(l_ExpiredCaLeaf));
+
+	// Signature failure test case with mismatched CA and leaf certificate.
+	ASSERT_SIGNATURE_FAILURE(StringToCertificate(l_IcingaCa2), StringToCertificate(l_ExampleCrt));
+}
+
+BOOST_AUTO_TEST_CASE(static_certs_uptodate)
+{
+	BOOST_CHECK(IsCaUptodate(StringToCertificate(l_IcingaCa).get()));
+	BOOST_CHECK(IsCaUptodate(StringToCertificate(l_IcingaCa2).get()));
+	BOOST_CHECK(!IsCaUptodate(StringToCertificate(l_ExpiredCa).get()));
+
+	BOOST_CHECK(IsCertUptodate(StringToCertificate(l_ExampleCrt)));
+	BOOST_CHECK(IsCertUptodate(StringToCertificate(l_ExpiredCaLeaf))); // Its CA is expired, but not itself.
+	BOOST_CHECK(!IsCertUptodate(StringToCertificate(l_ExpiredCrt)));
+}
+
 BOOST_FIXTURE_TEST_CASE(create_verify_ca, CertificateFixture)
 {
 	auto cacert(GetX509Certificate(m_CaDir.string()+"/ca.crt"));
@@ -176,13 +231,7 @@ BOOST_FIXTURE_TEST_CASE(create_verify_leaf_certs, CertificateFixture)
 		"Leaf certificate should have expired on " << std::quoted(FormatAsn1Time(validUntil.get()))
 		<< ", notAfter: " << std::quoted(FormatAsn1Time(X509_get_notAfter(cert.get()))));
 	BOOST_CHECK(!IsCertUptodate(cert)); // It's already expired, so definitely not up-to-date.
-	auto assertForCertHasExpired = [](const openssl_error& e) {
-		const unsigned long* opensslCode = boost::get_error_info<errinfo_openssl_error>(e);
-		BOOST_REQUIRE(opensslCode);
-		BOOST_REQUIRE_EQUAL(*opensslCode, X509_V_ERR_CERT_HAS_EXPIRED);
-		return *opensslCode == X509_V_ERR_CERT_HAS_EXPIRED;
-	};
-	BOOST_CHECK_EXCEPTION(VerifyCertificate(cacert, cert, String()), openssl_error, assertForCertHasExpired);
+	ASSERT_CERT_EXPIRED(cacert, cert);
 
 	// Set the certificate validity start date to 2016, all certificates created before 2017 are considered outdated.
 	cert = NewCertFromExisting(cert, -(time(nullptr)-l_2016), LEAF_VALID_FOR);
@@ -198,7 +247,7 @@ BOOST_FIXTURE_TEST_CASE(create_verify_leaf_certs, CertificateFixture)
 	cacert = NewCertFromExisting(cacert, -LEAF_VALID_FOR, -10*24*60*60, true); // Expire the CA 10 days ago.
 	BOOST_CHECK_EQUAL(1, X509_verify(cacert.get(), caprivatekey.get())); // 1 == equal, 0 == unequal, -1 == error
 	BOOST_CHECK(!IsCaUptodate(cacert.get()));
-	BOOST_CHECK_EXCEPTION(VerifyCertificate(cacert, cert, String()), openssl_error, assertForCertHasExpired);
+	ASSERT_CERT_EXPIRED(cacert, cert);
 
 	// Generate a new CA certificate to simulate a renewal and check whether verification still works.
 	auto newCACert = NewCertFromExisting(cacert, 0, ROOT_VALID_FOR, true);
@@ -245,21 +294,15 @@ BOOST_FIXTURE_TEST_CASE(create_verify_leaf_certs, CertificateFixture)
 
 	BOOST_CHECK(IsCaUptodate(newCACert.get()));
 	BOOST_CHECK(VerifyCertificate(newCACert, newCACert, String())); // Self-signed CA!
-	auto assertSignatureFailure = [](const openssl_error& e) {
-		const unsigned long* opensslCode = boost::get_error_info<errinfo_openssl_error>(e);
-		BOOST_REQUIRE(opensslCode);
-		BOOST_REQUIRE_EQUAL(*opensslCode, X509_V_ERR_CERT_SIGNATURE_FAILURE);
-		return *opensslCode == X509_V_ERR_CERT_SIGNATURE_FAILURE;
-	};
 	// Verification should fail because the leaf certificate was signed by the old CA.
-	BOOST_CHECK_EXCEPTION(VerifyCertificate(newCACert, cert, String()), openssl_error, assertSignatureFailure);
+	ASSERT_SIGNATURE_FAILURE(newCACert, StringToCertificate(CertificateToString(cert)));
 
 	// Renew the leaf certificate and check whether verification works with the new CA.
 	auto newCert = NewCertFromExisting(cert, 0, LEAF_VALID_FOR, false);
 	BOOST_CHECK(IsCertUptodate(newCert));
 	BOOST_CHECK(VerifyCertificate(newCACert, newCert, String()));
 	// Verification should fail because the new leaf certificate was signed by the newly generated CA.
-	BOOST_CHECK_EXCEPTION(VerifyCertificate(cacert, newCert, String()), openssl_error, assertSignatureFailure);
+	ASSERT_SIGNATURE_FAILURE(cacert, StringToCertificate(CertificateToString(newCert)));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
