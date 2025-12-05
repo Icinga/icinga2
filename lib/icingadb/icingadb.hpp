@@ -16,6 +16,7 @@
 #include "icinga/downtime.hpp"
 #include "remote/messageorigin.hpp"
 #include <boost/multi_index_container.hpp>
+#include <boost/multi_index/mem_fun.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/sequenced_index.hpp>
 #include <atomic>
@@ -131,7 +132,6 @@ enum DirtyBits : uint32_t
  *
  * @ingroup icingadb
  */
-using PendingItemKey = std::variant<std::string /* Redis hash keys */, std::pair<ConfigObject::Ptr, DependencyGroup::Ptr>>;
 
 /**
  * A pending queue item.
@@ -146,11 +146,15 @@ using PendingItemKey = std::variant<std::string /* Redis hash keys */, std::pair
  */
 struct PendingQueueItem
 {
-	uint32_t DirtyBits;
-	PendingItemKey ID;
-	const std::chrono::steady_clock::time_point EnqueueTime;
+	using Key = std::variant<std::string /* Redis hash keys */, std::pair<ConfigObject::Ptr, DependencyGroup::Ptr>>;
 
-	PendingQueueItem(PendingItemKey&& id, uint32_t dirtyBits);
+	virtual ~PendingQueueItem() = default;
+
+	const std::chrono::steady_clock::time_point EnqueueTime{std::chrono::steady_clock::now()};
+
+	virtual Key GetID() const = 0;
+	virtual ConfigObject::Ptr GetObjectToLock() const { return nullptr; };
+	virtual void Execute(IcingaDB& icingadb) const = 0;
 };
 
 /**
@@ -166,8 +170,13 @@ struct PendingQueueItem
 struct PendingConfigItem : PendingQueueItem
 {
 	ConfigObject::Ptr Object;
+	uint32_t DirtyBits;
 
 	PendingConfigItem(const ConfigObject::Ptr& obj, uint32_t bits);
+
+	Key GetID() const override { return std::make_pair(Object, nullptr); }
+	ConfigObject::Ptr GetObjectToLock() const override;
+	void Execute(IcingaDB& icingadb) const override;
 };
 
 /**
@@ -185,6 +194,9 @@ struct PendingDependencyGroupStateItem : PendingQueueItem
 	DependencyGroup::Ptr DepGroup;
 
 	explicit PendingDependencyGroupStateItem(const DependencyGroup::Ptr& depGroup);
+
+	Key GetID() const override { return std::make_pair(nullptr, DepGroup.get()); }
+	void Execute(IcingaDB& icingadb) const override;
 };
 
 /**
@@ -203,10 +215,10 @@ struct PendingDependencyEdgeItem : PendingQueueItem
 	Checkable::Ptr Child;
 
 	PendingDependencyEdgeItem(const DependencyGroup::Ptr& depGroup, const Checkable::Ptr& child);
-};
 
-// Map of Redis keys to a boolean indicating whether to delete the checksum key as well.
-using RelationsKeyMap = std::map<RedisKey, bool /* checksum? */>;
+	Key GetID() const override { return std::make_pair(Child.get(), DepGroup.get()); }
+	void Execute(IcingaDB& icingadb) const override;
+};
 
 /**
  * A pending relations deletion item.
@@ -220,9 +232,14 @@ using RelationsKeyMap = std::map<RedisKey, bool /* checksum? */>;
  */
 struct RelationsDeletionItem : PendingQueueItem
 {
+	std::string ID;
+	using RelationsKeyMap = std::map<RedisKey, bool /* checksum? */>;
 	RelationsKeyMap Relations;
 
 	RelationsDeletionItem(const String& id, RelationsKeyMap relations);
+
+	Key GetID() const override { return ID; }
+	void Execute(IcingaDB& icingadb) const override;
 };
 
 /**
@@ -464,33 +481,16 @@ private:
 
 	static std::unordered_set<Type*> m_IndexedTypes;
 
-	// A variant type that can hold any of the pending item types used in the pending items container.
-	using PendingItemVariant = std::variant<
-		PendingConfigItem,
-		PendingDependencyGroupStateItem,
-		PendingDependencyEdgeItem,
-		RelationsDeletionItem
-	>;
-
-	struct PendingItemKeyExtractor
-	{
-		// The type of the key extracted from a pending item required by Boost.MultiIndex.
-		using result_type = const PendingItemKey&;
-
-		result_type operator()(const PendingItemVariant& item) const
-		{
-			return std::visit([](const auto& pendingItem) -> result_type { return pendingItem.ID; }, item);
-		}
-	};
-
 	// A multi-index container for managing pending items with unique IDs and maintaining insertion order.
 	// The first index is an ordered unique index based on the pending item key, allowing for efficient
 	// lookups and ensuring uniqueness of items. The second index is a sequenced index that maintains the
 	// order of insertion, enabling FIFO processing of pending items.
 	using PendingItemsSet = boost::multi_index_container<
-		PendingItemVariant,
+		std::shared_ptr<PendingQueueItem>,
 		boost::multi_index::indexed_by<
-			boost::multi_index::ordered_unique<PendingItemKeyExtractor>, // std::variant has operator< defined.
+			boost::multi_index::ordered_unique<
+				boost::multi_index::const_mem_fun<PendingQueueItem, PendingQueueItem::Key, &PendingQueueItem::GetID>
+			>,
 			boost::multi_index::sequenced<>
 		>
 	>;
@@ -502,16 +502,17 @@ private:
 
 	void PendingItemsThreadProc();
 	std::chrono::duration<double> DequeueAndProcessOne(std::unique_lock<std::mutex>& lock);
-	void ProcessPendingItem(const PendingConfigItem& item);
-	void ProcessPendingItem(const PendingDependencyGroupStateItem& item) const;
-	void ProcessPendingItem(const PendingDependencyEdgeItem& item);
-	void ProcessPendingItem(const RelationsDeletionItem& item);
 
 	void EnqueueConfigObject(const ConfigObject::Ptr& object, uint32_t bits);
 	void EnqueueDependencyGroupStateUpdate(const DependencyGroup::Ptr& depGroup);
 	void EnqueueDependencyChildRegistered(const DependencyGroup::Ptr& depGroup, const Checkable::Ptr& child);
 	void EnqueueDependencyChildRemoved(const DependencyGroup::Ptr& depGroup, const std::vector<Dependency::Ptr>& dependencies, bool removeGroup);
-	void EnqueueRelationsDeletion(const String& id, const RelationsKeyMap& relations);
+	void EnqueueRelationsDeletion(const String& id, const RelationsDeletionItem::RelationsKeyMap& relations);
+
+	friend struct PendingConfigItem;
+	friend struct PendingDependencyGroupStateItem;
+	friend struct PendingDependencyEdgeItem;
+	friend struct RelationsDeletionItem;
 };
 }
 

@@ -6,27 +6,23 @@
 
 using namespace icinga;
 
-PendingQueueItem::PendingQueueItem(PendingItemKey&& id, uint32_t dirtyBits)
-	: DirtyBits{dirtyBits & DirtyBitsAll}, ID{std::move(id)}, EnqueueTime{std::chrono::steady_clock::now()}
+PendingConfigItem::PendingConfigItem(const ConfigObject::Ptr& obj, uint32_t bits)
+	: Object(obj), DirtyBits(bits & DirtyBitsAll)
 {
 }
 
-PendingConfigItem::PendingConfigItem(const ConfigObject::Ptr& obj, uint32_t bits)
-	: PendingQueueItem{std::make_pair(obj, nullptr), bits}, Object{obj}
-{
-}
 PendingDependencyGroupStateItem::PendingDependencyGroupStateItem(const DependencyGroup::Ptr& depGroup)
-	: PendingQueueItem{std::make_pair(nullptr, depGroup), 0}, DepGroup{depGroup}
+	: DepGroup(depGroup)
 {
 }
 
 PendingDependencyEdgeItem::PendingDependencyEdgeItem(const DependencyGroup::Ptr& depGroup, const Checkable::Ptr& child)
-	: PendingQueueItem{std::make_pair(child, depGroup), 0}, DepGroup{depGroup}, Child{child}
+	: DepGroup(depGroup), Child(child)
 {
 }
 
 RelationsDeletionItem::RelationsDeletionItem(const String& id, RelationsKeyMap relations)
-	: PendingQueueItem{id, 0}, Relations{std::move(relations)}
+	: ID(id), Relations(relations)
 {
 }
 
@@ -118,7 +114,7 @@ std::chrono::duration<double> IcingaDB::DequeueAndProcessOne(std::unique_lock<st
 	auto& seqView = m_PendingItems.get<1>();
 	for (auto it(seqView.begin()); it != seqView.end(); ++it) {
 		if (it != seqView.begin()) {
-			if (std::holds_alternative<RelationsDeletionItem>(*it)) {
+			if (dynamic_cast<const RelationsDeletionItem*>(it->get())) {
 				// We don't know whether the previous items are related to this deletion item or not,
 				// thus we can't just process this right now when there are older items in the queue.
 				// Otherwise, we might delete something that is going to be updated/created.
@@ -126,7 +122,7 @@ std::chrono::duration<double> IcingaDB::DequeueAndProcessOne(std::unique_lock<st
 			}
 		}
 
-		auto age = now - std::visit([](const auto& item) { return item.EnqueueTime; }, *it);
+		auto age = now - (*it)->EnqueueTime;
 		if (GetActive() && 1000ms > age) {
 			if (it == seqView.begin()) {
 				retryAfter = 1000ms - age;
@@ -134,26 +130,23 @@ std::chrono::duration<double> IcingaDB::DequeueAndProcessOne(std::unique_lock<st
 			break;
 		}
 
-		ConfigObject::Ptr cobj;
-		if (auto* citem = std::get_if<PendingConfigItem>(&*it); citem) {
-			cobj = citem->Object;
-		}
-
+		ConfigObject::Ptr cobj = (*it)->GetObjectToLock();
 		ObjectLock olock(cobj, std::defer_lock);
 		if (cobj && !olock.TryLock()) {
 			continue; // Can't lock the object right now, try the next one.
 		}
 
-		PendingItemVariant itemToProcess = *it;
+
+		std::shared_ptr<PendingQueueItem> itemToProcess = *it;
 		seqView.erase(it);
 		madeProgress = true;
 
 		lock.unlock();
 		try {
-			std::visit([this](const auto& item) { ProcessPendingItem(item); }, std::move(itemToProcess));
+			itemToProcess->Execute(*this);
 		} catch (const std::exception& ex) {
 			Log(LogCritical, "IcingaDB")
-				<< "Exception while processing pending item of type index '" << itemToProcess.index() << "': "
+				<< "Exception while processing pending item of type '" << typeid(*itemToProcess.get()).name() << "': "
 				<< DiagnosticInformation(ex, GetActive());
 		}
 		lock.lock();
@@ -167,6 +160,12 @@ std::chrono::duration<double> IcingaDB::DequeueAndProcessOne(std::unique_lock<st
 	return retryAfter;
 }
 
+ConfigObject::Ptr PendingConfigItem::GetObjectToLock() const
+{
+	return Object;
+}
+
+
 /**
  * Process a single pending object.
  *
@@ -177,14 +176,13 @@ std::chrono::duration<double> IcingaDB::DequeueAndProcessOne(std::unique_lock<st
  *
  * @param item The pending item containing the object and its dirty bits.
  */
-void IcingaDB::ProcessPendingItem(const PendingConfigItem& item)
-{
-	if (item.DirtyBits & ConfigDelete) {
-		String typeName = GetLowerCaseTypeNameDB(item.Object);
-		m_RconWorker->FireAndForgetQueries(
+void PendingConfigItem::Execute(IcingaDB& icingadb) const {
+	if (DirtyBits & ConfigDelete) {
+		String typeName = icingadb.GetLowerCaseTypeNameDB(Object);
+		icingadb.m_RconWorker->FireAndForgetQueries(
 			{
-				{"HDEL", m_PrefixConfigObject + typeName, GetObjectIdentifier(item.Object)},
-				{"HDEL", m_PrefixConfigCheckSum + typeName, GetObjectIdentifier(item.Object)},
+				{"HDEL", icingadb.m_PrefixConfigObject + typeName, icingadb.GetObjectIdentifier(Object)},
+				{"HDEL", icingadb.m_PrefixConfigCheckSum + typeName, icingadb.GetObjectIdentifier(Object)},
 				{
 					"XADD",
 					"icinga:runtime",
@@ -193,9 +191,9 @@ void IcingaDB::ProcessPendingItem(const PendingConfigItem& item)
 					"1000000",
 					"*",
 					"redis_key",
-					m_PrefixConfigObject + typeName,
+					icingadb.m_PrefixConfigObject + typeName,
 					"id",
-					GetObjectIdentifier(item.Object),
+					icingadb.GetObjectIdentifier(Object),
 					"runtime_type",
 					"delete"
 				}
@@ -203,19 +201,19 @@ void IcingaDB::ProcessPendingItem(const PendingConfigItem& item)
 		);
 	}
 
-	if (item.DirtyBits & ConfigUpdate) {
+	if (DirtyBits & ConfigUpdate) {
 		std::map<String, std::vector<String>> hMSets;
 		std::vector<Dictionary::Ptr> runtimeUpdates;
-		CreateConfigUpdate(item.Object, GetLowerCaseTypeNameDB(item.Object), hMSets, runtimeUpdates, true);
-		ExecuteRedisTransaction(m_RconWorker, hMSets, runtimeUpdates);
+		icingadb.CreateConfigUpdate(Object, icingadb.GetLowerCaseTypeNameDB(Object), hMSets, runtimeUpdates, true);
+		icingadb.ExecuteRedisTransaction(icingadb.m_RconWorker, hMSets, runtimeUpdates);
 	}
 
-	if (auto checkable = dynamic_pointer_cast<Checkable>(item.Object); checkable) {
-		if (item.DirtyBits & FullState) {
-			UpdateState(checkable, item.DirtyBits);
+	if (auto checkable = dynamic_pointer_cast<Checkable>(Object); checkable) {
+		if (DirtyBits & FullState) {
+			icingadb.UpdateState(checkable, DirtyBits);
 		}
-		if (item.DirtyBits & NextUpdate) {
-			SendNextUpdate(checkable);
+		if (DirtyBits & NextUpdate) {
+			icingadb.SendNextUpdate(checkable);
 		}
 	}
 }
@@ -229,13 +227,13 @@ void IcingaDB::ProcessPendingItem(const PendingConfigItem& item)
  *
  * @param item The pending dependency group state item containing the dependency group.
  */
-void IcingaDB::ProcessPendingItem(const PendingDependencyGroupStateItem& item) const
+void PendingDependencyGroupStateItem::Execute(IcingaDB& icingadb) const
 {
 	// For dependency group state updates, we don't actually care which child triggered the update,
 	// since all children share the same dependency group state. Thus, we can just pick any child to
 	// start the update from.
-	if (auto child = item.DepGroup->GetAnyChild(); child) {
-		UpdateDependenciesState(child, item.DepGroup);
+	if (auto child = DepGroup->GetAnyChild(); child) {
+		icingadb.UpdateDependenciesState(child, DepGroup);
 	}
 }
 
@@ -248,12 +246,12 @@ void IcingaDB::ProcessPendingItem(const PendingDependencyGroupStateItem& item) c
  *
  * @param item The pending dependency edge item containing the dependency group and child checkable.
  */
-void IcingaDB::ProcessPendingItem(const PendingDependencyEdgeItem& item)
+void PendingDependencyEdgeItem::Execute(IcingaDB& icingadb) const
 {
 	std::vector<Dictionary::Ptr> runtimeUpdates;
 	std::map<String, RedisConnection::Query> hMSets;
-	InsertCheckableDependencies(item.Child, hMSets, &runtimeUpdates, item.DepGroup);
-	ExecuteRedisTransaction(m_RconWorker, hMSets, runtimeUpdates);
+	icingadb.InsertCheckableDependencies(Child, hMSets, &runtimeUpdates, DepGroup);
+	icingadb.ExecuteRedisTransaction(icingadb.m_RconWorker, hMSets, runtimeUpdates);
 }
 
 /**
@@ -265,16 +263,13 @@ void IcingaDB::ProcessPendingItem(const PendingDependencyEdgeItem& item)
  *
  * @param item The pending deletion item containing the ID and deletion keys map.
  */
-void IcingaDB::ProcessPendingItem(const RelationsDeletionItem& item)
+void RelationsDeletionItem::Execute(IcingaDB& icingadb) const
 {
-	ASSERT(std::holds_alternative<std::string>(item.ID)); // Relation deletion items must have real IDs.
-
-	auto id = std::get<std::string>(item.ID);
-	for (auto [redisKey, hasChecksum] : item.Relations) {
-		if (IsStateKey(redisKey)) {
-			DeleteState(id, redisKey, hasChecksum);
+	for (auto [redisKey, hasChecksum] : Relations) {
+		if (icingadb.IsStateKey(redisKey)) {
+			icingadb.DeleteState(ID, redisKey, hasChecksum);
 		} else {
-			DeleteRelationship(id, redisKey, hasChecksum);
+			icingadb.DeleteRelationship(ID, redisKey, hasChecksum);
 		}
 	}
 }
@@ -293,24 +288,20 @@ void IcingaDB::EnqueueConfigObject(const ConfigObject::Ptr& object, uint32_t bit
 
 	{
 		std::lock_guard lock(m_PendingItemsMutex);
-		if (auto [it, inserted] = m_PendingItems.insert(PendingConfigItem{object, bits}); !inserted) {
-			m_PendingItems.modify(it, [bits](PendingItemVariant& itemToProcess) mutable {
-				std::visit(
-					[&bits](auto& item) {
-						if (bits & ConfigDelete) {
-							// A config delete and config update cancel each other out, and we don't need
-							// to keep any state updates either, as the object is being deleted.
-							item.DirtyBits &= ~(ConfigUpdate | FullState);
-							bits &= ~(ConfigUpdate | FullState); // Must not add these bits either.
-						} else if (bits & ConfigUpdate) {
-							// A new config update cancels any pending config deletion for the same object.
-							item.DirtyBits &= ~ConfigDelete;
-							bits &= ~ConfigDelete;
-						}
-						item.DirtyBits |= bits & DirtyBitsAll;
-					},
-					itemToProcess
-				);
+		if (auto [it, inserted] = m_PendingItems.insert(std::make_shared<PendingConfigItem>(object, bits)); !inserted) {
+			m_PendingItems.modify(it, [bits](const std::shared_ptr<PendingQueueItem>& item) mutable {
+				auto configItem = dynamic_cast<PendingConfigItem*>(item.get());
+				if (bits & ConfigDelete) {
+					// A config delete and config update cancel each other out, and we don't need
+					// to keep any state updates either, as the object is being deleted.
+					configItem->DirtyBits &= ~(ConfigUpdate | FullState);
+					bits &= ~(ConfigUpdate | FullState); // Must not add these bits either.
+				} else if (bits & ConfigUpdate) {
+					// A new config update cancels any pending config deletion for the same object.
+					configItem->DirtyBits &= ~ConfigDelete;
+					bits &= ~ConfigDelete;
+				}
+				configItem->DirtyBits |= bits & DirtyBitsAll;
 			});
 		}
 	}
@@ -322,7 +313,7 @@ void IcingaDB::EnqueueDependencyGroupStateUpdate(const DependencyGroup::Ptr& dep
 	if (GetActive() && m_RconWorker && m_RconWorker->IsConnected()) {
 		{
 			std::lock_guard lock(m_PendingItemsMutex);
-			m_PendingItems.insert(PendingDependencyGroupStateItem{depGroup});
+			m_PendingItems.insert(std::make_shared<PendingDependencyGroupStateItem>(depGroup));
 		}
 		m_PendingItemsCV.notify_one();
 	}
@@ -342,7 +333,7 @@ void IcingaDB::EnqueueDependencyChildRegistered(const DependencyGroup::Ptr& depG
 	if (GetActive() && m_RconWorker && m_RconWorker->IsConnected()) {
 		{
 			std::lock_guard lock(m_PendingItemsMutex);
-			m_PendingItems.insert(PendingDependencyEdgeItem{depGroup, child});
+			m_PendingItems.insert(std::make_shared<PendingDependencyEdgeItem>(depGroup, child));
 		}
 		m_PendingItemsCV.notify_one();
 	}
@@ -484,7 +475,7 @@ void IcingaDB::EnqueueDependencyChildRemoved(
  * @param id The ID of the relation to be deleted.
  * @param relations A map of Redis keys from which to delete the relation.
  */
-void IcingaDB::EnqueueRelationsDeletion(const String& id, const RelationsKeyMap& relations)
+void IcingaDB::EnqueueRelationsDeletion(const String& id, const RelationsDeletionItem::RelationsKeyMap& relations)
 {
 	if (!GetActive() || !m_RconWorker || !m_RconWorker->IsConnected()) {
 		return; // No need to enqueue anything if we're not connected.
@@ -492,10 +483,10 @@ void IcingaDB::EnqueueRelationsDeletion(const String& id, const RelationsKeyMap&
 
 	{
 		std::lock_guard lock(m_PendingItemsMutex);
-		if (auto [it, inserted] = m_PendingItems.insert(RelationsDeletionItem{id, relations}); !inserted) {
-			m_PendingItems.modify(it, [&relations](PendingItemVariant& val) {
-				auto& item = std::get<RelationsDeletionItem>(val);
-				item.Relations.insert(relations.begin(), relations.end());
+		if (auto [it, inserted] = m_PendingItems.insert(std::make_shared<RelationsDeletionItem>(id, relations)); !inserted) {
+			m_PendingItems.modify(it, [&relations](std::shared_ptr<PendingQueueItem>& val) {
+				auto item = dynamic_cast<RelationsDeletionItem*>(val.get());
+				item->Relations.insert(relations.begin(), relations.end());
 			});
 		}
 	}
