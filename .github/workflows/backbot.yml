@@ -24,7 +24,7 @@ jobs:
         # GitHub doesn't allow to alter any file within the .github/workflows directory using the default GITHUB_TOKEN.
         # This action will create a token with the permissions defined below and is valid only for 1 hour, but if the
         # job completes before that 1 hour limit, the token will automatically be revoked.
-        uses: actions/create-github-app-token@v2.2.0
+        uses: actions/create-github-app-token@v2.2.1
         id: backbot-token
         with:
           app-id: ${{ secrets.BACKBOT_APP_ID }}
