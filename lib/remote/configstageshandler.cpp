@@ -8,6 +8,7 @@
 #include "base/application.hpp"
 #include "base/defer.hpp"
 #include "base/exception.hpp"
+#include "base/io-future.hpp"
 
 using namespace icinga;
 
@@ -27,23 +28,27 @@ bool ConfigStagesHandler::HandleRequest(
 {
 	namespace http = boost::beast::http;
 
-	auto url = request.Url();
-	auto user = request.User();
-	auto params = request.Params();
+	auto future = QueueAsioFutureCallback([&]() {
+		auto url = request.Url();
+		auto user = request.User();
+		auto params = request.Params();
 
-	if (url->GetPath().size() > 5)
-		return false;
+		if (url->GetPath().size() > 5)
+			return false;
 
-	if (request.method() == http::verb::get)
-		HandleGet(request, response);
-	else if (request.method() == http::verb::post)
-		HandlePost(request, response);
-	else if (request.method() == http::verb::delete_)
-		HandleDelete(request, response);
-	else
-		return false;
+		if (request.method() == http::verb::get)
+			HandleGet(request, response);
+		else if (request.method() == http::verb::post)
+			HandlePost(request, response);
+		else if (request.method() == http::verb::delete_)
+			HandleDelete(request, response);
+		else
+			return false;
 
-	return true;
+		return true;
+	});
+
+	return future->Get(yc);
 }
 
 void ConfigStagesHandler::HandleGet(const HttpRequest& request, HttpResponse& response)
