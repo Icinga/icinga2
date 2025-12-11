@@ -51,13 +51,16 @@ abstract class InfluxdbCommonWriter : ConfigObject
 			});
 		}}}
 	};
+	[config] double disconnect_timeout {
+		default {{{ return 0.5; }}}
+	};
 	[config] bool enable_send_thresholds {
 		default {{{ return false; }}}
 	};
 	[config] bool enable_send_metadata {
 		default {{{ return false; }}}
 	};
-	[config] int flush_interval {
+	[config] double flush_interval {
 		default {{{ return 10; }}}
 	};
 	[config] int flush_threshold {
