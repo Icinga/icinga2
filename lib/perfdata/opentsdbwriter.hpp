@@ -36,6 +36,8 @@ protected:
 	void Pause() override;
 
 private:
+	WorkQueue m_WorkQueue{10000000, 1};
+	std::string m_MsgBuf;
 	Shared<AsioTcpStream>::Ptr m_Stream;
 
 	boost::signals2::connection m_HandleCheckResults;
@@ -45,9 +47,10 @@ private:
 	Dictionary::Ptr m_HostConfigTemplate;
 
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
-	void SendMetric(const Checkable::Ptr& checkable, const String& metric,
+	void AddMetric(const Checkable::Ptr& checkable, const String& metric,
 		const std::map<String, String>& tags, double value, double ts);
-	void SendPerfdata(const Checkable::Ptr& checkable, const String& metric,
+	void SendMsgBuffer();
+	void AddPerfdata(const Checkable::Ptr& checkable, const String& metric,
 		const std::map<String, String>& tags, const CheckResult::Ptr& cr, double ts);
 	static String EscapeTag(const String& str);
 	static String EscapeMetric(const String& str);
