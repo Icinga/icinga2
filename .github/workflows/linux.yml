@@ -73,7 +73,7 @@ jobs:
         run: echo "::add-matcher::.github/problem-matchers/gcc.json"
 
       - name: Restore/backup ccache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ccache
           key: ccache/${{ matrix.distro }}
