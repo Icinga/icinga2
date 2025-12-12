@@ -144,6 +144,42 @@ struct SerializableBody
 };
 
 /**
+ * A custom body reader that discards all incoming data.
+ *
+ * This reader can be used with a @c boost::beast::http::response_parser to effectively
+ * eat up any incoming body data without storing it anywhere. This is useful only if you
+ * don't care about the body of a response at all, but still want to read it completely
+ * so that the connection can be reused for further requests.
+ *
+ * This is inspired by Go's io.Discard (https://pkg.go.dev/io#Writer) implementation.
+ *
+ * @ingroup remote
+ */
+struct IoReadDiscard
+{
+	// Dummy type and exists solely to satisfy the BodyReader requirements.
+	using value_type = char;
+
+	struct reader
+	{
+		template<bool isRequest, class Fields>
+		explicit reader(const boost::beast::http::header<isRequest, Fields>&, value_type&)
+		{
+		}
+
+		void init(const boost::optional<std::uint64_t>&, boost::beast::error_code& ec) { ec = {}; }
+
+		template<typename ConstBufferSequence>
+		std::size_t put(const ConstBufferSequence& buffers, boost::beast::error_code& ec)
+		{
+			ec = {};
+			return boost::beast::buffer_bytes(buffers);
+		}
+		void finish(boost::beast::error_code& ec) { ec = {}; }
+	};
+};
+
+/**
  * A wrapper class for a boost::beast HTTP request
  *
  * @ingroup remote
