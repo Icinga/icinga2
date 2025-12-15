@@ -1,6 +1,7 @@
 /* Icinga 2 | (c) 2025 Icinga GmbH | GPLv2+ */
 
 #include "remote/httpmessage.hpp"
+#include "base/application.hpp"
 #include "base/io-engine.hpp"
 #include "base/json.hpp"
 #include "remote/httputility.hpp"
@@ -109,6 +110,59 @@ void HttpRequest::DecodeParams()
 		DecodeUrl();
 	}
 	m_Params = HttpUtility::FetchRequestParameters(m_Url, body());
+}
+
+HttpRequestWriter::HttpRequestWriter(StreamType stream)
+	: m_Stream{std::move(stream)}, m_Serializer{*this}
+{
+}
+
+/**
+ * Enables chunked encoding.
+ *
+ * Has only effect if called before the first call to @c Flush() as changes
+ * to the header afterwards will not have any effect.
+ */
+void HttpRequestWriter::EnableStreaming()
+{
+	ASSERT(body().Size() == 0 && !m_Serializer.is_header_done());
+	body().Start();
+	chunked(true);
+}
+
+void HttpRequestWriter::Flush(bool finish, boost::asio::yield_context& yc)
+{
+	if (!chunked() && !has_content_length()) {
+		ASSERT(!m_Serializer.is_header_done());
+		prepare_payload();
+	}
+
+	std::visit(
+		[&](auto& stream) {
+			if (!m_Serializer.is_header_done()) {
+				set(boost::beast::http::field::user_agent, "Icinga/" + Application::GetAppVersion());
+				boost::beast::http::async_write_header(*stream, m_Serializer, yc);
+			}
+
+			if (finish) {
+				body().Finish();
+			}
+
+			boost::system::error_code ec;
+			boost::beast::http::async_write(*stream, m_Serializer, yc[ec]);
+			if (ec && ec != boost::beast::http::error::need_buffer) {
+				if (yc.ec_) {
+					*yc.ec_ = ec;
+					return;
+				}
+				BOOST_THROW_EXCEPTION(boost::system::system_error{ec});
+			}
+			stream->async_flush(yc);
+
+			ASSERT(Done() || !body().Finished());
+		},
+		m_Stream
+	);
 }
 
 HttpResponse::HttpResponse(Shared<AsioTlsStream>::Ptr stream, HttpServerConnection::Ptr server)

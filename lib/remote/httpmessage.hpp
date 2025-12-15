@@ -179,6 +179,68 @@ struct IoReadDiscard
 	};
 };
 
+// Using a variant here to support both TLS and non-TLS streams easily.
+using StreamType = std::variant<Shared<AsioTlsStream>::Ptr, Shared<AsioTcpStream>::Ptr>;
+
+/**
+ * HTTP request serializer with support for efficient streaming of the body.
+ *
+ * This class is similar to @c HttpResponse but is specifically designed for sending
+ * HTTP requests with potentially large bodies that are generated on-the-fly. Just as
+ * with HTTP responses, requests can use chunk encoding too if the server on the other
+ * end supports it.
+ *
+ * @ingroup remote
+ */
+class HttpRequestWriter : public boost::beast::http::request<SerializableBody<boost::beast::flat_buffer>>
+{
+public:
+	explicit HttpRequestWriter(StreamType stream);
+
+	/**
+	 * Commit the specified number of bytes to the buffer (body) input sequence.
+	 *
+	 * @param size The number of bytes to commit
+	 */
+	void Commit(std::size_t size)
+	{
+		body().Buffer().commit(size);
+	}
+
+	/**
+	 * Prepare a buffer of the specified size for writing.
+	 *
+	 * The returned buffer serves just as a view onto the internal buffer sequence
+	 * but does not actually own the memory. Thus destroying the returned buffer
+	 * will not free any memory it represents.
+	 *
+	 * @param size The size of the buffer to prepare
+	 *
+	 * @return A mutable buffer representing the prepared space
+	 */
+	boost::asio::mutable_buffer Prepare(std::size_t size)
+	{
+		return body().Buffer().prepare(size);
+	}
+
+	/**
+	 * Check whether the entire request has been written.
+	 *
+	 * @return @c true if the serializer is done, @c false otherwise
+	 */
+	bool Done() const
+	{
+		return m_Serializer.is_done();
+	}
+
+	void EnableStreaming();
+	void Flush(bool finish, boost::asio::yield_context& yc);
+
+private:
+	StreamType m_Stream;
+	boost::beast::http::request_serializer<body_type> m_Serializer;
+};
+
 /**
  * A wrapper class for a boost::beast HTTP request
  *
