@@ -1,6 +1,5 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
-#include <algorithm>
 #include <boost/algorithm/string.hpp>
 #include <boost/asio/ssl/context.hpp>
 #include <boost/asio/ssl/stream.hpp>
@@ -221,7 +220,7 @@ void ElasticsearchDatastreamWriter::ManageIndexTemplate()
 Dictionary::Ptr ElasticsearchDatastreamWriter::ExtractPerfData(const Checkable::Ptr& checkable, const Array::Ptr& perfdata)
 {
 	Dictionary::Ptr pdFields = new Dictionary();
-	if (!perfdata)
+	if (!perfdata || !GetEnableSendPerfdata())
 		return pdFields;
 
 	ObjectLock olock(perfdata);
@@ -528,7 +527,7 @@ void ElasticsearchDatastreamWriter::Flush()
 	Dictionary::Ptr jsonResponse;
 	while (true) {
 		try {
-			jsonResponse = TrySend(url, std::move(body));
+			jsonResponse = TrySend(url, body);
 			m_DocumentsSent += m_DataBuffer.size();
 			break;
 		} catch (const std::exception& ex) {
@@ -560,8 +559,11 @@ void ElasticsearchDatastreamWriter::Flush()
 		return;
 	}
 
+	// TODO: This seems to be mostly adapted from:
+	// https://www.elastic.co/docs/reference/elasticsearch/clients/javascript/bulk_examples
+	// The example also mentions you can/should retry on a 429 (too many requests) error, so maybe we should do that.
 	Array::Ptr items = jsonResponse->Get("items");
-	int c = 0;
+	unsigned int c = 0;
 	ObjectLock olock(items);
 	for (const Dictionary::Ptr value : items) {
 		Dictionary::Ptr itemResult = value->Get("create");
@@ -664,7 +666,7 @@ Value ElasticsearchDatastreamWriter::TrySend(const Url::Ptr& url, String body)
 	}
 
 	/* Accept application/json with optional charset (any variant), case-insensitive. */
-	std::string ctLower = response[http::field::content_type];
+	auto ctLower = std::string{response[http::field::content_type]};
 	boost::trim(ctLower);
 	boost::to_lower(ctLower);
 	if (!(ctLower == "application/json" || ctLower == "application/json; charset=utf-8")) {
@@ -775,12 +777,12 @@ String ElasticsearchDatastreamWriter::FormatTimestamp(double ts)
 	return Utility::FormatDateTime("%Y-%m-%dT%H:%M:%S", ts) + "." + Convert::ToString(milliSeconds) + Utility::FormatDateTime("%z", ts);
 }
 
-void ElasticsearchDatastreamWriter::ValidateTagsTemplate(const Array::Ptr& tags)
+void ElasticsearchDatastreamWriter::ValidateTagsTemplate(const Array::Ptr& tags, const String& attrName)
 {
 	ObjectLock olock(tags);
 	for (const Value& tag : tags) {
 		if (!MacroProcessor::ValidateMacroString(tag)) {
-			BOOST_THROW_EXCEPTION(ValidationError(this, { "host_tags_template" }, "Closing $ not found in macro format string '" + tag + "'."));
+			BOOST_THROW_EXCEPTION(ValidationError(this, { attrName }, "Closing $ not found in macro format string '" + tag + "'."));
 		}
 	}
 }
@@ -788,27 +790,27 @@ void ElasticsearchDatastreamWriter::ValidateTagsTemplate(const Array::Ptr& tags)
 void ElasticsearchDatastreamWriter::ValidateHostTagsTemplate(const Lazy<Array::Ptr>& lvalue, const ValidationUtils& utils)
 {
 	ObjectImpl<ElasticsearchDatastreamWriter>::ValidateHostTagsTemplate(lvalue, utils);
-	auto& tags = lvalue();
+	const auto& tags = lvalue();
 	if (tags) {
-		ValidateTagsTemplate(tags);
+		ValidateTagsTemplate(tags, "host_tags_template");
 	}
 }
 
 void ElasticsearchDatastreamWriter::ValidateServiceTagsTemplate(const Lazy<Array::Ptr>& lvalue, const ValidationUtils& utils)
 {
 	ObjectImpl<ElasticsearchDatastreamWriter>::ValidateServiceTagsTemplate(lvalue, utils);
-	auto& tags = lvalue();
+	const auto& tags = lvalue();
 	if (tags) {
-		ValidateTagsTemplate(tags);
+		ValidateTagsTemplate(tags, "service_tags_template");
 	}
 }
 
-void ElasticsearchDatastreamWriter::ValidateLabelsTemplate(const Dictionary::Ptr& labels)
+void ElasticsearchDatastreamWriter::ValidateLabelsTemplate(const Dictionary::Ptr& labels, const String& attrName)
 {
 	ObjectLock olock(labels);
 	for (const Dictionary::Pair& kv : labels) {
 		if (!MacroProcessor::ValidateMacroString(kv.second)) {
-			BOOST_THROW_EXCEPTION(ValidationError(this, { "host_tags_template", kv.first }, "Closing $ not found in macro format string '" + kv.second + "'."));
+			BOOST_THROW_EXCEPTION(ValidationError(this, { attrName, kv.first }, "Closing $ not found in macro format string '" + kv.second + "'."));
 		}
 	}
 }
@@ -816,18 +818,18 @@ void ElasticsearchDatastreamWriter::ValidateLabelsTemplate(const Dictionary::Ptr
 void ElasticsearchDatastreamWriter::ValidateHostLabelsTemplate(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)
 {
 	ObjectImpl<ElasticsearchDatastreamWriter>::ValidateHostLabelsTemplate(lvalue, utils);
-	auto& labels = lvalue();
+	const auto& labels = lvalue();
 	if (labels) {
-		ValidateLabelsTemplate(labels);
+		ValidateLabelsTemplate(labels, "host_labels_template");
 	}
 }
 
 void ElasticsearchDatastreamWriter::ValidateServiceLabelsTemplate(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)
 {
 	ObjectImpl<ElasticsearchDatastreamWriter>::ValidateServiceLabelsTemplate(lvalue, utils);
-	auto& labels = lvalue();
+	const auto& labels = lvalue();
 	if (labels) {
-		ValidateLabelsTemplate(labels);
+		ValidateLabelsTemplate(labels, "service_labels_template");
 	}
 }
 

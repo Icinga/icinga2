@@ -91,8 +91,8 @@ private:
 	void Flush();
 	void SendRequest(const String& body);
 
-	void ValidateTagsTemplate(const Array::Ptr& tags);
-	void ValidateLabelsTemplate(const Dictionary::Ptr& labels);
+	void ValidateTagsTemplate(const Array::Ptr& tags, const String& attrName);
+	void ValidateLabelsTemplate(const Dictionary::Ptr& labels, const String& attrName);
 };
 
 class StatusCodeException : public std::runtime_error
