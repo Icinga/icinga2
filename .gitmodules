@@ -1,0 +1,4 @@
+[submodule "third-party/opentelemetry-proto"]
+	path = third-party/opentelemetry-proto
+	url = https://github.com/open-telemetry/opentelemetry-proto.git
+	branch = main
