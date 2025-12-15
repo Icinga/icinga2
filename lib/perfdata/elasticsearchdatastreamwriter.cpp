@@ -664,7 +664,7 @@ Value ElasticsearchDatastreamWriter::TrySend(const Url::Ptr& url, String body)
 	}
 
 	/* Accept application/json with optional charset (any variant), case-insensitive. */
-	std::string ctLower = response[http::field::content_type];
+	auto ctLower = std::string{response[http::field::content_type]};
 	boost::trim(ctLower);
 	boost::to_lower(ctLower);
 	if (!(ctLower == "application/json" || ctLower == "application/json; charset=utf-8")) {
