@@ -44,7 +44,7 @@ jobs:
           sha: ${{ github.event.pull_request.head.sha }} # Checkout the latest commit of the merged PR.
 
       - name: Run Backbot
-        uses: korthout/backport-action@d07416681cab29bf2661702f925f020aaa962997 # v3.4.1
+        uses: korthout/backport-action@3634249d418881baa47fd6bae694506145f7a61b # v4.0.0
         with:
           github_token: ${{ steps.backbot-token.outputs.token }}
           copy_labels_pattern: '^(?!cla-signed$).*' # copy all labels other than the cla-signed label
