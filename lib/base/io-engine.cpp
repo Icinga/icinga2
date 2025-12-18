@@ -34,6 +34,31 @@ CpuBoundWork::CpuBoundWork(boost::asio::yield_context yc)
 	}
 }
 
+/**
+ * Measures how long it takes to acquire a slot.
+ *
+ * @param yc Forwarded to the regular constructor.
+ * @param took Set to the time it took to acquire the slot.
+ */
+CpuBoundWork::CpuBoundWork(boost::asio::yield_context yc, Clock::duration& took)
+	: CpuBoundWork(std::move(yc), Clock::now(), took)
+{
+}
+
+/**
+ * An internal helper layer between the regular constructor and the one that measures how long it takes.
+ * This is necessary to get the start time before the regular constructor is called.
+ *
+ * @param yc Forwarded to the regular constructor.
+ * @param started The current time.
+ * @param took Set to the time it took to acquire the slot.
+ */
+CpuBoundWork::CpuBoundWork(boost::asio::yield_context yc, Clock::time_point started, Clock::duration& took)
+	: CpuBoundWork(std::move(yc))
+{
+	took = Clock::now() - started;
+}
+
 CpuBoundWork::~CpuBoundWork()
 {
 	if (!m_Done) {
