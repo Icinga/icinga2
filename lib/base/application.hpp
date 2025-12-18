@@ -4,14 +4,22 @@
 #define APPLICATION_H
 
 #include "base/i2-base.hpp"
-#include "base/atomic.hpp"
 #include "base/application-ti.hpp"
 #include "base/logger.hpp"
 #include "base/configuration.hpp"
-#include "base/shared-memory.hpp"
 #include <cstdint>
 #include <iosfwd>
 #include <type_traits>
+#include <utility>
+
+#ifdef _WIN32
+#include <mutex>
+#include <shared_mutex>
+#else /* _WIN32 */
+#include <boost/interprocess/sync/interprocess_sharable_mutex.hpp>
+#include <boost/interprocess/sync/scoped_lock.hpp>
+#include <boost/interprocess/sync/sharable_lock.hpp>
+#endif /* _WIN32 */
 
 namespace icinga
 {
@@ -104,8 +112,8 @@ public:
 	static bool GetScriptDebuggerEnabled();
 	static void SetScriptDebuggerEnabled(bool enabled);
 
-	static double GetLastReloadFailed();
-	static void SetLastReloadFailed(double ts);
+	static std::pair<double, String> GetLastReloadFailed();
+	static void SetLastReloadFailed(double ts, const String& error);
 
 	static void DisplayInfoMessage(std::ostream& os, bool skipVersion = false);
 
@@ -141,13 +149,26 @@ private:
 	static double m_StartTime;
 	static double m_MainTime;
 	static bool m_ScriptDebuggerEnabled;
+
+	struct LastReloadFailed
+	{
 #ifdef _WIN32
-	static double m_LastReloadFailed;
+		typedef std::shared_lock<std::shared_mutex> SharedLock;
+		typedef std::unique_lock<std::shared_mutex> UniqueLock;
+
+		std::shared_mutex Mutex;
 #else /* _WIN32 */
-	typedef Atomic<std::conditional_t<Atomic<double>::is_always_lock_free, double, uint32_t>> AtomicTs;
-	static_assert(AtomicTs::is_always_lock_free);
-	static SharedMemory<AtomicTs> m_LastReloadFailed;
+		typedef boost::interprocess::sharable_lock<boost::interprocess::interprocess_sharable_mutex> SharedLock;
+		typedef boost::interprocess::scoped_lock<boost::interprocess::interprocess_sharable_mutex> UniqueLock;
+
+		boost::interprocess::interprocess_sharable_mutex Mutex;
 #endif /* _WIN32 */
+		double When = 0;
+		char Why[16 * 1024] = {0};
+	};
+
+	static LastReloadFailed* m_LastReloadFailed;
+	static LastReloadFailed* AllocLastReloadFailed();
 
 #ifdef _WIN32
 	static BOOL WINAPI CtrlHandler(DWORD type);
