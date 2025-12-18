@@ -208,7 +208,7 @@ void NotificationComponent::NotificationTimerHandler()
 			FireSuppressedNotifications(notification);
 		}
 
-		if (notification->GetInterval() <= 0 && notification->GetNoMoreNotifications()) {
+		if (notification->GetInterval() <= 0) {
 			Log(LogNotice, "NotificationComponent")
 				<< "Reminder notification '" << notificationName << "': Notification was sent out once and interval=0 disables reminder notifications.";
 			continue;
