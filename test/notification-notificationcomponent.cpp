@@ -139,6 +139,13 @@ object NotificationComponent "nc" {}
 		return !result;
 	}
 
+	boost::test_tools::assertion_result AssertNoReSendSuppressedLogPattern()
+	{
+		auto result = ExpectLogPattern("^Attempting to re-send previously suppressed notification.*$", 0s);
+		ClearTestLogger();
+		return !result;
+	}
+
 	void BeginTimePeriod()
 	{
 		ObjectLock lock{m_TimePeriod};
@@ -299,7 +306,7 @@ BOOST_AUTO_TEST_CASE(notify_after_timeperiod_simple)
 
 	ReceiveCheckResults(3, ServiceCritical);
 	NotificationTimerHandler();
-	BOOST_REQUIRE(AssertNoAttemptedSendLogPattern());
+	BOOST_REQUIRE(AssertNoReSendSuppressedLogPattern());
 	BOOST_REQUIRE_EQUAL(GetNotificationCount(), 0);
 	BOOST_REQUIRE_EQUAL(GetLastNotification(), 0);
 	BOOST_REQUIRE_EQUAL(GetSuppressedNotifications(), NotificationProblem);
@@ -329,7 +336,7 @@ BOOST_AUTO_TEST_CASE(notify_multiple_state_changes_outside_timeperiod)
 	EndTimePeriod();
 
 	ReceiveCheckResults(1, ServiceOK);
-	BOOST_REQUIRE(AssertNoAttemptedSendLogPattern());
+	BOOST_REQUIRE(AssertNoReSendSuppressedLogPattern());
 	BOOST_REQUIRE_EQUAL(GetNotificationCount(), 1);
 	BOOST_REQUIRE_EQUAL(GetLastNotification(), NotificationProblem);
 	BOOST_REQUIRE_EQUAL(GetSuppressedNotifications(), NotificationRecovery);
@@ -354,7 +361,7 @@ BOOST_AUTO_TEST_CASE(notify_multiple_state_changes_outside_timeperiod)
 
 	// Third Critical check result will set the Critical hard state.
 	ReceiveCheckResults(2, ServiceCritical);
-	BOOST_REQUIRE(AssertNoAttemptedSendLogPattern());
+	BOOST_REQUIRE(AssertNoReSendSuppressedLogPattern());
 	BOOST_REQUIRE_EQUAL(GetNotificationCount(), 1);
 	BOOST_REQUIRE_EQUAL(GetLastNotification(), NotificationProblem);
 	BOOST_REQUIRE_EQUAL(GetSuppressedNotifications(), 0);
@@ -366,7 +373,7 @@ BOOST_AUTO_TEST_CASE(notify_multiple_state_changes_outside_timeperiod)
 	BOOST_REQUIRE_EQUAL(GetSuppressedNotifications(), 0);
 
 	ReceiveCheckResults(1, ServiceOK);
-	BOOST_REQUIRE(AssertNoAttemptedSendLogPattern());
+	BOOST_REQUIRE(AssertNoReSendSuppressedLogPattern());
 	BOOST_REQUIRE_EQUAL(GetNotificationCount(), 1);
 	BOOST_REQUIRE_EQUAL(GetLastNotification(), NotificationProblem);
 	BOOST_REQUIRE_EQUAL(GetSuppressedNotifications(), NotificationRecovery);
@@ -398,14 +405,14 @@ BOOST_AUTO_TEST_CASE(no_notify_suppressed_cancel_out)
 
 	ReceiveCheckResults(3, ServiceCritical);
 	NotificationTimerHandler();
-	BOOST_REQUIRE(AssertNoAttemptedSendLogPattern());
+	BOOST_REQUIRE(AssertNoReSendSuppressedLogPattern());
 	BOOST_REQUIRE_EQUAL(GetNotificationCount(), 0);
 	BOOST_REQUIRE_EQUAL(GetLastNotification(), 0);
 	BOOST_REQUIRE_EQUAL(GetSuppressedNotifications(), NotificationProblem);
 
 	ReceiveCheckResults(1, ServiceOK);
 	NotificationTimerHandler();
-	BOOST_REQUIRE(AssertNoAttemptedSendLogPattern());
+	BOOST_REQUIRE(AssertNoReSendSuppressedLogPattern());
 	BOOST_REQUIRE_EQUAL(GetNotificationCount(), 0);
 	BOOST_REQUIRE_EQUAL(GetLastNotification(), 0);
 	BOOST_REQUIRE_EQUAL(GetSuppressedNotifications(), 0);
@@ -430,14 +437,14 @@ BOOST_AUTO_TEST_CASE(no_notify_suppressed_cancel_out)
 
 	ReceiveCheckResults(1, ServiceOK);
 	NotificationTimerHandler();
-	BOOST_REQUIRE(AssertNoAttemptedSendLogPattern());
+	BOOST_REQUIRE(AssertNoReSendSuppressedLogPattern());
 	BOOST_REQUIRE_EQUAL(GetNotificationCount(), 1);
 	BOOST_REQUIRE_EQUAL(GetLastNotification(), NotificationProblem);
 	BOOST_REQUIRE_EQUAL(GetSuppressedNotifications(), NotificationRecovery);
 
 	ReceiveCheckResults(3, ServiceCritical);
 	NotificationTimerHandler();
-	BOOST_REQUIRE(AssertNoAttemptedSendLogPattern());
+	BOOST_REQUIRE(AssertNoReSendSuppressedLogPattern());
 	BOOST_REQUIRE_EQUAL(GetNotificationCount(), 1);
 	BOOST_REQUIRE_EQUAL(GetLastNotification(), NotificationProblem);
 	BOOST_REQUIRE_EQUAL(GetSuppressedNotifications(), 0);
@@ -474,7 +481,7 @@ BOOST_AUTO_TEST_CASE(no_notify_non_applicable_reason)
 	// We queue a suppressed notification.
 	ReceiveCheckResults(3, ServiceCritical);
 	NotificationTimerHandler();
-	BOOST_REQUIRE(AssertNoAttemptedSendLogPattern());
+	BOOST_REQUIRE(AssertNoReSendSuppressedLogPattern());
 	BOOST_REQUIRE_EQUAL(GetNotificationCount(), 0);
 	BOOST_REQUIRE_EQUAL(GetLastNotification(), 0);
 	BOOST_REQUIRE_EQUAL(GetSuppressedNotifications(), NotificationProblem);
@@ -485,7 +492,7 @@ BOOST_AUTO_TEST_CASE(no_notify_non_applicable_reason)
 	// before the timer can run again. No notification should be sent, because the last state
 	// change the user was notified about was the same.
 	ReceiveCheckResults(1, ServiceOK);
-	BOOST_REQUIRE(AssertNoAttemptedSendLogPattern());
+	BOOST_REQUIRE(AssertNoReSendSuppressedLogPattern());
 	BOOST_REQUIRE_EQUAL(GetNotificationCount(), 0);
 	BOOST_REQUIRE_EQUAL(GetLastNotification(), 0);
 	BOOST_REQUIRE_EQUAL(GetSuppressedNotifications(), NotificationProblem);

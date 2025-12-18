@@ -39,7 +39,10 @@ class ElasticsearchWriter : ConfigObject
 	[config] String cert_path;
 	[config] String key_path;
 
-	[config] int flush_interval {
+	[config] double disconnect_timeout {
+		default {{{ return 0.5; }}}
+	};
+	[config] double flush_interval {
 		default {{{ return 10; }}}
 	};
 	[config] int flush_threshold {

@@ -26,9 +26,8 @@ class GraphiteWriter : ConfigObject
         [config] bool enable_send_thresholds;
         [config] bool enable_send_metadata;
 
-	[no_user_modify] bool connected;
-	[no_user_modify] bool should_connect {
-		default {{{ return true; }}}
+	[config] double disconnect_timeout {
+		default {{{ return 0.5; }}}
 	};
 	[config] bool enable_ha {
 		default {{{ return false; }}}
