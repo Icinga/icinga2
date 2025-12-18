@@ -24,10 +24,20 @@ bool HostGroup::EvaluateObjectRule(const Host::Ptr& host, const ConfigItem::Ptr&
 
 	CONTEXT("Evaluating rule for group '" << groupName << "'");
 
-	ScriptFrame frame(true);
-	if (group->GetScope())
-		group->GetScope()->CopyTo(frame.Locals);
-	frame.Locals->Set("host", host);
+	ScriptFrame frame (false);
+
+	if (group->GetScope()) {
+		frame.Locals = new Dictionary();
+
+		if (group->GetScope()) {
+			group->GetScope()->CopyTo(frame.Locals);
+		}
+
+		host->GetFrozenLocalsForApply()->CopyTo(frame.Locals);
+		frame.Locals->Freeze();
+	} else {
+		frame.Locals = host->GetFrozenLocalsForApply();
+	}
 
 	if (!group->GetFilter()->Evaluate(frame).GetValue().ToBool())
 		return false;
