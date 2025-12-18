@@ -106,7 +106,7 @@ set(base_test_SOURCES
   base-stream.cpp
   base-string.cpp
   base-timer.cpp
-  base-tlsutility.cpp
+  base-tlsutility.cpp base-tlsutility.hpp
   base-utility.cpp
   base-value.cpp
   config-apply.cpp

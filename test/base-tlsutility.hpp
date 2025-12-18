@@ -1,0 +1,233 @@
+/* Icinga 2 | (c) 2025 Icinga GmbH | GPLv2+ */
+
+#pragma once
+
+// $ openssl x509 -noout -issuer -subject -startdate -enddate -in /var/lib/icinga2/ca/ca.crt
+// issuer=CN=Icinga CA
+// subject=CN=Icinga CA
+// notBefore=Dec  5 08:55:10 2025 GMT
+// notAfter=Nov 26 08:55:10 2060 GMT
+static constexpr auto l_IcingaCa = R"(
+-----BEGIN CERTIFICATE-----
+MIIEzDCCArSgAwIBAgIVAMsvNdJkRNON1uDtCRxjCnPxD88mMA0GCSqGSIb3DQEB
+CwUAMBQxEjAQBgNVBAMMCUljaW5nYSBDQTAgFw0yNTEyMDUwODU1MTBaGA8yMDYw
+MTEyNjA4NTUxMFowFDESMBAGA1UEAwwJSWNpbmdhIENBMIICIjANBgkqhkiG9w0B
+AQEFAAOCAg8AMIICCgKCAgEAw4rKX6rVohpvitE9DKKqIZAAMkZrVgO2Zqlbm5iC
+R08akzYhGyqSn8w4mvYz8w5XoojwzDEAkN0cwnAp/AzpjZCXO4m5BufDGBmVGfDU
+ckQE73+kyhpMRoTKrVtSEsUVG6xZH4OF8T/AnpYGKACRzcpy2vVe1Bv1UqtJL3mE
+6lsc+RrVXVgFmf8lJj283RW8Rz+IcjNAouHLWepXomwHAM+lk52UegB7u15CaTpy
+Sjs5aHLQb6pwiv1tWHRdKKnvir7icF8XW2mNVZB3qfDyu4HK+ltkCi8BD9efjA8m
+qYw21ranqWHtm8xTT+39Jp1y+Pq1cBr31jCyWpOXr8HJkBmVKf6D4siM0E1m4zTi
+gilGxmGL0VV0PII6wY0nNLc94PhwKhkFtxbpic+R/KpEA6boh+C0lYkmDgsOhzod
+hAX0ZQ16mWfxsqAzW3u1V0LYGnjC8JcmdMNMMyt20e6M4kdgTrrEF1QcBduXR2aC
+LAZ5YmWalXn0dB2PxMk2rJkpb0E8vK4kSWZy4CVwGujWLswy1G42EZ+VLJh1BAGS
+ow6dxdJuXMs4a9XlKbWRSSoHFt6A4NxKBoJYSBKt6Jvus/M5uzRs6WT5IDleB0b5
+lAK97OVDNky0Z0ioZXair/0JxiEaGXEVOwhx/2hVfggyVviCNUDHDcWnGPmWLGN+
+npkCAwEAAaMTMBEwDwYDVR0TAQH/BAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAgEA
+PiFAXfLGPFVAxf28QLxmg9O1qWZZQpOcCGScTCg5it2JkEvEaBPoBjSYL6RwdGX7
+CZyuENR3iX2pYMUajfWrb7YHrdMa1E4mVSq9ziHlLoMbowbigFdU0rZX98twb4+S
+UdPK3d0hSBZ5VMP37jadUX6tqaL+4U7h+szpPMvRGoFASxc5sB8myuSLmxmvkscf
+QU3vODPjB0RAN7ccIPWvKs2Dklx1YzR4AOmjOO5+Xdy2qgI0FFNTgc3Dj/Mjj5Kn
+i1lctbhR0XVSQaRtwDAytnqNzKfHnWMjkXvwBxnfNTxa69YRkSsHhto02Kp+g+fR
+QYvY5NDaIWkb8ujVbO8ej5r9Qqlg39Ilh1WUu16NL+CYQkpbFRVr4WerRbGmHKH+
+p3w3ayPCskestd+dSafzl/CWplP4qa35aKKwQv72stYSdUxoX64HtASBHdX/zrtu
+drho4ctrvWF39mT3LRa9fChkso6fsg2/t1ccIXcSlEAZPvplOG3BqkxzPhrJd5i/
+5YcC+KmIwfw4lHc+U0OGvK01SeVBXtQBY1METIOv4VZD0UB8/B5f9IJLEjpBBl8R
+QVqUoW63fbBpJFJ7bCsc5iq8FAdaF0xXLiQmGJlXHctK2TeKjbpUxhDDd1s/PxJx
+AyDbIaSlDo3KprbwDxc9x/GjYZ1Xe12VuKyCbjQ0KlY=
+-----END CERTIFICATE-----
+)";
+
+// $ icinga2 pki new-cert --cn example.com --key example.key --csr example.csr
+// $ icinga2 pki sign-csr --csr example.csr --cert example.crt
+// $ openssl x509 -noout -issuer -subject -startdate -enddate -in example.crt
+// issuer=CN=Icinga CA
+// subject=CN=example.com
+// notBefore=Dec  5 08:57:02 2025 GMT
+// notAfter=Nov 26 08:57:02 2060 GMT
+static constexpr auto l_ExampleCrt = R"(
+-----BEGIN CERTIFICATE-----
+MIIE4zCCAsugAwIBAgIVAOabBgNZHMsW+F5yPukNmOwdx+t/MA0GCSqGSIb3DQEB
+CwUAMBQxEjAQBgNVBAMMCUljaW5nYSBDQTAgFw0yNTEyMDUwODU3MDJaGA8yMDYw
+MTEyNjA4NTcwMlowFjEUMBIGA1UEAwwLZXhhbXBsZS5jb20wggIiMA0GCSqGSIb3
+DQEBAQUAA4ICDwAwggIKAoICAQCYWqnIswgKTh2tXgYI55g9ElfmF2GfFn1YqQqG
+cRAv3q81nP8/b4p7j4lZdHrs7dI2IBQqvA1iwRisY6+EpgO493EsJsThtRow8T23
+GqAp1cDSxY3GIhEiv5Rxg4892O+b3iDu8sy3g8OIq73GiYWB9B+lrx0+ab8R5Nte
+xOCBX2tN1ShVsXySylZs91Si/bTYZQbUxfw1yolINbKI4TdlVpo+YbiPxQZPKvqo
+JGGkyjH4Wl5bQ8589asvIkekAw/RkBaanoCY3d79qD1zKHH9IytYVn8Foj2qkpcx
+zDU2JgSww4C1z/0GJ97SeE8dWOztkK6LgcbdgSjX9Y7z5OOJTjMVwnNExC2I1r0V
+N1pJ+IklXBeNSPhXYK/cC+u4qw3TN7BGbNetj6VeoekcU5XBXJIYWjEpAZe9Edir
+PLziRtw1hBySxwfQuukiA66xzvh5/xhxjOaFek6mPUBjTrI/3GkuI+gz9hvs7j7A
+3l9LU79GhCjZ3YmV+gCOXRuZrb2JAX4fYOatskk2zs3Kau+W4Y/HbLHPHje5tWaL
+UtTjEJDXg2dZC9jfWAr1W8evGE1oBOJ7VvTvlxp5tOTx37HO7iMO8+9lvu0Fmq4d
+XbLgsqoN/wdlZq2DE84ucB3aQZb7/WAtyAYH+E15fC8Mae44rDXHHYnCUihlro8j
+BkOHewIDAQABoygwJjAMBgNVHRMBAf8EAjAAMBYGA1UdEQQPMA2CC2V4YW1wbGUu
+Y29tMA0GCSqGSIb3DQEBCwUAA4ICAQBzHdPHzisrCWuD+aXY8IFf9YDi2WvIE4b4
+JbvnJi1/3faAvcIqRHAalr6yawaTGg5UhqJObpmTJLXbmwQA9nnsYxrhVDbPpdbU
+IekaPzvfd+4Z8RCvFCXO8HU8VuvF/PEatS/LoAFTv7QG4BmvknwseRpz8e22L1VU
+d4SgBaSyFoQ/GiIsn0B7ysDeKs/JELOFhRuX5oqzz+pXSkShC3k4hdYecI/8thU8
+b+pMCYX4iYzNr436uBIJlENScuODDnSLeDnUF8qBn2lRG5RLUA04jXWa5vcYPHwo
+PLxTKmJJXhdiwRmM1XcHpzkLTMT1I/dCM1e6fc6y9s0od0hHtox/BdswxGircMSb
+WgkMw73XzhQykLZkuqOZ9a7uv3/0fceq/Yx2FSLaxkIIX3U+v6MQANEQ5CaSc3xN
+BPdr/+QFNMk+t4C8o73CyVLhYjXHIgDRMUkMTZey0k4vsFFIeork2W+Zb69L8nYU
+gGU8VcElTbAbYOOQVkfpp822y2yEzRPo1InSe1rMOHvkfdWZ+PPORP3w5caKOOtM
+vsuQQN14NT+1ddAMcxqLHiRn6XbjktUXJ2GVvgNlfgQNIQMgyP2AnDXr1GyK+nmJ
+cxHyie/IsHwShNt8YngLDmRv+cQRMHC4NcSA7OJfAkvqL44Q8pOnslPkIvENfQ1w
+71/voAqzQA==
+-----END CERTIFICATE-----
+)";
+
+// $ icinga2 pki verify --cert example.crt --cacert prefix/var/lib/icinga2/ca/ca.crt
+// Subject:             CN = example.com
+// Issuer:              CN = Icinga CA
+// Valid From:          May 18 09:01:09 2025 GMT
+// Valid Until:         Aug 27 09:01:09 2025 GMT
+// ---
+// critical/cli: CRITICAL: Certificate with CN 'example.com' is NOT signed by CA: certificate has expired (code 10)
+static constexpr auto l_ExpiredCrt = R"(
+-----BEGIN CERTIFICATE-----
+MIIE4TCCAsmgAwIBAgIVAK3JUtuO5/1nRk5bAGNqBQNISiOOMA0GCSqGSIb3DQEB
+CwUAMBQxEjAQBgNVBAMMCUljaW5nYSBDQTAeFw0yNTA1MTgwOTAxMDlaFw0yNTA4
+MjcwOTAxMDlaMBYxFDASBgNVBAMMC2V4YW1wbGUuY29tMIICIjANBgkqhkiG9w0B
+AQEFAAOCAg8AMIICCgKCAgEAmFqpyLMICk4drV4GCOeYPRJX5hdhnxZ9WKkKhnEQ
+L96vNZz/P2+Ke4+JWXR67O3SNiAUKrwNYsEYrGOvhKYDuPdxLCbE4bUaMPE9txqg
+KdXA0sWNxiIRIr+UcYOPPdjvm94g7vLMt4PDiKu9xomFgfQfpa8dPmm/EeTbXsTg
+gV9rTdUoVbF8kspWbPdUov202GUG1MX8NcqJSDWyiOE3ZVaaPmG4j8UGTyr6qCRh
+pMox+FpeW0POfPWrLyJHpAMP0ZAWmp6AmN3e/ag9cyhx/SMrWFZ/BaI9qpKXMcw1
+NiYEsMOAtc/9Bife0nhPHVjs7ZCui4HG3YEo1/WO8+TjiU4zFcJzRMQtiNa9FTda
+SfiJJVwXjUj4V2Cv3AvruKsN0zewRmzXrY+lXqHpHFOVwVySGFoxKQGXvRHYqzy8
+4kbcNYQckscH0LrpIgOusc74ef8YcYzmhXpOpj1AY06yP9xpLiPoM/Yb7O4+wN5f
+S1O/RoQo2d2JlfoAjl0bma29iQF+H2DmrbJJNs7NymrvluGPx2yxzx43ubVmi1LU
+4xCQ14NnWQvY31gK9VvHrxhNaATie1b075caebTk8d+xzu4jDvPvZb7tBZquHV2y
+4LKqDf8HZWatgxPOLnAd2kGW+/1gLcgGB/hNeXwvDGnuOKw1xx2JwlIoZa6PIwZD
+h3sCAwEAAaMoMCYwDAYDVR0TAQH/BAIwADAWBgNVHREEDzANggtleGFtcGxlLmNv
+bTANBgkqhkiG9w0BAQsFAAOCAgEAQXIdFRMEhlIgjkIwNUqLHIzmWMmQXDcYyM6R
+qL/f7xMLvY+rAgtp0TuBBWNvuhIDIinkoeVxGh0cHP5Xeo2H9AqK12E20aoGBI58
+2dr49vG70euKjbXlCVrxyUelj42dBOkSbM3/3YkuyfmNHk8POU2Vtk3PBvwBTZYc
+rqD7p8q+caYUIGs+TkP+/r3Q8aYkPvdLOpx6XOMT83q2mH7QowhODl5tJazTALn8
+tZAu2+ImuYgS2ECm5YhR8QHyEythh9nrj2m9iVd4wlJ9I5EcyhIuySixPsQ+pb6P
+QZSx5N41SHBx55+qPvmJtv56OLuKwpuB/JASk5fNbrl0Bpk6TUtOStYm7typcrCy
+R08B2Js9SMtMDccYA8jvvyHGt6rA8aMqXgMuAup/DdYtmfIwG+9zvX83ysBy9F5K
+KWw6mq2XUoDIdTB+MejcVyEJ2mPYifwYkJWkBE3Uz6OKvDccp/Ybs1n4JrbOoByp
+7BSrUeyiRoy0OJighqOU1IktKCJt7b8Nh6BgTHB1yax6qoDYW/2kJL5doydVK1yj
+3yE/+GWJxowazB+W8pR5L7VLxeO5xFJM37N28RjtrN4mitF7f5NC2GPB4MVgTVnZ
+O5RgwidHMfwFZnnmTHtIhq6V/uWS74uZN+k2m3T40Y6jT4HVHoIbPB4Qqb35lKCO
+8BKxKpA=
+-----END CERTIFICATE-----
+)";
+
+// $ openssl x509 -noout -issuer -subject -startdate -enddate -in /var/lib/icinga2/ca/ca.crt
+// issuer=CN=Icinga CA
+// subject=CN=Icinga CA
+// notBefore=Dec  8 09:06:20 2010 GMT
+// notAfter=Dec  9 09:06:20 2010 GMT
+static constexpr auto l_ExpiredCa = R"(
+-----BEGIN CERTIFICATE-----
+MIIEyTCCArGgAwIBAgIUYryAUCOeMD5sE7sxYAhNcf6Q5q4wDQYJKoZIhvcNAQEL
+BQAwFDESMBAGA1UEAwwJSWNpbmdhIENBMB4XDTEwMTIwODA5MDYyMFoXDTEwMTIw
+OTA5MDYyMFowFDESMBAGA1UEAwwJSWNpbmdhIENBMIICIjANBgkqhkiG9w0BAQEF
+AAOCAg8AMIICCgKCAgEA8ZDYKbl6xM1+2TUEEtouP95nweGWCcvR9QYRXGyIYX5N
+NvUzeVQi34H0jNukiqfQQgLIBQoJDB2mvVMnPkYVnSmdR6ISJL8hsIKShwDr+Iaj
+/BGI25eurz9rqlboxeTGWNANH21aSFOr3eT2JjOcXNILGmKq/tcyk99p5j1rY35t
+c+O03cEe2010J4i86vo8aumF8mnV59PMc0ORefEVpyFx4xbhppavyZswJdWaoYCw
+sDBPMPAaCT/uCo8+oxPqtEYPu+louZ9QYwmF+PVwDxoKsF+yaI/lsNZf3j8xS5D1
+mC7LdrFxyFBQlb/C3cb15zeKBLFThsLblO3NOwZzQSRPMzUk7Tm581kxTCvyB0xB
+n6h1Ksxe8+LRd6/3cr+BoRWFvVY5ZnTuz6je8Gluy72rrnhvNX7uzNmBxYOHIUt2
+dUvniGchxSwn0bJIACG1K3+W/PYCoHM/aZWmuyj40W5a+3RvX9jR2DX+AMU9Jvpj
+swpMWjouzCDvfNoXqGC2nq9MFnF6jcHN8ZaGwDD2CLUz4eEq2v4AeP5EWpOLAeh1
+tlu9+nq3WhIRIhewEXmTvhMhi5jbsqgeyTMss9Ey63zvUTTo1jOZ9sPOspeYHe0o
+dmNXIkK1sQX+FpdoAFOA4SThoPlYflxRpMfnp2imJ7vofAIXnCU/Zbh+sZ9/lmUC
+AwEAAaMTMBEwDwYDVR0TAQH/BAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAgEAQuFB
+j5YNmvtC/wYan2Tfy+Na9ILmsrKrhPeR9UZ4+sTwpIZBBw2b0dxmeJ072mjBQfVW
+49lDejWB4tif55GtnkXd8hKbEheHCt1yXmzS8ra1/jMfvVCiGk2ySqe7KAeacDZP
+1VxGBWjh/DEhUVD2u65VnHsBrPv4mhro7mB6x2AkOwEPbdxMRp3yYGyj7FLknkHP
+OSIucnUcjuXLCtlMnS2gNLaWP2q1jpjMh0yX993le1FDblPNX5Upv4sIoOge1wih
+Zn3B2VrsskIIqy1tJuDNqCTyCY5NZPwsZzSFOg6e9XrpzXePtuiR12y16YUS3CsC
+Ewv5bLic2LCOI+5vLwzQefbF1VhU+z7oMXIkkr7fOX+hEjW4Dywy6tpEJIqkp7uW
+pKLrEmJYxqUDJd8I/9YsDNCNen8WtSKzCKaNjgVdFQX29d+VryaPEc3cIiHZYCZq
+QN16Tf5lBUFtzB2Ls15QyoUzwj8Hdr5AvkW5pZ60vHYAlyu7DtSmpXM3l4gAlkYe
+34xQ8eIVPEhMFdvhj/1NSTiOoG+C38uWqOnCVcsTHiJUCgVGqvwd4RADTv/N2dHJ
+4K646tDkQ+bhPPJoU2nPnD4IeXQGhbfMbc0Pf8xz17+DFnKwxvXLJHexLAn1QJko
+QYGJevz6WV6qzJaPhqdwqjUrBV7H+cm6h0RmK+c=
+-----END CERTIFICATE-----
+)";
+
+// $ icinga2 pki verify --cert expiredCAleaf.crt --cacert prefix/var/lib/icinga2/ca/ca.crt
+// Subject:             CN = example.com
+// Issuer:              CN = Icinga CA
+// Valid From:          Dec  5 09:09:41 2025 GMT
+// Valid Until:         Nov 24 09:09:41 2070 GMT
+// ---
+// Subject:             CN = Icinga CA
+// Issuer:              CN = Icinga CA
+// Valid From:          Dec  8 09:06:20 2010 GMT
+// Valid Until:         Dec  9 09:06:20 2010 GMT
+//
+// critical/cli: CRITICAL: Certificate with CN 'example.com' is NOT signed by CA: certificate has expired (code 10)
+static constexpr auto l_ExpiredCaLeaf = R"(
+-----BEGIN CERTIFICATE-----
+MIIE4jCCAsqgAwIBAgIUdF3UaID8g/MuI4g30nKPdmWBwLswDQYJKoZIhvcNAQEL
+BQAwFDESMBAGA1UEAwwJSWNpbmdhIENBMCAXDTI1MTIwNTA5MDk0MVoYDzIwNzAx
+MTI0MDkwOTQxWjAWMRQwEgYDVQQDDAtleGFtcGxlLmNvbTCCAiIwDQYJKoZIhvcN
+AQEBBQADggIPADCCAgoCggIBAJryKrwaZmx2vyLv539QMioD4xojT+noVlUiTo+8
+OdipQbGPF6as+1NtVbIqC25a3xAnlH3596igSHMqii37Bc7kz6ZzWxNzZq6Is5o/
+E8EqEvh8nT9ucd0FcY8vd/Fmsao/wuBSU2TpzWBVytQP6IeHmL+T2hTvjRFyRRgA
+4Xql+K2hsPQtjQKu0k896I+SLckg25ZE8yDOGp4fSn2IkqzKoXjasBvQkrLv86/8
+zegpqKPwEIIHOWkKvE9Aqr6CSE/P7x6MMFFz5nXHPsx99W9bCSYgjM3+jDnhnsfa
+Xk3YhPXyFEShWi6GTbZ4q501Fb9mSL4Dy+7rDAvvAQAqvKcFLYM5LQWPKWwtxeJ8
+ZG8q37czndK1pMFM7Rp6XwYYLcd5zBuWSt0I84kt3XMHjHMT+kQQuC4O9wD1vuH0
+IrSvEYXGMtVDhN/7tC5hFWbFEmIUWjPI6cdHQfROt/tXzGGUL28c0pIGuJJjxU75
+No3q6IRBbHV3j5prCa0DQM6z8lJ3CIyY9MDE/sfCFSCVLa54GrCVzuZaSMGLmlpF
+Co/WIku8oXdNx4nuh+IaCSP5Srxoo/axKAH8+Aiu/XEdCZFt67EHwFdL0bx912xU
+quhjBUuDkJf5OOhhBJs7sRPxcMzvQRrGPOKelg7XadqBVifOlvLnEC/t3hgV82Bx
+qvGBAgMBAAGjKDAmMAwGA1UdEwEB/wQCMAAwFgYDVR0RBA8wDYILZXhhbXBsZS5j
+b20wDQYJKoZIhvcNAQELBQADggIBAD494Nd1Ww5LnJzeELKp+Txawf7aw7sMX06B
+4Yu8Q0ZBjExRm+a+6fu4qehotyStfaOK4gSG/XhDvfKjPwBdcUmt2+hTSUvabfmU
+3uZKEyZ4Q+8M67iIHkXzrvfRfRHcD36Zea8MT2qohSGLcPSoTbzkPvhlQ3LYha1v
+L7M0u+vtOTK4RbC2JmRHJ8hJvXGwpyW/QADgEw1gv6seU+FRzXn9d+XmScW3/S3/
+J9ox/XgGVnh4J6JRHjh+dYd1IU6dMEyOtKbKNz5Gsu3jzDzG+sdSgzbVC37QyOMh
+WcX7t7L1/Yr7VLOiYXrg1Ykzt1CVbpt1Q3vEaoewcVGy8CAk/LNIIwc32UJ+mXqb
+Ha6xCGJ+9ovXnjbxIwiocX5YfCLX7qqlyhVSWAbDRSSkhrOibqV4L+NU90n6aWCB
+LS8bUUdERXPZA1uEVT09oTYIg/we/ktCT/wz1g6ccZsMjsEO0NmcsEdgOG/mY1IA
+OCGiNF4H5/hxoivYR6/PFaHDgy7P0WVrEv0J5HbOpF70B0cgyjG0aYQNsbEnYDFu
+WAHW+liqUFtLmGh01hpzZVW/S9joKTdYAx9ZZoN3wtDIc/IBImRwVWLyTcLUpnHB
+ZcAqMmrm9l/ZcBVrP+8MHCT1Q6NbDd1btBTt99KWa+KqymVTDs6XX3q8lsuG1K63
+7eGXdR7W
+-----END CERTIFICATE-----
+)";
+
+// $ openssl x509 -noout -issuer -subject -startdate -enddate -in /var/lib/icinga2/ca/ca.crt
+// issuer=CN=Icinga CA
+// subject=CN=Icinga CA
+// notBefore=Dec  5 09:12:37 2025 GMT
+// notAfter=Nov 24 09:12:37 2070 GMT
+static constexpr auto l_IcingaCa2 = R"(
+-----BEGIN CERTIFICATE-----
+MIIEyzCCArOgAwIBAgIUb/650CKjmMk9OFS9HcJhltv22+MwDQYJKoZIhvcNAQEL
+BQAwFDESMBAGA1UEAwwJSWNpbmdhIENBMCAXDTI1MTIwNTA5MTIzN1oYDzIwNzAx
+MTI0MDkxMjM3WjAUMRIwEAYDVQQDDAlJY2luZ2EgQ0EwggIiMA0GCSqGSIb3DQEB
+AQUAA4ICDwAwggIKAoICAQC0L05tXLxzD48Cpm5prjn/PchGGkiq5nP929/8QVED
+qDnhbQOnsp5V4towjba8pVIwIDvyqOm90j2hgBL4EOzFc8aZ2A2aUHnto/4NVoaB
+ov4ahVxi2S9sjIsVeJlQ/Zcbbexlt90t2yYm05gN2LBudq3kb2/GK3Jbl33h32hj
+lBUhX1jonnpugWx2Qo3l6E0KfuNy2d9jaieBKLi1Vu6Jp4KuySNsRKfgkWm96m31
+J/2u21Utk9lTiWI86/06YwZVCj4WtcwnkQTXtUgsXYzgHeIr/5yWfhchNwoP7HQO
+6s09cumyJnS6Mw+ki5jIPEy8Bwd6DZz5XA/Q6dJpPdH+g69iaIOyjtL8hNTs3JY8
+wY570QZg8c9pHzUg783Zf/kVUlZkDMUDYy1cnUyV2+wJlH/+ACU/UX1lcjPX8Syy
+616rnd2ffRyGJelBoWiZPgv8aauwcTO3apV+SLq+OwO/eC82gLs3I4w05jcUWjwv
+LsF0s3DYBFdmJniucuPLpIP2sbA3oQtOdSlNCTCcz8/YyM2IRSAQvvAHLFYILZnF
+a6aUZirlw/toloRLGhc2zU821BFxls0iDw+ISDXRFrtlvBTwXA8dUkq0i4bZIfaJ
+kK45L+19/9UJbinpJy2+cJiIK6XjTHB43wJDFoReb5hzKWQjxU2AUR+jFOmdwYdT
+YQIDAQABoxMwETAPBgNVHRMBAf8EBTADAQH/MA0GCSqGSIb3DQEBCwUAA4ICAQAe
+DUBMF0Wmd7KdVHI3IJrI0UbiHPHzrrjdaK1fJYQbR07ClE+gy9fItgRlvYr3UVMt
+2vEZ9e9ra2/We1ZxHoZZZEMcH3F6xx8jRQ8cQcRSvPvwMWLv3Gmr/hVhHushitXu
+BTS9vBWOC7ymdCnd4QxS44m47Gghdx7auh32YOgXtX5/IXU++OKNJXKEsobW2DpL
+6haST4vD6kmGa2yY+mSfMZDnAyEWf71izwD/TH22FvZVbKwl4v0Ka0GfboSGo0CY
+rCuADSlql9g6EDHz3q+5j9uIwf/xYFew+XWsb+17ivmicuO0X/0dCnasXHmrWJMj
+NcbUZKVBLC+gQX4bnFf4RO1NlTj03G2GyqTm7oz4xJ7vC16UBARePjQae0SqQOfW
+D9cw92WvTatS4TEVdX3Nl8BDTgme4Td9r9IAmdi7+CnbjaFjDd06mKXD8AoAML8S
+Vy2WH6RH3RrA5+6MzhZ5l9coyEWKH0DLyMEIGg8Ny09gMmZiR83nLWuK2eO6KZu3
+ZIYpNEyZYyfFXVY4rOZGRc0M9xR3qWl8N5EGah9HHEqmP8D4nP/kG8GMObFF5Bsl
+VF+HEB2rmfoQVPNJcv3KckLBOABY+S8Q4el6V0YNa370Wb6lHCY4oWJi4WvEZAuy
+jDZOUHBznp18Y5OLm/+XwARtPF9tkIe0Tz8sSyAEGw==
+-----END CERTIFICATE-----
+)";
