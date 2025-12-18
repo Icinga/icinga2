@@ -47,7 +47,9 @@ void HostGroup::EvaluateObjectRules(const Host::Ptr& host)
 {
 	CONTEXT("Evaluating group memberships for host '" << host->GetName() << "'");
 
-	for (const ConfigItem::Ptr& group : ConfigItem::GetItems(HostGroup::TypeInstance))
+	auto items (ConfigItem::GetItems(HostGroup::TypeInstance));
+
+	for (auto& group : *items)
 	{
 		if (!group->GetFilter())
 			continue;
