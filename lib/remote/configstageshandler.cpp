@@ -8,6 +8,7 @@
 #include "base/application.hpp"
 #include "base/defer.hpp"
 #include "base/exception.hpp"
+#include <optional>
 
 using namespace icinga;
 
@@ -35,7 +36,7 @@ bool ConfigStagesHandler::HandleRequest(
 		return false;
 
 	if (request.method() == http::verb::get)
-		HandleGet(request, response);
+		HandleGet(request, response, yc);
 	else if (request.method() == http::verb::post)
 		HandlePost(request, response);
 	else if (request.method() == http::verb::delete_)
@@ -46,7 +47,7 @@ bool ConfigStagesHandler::HandleRequest(
 	return true;
 }
 
-void ConfigStagesHandler::HandleGet(const HttpRequest& request, HttpResponse& response)
+void ConfigStagesHandler::HandleGet(const HttpRequest& request, HttpResponse& response, boost::asio::yield_context& yc)
 {
 	namespace http = boost::beast::http;
 
@@ -71,25 +72,22 @@ void ConfigStagesHandler::HandleGet(const HttpRequest& request, HttpResponse& re
 	if (!ConfigPackageUtility::ValidateStageName(stageName))
 		return HttpUtility::SendJsonError(response, params, 400, "Invalid stage name '" + stageName + "'.");
 
-	ArrayData results;
-
 	std::vector<std::pair<String, bool> > paths = ConfigPackageUtility::GetFiles(packageName, stageName);
 
 	String prefixPath = ConfigPackageUtility::GetPackageDir() + "/" + packageName + "/" + stageName + "/";
 
-	for (const auto& kv : paths) {
-		results.push_back(new Dictionary({
+	auto generatorFunc = [&prefixPath](const std::pair<String, bool>& kv) -> std::optional<Value> {
+		return new Dictionary{
 			{ "type", kv.second ? "directory" : "file" },
-			{ "name", kv.first.SubStr(prefixPath.GetLength()) }
-		}));
-	}
+			{ "name", kv.first.SubStr(prefixPath.GetLength()) },
+		};
+	};
 
-	Dictionary::Ptr result = new Dictionary({
-		{ "results", new Array(std::move(results)) }
-	});
+	Dictionary::Ptr result = new Dictionary{{"results", new ValueGenerator{paths, generatorFunc}}};
+	result->Freeze();
 
 	response.result(http::status::ok);
-	HttpUtility::SendJsonBody(response, params, result);
+	HttpUtility::SendJsonBody(response, params, result, yc);
 }
 
 void ConfigStagesHandler::HandlePost(const HttpRequest& request, HttpResponse& response)
