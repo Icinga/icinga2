@@ -984,12 +984,12 @@ String BinaryToHex(const unsigned char* data, size_t length) {
 	return output;
 }
 
-bool VerifyCertificate(const std::shared_ptr<X509> &caCertificate, const std::shared_ptr<X509> &certificate, const String& crlFile)
+bool VerifyCertificate(const std::shared_ptr<X509> &caCertificate, const std::shared_ptr<X509> &certificate, const String& crlFile, const String& caBundleFile)
 {
-	return VerifyCertificate(caCertificate.get(), certificate.get(), crlFile);
+	return VerifyCertificate(caCertificate.get(), certificate.get(), crlFile, caBundleFile);
 }
 
-bool VerifyCertificate(X509* caCertificate, X509* certificate, const String& crlFile)
+bool VerifyCertificate(X509* caCertificate, X509* certificate, const String& crlFile, const String& caBundleFile)
 {
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
 	/*
@@ -1018,6 +1018,10 @@ bool VerifyCertificate(X509* caCertificate, X509* certificate, const String& crl
 
 	if (!crlFile.IsEmpty()) {
 		AddCRLToSSLContext(store.get(), crlFile);
+	}
+
+	if (!caBundleFile.IsEmpty()) {
+		X509_STORE_load_locations(store.get(), caBundleFile.CStr(), NULL); /* ignore any errors for the moment, since this is just the convenient way to add full chain */
 	}
 
 	std::unique_ptr<X509_STORE_CTX, decltype(&X509_STORE_CTX_free)> csc{X509_STORE_CTX_new(), &X509_STORE_CTX_free};
