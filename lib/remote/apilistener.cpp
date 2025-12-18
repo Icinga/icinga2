@@ -112,7 +112,7 @@ double ApiListener::GetTlsHandshakeTimeout() const
 	return Configuration::TlsHandshakeTimeout;
 }
 
-void ApiListener::SetTlsHandshakeTimeout(double value, bool suppress_events, const Value& cookie)
+void ApiListener::SetTlsHandshakeTimeout(double value, [[maybe_unused]] bool suppress_events, [[maybe_unused]] const Value& cookie)
 {
 	Configuration::TlsHandshakeTimeout = value;
 }

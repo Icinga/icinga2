@@ -150,22 +150,22 @@ void Object::SetFieldByName(const String& field, const Value& value, const Debug
 	}
 }
 
-void Object::Validate(int types, const ValidationUtils& utils)
+void Object::Validate([[maybe_unused]] int types, const ValidationUtils&)
 {
 	/* Nothing to do here. */
 }
 
-void Object::ValidateField(int id, const Lazy<Value>& lvalue, const ValidationUtils& utils)
+void Object::ValidateField([[maybe_unused]] int id, const Lazy<Value>&, const ValidationUtils&)
 {
 	/* Nothing to do here. */
 }
 
-void Object::NotifyField(int id, const Value& cookie)
+void Object::NotifyField([[maybe_unused]] int id, [[maybe_unused]] const Value& cookie)
 {
 	BOOST_THROW_EXCEPTION(std::runtime_error("Invalid field ID."));
 }
 
-Object::Ptr Object::NavigateField(int id) const
+Object::Ptr Object::NavigateField([[maybe_unused]] int id) const
 {
 	BOOST_THROW_EXCEPTION(std::runtime_error("Invalid field ID."));
 }
