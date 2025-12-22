@@ -194,7 +194,7 @@ std::shared_ptr<X509> ApiListener::RenewCert(const std::shared_ptr<X509>& cert, 
 	 * we're using for cluster connections (there's no point in sending a client
 	 * a certificate it wouldn't be able to use to connect to us anyway) */
 	try {
-		if (!VerifyCertificate(cacert, newcert, GetCrlPath())) {
+		if (!VerifyCertificate(cacert, newcert, GetCrlPath(), GetDefaultCaPath())) {
 			Log(LogWarning, "ApiListener")
 				<< "The CA in '" << GetDefaultCaPath() << "' does not match the CA which Icinga uses "
 				<< "for its own cluster connections. This is most likely a configuration problem.";
