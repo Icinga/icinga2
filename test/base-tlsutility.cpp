@@ -144,12 +144,12 @@ BOOST_AUTO_TEST_CASE(VerifyCertificate_revalidate)
 	X509_NAME_add_entry_by_txt(leafSubject, "CN", MBSTRING_ASC, (const unsigned char*)"Leaf Certificate", -1, -1, 0);
 	auto leafKey = GenKeypair();
 	auto leafCert = CreateCert(leafKey, leafSubject, caSubject, signingCaKey, false);
-	BOOST_CHECK(VerifyCertificate(signingCaCert, leafCert, ""));
+	BOOST_CHECK(VerifyCertificate(signingCaCert, leafCert, "", ""));
 
 	// Create a second CA with a different key, the leaf certificate is supposed to fail validation against that CA.
 	auto otherCaKey = GenKeypair();
 	auto otherCaCert = CreateCert(otherCaKey, caSubject, caSubject, otherCaKey, true);
-	BOOST_CHECK_THROW(VerifyCertificate(otherCaCert, leafCert, ""), openssl_error);
+	BOOST_CHECK_THROW(VerifyCertificate(otherCaCert, leafCert, "", ""), openssl_error);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
