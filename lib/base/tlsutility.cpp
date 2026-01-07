@@ -479,7 +479,15 @@ std::shared_ptr<X509> GetX509Certificate(const String& pemfile)
 	return std::shared_ptr<X509>(cert, X509_free);
 }
 
-int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, const String& certfile, bool ca)
+int MakeX509CSR(
+	const String& cn,
+	const String& keyfile,
+	const String& csrfile,
+	const String& certfile,
+	long validFrom,
+	long validFor,
+	bool ca
+)
 {
 	char errbuf[256];
 
@@ -548,7 +556,7 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 		X509_NAME *subject = X509_NAME_new();
 		X509_NAME_add_entry_by_txt(subject, "CN", MBSTRING_ASC, (unsigned char *)cn.CStr(), -1, -1, 0);
 
-		std::shared_ptr<X509> cert = CreateCert(key, subject, subject, key, ca);
+		std::shared_ptr<X509> cert = CreateCert(key, subject, subject, key, validFrom, validFor, ca);
 
 		X509_NAME_free(subject);
 
@@ -641,12 +649,20 @@ int MakeX509CSR(const String& cn, const String& keyfile, const String& csrfile, 
 	return 1;
 }
 
-std::shared_ptr<X509> CreateCert(EVP_PKEY *pubkey, X509_NAME *subject, X509_NAME *issuer, EVP_PKEY *cakey, bool ca)
+std::shared_ptr<X509> CreateCert(
+	EVP_PKEY* pubkey,
+	X509_NAME* subject,
+	X509_NAME* issuer,
+	EVP_PKEY* cakey,
+	long validFrom,
+	long validFor,
+	bool ca
+)
 {
 	X509 *cert = X509_new();
 	X509_set_version(cert, 2);
-	X509_gmtime_adj(X509_get_notBefore(cert), 0);
-	X509_gmtime_adj(X509_get_notAfter(cert), ca ? ROOT_VALID_FOR : LEAF_VALID_FOR);
+	X509_gmtime_adj(X509_get_notBefore(cert), validFrom);
+	X509_gmtime_adj(X509_get_notAfter(cert), validFor);
 	X509_set_pubkey(cert, pubkey);
 
 	X509_set_subject_name(cert, subject);
@@ -729,7 +745,7 @@ String GetIcingaCADir()
 	return Configuration::DataDir + "/ca";
 }
 
-std::shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject, bool ca)
+std::shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject, long validFrom, long validFor, bool ca)
 {
 	char errbuf[256];
 
@@ -766,21 +782,37 @@ std::shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject, b
 	EVP_PKEY *privkey = EVP_PKEY_new();
 	EVP_PKEY_assign_RSA(privkey, rsa);
 
-	return CreateCert(pubkey, subject, X509_get_subject_name(cacert.get()), privkey, ca);
+	return CreateCert(pubkey, subject, X509_get_subject_name(cacert.get()), privkey, validFrom, validFor, ca);
 }
 
-std::shared_ptr<X509> CreateCertIcingaCA(const std::shared_ptr<X509>& cert)
+/**
+ * Creates a new X509 certificate signed by the Icinga CA.
+ *
+ * @param cert The certificate containing the public key and subject name.
+ * @param validFor The validity period in seconds. Defaults to LEAF_VALID_FOR.
+ * @param validFrom The start time offset in seconds. Defaults to 0 (now).
+ * @returns The new X509 certificate or an empty shared_ptr on error.
+ */
+std::shared_ptr<X509> CreateCertIcingaCA(const std::shared_ptr<X509>& cert, long validFrom, long validFor)
 {
 	std::shared_ptr<EVP_PKEY> pkey = std::shared_ptr<EVP_PKEY>(X509_get_pubkey(cert.get()), EVP_PKEY_free);
-	return CreateCertIcingaCA(pkey.get(), X509_get_subject_name(cert.get()));
+	return CreateCertIcingaCA(pkey.get(), X509_get_subject_name(cert.get()), validFrom, validFor);
 }
 
-static inline
-bool CertExpiresWithin(X509* cert, int seconds)
+/**
+ * Checks whether the specified certificate expires within the specified number of seconds.
+ *
+ * @param cert The certificate to its expiration for.
+ * @param seconds The number of seconds to check against.
+ *
+ * @returns True if the certificate expires within the specified number of seconds, false otherwise.
+ */
+static bool CertExpiresWithin(X509* cert, long seconds)
 {
-	time_t renewalStart = time(nullptr) + seconds;
+	auto now = time(nullptr);
+	std::shared_ptr<ASN1_TIME> renewalStart(X509_time_adj_ex(nullptr, 0, seconds, &now), ASN1_TIME_free);
 
-	return X509_cmp_time(X509_get_notAfter(cert), &renewalStart) < 0;
+	return Asn1TimeCompare(X509_get_notAfter(cert), renewalStart.get()) < 0;
 }
 
 bool IsCertUptodate(const std::shared_ptr<X509>& cert)
@@ -800,6 +832,46 @@ bool IsCertUptodate(const std::shared_ptr<X509>& cert)
 bool IsCaUptodate(X509* cert)
 {
 	return !CertExpiresWithin(cert, LEAF_VALID_FOR);
+}
+
+/**
+ * Compares two ASN1_TIME values.
+ *
+ * In OpenSSL versions prior to 1.1.0, ASN1_TIME_compare() is not available, so we use ASN1_TIME_diff() instead,
+ * and may throw an exception if it fails (only when the passed ASN1_TIME values have invalid time format). In all
+ * other OpenSSL versions, ASN1_TIME_compare() will be used.
+ *
+ * @param t1 The first time value.
+ * @param t2 The second time value.
+ *
+ * @returns -1 if t1 < t2, 0 if t1 == t2, 1 if t1 > t2.
+ */
+int Asn1TimeCompare(const ASN1_TIME* t1, const ASN1_TIME* t2)
+{
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+	return ASN1_TIME_compare(t1, t2);
+#else
+	int day, sec;
+	if (!ASN1_TIME_diff(&day, &sec, t1, t2)) {
+		char errbuf[256];
+		ERR_error_string_n(ERR_peek_error(), errbuf, sizeof errbuf);
+		Log(LogCritical, "SSL") << "Error on ASN1_TIME_diff: " << ERR_peek_error() << ", \"" << errbuf << "\"";
+
+		BOOST_THROW_EXCEPTION(openssl_error()
+			<< boost::errinfo_api_function("ASN1_TIME_diff")
+			<< errinfo_openssl_error(ERR_peek_error()));
+	}
+
+	if (day < 0 || sec < 0) {
+		return 1; // t1 > t2 (meaning t1 is later than t2)
+	}
+
+	if (day > 0 || sec > 0) {
+		return -1; // t1 < t2 (meaning t1 is earlier than t2)
+	}
+
+	return 0; // t1 == t2
+#endif
 }
 
 String CertificateToString(X509* cert)
