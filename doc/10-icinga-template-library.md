@@ -108,6 +108,15 @@ cluster\_lag\_critical | **Optional.** Critical threshold for log lag in seconds
 ### icingadb <a id="itl-icinga-icingadb"></a>
 
 Check command for the built-in `icingadb` check.
+It performs multiple checks, such as verifying that:
+
+- Whether the `IcingaDB` object has an active Redis connection.
+- Whether the Icinga DB daemon is active and has recently sent a heartbeat to Redis.
+- Whether exactly one Icinga DB daemon is claiming responsibility in HA mode.
+- Whether Icinga 2 does not take too long dumping the configuration to Redis (_full dump_).
+- Whether the Icinga DB daemon does not take too long synchronizing the configuration to the relation database (_full sync_).
+- The Redis backlog does not accumulate (_redis backlog_).
+- The relational database backlog does not accumulate (_database backlog_).
 
 Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
