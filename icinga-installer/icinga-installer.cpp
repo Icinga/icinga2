@@ -272,6 +272,7 @@ static int InstallIcinga(void)
 
 	ExecuteCommand("icacls", "\"" + dataDir + "\" /grant *S-1-5-20:(oi)(ci)m");
 	ExecuteCommand("icacls", "\"" + dataDir + "\\etc\" /inheritance:r /grant:r *S-1-5-20:(oi)(ci)m *S-1-5-32-544:(oi)(ci)f");
+	ExecuteCommand("icacls", "\"" + dataDir + "\\var\" /inheritance:r /grant:r *S-1-5-20:(oi)(ci)m *S-1-5-32-544:(oi)(ci)f");
 
 	ExecuteIcingaCommand("--scm-install daemon");
 
