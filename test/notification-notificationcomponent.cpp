@@ -277,6 +277,80 @@ BOOST_AUTO_TEST_CASE(notify_send_reminders)
 	BOOST_REQUIRE_EQUAL(GetLastNotification(), NotificationRecovery);
 }
 
+/* Tests if delayed notifications are sent out.
+ */
+BOOST_AUTO_TEST_CASE(notify_delayed)
+{
+	constexpr double timesBegin = 0.01;
+
+	/* We're always inside a time-period for this test-case.
+	 */
+	BeginTimePeriod();
+
+	/* Set large values to interval and the times window. We're not going to use these,
+	 * but they need to be defined, valid and large so the timer handler doesn't trigger them
+	 * on its own.
+	 */
+	SetNotificationInverval(0);
+	SetNotificationTimes(timesBegin, 20);
+
+	/* The notifications need to wait for a delay until they're sent out, so check if
+	 * they haven't been processed in SendNotificationsHandler() but instead delayed.
+	 */
+	ReceiveCheckResults(2, ServiceCritical);
+	BOOST_REQUIRE_EQUAL(GetLastNotification(), 0);
+	BOOST_REQUIRE_EQUAL(GetNotificationCount(), 0);
+
+	/* When processing the notification, BeginExecuteNotification() sets up the next scheduled
+	 * notification with an additional second to spare, which is an annoying delay for
+	 * unit-testing purposes, so we just verify that it is set correctly here, then reset it
+	 * to be already elapsed further down the line.
+	 */
+	BOOST_REQUIRE_CLOSE(GetNextNotificationTimestamp(), Utility::GetTime() + timesBegin + 1, 0.01);
+
+	/* Now call the NotificationTimerHandler(), which should also not send the notifications
+	 * out yet, because the times window has not yet been reached
+	 */
+	NotificationTimerHandler();
+	BOOST_REQUIRE_EQUAL(GetLastNotification(), 0);
+	BOOST_REQUIRE_EQUAL(GetNotificationCount(), 0);
+
+	/* Now we reset the next scheduled timer run to the past. Since we have verified above
+	 * that it was in fact set correctly, this is fine to do here so we don't have to wait.
+	 */
+	SetNextNotificationTimestamp(Utility::GetTime() + timesBegin);
+	WaitUntilNextReminderScheduled();
+	NotificationTimerHandler();
+	BOOST_REQUIRE(WaitForExpectedNotificationCount(1));
+	BOOST_REQUIRE_EQUAL(GetLastNotification(), NotificationProblem);
+
+	/* Reset to OK and repeat test with an interval value instead of 0.
+	 */
+	SetNotificationInverval(10);
+	ReceiveCheckResults(1, ServiceOK);
+	BOOST_REQUIRE(WaitForExpectedNotificationCount(2));
+	BOOST_REQUIRE_EQUAL(GetLastNotification(), NotificationRecovery);
+
+	ReceiveCheckResults(3, ServiceCritical);
+	BOOST_REQUIRE_EQUAL(GetLastNotification(), NotificationRecovery);
+	BOOST_REQUIRE_EQUAL(GetNotificationCount(), 2);
+
+	/* Again, no new notifications expected.
+	 */
+	BOOST_REQUIRE_CLOSE(GetNextNotificationTimestamp(), Utility::GetTime() + timesBegin + 1, 0.01);
+	NotificationTimerHandler();
+	BOOST_REQUIRE_EQUAL(GetLastNotification(), NotificationRecovery);
+	BOOST_REQUIRE_EQUAL(GetNotificationCount(), 2);
+
+	/* Again, after the delay has "elapsed", the "reminder" should be sent out.
+	 */
+	SetNextNotificationTimestamp(Utility::GetTime() + timesBegin);
+	WaitUntilNextReminderScheduled();
+	NotificationTimerHandler();
+	BOOST_REQUIRE(WaitForExpectedNotificationCount(3));
+	BOOST_REQUIRE_EQUAL(GetLastNotification(), NotificationProblem);
+}
+
 /* Tests simple sending of notifications on each state change.
  */
 BOOST_AUTO_TEST_CASE(notify_simple)
