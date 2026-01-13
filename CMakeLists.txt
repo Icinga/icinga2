@@ -36,11 +36,18 @@ option(ICINGA2_WITH_LIVESTATUS "Build the Livestatus module" ${ICINGA2_MASTER})
 option(ICINGA2_WITH_NOTIFICATION "Build the notification module" ON)
 option(ICINGA2_WITH_PERFDATA "Build the perfdata module" ${ICINGA2_MASTER})
 option(ICINGA2_WITH_ICINGADB "Build the IcingaDB module" ${ICINGA2_MASTER})
+option(ICINGA2_WITH_OPENTELEMETRY "Build the OpenTelemetry integration module" OFF)
 
 option (USE_SYSTEMD
  "Configure icinga as native systemd service instead of a SysV initscript" OFF)
 
 set(HAVE_SYSTEMD ${USE_SYSTEMD})
+
+if(WIN32)
+  # Turn off OpenTelemetry on Windows as there is no support for it.
+  set(ICINGA2_WITH_OPENTELEMETRY OFF CACHE BOOL "Disable OpenTelemetry on Windows" FORCE)
+endif()
+set(ICINGA2_OPENTELEMETRY_PROTOS_DIR "" CACHE PATH "Path to OpenTelemetry proto files directory")
 
 include(GNUInstallDirs)
 include(InstallConfig)
@@ -205,6 +212,17 @@ set(HAVE_EDITLINE "${EDITLINE_FOUND}")
 
 find_package(Termcap)
 set(HAVE_TERMCAP "${TERMCAP_FOUND}")
+
+if(ICINGA2_WITH_OPENTELEMETRY)
+  # Newer Protobuf versions provide a CMake config package that we should prefer, since it implicitly
+  # links against all its dependencies (like absl, etc.) that would otherwise need to be linked manually.
+  # Thus, first try to find Protobuf in config mode and only fall back to module mode if that fails.
+  find_package(Protobuf CONFIG)
+  if(NOT Protobuf_FOUND)
+    find_package(Protobuf REQUIRED)
+  endif()
+  list(APPEND base_DEPS protobuf::libprotobuf-lite)
+endif()
 
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/lib
