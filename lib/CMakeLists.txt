@@ -50,6 +50,10 @@ if(ICINGA2_WITH_NOTIFICATION)
   add_subdirectory(notification)
 endif()
 
+if(ICINGA2_WITH_OPENTELEMETRY)
+  add_subdirectory(otel)
+endif()
+
 if(ICINGA2_WITH_PERFDATA)
   add_subdirectory(perfdata)
 endif()
