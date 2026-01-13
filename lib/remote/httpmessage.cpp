@@ -93,6 +93,14 @@ void IncomingHttpMessage<isRequest, Body, StreamVariant>::ParseBody(
 	Base::body() = std::move(m_Parser.release().body());
 }
 
+template<bool isRequest, typename Body, typename StreamVariant>
+void IncomingHttpMessage<isRequest, Body, StreamVariant>::Parse(boost::asio::yield_context& yc)
+{
+	boost::beast::flat_buffer buf;
+	ParseHeader(buf, yc);
+	ParseBody(buf, yc);
+}
+
 HttpApiRequest::HttpApiRequest(Shared<AsioTlsStream>::Ptr stream) : IncomingHttpMessage(std::move(stream))
 {
 }
