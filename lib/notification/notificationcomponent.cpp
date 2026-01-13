@@ -161,6 +161,7 @@ void NotificationComponent::NotificationTimerHandler()
 		}
 
 		Checkable::Ptr checkable = notification->GetCheckable();
+		ObjectLock lock{checkable};
 
 		if (!IcingaApplication::GetInstance()->GetEnableNotifications() || !checkable->GetEnableNotifications())
 			continue;
@@ -226,8 +227,6 @@ void NotificationComponent::NotificationTimerHandler()
 			Host::Ptr host;
 			Service::Ptr service;
 			tie(host, service) = GetHostService(checkable);
-
-			ObjectLock olock(checkable);
 
 			if (checkable->GetStateType() == StateTypeSoft)
 				continue;

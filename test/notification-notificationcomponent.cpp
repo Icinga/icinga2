@@ -122,14 +122,17 @@ object NotificationComponent "nc" {}
 		m_NotificationCv.notify_all();
 	}
 
-	bool WaitForExpectedNotificationCount(std::size_t expectedCount, std::chrono::milliseconds timeout = 5s)
+	auto WaitForExpectedNotificationCount(std::size_t expectedCount, std::chrono::milliseconds timeout = 5s)
 	{
 		Defer clearLog{[this]() { ClearTestLogger(); }};
 		std::unique_lock lock(m_NotificationMutex);
-		if (m_NumNotifications > expectedCount) {
-			return false;
-		}
-		return m_NotificationCv.wait_for(lock, timeout, [&]() { return m_NumNotifications == expectedCount; });
+
+		m_NotificationCv.wait_for(lock, timeout, [&]() { return m_NumNotifications >= expectedCount; });
+
+		boost::test_tools::assertion_result res{m_NumNotifications == expectedCount};
+		res.message() << "(" << m_NumNotifications << " == " << expectedCount << ")";
+
+		return res;
 	}
 
 	boost::test_tools::assertion_result AssertNoAttemptedSendLogPattern()
@@ -161,9 +164,17 @@ object NotificationComponent "nc" {}
 
 	void SetNotificationInverval(double interval) { m_Notification->SetInterval(interval); }
 
+	void SetNotificationTimes(double begin, double end)
+	{
+		m_Notification->SetTimes(new Dictionary{{"begin", begin}, {"end", end}});
+	}
+
 	void WaitUntilNextReminderScheduled()
 	{
-		Utility::Sleep(m_Notification->GetNextNotification() - Utility::GetTime() + 0.01);
+		auto now = Utility::GetTime();
+		if(now < m_Notification->GetNextNotification()){
+			Utility::Sleep(m_Notification->GetNextNotification() - now + 0.01);
+		}
 		BOOST_REQUIRE_LE(m_Notification->GetNextNotification(), Utility::GetTime());
 	}
 
@@ -194,9 +205,23 @@ object NotificationComponent "nc" {}
 	}
 
 	double GetLastNotificationTimestamp() { return m_Notification->GetLastNotification(); }
+
+	double GetNextNotificationTimestamp() { return m_Notification->GetNextNotification(); }
+	void SetNextNotificationTimestamp(double val) { m_Notification->SetNextNotification(val); }
+
 	std::uint8_t GetSuppressedNotifications() { return m_Notification->GetSuppressedNotifications(); }
-	static NotificationType GetLastNotification() { return m_LastNotification; }
-	static std::size_t GetNotificationCount() { return m_NumNotifications; }
+
+	static NotificationType GetLastNotification()
+	{
+		std::unique_lock lock(m_NotificationMutex);
+		return m_LastNotification;
+	}
+
+	static std::size_t GetNotificationCount()
+	{
+		std::unique_lock lock(m_NotificationMutex);
+		return m_NumNotifications;
+	}
 
 private:
 	static inline std::mutex m_NotificationMutex;
@@ -210,7 +235,8 @@ private:
 	Dictionary::Ptr m_AllTimePeriod;
 };
 
-BOOST_FIXTURE_TEST_SUITE(notificationcomponent, NotificationComponentFixture);
+BOOST_FIXTURE_TEST_SUITE(notificationcomponent, NotificationComponentFixture,
+	*boost::unit_test::label("notification"));
 
 /* Test sending out reminder notifications in a given interval.
  */
@@ -249,6 +275,80 @@ BOOST_AUTO_TEST_CASE(notify_send_reminders)
 	BOOST_REQUIRE(AssertNoAttemptedSendLogPattern());
 	BOOST_REQUIRE_EQUAL(GetNotificationCount(), 3);
 	BOOST_REQUIRE_EQUAL(GetLastNotification(), NotificationRecovery);
+}
+
+/* Tests if delayed notifications are sent out.
+ */
+BOOST_AUTO_TEST_CASE(notify_delayed)
+{
+	constexpr double timesBegin = 0.01;
+
+	/* We're always inside a time-period for this test-case.
+	 */
+	BeginTimePeriod();
+
+	/* Set large values to interval and the times window. We're not going to use these,
+	 * but they need to be defined, valid and large so the timer handler doesn't trigger them
+	 * on its own.
+	 */
+	SetNotificationInverval(0);
+	SetNotificationTimes(timesBegin, 20);
+
+	/* The notifications need to wait for a delay until they're sent out, so check if
+	 * they haven't been processed in SendNotificationsHandler() but instead delayed.
+	 */
+	ReceiveCheckResults(2, ServiceCritical);
+	BOOST_REQUIRE_EQUAL(GetLastNotification(), 0);
+	BOOST_REQUIRE_EQUAL(GetNotificationCount(), 0);
+
+	/* When processing the notification, BeginExecuteNotification() sets up the next scheduled
+	 * notification with an additional second to spare, which is an annoying delay for
+	 * unit-testing purposes, so we just verify that it is set correctly here, then reset it
+	 * to be already elapsed further down the line.
+	 */
+	BOOST_REQUIRE_CLOSE(GetNextNotificationTimestamp(), Utility::GetTime() + timesBegin + 1, 0.01);
+
+	/* Now call the NotificationTimerHandler(), which should also not send the notifications
+	 * out yet, because the times window has not yet been reached
+	 */
+	NotificationTimerHandler();
+	BOOST_REQUIRE_EQUAL(GetLastNotification(), 0);
+	BOOST_REQUIRE_EQUAL(GetNotificationCount(), 0);
+
+	/* Now we reset the next scheduled timer run to the past. Since we have verified above
+	 * that it was in fact set correctly, this is fine to do here so we don't have to wait.
+	 */
+	SetNextNotificationTimestamp(Utility::GetTime() + timesBegin);
+	WaitUntilNextReminderScheduled();
+	NotificationTimerHandler();
+	BOOST_REQUIRE(WaitForExpectedNotificationCount(1));
+	BOOST_REQUIRE_EQUAL(GetLastNotification(), NotificationProblem);
+
+	/* Reset to OK and repeat test with an interval value instead of 0.
+	 */
+	SetNotificationInverval(10);
+	ReceiveCheckResults(1, ServiceOK);
+	BOOST_REQUIRE(WaitForExpectedNotificationCount(2));
+	BOOST_REQUIRE_EQUAL(GetLastNotification(), NotificationRecovery);
+
+	ReceiveCheckResults(3, ServiceCritical);
+	BOOST_REQUIRE_EQUAL(GetLastNotification(), NotificationRecovery);
+	BOOST_REQUIRE_EQUAL(GetNotificationCount(), 2);
+
+	/* Again, no new notifications expected.
+	 */
+	BOOST_REQUIRE_CLOSE(GetNextNotificationTimestamp(), Utility::GetTime() + timesBegin + 1, 0.01);
+	NotificationTimerHandler();
+	BOOST_REQUIRE_EQUAL(GetLastNotification(), NotificationRecovery);
+	BOOST_REQUIRE_EQUAL(GetNotificationCount(), 2);
+
+	/* Again, after the delay has "elapsed", the "reminder" should be sent out.
+	 */
+	SetNextNotificationTimestamp(Utility::GetTime() + timesBegin);
+	WaitUntilNextReminderScheduled();
+	NotificationTimerHandler();
+	BOOST_REQUIRE(WaitForExpectedNotificationCount(3));
+	BOOST_REQUIRE_EQUAL(GetLastNotification(), NotificationProblem);
 }
 
 /* Tests simple sending of notifications on each state change.
@@ -496,6 +596,43 @@ BOOST_AUTO_TEST_CASE(no_notify_non_applicable_reason)
 	BOOST_REQUIRE_EQUAL(GetNotificationCount(), 0);
 	BOOST_REQUIRE_EQUAL(GetLastNotification(), 0);
 	BOOST_REQUIRE_EQUAL(GetSuppressedNotifications(), 0);
+}
+
+/**
+ * This tests for regressions of races around the NoMoreNotifications flag, like in #10623.
+ *
+ * The potential for race-conditions exists in this case because check-results potentially
+ * leading to notifications are processed synchronously in SendNotificationsHandler() and
+ * asynchronously in NotificationTimerHandler() when the timer runs out.
+ */
+BOOST_AUTO_TEST_CASE(no_more_notifications_race)
+{
+	constexpr auto numIterations = 20UL;
+
+	BeginTimePeriod();
+
+	// Run the handler in a loop to provoke any existing race conditions.
+	std::atomic_bool stop;
+	auto timerThread = std::thread{[&stop]() {
+		while (!stop) {
+			NotificationTimerHandler();
+		}
+	}};
+
+	ReceiveCheckResults(1, ServiceOK);
+
+	// With interval 0, no reminder notifications should ever be sent.
+	for (auto i = 0UL; i < numIterations; ++i) {
+		ReceiveCheckResults(3, ServiceCritical);
+		ReceiveCheckResults(1, ServiceOK);
+	}
+
+	stop = true;
+	timerThread.join();
+
+	BOOST_REQUIRE(WaitForExpectedNotificationCount(2 * numIterations));
+	BOOST_REQUIRE(!WaitForExpectedNotificationCount((2 * numIterations) + 1, 10ms));
+	BOOST_REQUIRE(!ExpectLogPattern("^Sending reminder.*$", 0s));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
