@@ -9,14 +9,13 @@
 #include "config/configitem.hpp"
 #include "icinga/host.hpp"
 #include "test/base-testloggerfixture.hpp"
-#include "test/perfdata-perfdatawriterconnectionfixture.hpp"
+#include "test/perfdata-perfdatatargetfixture.hpp"
 #include <boost/hana.hpp>
-#include <boost/random.hpp>
 
 namespace icinga {
 
 template<typename Writer>
-class PerfdataWriterFixture : public PerfdataWriterConnectionFixture, public TestLoggerFixture
+class PerfdataWriterFixture : public PerfdataWriterTargetFixture, public TestLoggerFixture
 {
 public:
 	PerfdataWriterFixture() : m_Writer(new Writer)
@@ -56,19 +55,6 @@ object Host "h1" {
 		m_Writer->SetActive(true);
 		m_Writer->Activate();
 		BOOST_REQUIRE(!m_Writer->IsPaused());
-	}
-
-	static std::string GetRandomString(std::string prefix, std::size_t length)
-	{
-		std::string alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-		boost::random::mt19937 generator;
-		boost::random::uniform_int_distribution<> distribution(0, alphabet.size() - 1);
-
-		for (auto i = 0U; i < length; i++) {
-			prefix += alphabet[distribution(generator)];
-		}
-
-		return prefix;
 	}
 
 	/**

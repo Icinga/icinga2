@@ -23,3 +23,5 @@ struct GlobalTimezoneFixture
 
     char *tz;
 };
+
+std::string GetRandomString(std::string prefix, std::size_t length);

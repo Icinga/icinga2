@@ -4,6 +4,7 @@
 #include "perfdata/gelfwriter.hpp"
 #include "test/base-testloggerfixture.hpp"
 #include "test/perfdata-perfdatawriterfixture.hpp"
+#include "test/utils.hpp"
 
 using namespace icinga;
 
@@ -29,7 +30,7 @@ BOOST_AUTO_TEST_CASE(pause_with_pending_work)
 {
 	// Make GelfWriter fill up the connection's buffer with a huge check-result.
 	ReceiveCheckResults(1, ServiceState::ServiceCritical, [](const CheckResult::Ptr& cr) {
-		cr->SetOutput(GetRandomString("####", 1024 * 1024));
+		cr->SetOutput(GetRandomString("####", 1024UL * 1024));
 	});
 
 	// Accept the connection, but only read far enough so we know the writer is now stuck.

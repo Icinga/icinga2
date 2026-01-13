@@ -3,8 +3,8 @@
 #include <BoostTestTargetConfig.h>
 #include "perfdata/elasticsearchwriter.hpp"
 #include "test/base-testloggerfixture.hpp"
-#include "test/perfdata-perfdatawriterconnectionfixture.hpp"
 #include "test/perfdata-perfdatawriterfixture.hpp"
+#include "test/utils.hpp"
 
 using namespace icinga;
 
@@ -32,7 +32,7 @@ BOOST_AUTO_TEST_CASE(connect)
 BOOST_AUTO_TEST_CASE(pause_with_pending_work)
 {
 	ReceiveCheckResults(1, ServiceState::ServiceCritical, [](const CheckResult::Ptr& cr) {
-		cr->SetOutput(GetRandomString("####", 1024 * 1024));
+		cr->SetOutput(GetRandomString("####", 1024UL * 1024));
 	});
 
 	// Accept the connection, but don't read from it to leave the client hanging.

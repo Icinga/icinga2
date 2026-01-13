@@ -4,6 +4,7 @@
 #include "perfdata/opentsdbwriter.hpp"
 #include "test/base-testloggerfixture.hpp"
 #include "test/perfdata-perfdatawriterfixture.hpp"
+#include "test/utils.hpp"
 
 using namespace icinga;
 

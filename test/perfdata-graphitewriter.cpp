@@ -4,11 +4,15 @@
 #include "perfdata/graphitewriter.hpp"
 #include "test/base-testloggerfixture.hpp"
 #include "test/perfdata-perfdatawriterfixture.hpp"
+#include "test/utils.hpp"
 
 using namespace icinga;
 
-BOOST_FIXTURE_TEST_SUITE(perfdata_graphitewriter, PerfdataWriterFixture<GraphiteWriter>,
-	*boost::unit_test::label("perfdata"))
+BOOST_FIXTURE_TEST_SUITE(
+	perfdata_graphitewriter,
+	PerfdataWriterFixture<GraphiteWriter>,
+	*boost::unit_test::label("perfdata")
+)
 
 BOOST_AUTO_TEST_CASE(connect)
 {
@@ -27,7 +31,7 @@ BOOST_AUTO_TEST_CASE(pause_with_pending_work)
 {
 	// Make GraphiteWriter send a huge message that fills up the connection's buffer.
 	ReceiveCheckResults(1, ServiceState::ServiceCritical, [&](const CheckResult::Ptr& cr) {
-		cr->GetPerformanceData()->Add(new PerfdataValue{GetRandomString("aaaa", 24 * 1024 * 1024), 1});
+		cr->GetPerformanceData()->Add(new PerfdataValue{GetRandomString("aaaa", 24UL * 1024 * 1024), 1});
 	});
 
 	// Accept the connection, but don't read from it to leave the client hanging.

@@ -5,22 +5,36 @@
 #include <BoostTestTargetConfig.h>
 #include "base/io-engine.hpp"
 #include "base/json.hpp"
+#include "base/tlsstream.hpp"
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/asio/read_until.hpp>
 #include <boost/asio/streambuf.hpp>
+#include <boost/asio/use_future.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/http/message.hpp>
 #include <boost/beast/http/parser.hpp>
 #include <boost/beast/http/string_body.hpp>
+#include <future>
 
 namespace icinga {
 
-class PerfdataWriterConnectionFixture
+class PerfdataWriterTargetFixture
 {
 public:
-	PerfdataWriterConnectionFixture()
-		: m_Socket(IoEngine::Get().GetIoContext()),
+	PerfdataWriterTargetFixture()
+		: icinga::PerfdataWriterTargetFixture(Shared<AsioTcpStream>::Make(IoEngine::Get().GetIoContext()))
+	{
+	}
+
+	explicit PerfdataWriterTargetFixture(const Shared<boost::asio::ssl::context>::Ptr& sslCtx)
+		: icinga::PerfdataWriterTargetFixture(Shared<AsioTlsStream>::Make(IoEngine::Get().GetIoContext(), *sslCtx))
+	{
+		m_SslContext = sslCtx;
+	}
+
+	explicit PerfdataWriterTargetFixture(AsioTlsOrTcpStream stream)
+		: m_Stream(std::move(stream)),
 		  m_Acceptor(
 			  IoEngine::Get().GetIoContext(),
 			  boost::asio::ip::tcp::endpoint{boost::asio::ip::address_v4::loopback(), 0}
@@ -31,13 +45,29 @@ public:
 		m_Acceptor.listen();
 	}
 
-	unsigned int GetPort() { return m_Acceptor.local_endpoint().port(); }
+	unsigned short GetPort() { return m_Acceptor.local_endpoint().port(); }
+
+	auto AsyncAccept()
+	{
+		return std::visit(
+			[&](auto& stream) { return m_Acceptor.async_accept(stream->lowest_layer(), boost::asio::use_future); },
+			m_Stream
+		);
+	}
 
 	void Accept()
 	{
-		boost::system::error_code ec;
-		m_Acceptor.accept(m_Socket);
-		BOOST_REQUIRE_MESSAGE(!ec, ec.message());
+		auto f = AsyncAccept();
+		BOOST_REQUIRE_NO_THROW(f.get());
+	}
+
+	void Handshake()
+	{
+		BOOST_REQUIRE(std::holds_alternative<Shared<AsioTlsStream>::Ptr>(m_Stream));
+		using handshake_type = UnbufferedAsioTlsStream::handshake_type;
+		auto & stream = std::get<Shared<AsioTlsStream>::Ptr>(m_Stream);
+		BOOST_REQUIRE_NO_THROW(stream->next_layer().handshake(handshake_type::server));
+		BOOST_REQUIRE(stream->next_layer().IsVerifyOK());
 	}
 
 	std::string GetRequestBody()
@@ -46,9 +76,8 @@ public:
 		using namespace boost::beast;
 
 		boost::system::error_code ec;
-		// flat_buffer buf;
 		http::request_parser<boost::beast::http::string_body> parser;
-		http::read(m_Socket, m_Buffer, parser, ec);
+		std::visit([&](auto& stream) { http::read(*stream, m_Buffer, parser, ec); }, m_Stream);
 		BOOST_REQUIRE(!ec);
 
 		return parser.get().body();
@@ -79,7 +108,10 @@ public:
 		using namespace boost::asio::ip;
 
 		boost::system::error_code ec;
-		auto bytesRead = boost::asio::read_until(m_Socket, m_Buffer, std::forward<T>(delim), ec);
+		auto bytesRead = std::visit(
+			[&](auto& stream) { return boost::asio::read_until(*stream, m_Buffer, std::forward<T>(delim), ec); },
+			m_Stream
+		);
 		BOOST_REQUIRE_MESSAGE(!ec, ec.message());
 
 		std::string ret{
@@ -98,16 +130,20 @@ public:
 		boost::system::error_code ec;
 		http::response<boost::beast::http::empty_body> response;
 		response.result(status);
-		http::write(m_Socket, response, ec);
+		std::visit([&](auto& stream) { http::write(*stream, response, ec); }, m_Stream);
 		BOOST_REQUIRE_MESSAGE(!ec, ec.message());
 	}
 
-	void CloseConnection() { m_Socket.lowest_layer().close(); }
+	void CloseConnection()
+	{
+		std::visit([&](auto& stream) { stream->lowest_layer().close(); }, m_Stream);
+	}
 
 private:
 	boost::asio::streambuf m_Buffer;
-	boost::asio::ip::tcp::socket m_Socket;
+	AsioTlsOrTcpStream m_Stream;
 	boost::asio::ip::tcp::acceptor m_Acceptor;
+	Shared<boost::asio::ssl::context>::Ptr m_SslContext;
 };
 
 } // namespace icinga
