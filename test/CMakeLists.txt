@@ -68,6 +68,10 @@ if(ICINGA2_WITH_NOTIFICATION)
   list(APPEND types_test_SOURCES $<TARGET_OBJECTS:notification>)
 endif()
 
+if(ICINGA2_WITH_OPENTELEMETRY)
+  list(APPEND types_test_SOURCES $<TARGET_OBJECTS:otel>)
+endif()
+
 if(ICINGA2_WITH_PERFDATA)
   list(APPEND types_test_SOURCES $<TARGET_OBJECTS:perfdata>)
 endif()
