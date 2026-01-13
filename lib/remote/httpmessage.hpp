@@ -176,6 +176,14 @@ public:
 	 */
 	void ParseBody(boost::beast::flat_buffer& buf, boost::asio::yield_context yc);
 
+	/**
+	 * Parse the entire message (header and body) using the internal parser object.
+	 *
+	 * This is just a convenience wrapper around @c ParseHeader() and @c ParseBody() that consecutively calls
+	 * both of them. It can be used when you don't need to do anything with the header before parsing the body.
+	 */
+	void Parse(boost::asio::yield_context& yc);
+
 	ParserType& Parser() { return m_Parser; }
 
 private:
@@ -248,6 +256,13 @@ public:
 	void Flush(boost::asio::yield_context yc, bool finish = false);
 
 	[[nodiscard]] bool HasSerializationStarted() const { return m_SerializationStarted; }
+
+	/**
+	 * Check if the message has been fully serialized.
+	 *
+	 * @return true if the message is fully serialized; false otherwise.
+	 */
+	[[nodiscard]] bool Done() { return m_Serializer.is_done(); }
 
 	/**
 	 * Sends the contents of a file.
