@@ -38,6 +38,8 @@ RUN apt-get update && \
         libpq-dev \
         libssl-dev \
         libsystemd-dev \
+        libprotobuf-dev \
+        protobuf-compiler \
         make && \
     rm -rf /var/lib/apt/lists/*
 
@@ -165,6 +167,7 @@ RUN apt-get update && \
         libmariadb3 \
         libmoosex-role-timer-perl \
         libpq5 \
+        libprotobuf-lite32t64 \
         libssl3 \
         libsystemd0 \
         mailutils \
