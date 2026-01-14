@@ -214,6 +214,12 @@ if(ICINGA2_WITH_OPENTELEMETRY)
   # Thus, first try to find Protobuf in config mode and only fall back to module mode if that fails.
   find_package(Protobuf CONFIG)
   if(NOT Protobuf_FOUND)
+    # FindProtobuf.cmake in CMake versions < 3.31.0 is just broken and mixes up the Protobuf output directories
+    # and it doesn't even support to pass any PLUGIN_OPTIONS like "lite" to the protobuf_generate() function in
+    # order to generate code for the lite runtime without having to modify the proto files directly.
+    if(CMAKE_VERSION VERSION_LESS 3.31.0)
+      list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/third-party/cmake/protobuf")
+    endif()
     find_package(Protobuf REQUIRED)
   endif()
   list(APPEND base_DEPS protobuf::libprotobuf-lite)
