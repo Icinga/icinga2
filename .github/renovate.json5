@@ -1,0 +1,6 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "local>rtbhouse-platform-engineering/renovate-scanner//renovate/default.json5"
+  ]
+}

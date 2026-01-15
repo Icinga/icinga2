@@ -1,0 +1,18 @@
+name: Automated dependency updates
+on:
+  schedule:
+    - cron: "0 5 * * *"
+  workflow_dispatch:
+
+jobs:
+  renovate:
+    name: Renovate
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: rtbhouse-platform-engineering/renovate-scanner/.github/actions/run-renovate@261480b2d6b5bb71fc7276c976a8e202f124de76 # v0.1.1
+        with:
+          gh-renovate-config-preset-app-id: ${{ vars.GH_READER_APP_ID }}
+          gh-renovate-config-preset-app-private-key: ${{ secrets.GH_READER_APP_PRIVATE_KEY }}
+          gh-renovate-app-id: ${{ vars.GH_RENOVATE_APP_ID }}
+          gh-renovate-app-private-key: ${{ secrets.GH_RENOVATE_APP_PRIVATE_KEY }}
