@@ -1,0 +1,66 @@
+// SPDX-FileCopyrightText: 2026 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+#include "base/configobject.hpp"
+
+library perfdata;
+
+namespace icinga
+{
+
+class OTLPMetricsWriter : ConfigObject
+{
+    [config, required] String host {
+        default {{{ return "127.0.0.1"; }}}
+    };
+    [config] int port {
+        default {{{ return 4318; }}}
+    };
+    [config, required] String metrics_endpoint {
+        default {{{ return "/v1/metrics"; }}}
+    };
+
+    [config,required] String service_namespace {
+        default {{{ return "icinga"; }}}
+    };
+
+    [config, no_user_view] Dictionary::Ptr basic_auth;
+
+    [config] int flush_interval {
+        default {{{ return 15; }}}
+    };
+    [config] int64_t flush_threshold {
+        default {{{ return 32 * 1024 * 1024; }}}
+    };
+    [config] bool enable_ha {
+        default {{{ return false; }}}
+    };
+	[config] bool enable_send_thresholds {
+		default {{{ return false; }}}
+	};
+	[config] int disconnect_timeout {
+		default {{{ return 10; }}}
+	};
+
+	[config] bool enable_tls {
+		default {{{ return false; }}}
+	};
+	[config] bool tls_insecure_noverify {
+		default {{{ return false; }}}
+	};
+	[config] String tls_ca_file;
+	[config] String tls_cert_file;
+	[config] String tls_key_file;
+};
+
+validator OTLPMetricsWriter
+{
+    Dictionary basic_auth {
+        required username;
+        String username;
+        required password;
+        String password;
+    };
+};
+
+} // namespace icinga
