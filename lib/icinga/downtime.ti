@@ -43,11 +43,13 @@ class Downtime : ConfigObject < DowntimeNameComposer
 			}
 		}}}
 		navigate {{{
-			if (GetServiceName().IsEmpty())
-				return nullptr;
+			if (!GetServiceName().IsEmpty()) {
+				Host::Ptr host = Host::GetByName(GetHostName());
+				if (host)
+					return host->GetServiceByShortName(GetServiceName());
+			}
 
-			Host::Ptr host = Host::GetByName(GetHostName());
-			return host->GetServiceByShortName(GetServiceName());
+			return nullptr;
 		}}}
 	};
 
