@@ -2086,6 +2086,7 @@ requiring them to be processed in the same order that they were sent. This is cu
 messages from the same connection sequentially.
 
 To work around this limit, the following approaches are possible:
+
 1. Try to redistribute load between connections, for example if the overloaded connection is between the master and
    a satellite zone, try splitting this zone into two, distributing the load across two connections.
 2. Reduce the load on that connection. Typically, the most frequent message type will be check results, so reducing
