@@ -2959,6 +2959,7 @@ By default, the following features provide advanced HA functionality:
 * [Graphite](09-object-types.md#objecttype-graphitewriter)
 * [InfluxDB](09-object-types.md#objecttype-influxdb2writer) (v1 and v2)
 * [OpenTsdb](09-object-types.md#objecttype-opentsdbwriter)
+* [OTLPMetrics](09-object-types.md#objecttype-otlpmetricswriter)
 * [Perfdata](09-object-types.md#objecttype-perfdatawriter) (for PNP)
 
 #### High-Availability with Checks <a id="distributed-monitoring-high-availability-checks"></a>
