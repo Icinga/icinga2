@@ -2761,7 +2761,7 @@ mongodb_disableretrywrites       | **Optional.** If set to true, will disable Re
 
 #### elasticsearch <a id="plugin-contrib-command-elasticsearch"></a>
 
-The [check_elasticsearch](https://github.com/anchor/nagios-plugin-elasticsearch) plugin
+The [check_elasticsearch](https://github.com/NETWAYS/check_elasticsearch) plugin
 uses the HTTP API to monitor an [Elasticsearch](https://www.elastic.co/products/elasticsearch) node.
 
 Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
@@ -2769,11 +2769,12 @@ Custom variables passed as [command parameters](03-monitoring-basics.md#command-
 Name                         | Description
 -----------------------------|-------------------------------------------------------------------------------------------------------
 elasticsearch_host           | **Optional.** Hostname or network address to probe. Defaults to "$address$" if the host's `address` attribute is set, "$address6$" otherwise.
-elasticsearch_failuredomain  | **Optional.** A comma-separated list of ElasticSearch attributes that make up your cluster's failure domain.
-elasticsearch_masternodes    | **Optional.** Issue a warning if the number of master-eligible nodes in the cluster drops below this number. By default, do not monitor the number of nodes in the cluster.
 elasticsearch_port           | **Optional.** TCP port to probe.  The ElasticSearch API should be listening here. Defaults to 9200.
-elasticsearch_prefix         | **Optional.** Optional prefix (e.g. 'es') for the ElasticSearch API. Defaults to ''.
-elasticsearch_yellowcritical | **Optional.** Instead of issuing a 'warning' for a yellow cluster state, issue a 'critical' alert. Defaults to false.
+elasticsearch_username       | **Optional.** Username if authentication is required
+elasticsearch_password       | **Optional.** Password if authentication is required
+elasticsearch_timeout        | **Optional.** Allows to set timeout for execution of this plugin.
+elasticsearch_tls            | **Optional.** Use a HTTPS connection (default false)
+elasticsearch_insecure       | **Optional.** Skip the verification of the server's TLS certificate (default false)
 
 #### redis <a id="plugin-contrib-command-redis"></a>
 
