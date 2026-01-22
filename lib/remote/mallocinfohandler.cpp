@@ -19,8 +19,8 @@ REGISTER_URLHANDLER("/v1/debug/malloc_info", MallocInfoHandler);
 
 bool MallocInfoHandler::HandleRequest(
 	const WaitGroup::Ptr&,
-	const HttpRequest& request,
-	HttpResponse& response,
+	const HttpApiRequest& request,
+	HttpApiResponse& response,
 	boost::asio::yield_context&
 )
 {

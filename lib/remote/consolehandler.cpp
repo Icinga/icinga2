@@ -54,8 +54,8 @@ static void EnsureFrameCleanupTimer()
 
 bool ConsoleHandler::HandleRequest(
 	const WaitGroup::Ptr&,
-	const HttpRequest& request,
-	HttpResponse& response,
+	const HttpApiRequest& request,
+	HttpApiResponse& response,
 	boost::asio::yield_context& yc
 )
 {
@@ -102,7 +102,7 @@ bool ConsoleHandler::HandleRequest(
 	return true;
 }
 
-bool ConsoleHandler::ExecuteScriptHelper(const HttpRequest& request, HttpResponse& response,
+bool ConsoleHandler::ExecuteScriptHelper(const HttpApiRequest& request, HttpApiResponse& response,
 	const String& command, const String& session, bool sandboxed)
 {
 	namespace http = boost::beast::http;
@@ -176,7 +176,7 @@ bool ConsoleHandler::ExecuteScriptHelper(const HttpRequest& request, HttpRespons
 	return true;
 }
 
-bool ConsoleHandler::AutocompleteScriptHelper(const HttpRequest& request, HttpResponse& response,
+bool ConsoleHandler::AutocompleteScriptHelper(const HttpApiRequest& request, HttpApiResponse& response,
 	const String& command, const String& session, bool sandboxed)
 {
 	namespace http = boost::beast::http;

@@ -30,7 +30,7 @@ constexpr std::size_t l_FlushThreshold = 128UL * 1024UL;
 class HttpResponseJsonWriter : public AsyncJsonWriter
 {
 public:
-	explicit HttpResponseJsonWriter(HttpResponse& msg) : m_Message{msg}
+	explicit HttpResponseJsonWriter(HttpApiResponse& msg) : m_Message{msg}
 	{
 		m_Message.body().Start();
 #if BOOST_VERSION >= 107000
@@ -59,51 +59,51 @@ public:
 	}
 
 private:
-	HttpResponse& m_Message;
+	HttpApiResponse& m_Message;
 };
 
-HttpRequest::HttpRequest(Shared<AsioTlsStream>::Ptr stream) : m_Stream(std::move(stream))
+HttpApiRequest::HttpApiRequest(Shared<AsioTlsStream>::Ptr stream) : m_Stream(std::move(stream))
 {
 }
 
-void HttpRequest::ParseHeader(boost::beast::flat_buffer& buf, boost::asio::yield_context yc)
+void HttpApiRequest::ParseHeader(boost::beast::flat_buffer& buf, boost::asio::yield_context yc)
 {
 	boost::beast::http::async_read_header(*m_Stream, buf, m_Parser, yc);
 	base() = m_Parser.get().base();
 }
 
-void HttpRequest::ParseBody(boost::beast::flat_buffer& buf, boost::asio::yield_context yc)
+void HttpApiRequest::ParseBody(boost::beast::flat_buffer& buf, boost::asio::yield_context yc)
 {
 	boost::beast::http::async_read(*m_Stream, buf, m_Parser, yc);
 	body() = std::move(m_Parser.release().body());
 }
 
-ApiUser::Ptr HttpRequest::User() const
+ApiUser::Ptr HttpApiRequest::User() const
 {
 	return m_User;
 }
 
-void HttpRequest::User(const ApiUser::Ptr& user)
+void HttpApiRequest::User(const ApiUser::Ptr& user)
 {
 	m_User = user;
 }
 
-Url::Ptr HttpRequest::Url() const
+Url::Ptr HttpApiRequest::Url() const
 {
 	return m_Url;
 }
 
-void HttpRequest::DecodeUrl()
+void HttpApiRequest::DecodeUrl()
 {
 	m_Url = new icinga::Url(std::string(target()));
 }
 
-Dictionary::Ptr HttpRequest::Params() const
+Dictionary::Ptr HttpApiRequest::Params() const
 {
 	return m_Params;
 }
 
-void HttpRequest::DecodeParams()
+void HttpApiRequest::DecodeParams()
 {
 	if (!m_Url) {
 		DecodeUrl();
@@ -111,18 +111,18 @@ void HttpRequest::DecodeParams()
 	m_Params = HttpUtility::FetchRequestParameters(m_Url, body());
 }
 
-HttpResponse::HttpResponse(Shared<AsioTlsStream>::Ptr stream, HttpServerConnection::Ptr server)
+HttpApiResponse::HttpApiResponse(Shared<AsioTlsStream>::Ptr stream, HttpServerConnection::Ptr server)
 	: m_Server(std::move(server)), m_Stream(std::move(stream))
 {
 }
 
-void HttpResponse::Clear()
+void HttpApiResponse::Clear()
 {
 	ASSERT(!m_SerializationStarted);
 	boost::beast::http::response<body_type>::operator=({});
 }
 
-void HttpResponse::Flush(boost::asio::yield_context yc)
+void HttpApiResponse::Flush(boost::asio::yield_context yc)
 {
 	if (!chunked() && !has_content_length()) {
 		ASSERT(!m_SerializationStarted);
@@ -149,7 +149,7 @@ void HttpResponse::Flush(boost::asio::yield_context yc)
 	ASSERT(m_Serializer.is_done() || !body().Finished());
 }
 
-void HttpResponse::StartStreaming(bool checkForDisconnect)
+void HttpApiResponse::StartStreaming(bool checkForDisconnect)
 {
 	ASSERT(body().Size() == 0 && !m_SerializationStarted);
 	body().Start();
@@ -161,13 +161,13 @@ void HttpResponse::StartStreaming(bool checkForDisconnect)
 	}
 }
 
-bool HttpResponse::IsClientDisconnected() const
+bool HttpApiResponse::IsClientDisconnected() const
 {
 	ASSERT(m_Server);
 	return m_Server->Disconnected();
 }
 
-void HttpResponse::SendFile(const String& path, const boost::asio::yield_context& yc)
+void HttpApiResponse::SendFile(const String& path, const boost::asio::yield_context& yc)
 {
 	std::ifstream fp(path.CStr(), std::ifstream::in | std::ifstream::binary | std::ifstream::ate);
 	fp.exceptions(std::ifstream::badbit | std::ifstream::eofbit);
@@ -190,7 +190,7 @@ void HttpResponse::SendFile(const String& path, const boost::asio::yield_context
 	}
 }
 
-JsonEncoder HttpResponse::GetJsonEncoder(bool pretty)
+JsonEncoder HttpApiResponse::GetJsonEncoder(bool pretty)
 {
 	return JsonEncoder{std::make_shared<HttpResponseJsonWriter>(*this), pretty};
 }

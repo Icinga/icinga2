@@ -30,16 +30,16 @@ public:
 
 	virtual bool HandleRequest(
 		const WaitGroup::Ptr& waitGroup,
-		const HttpRequest& request,
-		HttpResponse& response,
+		const HttpApiRequest& request,
+		HttpApiResponse& response,
 		boost::asio::yield_context& yc
 	) = 0;
 
 	static void Register(const Url::Ptr& url, const HttpHandler::Ptr& handler);
 	static void ProcessRequest(
 		const WaitGroup::Ptr& waitGroup,
-		HttpRequest& request,
-		HttpResponse& response,
+		HttpApiRequest& request,
+		HttpApiResponse& response,
 		boost::asio::yield_context& yc
 	);
 

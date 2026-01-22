@@ -23,8 +23,8 @@ public:
 	static Dictionary::Ptr FetchRequestParameters(const Url::Ptr& url, const std::string& body);
 	static Value GetLastParameter(const Dictionary::Ptr& params, const String& key);
 
-	static void SendJsonBody(HttpResponse& response, const Dictionary::Ptr& params, const Value& val);
-	static void SendJsonError(HttpResponse& response, const Dictionary::Ptr& params, const int code,
+	static void SendJsonBody(HttpApiResponse& response, const Dictionary::Ptr& params, const Value& val);
+	static void SendJsonError(HttpApiResponse& response, const Dictionary::Ptr& params, const int code,
 		const String& info = {}, const String& diagnosticInformation = {});
 
 	static bool IsValidHeaderName(std::string_view name);

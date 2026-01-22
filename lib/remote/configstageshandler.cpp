@@ -20,8 +20,8 @@ static std::mutex l_RunningPackageUpdatesMutex; // Protects the above two variab
 
 bool ConfigStagesHandler::HandleRequest(
 	const WaitGroup::Ptr&,
-	const HttpRequest& request,
-	HttpResponse& response,
+	const HttpApiRequest& request,
+	HttpApiResponse& response,
 	boost::asio::yield_context& yc
 )
 {
@@ -46,7 +46,7 @@ bool ConfigStagesHandler::HandleRequest(
 	return true;
 }
 
-void ConfigStagesHandler::HandleGet(const HttpRequest& request, HttpResponse& response)
+void ConfigStagesHandler::HandleGet(const HttpApiRequest& request, HttpApiResponse& response)
 {
 	namespace http = boost::beast::http;
 
@@ -92,7 +92,7 @@ void ConfigStagesHandler::HandleGet(const HttpRequest& request, HttpResponse& re
 	HttpUtility::SendJsonBody(response, params, result);
 }
 
-void ConfigStagesHandler::HandlePost(const HttpRequest& request, HttpResponse& response)
+void ConfigStagesHandler::HandlePost(const HttpApiRequest& request, HttpApiResponse& response)
 {
 	namespace http = boost::beast::http;
 
@@ -203,7 +203,7 @@ void ConfigStagesHandler::HandlePost(const HttpRequest& request, HttpResponse& r
 	HttpUtility::SendJsonBody(response, params, result);
 }
 
-void ConfigStagesHandler::HandleDelete(const HttpRequest& request, HttpResponse& response)
+void ConfigStagesHandler::HandleDelete(const HttpApiRequest& request, HttpApiResponse& response)
 {
 	namespace http = boost::beast::http;
 

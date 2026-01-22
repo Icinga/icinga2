@@ -148,12 +148,12 @@ struct SerializableBody
  *
  * @ingroup remote
  */
-class HttpRequest : public boost::beast::http::request<boost::beast::http::string_body>
+class HttpApiRequest : public boost::beast::http::request<boost::beast::http::string_body>
 {
 public:
 	using ParserType = boost::beast::http::request_parser<body_type>;
 
-	explicit HttpRequest(Shared<AsioTlsStream>::Ptr stream);
+	explicit HttpApiRequest(Shared<AsioTlsStream>::Ptr stream);
 
 	/**
 	 * Parse the header of the response using the internal parser object.
@@ -200,10 +200,10 @@ private:
  *
  * @ingroup remote
  */
-class HttpResponse : public boost::beast::http::response<SerializableBody<boost::beast::multi_buffer>>
+class HttpApiResponse : public boost::beast::http::response<SerializableBody<boost::beast::multi_buffer>>
 {
 public:
-	explicit HttpResponse(Shared<AsioTlsStream>::Ptr stream, HttpServerConnection::Ptr server = nullptr);
+	explicit HttpApiResponse(Shared<AsioTlsStream>::Ptr stream, HttpServerConnection::Ptr server = nullptr);
 
 	/* Delete the base class clear() which is inherited from the fields<> class and doesn't
 	 * clear things like the body or obviously our own members.
@@ -270,7 +270,7 @@ public:
 	JsonEncoder GetJsonEncoder(bool pretty = false);
 
 private:
-	using Serializer = boost::beast::http::response_serializer<HttpResponse::body_type>;
+	using Serializer = boost::beast::http::response_serializer<HttpApiResponse::body_type>;
 	Serializer m_Serializer{*this};
 	bool m_SerializationStarted = false;
 

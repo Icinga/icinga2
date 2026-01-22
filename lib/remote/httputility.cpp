@@ -52,7 +52,7 @@ Value HttpUtility::GetLastParameter(const Dictionary::Ptr& params, const String&
 		return arr->Get(arr->GetLength() - 1);
 }
 
-void HttpUtility::SendJsonBody(HttpResponse& response, const Dictionary::Ptr& params, const Value& val)
+void HttpUtility::SendJsonBody(HttpApiResponse& response, const Dictionary::Ptr& params, const Value& val)
 {
 	namespace http = boost::beast::http;
 
@@ -60,7 +60,7 @@ void HttpUtility::SendJsonBody(HttpResponse& response, const Dictionary::Ptr& pa
 	response.GetJsonEncoder(params && GetLastParameter(params, "pretty")).Encode(val);
 }
 
-void HttpUtility::SendJsonError(HttpResponse& response,
+void HttpUtility::SendJsonError(HttpApiResponse& response,
 	const Dictionary::Ptr& params, int code, const String& info, const String& diagnosticInformation)
 {
 	Dictionary::Ptr result = new Dictionary({ { "error", code } });
