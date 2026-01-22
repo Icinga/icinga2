@@ -228,7 +228,7 @@ BOOST_AUTO_TEST_CASE(response_write_chunked)
 		HttpApiResponse response(server);
 		response.result(http::status::ok);
 
-		response.StartStreaming();
+		response.StartStreaming(false);
 		BOOST_REQUIRE_NO_THROW(response.Flush(yc));
 		BOOST_REQUIRE(response.HasSerializationStarted());
 

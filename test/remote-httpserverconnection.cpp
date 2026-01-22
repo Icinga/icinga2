@@ -422,7 +422,7 @@ BOOST_AUTO_TEST_CASE(client_shutdown)
 	SetupHttpServerConnection(true);
 
 	UnitTestHandler::RegisterTestFn("stream", [](HttpApiResponse& response, const boost::asio::yield_context& yc) {
-		response.StartStreaming();
+		response.StartStreaming(false);
 		response.Flush(yc);
 
 		boost::asio::deadline_timer dt{IoEngine::Get().GetIoContext()};
@@ -471,7 +471,7 @@ BOOST_AUTO_TEST_CASE(handler_throw_error)
 	SetupHttpServerConnection(true);
 
 	UnitTestHandler::RegisterTestFn("throw", [](HttpApiResponse& response, const boost::asio::yield_context&) {
-		response.StartStreaming();
+		response.StartStreaming(false);
 		response.body() << "test";
 
 		boost::system::error_code ec{};
@@ -509,7 +509,7 @@ BOOST_AUTO_TEST_CASE(handler_throw_streaming)
 	SetupHttpServerConnection(true);
 
 	UnitTestHandler::RegisterTestFn("throw", [](HttpApiResponse& response, const boost::asio::yield_context& yc) {
-		response.StartStreaming();
+		response.StartStreaming(false);
 		response.body() << "test";
 
 		response.Flush(yc);

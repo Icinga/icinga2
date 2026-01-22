@@ -328,7 +328,7 @@ bool ObjectQueryHandler::HandleRequest(
 
 	response.result(http::status::ok);
 	response.set(http::field::content_type, "application/json");
-	response.StartStreaming();
+	response.StartStreaming(false);
 
 	Dictionary::Ptr results = new Dictionary{{"results", new ValueGenerator{generatorFunc}}};
 	results->Freeze();
