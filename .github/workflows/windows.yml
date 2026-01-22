@@ -5,7 +5,6 @@ on:
     branches:
       - master
       - 'support/*'
-  pull_request: {}
 
 concurrency:
   group: windows-${{ github.event_name == 'push' && github.sha || github.ref }}
