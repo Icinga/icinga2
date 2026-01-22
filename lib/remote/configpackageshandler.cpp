@@ -28,7 +28,7 @@ bool ConfigPackagesHandler::HandleRequest(
 		return false;
 
 	if (request.method() == http::verb::get)
-		HandleGet(request, response);
+		HandleGet(request, response, yc);
 	else if (request.method() == http::verb::post)
 		HandlePost(request, response);
 	else if (request.method() == http::verb::delete_)
@@ -39,7 +39,7 @@ bool ConfigPackagesHandler::HandleRequest(
 	return true;
 }
 
-void ConfigPackagesHandler::HandleGet(const HttpRequest& request, HttpResponse& response)
+void ConfigPackagesHandler::HandleGet(const HttpRequest& request, HttpResponse& response, boost::asio::yield_context& yc)
 {
 	namespace http = boost::beast::http;
 
@@ -79,12 +79,14 @@ void ConfigPackagesHandler::HandleGet(const HttpRequest& request, HttpResponse& 
 		}
 	}
 
-	Dictionary::Ptr result = new Dictionary({
-		{ "results", new Array(std::move(results)) }
-	});
+	Array::Ptr resultsArr = new Array(std::move(results));
+	resultsArr->Freeze();
+
+	Dictionary::Ptr result = new Dictionary{{"results",  resultsArr}};
+	result->Freeze();
 
 	response.result(http::status::ok);
-	HttpUtility::SendJsonBody(response, params, result);
+	HttpUtility::SendJsonBody(response, params, result, yc);
 }
 
 void ConfigPackagesHandler::HandlePost(const HttpRequest& request, HttpResponse& response)
