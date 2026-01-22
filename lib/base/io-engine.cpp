@@ -16,63 +16,6 @@
 
 using namespace icinga;
 
-CpuBoundWork::CpuBoundWork(boost::asio::yield_context yc)
-	: m_Done(false)
-{
-	auto& ioEngine (IoEngine::Get());
-
-	for (;;) {
-		auto availableSlots (ioEngine.m_CpuBoundSemaphore.fetch_sub(1));
-
-		if (availableSlots < 1) {
-			ioEngine.m_CpuBoundSemaphore.fetch_add(1);
-			IoEngine::YieldCurrentCoroutine(yc);
-			continue;
-		}
-
-		break;
-	}
-}
-
-CpuBoundWork::~CpuBoundWork()
-{
-	if (!m_Done) {
-		IoEngine::Get().m_CpuBoundSemaphore.fetch_add(1);
-	}
-}
-
-void CpuBoundWork::Done()
-{
-	if (!m_Done) {
-		IoEngine::Get().m_CpuBoundSemaphore.fetch_add(1);
-
-		m_Done = true;
-	}
-}
-
-IoBoundWorkSlot::IoBoundWorkSlot(boost::asio::yield_context yc)
-	: yc(yc)
-{
-	IoEngine::Get().m_CpuBoundSemaphore.fetch_add(1);
-}
-
-IoBoundWorkSlot::~IoBoundWorkSlot()
-{
-	auto& ioEngine (IoEngine::Get());
-
-	for (;;) {
-		auto availableSlots (ioEngine.m_CpuBoundSemaphore.fetch_sub(1));
-
-		if (availableSlots < 1) {
-			ioEngine.m_CpuBoundSemaphore.fetch_add(1);
-			IoEngine::YieldCurrentCoroutine(yc);
-			continue;
-		}
-
-		break;
-	}
-}
-
 LazyInit<std::unique_ptr<IoEngine>> IoEngine::m_Instance ([]() { return std::unique_ptr<IoEngine>(new IoEngine()); });
 
 IoEngine& IoEngine::Get()
@@ -85,10 +28,14 @@ boost::asio::io_context& IoEngine::GetIoContext()
 	return m_IoContext;
 }
 
-IoEngine::IoEngine() : m_IoContext(), m_KeepAlive(boost::asio::make_work_guard(m_IoContext)), m_Threads(decltype(m_Threads)::size_type(Configuration::Concurrency * 2u)), m_AlreadyExpiredTimer(m_IoContext)
+IoEngine::IoEngine()
+	: m_IoContext(),
+	  m_KeepAlive(boost::asio::make_work_guard(m_IoContext)),
+	  m_Threads(decltype(m_Threads)::size_type(Configuration::Concurrency * 2u)),
+	  m_AlreadyExpiredTimer(m_IoContext),
+	  m_SlowSlotsAvailable(Configuration::Concurrency)
 {
 	m_AlreadyExpiredTimer.expires_at(boost::posix_time::neg_infin);
-	m_CpuBoundSemaphore.store(Configuration::Concurrency * 3u / 2u);
 
 	for (auto& thread : m_Threads) {
 		thread = std::thread(&IoEngine::RunEventLoop, this);
@@ -120,6 +67,32 @@ void IoEngine::RunEventLoop()
 			Log(LogDebug, "IoEngine") << "Exception during I/O operation: " << DiagnosticInformation(e);
 		}
 	}
+}
+
+/**
+ * Try to acquire a slot for a slow operation. This is intended to limit the number of concurrent slow operations. In
+ * case no slot is returned, the caller should reject the operation (for example by sending an HTTP error) to prevent an
+ * overload situation.
+ *
+ * @return A RAII-style object representing the slot. operator bool() can be used to check if the operation was
+ *         successful and the caller now owns a slot. Its destructor automatically releases the slot.
+ */
+IoEngine::SlowSlot IoEngine::TryAcquireSlowSlot()
+{
+	// This is basically an ad-hoc (partial) semaphore implementation.
+	// TODO(C++20): Use std::counting_semaphore instead.
+
+	std::unique_lock lock(m_SlowSlotsMutex);
+	if (m_SlowSlotsAvailable > 0) {
+		m_SlowSlotsAvailable--;
+		lock.unlock();
+
+		return std::make_unique<Defer>([this] {
+			std::unique_lock lock(m_SlowSlotsMutex);
+			m_SlowSlotsAvailable++;
+		});
+	}
+	return {};
 }
 
 AsioEvent::AsioEvent(boost::asio::io_context& io, bool init)

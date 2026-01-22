@@ -5,6 +5,7 @@
 
 #include "base/atomic.hpp"
 #include "base/debug.hpp"
+#include "base/defer.hpp"
 #include "base/exception.hpp"
 #include "base/lazy-init.hpp"
 #include "base/logger.hpp"
@@ -30,55 +31,12 @@ namespace icinga
 {
 
 /**
- * Scope lock for CPU-bound work done in an I/O thread
- *
- * @ingroup base
- */
-class CpuBoundWork
-{
-public:
-	CpuBoundWork(boost::asio::yield_context yc);
-	CpuBoundWork(const CpuBoundWork&) = delete;
-	CpuBoundWork(CpuBoundWork&&) = delete;
-	CpuBoundWork& operator=(const CpuBoundWork&) = delete;
-	CpuBoundWork& operator=(CpuBoundWork&&) = delete;
-	~CpuBoundWork();
-
-	void Done();
-
-private:
-	bool m_Done;
-};
-
-/**
- * Scope break for CPU-bound work done in an I/O thread
- *
- * @ingroup base
- */
-class IoBoundWorkSlot
-{
-public:
-	IoBoundWorkSlot(boost::asio::yield_context yc);
-	IoBoundWorkSlot(const IoBoundWorkSlot&) = delete;
-	IoBoundWorkSlot(IoBoundWorkSlot&&) = delete;
-	IoBoundWorkSlot& operator=(const IoBoundWorkSlot&) = delete;
-	IoBoundWorkSlot& operator=(IoBoundWorkSlot&&) = delete;
-	~IoBoundWorkSlot();
-
-private:
-	boost::asio::yield_context yc;
-};
-
-/**
  * Async I/O engine
  *
  * @ingroup base
  */
 class IoEngine
 {
-	friend CpuBoundWork;
-	friend IoBoundWorkSlot;
-
 public:
 	IoEngine(const IoEngine&) = delete;
 	IoEngine(IoEngine&&) = delete;
@@ -139,6 +97,9 @@ public:
 		Get().m_AlreadyExpiredTimer.async_wait(yc);
 	}
 
+	using SlowSlot = std::unique_ptr<Defer>;
+	SlowSlot TryAcquireSlowSlot();
+
 private:
 	IoEngine();
 
@@ -150,7 +111,8 @@ private:
 	boost::asio::executor_work_guard<boost::asio::io_context::executor_type> m_KeepAlive;
 	std::vector<std::thread> m_Threads;
 	boost::asio::deadline_timer m_AlreadyExpiredTimer;
-	std::atomic_int_fast32_t m_CpuBoundSemaphore;
+	std::mutex m_SlowSlotsMutex;
+	int m_SlowSlotsAvailable;
 };
 
 class TerminateIoThread : public std::exception

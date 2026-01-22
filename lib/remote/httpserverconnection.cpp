@@ -416,15 +416,37 @@ void ProcessRequest(
 	HttpRequest& request,
 	HttpResponse& response,
 	const WaitGroup::Ptr& waitGroup,
-	std::chrono::steady_clock::duration& cpuBoundWorkTime,
 	boost::asio::yield_context& yc
 )
 {
 	try {
-		// Cache the elapsed time to acquire a CPU semaphore used to detect extremely heavy workloads.
-		auto start (std::chrono::steady_clock::now());
-		CpuBoundWork handlingRequest (yc);
-		cpuBoundWorkTime = std::chrono::steady_clock::now() - start;
+		/* Place some restrictions on the total number of HTTP requests handled concurrently to prevent HTTP requests
+		 * from hogging the entire coroutine thread pool by running too many requests handlers at once that don't
+		 * regularly yield, starving other coroutines.
+		 *
+		 * We need to consider two types of handlers here:
+		 *
+		 * 1. Those performing a more or less expensive operation and then returning the whole response at once.
+		 *    Not too many of such handlers should run concurrently.
+		 * 2. Those already streaming the response while they are running, for example using chunked transfer encoding.
+		 *    For these, we assume that they will frequently yield to other coroutines, in particular when writing parts
+		 *    of the response to the client, or in case of EventsHandler also when waiting for new events.
+		 *
+		 * The following approach handles both of this automatically: we acquire one of a limited number of slots for
+		 * each request and release it automatically the first time anything (either the full response after the handler
+		 * finished or the first chunk from within the handler) is written using the response object. This means that
+		 * we don't have to handle acquiring or releasing that slot inside individual handlers.
+		 *
+		 * Overall, this is more or less a safeguard preventing long-running HTTP handlers from taking down the entire
+		 * Icinga 2 process by blocking the execution of JSON-RPC message handlers. In general, (new) HTTP handlers
+		 * shouldn't rely on this behavior but rather ensure that they are quick or at least yield regularly.
+		 */
+		if (!response.TryAcquireSlowSlot()) {
+			HttpUtility::SendJsonError(response, request.Params(), 503,
+				"Too many requests already in progress, please try again later.");
+			response.Flush(yc);
+			return;
+		}
 
 		HttpHandler::ProcessRequest(waitGroup, request, response, yc);
 		response.body().Finish();
@@ -507,14 +529,9 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 				<< ", user: " << (request.User() ? request.User()->GetName() : "<unauthenticated>")
 				<< ", agent: " << request[http::field::user_agent]; //operator[] - Returns the value for a field, or "" if it does not exist.
 
-			ch::steady_clock::duration cpuBoundWorkTime(0);
-			Defer addRespCode ([&response, start, &logMsg, &cpuBoundWorkTime]() {
-				logMsg << ", status: " << response.result() << ")";
-				if (cpuBoundWorkTime >= ch::seconds(1)) {
-					logMsg << " waited " << ch::duration_cast<ch::milliseconds>(cpuBoundWorkTime).count() << "ms on semaphore and";
-				}
-
-				logMsg << " took total " << ch::duration_cast<ch::milliseconds>(ch::steady_clock::now() - start).count() << "ms.";
+			Defer addRespCode ([&response, start, &logMsg]() {
+				logMsg << ", status: " << response.result() << ")" << " took total "
+					<< ch::duration_cast<ch::milliseconds>(ch::steady_clock::now() - start).count() << "ms.";
 			});
 
 			if (!HandleAccessControl(request, response, yc)) {
@@ -535,7 +552,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 
 			m_Seen = ch::steady_clock::time_point::max();
 
-			ProcessRequest(request, response, m_WaitGroup, cpuBoundWorkTime, yc);
+			ProcessRequest(request, response, m_WaitGroup, yc);
 
 			if (!request.keep_alive() || !m_ConnectionReusable) {
 				break;
