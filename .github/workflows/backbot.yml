@@ -47,13 +47,11 @@ jobs:
         uses: korthout/backport-action@c656f5d5851037b2b38fb5db2691a03fa229e3b2 # v4.0.1
         with:
           github_token: ${{ steps.backbot-token.outputs.token }}
-          copy_labels_pattern: '^(?!cla-signed$).*' # copy all labels other than the cla-signed label
+          copy_labels_pattern: '^(?!cla\/signed$).*' # copy all labels other than the cla/signed label
           label_pattern: 'backport-to-(support\/\d+\.\d+)' # regex to match labels like backport-to-support/2.14
-          conflict_resolution: 'draft_commit_conflicts' # create a draft PR if there are conflicts
-          copy_requested_reviewers: true # copy requested reviewers from the original PR
           merge_commits: skip # skip merge commits found in the original PR history
           pull_description: |-
             Backport of #${pull_number} to `${target_branch}`, triggered by a label.
-  
+
             ---
             This is an automated backport PR. Please review it carefully before merging.
