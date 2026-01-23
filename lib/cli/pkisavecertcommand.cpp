@@ -52,7 +52,7 @@ std::vector<String> PKISaveCertCommand::GetArgumentSuggestions(const String& arg
  *
  * @returns An exit status.
  */
-int PKISaveCertCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
+int PKISaveCertCommand::Run(const boost::program_options::variables_map& vm, [[maybe_unused]] const std::vector<std::string>& ap) const
 {
 	if (!vm.count("host")) {
 		Log(LogCritical, "cli", "Icinga 2 host (--host) must be specified.");

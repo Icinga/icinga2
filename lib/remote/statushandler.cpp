@@ -16,7 +16,7 @@ class StatusTargetProvider final : public TargetProvider
 public:
 	DECLARE_PTR_TYPEDEFS(StatusTargetProvider);
 
-	void FindTargets(const String& type,
+	void FindTargets([[maybe_unused]] const String& type,
 		const std::function<void (const Value&)>& addTarget) const override
 	{
 		Namespace::Ptr statsFunctions = ScriptGlobal::Get("StatsFunctions", &Empty);
@@ -29,7 +29,7 @@ public:
 		}
 	}
 
-	Value GetTargetByName(const String& type, const String& name) const override
+	Value GetTargetByName([[maybe_unused]] const String& type, const String& name) const override
 	{
 		Namespace::Ptr statsFunctions = ScriptGlobal::Get("StatsFunctions", &Empty);
 
@@ -62,7 +62,7 @@ public:
 		return type == "Status";
 	}
 
-	String GetPluralName(const String& type) const override
+	String GetPluralName([[maybe_unused]] const String& type) const override
 	{
 		return "statuses";
 	}
@@ -72,7 +72,7 @@ bool StatusHandler::HandleRequest(
 	const WaitGroup::Ptr&,
 	const HttpApiRequest& request,
 	HttpApiResponse& response,
-	boost::asio::yield_context& yc
+	boost::asio::yield_context&
 )
 {
 	namespace http = boost::beast::http;

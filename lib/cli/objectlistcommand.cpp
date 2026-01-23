@@ -36,7 +36,7 @@ String ObjectListCommand::GetShortDescription() const
 }
 
 void ObjectListCommand::InitParameters(boost::program_options::options_description& visibleDesc,
-	boost::program_options::options_description& hiddenDesc) const
+	[[maybe_unused]] boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
 		("count,c", "display object counts by types")
@@ -62,7 +62,7 @@ static time_t GetCtime(const String& path)
  *
  * @returns An exit status.
  */
-int ObjectListCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
+int ObjectListCommand::Run(const boost::program_options::variables_map& vm, [[maybe_unused]] const std::vector<std::string>& ap) const
 {
 	String objectfile = Configuration::ObjectsPath;
 

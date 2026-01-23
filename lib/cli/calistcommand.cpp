@@ -41,7 +41,7 @@ String CAListCommand::GetShortDescription() const
  * @param hiddenDesc Register hidden parameters.
  */
 void CAListCommand::InitParameters(boost::program_options::options_description& visibleDesc,
-	boost::program_options::options_description& hiddenDesc) const
+	[[maybe_unused]] boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
 		("all", "List all certificate signing requests, including signed. Note: Old requests are automatically cleaned by Icinga after 1 week.")
@@ -54,7 +54,7 @@ void CAListCommand::InitParameters(boost::program_options::options_description& 
  *
  * @return An exit status.
  */
-int CAListCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
+int CAListCommand::Run(const boost::program_options::variables_map& vm, [[maybe_unused]] const std::vector<std::string>& ap) const
 {
 	Dictionary::Ptr requests = PkiUtility::GetCertificateRequests(vm.count("removed"));
 

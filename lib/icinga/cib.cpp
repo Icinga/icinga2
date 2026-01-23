@@ -277,7 +277,7 @@ std::pair<Dictionary::Ptr, Array::Ptr> CIB::GetFeatureStats()
 
 REGISTER_STATSFUNCTION(CIB, &CIB::StatsFunc);
 
-void CIB::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata) {
+void CIB::StatsFunc(const Dictionary::Ptr& status, [[maybe_unused]] const Array::Ptr& perfdata) {
 	double interval = Utility::GetTime() - Application::GetStartTime();
 
 	if (interval > 60)

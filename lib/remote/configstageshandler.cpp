@@ -22,7 +22,7 @@ bool ConfigStagesHandler::HandleRequest(
 	const WaitGroup::Ptr&,
 	const HttpApiRequest& request,
 	HttpApiResponse& response,
-	boost::asio::yield_context& yc
+	boost::asio::yield_context&
 )
 {
 	namespace http = boost::beast::http;

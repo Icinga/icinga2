@@ -19,7 +19,7 @@ bool CreateObjectHandler::HandleRequest(
 	const WaitGroup::Ptr& waitGroup,
 	const HttpApiRequest& request,
 	HttpApiResponse& response,
-	boost::asio::yield_context& yc
+	boost::asio::yield_context&
 )
 {
 	namespace http = boost::beast::http;

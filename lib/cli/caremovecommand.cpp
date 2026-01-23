@@ -55,7 +55,7 @@ ImpersonationLevel CARemoveCommand::GetImpersonationLevel() const
  *
  * @returns An exit status.
  */
-int CARemoveCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
+int CARemoveCommand::Run(const boost::program_options::variables_map&, const std::vector<std::string>& ap) const
 {
 	String fingerPrint = ap[0];
 	String requestFile = ApiListener::GetCertificateRequestsDir() + "/" + fingerPrint + ".json";
