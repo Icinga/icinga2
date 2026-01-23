@@ -19,7 +19,7 @@ class VariableTargetProvider final : public TargetProvider
 public:
 	DECLARE_PTR_TYPEDEFS(VariableTargetProvider);
 
-	void FindTargets(const String& type,
+	void FindTargets([[maybe_unused]] const String& type,
 		const std::function<void (const Value&)>& addTarget) const override
 	{
 		Namespace::Ptr globals = ScriptGlobal::GetGlobals();
@@ -39,7 +39,7 @@ public:
 		}
 	}
 
-	Value GetTargetByName(const String& type, const String& name) const override
+	Value GetTargetByName([[maybe_unused]] const String& type, const String& name) const override
 	{
 		if (name == "TicketSalt") {
 			BOOST_THROW_EXCEPTION(std::invalid_argument{"Access to TicketSalt via /v1/variables is not permitted."});
@@ -52,7 +52,7 @@ public:
 		return type == "Variable";
 	}
 
-	String GetPluralName(const String& type) const override
+	String GetPluralName([[maybe_unused]] const String& type) const override
 	{
 		return "variables";
 	}
@@ -62,7 +62,7 @@ bool VariableQueryHandler::HandleRequest(
 	const WaitGroup::Ptr&,
 	const HttpApiRequest& request,
 	HttpApiResponse& response,
-	boost::asio::yield_context& yc
+	boost::asio::yield_context&
 )
 {
 	namespace http = boost::beast::http;

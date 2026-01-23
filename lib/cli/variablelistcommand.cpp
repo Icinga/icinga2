@@ -34,7 +34,7 @@ String VariableListCommand::GetShortDescription() const
  *
  * @returns An exit status.
  */
-int VariableListCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
+int VariableListCommand::Run(const boost::program_options::variables_map&, [[maybe_unused]] const std::vector<std::string>& ap) const
 {
 	String varsfile = Configuration::VarsPath;
 

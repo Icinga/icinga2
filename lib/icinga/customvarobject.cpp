@@ -12,7 +12,7 @@ using namespace icinga;
 
 REGISTER_TYPE(CustomVarObject);
 
-void CustomVarObject::ValidateVars(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)
+void CustomVarObject::ValidateVars(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils&)
 {
 	MacroProcessor::ValidateCustomVars(this, lvalue());
 }

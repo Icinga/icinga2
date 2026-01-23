@@ -30,7 +30,7 @@ bool InternalSignalCommand::IsHidden() const
 }
 
 void InternalSignalCommand::InitParameters(boost::program_options::options_description& visibleDesc,
-	boost::program_options::options_description& hiddenDesc) const
+	[[maybe_unused]] boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
 		("pid,p", po::value<int>(), "Target PID")
@@ -43,7 +43,7 @@ void InternalSignalCommand::InitParameters(boost::program_options::options_descr
  *
  * @returns An exit status.
  */
-int InternalSignalCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
+int InternalSignalCommand::Run(const boost::program_options::variables_map& vm, [[maybe_unused]] const std::vector<std::string>& ap) const
 {
 #ifndef _WIN32
 	String signal = vm["sig"].as<String>();

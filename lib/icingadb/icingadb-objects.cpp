@@ -529,7 +529,7 @@ void IcingaDB::UpdateAllConfigObjects()
 
 	// enqueue a callback that will notify us once all previous queries were executed and wait for this event
 	std::promise<void> p;
-	m_Rcon->EnqueueCallback([&p](boost::asio::yield_context& yc) { p.set_value(); }, Prio::Config);
+	m_Rcon->EnqueueCallback([&p](boost::asio::yield_context&) { p.set_value(); }, Prio::Config);
 	p.get_future().wait();
 
 	auto endTime (Utility::GetTime());

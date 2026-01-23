@@ -20,7 +20,7 @@ String PKISignCSRCommand::GetShortDescription() const
 }
 
 void PKISignCSRCommand::InitParameters(boost::program_options::options_description& visibleDesc,
-	boost::program_options::options_description& hiddenDesc) const
+	[[maybe_unused]] boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
 		("csr", po::value<std::string>(), "CSR file path (input)")
@@ -40,7 +40,7 @@ std::vector<String> PKISignCSRCommand::GetArgumentSuggestions(const String& argu
  *
  * @returns An exit status.
  */
-int PKISignCSRCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
+int PKISignCSRCommand::Run(const boost::program_options::variables_map& vm, [[maybe_unused]] const std::vector<std::string>& ap) const
 {
 	if (!vm.count("csr")) {
 		Log(LogCritical, "cli", "Certificate signing request file path (--csr) must be specified.");
