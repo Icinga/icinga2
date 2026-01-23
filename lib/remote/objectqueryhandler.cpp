@@ -93,8 +93,8 @@ Dictionary::Ptr ObjectQueryHandler::SerializeObjectAttrs(const Object::Ptr& obje
 
 bool ObjectQueryHandler::HandleRequest(
 	const WaitGroup::Ptr&,
-	const HttpRequest& request,
-	HttpResponse& response,
+	const HttpApiRequest& request,
+	HttpApiResponse& response,
 	boost::asio::yield_context& yc
 )
 {
@@ -328,7 +328,7 @@ bool ObjectQueryHandler::HandleRequest(
 
 	response.result(http::status::ok);
 	response.set(http::field::content_type, "application/json");
-	response.StartStreaming();
+	response.StartStreaming(false);
 
 	Dictionary::Ptr results = new Dictionary{{"results", new ValueGenerator{generatorFunc}}};
 	results->Freeze();

@@ -15,8 +15,8 @@ REGISTER_URLHANDLER("/v1/config/files", ConfigFilesHandler);
 
 bool ConfigFilesHandler::HandleRequest(
 	const WaitGroup::Ptr&,
-	const HttpRequest& request,
-	HttpResponse& response,
+	const HttpApiRequest& request,
+	HttpApiResponse& response,
 	boost::asio::yield_context& yc
 )
 {

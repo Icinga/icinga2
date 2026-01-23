@@ -67,12 +67,12 @@ struct HttpServerConnectionFixture : TlsStreamFixture, ConfigurationCacheDirFixt
 class UnitTestHandler final : public HttpHandler
 {
 public:
-	using TestFn = std::function<void(HttpResponse& response, const boost::asio::yield_context&)>;
+	using TestFn = std::function<void(HttpApiResponse& response, const boost::asio::yield_context&)>;
 
 	static void RegisterTestFn(std::string handle, TestFn fn) { testFns[std::move(handle)] = std::move(fn); }
 
 private:
-	bool HandleRequest(const WaitGroup::Ptr&, const HttpRequest& request, HttpResponse& response,
+	bool HandleRequest(const WaitGroup::Ptr&, const HttpApiRequest& request, HttpApiResponse& response,
 		boost::asio::yield_context& yc) override
 	{
 		response.result(boost::beast::http::status::ok);
@@ -381,7 +381,7 @@ BOOST_AUTO_TEST_CASE(wg_abort)
 	CreateTestUsers();
 	SetupHttpServerConnection(true);
 
-	UnitTestHandler::RegisterTestFn("wgjoin", [this](HttpResponse& response, const boost::asio::yield_context&) {
+	UnitTestHandler::RegisterTestFn("wgjoin", [this](HttpApiResponse& response, const boost::asio::yield_context&) {
 		response.body() << "test";
 		m_WaitGroup->Join();
 	});
@@ -421,8 +421,8 @@ BOOST_AUTO_TEST_CASE(client_shutdown)
 	CreateTestUsers();
 	SetupHttpServerConnection(true);
 
-	UnitTestHandler::RegisterTestFn("stream", [](HttpResponse& response, const boost::asio::yield_context& yc) {
-		response.StartStreaming();
+	UnitTestHandler::RegisterTestFn("stream", [](HttpApiResponse& response, const boost::asio::yield_context& yc) {
+		response.StartStreaming(false);
 		response.Flush(yc);
 
 		boost::asio::deadline_timer dt{IoEngine::Get().GetIoContext()};
@@ -470,8 +470,8 @@ BOOST_AUTO_TEST_CASE(handler_throw_error)
 	CreateTestUsers();
 	SetupHttpServerConnection(true);
 
-	UnitTestHandler::RegisterTestFn("throw", [](HttpResponse& response, const boost::asio::yield_context&) {
-		response.StartStreaming();
+	UnitTestHandler::RegisterTestFn("throw", [](HttpApiResponse& response, const boost::asio::yield_context&) {
+		response.StartStreaming(false);
 		response.body() << "test";
 
 		boost::system::error_code ec{};
@@ -508,8 +508,8 @@ BOOST_AUTO_TEST_CASE(handler_throw_streaming)
 	CreateTestUsers();
 	SetupHttpServerConnection(true);
 
-	UnitTestHandler::RegisterTestFn("throw", [](HttpResponse& response, const boost::asio::yield_context& yc) {
-		response.StartStreaming();
+	UnitTestHandler::RegisterTestFn("throw", [](HttpApiResponse& response, const boost::asio::yield_context& yc) {
+		response.StartStreaming(false);
 		response.body() << "test";
 
 		response.Flush(yc);

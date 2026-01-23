@@ -17,8 +17,8 @@ REGISTER_URLHANDLER("/v1/objects", DeleteObjectHandler);
 
 bool DeleteObjectHandler::HandleRequest(
 	const WaitGroup::Ptr& waitGroup,
-	const HttpRequest& request,
-	HttpResponse& response,
+	const HttpApiRequest& request,
+	HttpApiResponse& response,
 	boost::asio::yield_context& yc
 )
 {

@@ -17,8 +17,8 @@ public:
 
 	bool HandleRequest(
 		const WaitGroup::Ptr& waitGroup,
-		const HttpRequest& request,
-		HttpResponse& response,
+		const HttpApiRequest& request,
+		HttpApiResponse& response,
 		boost::asio::yield_context& yc
 	) override;
 };

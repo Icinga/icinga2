@@ -48,8 +48,8 @@ void HttpHandler::Register(const Url::Ptr& url, const HttpHandler::Ptr& handler)
 
 void HttpHandler::ProcessRequest(
 	const WaitGroup::Ptr& waitGroup,
-	HttpRequest& request,
-	HttpResponse& response,
+	HttpApiRequest& request,
+	HttpApiResponse& response,
 	boost::asio::yield_context& yc
 )
 {

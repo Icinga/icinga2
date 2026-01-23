@@ -10,6 +10,7 @@
 #include "remote/url.hpp"
 #include <boost/beast/http.hpp>
 #include <boost/version.hpp>
+#include <utility>
 
 namespace icinga {
 
@@ -143,17 +144,17 @@ struct SerializableBody
 	};
 };
 
-/**
- * A wrapper class for a boost::beast HTTP request
- *
- * @ingroup remote
- */
-class HttpRequest : public boost::beast::http::request<boost::beast::http::string_body>
-{
-public:
-	using ParserType = boost::beast::http::request_parser<body_type>;
+using SerializableMultiBufferBody = SerializableBody<boost::beast::multi_buffer>;
+using SerializableFlatBufferBody = SerializableBody<boost::beast::flat_buffer>;
 
-	explicit HttpRequest(Shared<AsioTlsStream>::Ptr stream);
+template<bool isRequest, typename Body, typename StreamVariant>
+class IncomingHttpMessage : public boost::beast::http::message<isRequest, Body>
+{
+	using ParserType = boost::beast::http::parser<isRequest, Body>;
+	using Base = boost::beast::http::message<isRequest, Body>;
+
+public:
+	explicit IncomingHttpMessage(StreamVariant stream);
 
 	/**
 	 * Parse the header of the response using the internal parser object.
@@ -176,34 +177,23 @@ public:
 
 	ParserType& Parser() { return m_Parser; }
 
-	[[nodiscard]] ApiUser::Ptr User() const;
-	void User(const ApiUser::Ptr& user);
-
-	[[nodiscard]] icinga::Url::Ptr Url() const;
-	void DecodeUrl();
-
-	[[nodiscard]] Dictionary::Ptr Params() const;
-	void DecodeParams();
-
 private:
-	ApiUser::Ptr m_User;
-	Url::Ptr m_Url;
-	Dictionary::Ptr m_Params;
-
 	ParserType m_Parser;
 
-	Shared<AsioTlsStream>::Ptr m_Stream;
+	StreamVariant m_Stream;
 };
 
-/**
- * A wrapper class for a boost::beast HTTP response
- *
- * @ingroup remote
- */
-class HttpResponse : public boost::beast::http::response<SerializableBody<boost::beast::multi_buffer>>
+using IncomingHttpRequest = IncomingHttpMessage<true, boost::beast::http::string_body, AsioTlsOrTcpStream>;
+using IncomingHttpResponse = IncomingHttpMessage<false, boost::beast::http::string_body, AsioTlsOrTcpStream>;
+
+template<bool isRequest, typename Body, typename StreamVariant>
+class OutgoingHttpMessage : public boost::beast::http::message<isRequest, Body>
 {
+	using Serializer = boost::beast::http::serializer<isRequest, Body>;
+	using Base = boost::beast::http::message<isRequest, Body>;
+
 public:
-	explicit HttpResponse(Shared<AsioTlsStream>::Ptr stream, HttpServerConnection::Ptr server = nullptr);
+	explicit OutgoingHttpMessage(StreamVariant stream);
 
 	/* Delete the base class clear() which is inherited from the fields<> class and doesn't
 	 * clear things like the body or obviously our own members.
@@ -218,6 +208,32 @@ public:
 	void Clear();
 
 	/**
+	 * Commits the specified number of bytes (previously obtained via @c prepare()) for reading.
+	 *
+	 * This function makes the specified number of bytes available in the body buffer for reading.
+	 *
+	 * @param size The number of bytes to commit
+	 */
+	void Commit(std::size_t size) { Base::body().Buffer().commit(size); }
+
+	/**
+	 * Prepare a buffer of the specified size for writing.
+	 *
+	 * The returned buffer serves just as a view onto the internal buffer sequence but does not actually
+	 * own the memory. Thus, destroying the returned buffer will not free any memory it represents.
+	 *
+	 * @param size The size of the buffer to prepare
+	 *
+	 * @return A mutable buffer representing the prepared space
+	 */
+	auto Prepare(std::size_t size) { return Base::body().Buffer().prepare(size); }
+
+	/**
+	 * Enables chunked encoding.
+	 */
+	void StartStreaming();
+
+	/**
 	 * Writes as much of the response as is currently available.
 	 *
 	 * Uses chunk-encoding if the content_length has not been set by the time this is called
@@ -228,30 +244,9 @@ public:
 	 *
 	 * @param yc The yield_context for this operation
 	 */
-	void Flush(boost::asio::yield_context yc);
+	void Flush(boost::asio::yield_context yc, bool finish = false);
 
 	[[nodiscard]] bool HasSerializationStarted() const { return m_SerializationStarted; }
-
-	/**
-	 * Enables chunked encoding.
-	 *
-	 * Optionally starts a coroutine that reads from the stream and checks for client-side
-	 * disconnects. In this case, the stream can not be reused after the response has been
-	 * sent and any further requests sent over the connections will be discarded, even if
-	 * no client-side disconnect occurs. This requires that this object has been constructed
-	 * with a valid HttpServerConnection::Ptr.
-	 *
-	 * @param checkForDisconnect Whether to start a coroutine to detect disconnects
-	 */
-	void StartStreaming(bool checkForDisconnect = false);
-
-	/**
-	 * Check if the server has initiated a disconnect.
-	 *
-	 * @note This requires that the message has been constructed with a pointer to the
-	 * @c HttpServerConnection.
-	 */
-	[[nodiscard]] bool IsClientDisconnected() const;
 
 	/**
 	 * Sends the contents of a file.
@@ -270,12 +265,80 @@ public:
 	JsonEncoder GetJsonEncoder(bool pretty = false);
 
 private:
-	using Serializer = boost::beast::http::response_serializer<HttpResponse::body_type>;
 	Serializer m_Serializer{*this};
 	bool m_SerializationStarted = false;
 
-	HttpServerConnection::Ptr m_Server;
-	Shared<AsioTlsStream>::Ptr m_Stream;
+	StreamVariant m_Stream;
 };
+
+using OutgoingHttpRequest = OutgoingHttpMessage<true, SerializableFlatBufferBody, AsioTlsOrTcpStream>;
+using OutgoingHttpResponse = OutgoingHttpMessage<false, SerializableFlatBufferBody, AsioTlsOrTcpStream>;
+
+class HttpApiRequest
+	: public IncomingHttpMessage<true, boost::beast::http::string_body, std::variant<Shared<AsioTlsStream>::Ptr>>
+{
+public:
+	explicit HttpApiRequest(Shared<AsioTlsStream>::Ptr stream);
+
+	[[nodiscard]] ApiUser::Ptr User() const;
+	void User(const ApiUser::Ptr& user);
+
+	[[nodiscard]] icinga::Url::Ptr Url() const;
+	void DecodeUrl();
+
+	[[nodiscard]] Dictionary::Ptr Params() const;
+	void DecodeParams();
+
+private:
+	ApiUser::Ptr m_User;
+	Url::Ptr m_Url;
+	Dictionary::Ptr m_Params;
+};
+
+/**
+ * A wrapper class for a boost::beast HTTP response for the Icinga 2 API
+ *
+ * @ingroup remote
+ */
+class HttpApiResponse
+	: public OutgoingHttpMessage<false, SerializableMultiBufferBody, std::variant<Shared<AsioTlsStream>::Ptr>>
+{
+public:
+	explicit HttpApiResponse(Shared<AsioTlsStream>::Ptr stream, HttpServerConnection::Ptr server = nullptr);
+
+	/**
+	 * Enables chunked encoding.
+	 *
+	 * Optionally starts a coroutine that reads from the stream and checks for client-side
+	 * disconnects. In this case, the stream can not be reused after the response has been
+	 * sent and any further requests sent over the connections will be discarded, even if
+	 * no client-side disconnect occurs. This requires that this object has been constructed
+	 * with a valid HttpServerConnection::Ptr.
+	 *
+	 * @param checkForDisconnect Whether to start a coroutine to detect disconnects
+	 */
+	void StartStreaming(bool checkForDisconnect);
+
+	/**
+	 * Check if the server has initiated a disconnect.
+	 *
+	 * @note This requires that the message has been constructed with a pointer to the
+	 * @c HttpServerConnection.
+	 */
+	[[nodiscard]] bool IsClientDisconnected() const;
+
+private:
+	HttpServerConnection::Ptr m_Server;
+};
+
+// More general instantiations
+extern template class OutgoingHttpMessage<true, SerializableFlatBufferBody, AsioTlsOrTcpStream>;
+extern template class OutgoingHttpMessage<false, SerializableFlatBufferBody, AsioTlsOrTcpStream>;
+extern template class IncomingHttpMessage<true, boost::beast::http::string_body, AsioTlsOrTcpStream>;
+extern template class IncomingHttpMessage<false, boost::beast::http::string_body, AsioTlsOrTcpStream>;
+
+// Instantiations specifically for HttpApi(Request|Response)
+extern template class IncomingHttpMessage<true, boost::beast::http::string_body, std::variant<Shared<AsioTlsStream>::Ptr>>;
+extern template class OutgoingHttpMessage<false, SerializableMultiBufferBody, std::variant<Shared<AsioTlsStream>::Ptr>>;
 
 } // namespace icinga

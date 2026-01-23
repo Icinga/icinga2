@@ -1,7 +1,6 @@
 /* Icinga 2 | (c) 2025 Icinga GmbH | GPLv2+ */
 
 #include "remote/httpmessage.hpp"
-#include "base/io-engine.hpp"
 #include "base/json.hpp"
 #include "remote/httputility.hpp"
 #include "remote/url.hpp"
@@ -27,10 +26,15 @@ constexpr std::size_t l_FlushThreshold = 128UL * 1024UL;
  *
  * @ingroup base
  */
+template<typename Message>
 class HttpResponseJsonWriter : public AsyncJsonWriter
 {
 public:
-	explicit HttpResponseJsonWriter(HttpResponse& msg) : m_Message{msg}
+	HttpResponseJsonWriter(const HttpResponseJsonWriter&) = delete;
+	HttpResponseJsonWriter(HttpResponseJsonWriter&&) = delete;
+	HttpResponseJsonWriter& operator=(const HttpResponseJsonWriter&) = delete;
+	HttpResponseJsonWriter& operator=(HttpResponseJsonWriter&&) = delete;
+	explicit HttpResponseJsonWriter(Message& msg) : m_Message{msg}
 	{
 		m_Message.body().Start();
 #if BOOST_VERSION >= 107000
@@ -59,51 +63,65 @@ public:
 	}
 
 private:
-	HttpResponse& m_Message;
+	Message& m_Message;
 };
 
-HttpRequest::HttpRequest(Shared<AsioTlsStream>::Ptr stream) : m_Stream(std::move(stream))
+template<bool isRequest, typename Body, typename StreamVariant>
+IncomingHttpMessage<isRequest, Body, StreamVariant>::IncomingHttpMessage(StreamVariant stream)
+	: m_Stream(std::move(stream))
 {
 }
 
-void HttpRequest::ParseHeader(boost::beast::flat_buffer& buf, boost::asio::yield_context yc)
+template<bool isRequest, typename Body, typename StreamVariant>
+void IncomingHttpMessage<isRequest, Body, StreamVariant>::ParseHeader(
+	boost::beast::flat_buffer& buf,
+	boost::asio::yield_context yc
+)
 {
-	boost::beast::http::async_read_header(*m_Stream, buf, m_Parser, yc);
-	base() = m_Parser.get().base();
+	std::visit([&](auto& stream) { boost::beast::http::async_read_header(*stream, buf, m_Parser, yc); }, m_Stream);
+	Base::base() = m_Parser.get().base();
 }
 
-void HttpRequest::ParseBody(boost::beast::flat_buffer& buf, boost::asio::yield_context yc)
+template<bool isRequest, typename Body, typename StreamVariant>
+void IncomingHttpMessage<isRequest, Body, StreamVariant>::ParseBody(
+	boost::beast::flat_buffer& buf,
+	boost::asio::yield_context yc
+)
 {
-	boost::beast::http::async_read(*m_Stream, buf, m_Parser, yc);
-	body() = std::move(m_Parser.release().body());
+	std::visit([&](auto& stream) { boost::beast::http::async_read(*stream, buf, m_Parser, yc); }, m_Stream);
+	Base::body() = std::move(m_Parser.release().body());
 }
 
-ApiUser::Ptr HttpRequest::User() const
+HttpApiRequest::HttpApiRequest(Shared<AsioTlsStream>::Ptr stream) : IncomingHttpMessage(std::move(stream))
+{
+}
+
+ApiUser::Ptr HttpApiRequest::User() const
 {
 	return m_User;
 }
 
-void HttpRequest::User(const ApiUser::Ptr& user)
+void HttpApiRequest::User(const ApiUser::Ptr& user)
 {
 	m_User = user;
 }
 
-Url::Ptr HttpRequest::Url() const
+Url::Ptr HttpApiRequest::Url() const
 {
 	return m_Url;
 }
 
-void HttpRequest::DecodeUrl()
+void HttpApiRequest::DecodeUrl()
 {
 	m_Url = new icinga::Url(std::string(target()));
 }
 
-Dictionary::Ptr HttpRequest::Params() const
+Dictionary::Ptr HttpApiRequest::Params() const
 {
 	return m_Params;
 }
 
-void HttpRequest::DecodeParams()
+void HttpApiRequest::DecodeParams()
 {
 	if (!m_Url) {
 		DecodeUrl();
@@ -111,49 +129,72 @@ void HttpRequest::DecodeParams()
 	m_Params = HttpUtility::FetchRequestParameters(m_Url, body());
 }
 
-HttpResponse::HttpResponse(Shared<AsioTlsStream>::Ptr stream, HttpServerConnection::Ptr server)
-	: m_Server(std::move(server)), m_Stream(std::move(stream))
+template<bool isRequest, typename Body, typename StreamVariant>
+OutgoingHttpMessage<isRequest, Body, StreamVariant>::OutgoingHttpMessage(StreamVariant stream)
+	: m_Stream(std::move(stream))
 {
 }
 
-void HttpResponse::Clear()
+template<bool isRequest, typename Body, typename StreamVariant>
+void OutgoingHttpMessage<isRequest, Body, StreamVariant>::Clear()
 {
 	ASSERT(!m_SerializationStarted);
-	boost::beast::http::response<body_type>::operator=({});
+	Base::operator=({});
 }
 
-void HttpResponse::Flush(boost::asio::yield_context yc)
+template<bool isRequest, typename Body, typename StreamVariant>
+void OutgoingHttpMessage<isRequest, Body, StreamVariant>::Flush(boost::asio::yield_context yc, bool finish)
 {
-	if (!chunked() && !has_content_length()) {
+	if (!Base::chunked() && !Base::has_content_length()) {
 		ASSERT(!m_SerializationStarted);
-		prepare_payload();
+		Base::prepare_payload();
 	}
 
-	m_SerializationStarted = true;
+	std::visit(
+		[&](auto& stream) {
+			m_SerializationStarted = true;
 
-	if (!m_Serializer.is_header_done()) {
-		boost::beast::http::write_header(*m_Stream, m_Serializer);
-	}
+			if (!m_Serializer.is_header_done()) {
+				boost::beast::http::write_header(*stream, m_Serializer);
+			}
 
-	boost::system::error_code ec;
-	boost::beast::http::async_write(*m_Stream, m_Serializer, yc[ec]);
-	if (ec && ec != boost::beast::http::error::need_buffer) {
-		if (yc.ec_) {
-			*yc.ec_ = ec;
-			return;
-		}
-		BOOST_THROW_EXCEPTION(boost::system::system_error{ec});
-	}
-	m_Stream->async_flush(yc);
+			if (finish) {
+				Base::body().Finish();
+			}
 
-	ASSERT(m_Serializer.is_done() || !body().Finished());
+			boost::system::error_code ec;
+			boost::beast::http::async_write(*stream, m_Serializer, yc[ec]);
+			if (ec && ec != boost::beast::http::error::need_buffer) {
+				if (yc.ec_) {
+					*yc.ec_ = ec;
+					return;
+				}
+				BOOST_THROW_EXCEPTION(boost::system::system_error{ec});
+			}
+			stream->async_flush(yc);
+
+			ASSERT(m_Serializer.is_done() || !Base::body().Finished());
+		},
+		m_Stream
+	);
 }
 
-void HttpResponse::StartStreaming(bool checkForDisconnect)
+template<bool isRequest, typename Body, typename StreamVariant>
+void OutgoingHttpMessage<isRequest, Body, StreamVariant>::StartStreaming()
 {
-	ASSERT(body().Size() == 0 && !m_SerializationStarted);
-	body().Start();
-	chunked(true);
+	ASSERT(Base::body().Size() == 0 && !m_SerializationStarted);
+	Base::body().Start();
+	Base::chunked(true);
+}
+
+HttpApiResponse::HttpApiResponse(Shared<AsioTlsStream>::Ptr stream, HttpServerConnection::Ptr server)
+	: OutgoingHttpMessage(std::move(stream)), m_Server(std::move(server))
+{
+}
+
+void HttpApiResponse::StartStreaming(bool checkForDisconnect)
+{
+	OutgoingHttpMessage::StartStreaming();
 
 	if (checkForDisconnect) {
 		ASSERT(m_Server);
@@ -161,13 +202,17 @@ void HttpResponse::StartStreaming(bool checkForDisconnect)
 	}
 }
 
-bool HttpResponse::IsClientDisconnected() const
+bool HttpApiResponse::IsClientDisconnected() const
 {
 	ASSERT(m_Server);
 	return m_Server->Disconnected();
 }
 
-void HttpResponse::SendFile(const String& path, const boost::asio::yield_context& yc)
+template<bool isRequest, typename Body, typename StreamVariant>
+void OutgoingHttpMessage<isRequest, Body, StreamVariant>::SendFile(
+	const String& path,
+	const boost::asio::yield_context& yc
+)
 {
 	std::ifstream fp(path.CStr(), std::ifstream::in | std::ifstream::binary | std::ifstream::ate);
 	fp.exceptions(std::ifstream::badbit | std::ifstream::eofbit);
@@ -175,22 +220,44 @@ void HttpResponse::SendFile(const String& path, const boost::asio::yield_context
 	std::uint64_t remaining = fp.tellg();
 	fp.seekg(0);
 
-	content_length(remaining);
-	body().Start();
+	Base::content_length(remaining);
+	Base::body().Start();
 
 	while (remaining) {
 		auto maxTransfer = std::min(remaining, static_cast<std::uint64_t>(l_FlushThreshold));
 
-		auto buf = *body().Buffer().prepare(maxTransfer).begin();
+		using BodyBuffer = std::decay_t<decltype(std::declval<typename Body::value_type>().Buffer())>;
+		using BufferOrSequence = typename BodyBuffer::mutable_buffers_type;
+		
+		boost::asio::mutable_buffer buf;
+
+		if constexpr (!std::is_same_v<BufferOrSequence, boost::asio::mutable_buffer>) {
+			buf = *Base::body().Buffer().prepare(maxTransfer).begin();
+		} else {
+			buf = Base::body().Buffer().prepare(maxTransfer);
+		}
 		fp.read(static_cast<char*>(buf.data()), buf.size());
-		body().Buffer().commit(buf.size());
+		Base::body().Buffer().commit(buf.size());
 
 		remaining -= buf.size();
 		Flush(yc);
 	}
 }
 
-JsonEncoder HttpResponse::GetJsonEncoder(bool pretty)
+template<bool isRequest, typename Body, typename StreamVariant>
+JsonEncoder OutgoingHttpMessage<isRequest, Body, StreamVariant>::GetJsonEncoder(bool pretty)
 {
-	return JsonEncoder{std::make_shared<HttpResponseJsonWriter>(*this), pretty};
+	return JsonEncoder{
+		std::make_shared<HttpResponseJsonWriter<OutgoingHttpMessage<isRequest, Body, StreamVariant>>>(*this), pretty
+	};
 }
+
+// More general instantiations
+template class icinga::OutgoingHttpMessage<true, SerializableFlatBufferBody, AsioTlsOrTcpStream>;
+template class icinga::OutgoingHttpMessage<false, SerializableFlatBufferBody, AsioTlsOrTcpStream>;
+template class icinga::IncomingHttpMessage<true, boost::beast::http::string_body, AsioTlsOrTcpStream>;
+template class icinga::IncomingHttpMessage<false, boost::beast::http::string_body, AsioTlsOrTcpStream>;
+
+// Instantiations specifically for HttpApi(Request|Response)
+template class icinga::IncomingHttpMessage<true, boost::beast::http::string_body, std::variant<Shared<AsioTlsStream>::Ptr>>;
+template class icinga::OutgoingHttpMessage<false, SerializableMultiBufferBody, std::variant<Shared<AsioTlsStream>::Ptr>>;

@@ -15,15 +15,15 @@ public:
 
 	bool HandleRequest(
 		const WaitGroup::Ptr& waitGroup,
-		const HttpRequest& request,
-		HttpResponse& response,
+		const HttpApiRequest& request,
+		HttpApiResponse& response,
 		boost::asio::yield_context& yc
 	) override;
 
 private:
-	void HandleGet(const HttpRequest& request, HttpResponse& response);
-	void HandlePost(const HttpRequest& request, HttpResponse& response);
-	void HandleDelete(const HttpRequest& request, HttpResponse& response);
+	void HandleGet(const HttpApiRequest& request, HttpApiResponse& response);
+	void HandlePost(const HttpApiRequest& request, HttpApiResponse& response);
+	void HandleDelete(const HttpApiRequest& request, HttpApiResponse& response);
 };
 
 }

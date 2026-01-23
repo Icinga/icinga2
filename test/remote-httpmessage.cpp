@@ -49,7 +49,7 @@ BOOST_AUTO_TEST_CASE(request_parse)
 
 	auto future = SpawnSynchronizedCoroutine([this, &requestOut](boost::asio::yield_context yc) {
 		boost::beast::flat_buffer buf;
-		HttpRequest request(server);
+		HttpApiRequest request(server);
 		BOOST_REQUIRE_NO_THROW(request.ParseHeader(buf, yc));
 
 		for (const auto& field : requestOut.base()) {
@@ -71,7 +71,7 @@ BOOST_AUTO_TEST_CASE(request_parse)
 
 BOOST_AUTO_TEST_CASE(request_params)
 {
-	HttpRequest request(client);
+	HttpApiRequest request(client);
 	// clang-format off
 	request.body() = JsonEncode(
 		new Dictionary{
@@ -119,7 +119,7 @@ BOOST_AUTO_TEST_CASE(request_params)
 
 BOOST_AUTO_TEST_CASE(response_clear)
 {
-	HttpResponse response(server);
+	HttpApiResponse response(server);
 	response.result(http::status::bad_request);
 	response.version(10);
 	response.set(http::field::content_type, "text/html");
@@ -136,7 +136,7 @@ BOOST_AUTO_TEST_CASE(response_clear)
 BOOST_AUTO_TEST_CASE(response_flush_nothrow)
 {
 	auto future = SpawnSynchronizedCoroutine([this](const boost::asio::yield_context& yc) {
-		HttpResponse response(server);
+		HttpApiResponse response(server);
 		response.result(http::status::ok);
 
 		server->lowest_layer().close();
@@ -153,7 +153,7 @@ BOOST_AUTO_TEST_CASE(response_flush_nothrow)
 BOOST_AUTO_TEST_CASE(response_flush_throw)
 {
 	auto future = SpawnSynchronizedCoroutine([this](const boost::asio::yield_context& yc) {
-		HttpResponse response(server);
+		HttpApiResponse response(server);
 		response.result(http::status::ok);
 
 		server->lowest_layer().close();
@@ -171,7 +171,7 @@ BOOST_AUTO_TEST_CASE(response_flush_throw)
 BOOST_AUTO_TEST_CASE(response_write_empty)
 {
 	auto future = SpawnSynchronizedCoroutine([this](boost::asio::yield_context yc) {
-		HttpResponse response(server);
+		HttpApiResponse response(server);
 		response.result(http::status::ok);
 
 		BOOST_REQUIRE_NO_THROW(response.Flush(yc));
@@ -197,7 +197,7 @@ BOOST_AUTO_TEST_CASE(response_write_empty)
 BOOST_AUTO_TEST_CASE(response_write_fixed)
 {
 	auto future = SpawnSynchronizedCoroutine([this](boost::asio::yield_context yc) {
-		HttpResponse response(server);
+		HttpApiResponse response(server);
 		response.result(http::status::ok);
 		response.body() << "test";
 
@@ -225,10 +225,10 @@ BOOST_AUTO_TEST_CASE(response_write_chunked)
 {
 	// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 	auto future = SpawnSynchronizedCoroutine([this](boost::asio::yield_context yc) {
-		HttpResponse response(server);
+		HttpApiResponse response(server);
 		response.result(http::status::ok);
 
-		response.StartStreaming();
+		response.StartStreaming(false);
 		BOOST_REQUIRE_NO_THROW(response.Flush(yc));
 		BOOST_REQUIRE(response.HasSerializationStarted());
 
@@ -263,7 +263,7 @@ BOOST_AUTO_TEST_CASE(response_write_chunked)
 BOOST_AUTO_TEST_CASE(response_sendjsonbody)
 {
 	auto future = SpawnSynchronizedCoroutine([this](boost::asio::yield_context yc) {
-		HttpResponse response(server);
+		HttpApiResponse response(server);
 		response.result(http::status::ok);
 
 		HttpUtility::SendJsonBody(response, nullptr, new Dictionary{{"test", 1}});
@@ -292,7 +292,7 @@ BOOST_AUTO_TEST_CASE(response_sendjsonbody)
 BOOST_AUTO_TEST_CASE(response_sendjsonerror)
 {
 	auto future = SpawnSynchronizedCoroutine([this](boost::asio::yield_context yc) {
-		HttpResponse response(server);
+		HttpApiResponse response(server);
 
 		// This has to be overwritten in SendJsonError.
 		response.result(http::status::ok);
@@ -324,7 +324,7 @@ BOOST_AUTO_TEST_CASE(response_sendjsonerror)
 BOOST_AUTO_TEST_CASE(response_sendfile)
 {
 	auto future = SpawnSynchronizedCoroutine([this](boost::asio::yield_context yc) {
-		HttpResponse response(server);
+		HttpApiResponse response(server);
 
 		response.result(http::status::ok);
 		BOOST_REQUIRE_NO_THROW(response.SendFile(m_CaCrtFile.string(), yc));

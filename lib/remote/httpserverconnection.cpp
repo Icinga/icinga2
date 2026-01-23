@@ -122,7 +122,7 @@ void HttpServerConnection::StartDetectClientSideShutdown()
 	 * If this async_fill() then buffers more application data and not an immediate eof, we could
 	 * attempt to read another message before disconnecting.
 	 *
-	 * This could either be done at the level of the handlers, via the @c HttpResponse class, or
+	 * This could either be done at the level of the handlers, via the @c HttpApiResponse class, or
 	 * generally as a separate coroutine here in @c HttpServerConnection, both (mostly) side-effect
 	 * free and without affecting the state of the connection.
 	 *
@@ -159,8 +159,8 @@ void HttpServerConnection::SetLivenessTimeout(std::chrono::milliseconds timeout)
 static inline
 bool EnsureValidHeaders(
 	boost::beast::flat_buffer& buf,
-	HttpRequest& request,
-	HttpResponse& response,
+	HttpApiRequest& request,
+	HttpApiResponse& response,
 	bool& shuttingDown,
 	boost::asio::yield_context& yc
 )
@@ -216,14 +216,14 @@ bool EnsureValidHeaders(
 static inline
 void HandleExpect100(
 	const Shared<AsioTlsStream>::Ptr& stream,
-	const HttpRequest& request,
+	const HttpApiRequest& request,
 	boost::asio::yield_context& yc
 )
 {
 	namespace http = boost::beast::http;
 
 	if (request[http::field::expect] == "100-continue") {
-		HttpResponse response{stream};
+		HttpApiResponse response{stream};
 		response.result(http::status::continue_);
 		response.Flush(yc);
 	}
@@ -231,8 +231,8 @@ void HandleExpect100(
 
 static inline
 bool HandleAccessControl(
-	const HttpRequest& request,
-	HttpResponse& response,
+	const HttpApiRequest& request,
+	HttpApiResponse& response,
 	boost::asio::yield_context& yc
 )
 {
@@ -275,8 +275,8 @@ bool HandleAccessControl(
 
 static inline
 bool EnsureAcceptHeader(
-	const HttpRequest& request,
-	HttpResponse& response,
+	const HttpApiRequest& request,
+	HttpApiResponse& response,
 	boost::asio::yield_context& yc
 )
 {
@@ -298,8 +298,8 @@ bool EnsureAcceptHeader(
 
 static inline
 bool EnsureAuthenticatedUser(
-	const HttpRequest& request,
-	HttpResponse& response,
+	const HttpApiRequest& request,
+	HttpApiResponse& response,
 	boost::asio::yield_context& yc
 )
 {
@@ -331,8 +331,8 @@ bool EnsureAuthenticatedUser(
 static inline
 bool EnsureValidBody(
 	boost::beast::flat_buffer& buf,
-	HttpRequest& request,
-	HttpResponse& response,
+	HttpApiRequest& request,
+	HttpApiResponse& response,
 	bool& shuttingDown,
 	boost::asio::yield_context& yc
 )
@@ -413,8 +413,8 @@ bool EnsureValidBody(
 
 static inline
 void ProcessRequest(
-	HttpRequest& request,
-	HttpResponse& response,
+	HttpApiRequest& request,
+	HttpApiResponse& response,
 	const WaitGroup::Ptr& waitGroup,
 	std::chrono::steady_clock::duration& cpuBoundWorkTime,
 	boost::asio::yield_context& yc
@@ -459,8 +459,8 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 		while (m_WaitGroup->IsLockable()) {
 			m_Seen = ch::steady_clock::now();
 
-			HttpRequest request(m_Stream);
-			HttpResponse response(m_Stream, this);
+			HttpApiRequest request(m_Stream);
+			HttpApiResponse response(m_Stream, this);
 
 			request.Parser().header_limit(1024 * 1024);
 			request.Parser().body_limit(-1);

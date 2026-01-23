@@ -13,8 +13,8 @@ REGISTER_URLHANDLER("/v1/config/packages", ConfigPackagesHandler);
 
 bool ConfigPackagesHandler::HandleRequest(
 	const WaitGroup::Ptr&,
-	const HttpRequest& request,
-	HttpResponse& response,
+	const HttpApiRequest& request,
+	HttpApiResponse& response,
 	boost::asio::yield_context& yc
 )
 {
@@ -39,7 +39,7 @@ bool ConfigPackagesHandler::HandleRequest(
 	return true;
 }
 
-void ConfigPackagesHandler::HandleGet(const HttpRequest& request, HttpResponse& response)
+void ConfigPackagesHandler::HandleGet(const HttpApiRequest& request, HttpApiResponse& response)
 {
 	namespace http = boost::beast::http;
 
@@ -87,7 +87,7 @@ void ConfigPackagesHandler::HandleGet(const HttpRequest& request, HttpResponse& 
 	HttpUtility::SendJsonBody(response, params, result);
 }
 
-void ConfigPackagesHandler::HandlePost(const HttpRequest& request, HttpResponse& response)
+void ConfigPackagesHandler::HandlePost(const HttpApiRequest& request, HttpApiResponse& response)
 {
 	namespace http = boost::beast::http;
 
@@ -137,7 +137,7 @@ void ConfigPackagesHandler::HandlePost(const HttpRequest& request, HttpResponse&
 	HttpUtility::SendJsonBody(response, params, result);
 }
 
-void ConfigPackagesHandler::HandleDelete(const HttpRequest& request, HttpResponse& response)
+void ConfigPackagesHandler::HandleDelete(const HttpApiRequest& request, HttpApiResponse& response)
 {
 	namespace http = boost::beast::http;
 
