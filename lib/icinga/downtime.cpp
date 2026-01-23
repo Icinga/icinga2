@@ -253,7 +253,7 @@ Downtime::Ptr Downtime::AddDowntime(const Checkable::Ptr& checkable, const Strin
 	const String& comment, double startTime, double endTime, bool fixed,
 	const Downtime::Ptr& parentDowntime, double duration,
 	const String& scheduledDowntime, const String& scheduledBy, const String& parent,
-	const String& id, const MessageOrigin::Ptr& origin)
+	const String& id)
 {
 	String fullName;
 	String triggeredBy;
