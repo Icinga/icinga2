@@ -7,6 +7,15 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.15.2 (2026-01-29)
+
+Additionally, it includes two minor bug fixes regarding SELinux policies and the OpenSSL version shipped on Windows.
+
+* Windows: Update to OpenSSL 3.0.19. #10706
+* SELinux: Fix policy to allow `logrotate` to execute the `icinga2` binary in order to send `SIGUSR1` for log rotation. #10643
+* SELinux: Fix policy to allow `icinga2` to send `SIGTERM` to nagios plugins processes on timeout. #10694
+* doc: Update Windows development docs to use Visual Studio 2022 instead of 2019. #10695
+
 ## 2.15.1 (2025-10-16)
 
 This release fixes multiple security issues. Two of them allow authenticated
