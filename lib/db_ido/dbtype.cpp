@@ -8,10 +8,6 @@
 
 using namespace icinga;
 
-INITIALIZE_ONCE_WITH_PRIORITY([]{
-	DbTypeRegistry::GetInstance()->Freeze();
-}, InitializePriority::FreezeNamespaces);
-
 DbType::DbType(String name, String table, long tid, String idcolumn, DbType::ObjectFactory factory)
 	: m_Name(std::move(name)), m_Table(std::move(table)), m_TypeID(tid), m_IDColumn(std::move(idcolumn)), m_ObjectFactory(std::move(factory))
 { }

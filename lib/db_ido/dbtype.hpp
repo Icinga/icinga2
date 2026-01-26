@@ -57,13 +57,6 @@ private:
 };
 
 /**
- * A registry for DbType objects.
- *
- * @ingroup ido
- */
-using DbTypeRegistry = Registry<DbType::Ptr>;
-
-/**
  * Factory function for DbObject-based classes.
  *
  * @ingroup ido
