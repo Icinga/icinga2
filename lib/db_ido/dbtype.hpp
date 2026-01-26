@@ -61,7 +61,7 @@ private:
  *
  * @ingroup ido
  */
-class DbTypeRegistry : public Registry<DbTypeRegistry, DbType::Ptr>
+class DbTypeRegistry : public Registry<DbType::Ptr>
 {
 };
 

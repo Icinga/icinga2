@@ -59,7 +59,7 @@ private:
  *
  * @ingroup base
  */
-class EventQueueRegistry : public Registry<EventQueueRegistry, EventQueue::Ptr>
+class EventQueueRegistry : public Registry<EventQueue::Ptr>
 {
 };
 

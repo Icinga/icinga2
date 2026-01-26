@@ -21,7 +21,7 @@ namespace icinga
  *
  * @ingroup base
  */
-template<typename U, typename T>
+template<typename T>
 class Registry
 {
 public:
@@ -78,7 +78,7 @@ public:
 private:
 	mutable std::shared_mutex m_Mutex;
 	Atomic<bool> m_Frozen {false};
-	typename Registry<U, T>::ItemMap m_Items;
+	ItemMap m_Items;
 
 	std::shared_lock<std::shared_mutex> ReadLockUnlessFrozen() const
 	{

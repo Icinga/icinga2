@@ -47,7 +47,7 @@ private:
  *
  * @ingroup base
  */
-class ApiFunctionRegistry : public Registry<ApiFunctionRegistry, ApiFunction::Ptr>
+class ApiFunctionRegistry : public Registry<ApiFunction::Ptr>
 {
 };
 

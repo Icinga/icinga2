@@ -45,7 +45,7 @@ private:
  *
  * @ingroup remote
  */
-class ApiActionRegistry : public Registry<ApiActionRegistry, ApiAction::Ptr>
+class ApiActionRegistry : public Registry<ApiAction::Ptr>
 {
 };
 
