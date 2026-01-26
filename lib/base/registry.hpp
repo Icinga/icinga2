@@ -4,9 +4,13 @@
 #define REGISTRY_H
 
 #include "base/i2-base.hpp"
+#include "base/atomic.hpp"
+#include "base/exception.hpp"
 #include "base/string.hpp"
-#include <boost/signals2.hpp>
-#include <map>
+#include "base/singleton.hpp"
+#include <shared_mutex>
+#include <stdexcept>
+#include <unordered_map>
 #include <mutex>
 
 namespace icinga
@@ -17,22 +21,31 @@ namespace icinga
  *
  * @ingroup base
  */
-template<typename U, typename T>
+template<typename T>
 class Registry
 {
 public:
-	typedef std::map<String, T> ItemMap;
+	typedef std::unordered_map<String, T> ItemMap;
+
+	static Registry* GetInstance()
+	{
+		return Singleton<Registry>::GetInstance();
+	}
 
 	void Register(const String& name, const T& item)
 	{
-		std::unique_lock<std::mutex> lock(m_Mutex);
+		std::unique_lock lock (m_Mutex);
 
-		RegisterInternal(name, item, lock);
+		if (m_Frozen) {
+			BOOST_THROW_EXCEPTION(std::logic_error("Registry is read-only and must not be modified."));
+		}
+
+		m_Items[name] = item;
 	}
 
 	T GetItem(const String& name) const
 	{
-		std::unique_lock<std::mutex> lock(m_Mutex);
+		auto lock (ReadLockUnlessFrozen());
 
 		auto it = m_Items.find(name);
 
@@ -44,33 +57,36 @@ public:
 
 	ItemMap GetItems() const
 	{
-		std::unique_lock<std::mutex> lock(m_Mutex);
+		auto lock (ReadLockUnlessFrozen());
 
 		return m_Items; /* Makes a copy of the map. */
 	}
 
-	boost::signals2::signal<void (const String&, const T&)> OnRegistered;
-	boost::signals2::signal<void (const String&)> OnUnregistered;
+	/**
+	 * Freeze the registry, preventing further updates.
+	 *
+	 * This only prevents inserting, replacing or deleting values from the registry.
+	 * This operation has no effect on objects referenced by the values, these remain mutable if they were before.
+	 */
+	void Freeze()
+	{
+		std::unique_lock lock (m_Mutex);
+
+		m_Frozen.store(true);
+	}
 
 private:
-	mutable std::mutex m_Mutex;
-	typename Registry<U, T>::ItemMap m_Items;
+	mutable std::shared_mutex m_Mutex;
+	Atomic<bool> m_Frozen {false};
+	ItemMap m_Items;
 
-	void RegisterInternal(const String& name, const T& item, std::unique_lock<std::mutex>& lock)
+	std::shared_lock<std::shared_mutex> ReadLockUnlessFrozen() const
 	{
-		bool old_item = false;
+		if (m_Frozen.load(std::memory_order_relaxed)) {
+			return {};
+		}
 
-		if (m_Items.erase(name) > 0)
-			old_item = true;
-
-		m_Items[name] = item;
-
-		lock.unlock();
-
-		if (old_item)
-			OnUnregistered(name);
-
-		OnRegistered(name, item);
+		return std::shared_lock(m_Mutex);
 	}
 };
 

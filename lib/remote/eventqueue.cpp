@@ -4,7 +4,6 @@
 #include "remote/eventqueue.hpp"
 #include "remote/filterutility.hpp"
 #include "base/io-engine.hpp"
-#include "base/singleton.hpp"
 #include "base/logger.hpp"
 #include "base/utility.hpp"
 #include <boost/asio/spawn.hpp>
@@ -123,11 +122,6 @@ EventQueue::Ptr EventQueue::GetByName(const String& name)
 void EventQueue::Register(const String& name, const EventQueue::Ptr& function)
 {
 	EventQueueRegistry::GetInstance()->Register(name, function);
-}
-
-EventQueueRegistry *EventQueueRegistry::GetInstance()
-{
-	return Singleton<EventQueueRegistry>::GetInstance();
 }
 
 std::mutex EventsInbox::m_FiltersMutex;

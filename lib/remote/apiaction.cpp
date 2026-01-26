@@ -1,9 +1,12 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "remote/apiaction.hpp"
-#include "base/singleton.hpp"
 
 using namespace icinga;
+
+INITIALIZE_ONCE_WITH_PRIORITY([]{
+	ApiActionRegistry::GetInstance()->Freeze();
+}, InitializePriority::FreezeNamespaces);
 
 ApiAction::ApiAction(std::vector<String> types, Callback action)
 	: m_Types(std::move(types)), m_Callback(std::move(action))
@@ -27,9 +30,4 @@ ApiAction::Ptr ApiAction::GetByName(const String& name)
 void ApiAction::Register(const String& name, const ApiAction::Ptr& action)
 {
 	ApiActionRegistry::GetInstance()->Register(name, action);
-}
-
-ApiActionRegistry *ApiActionRegistry::GetInstance()
-{
-	return Singleton<ApiActionRegistry>::GetInstance();
 }

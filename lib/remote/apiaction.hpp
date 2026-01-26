@@ -45,11 +45,7 @@ private:
  *
  * @ingroup remote
  */
-class ApiActionRegistry : public Registry<ApiActionRegistry, ApiAction::Ptr>
-{
-public:
-	static ApiActionRegistry *GetInstance();
-};
+using ApiActionRegistry = Registry<ApiAction::Ptr>;
 
 #define REGISTER_APIACTION(name, types, callback) \
 	INITIALIZE_ONCE([]() { \

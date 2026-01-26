@@ -6,7 +6,6 @@
 #include "db_ido/i2-db_ido.hpp"
 #include "base/object.hpp"
 #include "base/registry.hpp"
-#include "base/singleton.hpp"
 #include <set>
 
 namespace icinga
@@ -55,17 +54,6 @@ private:
 	static TypeMap& GetTypes();
 
 	ObjectMap m_Objects;
-};
-
-/**
- * A registry for DbType objects.
- *
- * @ingroup ido
- */
-class DbTypeRegistry : public Registry<DbTypeRegistry, DbType::Ptr>
-{
-public:
-	static DbTypeRegistry *GetInstance();
 };
 
 /**

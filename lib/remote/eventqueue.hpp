@@ -59,11 +59,7 @@ private:
  *
  * @ingroup base
  */
-class EventQueueRegistry : public Registry<EventQueueRegistry, EventQueue::Ptr>
-{
-public:
-	static EventQueueRegistry *GetInstance();
-};
+using EventQueueRegistry = Registry<EventQueue::Ptr>;
 
 enum class EventType : uint_fast8_t
 {

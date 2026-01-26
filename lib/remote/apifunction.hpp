@@ -47,11 +47,7 @@ private:
  *
  * @ingroup base
  */
-class ApiFunctionRegistry : public Registry<ApiFunctionRegistry, ApiFunction::Ptr>
-{
-public:
-	static ApiFunctionRegistry *GetInstance();
-};
+using ApiFunctionRegistry = Registry<ApiFunction::Ptr>;
 
 #define REGISTER_APIFUNCTION(name, ns, callback) \
 	INITIALIZE_ONCE([]() { \
