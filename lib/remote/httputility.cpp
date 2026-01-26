@@ -178,7 +178,7 @@ bool HttpUtility::IsValidHeaderValue(std::string_view value)
 		}
 	}
 
-	return std::all_of(value.begin(), value.end(), [](char c) {
-		return c == ' ' || c == '\t' || ('\x21' <= c && c <= '\x7e') || ('\x80' <= c && c <= '\xff');
+	return std::all_of(value.begin(), value.end(), [](unsigned char c) {
+		return c == ' ' || c == '\t' || (c >= 0x21 && c <= 0x7e) || c >= 0x80;
 	});
 }
