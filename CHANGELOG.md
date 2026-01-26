@@ -219,6 +219,15 @@ Thanks to all contributors:
 * Reduce task function allocation overhead by using a per-thread created lambda in `WorkQueue`. #9575
 * Remove redundant trailing empty lines and add missing newlines in some files. #7799
 
+## 2.14.8 (2026-01-29)
+
+This release updates the bundled OpenSSL library and includes changes to allow
+building with newer toolchains.
+
+* Windows: Update to OpenSSL 3.0.19. #10705
+* Bump Boost shipped for Windows to v1.87. #10651
+* Allow building with CMake 4. #10624
+
 ## 2.14.7 (2025-10-16)
 
 This version includes a fix for sending signals and updates dependencies used
