@@ -61,9 +61,7 @@ private:
  *
  * @ingroup ido
  */
-class DbTypeRegistry : public Registry<DbType::Ptr>
-{
-};
+using DbTypeRegistry = Registry<DbType::Ptr>;
 
 /**
  * Factory function for DbObject-based classes.

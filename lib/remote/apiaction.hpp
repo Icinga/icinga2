@@ -45,9 +45,7 @@ private:
  *
  * @ingroup remote
  */
-class ApiActionRegistry : public Registry<ApiAction::Ptr>
-{
-};
+using ApiActionRegistry = Registry<ApiAction::Ptr>;
 
 #define REGISTER_APIACTION(name, types, callback) \
 	INITIALIZE_ONCE([]() { \
