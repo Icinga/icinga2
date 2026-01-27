@@ -579,6 +579,14 @@ Add `linux_netdev` check command. #9045
 * Several code quality improvements. #8815 #9106 #9250
   #9508 #9517 #9537 #9594 #9605 #9606 #9641 #9658 #9702 #9717 #9738
 
+## 2.13.14 (2026-01-29)
+
+This release updates the bundled OpenSSL library and includes changes to allow
+building with newer toolchains.
+
+* Windows: Update to OpenSSL 3.0.19. #10704
+* Allow building with CMake 4. #10625
+
 ## 2.13.13 (2025-10-16)
 
 This release fixes multiple security issues. Two of them allow authenticated
