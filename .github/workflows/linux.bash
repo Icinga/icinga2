@@ -7,9 +7,7 @@ export CTEST_OUTPUT_ON_FAILURE=1
 CMAKE_OPTS=()
 # -Wstringop-overflow is notorious for false positives and has been a problem for years.
 # See: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=88443
-# -Wtemplate-id-cdtor leaks from using the generated headers. We should reenable this once
-# we're considering moving to C++20 and/or the -ti.hpp files are generated differently.
-WARN_FLAGS="-Wall -Wextra -Wno-template-id-cdtor -Wno-stringop-overflow"
+WARN_FLAGS="-Wall -Wextra -Wno-stringop-overflow"
 
 case "$DISTRO" in
   alpine:*)
