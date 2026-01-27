@@ -66,4 +66,4 @@ Read more about development builds in the [development chapter](21-development.m
 
 Icinga 2 and the Icinga 2 documentation are licensed under the terms of the GNU
 General Public License Version 2. You will find a copy of this license in the
-LICENSE file included in the source package.
+`LICENSE.md` file included in the source package.
