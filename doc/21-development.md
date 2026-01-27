@@ -907,11 +907,13 @@ current year as this implies yearly updates we don't want.
 Depending on the file type, this must be a comment.
 
 ```cpp
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2026 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 ```
 
 ```bash
-# Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+
+# SPDX-FileCopyrightText: 2026 Icinga GmbH <https://icinga.com>
+# SPDX-License-Identifier: GPL-2.0-or-later
 ```
 
 #### Code Formatting <a id="development-develop-code-formatting"></a>

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+
+#
+# SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+# SPDX-License-Identifier: GPL-2.0-or-later
 # Except of function urlencode which is Copyright (C) by Brian White (brian@aljex.com) used under MIT license
 
 PROG="`basename $0`"

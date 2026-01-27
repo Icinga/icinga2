@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2021 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2021 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "perfdata/influxdbcommonwriter.hpp"
 #include "perfdata/influxdbcommonwriter-ti.cpp"
