@@ -14,7 +14,7 @@ function ThrowOnNativeFailure {
 $VsVersion = 2022
 $MsvcVersion = '14.3'
 $BoostVersion = @(1, 87, 0)
-$OpensslVersion = '3_0_18'
+$OpensslVersion = '3_0_19'
 
 switch ($Env:BITS) {
 	32 { }
