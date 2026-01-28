@@ -25,6 +25,8 @@ namespace icinga
 template<class T>
 class Atomic : public std::atomic<T> {
 public:
+	using std::atomic<T>::operator=;
+
 	/**
 	 * The only safe constructor of std::atomic#atomic
 	 *
@@ -84,6 +86,12 @@ template<typename T>
 class Locked
 {
 public:
+	Locked() = default;
+
+	Locked(T desired) : m_Value(std::move(desired))
+	{
+	}
+
 	inline T load() const
 	{
 		std::unique_lock<std::mutex> lock(m_Mutex);
@@ -104,12 +112,12 @@ private:
 };
 
 /**
- * Type alias for std::atomic<T> if possible, otherwise Locked<T> is used as a fallback.
+ * Type alias for Atomic<T> if possible, otherwise Locked<T> is used as a fallback.
  *
  * @ingroup base
  */
 template <typename T>
-using AtomicOrLocked = std::conditional_t<std::is_trivially_copyable_v<T>, std::atomic<T>, Locked<T>>;
+using AtomicOrLocked = std::conditional_t<std::is_trivially_copyable_v<T>, Atomic<T>, Locked<T>>;
 
 }
 
