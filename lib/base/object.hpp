@@ -220,6 +220,11 @@ class ObjectImpl
 {
 };
 
+template<class>
+struct NotifyFieldArgs
+{
+};
+
 }
 
 #endif /* OBJECT_H */
