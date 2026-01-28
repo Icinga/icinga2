@@ -698,6 +698,8 @@ Dictionary::Ptr ApiActions::ExecuteCommand(const ConfigObject::Ptr& object, cons
 	MacroProcessor::ResolverList resolvers;
 	Value macros;
 
+	resolvers.reserve(4);
+
 	if (params->Contains("macros")) {
 		macros = HttpUtility::GetLastParameter(params, "macros");
 		if (macros.IsObjectType<Dictionary>()) {

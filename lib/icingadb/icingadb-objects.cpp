@@ -492,11 +492,11 @@ void IcingaDB::UpdateAllConfigObjects()
 			}
 		}
 
-		if (delChecksum.size()) {
+		if (!delChecksum.empty()) {
 			flushDels();
 		}
 
-		if (setChecksum.size()) {
+		if (!setChecksum.empty()) {
 			flushSets();
 		}
 
@@ -1315,15 +1315,16 @@ void IcingaDB::UpdateState(const Checkable::Ptr& checkable, StateUpdate mode)
 		return;
 
 	String objectType = GetLowerCaseTypeNameDB(checkable);
-	String objectKey = GetObjectIdentifier(checkable);
 
 	Dictionary::Ptr stateAttrs = SerializeState(checkable);
 
 	String redisStateKey = m_PrefixConfigObject + objectType + ":state";
-	String redisChecksumKey = m_PrefixConfigCheckSum + objectType + ":state";
 	String checksum = HashValue(stateAttrs);
 
 	if (mode & StateUpdate::Volatile) {
+		String objectKey = GetObjectIdentifier(checkable);
+		String redisChecksumKey = m_PrefixConfigCheckSum + objectType + ":state";
+
 		m_Rcon->FireAndForgetQueries({
 			{"HSET", redisStateKey, objectKey, JsonEncode(stateAttrs)},
 			{"HSET", redisChecksumKey, objectKey, JsonEncode(new Dictionary({{"checksum", checksum}}))},
@@ -3211,10 +3212,7 @@ void IcingaDB::NewCheckResultHandler(const Checkable::Ptr& checkable)
 
 void IcingaDB::NextCheckUpdatedHandler(const Checkable::Ptr& checkable)
 {
-	for (auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
-		rw->UpdateState(checkable, StateUpdate::Volatile);
-		rw->SendNextUpdate(checkable);
-	}
+	NewCheckResultHandler(checkable);
 }
 
 void IcingaDB::DependencyGroupChildRegisteredHandler(const Checkable::Ptr& child, const DependencyGroup::Ptr& dependencyGroup)
@@ -3335,6 +3333,7 @@ void IcingaDB::DeleteRelationship(const String& id, const String& redisKeyWithou
 	String redisKey = m_PrefixConfigObject + redisKeyWithoutPrefix;
 
 	std::vector<std::vector<String>> queries;
+	queries.reserve(3);
 
 	if (hasChecksum) {
 		queries.push_back({"HDEL", m_PrefixConfigCheckSum + redisKeyWithoutPrefix, id});
