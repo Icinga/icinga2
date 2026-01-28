@@ -3369,7 +3369,7 @@ iftraffic64_max_counter	| **Optional.** Maximum counter value of net devices in 
 
 #### interfaces <a id="plugin-contrib-command-interfaces"></a>
 
-The [check_interfaces](https://git.netways.org/plugins/check_interfaces) plugin
+The [check_interfaces](https://github.com/NETWAYS/check_interfaces) plugin
 uses SNMP to monitor network interfaces and their utilization.
 
 Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
