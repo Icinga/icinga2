@@ -17,7 +17,7 @@ case "$DISTRO" in
     # - LibreSSL instead of OpenSSL 3 and
     # - no MariaDB or libpq as they depend on OpenSSL.
     # https://gitlab.alpinelinux.org/alpine/aports/-/blob/master/community/icinga2/APKBUILD
-    apk add bison boost-dev ccache cmake flex g++ libedit-dev libressl-dev ninja-build tzdata
+    apk add bison boost-dev ccache cmake flex g++ libedit-dev libressl-dev ninja-build tzdata git protobuf-dev
     ln -vs /usr/lib/ninja-build/bin/ninja /usr/local/bin/ninja
     ;;
 
@@ -43,25 +43,25 @@ case "$DISTRO" in
     ;;
 
   amazonlinux:20*)
-    dnf install -y amazon-rpm-config bison cmake flex gcc-c++ ninja-build \
-      {boost,libedit,mariadb-connector-c,ncurses,openssl,postgresql,systemd}-devel
+    dnf install -y amazon-rpm-config bison cmake flex gcc-c++ ninja-build git \
+      {boost,libedit,mariadb-connector-c,ncurses,openssl,postgresql,systemd,protobuf-lite}-devel
     ;;
 
   debian:*|ubuntu:*)
     apt-get update
     DEBIAN_FRONTEND=noninteractive apt-get install --no-install-{recommends,suggests} -y \
-      bison ccache cmake dpkg-dev flex g++ ninja-build tzdata \
-      lib{boost-all,edit,mariadb,ncurses,pq,ssl,systemd}-dev
+      bison ccache cmake dpkg-dev flex g++ ninja-build tzdata ca-certificates git protobuf-compiler \
+      lib{boost-all,edit,mariadb,ncurses,pq,ssl,systemd,protobuf}-dev
     ;;
 
   fedora:*)
-    dnf install -y bison ccache cmake flex gcc-c++ ninja-build redhat-rpm-config \
-      {boost,libedit,mariadb,ncurses,openssl,postgresql,systemd}-devel
+    dnf install -y bison ccache cmake flex gcc-c++ ninja-build redhat-rpm-config git \
+      {boost,libedit,mariadb,ncurses,openssl,postgresql,systemd,protobuf-lite}-devel
     ;;
 
   *suse*)
-    zypper in -y bison ccache cmake flex gcc-c++ ninja rpm-config-SUSE \
-      {lib{edit,mariadb,openssl},ncurses,postgresql,systemd}-devel \
+    zypper in -y bison ccache cmake flex gcc-c++ ninja rpm-config-SUSE git \
+      {lib{edit,mariadb,openssl},ncurses,postgresql,systemd,protobuf}-devel \
       libboost_{context,coroutine,filesystem,iostreams,program_options,regex,system,test,thread}-devel
     ;;
 
@@ -77,11 +77,12 @@ case "$DISTRO" in
         ;;
     esac
 
-    dnf install -y bison ccache cmake gcc-c++ flex ninja-build redhat-rpm-config \
-      {boost,bzip2,libedit,mariadb,ncurses,openssl,postgresql,systemd,xz,libzstd}-devel
+    dnf install -y bison ccache cmake gcc-c++ flex ninja-build redhat-rpm-config git \
+      {boost,bzip2,libedit,mariadb,ncurses,openssl,postgresql,systemd,xz,libzstd,protobuf-lite}-devel
     ;;
 esac
 
+WITH_OPENTELEMETRY=ON
 case "$DISTRO" in
   alpine:*)
     CMAKE_OPTS+=(
@@ -98,6 +99,10 @@ case "$DISTRO" in
     export CXXFLAGS="${CXXFLAGS} ${WARN_FLAGS}"
     ;;
   *)
+    # Turn off with OTel on Amazon Linux 2 as the default Protobuf compiler is way too old.
+    if [ "$DISTRO" = "amazonlinux:2" ]; then
+      WITH_OPENTELEMETRY=OFF
+    fi
     CMAKE_OPTS+=(-DCMAKE_{C,CXX}_FLAGS="$(rpm -E '%{optflags} %{?march_flag}') ${WARN_FLAGS}")
     export LDFLAGS="$(rpm -E '%{?build_ldflags}')"
     ;;
@@ -110,6 +115,7 @@ cmake \
   -GNinja \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo \
   -DICINGA2_UNITY_BUILD=ON \
+  -DICINGA2_WITH_OPENTELEMETRY="${WITH_OPENTELEMETRY}" \
   -DUSE_SYSTEMD=ON \
   -DICINGA2_USER=$(id -un) \
   -DICINGA2_GROUP=$(id -gn) \
