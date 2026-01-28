@@ -524,7 +524,7 @@ static int Main()
 			if (vm.count("version")) {
 				std::cout << "Copyright (c) 2012-" << Utility::FormatDateTime("%Y", Utility::GetTime())
 					<< " Icinga GmbH (https://icinga.com/)" << std::endl
-					<< "License GPLv2+: GNU GPL version 2 or later <https://gnu.org/licenses/gpl2.html>" << std::endl
+					<< "License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl-3.0.html>" << std::endl
 					<< "This is free software: you are free to change and redistribute it." << std::endl
 					<< "There is NO WARRANTY, to the extent permitted by law.";
 			}

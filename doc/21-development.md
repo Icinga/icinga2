@@ -907,11 +907,13 @@ current year as this implies yearly updates we don't want.
 Depending on the file type, this must be a comment.
 
 ```cpp
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2026 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-3.0-or-later
 ```
 
 ```bash
-# Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+
+# SPDX-FileCopyrightText: 2026 Icinga GmbH <https://icinga.com>
+# SPDX-License-Identifier: GPL-3.0-or-later
 ```
 
 #### Code Formatting <a id="development-develop-code-formatting"></a>
@@ -1242,7 +1244,7 @@ rewriting large code parts.
 If you consider an external library or code to be included with Icinga, the following
 requirements must be fulfilled:
 
-- License is compatible with GPLv2+. Boost license, MIT works, Apache is not.
+- License is compatible with GPLv3+. Like Boost license, MIT, Apache etc., works.
 - C++17 is supported
 - Header only implementations are preferred, external libraries require packages on every distribution.
 - No additional frameworks, Boost is the only allowed.
