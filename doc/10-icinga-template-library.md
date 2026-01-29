@@ -3046,6 +3046,30 @@ smart_attributes_ssd_only              | **Optional.** If set to true, only SSDs
 smart_attributes_options               | **Optional.** Additional parameters forwarded to smartctl binary
 
 
+#### smart-advanced <a id="plugin-contrib-command-smart-advanced"></a>
+
+The [check_smart](https://www.claudiokuenzler.com/monitoring-plugins/check_smart.php) plugin uses the `smartctl` command from the `smartmontools` package to monitor SMART values of physical drives. Hard, solid state and NVMe drives are supported. Both direct drive access or drives behind a storage controller (such as RAID) are supported.
+
+`smart_device` is required. `smart_interface` defaults to 'auto'. If `smart_device_is_glob` is set to true, a glob expression will be used for the given device(s) in `smart_device`.
+
+Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                   | Description
+-----------------------|-----------------------------------------------------------------------
+smart_device           | **Required.** Path to physical block device to be SMART monitored, e.g. /dev/sda. In combination with `smart_device_is_glob` (set to true) can also be used to monitor multiple drives at the same time (e.g. "/dev/sd[a-z]").
+smart_interface        | **Optional.** Drive's interface type, must be one of: auto, ata, scsi, nvme, 3ware,N, areca,N, hpt,L/M/N, cciss,N, megaraid,N.
+smart_device_is_glob   | **Optional.** If set to true, will use `smart_device` as glob expression (e.g. "/dev/sd[a-z]"). Allows to monitor multiple drives with one check.
+smart_raw_list         | **Optional.** List (comma separated, without spaces!) of SMART attributes to check for their raw values.
+smart_exclude_list     | **Optional.** List of (comma separated) SMART attributes which should be excluded (=ignored) from checks, but still appear in perfdata.
+smart_exclude_all_list | **Optional.** List of (comma separated) SMART attributes which should be excluded (=ignored) **completely** from checks and perfdata.
+smart_bad              | **Optional.** Threshold value (integer) when to warn for N bad entries (ATA: Current Pending Sector, SCSI: Grown defect list). Note: Deprecated for ATA drives, use `smart_warn` instead. Continue to use this for SCSI drives.
+smart_warn             | **Optional.** Comma separated list of thresholds for ATA drives (e.g. `"Reallocated_Sector_Ct=10,Current_Pending_Sector=62"`).
+smart_selftest         | **Optional.** If set to true, additionally check SMART's selftest log for errors.
+smart_ssd_lifetime     | **Optional.** If set to true, additionally check SSD attribute 'Percent_Lifetime_Remain'.
+smart_quiet            | **Optional.** If set to true, only show failing drive(s) when faults are detected (only affects output when `smart_device_is_glob` is set to true).
+smart_skip_self_assessment | **Optional.** If set to true, skip the SMART self assessment health check (not recommended).
+
+
 ### IcingaCLI <a id="plugin-contrib-icingacli"></a>
 
 This category includes all plugins using the icingacli provided by Icinga Web 2.
