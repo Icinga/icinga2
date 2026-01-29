@@ -159,6 +159,13 @@ BOOST_AUTO_TEST_CASE(advanced)
 	expr = ConfigCompiler::CompileText("<test>", R"(regex("^Hello", "Hello World"))");
 	BOOST_CHECK(expr->Evaluate(frame).GetValue());
 
+	expr = ConfigCompiler::CompileText("<test>", R"(regex_match("f(o)o", "foo") == [ "foo", "o" ])");
+	BOOST_CHECK(expr->Evaluate(frame).GetValue());
+
+	// `typeof(nl) == Object` ensures `nl` is actually `null` and not `""` because `"" == null`
+	expr = ConfigCompiler::CompileText("<test>", R"(var nl = regex_match("f(o)o", "bar"); nl == null && typeof(nl) == Object)");
+	BOOST_CHECK(expr->Evaluate(frame).GetValue());
+
 	expr = ConfigCompiler::CompileText("<test>", "__boost_test()");
 	BOOST_CHECK_THROW(expr->Evaluate(frame).GetValue(), ScriptError);
 

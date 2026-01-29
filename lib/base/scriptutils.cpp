@@ -17,6 +17,7 @@
 #include <boost/regex.hpp>
 #include <algorithm>
 #include <set>
+#include <utility>
 #ifdef _WIN32
 #include <msi.h>
 #endif /* _WIN32 */
@@ -24,6 +25,7 @@
 using namespace icinga;
 
 REGISTER_SAFE_FUNCTION(System, regex, &ScriptUtils::Regex, "pattern:text:mode");
+REGISTER_SAFE_FUNCTION(System, regex_match, &ScriptUtils::RegexMatch, "pattern:text");
 REGISTER_SAFE_FUNCTION(System, match, &ScriptUtils::Match, "pattern:text:mode");
 REGISTER_SAFE_FUNCTION(System, cidr_match, &ScriptUtils::CidrMatch, "pattern:ip:mode");
 REGISTER_SAFE_FUNCTION(System, len, &ScriptUtils::Len, "value");
@@ -144,6 +146,25 @@ bool ScriptUtils::Regex(const std::vector<Value>& args)
 		boost::smatch what;
 		return boost::regex_search(text.GetData(), what, expr);
 	}
+}
+
+Array::Ptr ScriptUtils::RegexMatch(const String& pattern, const String& text)
+{
+	boost::regex expr (pattern.GetData());
+	boost::smatch what;
+
+	if (!boost::regex_search(text.GetData(), what, expr)) {
+		return nullptr;
+	}
+
+	ArrayData res;
+	res.reserve(what.size());
+
+	for (auto& submatch : what) {
+		res.emplace_back(submatch.str());
+	}
+
+	return new Array(std::move(res));
 }
 
 bool ScriptUtils::Match(const std::vector<Value>& args)

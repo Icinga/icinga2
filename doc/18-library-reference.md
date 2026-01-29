@@ -587,6 +587,65 @@ true
 false
 ```
 
+### regex\_match <a id="global-functions-regex_match"></a>
+
+Signature:
+
+```
+function regex_match(pattern, value)
+```
+
+If the regular expression `pattern` matches the string `value`,
+returns an array with the first match inside the whole string
+and the submatches of the match declared with parentheses.
+
+If `pattern` doesn't match `value`, returns null.
+
+Examples:
+
+```
+$ icinga2 console
+Icinga 2 (version: v2.13.0)
+<1> => regex_match("foo", "bar")
+null
+<2> => regex_match("foo", "foo")
+[ "foo" ]
+<3> => regex_match("f(o)o", "foo")
+[ "foo", "o" ]
+```
+
+```
+object Host "example.com" {
+  check_command = "passive"
+
+  vars.http_urls = {
+    "monitor" = "http://monitor.example.com/icingaweb2",
+    "logs" = "https://logs.example.com",
+    "cloud" = "http://cloud.example.com:5000"
+  }
+}
+
+apply Service "http-" for (name => url in host.vars.http_urls) {
+  check_command = "http"
+
+  var match = regex_match({{{http(s?)://([^:/]+)((?::\d+)?)((?:/.*)?)}}}, url)
+
+  if (match[1]) {
+    vars.http_ssl = true
+  }
+
+  vars.http_address = match[2]
+
+  if (match[3]) {
+    vars.http_port = match[3].substr(1)
+  }
+
+  if (match[4]) {
+    vars.http_uri = match[4]
+  }
+}
+```
+
 ### sleep <a id="global-functions-sleep"></a>
 
 Signature:

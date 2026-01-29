@@ -24,6 +24,7 @@ public:
 	static double CastNumber(const Value& value);
 	static bool CastBool(const Value& value);
 	static bool Regex(const std::vector<Value>& args);
+	static Array::Ptr RegexMatch(const String& pattern, const String& text);
 	static bool Match(const std::vector<Value>& args);
 	static bool CidrMatch(const std::vector<Value>& args);
 	static double Len(const Value& value);
