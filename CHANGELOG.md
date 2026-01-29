@@ -9,9 +9,12 @@ Released closed milestones can be found on [GitHub](https://github.com/Icinga/ic
 
 ## 2.14.8 (2026-01-29)
 
-This release updates the bundled OpenSSL library and includes changes to allow
-building with newer toolchains.
+This security release fixes a problem in the Icinga 2 Windows MSI that did not
+set proper permissions for `%ProgramData%\icinga2\var`. Additionally, it
+updates the bundled OpenSSL library and includes changes to allow building with
+newer toolchains.
 
+* CVE-2026-24413: Fix permissions of `%ProgramData%\icinga2\var` on Windows.
 * Windows: Update to OpenSSL 3.0.19. #10705
 * Bump Boost shipped for Windows to v1.87. #10651
 * Allow building with CMake 4. #10624
