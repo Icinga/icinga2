@@ -7,6 +7,15 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.14.8 (2026-01-29)
+
+This release updates the bundled OpenSSL library and includes changes to allow
+building with newer toolchains.
+
+* Windows: Update to OpenSSL 3.0.19. #10705
+* Bump Boost shipped for Windows to v1.87. #10651
+* Allow building with CMake 4. #10624
+
 ## 2.14.7 (2025-10-16)
 
 This release fixes multiple security issues. Two of them allow authenticated
