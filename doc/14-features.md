@@ -73,6 +73,7 @@ best practice is to provide performance data.
 
 This data is parsed by features sending metrics to time series databases (TSDB):
 
+* [OpenTelemetry](14-features.md#otlpmetrics-writer)
 * [Graphite](14-features.md#graphite-carbon-cache-writer)
 * [InfluxDB](14-features.md#influxdb-writer)
 * [OpenTSDB](14-features.md#opentsdb-writer)
@@ -751,6 +752,78 @@ mechanism ensures that metrics are written even if the cluster fails.
 The recommended way of running OpenTSDB in this scenario is a dedicated server
 where you have OpenTSDB running.
 
+### OTLPMetrics Writer <a id="otlpmetrics-writer"></a>
+
+The [OpenTelemetry Protocol (OTLP/HTTP)](https://opentelemetry.io/docs/specs/otlp/#otlphttp) metrics Writer feature
+allows Icinga 2 to send metrics to OpenTelemetry Collector or any other backend that supports the OTLP HTTP protocol,
+such as [Prometheus OTLP](https://prometheus.io/docs/guides/opentelemetry/) receiver,
+[Grafana Mimir](https://grafana.com/docs/mimir/latest/configure/configure-otel-collector/),
+[OpenSearch Data Prepper](https://docs.opensearch.org/latest/data-prepper/pipelines/configuration/sources/otlp-source/),
+etc. It enables seamless integration of Icinga 2 metrics into modern observability stacks, allowing you to leverage the
+capabilities of OpenTelemetry for advanced analysis and visualization of your monitoring data. OpenTelemetry provides a
+standardized way to collect, process, and export telemetry data, making it easier to integrate with numerous
+[monitoring and observability](https://opentelemetry.io/docs/collector/components/exporter/) tools effortlessly.
+
+!!! note
+
+    This feature has successfully been tested with OpenTelemetry Collector, Prometheus OTLP receiver, OpenSearch Data
+    Prepper, and Grafana Mimir. However, it should work with any backend that supports the OTLP HTTP protocol as well.
+
+In order to enable this feature, you can use the following command:
+
+```bash
+icinga2 feature enable otlpmetrics
+```
+
+By default, the OTLPMetrics Writer expects the OpenTelemetry Collector or any other OTLP HTTP receiver to listen at
+`127.0.0.1` on port `4318` but most of the third-party backends use their own ports, so you may need to adjust the
+configuration accordingly. Additionally, the `metrics_endpoint` can vary based on the backend you are using.
+For example, OpenTelemetry Collector uses `/v1/metrics` (is the default), while the Prometheus OTLP receiver uses
+`/api/v1/otlp/v1/metrics`. Therefore, it is important to set the correct `metrics_endpoint` in the configuration file.
+
+You can find more details about the configuration options [here](09-object-types.md#objecttype-otlpmetricswriter).
+
+The generated metric names follow the OpenTelemetry naming conventions and cannot be customized by end-users and are
+therefore always the same across all Icinga 2 installations. The OTLP Writer currently sends the following metrics:
+
+| Metric Name                     | Description                           |
+|---------------------------------|---------------------------------------|
+| state_check.perfdata            | Performance data metrics from checks. |
+| state_check.thresholds.warning  | Warning threshold values for checks.  |
+| state_check.thresholds.critical | Critical threshold values for checks. |
+| state_check.thresholds.min      | Minimum threshold values for checks.  |
+| state_check.thresholds.max      | Maximum threshold values for checks.  |
+
+By default, the writer will not stream any data point for the `state_check.thresholds.*` metrics. To enable the
+streaming of threshold metrics, you need to set the `enable_send_thresholds` option to `true` in the OTLPMetrics Writer
+configuration. Once enabled, it will send the threshold values for each performance data metric if they are available
+in the produced check results.
+
+The data points type for all the above metrics is [`gauge`](https://opentelemetry.io/docs/specs/otel/metrics/data-model/#gauge)
+and the perfdata labels and their units (if available) are mapped OpenTelemetry metric points attributes. For example,
+a perfdata label `load1` with a value of `0.5` and unit `%` will be sent to the `state_check.perfdata` metric stream,
+with a metric point having a value of `0.5`, along with the attributes `label="load1"` and `unit="%"`. Additionally,
+each metric point will also include other relevant attributes such as `icinga2.host.name`, `icinga2.service.name`,
+`icinga2.command.name`, etc. as resource attributes. The complete list of data format and attributes can be obtained by
+letting the OpenTelemetry Collector log the received metrics either to the standard output or to a JSON file in a
+human-readable format.
+
+At the moment, the OTLPMetrics Writer allows you to configure only a single metrics resource attribute
+[`service.namespace`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/service/#service-namespace) via
+the `service_namespace` option in the OTLPMetrics Writer config. This attribute can be used to group related metrics
+together in the backend. By default, it is set to `icinga`. You can customize it to better fit your monitoring
+environment. For example, you might set it to `production`, `staging`, or any other relevant namespace that categorizes
+your Icinga 2 metrics emitted to the OpenTelemetry backend effectively.
+
+#### OTLPMetrics in HA Cluster Zones <a id="otlpmetrics-writer-ha-cluster"></a>
+
+This writer supports [High Availability (HA)](06-distributed-monitoring.md#distributed-monitoring-high-availability-features)
+cluster zones in Icinga 2. If you enable this feature on all of your cluster endpoints, each OTLPMetrics Writer will
+send metrics independently to the configured OTLP collector. In order to avoid duplicate metrics being sent from
+multiple cluster endpoints, it is recommended to set the `enable_ha` option to `true` in the OTLPMetrics Writer config
+on all cluster endpoints. This will ensure that only one writer in the cluster is active at any given time, sending
+metrics to the configured OTLP collector. The other OTLPMetrics Writer will remain in standby mode and ready to take
+over if the active endpoint fails or becomes unavailable for any reason.
 
 ### Writing Performance Data Files <a id="writing-performance-data-files"></a>
 

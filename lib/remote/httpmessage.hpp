@@ -249,6 +249,13 @@ public:
 	[[nodiscard]] bool HasSerializationStarted() const { return m_SerializationStarted; }
 
 	/**
+	 * Check if the message has been fully serialized.
+	 *
+	 * @return true if the message is fully serialized; false otherwise.
+	 */
+	[[nodiscard]] bool Done() { return m_Serializer.is_done(); }
+
+	/**
 	 * Sends the contents of a file.
 	 *
 	 * This does not use chunked encoding because the file size is expected to be fixed.
