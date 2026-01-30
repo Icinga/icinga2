@@ -44,11 +44,13 @@ class Dependency : CustomVarObject < DependencyNameComposer
 			}
 		}}}
 		navigate {{{
-			if (GetChildServiceName().IsEmpty())
-				return nullptr;
+			if (!GetChildServiceName().IsEmpty()) {
+				Host::Ptr host = Host::GetByName(GetChildHostName());
+				if (host)
+					return host->GetServiceByShortName(GetChildServiceName());
+			}
 
-			Host::Ptr host = Host::GetByName(GetChildHostName());
-			return host->GetServiceByShortName(GetChildServiceName());
+			return nullptr;
 		}}}
 	};
 
@@ -71,11 +73,13 @@ class Dependency : CustomVarObject < DependencyNameComposer
 			}
 		}}}
 		navigate {{{
-			if (GetParentServiceName().IsEmpty())
-				return nullptr;
+			if (!GetParentServiceName().IsEmpty()) {
+				Host::Ptr host = Host::GetByName(GetParentHostName());
+				if (host)
+					return host->GetServiceByShortName(GetParentServiceName());
+			}
 
-			Host::Ptr host = Host::GetByName(GetParentHostName());
-			return host->GetServiceByShortName(GetParentServiceName());
+			return nullptr;
 		}}}
 	};
 
