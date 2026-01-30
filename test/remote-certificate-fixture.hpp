@@ -38,6 +38,11 @@ struct CertificateFixture : ConfigurationDataDirFixture
 		}
 	}
 
+	CertificateFixture(const CertificateFixture&) = delete;
+	CertificateFixture(CertificateFixture&&) = delete;
+	CertificateFixture& operator=(const CertificateFixture&) = delete;
+	CertificateFixture& operator=(CertificateFixture&&) = delete;
+
 	~CertificateFixture()
 	{
 		namespace fs = boost::filesystem;
