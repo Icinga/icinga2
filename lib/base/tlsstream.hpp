@@ -4,13 +4,13 @@
 #define TLSSTREAM_H
 
 #include "base/i2-base.hpp"
+#include "base/atomic.hpp"
 #include "base/shared.hpp"
 #include "base/socket.hpp"
 #include "base/stream.hpp"
 #include "base/tlsutility.hpp"
 #include "base/fifo.hpp"
 #include "base/utility.hpp"
-#include <atomic>
 #include <memory>
 #include <utility>
 #include <variant>
@@ -31,7 +31,6 @@ public:
 	template<class... Args>
 	SeenStream(Args&&... args) : ARS(std::forward<Args>(args)...)
 	{
-		m_Seen.store(nullptr);
 	}
 
 	template<class... Args>
@@ -54,7 +53,7 @@ public:
 	}
 
 private:
-	std::atomic<double*> m_Seen;
+	Atomic<double*> m_Seen {nullptr};
 };
 
 struct UnbufferedAsioTlsStreamParams
