@@ -431,7 +431,18 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		int num = 0;
 		for (const Field& field : klass.Fields) {
 			m_Impl << "\t\t" << "case " << num << ":" << std::endl
-				<< "\t\t\t" << "ObjectImpl<" << klass.Name << ">::On" << field.GetFriendlyName() << "Changed.connect(callback);" << std::endl
+				<< "\t\t\tObjectImpl<" << klass.Name << ">::On" << field.GetFriendlyName() << "Changed.connect(";
+
+			if (field.Attributes & FANotifyArgs) {
+				m_Impl << "[callback](const Object::Ptr& obj, const Value& val, const NotifyFieldArgs<ObjectImpl<"
+					<< klass.Name << ">::Notify" << field.GetFriendlyName() << "Args>&) {" << std::endl
+					<< "\t\t\t\tcallback(obj, val);" << std::endl
+					<< "\t\t\t}";
+			} else {
+				m_Impl << "callback";
+			}
+
+			m_Impl << ");" << std::endl
 				<< "\t\t\t" << "break;" << std::endl;
 			num++;
 		}
@@ -823,6 +834,27 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			}
 		}
 
+		/* T for NotifyFieldArgs<T> */
+		for (auto& field : klass.Fields) {
+			if (field.Attributes & FANotifyArgs) {
+				m_Header << "public:" << std::endl
+					<< "\tstruct Notify" << field.GetFriendlyName() << "Args {};" << std::endl
+					<< "\tstatic const NotifyFieldArgs<Notify" << field.GetFriendlyName()
+					<< "Args> Notify" << field.GetFriendlyName() << "DefaultArgs;" << std::endl;
+
+				m_Impl << "/**" << std::endl
+					<< " * The default for the notifyArgs param of the method ObjectImpl<"
+					<< klass.Name << ">::Set" << field.GetFriendlyName() << "()." << std::endl
+					<< " * " << std::endl
+					<< " * This default can't be just {} (default constructor) because that triggers the following:" << std::endl
+					<< " * error: explicit specialization of 'icinga::NotifyFieldArgs<icinga::ObjectImpl<icinga::"
+					<< klass.Name << ">::Notify" << field.GetFriendlyName() << "Args>' after instantiation" << std::endl
+					<< " */" << std::endl
+					<< "const NotifyFieldArgs<ObjectImpl<" << klass.Name << ">::Notify" << field.GetFriendlyName() << "Args> ObjectImpl<"
+					<< klass.Name << ">::Notify" << field.GetFriendlyName() << "DefaultArgs;" << std::endl << std::endl;
+			}
+		}
+
 		/* setters */
 		for (const Field& field : klass.Fields) {
 			std::string prot;
@@ -838,15 +870,29 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			if (field.Attributes & FASetVirtual || field.PureSetAccessor)
 				m_Header << "virtual ";
 
-			m_Header << "void Set" << field.GetFriendlyName() << "(" << field.Type.GetArgumentType() << " value, bool suppress_events = false, const Value& cookie = Empty)";
+			m_Header << "void Set" << field.GetFriendlyName() << "(" << field.Type.GetArgumentType()
+				<< " value, bool suppress_events = false, const Value& cookie = Empty";
+
+			if (field.Attributes & FANotifyArgs) {
+				m_Header << ", const NotifyFieldArgs<Notify" << field.GetFriendlyName()
+					<< "Args>& notifyArgs = Notify" << field.GetFriendlyName() << "DefaultArgs";
+			}
+
+			m_Header << ")";
 
 			if (field.PureSetAccessor) {
 				m_Header << " = 0;" << std::endl;
 			} else {
 				m_Header << ";" << std::endl;
 
-				m_Impl << "void ObjectImpl<" << klass.Name << ">::Set" << field.GetFriendlyName() << "(" << field.Type.GetArgumentType() << " value, bool suppress_events, const Value& cookie)" << std::endl
-					<< "{" << std::endl;
+				m_Impl << "void ObjectImpl<" << klass.Name << ">::Set" << field.GetFriendlyName() << "("
+					<< field.Type.GetArgumentType() << " value, bool suppress_events, const Value& cookie";
+
+				if (field.Attributes & FANotifyArgs) {
+					m_Impl << ", const NotifyFieldArgs<Notify" << field.GetFriendlyName() << "Args>& notifyArgs";
+				}
+
+				m_Impl << ")" << std::endl << "{" << std::endl;
 
 				if (field.Type.IsName || !field.TrackAccessor.empty() || field.Attributes & FASignalWithOldValue)
 					m_Impl << "\t" << "Value oldValue = Get" << field.GetFriendlyName() << "();" << std::endl
@@ -867,7 +913,13 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 				}
 
 				m_Impl << "\t" << "if (!suppress_events) {" << std::endl
-					<< "\t\t" << "Notify" << field.GetFriendlyName() << "(cookie);" << std::endl;
+					<< "\t\tNotify" << field.GetFriendlyName() << "(cookie";
+
+				if (field.Attributes & FANotifyArgs) {
+					m_Impl << ", notifyArgs";
+				}
+
+				m_Impl << ");" << std::endl;
 
 				if (field.Attributes & FASignalWithOldValue) {
 					m_Impl << "\t\t" << "if (!dobj || dobj->IsActive())" << std::endl
@@ -1022,9 +1074,22 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 				prot = "public";
 
 			m_Header << prot << ":" << std::endl
-					<< "\t" << "virtual void Notify" << field.GetFriendlyName() << "(const Value& cookie = Empty);" << std::endl;
+				<< "\tvirtual void Notify" << field.GetFriendlyName() << "(const Value& cookie = Empty";
 
-			m_Impl << "void ObjectImpl<" << klass.Name << ">::Notify" << field.GetFriendlyName() << "(const Value& cookie)" << std::endl
+			if (field.Attributes & FANotifyArgs) {
+				m_Header << ", const NotifyFieldArgs<Notify" << field.GetFriendlyName()
+					<< "Args>& notifyArgs = Notify" << field.GetFriendlyName() << "DefaultArgs";
+			}
+
+			m_Header << ");" << std::endl;
+
+			m_Impl << "void ObjectImpl<" << klass.Name << ">::Notify" << field.GetFriendlyName() << "(const Value& cookie";
+
+			if (field.Attributes & FANotifyArgs) {
+				m_Impl << ", const NotifyFieldArgs<Notify" << field.GetFriendlyName() << "Args>& notifyArgs";
+			}
+
+			m_Impl << ")" << std::endl
 				<< "{" << std::endl;
 
 			if (field.Name != "active") {
@@ -1033,7 +1098,13 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 					<< "\t";
 			}
 
-			m_Impl << "\t" << "On" << field.GetFriendlyName() << "Changed(static_cast<" << klass.Name << " *>(this), cookie);" << std::endl
+			m_Impl << "\tOn" << field.GetFriendlyName() << "Changed(static_cast<" << klass.Name << " *>(this), cookie";
+
+			if (field.Attributes & FANotifyArgs) {
+				m_Impl << ", notifyArgs";
+			}
+
+			m_Impl << ");" << std::endl
 				<< "}" << std::endl << std::endl;
 		}
 		
@@ -1075,8 +1146,21 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 		m_Header << "public:" << std::endl;
 		
 		for (const Field& field : klass.Fields) {
-			m_Header << "\t" << "static boost::signals2::signal<void (const intrusive_ptr<" << klass.Name << ">&, const Value&)> On" << field.GetFriendlyName() << "Changed;" << std::endl;
-			m_Impl << std::endl << "boost::signals2::signal<void (const intrusive_ptr<" << klass.Name << ">&, const Value&)> ObjectImpl<" << klass.Name << ">::On" << field.GetFriendlyName() << "Changed;" << std::endl << std::endl;
+			m_Header << "\tstatic boost::signals2::signal<void(const intrusive_ptr<" << klass.Name << ">&, const Value&";
+
+			if (field.Attributes & FANotifyArgs) {
+				m_Header << ", const NotifyFieldArgs<Notify" << field.GetFriendlyName() << "Args>&";
+			}
+
+			m_Header << ")> On" << field.GetFriendlyName() << "Changed;" << std::endl;
+
+			m_Impl << std::endl << "boost::signals2::signal<void(const intrusive_ptr<" << klass.Name << ">&, const Value&";
+
+			if (field.Attributes & FANotifyArgs) {
+				m_Impl << ", const NotifyFieldArgs<ObjectImpl<" << klass.Name << ">::Notify" << field.GetFriendlyName() << "Args>&";
+			}
+
+			m_Impl << ")> ObjectImpl<" << klass.Name << ">::On" << field.GetFriendlyName() << "Changed;" << std::endl << std::endl;
 
 			if (field.Attributes & FASignalWithOldValue) {
 				m_Header << "\t" << "static boost::signals2::signal<void (const intrusive_ptr<" << klass.Name
