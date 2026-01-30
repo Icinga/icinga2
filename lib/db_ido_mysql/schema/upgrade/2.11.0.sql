@@ -2,7 +2,8 @@
 -- upgrade path for Icinga 2.11.0
 --
 -- -----------------------------------------
--- Copyright (c) 2019 Icinga Development Team (https://icinga.com/)
+-- SPDX-FileCopyrightText: 2019 Icinga GmbH <https://icinga.com>
+-- SPDX-License-Identifier: GPL-2.0-or-later
 --
 -- Please check https://docs.icinga.com for upgrading information!
 -- -----------------------------------------

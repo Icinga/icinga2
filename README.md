@@ -56,14 +56,27 @@ or ask an Icinga partner for [professional support](https://icinga.com/support/)
 ## License
 
 Icinga 2 and the Icinga 2 documentation are licensed under the terms of the GNU
-General Public License Version 2, you will find a copy of this license in the
-COPYING file included in the source package.
+General Public License Version 3 or later, you will find a copy of this license in the
+`LICENSE.md` file included in the source package.
+
+> **Note**
+>
+> Historically, Icinga 2 has been licensed under the GNU General Public License Version 2 or later. However, due to
+> newly introduced dependencies licensed under the Apache License 2.0 (which is not compatible with GPLv2), we have
+> decided to upgrade the license of Icinga 2 to GPLv3+, effective from version `v2.16.0` onwards. All versions prior to
+> `v2.16.0` and all existing source code files remain licensed under GPLv2+ (see the license information in those files).
 
 In addition, as a special exception, the copyright holders give
 permission to link the code of portions of this program with the
 OpenSSL library under certain conditions as described in each
 individual source file, and distribute linked combinations including
 the two.
+
+> **Note**
+>
+> For all Icinga 2 `>= v2.16.0` versions and when linking Icinga 2 against OpenSSL version `>= 3.0.0`
+> (which is licensed under Apache License 2.0), the above OpenSSL exception is no longer applicable,
+> as the licensing terms of Apache License 2.0 are compatible with GPLv3+.
 
 You must obey the GNU General Public License in all respects for all
 of the code used other than OpenSSL. If you modify file(s) with this

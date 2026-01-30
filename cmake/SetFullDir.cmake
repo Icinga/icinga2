@@ -1,4 +1,5 @@
-# Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+
+# SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Ensures a directory is absolute by prefixing CMAKE_INSTALL_PREFIX if it is not
 # similar to CMAKE_INSTALL_FULL_... https://cmake.org/cmake/help/latest/module/GNUInstallDirs.html
