@@ -34,7 +34,7 @@ public:
 		String name,
 		String host,
 		String port,
-		Shared<boost::asio::ssl::context>::Ptr sslContext,
+		Shared<boost::asio::ssl::context>::Ptr sslContext = nullptr,
 		bool verifySecure = true
 	);
 
