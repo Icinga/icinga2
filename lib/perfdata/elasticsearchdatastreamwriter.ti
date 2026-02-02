@@ -44,6 +44,9 @@ class ElasticsearchDatastreamWriter : ConfigObject
 	[config] String cert_path;
 	[config] String key_path;
 
+	[config] double disconnect_timeout {
+		default {{{ return 0.5; }}}
+	};
 	[config] int flush_interval {
 		default {{{ return 10; }}}
 	};

@@ -11,12 +11,12 @@
 #include "base/shared-object.hpp"
 #include "base/workqueue.hpp"
 #include "base/timer.hpp"
-#include "base/tlsstream.hpp"
 #include "config/expression.hpp"
 #include "icinga/checkable.hpp"
 #include "icinga/checkresult.hpp"
 #include "icinga/macroprocessor.hpp"
 #include "remote/url.hpp"
+#include "perfdata/perfdatawriterconnection.hpp"
 
 #include "perfdata/elasticsearchdatastreamwriter-ti.hpp"
 
@@ -68,6 +68,8 @@ private:
 	Timer::Ptr m_FlushTimer;
 	bool m_Paused = false;
 
+	PerfdataWriterConnection::Ptr m_Connection;
+
 	// This buffer should only be accessed from the worker thread.
 	// Every other access will lead to a race-condition.
 	std::vector<EcsDocument::Ptr> m_DataBuffer;
@@ -86,7 +88,6 @@ private:
 		const CheckResult::Ptr& cr);
 	bool Filter(const Checkable::Ptr& checkable);
 
-	OptionalTlsStream Connect();
 	void AssertOnWorkQueue();
 	void Flush();
 	void SendRequest(const String& body);
