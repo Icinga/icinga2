@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2025 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2026 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -17,7 +18,6 @@
 #define REQUIRE_JOINABLE(t) BOOST_REQUIRE_MESSAGE(t.Joinable(), "Thread not joinable.")
 #define CHECK_JOINABLE(t) BOOST_REQUIRE_MESSAGE(t.Joinable(), "Thread not joinable.")
 #define TEST_JOINABLE(t) BOOST_REQUIRE_MESSAGE(t.Joinable(), "Thread not joinable.")
-
 
 namespace icinga {
 
