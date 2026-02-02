@@ -7,17 +7,12 @@
 #include "icinga/checkcommand.hpp"
 #include "icinga/macroprocessor.hpp"
 #include "icinga/icingaapplication.hpp"
-#include "icinga/compatutility.hpp"
-#include "base/tcpsocket.hpp"
 #include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
 #include "base/convert.hpp"
-#include "base/utility.hpp"
 #include "base/perfdatavalue.hpp"
-#include "base/application.hpp"
 #include "base/stream.hpp"
-#include "base/networkstream.hpp"
 #include "base/exception.hpp"
 #include "base/statsfunction.hpp"
 #include <boost/algorithm/string.hpp>
@@ -59,7 +54,7 @@ void OpenTsdbWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 
 	for (const OpenTsdbWriter::Ptr& opentsdbwriter : ConfigType::GetObjectsByType<OpenTsdbWriter>()) {
 		nodes.emplace_back(opentsdbwriter->GetName(), new Dictionary({
-			{ "connected", opentsdbwriter->GetConnected() }
+			{ "connected", opentsdbwriter->m_Connection->IsConnected() }
 		}));
 	}
 
@@ -83,11 +78,7 @@ void OpenTsdbWriter::Resume()
 
 	ReadConfigTemplate();
 
-	m_ReconnectTimer = Timer::Create();
-	m_ReconnectTimer->SetInterval(10);
-	m_ReconnectTimer->OnTimerExpired.connect([this](const Timer * const&) { ReconnectTimerHandler(); });
-	m_ReconnectTimer->Start();
-	m_ReconnectTimer->Reschedule(0);
+	m_Connection = new PerfdataWriterConnection{GetName(), GetHost(), GetPort(), nullptr};
 
 	m_HandleCheckResults = Service::OnNewCheckResult.connect([this](const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const MessageOrigin::Ptr&) {
 		CheckResultHandler(checkable, cr);
@@ -100,60 +91,19 @@ void OpenTsdbWriter::Resume()
 void OpenTsdbWriter::Pause()
 {
 	m_HandleCheckResults.disconnect();
-	m_ReconnectTimer->Stop(true);
+
+	m_Connection->StartDisconnectTimeout(
+		std::chrono::milliseconds{static_cast<unsigned>(GetDisconnectTimeout() * 1000)}
+	);
 
 	m_WorkQueue.Join();
+
+	m_Connection->Disconnect();
 
 	Log(LogInformation, "OpentsdbWriter")
 		<< "'" << GetName() << "' paused.";
 
-	m_Stream->close();
-
-	SetConnected(false);
-
 	ObjectImpl<OpenTsdbWriter>::Pause();
-}
-
-/**
- * Reconnect handler called by the timer.
- * Handles TLS
- */
-void OpenTsdbWriter::ReconnectTimerHandler()
-{
-	if (IsPaused())
-		return;
-
-	SetShouldConnect(true);
-
-	if (GetConnected())
-		return;
-
-	double startTime = Utility::GetTime();
-
-	Log(LogNotice, "OpenTsdbWriter")
-		<< "Reconnecting to OpenTSDB TSD on host '" << GetHost() << "' port '" << GetPort() << "'.";
-
-	/*
-	 * We're using telnet as input method. Future PRs may change this into using the HTTP API.
-	 * http://opentsdb.net/docs/build/html/user_guide/writing/index.html#telnet
-	 */
-	m_Stream = Shared<AsioTcpStream>::Make(IoEngine::Get().GetIoContext());
-
-	try {
-		icinga::Connect(m_Stream->lowest_layer(), GetHost(), GetPort());
-	} catch (const std::exception& ex) {
-		Log(LogWarning, "OpenTsdbWriter")
-			<< "Can't connect to OpenTSDB on host '" << GetHost() << "' port '" << GetPort() << "'.";
-
-		SetConnected(false);
-
-		return;
-	}
-
-	SetConnected(true);
-
-	Log(LogInformation, "OpenTsdbWriter")
-		<< "Finished reconnecting to OpenTSDB in " << std::setw(2) << Utility::GetTime() - startTime << " second(s).";
 }
 
 /**
@@ -417,18 +367,20 @@ void OpenTsdbWriter::SendMsgBuffer()
 {
 	ASSERT(m_WorkQueue.IsWorkerThread());
 
-	if (!GetConnected())
-		return;
-
 	Log(LogDebug, "OpenTsdbWriter")
 		<< "Flushing data buffer to OpenTsdb.";
 
 	try {
-		boost::asio::write(*m_Stream, boost::asio::buffer(m_MsgBuf));
-		m_Stream->flush();
+		m_Connection->Send(boost::asio::buffer(std::exchange(m_MsgBuf, std::string{})));
 	} catch (const std::exception& ex) {
-		Log(LogCritical, "OpenTsdbWriter")
-			<< "Cannot write to TCP socket on host '" << GetHost() << "' port '" << GetPort() << "'.";
+		if (const auto* se = dynamic_cast<const boost::system::system_error*>(&ex);
+			se->code() == boost::asio::error::operation_aborted) {
+			Log(LogDebug, "OpenTsdbWriter") << "Operation canceled.";
+			return;
+		}
+
+		// Should not happen since other exceptions are handled in PerfdataWriterConnection
+		throw;
 	}
 }
 
