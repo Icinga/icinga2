@@ -139,6 +139,18 @@ if(ICINGA2_WITH_NOTIFICATION)
   )
 endif()
 
+if(ICINGA2_WITH_PERFDATA)
+  list(APPEND base_test_SOURCES
+    perfdata-elasticsearchwriter.cpp
+    perfdata-gelfwriter.cpp
+    perfdata-graphitewriter.cpp
+    perfdata-influxdbwriter.cpp
+    perfdata-opentsdbwriter.cpp
+    perfdata-perfdatawriterconnection.cpp
+    $<TARGET_OBJECTS:perfdata>
+  )
+endif()
+
 if(ICINGA2_UNITY_BUILD)
   mkunity_target(base test base_test_SOURCES)
 endif()

@@ -5,6 +5,7 @@
 #include <iomanip>
 #include <sstream>
 #include <boost/test/unit_test.hpp>
+#include <boost/random.hpp>
 
 tm make_tm(std::string s)
 {
@@ -64,4 +65,17 @@ GlobalTimezoneFixture::~GlobalTimezoneFixture()
         unsetenv("TZ");
 #endif
     tzset();
+}
+
+std::string GetRandomString(std::string prefix, std::size_t length)
+{
+	std::string alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+	boost::random::mt19937 generator;
+	boost::random::uniform_int_distribution<> distribution(0, alphabet.size() - 1);
+
+	for (auto i = 0U; i < length; i++) {
+		prefix += alphabet[distribution(generator)];
+	}
+
+	return prefix;
 }
