@@ -75,5 +75,10 @@
 #define BOOST_BIND_NO_PLACEHOLDERS
 
 #include <functional>
+#include <chrono>
+
+namespace icinga {
+using namespace std::chrono_literals;
+} // namespace icinga
 
 #endif /* I2BASE_H */
