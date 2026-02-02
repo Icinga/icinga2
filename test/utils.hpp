@@ -27,6 +27,8 @@ struct GlobalTimezoneFixture
     char *tz;
 };
 
+std::string GetRandomString(std::string prefix, std::size_t length);
+
 void ReceiveCheckResults(
 	const icinga::Checkable::Ptr& host,
 	std::size_t num,
