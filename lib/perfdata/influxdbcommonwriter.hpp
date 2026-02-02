@@ -5,18 +5,14 @@
 #define INFLUXDBCOMMONWRITER_H
 
 #include "perfdata/influxdbcommonwriter-ti.hpp"
-#include "icinga/service.hpp"
+#include "icinga/checkable.hpp"
 #include "base/configobject.hpp"
 #include "base/perfdatavalue.hpp"
-#include "base/tcpsocket.hpp"
 #include "base/timer.hpp"
-#include "base/tlsstream.hpp"
 #include "base/workqueue.hpp"
 #include "remote/url.hpp"
-#include <boost/beast/http/message.hpp>
-#include <boost/beast/http/string_body.hpp>
+#include "perfdata/perfdatawriterconnection.hpp"
 #include <atomic>
-#include <fstream>
 
 namespace icinga
 {
@@ -53,6 +49,7 @@ private:
 	WorkQueue m_WorkQueue{10000000, 1};
 	std::vector<String> m_DataBuffer;
 	std::atomic_size_t m_DataBufferSize{0};
+	PerfdataWriterConnection::Ptr m_Connection;
 
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 	void SendMetric(const Checkable::Ptr& checkable, const Dictionary::Ptr& tmpl,
@@ -63,8 +60,6 @@ private:
 
 	static String EscapeKeyOrTagValue(const String& str);
 	static String EscapeValue(const Value& value);
-
-	OptionalTlsStream Connect();
 
 	void AssertOnWorkQueue();
 
