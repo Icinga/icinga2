@@ -142,6 +142,7 @@ endif()
 if(ICINGA2_WITH_PERFDATA)
   list(APPEND base_test_SOURCES
     perfdata-elasticsearchwriter.cpp
+    perfdata-elasticsearchdatastreamwriter.cpp
     perfdata-gelfwriter.cpp
     perfdata-graphitewriter.cpp
     perfdata-influxdbwriter.cpp
