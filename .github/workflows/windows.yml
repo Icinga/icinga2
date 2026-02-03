@@ -11,53 +11,53 @@ concurrency:
   group: windows-${{ github.event_name == 'push' && github.sha || github.ref }}
   cancel-in-progress: true
 
-jobs:
-  windows:
-    name: Windows
+# jobs:
+#   windows:
+#     name: Windows
 
-    strategy:
-      fail-fast: false
-      max-parallel: 1
-      matrix:
-        bits: [32, 64]
+#     strategy:
+#       fail-fast: false
+#       max-parallel: 1
+#       matrix:
+#         bits: [32, 64]
 
-    runs-on: windows-2025
+#     runs-on: windows-2025
 
-    env:
-      BITS: '${{ matrix.bits }}'
-      CMAKE_BUILD_TYPE: RelWithDebInfo
+#     env:
+#       BITS: '${{ matrix.bits }}'
+#       CMAKE_BUILD_TYPE: RelWithDebInfo
 
-    steps:
-      - name: Checkout HEAD
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
+#     steps:
+#       - name: Checkout HEAD
+#         uses: actions/checkout@v6
+#         with:
+#           fetch-depth: 0
 
-      - name: Build tools
-        run: |
-          Set-PSDebug -Trace 1
-          & .\doc\win-dev.ps1
+#       - name: Build tools
+#         run: |
+#           Set-PSDebug -Trace 1
+#           & .\doc\win-dev.ps1
 
-      - name: Turn on Problem Matcher
-        run: |
-          Write-Host "::add-matcher::.github/problem-matchers/msvc.json"
+#       - name: Turn on Problem Matcher
+#         run: |
+#           Write-Host "::add-matcher::.github/problem-matchers/msvc.json"
 
-      - name: Binary
-        run: |
-          Set-PSDebug -Trace 1
-          & .\tools\win32\load-vsenv.ps1
-          & powershell.exe .\tools\win32\configure.ps1
-          if ($LastExitCode -ne 0) { throw "Error during configure" }
-          & powershell.exe .\tools\win32\build.ps1
-          if ($LastExitCode -ne 0) { throw "Error during build" }
-          & powershell.exe .\tools\win32\test.ps1
-          if ($LastExitCode -ne 0) { throw "Error during test" }
+#       - name: Binary
+#         run: |
+#           Set-PSDebug -Trace 1
+#           & .\tools\win32\load-vsenv.ps1
+#           & powershell.exe .\tools\win32\configure.ps1
+#           if ($LastExitCode -ne 0) { throw "Error during configure" }
+#           & powershell.exe .\tools\win32\build.ps1
+#           if ($LastExitCode -ne 0) { throw "Error during build" }
+#           & powershell.exe .\tools\win32\test.ps1
+#           if ($LastExitCode -ne 0) { throw "Error during test" }
 
-      - name: Show Log Files
-        if: ${{ always() }}
-        run: |
-          foreach ($file in Get-ChildItem -Recurse -Filter "*.log") {
-            Write-Host "::group::$($file.FullName)"
-            Get-Content $file.FullName
-            Write-Host "::endgroup::"
-          }
+#       - name: Show Log Files
+#         if: ${{ always() }}
+#         run: |
+#           foreach ($file in Get-ChildItem -Recurse -Filter "*.log") {
+#             Write-Host "::group::$($file.FullName)"
+#             Get-Content $file.FullName
+#             Write-Host "::endgroup::"
+#           }

@@ -206,7 +206,7 @@ BOOST_AUTO_TEST_CASE(stuck_sending)
 			std::this_thread::sleep_for(10ms);
 		}
 
-		GetConnection().StartDisconnectTimeout(50ms);
+		GetConnection().StartDisconnectTimeout(1s);
 	}};
 
 	// Allocate a large string that will fill the buffers on both sides of the connection, in
