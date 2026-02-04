@@ -238,7 +238,7 @@ namespace Icinga
 
 			string serviceUser = txtUser.Text.Trim();
 
-			DirectoryInfo di = new DirectoryInfo(Program.Icinga2InstallDir);
+			DirectoryInfo di = new DirectoryInfo(Program.Icinga2DataDir);
 			DirectorySecurity ds = di.GetAccessControl();
 			FileSystemAccessRule rule = new FileSystemAccessRule(serviceUser,
 				FileSystemRights.Modify,
