@@ -79,18 +79,9 @@ bool ActionsHandler::HandleRequest(
 	if (params)
 		verbose = HttpUtility::GetLastParameter(params, "verbose");
 
-	std::shared_lock wgLock{*waitGroup, std::try_to_lock};
-	if (!wgLock) {
-		HttpUtility::SendJsonError(response, params, 503, "Shutting down.");
-		return true;
-	}
-
-	auto generatorFunc = [&action, &user, &params, &waitGroup, &wgLock, verbose](const ConfigObject::Ptr& obj) -> Value {
-		if (!waitGroup->IsLockable()) {
-			if (wgLock) {
-				wgLock.unlock();
-			}
-
+	auto generatorFunc = [&action, &user, &params, &waitGroup, verbose](const ConfigObject::Ptr& obj) -> Value {
+		std::shared_lock wgLock{*waitGroup, std::try_to_lock};
+		if (!wgLock) {
 			return new Dictionary{
 				{ "type", obj->GetReflectionType()->GetName() },
 				{ "name", obj->GetName() },

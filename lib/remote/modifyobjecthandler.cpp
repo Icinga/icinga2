@@ -97,30 +97,22 @@ bool ModifyObjectHandler::HandleRequest(
 	if (params)
 		verbose = HttpUtility::GetLastParameter(params, "verbose");
 
-	ConfigObjectsSharedLock lock (std::try_to_lock);
-
-	if (!lock) {
-		HttpUtility::SendJsonError(response, params, 503, "Icinga is reloading");
-		return true;
-	}
-
-	std::shared_lock wgLock{*waitGroup, std::try_to_lock};
-	if (!wgLock) {
-		HttpUtility::SendJsonError(response, params, 503, "Shutting down.");
-		return true;
-	}
-
-	auto generatorFunc = [&waitGroup, &wgLock, &type, &attrs, &restoreAttrs, verbose](const ConfigObject::Ptr& obj) -> Value {
+	auto generatorFunc = [&waitGroup, &type, &attrs, &restoreAttrs, verbose](const ConfigObject::Ptr& obj) -> Value {
 		Dictionary::Ptr result = new Dictionary();
 
 		result->Set("type", type->GetName());
 		result->Set("name", obj->GetName());
 
-		if (!waitGroup->IsLockable()) {
-			if (wgLock) {
-				wgLock.unlock();
-			}
+		ConfigObjectsSharedLock lock (std::try_to_lock);
 
+		if (!lock) {
+			result->Set("code", 503);
+			result->Set("status", "Action skipped: Icinga is reloading.");
+			return result;
+		}
+
+		std::shared_lock wgLock{*waitGroup, std::try_to_lock};
+		if (!wgLock) {
 			result->Set("code", 503);
 			result->Set("status", "Action skipped: Shutting down.");
 			return result;

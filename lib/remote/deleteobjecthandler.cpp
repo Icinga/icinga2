@@ -68,35 +68,27 @@ bool DeleteObjectHandler::HandleRequest(
 	bool cascade = HttpUtility::GetLastParameter(params, "cascade");
 	bool verbose = HttpUtility::GetLastParameter(params, "verbose");
 
-	ConfigObjectsSharedLock lock (std::try_to_lock);
+	auto generatorFunc = [&type, &waitGroup, cascade, verbose](const ConfigObject::Ptr& obj) -> Value {
+		Dictionary::Ptr result = new Dictionary{
+			{"type", type->GetName()},
+			{"name", obj->GetName()}
+		};
 
-	if (!lock) {
-		HttpUtility::SendJsonError(response, params, 503, "Icinga is reloading");
-		return true;
-	}
+		ConfigObjectsSharedLock lock (std::try_to_lock);
 
-	std::shared_lock wgLock{*waitGroup, std::try_to_lock};
-	if (!wgLock) {
-		HttpUtility::SendJsonError(response, params, 503, "Shutting down.");
-		return true;
-	}
-
-	auto generatorFunc = [&type, &waitGroup, &wgLock, cascade, verbose](const ConfigObject::Ptr& obj) -> Value {
-		if (!waitGroup->IsLockable()) {
-			if (wgLock) {
-				wgLock.unlock();
-			}
-
-			return new Dictionary{
-				{ "type", type->GetName() },
-				{ "name", obj->GetName() },
-				{ "code", 503 },
-				{ "status", "Action skipped: Shutting down."}
-			};
+		if (!lock) {
+			result->Set("code", 503);
+			result->Set("status", "Action skipped: Icinga is reloading.");
+			return result;
 		}
 
-		int code;
-		String status;
+		std::shared_lock wgLock{*waitGroup, std::try_to_lock};
+		if (!wgLock) {
+			result->Set("code", 503);
+			result->Set("status", "Action skipped: Shutting down.");
+			return result;
+		}
+
 		Array::Ptr errors = new Array();
 		Array::Ptr diagnosticInformation = new Array();
 
@@ -104,20 +96,13 @@ bool DeleteObjectHandler::HandleRequest(
 		ObjectNameLock objectNameLock(type, obj->GetName());
 
 		if (!ConfigObjectUtility::DeleteObject(obj, cascade, errors, diagnosticInformation)) {
-			code = 500;
-			status = "Object could not be deleted.";
+			result->Set("code", 500);
+			result->Set("status", "Object could not be deleted.");
 		} else {
-			code = 200;
-			status = "Object was deleted.";
+			result->Set("code", 200);
+			result->Set("status", "Object was deleted.");
 		}
-
-		Dictionary::Ptr result = new Dictionary{
-			{ "type", type->GetName() },
-			{ "name", obj->GetName() },
-			{ "code", code },
-			{ "status", status },
-			{ "errors", errors }
-		};
+		result->Set("errors", errors);
 
 		if (verbose)
 			result->Set("diagnostic_information", diagnosticInformation);
