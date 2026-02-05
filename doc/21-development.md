@@ -1794,8 +1794,9 @@ and how to run and debug the code.
 If you're going to setup a dev environment on a fresh Windows machine
 and don't care for the details,
 
-1. ensure there are 35 GB free space on C:
-2. run the following in an administrative Powershell:
+1. install all available updates (reboot when asked!)
+2. ensure there are 35 GB free space on C:
+3. run the following in an administrative Powershell:
     1. Windows Server only:
        `Enable-WindowsOptionalFeature -FeatureName NetFx3ServerFeatures -Online`
     2. `Enable-WindowsOptionalFeature -FeatureName NetFx3 -Online`
