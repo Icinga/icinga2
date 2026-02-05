@@ -1,4 +1,5 @@
-# Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+
+# SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 mkclass_target(checkable.ti checkable-ti.cpp checkable-ti.hpp)
 mkclass_target(checkcommand.ti checkcommand-ti.cpp checkcommand-ti.hpp)

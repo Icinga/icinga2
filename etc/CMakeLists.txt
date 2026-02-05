@@ -1,4 +1,5 @@
-# Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+
+# SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 if(NOT WIN32)
   configure_file(icinga2/constants.conf.cmake ${CMAKE_CURRENT_BINARY_DIR}/icinga2/constants.conf @ONLY)

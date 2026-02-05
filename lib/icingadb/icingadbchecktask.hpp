@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2022 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2022 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #ifndef ICINGADBCHECKTASK_H
 #define ICINGADBCHECKTASK_H

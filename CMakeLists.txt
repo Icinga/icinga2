@@ -1,4 +1,5 @@
-# Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+
+# SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # CMake 3.17 is required, CMake policy compatibility was verified up to 3.17.
 cmake_minimum_required(VERSION 3.17...3.17)
@@ -93,7 +94,7 @@ endif()
 
 set(ICINGA2_BUILD_COMPILER_VERSION "${CMAKE_CXX_COMPILER_VERSION}")
 
-file(READ "${CMAKE_CURRENT_SOURCE_DIR}/COPYING" ICINGA2_LICENSE_GPL)
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.md" ICINGA2_LICENSE_GPL)
 set(ICINGA2_LICENSE "${ICINGA2_LICENSE_GPL}\n\n---\n\n${ICINGA2_LICENSE_ADDITIONS}")
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/LICENSE.txt" ${ICINGA2_LICENSE})
 
@@ -468,7 +469,7 @@ endif()
 configure_file(config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h ESCAPE_QUOTES)
 
 install(
-  FILES README.md COPYING AUTHORS CHANGELOG.md NEWS
+  FILES README.md LICENSE.md AUTHORS CHANGELOG.md NEWS
   DESTINATION ${CMAKE_INSTALL_DOCDIR}
 )
 

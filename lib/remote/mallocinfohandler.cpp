@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2024 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2024 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "base/defer.hpp"
 #include "remote/filterutility.hpp"

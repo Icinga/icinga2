@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2019 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2019 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #ifndef ATOMIC_H
 #define ATOMIC_H
