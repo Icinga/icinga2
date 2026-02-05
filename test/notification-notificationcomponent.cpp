@@ -52,7 +52,7 @@ object Host "h1" {
 	enable_passive_checks = true
 }
 object NotificationCommand "send" {
-	command = ["true"]
+	execute = {{}}
 }
 apply Notification "n1" to Host {
 	interval = 0
