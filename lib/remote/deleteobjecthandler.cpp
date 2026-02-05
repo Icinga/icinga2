@@ -10,6 +10,7 @@
 #include "config/configitem.hpp"
 #include "base/exception.hpp"
 #include <boost/algorithm/string/case_conv.hpp>
+#include <optional>
 #include <set>
 
 using namespace icinga;
@@ -20,7 +21,7 @@ bool DeleteObjectHandler::HandleRequest(
 	const WaitGroup::Ptr& waitGroup,
 	const HttpApiRequest& request,
 	HttpApiResponse& response,
-	boost::asio::yield_context&
+	boost::asio::yield_context& yc
 )
 {
 	namespace http = boost::beast::http;
@@ -68,43 +69,27 @@ bool DeleteObjectHandler::HandleRequest(
 	bool cascade = HttpUtility::GetLastParameter(params, "cascade");
 	bool verbose = HttpUtility::GetLastParameter(params, "verbose");
 
-	ConfigObjectsSharedLock lock (std::try_to_lock);
+	auto generatorFunc = [&type, &waitGroup, cascade, verbose](const ConfigObject::Ptr& obj) -> Value {
+		Dictionary::Ptr result = new Dictionary{
+			{"type", type->GetName()},
+			{"name", obj->GetName()}
+		};
 
-	if (!lock) {
-		HttpUtility::SendJsonError(response, params, 503, "Icinga is reloading");
-		return true;
-	}
+		ConfigObjectsSharedLock lock (std::try_to_lock);
 
-	ArrayData results;
-
-	bool success = true;
-
-	std::shared_lock wgLock{*waitGroup, std::try_to_lock};
-	if (!wgLock) {
-		HttpUtility::SendJsonError(response, params, 503, "Shutting down.");
-		return true;
-	}
-
-	for (ConfigObject::Ptr obj : objs) {
-		if (!waitGroup->IsLockable()) {
-			if (wgLock) {
-				wgLock.unlock();
-			}
-
-			results.emplace_back(new Dictionary({
-				{ "type", type->GetName() },
-				{ "name", obj->GetName() },
-				{ "code", 503 },
-				{ "status", "Action skipped: Shutting down."}
-			}));
-
-			success = false;
-
-			continue;
+		if (!lock) {
+			result->Set("code", 503);
+			result->Set("status", "Action skipped: Icinga is reloading.");
+			return result;
 		}
 
-		int code;
-		String status;
+		std::shared_lock wgLock{*waitGroup, std::try_to_lock};
+		if (!wgLock) {
+			result->Set("code", 503);
+			result->Set("status", "Action skipped: Shutting down.");
+			return result;
+		}
+
 		Array::Ptr errors = new Array();
 		Array::Ptr diagnosticInformation = new Array();
 
@@ -112,38 +97,25 @@ bool DeleteObjectHandler::HandleRequest(
 		ObjectNameLock objectNameLock(type, obj->GetName());
 
 		if (!ConfigObjectUtility::DeleteObject(obj, cascade, errors, diagnosticInformation)) {
-			code = 500;
-			status = "Object could not be deleted.";
-			success = false;
+			result->Set("code", 500);
+			result->Set("status", "Object could not be deleted.");
 		} else {
-			code = 200;
-			status = "Object was deleted.";
+			result->Set("code", 200);
+			result->Set("status", "Object was deleted.");
 		}
-
-		Dictionary::Ptr result = new Dictionary({
-			{ "type", type->GetName() },
-			{ "name", obj->GetName() },
-			{ "code", code },
-			{ "status", status },
-			{ "errors", errors }
-		});
+		result->Set("errors", errors);
 
 		if (verbose)
 			result->Set("diagnostic_information", diagnosticInformation);
 
-		results.push_back(result);
-	}
+		return result;
+	};
 
-	Dictionary::Ptr result = new Dictionary({
-		{ "results", new Array(std::move(results)) }
-	});
+	Dictionary::Ptr result = new Dictionary{{"results", new ValueGenerator{objs, generatorFunc}}};
+	result->Freeze();
 
-	if (!success)
-		response.result(http::status::internal_server_error);
-	else
-		response.result(http::status::ok);
-
-	HttpUtility::SendJsonBody(response, params, result);
+	response.result(http::status::accepted);
+	HttpUtility::SendJsonBody(response, params, result, yc);
 
 	return true;
 }

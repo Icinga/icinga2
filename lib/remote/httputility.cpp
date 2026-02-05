@@ -53,6 +53,28 @@ Value HttpUtility::GetLastParameter(const Dictionary::Ptr& params, const String&
 		return arr->Get(arr->GetLength() - 1);
 }
 
+/**
+ * Stream a JSON-encoded body to the client.
+ *
+ * This function sets the Content-Type header to "application/json", starts the streaming of the response,
+ * and encodes the given value as JSON to the client. If pretty-print is requested, the JSON output will be
+ * formatted accordingly. It is assumed that the response status code and other necessary headers have already
+ * been set.
+ *
+ * @param response The HTTP response to send the body to.
+ * @param params The request parameters.
+ * @param val The value to encode as JSON and stream to the client.
+ * @param yc The yield context to use for asynchronous operations.
+ */
+void HttpUtility::SendJsonBody(HttpApiResponse& response, const Dictionary::Ptr& params, const Value& val, boost::asio::yield_context& yc)
+{
+	namespace http = boost::beast::http;
+
+	response.set(http::field::content_type, "application/json");
+	response.StartStreaming(false);
+	response.GetJsonEncoder(params && GetLastParameter(params, "pretty")).Encode(val, &yc);
+}
+
 void HttpUtility::SendJsonBody(HttpApiResponse& response, const Dictionary::Ptr& params, const Value& val)
 {
 	namespace http = boost::beast::http;

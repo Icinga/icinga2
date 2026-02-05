@@ -14,8 +14,6 @@ class ActionsHandler final : public HttpHandler
 public:
 	DECLARE_PTR_TYPEDEFS(ActionsHandler);
 
-	static thread_local ApiUser::Ptr AuthenticatedApiUser;
-
 	bool HandleRequest(
 		const WaitGroup::Ptr& waitGroup,
 		const HttpApiRequest& request,

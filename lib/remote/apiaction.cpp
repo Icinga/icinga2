@@ -13,9 +13,9 @@ ApiAction::ApiAction(std::vector<String> types, Callback action)
 	: m_Types(std::move(types)), m_Callback(std::move(action))
 { }
 
-Value ApiAction::Invoke(const ConfigObject::Ptr& target, const Dictionary::Ptr& params)
+Value ApiAction::Invoke(const ConfigObject::Ptr& target, const ApiUser::Ptr& user, const Dictionary::Ptr& params)
 {
-	return m_Callback(target, params);
+	return m_Callback(target, user, params);
 }
 
 const std::vector<String>& ApiAction::GetTypes() const

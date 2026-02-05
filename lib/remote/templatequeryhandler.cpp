@@ -80,7 +80,7 @@ bool TemplateQueryHandler::HandleRequest(
 	const WaitGroup::Ptr&,
 	const HttpApiRequest& request,
 	HttpApiResponse& response,
-	boost::asio::yield_context&
+	boost::asio::yield_context& yc
 )
 {
 	namespace http = boost::beast::http;
@@ -126,12 +126,14 @@ bool TemplateQueryHandler::HandleRequest(
 		return true;
 	}
 
-	Dictionary::Ptr result = new Dictionary({
-		{ "results", new Array(std::move(objs)) }
-	});
+	Array::Ptr resultArr = new Array(std::move(objs));
+	resultArr->Freeze();
+
+	Dictionary::Ptr result = new Dictionary{{"results", resultArr}};
+	result->Freeze();
 
 	response.result(http::status::ok);
-	HttpUtility::SendJsonBody(response, params, result);
+	HttpUtility::SendJsonBody(response, params, result, yc);
 
 	return true;
 }

@@ -74,7 +74,7 @@ public:
 
 private:
 	void EncodeArray(const Array::Ptr& array, boost::asio::yield_context* yc);
-	void EncodeValueGenerator(const ValueGenerator::Ptr& generator, boost::asio::yield_context* yc);
+	void EncodeValueGenerator(const Generator::Ptr& generator, boost::asio::yield_context* yc);
 
 	template<typename Iterable, typename ValExtractor>
 	void EncodeObject(const Iterable& container, const ValExtractor& extractor, boost::asio::yield_context* yc);

@@ -7,7 +7,9 @@
 #include "remote/filterutility.hpp"
 #include "remote/apiaction.hpp"
 #include "base/exception.hpp"
+#include "base/generator.hpp"
 #include <boost/algorithm/string/case_conv.hpp>
+#include <optional>
 #include <set>
 
 using namespace icinga;
@@ -18,7 +20,7 @@ bool ModifyObjectHandler::HandleRequest(
 	const WaitGroup::Ptr& waitGroup,
 	const HttpApiRequest& request,
 	HttpApiResponse& response,
-	boost::asio::yield_context&
+	boost::asio::yield_context& yc
 )
 {
 	namespace http = boost::beast::http;
@@ -96,38 +98,25 @@ bool ModifyObjectHandler::HandleRequest(
 	if (params)
 		verbose = HttpUtility::GetLastParameter(params, "verbose");
 
-	ConfigObjectsSharedLock lock (std::try_to_lock);
+	auto generatorFunc = [&waitGroup, &type, &attrs, &restoreAttrs, verbose](const ConfigObject::Ptr& obj) -> Value {
+		Dictionary::Ptr result = new Dictionary();
 
-	if (!lock) {
-		HttpUtility::SendJsonError(response, params, 503, "Icinga is reloading");
-		return true;
-	}
+		result->Set("type", type->GetName());
+		result->Set("name", obj->GetName());
 
-	ArrayData results;
+		ConfigObjectsSharedLock lock (std::try_to_lock);
 
-	std::shared_lock wgLock{*waitGroup, std::try_to_lock};
-	if (!wgLock) {
-		HttpUtility::SendJsonError(response, params, 503, "Shutting down.");
-		return true;
-	}
+		if (!lock) {
+			result->Set("code", 503);
+			result->Set("status", "Action skipped: Icinga is reloading.");
+			return result;
+		}
 
-	for (ConfigObject::Ptr obj : objs) {
-		Dictionary::Ptr result1 = new Dictionary();
-
-		result1->Set("type", type->GetName());
-		result1->Set("name", obj->GetName());
-
-		if (!waitGroup->IsLockable()) {
-			if (wgLock) {
-				wgLock.unlock();
-			}
-
-			result1->Set("code", 503);
-			result1->Set("status", "Action skipped: Shutting down.");
-
-			results.emplace_back(std::move(result1));
-
-			continue;
+		std::shared_lock wgLock{*waitGroup, std::try_to_lock};
+		if (!wgLock) {
+			result->Set("code", 503);
+			result->Set("status", "Action skipped: Shutting down.");
+			return result;
 		}
 
 		String key;
@@ -145,14 +134,13 @@ bool ModifyObjectHandler::HandleRequest(
 				}
 			}
 		} catch (const std::exception& ex) {
-			result1->Set("code", 500);
-			result1->Set("status", "Attribute '" + key + "' could not be restored: " + DiagnosticInformation(ex, false));
+			result->Set("code", 500);
+			result->Set("status", "Attribute '" + key + "' could not be restored: " + DiagnosticInformation(ex, false));
 
 			if (verbose)
-				result1->Set("diagnostic_information", DiagnosticInformation(ex));
+				result->Set("diagnostic_information", DiagnosticInformation(ex));
 
-			results.push_back(std::move(result1));
-			continue;
+			return result;
 		}
 
 		try {
@@ -164,28 +152,25 @@ bool ModifyObjectHandler::HandleRequest(
 				}
 			}
 		} catch (const std::exception& ex) {
-			result1->Set("code", 500);
-			result1->Set("status", "Attribute '" + key + "' could not be set: " + DiagnosticInformation(ex, false));
+			result->Set("code", 500);
+			result->Set("status", "Attribute '" + key + "' could not be set: " + DiagnosticInformation(ex, false));
 
 			if (verbose)
-				result1->Set("diagnostic_information", DiagnosticInformation(ex));
+				result->Set("diagnostic_information", DiagnosticInformation(ex));
 
-			results.push_back(std::move(result1));
-			continue;
+			return result;
 		}
 
-		result1->Set("code", 200);
-		result1->Set("status", "Attributes updated.");
+		result->Set("code", 200);
+		result->Set("status", "Attributes updated.");
+		return result;
+	};
 
-		results.push_back(std::move(result1));
-	}
+	Dictionary::Ptr result = new Dictionary{{"results", new ValueGenerator{objs, generatorFunc}}};
+	result->Freeze();
 
-	Dictionary::Ptr result = new Dictionary({
-		{ "results", new Array(std::move(results)) }
-	});
-
-	response.result(http::status::ok);
-	HttpUtility::SendJsonBody(response, params, result);
+	response.result(http::status::accepted);
+	HttpUtility::SendJsonBody(response, params, result, yc);
 
 	return true;
 }

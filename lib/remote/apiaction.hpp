@@ -9,6 +9,7 @@
 #include "base/value.hpp"
 #include "base/dictionary.hpp"
 #include "base/configobject.hpp"
+#include "remote/apiuser.hpp"
 #include <vector>
 #include <boost/algorithm/string/replace.hpp>
 
@@ -25,11 +26,11 @@ class ApiAction final : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(ApiAction);
 
-	typedef std::function<Value(const ConfigObject::Ptr& target, const Dictionary::Ptr& params)> Callback;
+	typedef std::function<Value(const ConfigObject::Ptr& target, const ApiUser::Ptr&, const Dictionary::Ptr& params)> Callback;
 
 	ApiAction(std::vector<String> registerTypes, Callback function);
 
-	Value Invoke(const ConfigObject::Ptr& target, const Dictionary::Ptr& params);
+	Value Invoke(const ConfigObject::Ptr& target, const ApiUser::Ptr& user, const Dictionary::Ptr& params);
 
 	const std::vector<String>& GetTypes() const;
 
