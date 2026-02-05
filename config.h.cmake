@@ -9,6 +9,7 @@
 #cmakedefine HAVE_CXXABI_H
 #cmakedefine HAVE_NICE
 #cmakedefine HAVE_MALLOC_INFO
+#cmakedefine HAVE_MALLOC_TRIM
 #cmakedefine HAVE_PTHREAD_SET_NAME_NP
 #cmakedefine HAVE_PTHREAD_SETNAME_NP
 #cmakedefine HAVE_EDITLINE
