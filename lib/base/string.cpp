@@ -22,6 +22,10 @@ String::String(const char *data)
 	: m_Data(data)
 { }
 
+String::String(const std::string_view& data)
+	: m_Data(data)
+{ }
+
 String::String(std::string data)
 	: m_Data(std::move(data))
 { }
@@ -138,6 +142,16 @@ String::operator const std::string&() const
 String::operator boost::beast::string_view() const
 {
 	return boost::beast::string_view(m_Data);
+}
+
+/**
+ * Conversion function to std::string_view.
+ *
+ * @return An std::string_view representing this string.
+ */
+String::operator std::string_view() const
+{
+	return std::string_view(m_Data);
 }
 
 const char *String::CStr() const
