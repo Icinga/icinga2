@@ -95,8 +95,8 @@ struct TestLoggerFixture
 	TestLoggerFixture()
 	{
 		testLogger->SetSeverity(testLogger->SeverityToString(LogDebug));
-		testLogger->Activate(true);
 		testLogger->SetActive(true);
+		testLogger->Activate(true);
 	}
 
 	~TestLoggerFixture()
