@@ -17,6 +17,7 @@ RUN apt-get update && \
         autoconf \
         automake \
         bison \
+        ca-certificates \
         ccache \
         cmake \
         flex \
@@ -38,6 +39,8 @@ RUN apt-get update && \
         libpq-dev \
         libssl-dev \
         libsystemd-dev \
+        libprotobuf-dev \
+        protobuf-compiler \
         make && \
     rm -rf /var/lib/apt/lists/*
 
@@ -125,7 +128,8 @@ RUN --mount=type=bind,source=.,target=/icinga2,readonly \
         -DICINGA2_SYSCONFIGFILE=/etc/sysconfig/icinga2 \
         -DICINGA2_RUNDIR=/run \
         -DICINGA2_WITH_COMPAT=OFF \
-        -DICINGA2_WITH_LIVESTATUS=OFF && \
+        -DICINGA2_WITH_LIVESTATUS=OFF \
+        -DICINGA2_WITH_OPENTELEMETRY=ON && \
     make -j$([ "$MAKE_JOBS" = auto ] && nproc || echo "$MAKE_JOBS") && \
     CTEST_OUTPUT_ON_FAILURE=1 make test && \
     make install DESTDIR=/icinga2-install
@@ -165,6 +169,7 @@ RUN apt-get update && \
         libmariadb3 \
         libmoosex-role-timer-perl \
         libpq5 \
+        libprotobuf-lite32t64 \
         libssl3 \
         libsystemd0 \
         mailutils \
