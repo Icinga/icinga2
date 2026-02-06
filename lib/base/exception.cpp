@@ -304,7 +304,7 @@ String icinga::DiagnosticInformation(const boost::exception_ptr& eptr, bool verb
 }
 
 ScriptError::ScriptError(String message)
-	: m_Message(std::move(message)), m_IncompleteExpr(false)
+	: m_Message(std::move(message)), m_IncompleteExpr(false), m_HandledByDebugger(false)
 { }
 
 ScriptError::ScriptError(String message, DebugInfo di, bool incompleteExpr)

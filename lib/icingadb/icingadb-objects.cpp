@@ -1929,7 +1929,7 @@ unsigned short GetPreviousState(const Checkable::Ptr& checkable, const Service::
 {
 	auto phs ((type == StateTypeHard ? checkable->GetLastHardStatesRaw() : checkable->GetLastSoftStatesRaw()) % 100u);
 
-	if (service || phs == 99) {
+	if (service || phs == ServiceStateLast) {
 		return phs;
 	} else {
 		return Host::CalculateState(ServiceState(phs));
@@ -1958,7 +1958,7 @@ void IcingaDB::SendStateChange(const ConfigObject::Ptr& object, const CheckResul
 
 	int hard_state;
 	if (!cr) {
-		hard_state = 99;
+		hard_state = ServiceStateLast;
 	} else {
 		hard_state = service ? Convert::ToLong(service->GetLastHardState()) : Convert::ToLong(host->GetLastHardState());
 	}
@@ -1975,7 +1975,7 @@ void IcingaDB::SendStateChange(const ConfigObject::Ptr& object, const CheckResul
 		"environment_id", m_EnvironmentId,
 		"host_id", GetObjectIdentifier(host),
 		"state_type", Checkable::StateTypeToString(type).ToLower(),
-		"soft_state", Convert::ToString(cr ? service ? Convert::ToLong(cr->GetState()) : Convert::ToLong(Host::CalculateState(cr->GetState())) : 99),
+		"soft_state", Convert::ToString(cr ? service ? Convert::ToLong(cr->GetState()) : Convert::ToLong(Host::CalculateState(cr->GetState())) : ServiceStateLast),
 		"hard_state", Convert::ToString(hard_state),
 		"check_attempt", Convert::ToString(checkable->GetCheckAttempt()),
 		"previous_soft_state", Convert::ToString(GetPreviousState(checkable, service, StateTypeSoft)),
@@ -2061,8 +2061,8 @@ void IcingaDB::SendSentNotification(
 		"notification_id", GetObjectIdentifier(notification),
 		"host_id", GetObjectIdentifier(host),
 		"type", notificationTypeStr,
-		"state", Convert::ToString(cr ? service ? Convert::ToLong(cr->GetState()) : Convert::ToLong(Host::CalculateState(cr->GetState())) : 99),
-		"previous_hard_state", Convert::ToString(cr ? service ? Convert::ToLong(cr->GetPreviousHardState()) : Convert::ToLong(Host::CalculateState(cr->GetPreviousHardState())) : 99),
+		"state", Convert::ToString(cr ? service ? Convert::ToLong(cr->GetState()) : Convert::ToLong(Host::CalculateState(cr->GetState())) : ServiceStateLast),
+		"previous_hard_state", Convert::ToString(cr ? service ? Convert::ToLong(cr->GetPreviousHardState()) : Convert::ToLong(Host::CalculateState(cr->GetPreviousHardState())) : ServiceStateLast),
 		"author", Utility::ValidateUTF8(author),
 		"text", Utility::ValidateUTF8(finalText),
 		"users_notified", Convert::ToString(usersAmount),
@@ -2962,16 +2962,16 @@ Dictionary::Ptr IcingaDB::SerializeState(const Checkable::Ptr& checkable)
 	// TODO: last_hard/soft_state should be "previous".
 	if (service) {
 		attrs->Set("service_id", id);
-		auto state = service->HasBeenChecked() ? service->GetState() : 99;
+		auto state = service->HasBeenChecked() ? service->GetState() : ServiceStateLast;
 		attrs->Set("soft_state", state);
-		attrs->Set("hard_state", service->HasBeenChecked() ? service->GetLastHardState() : 99);
+		attrs->Set("hard_state", service->HasBeenChecked() ? service->GetLastHardState() : ServiceStateLast);
 		attrs->Set("severity", service->GetSeverity());
 		attrs->Set("host_id", GetObjectIdentifier(host));
 	} else {
 		attrs->Set("host_id", id);
-		auto state = host->HasBeenChecked() ? host->GetState() : 99;
+		auto state = host->HasBeenChecked() ? host->GetState() : HostStateLast;
 		attrs->Set("soft_state", state);
-		attrs->Set("hard_state", host->HasBeenChecked() ? host->GetLastHardState() : 99);
+		attrs->Set("hard_state", host->HasBeenChecked() ? host->GetLastHardState() : HostStateLast);
 		attrs->Set("severity", host->GetSeverity());
 	}
 
