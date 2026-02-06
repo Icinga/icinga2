@@ -7,17 +7,12 @@
 #include "icinga/checkcommand.hpp"
 #include "icinga/macroprocessor.hpp"
 #include "icinga/icingaapplication.hpp"
-#include "icinga/compatutility.hpp"
-#include "base/tcpsocket.hpp"
 #include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
 #include "base/convert.hpp"
-#include "base/utility.hpp"
 #include "base/perfdatavalue.hpp"
-#include "base/application.hpp"
 #include "base/stream.hpp"
-#include "base/networkstream.hpp"
 #include "base/exception.hpp"
 #include "base/statsfunction.hpp"
 #include <boost/algorithm/string.hpp>
@@ -35,6 +30,8 @@ REGISTER_STATSFUNCTION(OpenTsdbWriter, &OpenTsdbWriter::StatsFunc);
 void OpenTsdbWriter::OnConfigLoaded()
 {
 	ObjectImpl<OpenTsdbWriter>::OnConfigLoaded();
+
+	m_WorkQueue.SetName("OpenTsdbWriter, " + GetName());
 
 	if (!GetEnableHa()) {
 		Log(LogDebug, "OpenTsdbWriter")
@@ -57,7 +54,7 @@ void OpenTsdbWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 
 	for (const OpenTsdbWriter::Ptr& opentsdbwriter : ConfigType::GetObjectsByType<OpenTsdbWriter>()) {
 		nodes.emplace_back(opentsdbwriter->GetName(), new Dictionary({
-			{ "connected", opentsdbwriter->GetConnected() }
+			{ "connected", opentsdbwriter->m_Connection->IsConnected() }
 		}));
 	}
 
@@ -74,13 +71,14 @@ void OpenTsdbWriter::Resume()
 	Log(LogInformation, "OpentsdbWriter")
 		<< "'" << GetName() << "' resumed.";
 
+	m_WorkQueue.SetExceptionCallback([](const boost::exception_ptr& exp) {
+		Log(LogDebug, "ElasticsearchWriter")
+			<< "Exception during Elasticsearch operation: " << DiagnosticInformation(exp);
+	});
+
 	ReadConfigTemplate();
 
-	m_ReconnectTimer = Timer::Create();
-	m_ReconnectTimer->SetInterval(10);
-	m_ReconnectTimer->OnTimerExpired.connect([this](const Timer * const&) { ReconnectTimerHandler(); });
-	m_ReconnectTimer->Start();
-	m_ReconnectTimer->Reschedule(0);
+	m_Connection = new PerfdataWriterConnection{GetName(), GetHost(), GetPort(), nullptr};
 
 	m_HandleCheckResults = Service::OnNewCheckResult.connect([this](const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const MessageOrigin::Ptr&) {
 		CheckResultHandler(checkable, cr);
@@ -93,58 +91,19 @@ void OpenTsdbWriter::Resume()
 void OpenTsdbWriter::Pause()
 {
 	m_HandleCheckResults.disconnect();
-	m_ReconnectTimer->Stop(true);
+
+	m_Connection->StartDisconnectTimeout(
+		std::chrono::milliseconds{static_cast<unsigned>(GetDisconnectTimeout() * 1000)}
+	);
+
+	m_WorkQueue.Join();
+
+	m_Connection->Disconnect();
 
 	Log(LogInformation, "OpentsdbWriter")
 		<< "'" << GetName() << "' paused.";
 
-	m_Stream->close();
-
-	SetConnected(false);
-
 	ObjectImpl<OpenTsdbWriter>::Pause();
-}
-
-/**
- * Reconnect handler called by the timer.
- * Handles TLS
- */
-void OpenTsdbWriter::ReconnectTimerHandler()
-{
-	if (IsPaused())
-		return;
-
-	SetShouldConnect(true);
-
-	if (GetConnected())
-		return;
-
-	double startTime = Utility::GetTime();
-
-	Log(LogNotice, "OpenTsdbWriter")
-		<< "Reconnecting to OpenTSDB TSD on host '" << GetHost() << "' port '" << GetPort() << "'.";
-
-	/*
-	 * We're using telnet as input method. Future PRs may change this into using the HTTP API.
-	 * http://opentsdb.net/docs/build/html/user_guide/writing/index.html#telnet
-	 */
-	m_Stream = Shared<AsioTcpStream>::Make(IoEngine::Get().GetIoContext());
-
-	try {
-		icinga::Connect(m_Stream->lowest_layer(), GetHost(), GetPort());
-	} catch (const std::exception& ex) {
-		Log(LogWarning, "OpenTsdbWriter")
-			<< "Can't connect to OpenTSDB on host '" << GetHost() << "' port '" << GetPort() << "'.";
-
-		SetConnected(false);
-
-		return;
-	}
-
-	SetConnected(true);
-
-	Log(LogInformation, "OpenTsdbWriter")
-		<< "Finished reconnecting to OpenTSDB in " << std::setw(2) << Utility::GetTime() - startTime << " second(s).";
 }
 
 /**
@@ -200,17 +159,17 @@ void OpenTsdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 		// Resolve macros for the service and host template config line
 		if (config_tmpl_tags) {
 			ObjectLock olock(config_tmpl_tags);
-			
+
 			for (const Dictionary::Pair& pair : config_tmpl_tags) {
-				
+
 				String missing_macro;
 				Value value = MacroProcessor::ResolveMacros(pair.second, resolvers, cr, &missing_macro);
-				
+
 				if (!missing_macro.IsEmpty()) {
 					Log(LogDebug, "OpenTsdbWriter")
-						<< "Unable to resolve macro '" << missing_macro 
+						<< "Unable to resolve macro '" << missing_macro
 						<< "' for checkable '" << checkable->GetName() << "'.";
-					
+
 					continue;
 				}
 
@@ -221,29 +180,29 @@ void OpenTsdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 
 					continue;
 				}
-				
+
 				String tagname = Convert::ToString(pair.first);
 				tags[tagname] = EscapeTag(value);
-				
+
 			}
 		}
-		
+
 		// Resolve macros for the metric config line
 		if (!config_tmpl_metric.IsEmpty()) {
-			
+
 			String missing_macro;
 			Value value = MacroProcessor::ResolveMacros(config_tmpl_metric, resolvers, cr, &missing_macro);
-			
+
 			if (!missing_macro.IsEmpty()) {
 				Log(LogDebug, "OpenTsdbWriter")
-					<< "Unable to resolve macro '" << missing_macro 
+					<< "Unable to resolve macro '" << missing_macro
 					<< "' for checkable '" << checkable->GetName() << "'.";
-				
+
 			}
 			else {
-			
+
 				config_tmpl_metric = Convert::ToString(value);
-			
+
 			}
 		}
 	}
@@ -263,39 +222,43 @@ void OpenTsdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 			metric = "icinga.service." + escaped_serviceName;
 		}
 		
-		SendMetric(checkable, metric + ".state", tags, service->GetState(), ts);
-
+		AddMetric(checkable, metric + ".state", tags, service->GetState(), ts);
 	} else {
 		if (!config_tmpl_metric.IsEmpty()) {
 			metric = config_tmpl_metric;
 		} else {
 			metric = "icinga.host";
 		}
-		SendMetric(checkable, metric + ".state", tags, host->GetState(), ts);
+		AddMetric(checkable, metric + ".state", tags, host->GetState(), ts);
 	}
 
-	SendMetric(checkable, metric + ".state_type", tags, checkable->GetStateType(), ts);
-	SendMetric(checkable, metric + ".reachable", tags, checkable->IsReachable(), ts);
-	SendMetric(checkable, metric + ".downtime_depth", tags, checkable->GetDowntimeDepth(), ts);
-	SendMetric(checkable, metric + ".acknowledgement", tags, checkable->GetAcknowledgement(), ts);
+	AddMetric(checkable, metric + ".state_type", tags, checkable->GetStateType(), ts);
+	AddMetric(checkable, metric + ".reachable", tags, checkable->IsReachable(), ts);
+	AddMetric(checkable, metric + ".downtime_depth", tags, checkable->GetDowntimeDepth(), ts);
+	AddMetric(checkable, metric + ".acknowledgement", tags, checkable->GetAcknowledgement(), ts);
 
-	SendPerfdata(checkable, metric, tags, cr, ts);
+	m_WorkQueue.Enqueue([this, checkable, service, cr, metric = std::move(metric), tags = std::move(tags), ts](
+						) mutable {
+		AddPerfdata(checkable, metric, tags, cr, ts);
 
-	metric = "icinga.check";
+		metric = "icinga.check";
 
-	if (service) {
-		tags["type"] = "service";
-		String serviceName = service->GetShortName();
-		String escaped_serviceName = EscapeTag(serviceName);
-		tags["service"] = escaped_serviceName;
-	} else {
-		tags["type"] = "host";
-	}
+		if (service) {
+			tags["type"] = "service";
+			String serviceName = service->GetShortName();
+			String escaped_serviceName = EscapeTag(serviceName);
+			tags["service"] = escaped_serviceName;
+		} else {
+			tags["type"] = "host";
+		}
 
-	SendMetric(checkable, metric + ".current_attempt", tags, checkable->GetCheckAttempt(), ts);
-	SendMetric(checkable, metric + ".max_check_attempts", tags, checkable->GetMaxCheckAttempts(), ts);
-	SendMetric(checkable, metric + ".latency", tags, cr->CalculateLatency(), ts);
-	SendMetric(checkable, metric + ".execution_time", tags, cr->CalculateExecutionTime(), ts);
+		AddMetric(checkable, metric + ".current_attempt", tags, checkable->GetCheckAttempt(), ts);
+		AddMetric(checkable, metric + ".max_check_attempts", tags, checkable->GetMaxCheckAttempts(), ts);
+		AddMetric(checkable, metric + ".latency", tags, cr->CalculateLatency(), ts);
+		AddMetric(checkable, metric + ".execution_time", tags, cr->CalculateExecutionTime(), ts);
+
+		SendMsgBuffer();
+	});
 }
 
 /**
@@ -307,7 +270,7 @@ void OpenTsdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
  * @param cr Check result containing performance data
  * @param ts Timestamp when the check result was received
  */
-void OpenTsdbWriter::SendPerfdata(const Checkable::Ptr& checkable, const String& metric,
+void OpenTsdbWriter::AddPerfdata(const Checkable::Ptr& checkable, const String& metric,
 	const std::map<String, String>& tags, const CheckResult::Ptr& cr, double ts)
 {
 	Array::Ptr perfdata = cr->GetPerformanceData();
@@ -334,7 +297,7 @@ void OpenTsdbWriter::SendPerfdata(const Checkable::Ptr& checkable, const String&
 				continue;
 			}
 		}
-		
+
 		String metric_name;
 		std::map<String, String> tags_new = tags;
 
@@ -350,21 +313,21 @@ void OpenTsdbWriter::SendPerfdata(const Checkable::Ptr& checkable, const String&
 			tags_new["label"] = escaped_key;
 		}
 
-		SendMetric(checkable, metric_name, tags_new, pdv->GetValue(), ts);
+		AddMetric(checkable, metric_name, tags_new, pdv->GetValue(), ts);
 
 		if (!pdv->GetCrit().IsEmpty())
-			SendMetric(checkable, metric_name + "_crit", tags_new, pdv->GetCrit(), ts);
+			AddMetric(checkable, metric_name + "_crit", tags_new, pdv->GetCrit(), ts);
 		if (!pdv->GetWarn().IsEmpty())
-			SendMetric(checkable, metric_name + "_warn", tags_new, pdv->GetWarn(), ts);
+			AddMetric(checkable, metric_name + "_warn", tags_new, pdv->GetWarn(), ts);
 		if (!pdv->GetMin().IsEmpty())
-			SendMetric(checkable, metric_name + "_min", tags_new, pdv->GetMin(), ts);
+			AddMetric(checkable, metric_name + "_min", tags_new, pdv->GetMin(), ts);
 		if (!pdv->GetMax().IsEmpty())
-			SendMetric(checkable, metric_name + "_max", tags_new, pdv->GetMax(), ts);
+			AddMetric(checkable, metric_name + "_max", tags_new, pdv->GetMax(), ts);
 	}
 }
 
 /**
- * Send given metric to OpenTSDB
+ * Add given metric to the data buffer to be later sent to OpenTSDB
  *
  * @param checkable Host/service object
  * @param metric Full metric name
@@ -372,44 +335,50 @@ void OpenTsdbWriter::SendPerfdata(const Checkable::Ptr& checkable, const String&
  * @param value Floating point metric value
  * @param ts Timestamp where the metric was received from the check result
  */
-void OpenTsdbWriter::SendMetric(const Checkable::Ptr& checkable, const String& metric,
+void OpenTsdbWriter::AddMetric(const Checkable::Ptr& checkable, const String& metric,
 	const std::map<String, String>& tags, double value, double ts)
 {
 	String tags_string = "";
 
-	for (auto& tag : tags) {
-		tags_string += " " + tag.first + "=" + tag.second;
-	}
-
-	std::ostringstream msgbuf;
 	/*
 	 * must be (http://opentsdb.net/docs/build/html/user_guide/query/timeseries.html)
 	 * put <metric> <timestamp> <value> <tagk1=tagv1[ tagk2=tagv2 ...tagkN=tagvN]>
 	 * "tags" must include at least one tag, we use "host=HOSTNAME"
 	 */
-	msgbuf << "put " << metric << " " << static_cast<long>(ts) << " " << Convert::ToString(value) << tags_string;
+	std::string msg{
+		"put " + metric + " " + std::to_string(static_cast<long>(ts)) + " " + Convert::ToString(value)
+	};
+
+	for (const auto& tag : tags) {
+		tags_string += " " + tag.first + "=" + tag.second;
+	}
 
 	Log(LogDebug, "OpenTsdbWriter")
-		<< "Checkable '" << checkable->GetName() << "' adds to metric list: '" << msgbuf.str() << "'.";
+		<< "Checkable '" << checkable->GetName() << "' adds to metric list: '" << msg << "'.";
 
 	/* do not send \n to debug log */
-	msgbuf << "\n";
-	String put = msgbuf.str();
+	m_MsgBuf.append(msg);
+	m_MsgBuf.append(tags_string).push_back('\n');
+}
 
-	ObjectLock olock(this);
+void OpenTsdbWriter::SendMsgBuffer()
+{
+	ASSERT(m_WorkQueue.IsWorkerThread());
 
-	if (!GetConnected())
-		return;
+	Log(LogDebug, "OpenTsdbWriter")
+		<< "Flushing data buffer to OpenTsdb.";
 
 	try {
-		Log(LogDebug, "OpenTsdbWriter")
-			<< "Checkable '" << checkable->GetName() << "' sending message '" << put << "'.";
-
-		boost::asio::write(*m_Stream, boost::asio::buffer(msgbuf.str()));
-		m_Stream->flush();
+		m_Connection->Send(boost::asio::buffer(std::exchange(m_MsgBuf, std::string{})));
 	} catch (const std::exception& ex) {
-		Log(LogCritical, "OpenTsdbWriter")
-			<< "Cannot write to TCP socket on host '" << GetHost() << "' port '" << GetPort() << "'.";
+		if (const auto* se = dynamic_cast<const boost::system::system_error*>(&ex);
+			se->code() == boost::asio::error::operation_aborted) {
+			Log(LogDebug, "ElasticsearchWriter") << "Operation canceled.";
+			return;
+		}
+
+		// Should not happen since other exceptions are handled in PerfdataWriterConnection
+		throw;
 	}
 }
 
@@ -508,7 +477,7 @@ void OpenTsdbWriter::ValidateHostTemplate(const Lazy<Dictionary::Ptr>& lvalue, c
 }
 
 /**
-* Validates the service_template configuration block in the 
+* Validates the service_template configuration block in the
 * configuration file and checks for syntax errors.
 *
 * @param lvalue The service_template dictionary
