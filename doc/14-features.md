@@ -799,8 +799,8 @@ in the produced check results.
 The data points type for all the above metrics is [`gauge`](https://opentelemetry.io/docs/specs/otel/metrics/data-model/#gauge)
 and the perfdata labels and their units (if available) are mapped to OpenTelemetry metric points attributes. For example,
 a perfdata label `load1` with a value of `0.5` and unit `%` will be sent to the `state_check.perfdata` metric stream,
-with a metric point having a value of `0.5`, along with the attributes `label="load1"` and `unit="%"`. Additionally,
-each metric point will also include other relevant attributes such as `icinga2.host.name`, `icinga2.service.name`,
+with a metric point having a value of `0.5`, along with the attributes `perfdata_label="load1"` and `unit="%"`.
+Additionally, each metric point will also include other relevant attributes such as `icinga2.host.name`, `icinga2.service.name`,
 `icinga2.command.name`, etc. as resource attributes. You can find the full list of metric point formats and attributes
 in the [OTLPMetrics data format](#otlpmetrics-writer-data-format) section below.
 
@@ -921,7 +921,7 @@ configuring your OTLP collector or backend to properly receive and process the e
                   {
                     "attributes": [
                       {
-                        "key": "label",
+                        "key": "perfdata_label",
                         "value": {
                           "stringValue": "some_perfdata_label"
                         }
@@ -991,9 +991,9 @@ configuring your OTLP collector or backend to properly receive and process the e
 
 As you can see in the above example, most of the attributes are resource attributes that are shared across all emitted
 metrics, and are also OpenTelemetry related attributes. The only attributes that are specific to the OTLPMetrics Writer
-have `icinga2.` prefix like `icinga2.host.name` etc. The `state_check.perfdata` metric has an additional attribute `label`
-that corresponds to the perfdata label of the emitted metric point value. Likewise, the `state_check.threshold` metric
-has two additional attributes `perfdata_label` and `threshold_type` that correspond to the perfdata label they belong
+have `icinga2.` prefix like `icinga2.host.name` etc. The `state_check.perfdata` metric has an additional attribute
+`perfdata_label` that corresponds to the perfdata label of the emitted metric point value. Likewise, the `state_check.threshold`
+metric has two additional attributes `perfdata_label` and `threshold_type` that correspond to the perfdata label they belong
 to and the threshold type (warning, critical, min, max) respectively.
 
 ### Writing Performance Data Files <a id="writing-performance-data-files"></a>
