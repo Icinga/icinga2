@@ -27,7 +27,7 @@ REGISTER_STATSFUNCTION(OTLPMetricsWriter, &OTLPMetricsWriter::StatsFunc);
 //
 // [^1]: https://opentelemetry.io/docs/specs/semconv/general/metrics/#general-guidelines
 // [^2]: https://opentelemetry.io/docs/specs/semconv/general/naming
-static const String l_PerfdataMetricName = "state_check.perfdata";
+static const String l_PerfdataMetric = "state_check.perfdata";
 static const String l_ThresholdMetric = "state_check.threshold";
 
 void OTLPMetricsWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
@@ -194,11 +194,11 @@ void OTLPMetricsWriter::CheckResultHandler(const Checkable::Ptr& checkable, cons
 				}
 			}
 
-			OTelAttrsMap attrs{{"label", pdv->GetLabel()}};
+			OTelAttrsMap attrs{{"perfdata_label", pdv->GetLabel()}};
 			if (auto unit = pdv->GetUnit(); !unit.IsEmpty()) {
 				attrs.emplace("unit", std::move(unit));
 			}
-			Record(checkable, l_PerfdataMetricName, pdv->GetValue(), startTime, endTime, std::move(attrs));
+			Record(checkable, l_PerfdataMetric, pdv->GetValue(), startTime, endTime, std::move(attrs));
 
 			if (GetEnableSendThresholds()) {
 				std::vector<std::pair<String, Value>> thresholds {
