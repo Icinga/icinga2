@@ -37,18 +37,12 @@ option(ICINGA2_WITH_LIVESTATUS "Build the Livestatus module" ${ICINGA2_MASTER})
 option(ICINGA2_WITH_NOTIFICATION "Build the notification module" ON)
 option(ICINGA2_WITH_PERFDATA "Build the perfdata module" ${ICINGA2_MASTER})
 option(ICINGA2_WITH_ICINGADB "Build the IcingaDB module" ${ICINGA2_MASTER})
-option(ICINGA2_WITH_OPENTELEMETRY "Build the OpenTelemetry integration module" OFF)
+option(ICINGA2_WITH_OPENTELEMETRY "Build the OpenTelemetry integration module" ${ICINGA2_MASTER})
 
 option (USE_SYSTEMD
  "Configure icinga as native systemd service instead of a SysV initscript" OFF)
 
 set(HAVE_SYSTEMD ${USE_SYSTEMD})
-
-if(WIN32)
-  # Turn off OpenTelemetry on Windows as there is no support for it.
-  set(ICINGA2_WITH_OPENTELEMETRY OFF CACHE BOOL "Disable OpenTelemetry on Windows" FORCE)
-endif()
-set(ICINGA2_OPENTELEMETRY_PROTOS_DIR "" CACHE PATH "Path to OpenTelemetry proto files directory")
 
 include(GNUInstallDirs)
 include(InstallConfig)
