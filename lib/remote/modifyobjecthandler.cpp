@@ -18,7 +18,7 @@ bool ModifyObjectHandler::HandleRequest(
 	const WaitGroup::Ptr& waitGroup,
 	const HttpApiRequest& request,
 	HttpApiResponse& response,
-	boost::asio::yield_context&
+	boost::asio::yield_context& yc
 )
 {
 	namespace http = boost::beast::http;
@@ -179,13 +179,20 @@ bool ModifyObjectHandler::HandleRequest(
 
 		results.push_back(std::move(result1));
 	}
+	// Unlock the mutexes before starting to stream the response, so that we don't block the shutdown process.
+	lock.Unlock();
+	if (wgLock.owns_lock()) {
+		wgLock.unlock();
+	}
 
-	Dictionary::Ptr result = new Dictionary({
-		{ "results", new Array(std::move(results)) }
-	});
+	Array::Ptr resultArray = new Array{std::move(results)};
+	resultArray->Freeze();
+
+	Dictionary::Ptr result = new Dictionary{{"results", std::move(resultArray)}};
+	result->Freeze();
 
 	response.result(http::status::ok);
-	HttpUtility::SendJsonBody(response, params, result);
+	HttpUtility::SendJsonBody(response, params, result, yc);
 
 	return true;
 }

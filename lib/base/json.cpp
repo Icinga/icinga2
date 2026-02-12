@@ -74,7 +74,7 @@ void JsonEncoder::Encode(const Value& value, boost::asio::yield_context* yc)
 				EncodeObject(static_pointer_cast<Dictionary>(obj), extractor, yc);
 			} else if (type == Array::TypeInstance) {
 				EncodeArray(static_pointer_cast<Array>(obj), yc);
-			} else if (auto gen(dynamic_pointer_cast<ValueGenerator>(obj)); gen) {
+			} else if (auto gen(dynamic_pointer_cast<Generator>(obj)); gen) {
 				EncodeValueGenerator(gen, yc);
 			} else {
 				// Some other non-serializable object type!
@@ -127,7 +127,7 @@ void JsonEncoder::EncodeArray(const Array::Ptr& array, boost::asio::yield_contex
  * @param yc The optional yield context for asynchronous operations. If provided, it allows the encoder
  * to flush the output stream safely when it has not acquired any object lock on the parent containers.
  */
-void JsonEncoder::EncodeValueGenerator(const ValueGenerator::Ptr& generator, boost::asio::yield_context* yc)
+void JsonEncoder::EncodeValueGenerator(const Generator::Ptr& generator, boost::asio::yield_context* yc)
 {
 	BeginContainer('[');
 	bool isEmpty = true;

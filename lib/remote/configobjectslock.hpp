@@ -32,6 +32,10 @@ public:
 	{
 		return true;
 	}
+
+	constexpr void Unlock()
+	{
+	}
 };
 
 #else /* _WIN32 */
@@ -67,6 +71,11 @@ public:
 	inline explicit operator bool() const
 	{
 		return m_Lock.owns();
+	}
+
+	void Unlock()
+	{
+		m_Lock.unlock();
 	}
 
 private:
