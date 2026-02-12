@@ -81,8 +81,8 @@ public:
 		const Expression::Ptr& filter, const String& package, const String& fkvar, const String& fvvar, const Expression::Ptr& fterm,
 		bool ignoreOnError, const DebugInfo& di, const Dictionary::Ptr& scope);
 	static const std::vector<ApplyRule::Ptr>& GetRules(const Type::Ptr& sourceType, const Type::Ptr& targetType);
-	static const std::set<ApplyRule::Ptr>& GetTargetedHostRules(const Type::Ptr& sourceType, const String& host);
-	static const std::set<ApplyRule::Ptr>& GetTargetedServiceRules(const Type::Ptr& sourceType, const String& host, const String& service);
+	[[gnu::no_dangling]] static const std::set<ApplyRule::Ptr>& GetTargetedHostRules(const Type::Ptr& sourceType, const String& host);
+	[[gnu::no_dangling]] static const std::set<ApplyRule::Ptr>& GetTargetedServiceRules(const Type::Ptr& sourceType, const String& host, const String& service);
 	static bool GetTargetHosts(Expression* assignFilter, std::vector<const String *>& hosts, const Dictionary::Ptr& constants = nullptr);
 	static bool GetTargetServices(Expression* assignFilter, std::vector<std::pair<const String *, const String *>>& services, const Dictionary::Ptr& constants = nullptr);
 
