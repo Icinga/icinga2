@@ -17,7 +17,6 @@ RUN apt-get update && \
         autoconf \
         automake \
         bison \
-        ca-certificates \
         ccache \
         cmake \
         flex \

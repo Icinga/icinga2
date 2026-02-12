@@ -223,7 +223,7 @@ void OTLPMetricsWriter::CheckResultHandler(const Checkable::Ptr& checkable, cons
 
 void OTLPMetricsWriter::Flush(bool fromTimer)
 {
-	// If previous export still in progress and this flush is requested from timer, skip it.
+	// If previous export is still in progress and this flush is requested from timer, skip it.
 	// For manual flushes (e.g., due to reaching flush threshold), we want to block until
 	// the previous export is done before returning to the caller (blocking is handled in OTel::Export()).
 	if (fromTimer && m_Exporter->Exporting()) {
@@ -254,7 +254,7 @@ void OTLPMetricsWriter::Flush(bool fromTimer)
 	if (request->resource_metrics_size() == 0) {
 		Log(LogDebug, "OTLPMetricsWriter")
 			<< "Not flushing OTel metrics: No data points recorded.";
-		return; // Nothing to export.
+		return;
 	}
 	m_Exporter->Export(request);
 	m_RecordedBytes.store(0, std::memory_order_relaxed);

@@ -30,8 +30,7 @@ OTel::OTel(OTelConnInfo& connInfo, boost::asio::io_context& io)
 	: m_ConnInfo{std::move(connInfo)},
 	  m_Strand{io},
 	  m_Export{io},
-	  m_ConnTimer{io},
-	  m_RetryExportTimer{io},
+	  m_RetryExportAndConnTimer{io},
 	  m_Exporting{false},
 	  m_Stopped{false}
 {
@@ -65,10 +64,8 @@ void OTel::Stop()
 
 	std::promise<void> promise;
 	IoEngine::SpawnCoroutine(m_Strand, [this, &promise, keepAlive = ConstPtr(this)](boost::asio::yield_context& yc) {
-		m_ConnTimer.cancel();
-		m_RetryExportTimer.cancel();
-
 		m_Export.Set();
+		m_RetryExportAndConnTimer.cancel();
 
 		if (!m_Stream) {
 			promise.set_value();
@@ -251,8 +248,8 @@ void OTel::Connect(boost::asio::yield_context& yc)
 			}
 
 			boost::system::error_code ec;
-			m_ConnTimer.expires_after(Backoff{}(attempt));
-			m_ConnTimer.async_wait(yc[ec]);
+			m_RetryExportAndConnTimer.expires_after(Backoff{}(attempt));
+			m_RetryExportAndConnTimer.async_wait(yc[ec]);
 
 			if (m_Stopped) {
 				return;
@@ -307,8 +304,8 @@ void OTel::ExportLoop(boost::asio::yield_context& yc)
 					<< retryAfter.count() << "ms.";
 
 				boost::system::error_code ec;
-				m_RetryExportTimer.expires_after(retryAfter);
-				m_RetryExportTimer.async_wait(yc[ec]);
+				m_RetryExportAndConnTimer.expires_after(retryAfter);
+				m_RetryExportAndConnTimer.async_wait(yc[ec]);
 
 				if (m_Stopped) {
 					break;
@@ -333,7 +330,7 @@ void OTel::ExportLoop(boost::asio::yield_context& yc)
 void OTel::Export(boost::asio::yield_context& yc) const
 {
 	AsioProtobufOutStream outputS{*m_Stream, m_ConnInfo, yc};
-	auto serialized = m_Request->SerializeToZeroCopyStream(&outputS);
+	[[maybe_unused]] auto serialized = m_Request->SerializeToZeroCopyStream(&outputS);
 	ASSERT(serialized);
 	// Must have completed chunk writing successfully, otherwise reading the response will hang forever.
 	VERIFY(outputS.WriterDone());
@@ -355,7 +352,7 @@ void OTel::Export(boost::asio::yield_context& yc) const
 		// See https://opentelemetry.io/docs/specs/otlp/#partial-success-1.
 		google::protobuf::Arena arena;
 		auto response = MetricsResponse::default_instance().New(&arena);
-		auto deserialized = response->ParseFromString(responseMsg.body());
+		[[maybe_unused]] auto deserialized = response->ParseFromString(responseMsg.body());
 		ASSERT(deserialized);
 
 		if (response->has_partial_success()) {

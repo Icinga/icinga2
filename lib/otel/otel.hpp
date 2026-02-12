@@ -95,9 +95,9 @@ struct Gauge
 	/**
 	 * Records a new data point in the Gauge.
 	 *
-	 * This method may modify the provided attributes vector by moving the key-value pairs
-	 * into the underlying Protobuf data point representation. Thus, if you intend to reuse
-	 * the attributes after calling this method, make sure to pass a copy of it.
+	 * This method may modify the provided attributes set by moving the key-value pairs into the
+	 * underlying Protobuf data point representation. Thus, if you intend to reuse the attributes
+	 * after calling this method, make sure to pass a copy of it.
 	 *
 	 * @param data The data point value to be recorded.
 	 * @param attrs The attributes associated with the data point.
@@ -148,10 +148,9 @@ struct Gauge
 					attrValue->set_double_value(arg);
 				} else if constexpr (std::is_same_v<ValT, bool>) {
 					attrValue->set_bool_value(arg);
-				} else if constexpr (std::is_same_v<ValT, String>) {
-					attrValue->set_string_value(std::move(arg));
 				} else {
-					ABORT("Unsupported attribute value type in OTel Gauge data point.");
+					static_assert(std::is_same_v<ValT, String>, "Unsupported OTel attribute value type.");
+					attrValue->set_string_value(std::move(arg));
 				}
 			}, value);
 		}
@@ -163,10 +162,10 @@ private:
 };
 
 /**
- * OTel implements the OpenTelemetry Protocol (OTELP) exporter.
+ * OTel implements the OpenTelemetry Protocol (OTLP) exporter.
  *
  * This class manages the connection to an OpenTelemetry collector or compatible backend and
- * handles exporting (currently only metrics) in OTELP Protobuf format over HTTP. It supports
+ * handles exporting (currently only metrics) in OTLP Protobuf format over HTTP. It supports
  * TLS connections, basic authentication, and implements retry logic for transient errors as
  * per OTel specs.
  *
@@ -214,7 +213,8 @@ private:
 	boost::asio::io_context::strand m_Strand;
 
 	AsioDualEvent m_Export; // Event to signal when a new export request is available.
-	boost::asio::steady_timer m_ConnTimer, m_RetryExportTimer;
+	// Timer for scheduling retries of failed exports and reconnection attempts.
+	boost::asio::steady_timer m_RetryExportAndConnTimer;
 
 	// Mutex and condition variable for synchronizing concurrent export requests.
 	mutable std::mutex m_Mutex;
@@ -270,7 +270,7 @@ struct Backoff
 	static constexpr std::chrono::milliseconds MaxBackoffMs = std::chrono::seconds(30);
 	static constexpr std::chrono::milliseconds MinBackoffMs = std::chrono::milliseconds(100);
 
-	std::chrono::milliseconds operator()(uint64_t attempt) const
+	constexpr std::chrono::milliseconds operator()(uint64_t attempt) const
 	{
 		using namespace std::chrono;
 
