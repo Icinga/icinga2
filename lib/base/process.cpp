@@ -16,19 +16,14 @@
 #include <boost/thread/once.hpp>
 #include <thread>
 #include <iostream>
+#include <utility>
+#include <vector>
 
 #ifndef _WIN32
-#	include <execvpe.h>
 #	include <poll.h>
 #	include <signal.h>
 #	include <string.h>
-
-#	ifndef __APPLE__
-extern char **environ;
-#	else /* __APPLE__ */
-#		include <crt_externs.h>
-#		define environ (*_NSGetEnviron())
-#	endif /* __APPLE__ */
+#	include <unistd.h>
 #endif /* _WIN32 */
 
 using namespace icinga;
@@ -88,56 +83,6 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 	Dictionary::Ptr extraEnvironment = request->Get("extraEnvironment");
 	bool adjustPriority = request->Get("adjustPriority");
 
-	// build argv
-	auto **argv = new char *[arguments->GetLength() + 1];
-
-	for (unsigned int i = 0; i < arguments->GetLength(); i++) {
-		String arg = arguments->Get(i);
-		argv[i] = strdup(arg.CStr());
-	}
-
-	argv[arguments->GetLength()] = nullptr;
-
-	// build envp
-	int envc = 0;
-
-	/* count existing environment variables */
-	while (environ[envc])
-		envc++;
-
-	auto **envp = new char *[envc + (extraEnvironment ? extraEnvironment->GetLength() : 0) + 2];
-	const char* lcnumeric = "LC_NUMERIC=";
-	const char* notifySocket = "NOTIFY_SOCKET=";
-	int j = 0;
-
-	for (int i = 0; i < envc; i++) {
-		if (strncmp(environ[i], lcnumeric, strlen(lcnumeric)) == 0) {
-			continue;
-		}
-
-		if (strncmp(environ[i], notifySocket, strlen(notifySocket)) == 0) {
-			continue;
-		}
-
-		envp[j] = strdup(environ[i]);
-		++j;
-	}
-
-	if (extraEnvironment) {
-		ObjectLock olock(extraEnvironment);
-
-		for (const Dictionary::Pair& kv : extraEnvironment) {
-			String skv = kv.first + "=" + Convert::ToString(kv.second);
-			envp[j] = strdup(skv.CStr());
-			j++;
-		}
-	}
-
-	envp[j] = strdup("LC_NUMERIC=C");
-	envp[j + 1] = nullptr;
-
-	extraEnvironment.reset();
-
 	pid_t pid = fork();
 
 	int errorCode = 0;
@@ -164,6 +109,60 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 		(void)close(fds[1]);
 		(void)close(fds[2]);
 
+		std::vector<String> args;
+		std::vector<char*> argv;
+		ObjectLock oLock (arguments);
+
+		try {
+			args.reserve(arguments->GetLength());
+			argv.reserve(arguments->GetLength() + 1u);
+		} catch (const std::exception& ex) {
+			fprintf(stderr, "std::vector#reserve() failed: %s\n", ex.what());
+			_exit(128);
+		}
+
+		for (auto& argument : arguments) {
+			try {
+				args.emplace_back(Convert::ToString(argument));
+				argv.emplace_back(args.back().GetData().data());
+			} catch (const std::exception& ex) {
+				fprintf(stderr, "Convert::ToString() failed: %s\n", ex.what());
+				_exit(128);
+			}
+		}
+
+		argv.emplace_back(nullptr);
+
+		if (unsetenv("NOTIFY_SOCKET")) {
+			perror("unsetenv() failed");
+			_exit(128);
+		}
+
+		if (setenv("LC_NUMERIC", "C", 1)) {
+			perror("setenv() failed");
+			_exit(128);
+		}
+
+		if (extraEnvironment) {
+			ObjectLock oLock (extraEnvironment);
+
+			for (auto& kv : extraEnvironment) {
+				String v;
+
+				try {
+					v = Convert::ToString(kv.second);
+				} catch (const std::exception& ex) {
+					fprintf(stderr, "Convert::ToString() failed: %s\n", ex.what());
+					_exit(128);
+				}
+
+				if (setenv(kv.first.CStr(), v.CStr(), 1)) {
+					perror("setenv() failed");
+					_exit(128);
+				}
+			}
+		}
+
 #ifdef HAVE_NICE
 		if (adjustPriority) {
 			// Cheating the compiler on "warning: ignoring return value of 'int nice(int)', declared with attribute warn_unused_result [-Wunused-result]".
@@ -187,9 +186,9 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 		sigemptyset(&mask);
 		sigprocmask(SIG_SETMASK, &mask, nullptr);
 
-		if (icinga2_execvpe(argv[0], argv, envp) < 0) {
+		if (execvp(argv[0], argv.data()) < 0) {
 			char errmsg[512];
-			strcpy(errmsg, "execvpe(");
+			strcpy(errmsg, "execvp(");
 			strncat(errmsg, argv[0], sizeof(errmsg) - strlen(errmsg) - 1);
 			strncat(errmsg, ") failed", sizeof(errmsg) - strlen(errmsg) - 1);
 			errmsg[sizeof(errmsg) - 1] = '\0';
@@ -202,18 +201,6 @@ static Value ProcessSpawnImpl(struct msghdr *msgh, const Dictionary::Ptr& reques
 	(void)close(fds[0]);
 	(void)close(fds[1]);
 	(void)close(fds[2]);
-
-	// free arguments
-	for (int i = 0; argv[i]; i++)
-		free(argv[i]);
-
-	delete[] argv;
-
-	// free environment
-	for (int i = 0; envp[i]; i++)
-		free(envp[i]);
-
-	delete[] envp;
 
 	Dictionary::Ptr response = new Dictionary({
 		{ "rc", pid },
