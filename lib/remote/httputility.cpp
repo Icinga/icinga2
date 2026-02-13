@@ -169,9 +169,11 @@ bool HttpUtility::IsValidHeaderValue(std::string_view value)
 	}
 
 	return std::all_of(value.begin(), value.end(), [](char c) {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wtype-limits"
-		return c == ' ' || c == '\t' || ('\x21' <= c && c <= '\x7e') || ('\x80' <= c && c <= '\xff');
-#pragma GCC diagnostic pop
+		return c == ' ' || c == '\t' || ('\x21' <= c && c <= '\x7e')
+#if CHAR_MIN < 0
+			|| c <= '\xff';
+#else  // CHAR_MIN < 0
+			|| c >= '\x80';
+#endif // CHAR_MIN < 0
 	});
 }
