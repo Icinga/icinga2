@@ -5,12 +5,10 @@
 #define GELFWRITER_H
 
 #include "perfdata/gelfwriter-ti.hpp"
-#include "icinga/service.hpp"
+#include "perfdata/perfdatawriterconnection.hpp"
+#include "icinga/checkable.hpp"
 #include "base/configobject.hpp"
-#include "base/tcpsocket.hpp"
-#include "base/timer.hpp"
 #include "base/workqueue.hpp"
-#include <fstream>
 
 namespace icinga
 {
@@ -34,11 +32,10 @@ protected:
 	void Pause() override;
 
 private:
-	OptionalTlsStream m_Stream;
+	PerfdataWriterConnection::Ptr m_Connection;
 	WorkQueue m_WorkQueue{10000000, 1};
 
 	boost::signals2::connection m_HandleCheckResults, m_HandleNotifications, m_HandleStateChanges;
-	Timer::Ptr m_ReconnectTimer;
 
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 	void NotificationToUserHandler(const Checkable::Ptr& checkable, NotificationType notificationType, const CheckResult::Ptr& cr,
@@ -47,13 +44,6 @@ private:
 
 	String ComposeGelfMessage(const Dictionary::Ptr& fields, const String& source, double ts);
 	void SendLogMessage(const Checkable::Ptr& checkable, const String& gelfMessage);
-
-	void ReconnectTimerHandler();
-
-	void Disconnect();
-	void DisconnectInternal();
-	void Reconnect();
-	void ReconnectInternal();
 
 	void AssertOnWorkQueue();
 

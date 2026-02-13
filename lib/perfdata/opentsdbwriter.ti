@@ -31,10 +31,8 @@ class OpenTsdbWriter : ConfigObject
 	[config] bool enable_generic_metrics {
 		default {{{ return false; }}}
 	};
-
-	[no_user_modify] bool connected;
-	[no_user_modify] bool should_connect {
-		default {{{ return true; }}}
+	[config] double disconnect_timeout {
+		default {{{ return 10; }}}
 	};
 };
 

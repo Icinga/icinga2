@@ -4,8 +4,10 @@
 #include "utils.hpp"
 #include <cstring>
 #include <iomanip>
+#include <random>
 #include <sstream>
 #include <boost/test/unit_test.hpp>
+#include <boost/random.hpp>
 
 tm make_tm(std::string s)
 {
@@ -65,4 +67,17 @@ GlobalTimezoneFixture::~GlobalTimezoneFixture()
         unsetenv("TZ");
 #endif
     tzset();
+}
+
+std::string GetRandomString(std::string prefix, std::size_t length)
+{
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<int> distribution('!', '~');
+
+	for (auto i = 0U; i < length; i++) {
+		prefix += static_cast<char>(distribution(gen));
+	}
+
+	return prefix;
 }
