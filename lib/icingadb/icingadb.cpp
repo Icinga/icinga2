@@ -176,7 +176,7 @@ void IcingaDB::PublishStats()
 	status->Set("timestamp", TimestampToMilliseconds(Utility::GetTime()));
 	status->Set("icingadb_environment", m_EnvironmentId);
 
-	std::vector<String> query {"XADD", "icinga:stats", "MAXLEN", "1", "*"};
+	RedisConnection::Query query {"XADD", "icinga:stats", "MAXLEN", "1", "*"};
 
 	{
 		ObjectLock statusLock (status);
