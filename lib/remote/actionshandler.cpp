@@ -12,8 +12,6 @@
 
 using namespace icinga;
 
-thread_local ApiUser::Ptr ActionsHandler::AuthenticatedApiUser;
-
 REGISTER_URLHANDLER("/v1/actions", ActionsHandler);
 
 bool ActionsHandler::HandleRequest(
@@ -80,11 +78,6 @@ bool ActionsHandler::HandleRequest(
 
 	bool verbose = false;
 
-	ActionsHandler::AuthenticatedApiUser = user;
-	Defer a ([]() {
-		ActionsHandler::AuthenticatedApiUser = nullptr;
-	});
-
 	if (params)
 		verbose = HttpUtility::GetLastParameter(params, "verbose");
 
@@ -111,7 +104,7 @@ bool ActionsHandler::HandleRequest(
 		}
 
 		try {
-			results.emplace_back(action->Invoke(obj, params));
+			results.emplace_back(action->Invoke(obj, user, params));
 		} catch (const std::exception& ex) {
 			Dictionary::Ptr fail = new Dictionary({
 				{ "code", 500 },
