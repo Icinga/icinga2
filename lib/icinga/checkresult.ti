@@ -17,7 +17,8 @@ code {{{
 enum HostState
 {
 	HostUp = 0,
-	HostDown = 1
+	HostDown = 1,
+	HostPending = 99,
 };
 
 /**
@@ -30,7 +31,8 @@ enum ServiceState
 	ServiceOK = 0,
 	ServiceWarning = 1,
 	ServiceCritical = 2,
-	ServiceUnknown = 3
+	ServiceUnknown = 3,
+	ServicePending = 99,
 };
 
 /**
