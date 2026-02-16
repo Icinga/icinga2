@@ -6,23 +6,22 @@
 #include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
 #include "config/configcompiler.hpp"
-#include "base/configtype.hpp"
+#include "base/application.hpp"
 #include "base/configwriter.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/logger.hpp"
 #include "base/serializer.hpp"
 #include "base/timer.hpp"
 #include "base/namespace.hpp"
-#include "base/initialize.hpp"
 #include "base/utility.hpp"
 #include <boost/thread/once.hpp>
-#include <set>
+#include <memory>
 
 using namespace icinga;
 
 REGISTER_URLHANDLER("/v1/console", ConsoleHandler);
 
-static std::map<String, ApiScriptFrame> l_ApiScriptFrames;
+static std::map<String, std::shared_ptr<ApiScriptFrame>> l_ApiScriptFrames;
 static Timer::Ptr l_FrameCleanupTimer;
 static std::mutex l_ApiScriptMutex;
 
@@ -33,7 +32,13 @@ static void ScriptFrameCleanupHandler()
 	std::vector<String> cleanup_keys;
 
 	for (auto& kv : l_ApiScriptFrames) {
-		if (kv.second.Seen < Utility::GetTime() - 1800)
+		std::unique_lock frameLock(kv.second->Mutex, std::try_to_lock);
+		if (!frameLock) {
+			// If the frame is locked, it's in use, don't expire it this time.
+			continue;
+		}
+
+		if (kv.second->Seen < Utility::GetTime() - 1800)
 			cleanup_keys.push_back(kv.first);
 	}
 
@@ -51,6 +56,18 @@ static void EnsureFrameCleanupTimer()
 		l_FrameCleanupTimer->SetInterval(30);
 		l_FrameCleanupTimer->Start();
 	});
+}
+
+static std::shared_ptr<ApiScriptFrame> GetOrCreateScriptFrame(const String& session) {
+    std::unique_lock<std::mutex> lock(l_ApiScriptMutex);
+    auto& frame = l_ApiScriptFrames[session];
+
+    // If no session was found, create a new one
+    if (!frame) {
+        frame = std::make_shared<ApiScriptFrame>();
+    }
+
+    return frame;
 }
 
 bool ConsoleHandler::HandleRequest(
@@ -88,7 +105,6 @@ bool ConsoleHandler::HandleRequest(
 	bool sandboxed = HttpUtility::GetLastParameter(params, "sandboxed");
 
 	ConfigObjectsSharedLock lock (std::try_to_lock);
-
 	if (!lock) {
 		HttpUtility::SendJsonError(response, params, 503, "Icinga is reloading.");
 		return true;
@@ -113,16 +129,23 @@ bool ConsoleHandler::ExecuteScriptHelper(const HttpApiRequest& request, HttpApiR
 
 	EnsureFrameCleanupTimer();
 
-	ApiScriptFrame& lsf = l_ApiScriptFrames[session];
-	lsf.Seen = Utility::GetTime();
+	auto lsf = GetOrCreateScriptFrame(session);
 
-	if (!lsf.Locals)
-		lsf.Locals = new Dictionary();
+	std::unique_lock frameLock(lsf->Mutex, std::try_to_lock);
+	if (!frameLock) {
+		HttpUtility::SendJsonError(response, request.Params(), 409, "Session is currently in use by another request.");
+		return true;
+	}
 
-	String fileName = "<" + Convert::ToString(lsf.NextLine) + ">";
-	lsf.NextLine++;
+	lsf->Seen = Utility::GetTime();
 
-	lsf.Lines[fileName] = command;
+	if (!lsf->Locals)
+		lsf->Locals = new Dictionary();
+
+	String fileName = "<" + Convert::ToString(lsf->NextLine) + ">";
+	lsf->NextLine++;
+
+	lsf->Lines[fileName] = command;
 
 	Dictionary::Ptr resultInfo;
 	std::unique_ptr<Expression> expr;
@@ -132,8 +155,8 @@ bool ConsoleHandler::ExecuteScriptHelper(const HttpApiRequest& request, HttpApiR
 		expr = ConfigCompiler::CompileText(fileName, command);
 
 		ScriptFrame frame(true);
-		frame.Locals = lsf.Locals;
-		frame.Self = lsf.Locals;
+		frame.Locals = lsf->Locals;
+		frame.Self = lsf->Locals;
 		frame.Sandboxed = sandboxed;
 
 		exprResult = expr->Evaluate(frame);
@@ -148,7 +171,7 @@ bool ConsoleHandler::ExecuteScriptHelper(const HttpApiRequest& request, HttpApiR
 
 		std::ostringstream msgbuf;
 
-		msgbuf << di.Path << ": " << lsf.Lines[di.Path] << "\n"
+		msgbuf << di.Path << ": " << lsf->Lines[di.Path] << "\n"
 			<< String(di.Path.GetLength() + 2, ' ')
 			<< String(di.FirstColumn, ' ') << String(di.LastColumn - di.FirstColumn + 1, '^') << "\n"
 			<< ex.what() << "\n";
@@ -187,16 +210,23 @@ bool ConsoleHandler::AutocompleteScriptHelper(const HttpApiRequest& request, Htt
 
 	EnsureFrameCleanupTimer();
 
-	ApiScriptFrame& lsf = l_ApiScriptFrames[session];
-	lsf.Seen = Utility::GetTime();
+	auto lsf = GetOrCreateScriptFrame(session);
 
-	if (!lsf.Locals)
-		lsf.Locals = new Dictionary();
+	std::unique_lock frameLock(lsf->Mutex, std::try_to_lock);
+	if (!frameLock) {
+		HttpUtility::SendJsonError(response, request.Params(), 409, "Session is currently in use by another request.");
+		return true;
+	}
+
+	lsf->Seen = Utility::GetTime();
+
+	if (!lsf->Locals)
+		lsf->Locals = new Dictionary();
 
 
 	ScriptFrame frame(true);
-	frame.Locals = lsf.Locals;
-	frame.Self = lsf.Locals;
+	frame.Locals = lsf->Locals;
+	frame.Self = lsf->Locals;
 	frame.Sandboxed = sandboxed;
 
 	Dictionary::Ptr result1 = new Dictionary({
