@@ -3795,44 +3795,6 @@ Name                       | Description
 ---------------------------|-------------
 running\_kernel\_use\_sudo | Whether to run the plugin with `sudo`. Defaults to false except on Ubuntu where it defaults to true.
 
-#### iostats <a id="plugin-contrib-command-iostats"></a>
-
-The [check_iostats](https://github.com/dnsmichi/icinga-plugins/blob/master/scripts/check_iostats) plugin
-uses the `iostat` binary to monitor I/O on a Linux host. The default thresholds are rather high
-so you can use a grapher for baselining before setting your own.
-
-Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
-
-Name           | Description
----------------|-----------------------------------------------------------------------------------------------------------------------
-iostats\_disk            | **Required.** The device to monitor without path. e.g. sda or vda. (default: sda).
-iostats\_warning\_tps    | **Required.** Warning threshold for tps (default: 3000).
-iostats\_warning\_read   | **Required.** Warning threshold for KB/s reads (default: 50000).
-iostats\_warning\_write  | **Required.** Warning threshold for KB/s writes (default: 10000).
-iostats\_warning\_wait   | **Required.** Warning threshold for % iowait (default: 50).
-iostats\_critical\_tps   | **Required.** Critical threshold for tps (default: 5000).
-iostats\_critical\_read  | **Required.** Critical threshold for KB/s reads (default: 80000).
-iostats\_critical\_write | **Required.** Critical threshold for KB/s writes (default: 25000).
-iostats\_critical\_wait  | **Required.** Critical threshold for % iowait (default: 80).
-
-#### iostat <a id="plugin-contrib-command-iostat"></a>
-
-The [check_iostat](https://github.com/dnsmichi/icinga-plugins/blob/master/scripts/check_iostat) plugin
-uses the `iostat` binary to monitor disk I/O on a Linux host. The default thresholds are rather high
-so you can use a grapher for baselining before setting your own.
-
-Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
-
-Name           | Description
----------------|-----------------------------------------------------------------------------------------------------------------------
-iostat\_disk   | **Required.** The device to monitor without path. e.g. sda or vda. (default: sda).
-iostat\_wtps   | **Required.** Warning threshold for tps (default: 100).
-iostat\_wread  | **Required.** Warning threshold for KB/s reads (default: 100).
-iostat\_wwrite | **Required.** Warning threshold for KB/s writes (default: 100).
-iostat\_ctps   | **Required.** Critical threshold for tps (default: 200).
-iostat\_cread  | **Required.** Critical threshold for KB/s reads (default: 200).
-iostat\_cwrite | **Required.** Critical threshold for KB/s writes (default: 200).
-
 #### systemd <a id="plugin-contrib-command-systemd"></a>
 
 The [check_systemd](https://github.com/Josef-Friedrich/check_systemd) plugin
