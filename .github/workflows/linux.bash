@@ -155,8 +155,8 @@ cd /icinga2/build
   -DICINGA2_GROUP=$(id -gn) \
   "${CMAKE_OPTS[@]}" ..
 
-"${SCL_ENABLE_GCC[@]}" ninja -v
+ninja -v
 
-"${SCL_ENABLE_GCC[@]}" ninja test
-"${SCL_ENABLE_GCC[@]}" ninja install
+ninja test
+ninja install
 icinga2 daemon -C
