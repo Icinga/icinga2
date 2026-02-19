@@ -26,6 +26,9 @@ class OTLPMetricsWriter : ConfigObject
 
     [config, no_user_view] Dictionary::Ptr basic_auth;
 
+    [config] Dictionary::Ptr host_resource_attributes;
+    [config] Dictionary::Ptr service_resource_attributes;
+
     [config] int flush_interval {
         default {{{ return 15; }}}
     };
@@ -61,6 +64,9 @@ validator OTLPMetricsWriter
         required password;
         String password;
     };
+
+	Dictionary host_resource_attributes { String "*"; };
+	Dictionary service_resource_attributes { String "*"; };
 };
 
 } // namespace icinga
