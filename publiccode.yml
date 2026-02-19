@@ -2,7 +2,7 @@ publiccodeYmlVersion: 0.5.0
 name: Icinga
 url: https://github.com/Icinga/icinga2
 logo: https://icinga.com/wp-content/uploads/2026/02/icinga-logo.svg
-organization:
+organisation:
   name: Icinga GmbH
   uri: https://icinga.com/
 platforms:
