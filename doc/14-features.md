@@ -764,11 +764,6 @@ capabilities of OpenTelemetry for advanced analysis and visualization of your mo
 standardized way to collect, process, and export telemetry data, making it easier to integrate with numerous
 [monitoring and observability](https://opentelemetry.io/docs/collector/components/exporter/) tools effortlessly.
 
-!!! note
-
-    This feature has successfully been tested with OpenTelemetry Collector, Prometheus OTLP receiver, OpenSearch Data
-    Prepper, and Grafana Mimir. However, it should work with any backend that supports the OTLP HTTP protocol as well.
-
 In order to enable this feature, you can use the following command:
 
 ```bash
@@ -804,12 +799,30 @@ Additionally, each metric point will also include other relevant attributes such
 `icinga2.command.name`, etc. as resource attributes. You can find the full list of metric point formats and attributes
 in the [OTLPMetrics data format](#otlpmetrics-writer-data-format) section below.
 
-At the moment, the OTLPMetrics Writer allows you to configure only a single metrics resource attribute
-[`service.namespace`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/service/#service-namespace) via
-the `service_namespace` option in the OTLPMetrics Writer config. This attribute can be used to group related metrics
-together in the backend. By default, it is set to `icinga`. You can customize it to better fit your monitoring
-environment. For example, you might set it to `production`, `staging`, or any other relevant namespace that categorizes
-your Icinga 2 metrics emitted to the OpenTelemetry backend effectively.
+In addition to the default attributes, it is also possible to configure custom resource attributes that are sent along
+with the metrics to the OpenTelemetry backend. You can use the `host_resource_attributes` and `service_resource_attributes`
+options in the OTLPMetrics Writer configuration to define custom resource attributes for host and service checks
+respectively. You can use macros in the attribute values to dynamically populate them based on the check context.
+For instance, you can add a custom resource attribute `host.os` with the value `$host.vars.os$` and it will be populated
+with the value of `vars.os` for each host that has this variable defined, otherwise it will silently be ignored.
+All custom resource attributes will be prefixed with `icinga2.` to avoid naming conflicts with existing OpenTelemetry
+resource attributes. For example, if you define a custom resource attribute `host.os`, it will be sent as
+`icinga2.host.os` to OpenTelemetry.
+
+!!! warning
+
+    Be cautious when defining custom resource attributes, as they are sent with every metric and can lead to high
+    cardinality issues if not used carefully. It is recommended to only define custom resource attributes that are
+    necessary for your monitoring use case and to avoid using attributes with high variability or a large number of
+    unique values.
+
+Apart from custom resource attributes, the OTLPMetrics Writer also allows you to configure an additional resource
+attribute called [`service.namespace`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/service/#service-namespace)
+via the `service_namespace` option in the OTLPMetrics Writer configuration. This attribute is not specific to any host
+or service but is a general attribute that applies to all metrics emitted by one OTLPMetrics Writer instance.
+By default, it is set to `icinga`. You can customize it to better fit your monitoring environment. For example, you
+might set it to `production`, `staging`, or any other relevant namespace that categorizes your Icinga 2 metrics emitted
+to the OpenTelemetry backend effectively.
 
 #### OTLPMetrics in HA Cluster Zones <a id="otlpmetrics-writer-ha-cluster"></a>
 

@@ -1885,23 +1885,25 @@ object OTLPMetricsWriter "otlp-metrics" {
 
 There are more configuration options available as described in the table below.
 
-| Name                     | Type       | Description                                                                                                                                  |
-|--------------------------|------------|----------------------------------------------------------------------------------------------------------------------------------------------|
-| host                     | String     | **Required.** OTLP collector host address. Defaults to `127.0.0.1`.                                                                          |
-| port                     | Number     | **Required.** OTLP collector HTTP port. Defaults to `4318`.                                                                                  |
-| metrics\_endpoint        | String     | **Required.** OTLP metrics endpoint path. Defaults to `/v1/metrics`.                                                                         |
-| service\_namespace       | String     | **Required.** The namespace to associate with emitted metrics used in the `service.namespace` OTel resource attribute. Defaults to `icinga`. |
-| basic\_auth              | Dictionary | **Optional.** Username and password for HTTP basic authentication.                                                                           |
-| flush\_interval          | Duration   | **Optional.** How long to buffer data points before transferring to the OTLP collector. Defaults to `15s`.                                   |
-| flush\_threshold         | Number     | **Optional.** How many bytes to buffer before forcing a transfer to the OTLP collector. Defaults to `32MiB`.                                 |
-| enable\_ha               | Boolean    | **Optional.** Enable the high availability functionality. Has no effect in non-cluster setups. Defaults to `false`.                          |
-| enable\_send\_thresholds | Boolean    | **Optional.** Whether to stream warning, critical, minimum & maximum as separate metrics to the OTLP collector. Defaults to `false`.         |
-| diconnect\_timeout       | Duration   | **Optional.** Timeout to wait for any outstanding data to be flushed to the OTLP collector before disconnecting. Defaults to `10s`.          |
-| enable\_tls              | Boolean    | **Optional.** Whether to use a TLS stream. Defaults to `false`.                                                                              |
-| tls\_insecure\_noverify  | Boolean    | **Optional.** Disable TLS peer verification. Defaults to `false`.                                                                            |
-| tls\_ca\_file            | String     | **Optional.** Path to CA certificate to validate the remote host.                                                                            |
-| tls\_cert\_file          | String     | **Optional.** Path to the client certificate to present to the OTLP collector for mutual verification.                                       |
-| tls\_key\_file           | String     | **Optional.** Path to the client certificate key.                                                                                            |
+| Name                          | Type       | Description                                                                                                                                  |
+|-------------------------------|------------|----------------------------------------------------------------------------------------------------------------------------------------------|
+| host                          | String     | **Required.** OTLP collector host address. Defaults to `127.0.0.1`.                                                                          |
+| port                          | Number     | **Required.** OTLP collector HTTP port. Defaults to `4318`.                                                                                  |
+| metrics\_endpoint             | String     | **Required.** OTLP metrics endpoint path. Defaults to `/v1/metrics`.                                                                         |
+| service\_namespace            | String     | **Required.** The namespace to associate with emitted metrics used in the `service.namespace` OTel resource attribute. Defaults to `icinga`. |
+| basic\_auth                   | Dictionary | **Optional.** Username and password for HTTP basic authentication.                                                                           |
+| host\_resource\_attributes    | Dictionary | **Optional.** Additional resource attributes to be included with host metrics. Defaults to none.                                             |
+| service\_resource\_attributes | Dictionary | **Optional.** Additional resource attributes to be included with service metrics. Defaults to none.                                          |
+| flush\_interval               | Duration   | **Optional.** How long to buffer data points before transferring to the OTLP collector. Defaults to `15s`.                                   |
+| flush\_threshold              | Number     | **Optional.** How many bytes to buffer before forcing a transfer to the OTLP collector. Defaults to `32MiB`.                                 |
+| enable\_ha                    | Boolean    | **Optional.** Enable the high availability functionality. Has no effect in non-cluster setups. Defaults to `false`.                          |
+| enable\_send\_thresholds      | Boolean    | **Optional.** Whether to stream warning, critical, minimum & maximum as separate metrics to the OTLP collector. Defaults to `false`.         |
+| diconnect\_timeout            | Duration   | **Optional.** Timeout to wait for any outstanding data to be flushed to the OTLP collector before disconnecting. Defaults to `10s`.          |
+| enable\_tls                   | Boolean    | **Optional.** Whether to use a TLS stream. Defaults to `false`.                                                                              |
+| tls\_insecure\_noverify       | Boolean    | **Optional.** Disable TLS peer verification. Defaults to `false`.                                                                            |
+| tls\_ca\_file                 | String     | **Optional.** Path to CA certificate to validate the remote host.                                                                            |
+| tls\_cert\_file               | String     | **Optional.** Path to the client certificate to present to the OTLP collector for mutual verification.                                       |
+| tls\_key\_file                | String     | **Optional.** Path to the client certificate key.                                                                                            |
 
 ### PerfdataWriter <a id="objecttype-perfdatawriter"></a>
 

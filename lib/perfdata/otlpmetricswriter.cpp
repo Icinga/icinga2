@@ -11,6 +11,7 @@
 #include "base/statsfunction.hpp"
 #include "icinga/checkable.hpp"
 #include "icinga/checkcommand.hpp"
+#include "icinga/macroprocessor.hpp"
 #include "icinga/service.hpp"
 #include <future>
 
@@ -200,7 +201,7 @@ void OTLPMetricsWriter::CheckResultHandler(const Checkable::Ptr& checkable, cons
 			if (auto unit = pdv->GetUnit(); !unit.IsEmpty()) {
 				attrs.emplace("unit", std::move(unit));
 			}
-			AddBytesAndFlushIfNeeded(Record(checkable, l_PerfdataMetric, pdv->GetValue(), startTime, endTime, attrs));
+			AddBytesAndFlushIfNeeded(Record(checkable, cr, l_PerfdataMetric, pdv->GetValue(), startTime, endTime, attrs));
 
 			if (GetEnableSendThresholds()) {
 				std::vector<std::pair<String, Value>> thresholds {
@@ -218,6 +219,7 @@ void OTLPMetricsWriter::CheckResultHandler(const Checkable::Ptr& checkable, cons
 						AddBytesAndFlushIfNeeded(
 							Record(
 								checkable,
+								cr,
 								l_ThresholdMetric,
 								Convert::ToDouble(threshold),
 								startTime,
@@ -280,6 +282,7 @@ void OTLPMetricsWriter::AddBytesAndFlushIfNeeded(std::size_t newBytes)
  * @tparam T The type of the data point to record (e.g., int64_t, double).
  *
  * @param checkable The configuration object to associate the metric with.
+ * @param cr The check result associated with the metric data point, used for macro resolution in attributes.
  * @param metric The OTel metric enum value indicating which metric stream to record the data point for.
  * @param value The data point value to record.
  * @param startTime The start time of the data point in seconds.
@@ -291,6 +294,7 @@ void OTLPMetricsWriter::AddBytesAndFlushIfNeeded(std::size_t newBytes)
 template<typename T>
 std::size_t OTLPMetricsWriter::Record(
 	const Checkable::Ptr& checkable,
+	const CheckResult::Ptr& cr,
 	std::string_view metric,
 	T value,
 	double startTime,
@@ -335,6 +339,31 @@ std::size_t OTLPMetricsWriter::Record(
 		}
 		attr = resource->add_attributes();
 		OTel::SetAttribute(*attr, "icinga2.command.name"sv, checkable->GetCheckCommand()->GetName());
+
+		if (Dictionary::Ptr tmpl = service ? GetServiceResourceAttributes() : GetHostResourceAttributes(); tmpl) {
+			MacroProcessor::ResolverList resolvers{{"host", host}};
+			if (service) {
+				resolvers.emplace_back("service", service);
+			}
+
+			ObjectLock olock(tmpl);
+			for (const Dictionary::Pair& pair : tmpl) {
+				String missingMacro;
+				auto resolvedVal = MacroProcessor::ResolveMacros(pair.second, resolvers, cr, &missingMacro);
+				if (missingMacro.IsEmpty()) {
+					attr = resource->add_attributes();
+					try {
+						OTel::SetAttribute(*attr, "icinga2." + pair.first, resolvedVal);
+					} catch (const std::exception& ex) {
+						Log(LogWarning, "OTLPMetricsWriter")
+							<< "Ignoring invalid resource attribute '" << pair.first << "' for checkable '"
+							<< checkable->GetName() << "': " << ex.what();
+						 // Remove the last attribute from the list which is the one we just attempted to set.
+						resource->mutable_attributes()->RemoveLast();
+					}
+				}
+			}
+		}
 		bytes = metricsForObj.ResourceMetrics->ByteSizeLong();
 	}
 
@@ -389,5 +418,35 @@ void OTLPMetricsWriter::ValidateFlushThreshold(const Lazy<int64_t>& lvalue, cons
 			{"flush_threshold"},
 			"Flush threshold too high, would exceed Protobuf message size limit of 2GiB (1.9GiB max allowed)."
 		));
+	}
+}
+
+void OTLPMetricsWriter::ValidateHostResourceAttributes(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)
+{
+	ObjectImpl::ValidateHostResourceAttributes(lvalue, utils);
+	if (auto tags{lvalue()}; tags) {
+		ValidateResourceAttributes(tags, "host_resource_attributes");
+	}
+}
+
+void OTLPMetricsWriter::ValidateServiceResourceAttributes(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)
+{
+	ObjectImpl::ValidateHostResourceAttributes(lvalue, utils);
+	if (auto tags{lvalue()}; tags) {
+		ValidateResourceAttributes(tags, "service_resource_attributes");
+	}
+}
+
+void OTLPMetricsWriter::ValidateResourceAttributes(const Dictionary::Ptr& tmpl, const String& attrName)
+{
+	ObjectLock olock(tmpl);
+	for (const auto& pair : tmpl) {
+		if (!MacroProcessor::ValidateMacroString(pair.second)) {
+			BOOST_THROW_EXCEPTION(ValidationError(
+				this,
+				{attrName, pair.first},
+				"Closing $ not found in macro format string '" + pair.second + "'."
+			));
+		}
 	}
 }
