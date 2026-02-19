@@ -10,6 +10,7 @@
 #include "base/exception.hpp"
 #include "base/timer.hpp"
 #include <boost/thread/once.hpp>
+#include <cmath>
 
 using namespace icinga;
 
@@ -94,9 +95,9 @@ void Checkable::Start(bool runtimeCreated)
 	}
 
 	if (GetNextCheck() < now + 60) {
-		double delta = std::min(GetCheckInterval(), 60.0);
+		double delta = std::min(GetCheckInterval() * GetIntervalShuffleFactor(), 60.0);
 		delta *= (double)std::rand() / RAND_MAX;
-		SetNextCheck(now + delta);
+		SetNextCheck(now + delta + GetCheckInterval() * fabs(GetIntervalShuffleFactor() - 1));
 	}
 
 	ObjectImpl<Checkable>::Start(runtimeCreated);
