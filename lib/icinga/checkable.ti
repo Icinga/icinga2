@@ -112,10 +112,10 @@ abstract class Checkable : CustomVarObject
 		default {{{ return ServiceUnknown; }}}
 	};
 	[state, no_user_view, no_user_modify] "unsigned short" last_hard_states_raw {
-		default {{{ return /* current */ 99 * 100 + /* previous */ 99; }}}
+		default {{{ return /* current */ ServicePending * 100 + /* previous */ ServicePending; }}}
 	};
 	[state, no_user_view, no_user_modify] "unsigned short" last_soft_states_raw {
-		default {{{ return /* current */ 99 * 100 + /* previous */ 99; }}}
+		default {{{ return /* current */ ServicePending * 100 + /* previous */ ServicePending; }}}
 	};
 	[state, enum] StateType last_state_type {
 		default {{{ return StateTypeSoft; }}}
