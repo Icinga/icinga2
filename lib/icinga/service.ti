@@ -26,6 +26,7 @@ class Service : Checkable < ServiceNameComposer
 	load_after ApiListener;
 	load_after Endpoint;
 	load_after Host;
+	load_after HostGroup;
 	load_after Zone;
 
 	[config, no_user_modify, required, signal_with_old_value] array(name(ServiceGroup)) groups {
