@@ -1,0 +1,87 @@
+# Metadata describing this software according to the publiccode.yml standard.
+# Although this file is required to be located in the icinga2 repository,
+# it describes the Icinga project as a whole rather than a single component.
+#
+# Standard documentation:
+# https://yml.publiccode.tools/
+publiccodeYmlVersion: 0.5.0
+name: Icinga
+url: https://github.com/Icinga/icinga2
+logo: https://icinga.com/wp-content/uploads/2026/02/icinga-logo.svg
+organisation:
+  name: Icinga GmbH
+  uri: https://icinga.com/
+platforms:
+  - linux
+  - windows
+  - web
+categories:
+  - monitoring
+  - data-collection
+  - data-visualization
+  - data-analytics
+  - it-management
+  - it-service-management
+  - network-management
+roadmap: https://icinga.com/roadmap/
+developmentStatus: stable
+softwareType: standalone/backend
+description:
+  en:
+    localisedName: Icinga
+    shortDescription: Icinga is an enterprise-ready open source monitoring and alerting platform that scales across distributed IT environments.
+    longDescription: >-
+      Icinga is an open source monitoring and alerting solution for enterprises that
+      require reliable oversight of availability and performance across servers, networks,
+      applications, and services in on-premises, hybrid, and cloud environments. It is
+      built for distributed architectures and scalability, supporting large estates where
+      monitoring must keep pace with growth and change.
+ 
+      Icinga integrates with a wide plugin and integration ecosystem to collect and
+      evaluate monitoring data, then turns it into actionable dashboards, reporting, and
+      event-driven alerts with flexible notification and escalation paths. This helps
+      teams detect issues early, reduce downtime, and improve incident response.
+ 
+      Our user base is broad and international, including teams operating complex
+      environments and organizations running infrastructure that is critical to security
+      and business continuity across industries globally.
+    documentation: https://icinga.com/docs/
+    apiDocumentation: https://icinga.com/docs/icinga-2/latest/doc/12-icinga2-api/
+    features:
+      - Problems detection
+      - Alerting
+      - Single pane of glass
+      - Scalability
+      - Metric collection
+      - Data visualization
+      - Business monitoring
+      - Integrations
+      - Security
+    screenshots:
+      - https://icinga.com/wp-content/uploads/2025/07/demo_screenshot-scaled.png
+      - https://icinga.com/wp-content/uploads/2025/05/icinga-for-kubernetes-screenshot.png
+legal:
+  license: GPL-2.0-or-later
+maintenance:
+  type: internal
+  contacts:
+    - name: Icinga GmbH
+      email: sales@icinga.com
+      phone: "+499119288555"
+localisation:
+  localisationReady: true
+  availableLanguages:
+    - en
+    - de
+    - it
+    - es
+    - pt
+    - nl
+    - fi
+    - fr
+    - ka
+    - ja
+    - pl
+    - ru
+    - uk
+    - ar
