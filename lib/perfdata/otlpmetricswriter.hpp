@@ -22,6 +22,8 @@ public:
 	void ValidatePort(const Lazy<int>& lvalue, const ValidationUtils& utils) override;
 	void ValidateFlushInterval(const Lazy<int>& lvalue, const ValidationUtils& utils) override;
 	void ValidateFlushThreshold(const Lazy<int64_t>& lvalue, const ValidationUtils& utils) override;
+	void ValidateHostResourceAttributes(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils) override;
+	void ValidateServiceResourceAttributes(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils) override;
 
 protected:
 	void OnAllConfigLoaded() override;
@@ -33,10 +35,12 @@ private:
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 	void Flush(bool fromTimer = false);
 	void AddBytesAndFlushIfNeeded(std::size_t newBytes = 0);
+	void ValidateResourceAttributes(const Dictionary::Ptr& tmpl, const String& attrName);
 
 	template<typename T>
 	[[nodiscard]] std::size_t Record(
 		const Checkable::Ptr& checkable,
+		const CheckResult::Ptr& cr,
 		std::string_view metric,
 		T value,
 		double startTime,

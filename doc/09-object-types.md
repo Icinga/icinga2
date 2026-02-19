@@ -1892,6 +1892,8 @@ There are more configuration options available as described in the table below.
 | metrics\_endpoint             | String     | **Required.** OTLP metrics endpoint path. Defaults to `/v1/metrics`.                                                                         |
 | service\_namespace            | String     | **Required.** The namespace to associate with emitted metrics used in the `service.namespace` OTel resource attribute. Defaults to `icinga`. |
 | basic\_auth                   | Dictionary | **Optional.** Username and password for HTTP basic authentication.                                                                           |
+| host\_resource\_attributes    | Dictionary | **Optional.** Additional resource attributes to be included with host metrics. Defaults to none.                                             |
+| service\_resource\_attributes | Dictionary | **Optional.** Additional resource attributes to be included with service metrics. Defaults to none.                                          |
 | flush\_interval               | Duration   | **Optional.** How long to buffer data points before transferring to the OTLP backend. Defaults to `15s`.                                     |
 | flush\_threshold              | Number     | **Optional.** How many bytes to buffer before forcing a transfer to the OTLP backend. Defaults to `32MiB`.                                   |
 | enable\_ha                    | Boolean    | **Optional.** Enable the high availability functionality. Has no effect in non-cluster setups. Defaults to `false`.                          |
