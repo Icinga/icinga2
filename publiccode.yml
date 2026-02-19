@@ -1,3 +1,9 @@
+# Metadata describing this software according to the publiccode.yml standard.
+# Although this file is required to be located in the icinga2 repository,
+# it describes the Icinga project as a whole rather than a single component.
+#
+# Standard documentation:
+# https://yml.publiccode.tools/
 publiccodeYmlVersion: 0.5.0
 name: Icinga
 url: https://github.com/Icinga/icinga2
@@ -22,7 +28,7 @@ developmentStatus: stable
 softwareType: standalone/backend
 description:
   en:
-    localisedName: ICINGA
+    localisedName: Icinga
     shortDescription: Icinga is an enterprise-ready open source monitoring and alerting platform that scales across distributed IT environments.
     longDescription: >-
       Icinga is an open source monitoring and alerting solution for enterprises that
