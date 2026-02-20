@@ -1483,11 +1483,11 @@ void IcingaDB::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpd
 	}
 }
 
-void IcingaDB::AddObjectDataToRuntimeUpdates(std::vector<Dictionary::Ptr>& runtimeUpdates, const String& objectKey,
-		const String& redisKey, const Dictionary::Ptr& data)
+void IcingaDB::AddObjectDataToRuntimeUpdates(std::vector<Dictionary::Ptr>& runtimeUpdates,
+	String objectKey, const String& redisKey, const Dictionary::Ptr& data)
 {
 	Dictionary::Ptr dataClone = data->ShallowClone();
-	dataClone->Set("id", objectKey);
+	dataClone->Set("id", std::move(objectKey));
 	dataClone->Set("redis_key", redisKey);
 	dataClone->Set("runtime_type", "upsert");
 	runtimeUpdates.emplace_back(dataClone);
