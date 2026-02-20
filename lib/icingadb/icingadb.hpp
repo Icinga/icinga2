@@ -123,8 +123,8 @@ private:
 			std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate);
 	void SendConfigDelete(const ConfigObject::Ptr& object);
 	void SendStateChange(const ConfigObject::Ptr& object, const CheckResult::Ptr& cr, StateType type);
-	void AddObjectDataToRuntimeUpdates(std::vector<Dictionary::Ptr>& runtimeUpdates, const String& objectKey,
-			const String& redisKey, const Dictionary::Ptr& data);
+	void AddObjectDataToRuntimeUpdates(std::vector<Dictionary::Ptr>& runtimeUpdates,
+		String objectKey, const String& redisKey, const Dictionary::Ptr& data);
 	void DeleteRelationship(const String& id, const String& redisKeyWithoutPrefix, bool hasChecksum = false);
 	void DeleteRelationship(const String& id, RedisKey redisKey, bool hasChecksum = false);
 	void DeleteState(const String& id, RedisKey redisKey, bool hasChecksum = false) const;
