@@ -54,7 +54,8 @@ namespace icinga
 	public:
 		DECLARE_PTR_TYPEDEFS(RedisConnection);
 
-		typedef std::vector<String> Query;
+		typedef String QueryArg;
+		typedef std::vector<QueryArg> Query;
 		typedef std::vector<Query> Queries;
 		typedef Value Reply;
 		typedef std::vector<Reply> Replies;
