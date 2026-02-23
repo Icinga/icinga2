@@ -439,7 +439,7 @@ static int Main()
 		Configuration::Concurrency = std::thread::hardware_concurrency();
 	}
 
-	if (!autocomplete) {
+	if (!autocomplete && command && command->NeedsRLimitAdjustment()) {
 		Application::SetResourceLimits();
 	}
 
