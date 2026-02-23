@@ -281,9 +281,6 @@ static int Main()
 #endif /* RLIMIT_STACK */
 	}
 
-	if (!autocomplete)
-		Application::SetResourceLimits();
-
 	LogSeverity logLevel = Logger::GetConsoleLogSeverity();
 	Logger::SetConsoleLogSeverity(LogWarning);
 
@@ -440,6 +437,10 @@ static int Main()
 
 	if (!Configuration::ConcurrencyWasModified) {
 		Configuration::Concurrency = std::thread::hardware_concurrency();
+	}
+
+	if (!autocomplete) {
+		Application::SetResourceLimits();
 	}
 
 	Application::GetTP().Restart();
