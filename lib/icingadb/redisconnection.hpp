@@ -307,11 +307,16 @@ private:
  *
  * @ingroup icingadb
  */
-class RedisDisconnected : public std::runtime_error
+class RedisDisconnected : public std::exception
 {
 public:
-	inline RedisDisconnected() : runtime_error("")
+	inline RedisDisconnected()
 	{
+	}
+
+	const char* what() const noexcept override
+	{
+		return "Redis disconnected";
 	}
 };
 
@@ -323,8 +328,23 @@ public:
 class RedisProtocolError : public std::runtime_error
 {
 protected:
-	inline RedisProtocolError() : runtime_error("")
+	inline explicit RedisProtocolError(std::string_view msg1 = {}, std::string_view msg2 = {}) : runtime_error(MakeMessage(msg1, msg2))
 	{
+	}
+
+private:
+	static std::string MakeMessage(std::string_view msg1, std::string_view msg2) {
+		std::string result = "Redis protocol error";
+		if (!msg1.empty()) {
+			result += ": ";
+			result += msg1;
+		}
+		if (!msg2.empty()) {
+			result += ": ";
+			result += msg2;
+		}
+
+		return result;
 	}
 };
 
@@ -336,17 +356,9 @@ protected:
 class BadRedisType : public RedisProtocolError
 {
 public:
-	inline BadRedisType(char type) : m_What{type, 0}
+	inline BadRedisType(char type) : RedisProtocolError("bad type", std::string_view(&type, 1))
 	{
 	}
-
-	virtual const char * what() const noexcept override
-	{
-		return m_What;
-	}
-
-private:
-	char m_What[2];
 };
 
 /**
@@ -357,18 +369,9 @@ private:
 class BadRedisInt : public RedisProtocolError
 {
 public:
-	inline BadRedisInt(std::vector<char> intStr) : m_What(std::move(intStr))
+	inline BadRedisInt(std::string_view intStr) : RedisProtocolError("bad int", intStr)
 	{
-		m_What.emplace_back(0);
 	}
-
-	virtual const char * what() const noexcept override
-	{
-		return m_What.data();
-	}
-
-private:
-	std::vector<char> m_What;
 };
 
 /**
@@ -556,7 +559,7 @@ Value RedisConnection::ReadRESP(AsyncReadStream& stream, boost::asio::yield_cont
 				try {
 					i = boost::lexical_cast<intmax_t>(boost::string_view(buf.data(), buf.size()));
 				} catch (...) {
-					throw BadRedisInt(std::move(buf));
+					throw BadRedisInt(std::string_view(buf.data(), buf.size()));
 				}
 
 				return (double)i;
@@ -569,7 +572,7 @@ Value RedisConnection::ReadRESP(AsyncReadStream& stream, boost::asio::yield_cont
 				try {
 					i = boost::lexical_cast<intmax_t>(boost::string_view(buf.data(), buf.size()));
 				} catch (...) {
-					throw BadRedisInt(std::move(buf));
+					throw BadRedisInt(std::string_view(buf.data(), buf.size()));
 				}
 
 				if (i < 0) {
@@ -595,7 +598,7 @@ Value RedisConnection::ReadRESP(AsyncReadStream& stream, boost::asio::yield_cont
 				try {
 					i = boost::lexical_cast<intmax_t>(boost::string_view(buf.data(), buf.size()));
 				} catch (...) {
-					throw BadRedisInt(std::move(buf));
+					throw BadRedisInt(std::string_view(buf.data(), buf.size()));
 				}
 
 				if (i < 0) {
