@@ -723,6 +723,19 @@ void Utility::RemoveDirRecursive(const String& path)
 	(void)fs::remove_all(fs::path(path.Begin(), path.End()));
 }
 
+void Utility::RemoveIfOld(const String& path)
+{
+	namespace fs = boost::filesystem;
+
+	fs::path p (path.Begin(), path.End());
+	boost::system::error_code ec;
+	auto modTime (fs::last_write_time(p, ec));
+
+	if (!ec && modTime < GetTime() - 24 * 60 * 60) {
+		(void)fs::remove(p);
+	}
+}
+
 /*
  * Copies a source file to a target location.
  * Caller must ensure that the target's base directory exists and is writable.
