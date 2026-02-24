@@ -1200,28 +1200,59 @@ void ApiListener::PersistMessage(const Dictionary::Ptr& message, const ConfigObj
 
 	ASSERT(ts != 0);
 
-	Dictionary::Ptr pmessage = new Dictionary();
-	pmessage->Set("timestamp", ts);
+	auto localZone (Zone::GetLocalZone());
+	std::set<Zone::Ptr> targetZones ({localZone});
 
-	pmessage->Set("message", JsonEncode(message));
+	{
+		auto parent (localZone->GetParent());
 
-	if (secobj) {
-		Dictionary::Ptr secname = new Dictionary();
-		secname->Set("type", secobj->GetReflectionType()->GetName());
-		secname->Set("name", secobj->GetName());
-		pmessage->Set("secobj", secname);
+		if (parent) {
+			targetZones.emplace(std::move(parent));
+		}
 	}
 
-	std::unique_lock<std::mutex> lock(m_LogLock);
-	if (m_LogFile) {
-		NetString::WriteStringToStream(m_LogFile, JsonEncode(pmessage));
-		m_LogMessageCount++;
-		SetLogMessageTimestamp(ts);
+	for (auto& zone : ConfigType::GetObjectsByType<Zone>()) {
+		/* immediate child zone */
+		if (zone->GetParent() == localZone) {
+			targetZones.emplace(zone);
+		}
+	}
 
-		if (m_LogMessageCount > 50000) {
-			CloseLogFile();
-			RotateLogFile();
-			OpenLogFile();
+	if (secobj) {
+		auto current (targetZones.begin());
+		auto end (targetZones.end());
+
+		while (current != end) {
+			if ((*current)->CanAccessObject(secobj)) {
+				++current;
+			} else {
+				targetZones.erase(current++);
+			}
+		}
+	}
+
+	std::set<Endpoint::Ptr> targetEndpoints;
+
+	for (auto& zone : targetZones) {
+		auto endpoints (zone->GetEndpoints());
+		targetEndpoints.insert(endpoints.begin(), endpoints.end());
+	}
+
+	targetEndpoints.erase(GetLocalEndpoint());
+
+	auto now (Utility::GetTime());
+
+	for (auto& endpoint : targetEndpoints) {
+		if (ts > endpoint->GetLocalLogPosition()) {
+			{
+				auto logDuration (endpoint->GetLogDuration());
+
+				if (logDuration >= 0u) {
+					endpoint->GetReplayLog().Cleanup(now - logDuration);
+				}
+			}
+
+			endpoint->GetReplayLog().Log(ts, JsonEncode(message));
 		}
 	}
 }
@@ -1477,9 +1508,6 @@ void ApiListener::RotateLogFile()
 	if (!Utility::PathExists(newpath)) {
 		try {
 			Utility::RenameFile(oldpath, newpath);
-
-			// We're rotating the current log file, so reset the log message counter as well.
-			m_LogMessageCount = 0;
 		} catch (const std::exception& ex) {
 			Log(LogCritical, "ApiListener")
 				<< "Cannot rotate replay log file from '" << oldpath << "' to '"
@@ -1652,6 +1680,45 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 			return;
 		}
 	}
+
+	Log(LogNotice, "ApiListener")
+		<< "Replaying log.";
+
+	count = 0;
+
+	for (auto& message : endpoint->GetReplayLog()) {
+		try  {
+			client->SendRawMessage(message.second);
+		} catch (const std::exception& ex) {
+			Log(LogWarning, "ApiListener")
+				<< "Error while replaying log for endpoint '" << endpoint->GetName() << "': " << DiagnosticInformation(ex, false);
+
+			Log(LogDebug, "ApiListener")
+				<< "Error while replaying log for endpoint '" << endpoint->GetName() << "': " << DiagnosticInformation(ex);
+
+			break;
+		}
+
+		++count;
+
+		if (message.first > logpos_ts + 10) {
+			logpos_ts = message.first;
+
+			client->SendMessage(new Dictionary({
+				{ "jsonrpc", "2.0" },
+				{ "method", "log::SetLogPosition" },
+				{ "params", new Dictionary({
+					{ "log_position", logpos_ts }
+				}) }
+			}));
+		}
+	}
+
+	Log(count > 0u ? LogInformation : LogNotice, "ApiListener")
+		<< "Replayed " << count << " messages.";
+
+	ObjectLock olock2(endpoint);
+	endpoint->SetSyncing(false);
 }
 
 void ApiListener::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)

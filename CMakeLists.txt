@@ -191,7 +191,7 @@ find_package(OpenSSL REQUIRED)
 include_directories(SYSTEM ${OPENSSL_INCLUDE_DIR})
 
 set(base_DEPS ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES})
-set(base_OBJS $<TARGET_OBJECTS:mmatch> $<TARGET_OBJECTS:socketpair> $<TARGET_OBJECTS:base>)
+set(base_OBJS $<TARGET_OBJECTS:mmatch> $<TARGET_OBJECTS:socketpair> $<TARGET_OBJECTS:SQLiteCpp> $<TARGET_OBJECTS:sqlite3> $<TARGET_OBJECTS:base>)
 
 # JSON
 find_package(JSON)
@@ -200,6 +200,9 @@ include_directories(SYSTEM ${JSON_INCLUDE})
 # UTF8CPP
 find_package(UTF8CPP)
 include_directories(SYSTEM ${UTF8CPP_INCLUDE})
+
+include_directories(${icinga2_SOURCE_DIR}/third-party/SQLiteCpp/include)
+link_directories(${icinga2_BINARY_DIR}/third-party/SQLiteCpp)
 
 find_package(Editline)
 set(HAVE_EDITLINE "${EDITLINE_FOUND}")
