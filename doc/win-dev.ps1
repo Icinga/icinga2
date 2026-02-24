@@ -57,6 +57,19 @@ function Install-Exe {
 }
 
 
+function Needs-WinFeatureRestart($feature) {
+	(Enable-WindowsOptionalFeature -FeatureName $feature -Online).RestartNeeded
+}
+
+
+$isServer = (Get-CimInstance -ClassName Win32_OperatingSystem).Caption -match 'Windows Server'
+$serverNeedsRestart = $isServer -and (Needs-WinFeatureRestart NetFx3ServerFeatures)
+$needsRestart = Needs-WinFeatureRestart NetFx3
+
+if ($serverNeedsRestart -or $needsRestart) {
+    throw 'Restart needed'
+}
+
 try {
 	Get-Command choco
 } catch {
