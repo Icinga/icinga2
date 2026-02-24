@@ -71,6 +71,10 @@ add_executable(icinga-app
 
 target_link_libraries(icinga-app ${base_DEPS})
 
+if(JEMALLOC_LIBRARIES)
+  target_link_libraries(icinga-app ${JEMALLOC_LIBRARIES})
+endif()
+
 set_target_properties (
   icinga-app PROPERTIES
   FOLDER Bin
