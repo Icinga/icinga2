@@ -246,13 +246,13 @@ void icinga::intrusive_ptr_add_ref(const Object *object)
 	if (object->m_References.fetch_add(1) == 0u)
 		TypeAddObject(object);
 #else /* I2_LEAK_DEBUG */
-	object->m_References.fetch_add(1);
+	object->m_References.fetch_add(1, std::memory_order_relaxed);
 #endif /* I2_LEAK_DEBUG */
 }
 
 void icinga::intrusive_ptr_release(const Object *object)
 {
-	auto previous (object->m_References.fetch_sub(1));
+	auto previous (object->m_References.fetch_sub(1, std::memory_order_acq_rel));
 
 	if (previous == 1u) {
 #ifdef I2_LEAK_DEBUG
