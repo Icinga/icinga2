@@ -35,7 +35,7 @@ REGISTER_TYPE(Logger);
 std::set<Logger::Ptr> Logger::m_Loggers;
 std::mutex Logger::m_Mutex;
 bool Logger::m_ConsoleLogEnabled = true;
-std::atomic<bool> Logger::m_EarlyLoggingEnabled (true);
+Atomic<bool> Logger::m_EarlyLoggingEnabled (true);
 bool Logger::m_TimestampEnabled = true;
 LogSeverity Logger::m_ConsoleLogSeverity = LogInformation;
 std::mutex Logger::m_UpdateMinLogSeverityMutex;

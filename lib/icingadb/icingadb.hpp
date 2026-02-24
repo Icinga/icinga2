@@ -15,8 +15,8 @@
 #include "icinga/service.hpp"
 #include "icinga/downtime.hpp"
 #include "remote/messageorigin.hpp"
-#include <atomic>
 #include <chrono>
+#include <cstddef>
 #include <future>
 #include <memory>
 #include <mutex>
@@ -251,7 +251,7 @@ private:
 	// syncronization to m_Rcon within the IcingaDB feature itself.
 	Locked<RedisConnection::Ptr> m_RconLocked;
 	std::unordered_map<ConfigType*, RedisConnection::Ptr> m_Rcons;
-	std::atomic_size_t m_PendingRcons;
+	Atomic<size_t> m_PendingRcons {0};
 
 	struct {
 		DumpedGlobals CustomVar, ActionUrl, NotesUrl, IconImage, DependencyGroup;
