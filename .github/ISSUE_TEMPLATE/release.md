@@ -43,7 +43,8 @@ https://packages.icinga.com/windows/dependencies/, e.g.:
 ### Re-provision Build Server
 
 Even if there aren't any new releases of dependencies with versions
-hardcoded in the repos and files listed above (Boost, OpenSSL).
-There may be new build versions of other dependencies (VS, MSVC).
+hardcoded in the repos and files listed above (Boost, OpenSSL),
+there may be new build versions of Visual Studio.
 Our GitHub actions (tests) use the latest ones automatically,
 but the GitLab runner (release packages) doesn't.
+However, it allows to log in via remote desktop to update Visual Studio.
