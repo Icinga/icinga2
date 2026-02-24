@@ -10,6 +10,9 @@
 #include "remote/apiaction.hpp"
 #include "remote/zone.hpp"
 #include "base/configtype.hpp"
+#include "base/defer.hpp"
+#include "config/configcompiler.hpp"
+#include "config/configitem.hpp"
 #include <set>
 
 using namespace icinga;
@@ -42,7 +45,9 @@ bool CreateObjectHandler::HandleRequest(
 		return true;
 	}
 
-	FilterUtility::CheckPermission(user, "objects/create/" + type->GetName());
+	auto requiredPermission ("objects/create/" + type->GetName());
+
+	FilterUtility::CheckPermission(user, requiredPermission);
 
 	String name = url->GetPath()[3];
 	Array::Ptr templates = params->Get("templates");
@@ -133,6 +138,105 @@ bool CreateObjectHandler::HandleRequest(
 
 	// Lock the object name of the given type to prevent from being created concurrently.
 	ObjectNameLock objectNameLock(type, name);
+
+	{
+		auto permissions (user->GetPermissions());
+
+		if (permissions) {
+			std::unique_ptr<Expression> filters;
+
+			{
+				ObjectLock oLock (permissions);
+
+				for (auto& item : permissions) {
+					Function::Ptr filter;
+
+					if (item.IsObjectType<Dictionary>()) {
+						Dictionary::Ptr dict = item;
+						filter = dict->Get("filter");
+
+						if (Utility::Match(dict->Get("permission"), requiredPermission)) {
+							if (!filter) {
+								filters.reset();
+								break;
+							}
+
+							std::vector<std::unique_ptr<Expression>> args;
+							args.emplace_back(new GetScopeExpression(ScopeThis));
+
+							std::unique_ptr<Expression> indexer = (std::unique_ptr<Expression>)new IndexerExpression(
+								std::unique_ptr<Expression>(MakeLiteral(filter)),
+								std::unique_ptr<Expression>(MakeLiteral("call"))
+							);
+
+							std::unique_ptr<Expression> fexpr = (std::unique_ptr<Expression>)new FunctionCallExpression(
+								std::move(indexer), std::move(args)
+							);
+
+							if (filters) {
+								filters = (std::unique_ptr<Expression>)new LogicalOrExpression(
+									std::move(filters), std::move(fexpr)
+								);
+							} else {
+								filters = std::move(fexpr);
+							}
+						}
+					} else if (Utility::Match(item, requiredPermission)) {
+						filters.reset();
+						break;
+					}
+				}
+			}
+
+			if (filters) {
+				try {
+					auto expr (ConfigCompiler::CompileText("<api>", config, "", "_api"));
+
+					ConfigItem::Ptr item;
+					ConfigItem::m_OverrideRegistry = [&item](ConfigItem *ci) { item = ci; };
+
+					Defer overrideRegistry ([]() {
+						ConfigItem::m_OverrideRegistry = decltype(ConfigItem::m_OverrideRegistry)();
+					});
+
+					ActivationScope ascope;
+
+					{
+						ScriptFrame frame(true);
+						expr->Evaluate(frame);
+					}
+
+					expr.reset();
+
+					if (item) {
+						auto obj (item->Commit(false));
+
+						if (obj) {
+							ScriptFrame frame (false, new Namespace());
+
+							if (!FilterUtility::EvaluateFilter(frame, filters.get(), obj)) {
+								BOOST_THROW_EXCEPTION(ScriptError(
+									"Access denied to object '" + name + "' of type '" + type->GetName() + "'"
+								));
+							}
+						}
+					}
+				} catch (const std::exception& ex) {
+					result1->Set("errors", new Array({ ex.what() }));
+					result1->Set("code", 500);
+					result1->Set("status", "Object could not be created.");
+
+					if (verbose)
+						result1->Set("diagnostic_information", DiagnosticInformation(ex));
+
+					response.result(http::status::internal_server_error);
+					HttpUtility::SendJsonBody(response, params, result);
+
+					return true;
+				}
+			}
+		}
+	}
 
 	if (!ConfigObjectUtility::CreateObject(type, name, config, errors, diagnosticInformation)) {
 		result1->Set("errors", errors);
