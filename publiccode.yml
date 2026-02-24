@@ -16,7 +16,6 @@ platforms:
   - windows
   - web
 categories:
-  - monitoring
   - data-collection
   - data-visualization
   - data-analytics
