@@ -17,11 +17,14 @@
 #include "base/defer.hpp"
 #include <boost/exception_ptr.hpp>
 #include <boost/exception/errinfo_nested_exception.hpp>
+#include <cmath>
 
 using namespace icinga;
 
 boost::signals2::signal<void (ScriptFrame&, ScriptError *ex, const DebugInfo&)> Expression::OnBreakpoint;
 boost::thread_specific_ptr<bool> l_InBreakpointHandler;
+
+const long double AssociativeExpression::m_Log2 = logl(2);
 
 Expression::~Expression()
 { }
