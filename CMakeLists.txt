@@ -105,8 +105,14 @@ string(SUBSTRING ${SPEC_VERSION} 9 ${SPEC_VERSION_LENGTH} SPEC_VERSION)
 
 configure_file(icinga-spec-version.h.cmake icinga-spec-version.h)
 
-include(GetGitRevisionDescription)
-git_describe(GIT_VERSION --tags)
+file(STRINGS .git-archive-version GIT_ARCHIVE_VERSION REGEX "^[^#]")
+if(GIT_ARCHIVE_VERSION MATCHES "Format")
+  include(GetGitRevisionDescription)
+  git_describe(GIT_VERSION --tags)
+else()
+  set(GIT_VERSION "${GIT_ARCHIVE_VERSION}")
+endif()
+
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/icinga-version.h.force)
   configure_file(icinga-version.h.force ${CMAKE_CURRENT_BINARY_DIR}/icinga-version.h COPYONLY)
 else()
@@ -119,6 +125,10 @@ else()
     set(GIT_VERSION "r${SPEC_VERSION}-${SPEC_REVISION}")
     set(ICINGA2_VERSION "${SPEC_VERSION}")
   else()
+    if(GIT_VERSION MATCHES "-g")
+      # Override v2.13.0-555-g11e37a0bd from git describe with 2.13.7 from ./ICINGA2_VERSION -> v2.13.7-555-g11e37a0bd
+      string(REGEX REPLACE ^[v0-9.]+ "v${SPEC_VERSION}" GIT_VERSION "${GIT_VERSION}")
+    endif()
     # use GIT version as ICINGA2_VERSION
     string(REGEX REPLACE "^[rv]" "" ICINGA2_VERSION "${GIT_VERSION}")
   endif()
