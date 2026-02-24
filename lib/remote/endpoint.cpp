@@ -110,6 +110,18 @@ Endpoint::Ptr Endpoint::GetLocalEndpoint()
 	return listener->GetLocalEndpoint();
 }
 
+uint_fast64_t Endpoint::GetPendingOutgoingMessages() const
+{
+	uint_fast64_t pending = 0;
+	std::unique_lock lock (m_ClientsLock);
+
+	for (auto& client : m_Clients) {
+		pending += client->GetPendingOutgoingMessages();
+	}
+
+	return pending;
+}
+
 void Endpoint::AddMessageSent(int bytes)
 {
 	double time = Utility::GetTime();
