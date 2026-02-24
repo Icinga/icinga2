@@ -94,8 +94,6 @@ bool EventsHandler::HandleRequest(
 
 	EventsSubscriber subscriber (std::move(eventTypes), HttpUtility::GetLastParameter(params, "filter"), l_ApiQuery);
 
-	IoBoundWorkSlot dontLockTheIoThread (yc);
-
 	response.result(http::status::ok);
 	response.set(http::field::content_type, "application/json");
 	response.StartStreaming(true);
