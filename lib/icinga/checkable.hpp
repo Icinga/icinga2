@@ -217,12 +217,18 @@ public:
 	static int GetPendingChecks();
 	static void AquirePendingCheckSlot(int maxPendingChecks);
 
+	Dictionary::Ptr GetFrozenLocalsForApply();
+
 protected:
 	void Start(bool runtimeCreated) override;
 	void OnConfigLoaded() override;
 	void OnAllConfigLoaded() override;
 
+	virtual Dictionary::Ptr MakeLocalsForApply() = 0;
+
 private:
+	Dictionary::Ptr m_FrozenLocalsForApply;
+
 	mutable std::mutex m_CheckableMutex;
 	bool m_CheckRunning{false};
 	long m_SchedulingOffset;
