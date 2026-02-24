@@ -10,6 +10,7 @@
 #include "base/application.hpp"
 #include "base/exception.hpp"
 #include <boost/asio/ssl/context.hpp>
+#include <memory>
 #include <openssl/opensslv.h>
 #include <openssl/crypto.h>
 #include <openssl/ssl.h>
@@ -403,7 +404,7 @@ void AddCRLToSSLContext(X509_STORE *x509_store, const String& crlPath)
 	X509_VERIFY_PARAM_free(param);
 }
 
-static String GetX509NameCN(X509_NAME *name)
+static String GetX509NameCN(X509_NAME* name, X509* fallback = nullptr)
 {
 	char errbuf[256];
 	char buffer[256];
@@ -411,12 +412,50 @@ static String GetX509NameCN(X509_NAME *name)
 	int rc = X509_NAME_get_text_by_NID(name, NID_commonName, buffer, sizeof(buffer));
 
 	if (rc == -1) {
-		ERR_error_string_n(ERR_peek_error(), errbuf, sizeof errbuf);
+		auto err (ERR_peek_error());
+		int totalSans = 0;
+		int dnsSans = 0;
+
+		// Subject CN missing, fall back to the DNS SAN if exactly one given
+		if (fallback) {
+			std::unique_ptr<GENERAL_NAMES, void(*)(GENERAL_NAMES*)> sans (
+				(GENERAL_NAMES*)X509_get_ext_d2i(fallback, NID_subject_alt_name, nullptr, nullptr),
+				&GENERAL_NAMES_free
+			);
+
+			if (sans) {
+				const unsigned char* dnsSan = nullptr;
+				totalSans = sk_GENERAL_NAME_num(sans.get());
+
+				for (int i = 0; i < totalSans; ++i) {
+					auto gn (sk_GENERAL_NAME_value(sans.get(), i));
+
+					if (gn->type == GEN_DNS) {
+						auto asn1Str (gn->d.uniformResourceIdentifier);
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+						dnsSan = ASN1_STRING_data(asn1Str);
+#else /* OPENSSL_VERSION_NUMBER < 0x10100000L */
+						dnsSan = ASN1_STRING_get0_data(asn1Str);
+#endif /* OPENSSL_VERSION_NUMBER < 0x10100000L */
+
+						++dnsSans;
+					}
+				}
+
+				if (dnsSans == 1) {
+					return Convert::ToString(dnsSan);
+				}
+			}
+		}
+
+		ERR_error_string_n(err, errbuf, sizeof errbuf);
 		Log(LogCritical, "SSL")
-			<< "Error with x509 NAME getting text by NID: " << ERR_peek_error() << ", \"" << errbuf << "\"";
+			<< "Error with x509 NAME getting text by NID: " << err << ", \"" << errbuf
+			<< "\" (Also found " << dnsSans << " DNS SANs and " << totalSans - dnsSans << " others)";
 		BOOST_THROW_EXCEPTION(openssl_error()
 			<< boost::errinfo_api_function("X509_NAME_get_text_by_NID")
-			<< errinfo_openssl_error(ERR_peek_error()));
+			<< errinfo_openssl_error(err));
 	}
 
 	return buffer;
@@ -430,7 +469,7 @@ static String GetX509NameCN(X509_NAME *name)
  */
 String GetCertificateCN(const std::shared_ptr<X509>& certificate)
 {
-	return GetX509NameCN(X509_get_subject_name(certificate.get()));
+	return GetX509NameCN(X509_get_subject_name(certificate.get()), certificate.get());
 }
 
 /**
