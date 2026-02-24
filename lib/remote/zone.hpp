@@ -4,6 +4,8 @@
 #ifndef ZONE_H
 #define ZONE_H
 
+#include "base/array.hpp"
+#include "base/dictionary.hpp"
 #include "remote/i2-remote.hpp"
 #include "remote/zone-ti.hpp"
 #include "remote/endpoint.hpp"
@@ -33,6 +35,7 @@ public:
 	bool IsHACluster() const;
 
 	static Zone::Ptr GetLocalZone();
+	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 protected:
 	void ValidateEndpointsRaw(const Lazy<Array::Ptr>& lvalue, const ValidationUtils& utils) override;
