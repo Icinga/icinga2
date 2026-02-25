@@ -21,6 +21,13 @@ set(perfdata_SOURCES
   perfdatawriter.cpp perfdatawriter.hpp perfdatawriter-ti.hpp
 )
 
+if(ICINGA2_WITH_OPENTELEMETRY)
+  mkclass_target(otlpmetricswriter.ti otlpmetricswriter-ti.cpp otlpmetricswriter-ti.hpp)
+  list(APPEND perfdata_SOURCES
+    otlpmetricswriter.cpp otlpmetricswriter.hpp otlpmetricswriter-ti.hpp
+  )
+endif()
+
 if(ICINGA2_UNITY_BUILD)
   mkunity_target(perfdata perfdata perfdata_SOURCES)
 endif()
@@ -28,6 +35,20 @@ endif()
 add_library(perfdata OBJECT ${perfdata_SOURCES})
 
 add_dependencies(perfdata base config icinga)
+if(ICINGA2_WITH_OPENTELEMETRY)
+  add_dependencies(perfdata otel)
+  # All the Protobuf generated files within the otel target use relative include paths that won't be
+  # resolved unless we also add the include directories of the otel target. Meaning, we include some
+  # of the header files (not the generated ones) from otel within the otlpwriter and these headers
+  # again include the generated headers and the generated headers in return include other generated
+  # headers using relative paths like this:
+  #   #include "opentelemetry/proto/metrics/v1/metrics.pb.h"
+  #
+  # This path can only be resolved if the parent directory of "opentelemetry" is added to the compiler's
+  # include search paths, which is done by the CMakefile of the otel target and we only need to propagate
+  # its include directories to the perfdata target.
+  target_include_directories(perfdata PUBLIC $<TARGET_PROPERTY:otel,INCLUDE_DIRECTORIES>)
+endif()
 
 set_target_properties (
   perfdata PROPERTIES
@@ -63,6 +84,13 @@ install_if_not_exists(
   ${PROJECT_SOURCE_DIR}/etc/icinga2/features-available/opentsdb.conf
   ${ICINGA2_CONFIGDIR}/features-available
 )
+
+if(ICINGA2_WITH_OPENTELEMETRY)
+  install_if_not_exists(
+    ${PROJECT_SOURCE_DIR}/etc/icinga2/features-available/otlpmetrics.conf
+    ${ICINGA2_CONFIGDIR}/features-available
+  )
+endif()
 
 install_if_not_exists(
   ${PROJECT_SOURCE_DIR}/etc/icinga2/features-available/perfdata.conf
