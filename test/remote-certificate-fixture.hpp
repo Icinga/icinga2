@@ -24,10 +24,10 @@ struct CertificateFixture : ConfigurationDataDirFixture
 		fs::create_directories(m_PersistentCertsDir / "certs");
 
 		if (fs::exists(m_DataDir / "ca")) {
-			fs::remove(m_DataDir / "ca");
+			fs::remove_all(m_DataDir / "ca");
 		}
 		if (fs::exists(m_DataDir / "certs")) {
-			fs::remove(m_DataDir / "certs");
+			fs::remove_all(m_DataDir / "certs");
 		}
 
 		fs::rename(m_PersistentCertsDir / "ca", m_DataDir / "ca");
