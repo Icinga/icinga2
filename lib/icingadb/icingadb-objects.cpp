@@ -3267,7 +3267,7 @@ void IcingaDB::DeleteRelationship(const std::string& id, std::string_view redisK
 void IcingaDB::DeleteState(const std::string& id, std::string_view redisKeyWithoutPrefix, bool hasChecksum) const
 {
 	Log(LogNotice, "IcingaDB")
-		<< "Deleting state " << std::quoted(redisKeyWithoutPrefix) << " -> " << std::quoted(id);
+		<< "Deleting state " << std::quoted(std::string(redisKeyWithoutPrefix)) << " -> " << std::quoted(std::string(id));
 
 	RedisConnection::Queries hdels;
 	if (hasChecksum) {
