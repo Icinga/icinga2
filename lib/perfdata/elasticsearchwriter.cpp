@@ -87,6 +87,9 @@ void ElasticsearchWriter::Resume()
 	Log(LogInformation, "ElasticsearchWriter")
 		<< "'" << GetName() << "' resumed.";
 
+	Log(LogWarning, "ElasticsearchWriter")
+		<< "This feature is DEPRECATED and will be removed in v2.18.";
+
 	m_WorkQueue.SetExceptionCallback([this](boost::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
 
 	/* Setup timer for periodically flushing m_DataBuffer */

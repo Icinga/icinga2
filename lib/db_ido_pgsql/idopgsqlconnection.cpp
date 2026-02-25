@@ -87,6 +87,9 @@ void IdoPgsqlConnection::Resume()
 	Log(LogInformation, "IdoPgsqlConnection")
 		<< "'" << GetName() << "' resumed.";
 
+	Log(LogWarning, "IdoPgsqlConnection")
+		<< "This feature is DEPRECATED and will be removed in v2.18.";
+
 	SetConnected(false);
 
 	m_QueryQueue.SetExceptionCallback([this](boost::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
