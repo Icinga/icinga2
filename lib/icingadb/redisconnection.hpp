@@ -11,9 +11,11 @@
 #include "base/object.hpp"
 #include "base/ringbuffer.hpp"
 #include "base/shared.hpp"
+#include "base/shared-object.hpp"
 #include "base/string.hpp"
 #include "base/tlsstream.hpp"
 #include "base/value.hpp"
+#include "icingadb/icingadb-ti.hpp"
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/buffered_stream.hpp>
 #include <boost/asio/deadline_timer.hpp>
@@ -44,6 +46,34 @@
 
 namespace icinga
 {
+
+/**
+ * Information required to connect to a Redis server.
+ *
+ * @ingroup icingadb
+ */
+struct RedisConnInfo final : SharedObject
+{
+	DECLARE_PTR_TYPEDEFS(RedisConnInfo);
+
+	bool EnableTls;
+	bool TlsInsecureNoverify;
+	int Port;
+	int DbIndex;
+	double ConnectTimeout;
+	String Host;
+	String Path;
+	String User;
+	String Password;
+	String TlsCertPath;
+	String TlsKeyPath;
+	String TlsCaPath;
+	String TlsCrlPath;
+	String TlsProtocolMin;
+	String TlsCipherList;
+	DebugInfo DbgInfo;
+};
+
 /**
  * An Async Redis connection.
  *
@@ -85,15 +115,16 @@ namespace icinga
 				: Config(config), State(state), History(history) { }
 		};
 
-		RedisConnection(const String& host, int port, const String& path, const String& username, const String& password, int db,
-			bool useTls, bool insecure, const String& certPath, const String& keyPath, const String& caPath, const String& crlPath,
-			const String& tlsProtocolmin, const String& cipherList, double connectTimeout, DebugInfo di, const Ptr& parent = nullptr);
-
+		explicit RedisConnection(const RedisConnInfo::ConstPtr& connInfo, const Ptr& parent = nullptr, bool trackOwnPendingQueries = true);
 		void UpdateTLSContext();
 
 		void Start();
+		void Disconnect();
 
-		bool IsConnected();
+		bool IsConnected() const
+		{
+			return m_Connected.load();
+		}
 
 		void FireAndForgetQuery(Query query, QueryPriority priority, QueryAffects affects = {});
 		void FireAndForgetQueries(Queries queries, QueryPriority priority, QueryAffects affects = {});
@@ -110,14 +141,9 @@ namespace icinga
 
 		void SetConnectedCallback(std::function<void(boost::asio::yield_context& yc)> callback);
 
-		inline bool GetConnected()
-		{
-			return m_Connected.load();
-		}
-
 		int GetQueryCount(RingBuffer::SizeType span);
 
-		inline int GetPendingQueryCount()
+		inline int GetPendingQueryCount() const
 		{
 			return m_PendingQueries;
 		}
@@ -197,13 +223,12 @@ namespace icinga
 
 		static boost::regex m_ErrAuth;
 
-		RedisConnection(boost::asio::io_context& io, String host, int port, String path, String username, String password,
-			int db, bool useTls, bool insecure, String certPath, String keyPath, String caPath, String crlPath,
-			String tlsProtocolmin, String cipherList, double connectTimeout, DebugInfo di, const Ptr& parent);
+		RedisConnection(boost::asio::io_context& io, const RedisConnInfo::ConstPtr& connInfo, const Ptr& parent, bool trackOwnPendingQueries);
 
 		void Connect(boost::asio::yield_context& yc);
 		void ReadLoop(boost::asio::yield_context& yc);
 		void WriteLoop(boost::asio::yield_context& yc);
+		void Disconnect(boost::asio::yield_context& yc);
 		void LogStats(boost::asio::yield_context& yc);
 		void WriteItem(boost::asio::yield_context& yc, WriteQueueItem item);
 		Reply ReadOne(boost::asio::yield_context& yc);
@@ -219,34 +244,21 @@ namespace icinga
 		void DecreasePendingQueries(int count);
 		void RecordAffected(QueryAffects affected, double when);
 
+		void ThrowIfStopped() const;
+
 		template<class StreamPtr>
 		void Handshake(StreamPtr& stream, boost::asio::yield_context& yc);
 
 		template<class StreamPtr>
 		Timeout MakeTimeout(StreamPtr& stream);
 
-		String m_Path;
-		String m_Host;
-		int m_Port;
-		String m_Username;
-		String m_Password;
-		int m_DbIndex;
-
-		String m_CertPath;
-		String m_KeyPath;
-		bool m_Insecure;
-		String m_CaPath;
-		String m_CrlPath;
-		String m_TlsProtocolmin;
-		String m_CipherList;
-		double m_ConnectTimeout;
-		DebugInfo m_DebugInfo;
+		RedisConnInfo::ConstPtr m_ConnInfo; // Redis connection info (immutable)
 
 		boost::asio::io_context::strand m_Strand;
 		Shared<TcpConn>::Ptr m_TcpConn;
 		Shared<UnixConn>::Ptr m_UnixConn;
 		Shared<AsioTlsStream>::Ptr m_TlsConn;
-		Atomic<bool> m_Connecting, m_Connected, m_Started;
+		Atomic<bool> m_Connecting, m_Connected, m_Stopped;
 
 		struct {
 			// Items to be send to Redis
@@ -274,7 +286,9 @@ namespace icinga
 		RingBuffer m_WrittenConfig{15 * 60};
 		RingBuffer m_WrittenState{15 * 60};
 		RingBuffer m_WrittenHistory{15 * 60};
-		int m_PendingQueries{0};
+		// Number of pending Redis queries, always 0 if m_Parent is set unless m_TrackOwnPendingQueries is true.
+		std::atomic_size_t m_PendingQueries{0};
+		bool m_TrackOwnPendingQueries; // Whether to track pending queries even if m_Parent is set.
 		boost::asio::deadline_timer m_LogStatsTimer;
 		Ptr m_Parent;
 	};
@@ -392,7 +406,7 @@ RedisConnection::Reply RedisConnection::ReadOne(StreamPtr& stream, boost::asio::
 	try {
 		return ReadRESP(*strm, yc);
 	} catch (const std::exception&) {
-		if (m_Connecting.exchange(false)) {
+		if (!m_Stopped && m_Connecting.exchange(false)) {
 			m_Connected.store(false);
 			stream = nullptr;
 
@@ -428,7 +442,7 @@ void RedisConnection::WriteOne(StreamPtr& stream, RedisConnection::Query& query,
 		WriteRESP(*strm, query, yc);
 		strm->async_flush(yc);
 	} catch (const std::exception&) {
-		if (m_Connecting.exchange(false)) {
+		if (!m_Stopped && m_Connecting.exchange(false)) {
 			m_Connected.store(false);
 			stream = nullptr;
 
@@ -452,24 +466,24 @@ void RedisConnection::WriteOne(StreamPtr& stream, RedisConnection::Query& query,
 template<class StreamPtr>
 void RedisConnection::Handshake(StreamPtr& strm, boost::asio::yield_context& yc)
 {
-	if (m_Password.IsEmpty() && !m_DbIndex) {
+	if (m_ConnInfo->Password.IsEmpty() && !m_ConnInfo->DbIndex) {
 		// Trigger NOAUTH
 		WriteRESP(*strm, {"PING"}, yc);
 	} else {
-		if (!m_Username.IsEmpty()) {
-			WriteRESP(*strm, {"AUTH", m_Username, m_Password}, yc);
-		} else if (!m_Password.IsEmpty()) {
-			WriteRESP(*strm, {"AUTH", m_Password}, yc);
+		if (!m_ConnInfo->User.IsEmpty()) {
+			WriteRESP(*strm, {"AUTH", m_ConnInfo->User, m_ConnInfo->Password}, yc);
+		} else if (!m_ConnInfo->Password.IsEmpty()) {
+			WriteRESP(*strm, {"AUTH", m_ConnInfo->Password}, yc);
 		}
 
-		if (m_DbIndex) {
-			WriteRESP(*strm, {"SELECT", Convert::ToString(m_DbIndex)}, yc);
+		if (m_ConnInfo->DbIndex) {
+			WriteRESP(*strm, {"SELECT", Convert::ToString(m_ConnInfo->DbIndex)}, yc);
 		}
 	}
 
 	strm->async_flush(yc);
 
-	if (m_Password.IsEmpty() && !m_DbIndex) {
+	if (m_ConnInfo->Password.IsEmpty() && !m_ConnInfo->DbIndex) {
 		Reply pong (ReadRESP(*strm, yc));
 
 		if (pong.IsObjectType<RedisError>()) {
@@ -477,7 +491,7 @@ void RedisConnection::Handshake(StreamPtr& strm, boost::asio::yield_context& yc)
 			BOOST_THROW_EXCEPTION(std::runtime_error(RedisError::Ptr(pong)->GetMessage()));
 		}
 	} else {
-		if (!m_Password.IsEmpty()) {
+		if (!m_ConnInfo->Password.IsEmpty()) {
 			Reply auth (ReadRESP(*strm, yc));
 
 			if (auth.IsObjectType<RedisError>()) {
@@ -493,7 +507,7 @@ void RedisConnection::Handshake(StreamPtr& strm, boost::asio::yield_context& yc)
 			}
 		}
 
-		if (m_DbIndex) {
+		if (m_ConnInfo->DbIndex) {
 			Reply select (ReadRESP(*strm, yc));
 
 			if (select.IsObjectType<RedisError>()) {
@@ -514,7 +528,7 @@ Timeout RedisConnection::MakeTimeout(StreamPtr& stream)
 {
 	return Timeout(
 		m_Strand,
-		boost::posix_time::microseconds(intmax_t(m_ConnectTimeout * 1000000)),
+		boost::posix_time::microseconds(intmax_t(m_ConnInfo->ConnectTimeout * 1000000)),
 		[stream] {
 			boost::system::error_code ec;
 			stream->lowest_layer().cancel(ec);
