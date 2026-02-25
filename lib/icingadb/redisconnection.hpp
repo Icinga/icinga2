@@ -39,10 +39,11 @@
 #include <map>
 #include <memory>
 #include <queue>
-#include <set>
+#include <deque>
 #include <stdexcept>
 #include <utility>
 #include <vector>
+#include <variant>
 
 namespace icinga
 {
@@ -89,22 +90,6 @@ struct RedisConnInfo final : SharedObject
 		typedef Value Reply;
 		typedef std::vector<Reply> Replies;
 
-		/**
-		 * Redis query priorities, highest first.
-		 *
-		 * @ingroup icingadb
-		 */
-		enum class QueryPriority : unsigned char
-		{
-			Heartbeat,
-			RuntimeStateStream, // runtime state updates, doesn't affect initially synced states
-			Config, // includes initially synced states
-			RuntimeStateSync, // updates initially synced states at runtime, in parallel to config dump, therefore must be < Config
-			History,
-			CheckResult,
-			SyncConnection = 255
-		};
-
 		struct QueryAffects
 		{
 			size_t Config;
@@ -126,24 +111,21 @@ struct RedisConnInfo final : SharedObject
 			return m_Connected.load();
 		}
 
-		void FireAndForgetQuery(Query query, QueryPriority priority, QueryAffects affects = {});
-		void FireAndForgetQueries(Queries queries, QueryPriority priority, QueryAffects affects = {});
+		void FireAndForgetQuery(Query query, QueryAffects affects = {}, bool highPriority = false);
+		void FireAndForgetQueries(Queries queries, QueryAffects affects = {});
 
-		Reply GetResultOfQuery(Query query, QueryPriority priority, QueryAffects affects = {});
-		Replies GetResultsOfQueries(Queries queries, QueryPriority priority, QueryAffects affects = {});
+		Reply GetResultOfQuery(Query query, QueryAffects affects = {});
+		Replies GetResultsOfQueries(Queries queries, QueryAffects affects = {}, bool highPriority = false);
 
-		void EnqueueCallback(const std::function<void(boost::asio::yield_context&)>& callback, QueryPriority priority);
+		void EnqueueCallback(const std::function<void(boost::asio::yield_context&)>& callback);
 		void Sync();
-		double GetOldestPendingQueryTs();
-
-		void SuppressQueryKind(QueryPriority kind);
-		void UnsuppressQueryKind(QueryPriority kind);
+		double GetOldestPendingQueryTs() const;
 
 		void SetConnectedCallback(std::function<void(boost::asio::yield_context& yc)> callback);
 
 		int GetQueryCount(RingBuffer::SizeType span);
 
-		inline int GetPendingQueryCount() const
+		inline std::size_t GetPendingQueryCount() const
 		{
 			return m_PendingQueries;
 		}
@@ -187,20 +169,21 @@ struct RedisConnInfo final : SharedObject
 			ResponseAction Action;
 		};
 
+		using FireAndForgetQ = Shared<Query>::Ptr; // A single query that does not expect a result.
+		using FireAndForgetQs = Shared<Queries>::Ptr; // Multiple queries that do not expect results.
+		using QueryWithPromise = Shared<std::pair<Query, std::promise<Reply>>>::Ptr; // A single query expecting a result.
+		using QueriesWithPromise = Shared<std::pair<Queries, std::promise<Replies>>>::Ptr; // Multiple queries expecting results.
+		using QueryCallback = std::function<void(boost::asio::yield_context&)>; // A callback to be executed.
+
 		/**
-		 * Something to be send to Redis.
+		 * An item in the write queue to be sent to Redis.
 		 *
 		 * @ingroup icingadb
 		 */
 		struct WriteQueueItem
 		{
-			Shared<Query>::Ptr FireAndForgetQuery;
-			Shared<Queries>::Ptr FireAndForgetQueries;
-			Shared<std::pair<Query, std::promise<Reply>>>::Ptr GetResultOfQuery;
-			Shared<std::pair<Queries, std::promise<Replies>>>::Ptr GetResultsOfQueries;
-			std::function<void(boost::asio::yield_context&)> Callback;
-
-			double CTime;
+			std::variant<FireAndForgetQ, FireAndForgetQs, QueryWithPromise, QueriesWithPromise, QueryCallback> Item;
+			double CTime; // When was this item queued?
 			QueryAffects Affects;
 		};
 
@@ -229,7 +212,11 @@ struct RedisConnInfo final : SharedObject
 		void ReadLoop(boost::asio::yield_context& yc);
 		void WriteLoop(boost::asio::yield_context& yc);
 		void LogStats(boost::asio::yield_context& yc);
-		void WriteItem(boost::asio::yield_context& yc, WriteQueueItem item);
+		bool WriteItem(const FireAndForgetQ& item, boost::asio::yield_context& yc);
+		bool WriteItem(const FireAndForgetQs& item, boost::asio::yield_context& yc);
+		bool WriteItem(const QueryWithPromise& item, boost::asio::yield_context& yc);
+		bool WriteItem(const QueriesWithPromise& item, boost::asio::yield_context& yc);
+		bool WriteItem(const QueryCallback& item, boost::asio::yield_context& yc);
 		Reply ReadOne(boost::asio::yield_context& yc);
 		void WriteOne(Query& query, boost::asio::yield_context& yc);
 
@@ -260,18 +247,41 @@ struct RedisConnInfo final : SharedObject
 		Atomic<bool> m_Connecting, m_Connected, m_Stopped;
 
 		struct {
-			// Items to be send to Redis
-			std::map<QueryPriority, std::queue<WriteQueueItem>> Writes;
+			std::queue<WriteQueueItem> HighWriteQ; // High priority writes to be sent to Redis.
+			std::queue<WriteQueueItem> NormalWriteQ; // Normal priority writes to be sent to Redis.
 			// Requestors, each waiting for a single response
 			std::queue<std::promise<Reply>> ReplyPromises;
 			// Requestors, each waiting for multiple responses at once
 			std::queue<std::promise<Replies>> RepliesPromises;
 			// Metadata about all of the above
 			std::queue<FutureResponseAction> FutureResponseActions;
-		} m_Queues;
 
-		// Kinds of queries not to actually send yet
-		std::set<QueryPriority> m_SuppressedQueryKinds;
+			WriteQueueItem PopFront()
+			{
+				if (!HighWriteQ.empty()) {
+					WriteQueueItem item(std::move(HighWriteQ.front()));
+					HighWriteQ.pop();
+					return item;
+				}
+				WriteQueueItem item(std::move(NormalWriteQ.front()));
+				NormalWriteQ.pop();
+				return item;
+			}
+
+			void Push(WriteQueueItem&& item, bool highPriority)
+			{
+				if (highPriority) {
+					HighWriteQ.push(std::move(item));
+				} else {
+					NormalWriteQ.push(std::move(item));
+				}
+			}
+
+			bool HasWrites() const
+			{
+				return !HighWriteQ.empty() || !NormalWriteQ.empty();
+			}
+		} m_Queues;
 
 		// Indicate that there's something to send/receive
 		AsioEvent m_QueuedWrites;
@@ -286,7 +296,7 @@ struct RedisConnInfo final : SharedObject
 		RingBuffer m_WrittenState{15 * 60};
 		RingBuffer m_WrittenHistory{15 * 60};
 		// Number of pending Redis queries, always 0 if m_Parent is set unless m_TrackOwnPendingQueries is true.
-		std::atomic_int m_PendingQueries{0};
+		std::atomic_size_t m_PendingQueries{0};
 		bool m_TrackOwnPendingQueries; // Whether to track pending queries even if m_Parent is set.
 		boost::asio::deadline_timer m_LogStatsTimer;
 		Ptr m_Parent;

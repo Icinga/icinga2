@@ -26,6 +26,18 @@
 
 using namespace icinga;
 
+/**
+ * Checks if the given key is a state key by verifying if it ends with ":state".
+ *
+ * @param key The string view representing the key to check.
+ *
+ * @return true if the key is a state key, false otherwise.
+ */
+bool IcingaDB::IsStateKey(std::string_view key)
+{
+	return boost::algorithm::ends_with(key, ":state");
+}
+
 String IcingaDB::FormatCheckSumBinary(const String& str)
 {
 	char output[20*2+1];
@@ -170,30 +182,8 @@ Dictionary::Ptr IcingaDB::SerializeVars(const Dictionary::Ptr& vars)
  */
 Dictionary::Ptr IcingaDB::SerializeDependencyEdgeState(const DependencyGroup::Ptr& dependencyGroup, const Dependency::Ptr& dep)
 {
-	String edgeStateId;
-	// The edge state ID is computed a bit differently depending on whether this is for a redundancy group or not.
-	// For redundancy groups, the state ID is supposed to represent the connection state between the redundancy group
-	// and the parent Checkable of the given dependency. Hence, the outcome will always be different for each parent
-	// Checkable of the redundancy group.
-	if (dependencyGroup->IsRedundancyGroup()) {
-		edgeStateId = HashValue(new Array{
-			dependencyGroup->GetIcingaDBIdentifier(),
-			GetObjectIdentifier(dep->GetParent()),
-		});
-	} else if (dependencyGroup->GetIcingaDBIdentifier().IsEmpty()) {
-		// For non-redundant dependency groups, on the other hand, all dependency objects within that group will
-		// always have the same parent Checkable. Likewise, the state ID will be always the same as well it doesn't
-		// matter which dependency object is used to compute it. Therefore, it's sufficient to compute it only once
-		// and all the other dependency objects can reuse the cached state ID.
-		edgeStateId = HashValue(new Array{dependencyGroup->GetCompositeKey(), GetObjectIdentifier(dep->GetParent())});
-		dependencyGroup->SetIcingaDBIdentifier(edgeStateId);
-	} else {
-		// Use the already computed state ID for the dependency group.
-		edgeStateId = dependencyGroup->GetIcingaDBIdentifier();
-	}
-
 	return new Dictionary{
-		{"id", std::move(edgeStateId)},
+		{"id", GetDependencyEdgeStateId(dependencyGroup, dep)},
 		{"environment_id", m_EnvironmentId},
 		{"failed", !dep->IsAvailable(DependencyState) || !dep->GetParent()->IsReachable()}
 	};
@@ -218,6 +208,42 @@ Dictionary::Ptr IcingaDB::SerializeRedundancyGroupState(const Checkable::Ptr& ch
 		{"is_reachable", state != DependencyGroup::State::Unreachable},
 		{"last_state_change", TimestampToMilliseconds(Utility::GetTime())},
 	};
+}
+
+/**
+ * Computes the dependency edge state ID for the given dependency object.
+ *
+ * The edge state ID is computed a bit differently depending on whether this is for a redundancy group or not.
+ * For redundancy groups, the state ID is supposed to represent the connection state between the redundancy group
+ * and the parent Checkable of the given dependency. Hence, the outcome will always be different for each parent
+ * Checkable of the redundancy group.
+ *
+ * For non-redundant dependency groups, on the other hand, all dependency objects within that group will
+ * always have the same parent Checkable. Likewise, the state ID will be always the same as well it doesn't
+ * matter which dependency object is used to compute it. Therefore, it's sufficient to compute it only once
+ * and all the other dependency objects can reuse the cached state ID. Thus, this function will cache the just
+ * computed state ID in the dependency group object itself for later reuse.
+ *
+ * @param dependencyGroup The dependency group the dependency is part of.
+ * @param dep The dependency object to compute the state ID for.
+ *
+ * @return The computed edge state ID.
+ */
+String IcingaDB::GetDependencyEdgeStateId(const DependencyGroup::Ptr& dependencyGroup, const Dependency::Ptr& dep)
+{
+	if (dependencyGroup->IsRedundancyGroup()) {
+		return HashValue(new Array{
+			dependencyGroup->GetIcingaDBIdentifier(),
+			GetObjectIdentifier(dep->GetParent()),
+		});
+	}
+	if (dependencyGroup->GetIcingaDBIdentifier().IsEmpty()) {
+		auto edgeStateId = HashValue(new Array{dependencyGroup->GetCompositeKey(), GetObjectIdentifier(dep->GetParent())});
+		dependencyGroup->SetIcingaDBIdentifier(edgeStateId);
+		return edgeStateId;
+	}
+	// Use the already computed state ID for the dependency group.
+	return dependencyGroup->GetIcingaDBIdentifier();
 }
 
 /**
@@ -348,6 +374,29 @@ String IcingaDB::HashValue(const Value& value, const std::set<String>& propertie
 String IcingaDB::GetLowerCaseTypeNameDB(const ConfigObject::Ptr& obj)
 {
 	return obj->GetReflectionType()->GetName().ToLower();
+}
+
+/**
+ * Determines the Redis key suffixes for environment variables and arguments based on the given command type.
+ *
+ * @param command The command object to get the environment variable and argument keys for.
+ * @return The Redis key suffixes for environment variables and arguments, respectively.
+ *
+ * @throws std::invalid_argument if the command type doesn't match any of the expected command types.
+ */
+std::pair<std::string_view, std::string_view> IcingaDB::GetCmdEnvArgKeys(const Command::Ptr& command)
+{
+	const auto& cmdType = command->GetReflectionType();
+	if (CheckCommand::TypeInstance->IsAssignableFrom(cmdType)) {
+		return {"checkcommand:envvar", "checkcommand:argument"};
+	}
+	if (NotificationCommand::TypeInstance->IsAssignableFrom(cmdType)) {
+		return {"notificationcommand:envvar", "notificationcommand:argument"};
+	}
+	if (EventCommand::TypeInstance->IsAssignableFrom(cmdType)) {
+		return {"eventcommand:envvar", "eventcommand:argument"};
+	}
+	BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid command type specified"));
 }
 
 long long IcingaDB::TimestampToMilliseconds(double timestamp) {

@@ -23,15 +23,13 @@ using namespace icinga;
 
 #define MAX_EVENTS_DEFAULT 5000
 
-using Prio = RedisConnection::QueryPriority;
-
 String IcingaDB::m_EnvironmentId;
 std::mutex IcingaDB::m_EnvironmentIdInitMutex;
 
 REGISTER_TYPE(IcingaDB);
 
 IcingaDB::IcingaDB()
-	: m_Rcon(nullptr)
+	: m_RconWorker(nullptr)
 {
 	m_RconLocked.store(nullptr);
 
@@ -87,6 +85,8 @@ void IcingaDB::Start(bool runtimeCreated)
 	m_Rcon = new RedisConnection(connInfo);
 	m_RconLocked.store(m_Rcon);
 
+	m_RconWorker = new RedisConnection(connInfo, m_Rcon, true);
+
 	for (const Type::Ptr& type : GetTypes()) {
 		auto ctype (dynamic_cast<ConfigType*>(type.get()));
 		if (!ctype)
@@ -112,6 +112,7 @@ void IcingaDB::Start(bool runtimeCreated)
 	m_Rcon->SetConnectedCallback([this](boost::asio::yield_context&) {
 		m_Rcon->SetConnectedCallback(nullptr);
 
+		m_RconWorker->Start();
 		for (auto& kv : m_Rcons) {
 			kv.second->Start();
 		}
@@ -124,9 +125,6 @@ void IcingaDB::Start(bool runtimeCreated)
 	m_StatsTimer->Start();
 
 	m_WorkQueue.SetName("IcingaDB");
-
-	m_Rcon->SuppressQueryKind(Prio::CheckResult);
-	m_Rcon->SuppressQueryKind(Prio::RuntimeStateSync);
 
 	Ptr keepAlive (this);
 
@@ -157,6 +155,9 @@ void IcingaDB::OnConnectedHandler()
 	m_ConfigDumpDone = true;
 
 	m_ConfigDumpInProgress = false;
+
+	Ptr keepAlive(this);
+	m_PendingItemsThread = std::thread([this, keepAlive] { PendingItemsThreadProc(); });
 }
 
 void IcingaDB::PublishStatsTimerHandler(void)
@@ -184,13 +185,15 @@ void IcingaDB::PublishStats()
 		}
 	}
 
-	m_Rcon->FireAndForgetQuery(std::move(query), Prio::Heartbeat);
+	m_RconWorker->FireAndForgetQuery(std::move(query), {}, true /* high priority */);
 }
 
 void IcingaDB::Stop(bool runtimeRemoved)
 {
 	Log(LogInformation, "IcingaDB")
 		<< "Flushing history data buffer to Redis.";
+
+	m_PendingItemsCV.notify_all(); // Wake up the pending items worker to let it exit cleanly.
 
 	if (m_HistoryThread.wait_for(std::chrono::minutes(1)) == std::future_status::timeout) {
 		Log(LogCritical, "IcingaDB")
@@ -199,6 +202,7 @@ void IcingaDB::Stop(bool runtimeRemoved)
 	}
 
 	m_StatsTimer->Stop(true);
+	m_PendingItemsThread.join();
 
 	Log(LogInformation, "IcingaDB")
 		<< "'" << GetName() << "' stopped.";
