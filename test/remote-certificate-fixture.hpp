@@ -20,30 +20,43 @@ struct CertificateFixture : ConfigurationDataDirFixture
 		m_CertsDir = ApiListener::GetCertsDir();
 		m_CaCrtFile = m_CertsDir / "ca.crt";
 
-		fs::create_directories(m_PersistentCertsDir / "ca");
-		fs::create_directories(m_PersistentCertsDir / "certs");
+		Utility::MkDirP((m_PersistentCertsDir / "ca").string(), 0700);
+		Utility::MkDirP((m_PersistentCertsDir / "certs").string(), 0700);
 
-		if (fs::exists(m_DataDir / "ca")) {
-			fs::remove(m_DataDir / "ca");
+		if (Utility::PathExists(m_CaDir.string())) {
+			Utility::RemoveDirRecursive(m_CaDir.string());
 		}
-		if (fs::exists(m_DataDir / "certs")) {
-			fs::remove(m_DataDir / "certs");
+		if (Utility::PathExists(m_CertsDir.string())) {
+			Utility::RemoveDirRecursive(m_CertsDir.string());
 		}
 
-		fs::rename(m_PersistentCertsDir / "ca", m_DataDir / "ca");
-		fs::rename(m_PersistentCertsDir / "certs", m_DataDir / "certs");
+		Utility::MkDirP(m_CaDir.string(), 0700);
+		for(const auto& entry : fs::directory_iterator{m_PersistentCertsDir / "ca"}){
+			Utility::CopyFile(entry.path().string(), (m_CaDir / entry.path().filename()).string());
+		}
 
-		if (!fs::exists(m_CaCrtFile)) {
+		Utility::MkDirP(m_CertsDir.string(), 0700);
+		for(const auto& entry : fs::directory_iterator{m_PersistentCertsDir / "certs"}){
+			Utility::CopyFile(entry.path().string(), (m_CertsDir / entry.path().filename()).string());
+		}
+
+		if (!Utility::PathExists(m_CaCrtFile.string())) {
 			PkiUtility::NewCa();
-			fs::copy_file(m_CaDir / "ca.crt", m_CaCrtFile);
+			Utility::CopyFile((m_CaDir / "ca.crt").string(), m_CaCrtFile.string());
 		}
 	}
 
 	~CertificateFixture()
 	{
 		namespace fs = boost::filesystem;
-		fs::rename(m_DataDir / "ca", m_PersistentCertsDir / "ca");
-		fs::rename(m_DataDir / "certs", m_PersistentCertsDir / "certs");
+
+		for(const auto& entry : fs::directory_iterator{m_CaDir}){
+			Utility::CopyFile(entry.path().string(), (m_PersistentCertsDir / "ca" / entry.path().filename()).string());
+		}
+
+		for(const auto& entry : fs::directory_iterator{m_CertsDir}){
+			Utility::CopyFile(entry.path().string(), (m_PersistentCertsDir / "certs" / entry.path().filename()).string());
+		}
 	}
 
 	[[nodiscard]] auto EnsureCertFor(const std::string& name, bool overrideExisting = false) const
