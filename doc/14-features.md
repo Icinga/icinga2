@@ -332,113 +332,6 @@ More integrations:
 * [Logstash output](https://icinga.com/products/integrations/elastic/) for the Icinga 2 API.
 * [Logstash Grok Pattern](https://icinga.com/products/integrations/elastic/) for Icinga 2 logs.
 
-#### Elasticsearch Writer <a id="elasticsearch-writer"></a>
-
-This feature forwards check results, state changes and notification events
-to an [Elasticsearch](https://www.elastic.co/products/elasticsearch) or an [OpenSearch](https://opensearch.org/) installation over its HTTP API.
-
-The check results include parsed performance data metrics if enabled.
-
-> **Note**
->
-> Elasticsearch 7.x, 8.x or Opensearch 2.12.x are required. This feature has been successfully tested with
-> Elasticsearch 7.17.10, 8.8.1 and OpenSearch 2.13.0.
-
-Enable the feature and restart Icinga 2.
-
-```bash
-icinga2 feature enable elasticsearch
-```
-
-The default configuration expects an Elasticsearch instance running on `localhost` on port `9200`
- and writes to an index called `icinga2`.
-
-More configuration details can be found [here](09-object-types.md#objecttype-elasticsearchwriter).
-
-#### Current Elasticsearch Schema <a id="elastic-writer-schema"></a>
-
-The following event types are written to Elasticsearch:
-
-* icinga2.event.checkresult
-* icinga2.event.statechange
-* icinga2.event.notification
-
-Performance data metrics must be explicitly enabled with the `enable_send_perfdata`
-attribute. Be aware that this will create a new field mapping in the index for each performance data metric in a check plugin.
-See: [ElasticsearchWriter](09-object-types.md#objecttype-elasticsearchwriter)
-
-Metric values are stored like this:
-
-```
-check_result.perfdata.<perfdata-label>.value
-```
-
-The following characters are escaped in perfdata labels:
-
-  Character   | Escaped character
-  ------------|--------------------------
-  whitespace  | _
-  \           | _
-  /           | _
-  ::          | .
-
-Note that perfdata labels may contain dots (`.`) allowing to
-add more subsequent levels inside the tree.
-`::` adds support for [multi performance labels](https://github.com/flackem/check_multi/blob/next/doc/configuration/performance.md)
-and is therefore replaced by `.`.
-
-Icinga 2 automatically adds the following threshold metrics
-if existing:
-
-```
-check_result.perfdata.<perfdata-label>.min
-check_result.perfdata.<perfdata-label>.max
-check_result.perfdata.<perfdata-label>.warn
-check_result.perfdata.<perfdata-label>.crit
-```
-
-Additionally it is possible to configure custom tags that are applied to the metrics via `host_tags_template` or `service_tags_template`.
-Depending on whether the write event was triggered on a service or host object, additional tags are added to the ElasticSearch entries.
-
-A host metrics entry configured with the following `host_tags_template`:
-
-```
-host_tags_template = {
-
-  os_name = "$host.vars.os$"
-  custom_label = "A Custom Label"
-  list = [ "$host.groups$", "$host.vars.foo$" ]
-}
-```
-
-Will in addition to the above mentioned lines also contain:
-
-```
-os_name = "Linux"
-custom_label = "A Custom Label"
-list = [ "group-A;linux-servers", "bar" ]
-```
-
-#### Elasticsearch in Cluster HA Zones <a id="elasticsearch-writer-cluster-ha"></a>
-
-The Elasticsearch feature supports [high availability](06-distributed-monitoring.md#distributed-monitoring-high-availability-features)
-in cluster zones since 2.11.
-
-By default, all endpoints in a zone will activate the feature and start
-writing events to the Elasticsearch HTTP API. In HA enabled scenarios,
-it is possible to set `enable_ha = true` in all feature configuration
-files. This allows each endpoint to calculate the feature authority,
-and only one endpoint actively writes events, the other endpoints
-pause the feature.
-
-When the cluster connection breaks at some point, the remaining endpoint(s)
-in that zone will automatically resume the feature. This built-in failover
-mechanism ensures that events are written even if the cluster fails.
-
-The recommended way of running Elasticsearch in this scenario is a dedicated server
-where you either have the Elasticsearch HTTP API, or a TLS secured HTTP proxy,
-or Logstash for additional filtering.
-
 ### Graylog Integration <a id="graylog-integration"></a>
 
 #### GELF Writer <a id="gelfwriter"></a>
@@ -805,12 +698,123 @@ is running on.
 
 ## Deprecated Features <a id="deprecated-features"></a>
 
+#### Elasticsearch Writer <a id="elasticsearch-writer"></a>
+
+> **Note**
+>
+> This feature is DEPRECATED and will be removed in v2.18.
+> For sending metrics to Elasticsearch, please migrate your setup to the [otlp-metrics feature](14-features.md#otlpmetrics-writer).
+
+This feature forwards check results, state changes and notification events
+to an [Elasticsearch](https://www.elastic.co/products/elasticsearch) or an [OpenSearch](https://opensearch.org/) installation over its HTTP API.
+
+The check results include parsed performance data metrics if enabled.
+
+> **Note**
+>
+> Elasticsearch 7.x, 8.x or Opensearch 2.12.x are required. This feature has been successfully tested with
+> Elasticsearch 7.17.10, 8.8.1 and OpenSearch 2.13.0.
+
+Enable the feature and restart Icinga 2.
+
+```bash
+icinga2 feature enable elasticsearch
+```
+
+The default configuration expects an Elasticsearch instance running on `localhost` on port `9200`
+ and writes to an index called `icinga2`.
+
+More configuration details can be found [here](09-object-types.md#objecttype-elasticsearchwriter).
+
+#### Current Elasticsearch Schema <a id="elastic-writer-schema"></a>
+
+The following event types are written to Elasticsearch:
+
+* icinga2.event.checkresult
+* icinga2.event.statechange
+* icinga2.event.notification
+
+Performance data metrics must be explicitly enabled with the `enable_send_perfdata`
+attribute. Be aware that this will create a new field mapping in the index for each performance data metric in a check plugin.
+See: [ElasticsearchWriter](09-object-types.md#objecttype-elasticsearchwriter)
+
+Metric values are stored like this:
+
+```
+check_result.perfdata.<perfdata-label>.value
+```
+
+The following characters are escaped in perfdata labels:
+
+  Character   | Escaped character
+  ------------|--------------------------
+  whitespace  | _
+  \           | _
+  /           | _
+  ::          | .
+
+Note that perfdata labels may contain dots (`.`) allowing to
+add more subsequent levels inside the tree.
+`::` adds support for [multi performance labels](https://github.com/flackem/check_multi/blob/next/doc/configuration/performance.md)
+and is therefore replaced by `.`.
+
+Icinga 2 automatically adds the following threshold metrics
+if existing:
+
+```
+check_result.perfdata.<perfdata-label>.min
+check_result.perfdata.<perfdata-label>.max
+check_result.perfdata.<perfdata-label>.warn
+check_result.perfdata.<perfdata-label>.crit
+```
+
+Additionally it is possible to configure custom tags that are applied to the metrics via `host_tags_template` or `service_tags_template`.
+Depending on whether the write event was triggered on a service or host object, additional tags are added to the ElasticSearch entries.
+
+A host metrics entry configured with the following `host_tags_template`:
+
+```
+host_tags_template = {
+
+  os_name = "$host.vars.os$"
+  custom_label = "A Custom Label"
+  list = [ "$host.groups$", "$host.vars.foo$" ]
+}
+```
+
+Will in addition to the above mentioned lines also contain:
+
+```
+os_name = "Linux"
+custom_label = "A Custom Label"
+list = [ "group-A;linux-servers", "bar" ]
+```
+
+#### Elasticsearch in Cluster HA Zones <a id="elasticsearch-writer-cluster-ha"></a>
+
+The Elasticsearch feature supports [high availability](06-distributed-monitoring.md#distributed-monitoring-high-availability-features)
+in cluster zones since 2.11.
+
+By default, all endpoints in a zone will activate the feature and start
+writing events to the Elasticsearch HTTP API. In HA enabled scenarios,
+it is possible to set `enable_ha = true` in all feature configuration
+files. This allows each endpoint to calculate the feature authority,
+and only one endpoint actively writes events, the other endpoints
+pause the feature.
+
+When the cluster connection breaks at some point, the remaining endpoint(s)
+in that zone will automatically resume the feature. This built-in failover
+mechanism ensures that events are written even if the cluster fails.
+
+The recommended way of running Elasticsearch in this scenario is a dedicated server
+where you either have the Elasticsearch HTTP API, or a TLS secured HTTP proxy,
+or Logstash for additional filtering.
+
 ### IDO Database (DB IDO) <a id="db-ido"></a>
 
 > **Note**
 >
-> This feature is DEPRECATED and may be removed in future releases.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
+> This feature is DEPRECATED and will be removed in v2.18.
 
 The IDO (Icinga Data Output) feature for Icinga 2 takes care of exporting all
 configuration and status information into a database. The IDO database is used
@@ -1162,8 +1166,7 @@ VACUUM
 
 > **Note**
 >
-> This feature is DEPRECATED and may be removed in future releases.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
+> This feature is DEPRECATED and will be removed in v2.18.
 
 The Icinga 1.x log format is considered being the `Compat Log`
 in Icinga 2 provided with the `CompatLogger` object.
@@ -1193,8 +1196,7 @@ in `/var/log/icinga2/compat`. Rotated log files are moved into
 
 > **Note**
 >
-> This feature is DEPRECATED and may be removed in future releases.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
+> This feature is DEPRECATED and will be removed in v2.18.
 
 Icinga 2 provides an external command pipe for processing commands
 triggering specific actions (for example rescheduling a service check
@@ -1233,8 +1235,7 @@ on the [Icinga 1.x documentation](https://docs.icinga.com/latest/en/extcommands2
 
 > **Note**
 >
-> This feature is DEPRECATED and may be removed in future releases.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
+> This feature is DEPRECATED and will be removed in v2.18.
 
 The [MK Livestatus](https://exchange.nagios.org/directory/Documentation/MK-Livestatus/details) project
 implements a query protocol that lets users query their Icinga instance for
