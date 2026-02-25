@@ -167,6 +167,11 @@ ImpersonationLevel ConsoleCommand::GetImpersonationLevel() const
 	return ImpersonateNone;
 }
 
+bool ConsoleCommand::NeedsRLimitAdjustment() const
+{
+	return true;
+}
+
 void ConsoleCommand::InitParameters(boost::program_options::options_description& visibleDesc,
 	[[maybe_unused]] boost::program_options::options_description& hiddenDesc) const
 {
