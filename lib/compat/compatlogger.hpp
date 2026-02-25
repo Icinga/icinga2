@@ -28,6 +28,8 @@ public:
 	void ValidateRotationMethod(const Lazy<String>& lvalue, const ValidationUtils& utils) override;
 
 protected:
+	void OnAllConfigLoaded() override;
+
 	void Start(bool runtimeCreated) override;
 	void Stop(bool runtimeRemoved) override;
 
