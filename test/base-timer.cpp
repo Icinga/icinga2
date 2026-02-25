@@ -32,7 +32,7 @@ BOOST_AUTO_TEST_CASE(invoke)
 	timer->SetInterval(.1);
 
 	timer->Start();
-	Utility::Sleep(.55);
+	Utility::Sleep(.575);
 	timer->Stop();
 
 	// At this point, the timer should have fired exactly 5 times (0.5 / 0.1) and the sixth time
@@ -49,7 +49,7 @@ BOOST_AUTO_TEST_CASE(scope)
 	timer->SetInterval(.1);
 
 	timer->Start();
-	Utility::Sleep(.55);
+	Utility::Sleep(.575);
 	timer.reset();
 	Utility::Sleep(.1);
 
