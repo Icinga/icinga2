@@ -12,6 +12,14 @@ CMAKE_OPTS=()
 WARN_FLAGS="-Wall -Wextra -Wno-template-id-cdtor -Wno-stringop-overflow"
 
 case "$DISTRO" in
+  debian:11)
+    # -Wattributes neededs to be disabled to not get warnings in old compilers about not-yet
+    # understood attributes, like [[gnu::no_dangling]] on debian:11.
+    WARN_FLAGS="${WARN_FLAGS} -Wno-attributes"
+    ;;
+esac
+
+case "$DISTRO" in
   alpine:*)
     # Packages inspired by the Alpine package, just
     # - LibreSSL instead of OpenSSL 3 and
