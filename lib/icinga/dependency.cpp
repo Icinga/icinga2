@@ -222,27 +222,43 @@ void Dependency::InitChildParentReferences()
 {
 	Host::Ptr childHost = Host::GetByName(GetChildHostName());
 
-	if (childHost) {
-		if (GetChildServiceName().IsEmpty())
-			m_Child = childHost;
-		else
-			m_Child = childHost->GetServiceByShortName(GetChildServiceName());
-	}
+	auto throwNoExistError = [&](const String& relation, const String& type, const String& name) {
+		BOOST_THROW_EXCEPTION(ScriptError(
+			"Dependency '" + GetName() + "' references " + relation + " " + type + " '" + name +
+				"' which doesn't exist.",
+			GetDebugInfo()
+		));
+	};
 
-	if (!m_Child)
-		BOOST_THROW_EXCEPTION(ScriptError("Dependency '" + GetName() + "' references a child host/service which doesn't exist.", GetDebugInfo()));
+	if (childHost) {
+		if (GetChildServiceName().IsEmpty()) {
+			m_Child = childHost;
+			if (!m_Child) {
+				throwNoExistError("child", "host", GetChildHostName());
+			}
+		} else {
+			m_Child = childHost->GetServiceByShortName(GetChildServiceName());
+			if (!m_Child) {
+				throwNoExistError("child", "service", GetChildServiceName());
+			}
+		}
+	}
 
 	Host::Ptr parentHost = Host::GetByName(GetParentHostName());
 
 	if (parentHost) {
-		if (GetParentServiceName().IsEmpty())
+		if (GetParentServiceName().IsEmpty()) {
 			m_Parent = parentHost;
-		else
+			if (!m_Parent) {
+				throwNoExistError("parent", "host", GetParentHostName());
+			}
+		} else {
 			m_Parent = parentHost->GetServiceByShortName(GetParentServiceName());
+			if (!m_Parent) {
+				throwNoExistError("parent", "service", GetParentServiceName());
+			}
+		}
 	}
-
-	if (!m_Parent)
-		BOOST_THROW_EXCEPTION(ScriptError("Dependency '" + GetName() + "' references a parent host/service which doesn't exist.", GetDebugInfo()));
 }
 
 void Dependency::OnAllConfigLoaded()
