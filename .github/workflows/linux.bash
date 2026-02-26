@@ -48,7 +48,7 @@ case "$DISTRO" in
     ;;
 
   debian:*|ubuntu:*)
-    apt-get update
+    until apt-get update; do sleep 5; done
     DEBIAN_FRONTEND=noninteractive apt-get install --no-install-{recommends,suggests} -y \
       bison ccache cmake dpkg-dev flex g++ ninja-build tzdata \
       lib{boost-all,edit,mariadb,ncurses,pq,ssl,systemd}-dev
