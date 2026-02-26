@@ -12,6 +12,12 @@ CMAKE_OPTS=()
 WARN_FLAGS="-Wall -Wextra -Wno-template-id-cdtor -Wno-stringop-overflow"
 
 case "$DISTRO" in
+  amazonlinux:2)
+    # amazonlinux:2 has a really old GNU bison (3.0.4), which still emits register storage
+    # specifiers, that even the only slightly more modern compiler warns that C++17 does not
+    # allow (duh).
+    WARN_FLAGS="${WARN_FLAGS} -Wno-register"
+    ;;
   debian:11)
     # -Wattributes neededs to be disabled to not get warnings in old compilers about not-yet
     # understood attributes, like [[gnu::no_dangling]] on debian:11.
