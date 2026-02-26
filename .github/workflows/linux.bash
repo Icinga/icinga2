@@ -9,7 +9,9 @@ CMAKE_OPTS=()
 # See: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=88443
 # -Wtemplate-id-cdtor leaks from using the generated headers. We should reenable this once
 # we're considering moving to C++20 and/or the -ti.hpp files are generated differently.
-WARN_FLAGS="-Wall -Wextra -Wno-template-id-cdtor -Wno-stringop-overflow"
+# -Wattributes neededs to be disabled to not get warnings in old compilers about not-yet
+# understood attributes, like [[gnu::no_dangling]] on debian:11.
+WARN_FLAGS="-Wall -Wextra -Wno-template-id-cdtor -Wno-stringop-overflow -Wno-attributes"
 
 case "$DISTRO" in
   alpine:*)
