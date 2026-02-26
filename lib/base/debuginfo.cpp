@@ -80,8 +80,13 @@ void icinga::ShowCodeLocation(std::ostream& out, const DebugInfo& di, bool verbo
 			if (lineno == di.FirstLine)
 				start = di.FirstColumn - 1;
 
-			if (lineno == di.LastLine)
-				end = di.LastColumn;
+			if (lineno == di.LastLine) {
+				if (di.LastColumn > 0) {
+					end = di.LastColumn;
+				} else {
+					end += di.LastColumn;
+				}
+			}
 
 			if (start < 0) {
 				end -= start;
