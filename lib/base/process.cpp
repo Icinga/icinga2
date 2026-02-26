@@ -1135,7 +1135,8 @@ bool Process::DoEvents()
 	Log(LogNotice, "Process")
 		<< "PID " << m_PID << " (" << PrettyPrintArguments(m_Arguments) << ") terminated with exit code " << exitcode;
 #else /* _WIN32 */
-	int status, exitcode;
+	int status = 0;
+	int exitcode = 0;
 	if (could_not_kill || m_PID == -1) {
 		exitcode = 128;
 	} else if (ProcessWaitPID(m_Process, &status) != m_Process) {
