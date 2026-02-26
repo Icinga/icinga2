@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "perfdata/elasticsearchwriter.hpp"
+#include "base/defer.hpp"
 #include "perfdata/elasticsearchwriter-ti.cpp"
 #include "remote/url.hpp"
 #include "icinga/compatutility.hpp"
@@ -9,30 +10,14 @@
 #include "icinga/macroprocessor.hpp"
 #include "icinga/checkcommand.hpp"
 #include "base/application.hpp"
-#include "base/defer.hpp"
-#include "base/io-engine.hpp"
-#include "base/tcpsocket.hpp"
 #include "base/stream.hpp"
 #include "base/base64.hpp"
 #include "base/json.hpp"
 #include "base/utility.hpp"
-#include "base/networkstream.hpp"
 #include "base/perfdatavalue.hpp"
 #include "base/exception.hpp"
 #include "base/statsfunction.hpp"
 #include <boost/algorithm/string.hpp>
-#include <boost/asio/ssl/context.hpp>
-#include <boost/beast/core/flat_buffer.hpp>
-#include <boost/beast/http/field.hpp>
-#include <boost/beast/http/message.hpp>
-#include <boost/beast/http/parser.hpp>
-#include <boost/beast/http/read.hpp>
-#include <boost/beast/http/status.hpp>
-#include <boost/beast/http/string_body.hpp>
-#include <boost/beast/http/verb.hpp>
-#include <boost/beast/http/write.hpp>
-#include <boost/scoped_array.hpp>
-#include <memory>
 #include <string>
 #include <utility>
 
@@ -82,8 +67,6 @@ void ElasticsearchWriter::Resume()
 {
 	ObjectImpl<ElasticsearchWriter>::Resume();
 
-	m_EventPrefix = "icinga2.event.";
-
 	Log(LogInformation, "ElasticsearchWriter")
 		<< "'" << GetName() << "' resumed.";
 
@@ -95,6 +78,19 @@ void ElasticsearchWriter::Resume()
 	m_FlushTimer->OnTimerExpired.connect([this](const Timer * const&) { FlushTimeout(); });
 	m_FlushTimer->Start();
 	m_FlushTimer->Reschedule(0);
+
+	Shared<boost::asio::ssl::context>::Ptr sslContext;
+	if (GetEnableTls()) {
+		try {
+			sslContext = MakeAsioSslContext(GetCertPath(), GetKeyPath(), GetCaPath());
+		} catch (const std::exception& ex) {
+			Log(LogWarning, "ElasticsearchWriter")
+				<< "Unable to create SSL context.";
+			throw;
+		}
+	}
+	
+	m_Connection = new PerfdataWriterConnection{"ElasticsearchWriter", GetName(), GetHost(), GetPort(), sslContext, !GetInsecureNoverify()};
 
 	/* Register for new metrics. */
 	m_HandleCheckResults = Checkable::OnNewCheckResult.connect([this](const Checkable::Ptr& checkable,
@@ -120,12 +116,17 @@ void ElasticsearchWriter::Pause()
 	m_HandleNotifications.disconnect();
 
 	m_FlushTimer->Stop(true);
-	m_WorkQueue.Join();
 
-	{
-		std::unique_lock<std::mutex> lock (m_DataBufferMutex);
+	std::promise<void> queueDonePromise;
+	m_WorkQueue.Enqueue([&]() {
 		Flush();
-	}
+		queueDonePromise.set_value();
+	}, PriorityLow);
+
+	auto timeout = std::chrono::duration<double>{GetDisconnectTimeout()};
+	m_Connection->CancelAfterTimeout(queueDonePromise.get_future(), timeout);
+
+	m_WorkQueue.Join();
 
 	Log(LogInformation, "ElasticsearchWriter")
 		<< "'" << GetName() << "' paused.";
@@ -269,6 +270,10 @@ void ElasticsearchWriter::CheckResultHandler(const Checkable::Ptr& checkable, co
 	AddTemplateTags(fields, checkable, cr);
 
 	m_WorkQueue.Enqueue([this, checkable, cr, fields = std::move(fields)]() {
+		if (m_Connection->IsStopped()) {
+			return;
+		}
+
 		CONTEXT("Elasticwriter processing check result for '" << checkable->GetName() << "'");
 
 		AddCheckResult(fields, checkable, cr);
@@ -308,6 +313,10 @@ void ElasticsearchWriter::StateChangeHandler(const Checkable::Ptr& checkable, co
 	AddTemplateTags(fields, checkable, cr);
 
 	m_WorkQueue.Enqueue([this, checkable, cr, fields = std::move(fields)]() {
+		if (m_Connection->IsStopped()) {
+			return;
+		}
+
 		CONTEXT("Elasticwriter processing state change '" << checkable->GetName() << "'");
 
 		AddCheckResult(fields, checkable, cr);
@@ -358,6 +367,10 @@ void ElasticsearchWriter::NotificationSentToAllUsersHandler(const Checkable::Ptr
 	AddTemplateTags(fields, checkable, cr);
 
 	m_WorkQueue.Enqueue([this, checkable, cr, fields = std::move(fields)]() {
+		if (m_Connection->IsStopped()) {
+			return;
+		}
+
 		CONTEXT("Elasticwriter processing notification to all users '" << checkable->GetName() << "'");
 
 		Log(LogDebug, "ElasticsearchWriter")
@@ -379,15 +392,10 @@ void ElasticsearchWriter::Enqueue(const Checkable::Ptr& checkable, const String&
 {
 	AssertOnWorkQueue();
 
-	/* Atomically buffer the data point. */
-	std::unique_lock<std::mutex> lock(m_DataBufferMutex);
-
 	/* Format the timestamps to dynamically select the date datatype inside the index. */
 	fields->Set("@timestamp", FormatTimestamp(ts));
 	fields->Set("timestamp", FormatTimestamp(ts));
-
-	String eventType = m_EventPrefix + type;
-	fields->Set("type", eventType);
+	fields->Set("type", "icinga2.event." + type);
 
 	/* Every payload needs a line describing the index.
 	 * We do it this way to avoid problems with a near full queue.
@@ -408,19 +416,21 @@ void ElasticsearchWriter::Enqueue(const Checkable::Ptr& checkable, const String&
 	}
 }
 
+/**
+ * Queues a Flush on the work-queue if there isn't one queued already.
+ */
 void ElasticsearchWriter::FlushTimeout()
 {
-	/* Prevent new data points from being added to the array, there is a
-	 * race condition where they could disappear.
-	 */
-	std::unique_lock<std::mutex> lock(m_DataBufferMutex);
-
-	/* Flush if there are any data available. */
-	if (m_DataBuffer.size() > 0) {
-		Log(LogDebug, "ElasticsearchWriter")
-			<< "Timer expired writing " << m_DataBuffer.size() << " data points";
-		Flush();
+	if (m_FlushTimerInQueue.exchange(true, std::memory_order_relaxed)) {
+		return;
 	}
+
+	m_WorkQueue.Enqueue([&]() {
+		Defer resetFlushTimer{
+			[&]() { m_FlushTimerInQueue.store(false, std::memory_order_relaxed); }
+		};
+		Flush();
+	});
 }
 
 void ElasticsearchWriter::Flush()
@@ -466,22 +476,6 @@ void ElasticsearchWriter::SendRequest(const String& body)
 
 	url->SetPath(path);
 
-	OptionalTlsStream stream;
-
-	try {
-		stream = Connect();
-	} catch (const std::exception& ex) {
-		Log(LogWarning, "ElasticsearchWriter")
-			<< "Flush failed, cannot connect to Elasticsearch: " << DiagnosticInformation(ex, false);
-		return;
-	}
-
-	Defer s ([&stream]() {
-		if (stream.first) {
-			stream.first->next_layer().shutdown();
-		}
-	});
-
 	http::request<http::string_body> request (http::verb::post, std::string(url->Format(true)), 10);
 
 	request.set(http::field::user_agent, "Icinga/" + Application::GetAppVersion());
@@ -511,36 +505,13 @@ void ElasticsearchWriter::SendRequest(const String& body)
 		<< "Sending " << request.method_string() << " request" << ((!username.IsEmpty() && !password.IsEmpty()) ? " with basic auth" : "" )
 		<< " to '" << url->Format() << "'.";
 
+	decltype(m_Connection->Send(request)) response;
 	try {
-		if (stream.first) {
-			http::write(*stream.first, request);
-			stream.first->flush();
-		} else {
-			http::write(*stream.second, request);
-			stream.second->flush();
-		}
-	} catch (const std::exception&) {
-		Log(LogWarning, "ElasticsearchWriter")
-			<< "Cannot write to HTTP API on host '" << GetHost() << "' port '" << GetPort() << "'.";
-		throw;
+		response = m_Connection->Send(request);
+	} catch (const PerfdataWriterConnection::Stopped& ex) {
+		Log(LogDebug, "ElasticsearchWriter") << ex.what();
+		return;
 	}
-
-	http::parser<false, http::string_body> parser;
-	beast::flat_buffer buf;
-
-	try {
-		if (stream.first) {
-			http::read(*stream.first, buf, parser);
-		} else {
-			http::read(*stream.second, buf, parser);
-		}
-	} catch (const std::exception& ex) {
-		Log(LogWarning, "ElasticsearchWriter")
-			<< "Failed to parse HTTP response from host '" << GetHost() << "' port '" << GetPort() << "': " << DiagnosticInformation(ex, false);
-		throw;
-	}
-
-	auto& response (parser.get());
 
 	if (response.result_int() > 299) {
 		if (response.result() == http::status::unauthorized) {
@@ -587,66 +558,6 @@ void ElasticsearchWriter::SendRequest(const String& body)
 		Log(LogCritical, "ElasticsearchWriter")
 			<< "Error: '" << error << "'. " << msgbuf.str();
 	}
-}
-
-OptionalTlsStream ElasticsearchWriter::Connect()
-{
-	Log(LogNotice, "ElasticsearchWriter")
-		<< "Connecting to Elasticsearch on host '" << GetHost() << "' port '" << GetPort() << "'.";
-
-	OptionalTlsStream stream;
-	bool tls = GetEnableTls();
-
-	if (tls) {
-		Shared<boost::asio::ssl::context>::Ptr sslContext;
-
-		try {
-			sslContext = MakeAsioSslContext(GetCertPath(), GetKeyPath(), GetCaPath());
-		} catch (const std::exception&) {
-			Log(LogWarning, "ElasticsearchWriter")
-				<< "Unable to create SSL context.";
-			throw;
-		}
-
-		stream.first = Shared<AsioTlsStream>::Make(IoEngine::Get().GetIoContext(), *sslContext, GetHost());
-
-	} else {
-		stream.second = Shared<AsioTcpStream>::Make(IoEngine::Get().GetIoContext());
-	}
-
-	try {
-		icinga::Connect(tls ? stream.first->lowest_layer() : stream.second->lowest_layer(), GetHost(), GetPort());
-	} catch (const std::exception&) {
-		Log(LogWarning, "ElasticsearchWriter")
-			<< "Can't connect to Elasticsearch on host '" << GetHost() << "' port '" << GetPort() << "'.";
-		throw;
-	}
-
-	if (tls) {
-		auto& tlsStream (stream.first->next_layer());
-
-		try {
-			tlsStream.handshake(tlsStream.client);
-		} catch (const std::exception&) {
-			Log(LogWarning, "ElasticsearchWriter")
-				<< "TLS handshake with host '" << GetHost() << "' on port " << GetPort() << " failed.";
-			throw;
-		}
-
-		if (!GetInsecureNoverify()) {
-			if (!tlsStream.GetPeerCertificate()) {
-				BOOST_THROW_EXCEPTION(std::runtime_error("Elasticsearch didn't present any TLS certificate."));
-			}
-
-			if (!tlsStream.IsVerifyOK()) {
-				BOOST_THROW_EXCEPTION(std::runtime_error(
-					"TLS certificate validation failed: " + std::string(tlsStream.GetVerifyError())
-				));
-			}
-		}
-	}
-
-	return stream;
 }
 
 void ElasticsearchWriter::AssertOnWorkQueue()

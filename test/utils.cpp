@@ -2,8 +2,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "utils.hpp"
+#include "base/perfdatavalue.hpp"
 #include <cstring>
 #include <iomanip>
+#include <random>
 #include <sstream>
 #include <boost/test/unit_test.hpp>
 
@@ -65,4 +67,59 @@ GlobalTimezoneFixture::~GlobalTimezoneFixture()
         unsetenv("TZ");
 #endif
     tzset();
+}
+
+std::string GetRandomString(std::string prefix, std::size_t length)
+{
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<int> distribution('!', '~');
+
+	for (auto i = 0U; i < length; i++) {
+		prefix += static_cast<char>(distribution(gen));
+	}
+
+	return prefix;
+}
+
+/**
+ * Make our test host receive a number of check-results.
+ *
+ * @param num The number of check-results to receive
+ * @param state The state the check results should have
+ * @param fn A function that will be passed the current check-result
+ */
+void ReceiveCheckResults(
+	const icinga::Checkable::Ptr& host,
+	std::size_t num,
+	icinga::ServiceState state,
+	const std::function<void(const icinga::CheckResult::Ptr&)>& fn
+)
+{
+	using namespace icinga;
+
+	StoppableWaitGroup::Ptr wg = new StoppableWaitGroup();
+
+	for (auto i = 0UL; i < num; ++i) {
+		CheckResult::Ptr cr = new CheckResult();
+
+		cr->SetState(state);
+
+		double now = Utility::GetTime();
+		cr->SetActive(false);
+		cr->SetScheduleStart(now);
+		cr->SetScheduleEnd(now);
+		cr->SetExecutionStart(now);
+		cr->SetExecutionEnd(now);
+
+		Array::Ptr perfData = new Array;
+		perfData->Add(new PerfdataValue{"dummy", 42});
+		cr->SetPerformanceData(perfData);
+
+		if (fn) {
+			fn(cr);
+		}
+
+		BOOST_REQUIRE(host->ProcessCheckResult(cr, wg) == Checkable::ProcessingResult::Ok);
+	}
 }

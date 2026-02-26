@@ -19,6 +19,7 @@ set(perfdata_SOURCES
   influxdb2writer.cpp influxdb2writer.hpp influxdb2writer-ti.hpp
   opentsdbwriter.cpp opentsdbwriter.hpp opentsdbwriter-ti.hpp
   perfdatawriter.cpp perfdatawriter.hpp perfdatawriter-ti.hpp
+  perfdatawriterconnection.cpp perfdatawriterconnection.hpp
 )
 
 if(ICINGA2_UNITY_BUILD)

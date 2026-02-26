@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "perfdata/influxdbcommonwriter.hpp"
+#include "base/defer.hpp"
 #include "perfdata/influxdbcommonwriter-ti.cpp"
 #include "remote/url.hpp"
 #include "icinga/service.hpp"
@@ -9,36 +10,15 @@
 #include "icinga/icingaapplication.hpp"
 #include "icinga/checkcommand.hpp"
 #include "base/application.hpp"
-#include "base/defer.hpp"
-#include "base/io-engine.hpp"
-#include "base/tcpsocket.hpp"
-#include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
-#include "base/convert.hpp"
-#include "base/utility.hpp"
-#include "base/stream.hpp"
 #include "base/json.hpp"
-#include "base/networkstream.hpp"
 #include "base/exception.hpp"
-#include "base/statsfunction.hpp"
-#include "base/tlsutility.hpp"
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/replace.hpp>
-#include <boost/asio/ssl/context.hpp>
-#include <boost/beast/core/flat_buffer.hpp>
-#include <boost/beast/http/field.hpp>
-#include <boost/beast/http/message.hpp>
-#include <boost/beast/http/parser.hpp>
-#include <boost/beast/http/read.hpp>
-#include <boost/beast/http/status.hpp>
-#include <boost/beast/http/string_body.hpp>
-#include <boost/beast/http/verb.hpp>
-#include <boost/beast/http/write.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
 #include <boost/regex.hpp>
 #include <boost/scoped_array.hpp>
-#include <memory>
 #include <string>
 #include <utility>
 
@@ -97,6 +77,19 @@ void InfluxdbCommonWriter::Resume()
 	m_FlushTimer->Start();
 	m_FlushTimer->Reschedule(0);
 
+	Shared<boost::asio::ssl::context>::Ptr sslContext;
+	if (GetSslEnable()) {
+		try {
+			sslContext = MakeAsioSslContext(GetSslCert(), GetSslKey(), GetSslCaCert());
+		} catch (const std::exception& ex) {
+			Log(LogWarning, GetReflectionType()->GetName())
+				<< "Unable to create SSL context.";
+			throw;
+		}
+	}
+	
+	m_Connection = new PerfdataWriterConnection{GetReflectionType()->GetName(), GetName(), GetHost(), GetPort(), sslContext, !GetSslInsecureNoverify()};
+
 	/* Register for new metrics. */
 	m_HandleCheckResults = Checkable::OnNewCheckResult.connect([this](const Checkable::Ptr& checkable,
 		const CheckResult::Ptr& cr, const MessageOrigin::Ptr&) {
@@ -114,7 +107,15 @@ void InfluxdbCommonWriter::Pause()
 		<< "Processing pending tasks and flushing data buffers.";
 
 	m_FlushTimer->Stop(true);
-	m_WorkQueue.Enqueue([this]() { FlushWQ(); }, PriorityLow);
+
+	std::promise<void> queueDonePromise;
+	m_WorkQueue.Enqueue([&]() {
+		FlushWQ();
+		queueDonePromise.set_value();
+	}, PriorityLow);
+
+	auto timeout = std::chrono::duration<double>{GetDisconnectTimeout()};
+	m_Connection->CancelAfterTimeout(queueDonePromise.get_future(), timeout);
 
 	/* Wait for the flush to complete, implicitly waits for all WQ tasks enqueued prior to pausing. */
 	m_WorkQueue.Join();
@@ -136,68 +137,6 @@ void InfluxdbCommonWriter::ExceptionHandler(boost::exception_ptr exp)
 
 	Log(LogDebug, GetReflectionType()->GetName())
 		<< "Exception during InfluxDB operation: " << DiagnosticInformation(std::move(exp));
-
-	//TODO: Close the connection, if we keep it open.
-}
-
-OptionalTlsStream InfluxdbCommonWriter::Connect()
-{
-	Log(LogNotice, GetReflectionType()->GetName())
-		<< "Reconnecting to InfluxDB on host '" << GetHost() << "' port '" << GetPort() << "'.";
-
-	OptionalTlsStream stream;
-	bool ssl = GetSslEnable();
-
-	if (ssl) {
-		Shared<boost::asio::ssl::context>::Ptr sslContext;
-
-		try {
-			sslContext = MakeAsioSslContext(GetSslCert(), GetSslKey(), GetSslCaCert());
-		} catch (const std::exception& ex) {
-			Log(LogWarning, GetReflectionType()->GetName())
-				<< "Unable to create SSL context.";
-			throw;
-		}
-
-		stream.first = Shared<AsioTlsStream>::Make(IoEngine::Get().GetIoContext(), *sslContext, GetHost());
-
-	} else {
-		stream.second = Shared<AsioTcpStream>::Make(IoEngine::Get().GetIoContext());
-	}
-
-	try {
-		icinga::Connect(ssl ? stream.first->lowest_layer() : stream.second->lowest_layer(), GetHost(), GetPort());
-	} catch (const std::exception& ex) {
-		Log(LogWarning, GetReflectionType()->GetName())
-			<< "Can't connect to InfluxDB on host '" << GetHost() << "' port '" << GetPort() << "'.";
-		throw;
-	}
-
-	if (ssl) {
-		auto& tlsStream (stream.first->next_layer());
-
-		try {
-			tlsStream.handshake(tlsStream.client);
-		} catch (const std::exception& ex) {
-			Log(LogWarning, GetReflectionType()->GetName())
-				<< "TLS handshake with host '" << GetHost() << "' failed.";
-			throw;
-		}
-
-		if (!GetSslInsecureNoverify()) {
-			if (!tlsStream.GetPeerCertificate()) {
-				BOOST_THROW_EXCEPTION(std::runtime_error("InfluxDB didn't present any TLS certificate."));
-			}
-
-			if (!tlsStream.IsVerifyOK()) {
-				BOOST_THROW_EXCEPTION(std::runtime_error(
-					"TLS certificate validation failed: " + std::string(tlsStream.GetVerifyError())
-				));
-			}
-		}
-	}
-
-	return stream;
 }
 
 void InfluxdbCommonWriter::CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
@@ -261,6 +200,10 @@ void InfluxdbCommonWriter::CheckResultHandler(const Checkable::Ptr& checkable, c
 	}
 
 	m_WorkQueue.Enqueue([this, checkable, cr, tmpl = std::move(tmpl), metadataFields = std::move(fields)]() {
+		if (m_Connection->IsStopped()) {
+			return;
+		}
+
 		CONTEXT("Processing check result for '" << checkable->GetName() << "'");
 
 		double ts = cr->GetExecutionEnd();
@@ -411,19 +354,19 @@ void InfluxdbCommonWriter::SendMetric(const Checkable::Ptr& checkable, const Dic
 	}
 }
 
+/**
+ * Queues a Flush on the work-queue and restarts the timer.
+ */
 void InfluxdbCommonWriter::FlushTimeout()
 {
-	m_WorkQueue.Enqueue([this]() { FlushTimeoutWQ(); }, PriorityHigh);
-}
+	if (m_FlushTimerInQueue.exchange(true, std::memory_order_relaxed)) {
+		return;
+	}
 
-void InfluxdbCommonWriter::FlushTimeoutWQ()
-{
-	AssertOnWorkQueue();
-
-	Log(LogDebug, GetReflectionType()->GetName())
-		<< "Timer expired writing " << m_DataBuffer.size() << " data points";
-
-	FlushWQ();
+	m_WorkQueue.Enqueue([&]() {
+		Defer resetFlushTimer{[&]() { m_FlushTimerInQueue.store(false, std::memory_order_relaxed); }};
+		FlushWQ();
+	});
 }
 
 void InfluxdbCommonWriter::FlushWQ()
@@ -444,54 +387,15 @@ void InfluxdbCommonWriter::FlushWQ()
 	m_DataBuffer.clear();
 	m_DataBufferSize = 0;
 
-	OptionalTlsStream stream;
-
-	try {
-		stream = Connect();
-	} catch (const std::exception& ex) {
-		Log(LogWarning, GetReflectionType()->GetName())
-			<< "Flush failed, cannot connect to InfluxDB: " << DiagnosticInformation(ex, false);
-		return;
-	}
-
-	Defer s ([&stream]() {
-		if (stream.first) {
-			stream.first->next_layer().shutdown();
-		}
-	});
-
 	auto request (AssembleRequest(std::move(body)));
 
+	decltype(m_Connection->Send(request)) response;
 	try {
-		if (stream.first) {
-			http::write(*stream.first, request);
-			stream.first->flush();
-		} else {
-			http::write(*stream.second, request);
-			stream.second->flush();
-		}
-	} catch (const std::exception& ex) {
-		Log(LogWarning, GetReflectionType()->GetName())
-			<< "Cannot write to TCP socket on host '" << GetHost() << "' port '" << GetPort() << "'.";
-		throw;
+		response = m_Connection->Send(request);
+	} catch (const PerfdataWriterConnection::Stopped& ex) {
+		Log(LogDebug, GetReflectionType()->GetName()) << ex.what();
+		return;
 	}
-
-	http::parser<false, http::string_body> parser;
-	beast::flat_buffer buf;
-
-	try {
-		if (stream.first) {
-			http::read(*stream.first, buf, parser);
-		} else {
-			http::read(*stream.second, buf, parser);
-		}
-	} catch (const std::exception& ex) {
-		Log(LogWarning, GetReflectionType()->GetName())
-			<< "Failed to parse HTTP response from host '" << GetHost() << "' port '" << GetPort() << "': " << DiagnosticInformation(ex);
-		throw;
-	}
-
-	auto& response (parser.get());
 
 	if (response.result() != http::status::no_content) {
 		Log(LogWarning, GetReflectionType()->GetName())
