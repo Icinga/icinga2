@@ -48,7 +48,7 @@ void CompatLogger::Start(bool runtimeCreated)
 		<< "'" << GetName() << "' started.";
 
 	Log(LogWarning, "CompatLogger")
-		<< "This feature is DEPRECATED and may be removed in future releases. Check the roadmap at https://github.com/Icinga/icinga2/milestones";
+		<< "This feature is DEPRECATED and will be removed in v2.18.";
 
 	Checkable::OnNewCheckResult.connect([this](const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const MessageOrigin::Ptr&) {
 		CheckResultHandler(checkable, cr);

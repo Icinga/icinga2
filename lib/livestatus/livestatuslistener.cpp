@@ -52,6 +52,9 @@ void LivestatusListener::Start(bool runtimeCreated)
 	Log(LogInformation, "LivestatusListener")
 		<< "'" << GetName() << "' started.";
 
+	Log(LogWarning, "LivestatusListener")
+		<< "This feature is DEPRECATED and will be removed in v2.18.";
+
 	if (GetSocketType() == "tcp") {
 		TcpSocket::Ptr socket = new TcpSocket();
 

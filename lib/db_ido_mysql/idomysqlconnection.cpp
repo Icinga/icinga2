@@ -79,6 +79,9 @@ void IdoMysqlConnection::Resume()
 	Log(LogInformation, "IdoMysqlConnection")
 		<< "'" << GetName() << "' resumed.";
 
+	Log(LogWarning, "IdoMysqlConnection")
+		<< "This feature is DEPRECATED and will be removed in v2.18.";
+
 	SetConnected(false);
 
 	m_QueryQueue.SetExceptionCallback([this](boost::exception_ptr exp) { ExceptionHandler(std::move(exp)); });

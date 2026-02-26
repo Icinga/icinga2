@@ -809,8 +809,7 @@ is running on.
 
 > **Note**
 >
-> This feature is DEPRECATED and may be removed in future releases.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
+> This feature is DEPRECATED and will be removed in v2.18.
 
 The IDO (Icinga Data Output) feature for Icinga 2 takes care of exporting all
 configuration and status information into a database. The IDO database is used
@@ -1162,8 +1161,7 @@ VACUUM
 
 > **Note**
 >
-> This feature is DEPRECATED and may be removed in future releases.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
+> This feature is DEPRECATED and will be removed in v2.18.
 
 The Icinga 1.x log format is considered being the `Compat Log`
 in Icinga 2 provided with the `CompatLogger` object.
@@ -1193,8 +1191,7 @@ in `/var/log/icinga2/compat`. Rotated log files are moved into
 
 > **Note**
 >
-> This feature is DEPRECATED and may be removed in future releases.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
+> This feature is DEPRECATED and will be removed in v2.18.
 
 Icinga 2 provides an external command pipe for processing commands
 triggering specific actions (for example rescheduling a service check
@@ -1233,8 +1230,7 @@ on the [Icinga 1.x documentation](https://docs.icinga.com/latest/en/extcommands2
 
 > **Note**
 >
-> This feature is DEPRECATED and may be removed in future releases.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
+> This feature is DEPRECATED and will be removed in v2.18.
 
 The [MK Livestatus](https://exchange.nagios.org/directory/Documentation/MK-Livestatus/details) project
 implements a query protocol that lets users query their Icinga instance for

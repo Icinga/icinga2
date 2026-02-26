@@ -229,6 +229,10 @@ log(value) // Prints "Hi!" because the variable was changed
 
 ### Namespaces <a id="namespaces"></a>
 
+> **Note**
+>
+> This feature is DEPRECATED and will be removed in v2.18.
+
 Namespaces can be used to organize variables and functions. They are used to avoid name conflicts. The `namespace`
 keyword is used to create a new namespace:
 
