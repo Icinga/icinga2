@@ -25,7 +25,7 @@ public:
 
 	static thread_local NotificationCommand::Ptr ExecuteOverride;
 
-	virtual Dictionary::Ptr Execute(const intrusive_ptr<Notification>& notification,
+	Dictionary::Ptr Execute(const intrusive_ptr<Notification>& notification,
 		const User::Ptr& user, const CheckResult::Ptr& cr, const NotificationType& type,
 		const String& author, const String& comment,
 		const Dictionary::Ptr& resolvedMacros = nullptr,
