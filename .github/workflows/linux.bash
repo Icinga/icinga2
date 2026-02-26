@@ -11,7 +11,9 @@ CMAKE_OPTS=()
 # we're considering moving to C++20 and/or the -ti.hpp files are generated differently.
 # -Wattributes neededs to be disabled to not get warnings in old compilers about not-yet
 # understood attributes, like [[gnu::no_dangling]] on debian:11.
-WARN_FLAGS="-Wall -Wextra -Wno-template-id-cdtor -Wno-stringop-overflow -Wno-attributes"
+# -Wdeprecated-declarations can be dropped, because we're well aware of old OpenSSL functions
+# still being used and don't need warnings on every distro for that.
+WARN_FLAGS="-Wall -Wextra -Wno-template-id-cdtor -Wno-stringop-overflow -Wno-attributes -Wno-deprecated-declarations"
 
 case "$DISTRO" in
   alpine:*)
