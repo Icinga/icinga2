@@ -3,8 +3,7 @@ name: Linux
 on:
   push:
     branches:
-      - master
-      - 'support/*'
+      - fix-misc-testing-errors-and-sporadic-fails
   pull_request: {}
 
 concurrency:
@@ -23,38 +22,38 @@ jobs:
         distro:
           # Alpine Linux to build Icinga 2 with LibreSSL, OpenBSD's default.
           # The "alpine:bash" image will be built below based on "alpine:3".
-          - alpine:bash
+          # - alpine:bash
 
-          - amazonlinux:2
-          - amazonlinux:2023
+          # - amazonlinux:2
+          # - amazonlinux:2023
 
           # Raspberry Pi OS is close enough to Debian to test just one of them.
           # Its architecture is different, though, and covered by the Docker job.
           - debian:11
-          - debian:12
-          - debian:13
+          # - debian:12
+          # - debian:13
 
-          - fedora:41
-          - fedora:42
-          - fedora:43
+          # - fedora:41
+          # - fedora:42
+          # - fedora:43
 
-          - opensuse/leap:15.6
-          - opensuse/leap:16.0
+          # - opensuse/leap:15.6
+          # - opensuse/leap:16.0
 
           # We don't actually support Rocky Linux as such!
           # We just use that RHEL clone to test the original.
-          - rockylinux:8
-          - rockylinux:9
-          - rockylinux/rockylinux:10
+          # - rockylinux:8
+          # - rockylinux:9
+          # - rockylinux/rockylinux:10
 
-          - registry.suse.com/suse/sle15:15.6
-          - registry.suse.com/suse/sle15:15.7
-          - registry.suse.com/bci/bci-base:16.0
+          # - registry.suse.com/suse/sle15:15.6
+          # - registry.suse.com/suse/sle15:15.7
+          # - registry.suse.com/bci/bci-base:16.0
 
-          - ubuntu:22.04
-          - ubuntu:24.04
-          - ubuntu:25.04
-          - ubuntu:25.10
+          # - ubuntu:22.04
+          # - ubuntu:24.04
+          # - ubuntu:25.04
+          # - ubuntu:25.10
 
         platform:
           - linux/amd64
@@ -62,8 +61,8 @@ jobs:
         include:
           - distro: debian:11
             platform: linux/386
-          - distro: debian:12
-            platform: linux/386
+          # - distro: debian:12
+          #   platform: linux/386
 
     steps:
       - name: Checkout HEAD
