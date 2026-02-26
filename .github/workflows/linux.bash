@@ -12,6 +12,15 @@ SCL_ENABLE_GCC=()
 # we're considering moving to C++20 and/or the -ti.hpp files are generated differently.
 WARN_FLAGS="-Wall -Wextra -Wno-template-id-cdtor -Wno-stringop-overflow"
 
+# amazonlinux:2 has a really old GNU bison (3.0.4), which still emits register storage
+# specifiers, that even the only slightly more modern compiler warns that C++17 does not
+# allow (duh).
+case "$DISTRO" in
+  amazonlinux:2)
+    WARN_FLAGS="${WARN_FLAGS} -Wno-register"
+    ;;
+esac
+
 # -Wattributes needs to be disabled to not get warnings in old compilers about not-yet
 # understood attributes, like [[gnu::no_dangling]] on many of the "stable" distros.
 case "$DISTRO" in
