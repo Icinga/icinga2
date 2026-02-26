@@ -12,6 +12,18 @@ SCL_ENABLE_GCC=()
 # we're considering moving to C++20 and/or the -ti.hpp files are generated differently.
 WARN_FLAGS="-Wall -Wextra -Wno-template-id-cdtor -Wno-stringop-overflow"
 
+# -Wattributes needs to be disabled to not get warnings in old compilers about not-yet
+# understood attributes, like [[gnu::no_dangling]] on many of the "stable" distros.
+case "$DISTRO" in
+  amazonlinux:2023 |\
+  debian:1[12] |\
+  *suse*:15.* |\
+  rockylinux:[89] |\
+  ubuntu:22.04)
+    WARN_FLAGS="${WARN_FLAGS} -Wno-attributes"
+    ;;
+esac
+
 case "$DISTRO" in
   alpine:*)
     # Packages inspired by the Alpine package, just
