@@ -127,7 +127,7 @@ RUN --mount=type=bind,source=.,target=/icinga2,readonly \
         -DICINGA2_WITH_COMPAT=OFF \
         -DICINGA2_WITH_LIVESTATUS=OFF && \
     make -j$([ "$MAKE_JOBS" = auto ] && nproc || echo "$MAKE_JOBS") && \
-    CTEST_OUTPUT_ON_FAILURE=1 make test && \
+    if [ "${ICINGA2_BUILD_TESTING}" = ON ]; then CTEST_OUTPUT_ON_FAILURE=1 make test; fi && \
     make install DESTDIR=/icinga2-install
 
 RUN rm -rf /icinga2-install/etc/icinga2/features-enabled/mainlog.conf \
