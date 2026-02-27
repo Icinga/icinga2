@@ -3293,7 +3293,7 @@ This category includes all plugins for various network components like routers, 
 
 #### interfacetable <a id="plugin-contrib-command-interfacetable"></a>
 
-The [check_interfacetable_v3t](http://www.tontonitch.com/tiki/tiki-index.php?page=Nagios+plugins+-+interfacetable_v3t) plugin
+The [check_interfacetable_v3t](https://github.com/Tontonitch/interfacetable_v3t/blob/master/doc/00-toc.md) plugin
 generates a html page containing information about the monitored node and all of its interfaces.
 
 The Git repository is located on [GitHub](https://github.com/Tontonitch/interfacetable_v3t).
