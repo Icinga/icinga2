@@ -70,14 +70,13 @@ String CompatUtility::GetCheckableCommandArgs(const Checkable::Ptr& checkable)
 {
 	CheckCommand::Ptr command = checkable->GetCheckCommand();
 
-	Dictionary::Ptr args = new Dictionary();
-
 	if (command) {
 		Host::Ptr host;
 		Service::Ptr service;
 		tie(host, service) = GetHostService(checkable);
 		String command_line = GetCommandLine(command);
 
+		Dictionary::Ptr args = new Dictionary();
 		Dictionary::Ptr command_vars = command->GetVars();
 
 		if (command_vars) {

@@ -129,6 +129,7 @@ static Array::Ptr ArrayMap(const Function::Ptr& function)
 		BOOST_THROW_EXCEPTION(ScriptError("Map function must be side-effect free."));
 
 	ArrayData result;
+	result.reserve(self->GetLength());
 
 	ObjectLock olock(self);
 	for (const Value& item : self) {

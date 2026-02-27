@@ -738,6 +738,8 @@ Dictionary::Ptr ApiActions::ExecuteCommand(
 	MacroProcessor::ResolverList resolvers;
 	Value macros;
 
+	resolvers.reserve(4);
+
 	if (params->Contains("macros")) {
 		macros = HttpUtility::GetLastParameter(params, "macros");
 		if (macros.IsObjectType<Dictionary>()) {

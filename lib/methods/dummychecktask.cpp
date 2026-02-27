@@ -29,6 +29,7 @@ void DummyCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResu
 	tie(host, service) = GetHostService(checkable);
 
 	MacroProcessor::ResolverList resolvers;
+	resolvers.reserve(5);
 
 	if (MacroResolver::OverrideMacros)
 		resolvers.emplace_back("override", MacroResolver::OverrideMacros);
@@ -47,9 +48,6 @@ void DummyCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResu
 	if (resolvedMacros && !useResolvedMacros)
 		return;
 
-	/* Parse output and performance data. */
-	std::pair<String, String> co = PluginUtility::ParseCheckOutput(dummyText);
-
 	double now = Utility::GetTime();
 	String commandName = command->GetName();
 
@@ -63,6 +61,9 @@ void DummyCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckResu
 
 		Checkable::ExecuteCommandProcessFinishedHandler(commandName, pr);
 	} else {
+		/* Parse output and performance data. */
+		std::pair<String, String> co = PluginUtility::ParseCheckOutput(dummyText);
+
 		cr->SetOutput(co.first);
 		cr->SetPerformanceData(PluginUtility::SplitPerfdata(co.second));
 		cr->SetState(PluginUtility::ExitStatusToState(dummyState));

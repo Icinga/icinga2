@@ -34,7 +34,7 @@ void HttpHandler::Register(const Url::Ptr& url, const HttpHandler::Ptr& handler)
 			children->Set(elem, sub_node);
 		}
 
-		node = sub_node;
+		node = std::move(sub_node);
 	}
 
 	Array::Ptr handlers = node->Get("handlers");

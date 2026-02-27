@@ -55,6 +55,8 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 	MacroProcessor::ResolverList resolvers;
 	String silenceMissingMacroWarning;
 
+	resolvers.reserve(5);
+
 	if (MacroResolver::OverrideMacros)
 		resolvers.emplace_back("override", MacroResolver::OverrideMacros);
 
@@ -211,7 +213,7 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 			critmsgs << " ERROR: " << errMsg << "!";
 		}
 
-		perfdata->Add(new PerfdataValue("error_for", errFor * (err ? 1 : -1), false, "seconds", Empty, errForCritical, 0));
+		perfdata->Add(new PerfdataValue("error_for", errFor, false, "seconds", Empty, errForCritical, 0));
 	}
 
 	if (!down) {

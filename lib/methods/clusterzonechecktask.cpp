@@ -56,6 +56,7 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 	tie(host, service) = GetHostService(checkable);
 
 	MacroProcessor::ResolverList resolvers;
+	resolvers.reserve(5);
 
 	if (MacroResolver::OverrideMacros)
 		resolvers.emplace_back("override", MacroResolver::OverrideMacros);

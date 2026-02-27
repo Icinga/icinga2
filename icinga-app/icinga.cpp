@@ -46,6 +46,7 @@ static HANDLE l_Job;
 static std::vector<String> GetLogLevelCompletionSuggestions(const String& arg)
 {
 	std::vector<String> result;
+	result.reserve(5);
 
 	String debugLevel = "debug";
 	if (debugLevel.Find(arg) == 0)

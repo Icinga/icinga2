@@ -304,9 +304,6 @@ static void ProcessHandler()
 			}
 
 			count += rc;
-
-			if (rc == 0)
-				break;
 		}
 
 		String jrequest = String(mbuf, mbuf + count);

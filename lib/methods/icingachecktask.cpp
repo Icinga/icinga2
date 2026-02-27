@@ -33,6 +33,7 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	tie(host, service) = GetHostService(checkable);
 
 	MacroProcessor::ResolverList resolvers;
+	resolvers.reserve(5);
 
 	if (MacroResolver::OverrideMacros)
 		resolvers.emplace_back("override", MacroResolver::OverrideMacros);

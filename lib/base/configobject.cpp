@@ -213,8 +213,6 @@ void ConfigObject::RestoreAttribute(const String& attr, bool updateVersion)
 
 	int fid = type->GetFieldId(fieldName);
 
-	Value currentValue = GetField(fid);
-
 	Dictionary::Ptr original_attributes = GetOriginalAttributes();
 
 	if (!original_attributes)
@@ -224,6 +222,7 @@ void ConfigObject::RestoreAttribute(const String& attr, bool updateVersion)
 	Value newValue;
 
 	if (tokens.size() > 1) {
+		Value currentValue = GetField(fid);
 		newValue = currentValue.Clone();
 		Value current = newValue;
 

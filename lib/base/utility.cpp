@@ -1042,6 +1042,8 @@ String Utility::FormatDuration(double duration)
 	std::vector<String> tokens;
 	String result;
 
+	tokens.reserve(4);
+
 	if (duration >= 86400) {
 		int days = duration / 86400;
 		tokens.emplace_back(Convert::ToString(days) + (days != 1 ? " days" : " day"));
@@ -1065,7 +1067,7 @@ String Utility::FormatDuration(double duration)
 		tokens.emplace_back(Convert::ToString(seconds) + (seconds != 1 ? " seconds" : " second"));
 	}
 
-	if (tokens.size() == 0) {
+	if (tokens.empty()) {
 		int milliseconds = std::floor(duration * 1000);
 		if (milliseconds >= 1)
 			tokens.emplace_back(Convert::ToString(milliseconds) + (milliseconds != 1 ? " milliseconds" : " millisecond"));
@@ -1662,7 +1664,7 @@ static bool ReleaseHelper(String *platformName, String *platformVersion)
 	if (release.is_open()) {
 		std::string release_line;
 		while (getline(release, release_line)) {
-			std::string::size_type pos = release_line.find("=");
+			std::string::size_type pos = release_line.find('=');
 
 			if (pos == std::string::npos)
 				continue;
@@ -1670,12 +1672,12 @@ static bool ReleaseHelper(String *platformName, String *platformVersion)
 			std::string key = release_line.substr(0, pos);
 			std::string value = release_line.substr(pos + 1);
 
-			std::string::size_type firstQuote = value.find("\"");
+			std::string::size_type firstQuote = value.find('"');
 
 			if (firstQuote != std::string::npos)
 				value.erase(0, firstQuote + 1);
 
-			std::string::size_type lastQuote = value.rfind("\"");
+			std::string::size_type lastQuote = value.rfind('"');
 
 			if (lastQuote != std::string::npos)
 				value.erase(lastQuote);
