@@ -1094,12 +1094,12 @@ bool VerifyCertificate(X509* caCertificate, X509* certificate, const String& crl
 	}
 
 	X509_STORE_CTX *csc = X509_STORE_CTX_new();
-	X509_STORE_CTX_init(csc, store, certificate.get(), chain);
+	X509_STORE_CTX_init(csc, store, certificate, chain);
 
-	int rc = X509_verify_cert(csc.get());
+	int rc = X509_verify_cert(csc);
 
 	if (rc == 0) {
-		int err = X509_STORE_CTX_get_error(csc.get());
+		int err = X509_STORE_CTX_get_error(csc);
 
 		BOOST_THROW_EXCEPTION(openssl_error()
 			<< boost::errinfo_api_function("X509_verify_cert")
