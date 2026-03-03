@@ -94,14 +94,14 @@ void LogQuery(RedisConnection::Query& query, Log& msg)
 {
 	int i = 0;
 
-	for (auto& arg : query) {
+	for (std::string_view arg : query) {
 		if (++i == 8) {
 			msg << " ...";
 			break;
 		}
 
-		if (arg.GetLength() > 64) {
-			msg << " '" << arg.SubStr(0, 61) << "...'";
+		if (arg.length() > 64) {
+			msg << " '" << arg.substr(0, 61) << "...'";
 		} else {
 			msg << " '" << arg << '\'';
 		}
