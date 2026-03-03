@@ -636,7 +636,7 @@ static ConfigObject::Ptr GetObjectByName(const String& name)
 	return ConfigObject::GetObject<ConfigType>(name);
 }
 
-void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const String typeName,
+void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const String& typeName,
 	std::map<RedisConnection::QueryArg, RedisConnection::Query>& hMSets, std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate)
 {
 	String objectKey = GetObjectIdentifier(object);
@@ -1807,7 +1807,7 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
  * icinga:config:object:downtime) need to be prepended. There is nothing to indicate success or failure.
  */
 void
-IcingaDB::CreateConfigUpdate(const ConfigObject::Ptr& object, const String typeName,
+IcingaDB::CreateConfigUpdate(const ConfigObject::Ptr& object, const String& typeName,
 	std::map<RedisConnection::QueryArg, RedisConnection::Query>& hMSets, std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate)
 {
 	/* TODO: This isn't essentially correct as we don't keep track of config objects ourselves. This would avoid duplicated config updates at startup.
