@@ -223,26 +223,46 @@ void Dependency::InitChildParentReferences()
 	Host::Ptr childHost = Host::GetByName(GetChildHostName());
 
 	if (childHost) {
-		if (GetChildServiceName().IsEmpty())
+		if (GetChildServiceName().IsEmpty()) {
 			m_Child = childHost;
-		else
+		} else {
 			m_Child = childHost->GetServiceByShortName(GetChildServiceName());
+			if (!m_Child) {
+				BOOST_THROW_EXCEPTION(ScriptError(
+					"Dependency '" + GetName() + "' references child service '" + GetChildServiceName() + "' on '" +
+						GetChildHostName() + "' which doesn't exist.",
+					GetDebugInfo()
+				));
+			}
+		}
+	} else {
+		BOOST_THROW_EXCEPTION(ScriptError(
+			"Dependency '" + GetName() + "' references child host '" + GetChildHostName() + "' which doesn't exist.",
+			GetDebugInfo()
+		));
 	}
-
-	if (!m_Child)
-		BOOST_THROW_EXCEPTION(ScriptError("Dependency '" + GetName() + "' references a child host/service which doesn't exist.", GetDebugInfo()));
 
 	Host::Ptr parentHost = Host::GetByName(GetParentHostName());
 
 	if (parentHost) {
-		if (GetParentServiceName().IsEmpty())
+		if (GetParentServiceName().IsEmpty()) {
 			m_Parent = parentHost;
-		else
+		} else {
 			m_Parent = parentHost->GetServiceByShortName(GetParentServiceName());
+			if (!m_Parent) {
+				BOOST_THROW_EXCEPTION(ScriptError(
+					"Dependency '" + GetName() + "' references parent service '" + GetParentServiceName() + "' on '" +
+						GetParentHostName() + "' which doesn't exist.",
+					GetDebugInfo()
+				));
+			}
+		}
+	} else {
+		BOOST_THROW_EXCEPTION(ScriptError(
+			"Dependency '" + GetName() + "' references parent host '" + GetParentHostName() + "' which doesn't exist.",
+			GetDebugInfo()
+		));
 	}
-
-	if (!m_Parent)
-		BOOST_THROW_EXCEPTION(ScriptError("Dependency '" + GetName() + "' references a parent host/service which doesn't exist.", GetDebugInfo()));
 }
 
 void Dependency::OnAllConfigLoaded()
