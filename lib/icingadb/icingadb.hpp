@@ -252,8 +252,7 @@ private:
 		std::vector<Dictionary::Ptr>* runtimeUpdates, const DependencyGroup::Ptr& onlyDependencyGroup = nullptr);
 	void InsertObjectDependencies(const ConfigObject::Ptr& object,
 		std::map<RedisConnection::QueryArg, RedisConnection::Query>& hMSets, std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate);
-	void UpdateDependenciesState(const Checkable::Ptr& checkable, const DependencyGroup::Ptr& onlyDependencyGroup = nullptr,
-		std::set<DependencyGroup*>* seenGroups = nullptr) const;
+	void UpdateDependenciesState(const Checkable::Ptr& checkable, const DependencyGroup::Ptr& dependencyGroup) const;
 	void UpdateState(const Checkable::Ptr& checkable, StateUpdate mode);
 	void SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpdate);
 	void CreateConfigUpdate(const ConfigObject::Ptr& object, const QueryArgPair& redisKeyPair,
@@ -288,8 +287,6 @@ private:
 	void SendCommandEnvChanged(const ConfigObject::Ptr& command, const CmdArgEnvRedisKeys& cmdRedisKeys, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
 	void SendCommandArgumentsChanged(const ConfigObject::Ptr& command, const CmdArgEnvRedisKeys& cmdRedisKeys, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
 	void SendCustomVarsChanged(const ConfigObject::Ptr& object, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
-	void SendDependencyGroupChildRegistered(const Checkable::Ptr& child, const DependencyGroup::Ptr& dependencyGroup);
-	void SendDependencyGroupChildRemoved(const DependencyGroup::Ptr& dependencyGroup, const std::vector<Dependency::Ptr>& dependencies, bool removeGroup);
 
 	void ForwardHistoryEntries();
 
