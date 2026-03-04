@@ -36,9 +36,6 @@ IcingaDB::IcingaDB()
 	m_RconLocked.store(nullptr);
 
 	m_WorkQueue.SetName("IcingaDB");
-
-	m_PrefixConfigObject = "icinga:";
-	m_PrefixConfigCheckSum = "icinga:checksum:";
 }
 
 void IcingaDB::Validate(int types, const ValidationUtils& utils)
