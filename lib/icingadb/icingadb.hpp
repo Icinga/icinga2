@@ -150,6 +150,7 @@ struct PendingDependencyEdgeItem : PendingQueueItem
 	PendingDependencyEdgeItem(const DependencyGroup::Ptr& depGroup, const Checkable::Ptr& child);
 
 	Key GetID() const override { return std::make_pair(Child.get(), DepGroup.get()); }
+	ConfigObject::Ptr GetObjectToLock() const override { return Child; }
 	void Execute(IcingaDB& icingadb) const override;
 };
 
