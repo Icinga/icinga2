@@ -305,7 +305,6 @@ void IcingaDB::UpdateAllConfigObjects()
 
 		upqObjectType.ParallelFor(objectChunks, [&](decltype(objectChunks)::const_reference chunk) {
 			std::map<RedisConnection::QueryArg, RedisConnection::Query> hMSets;
-			RedisConnection::Query hostZAdds = {"ZADD", "icinga:nextupdate:host"}, serviceZAdds = {"ZADD", "icinga:nextupdate:service"};
 
 			auto skimObjects ([&]() {
 				std::lock_guard<std::mutex> l (ourContentMutex);
@@ -365,30 +364,13 @@ void IcingaDB::UpdateAllConfigObjects()
 				auto checkable (dynamic_pointer_cast<Checkable>(object));
 
 				if (checkable && checkable->GetEnableActiveChecks()) {
-					auto zAdds (dynamic_pointer_cast<Service>(checkable) ? &serviceZAdds : &hostZAdds);
-
-					zAdds->emplace_back(Convert::ToString(checkable->GetNextUpdate()));
-					zAdds->emplace_back(GetObjectIdentifier(checkable));
-
-					if (zAdds->size() >= 102u) {
-						RedisConnection::Query header (zAdds->begin(), zAdds->begin() + 2u);
-
-						rcon->FireAndForgetQuery(std::move(*zAdds), Prio::CheckResult);
-
-						*zAdds = std::move(header);
-					}
+					EnqueueConfigObject(checkable, NextUpdate);
 				}
 			}
 
 			skimObjects();
 
 			ExecuteRedisTransaction(rcon, hMSets, {});
-
-			for (auto zAdds : {&hostZAdds, &serviceZAdds}) {
-				if (zAdds->size() > 2u) {
-					rcon->FireAndForgetQuery(std::move(*zAdds), Prio::CheckResult);
-				}
-			}
 
 			Log(LogNotice, "IcingaDB")
 				<< "Dumped " << bulkCounter << " objects of " << type->ToString();
