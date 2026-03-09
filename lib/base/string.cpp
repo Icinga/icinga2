@@ -123,9 +123,14 @@ bool String::operator<(const String& rhs) const
 	return m_Data < rhs.m_Data;
 }
 
-String::operator const std::string&() const
+String::operator std::string() const&
 {
 	return m_Data;
+}
+
+String::operator std::string() &&
+{
+	return std::move(m_Data);
 }
 
 /**
@@ -155,12 +160,17 @@ String::SizeType String::GetLength() const
 	return m_Data.size();
 }
 
-std::string& String::GetData()
+std::string& String::GetData() &
 {
 	return m_Data;
 }
 
-const std::string& String::GetData() const
+std::string&& String::GetData() &&
+{
+	return std::move(m_Data);
+}
+
+const std::string& String::GetData() const &
 {
 	return m_Data;
 }

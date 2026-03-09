@@ -74,7 +74,8 @@ public:
 
 	bool operator<(const String& rhs) const;
 
-	operator const std::string&() const;
+	operator std::string() const &;
+	operator std::string() &&;
 	operator boost::beast::string_view() const;
 
 	const char *CStr() const;
@@ -83,8 +84,9 @@ public:
 
 	SizeType GetLength() const;
 
-	std::string& GetData();
-	const std::string& GetData() const;
+	std::string& GetData() &;
+	std::string&& GetData() &&;
+	const std::string& GetData() const &;
 
 	SizeType Find(const String& str, SizeType pos = 0) const;
 	SizeType RFind(const String& str, SizeType pos = NPos) const;
