@@ -279,7 +279,7 @@ bool String::Contains(const String& str) const
 	return (m_Data.find(str.GetData()) != std::string::npos);
 }
 
-void String::swap(String& str)
+void String::swap(String& str) noexcept
 {
 	m_Data.swap(str.m_Data);
 }

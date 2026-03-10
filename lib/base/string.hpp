@@ -118,7 +118,7 @@ public:
 
 	bool Contains(const String& str) const;
 
-	void swap(String& str);
+	void swap(String& str) noexcept;
 
 	Iterator erase(Iterator first, Iterator last);
 
