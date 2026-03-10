@@ -26,12 +26,16 @@ String::String(std::string data)
 	: m_Data(std::move(data))
 { }
 
-String::String(String::SizeType n, char c)
-	: m_Data(n, c)
+String::String(const char *data, std::size_t size)
+	: m_Data(data, size)
 { }
 
-String::String(const String& other)
-	: m_Data(other)
+String::String(std::string_view sv)
+	: m_Data(sv)
+{ }
+
+String::String(String::SizeType n, char c)
+	: m_Data(n, c)
 { }
 
 String::String(String&& other) noexcept
@@ -392,6 +396,11 @@ bool icinga::operator!=(const String& lhs, const char *rhs)
 bool icinga::operator!=(const char *lhs, const String& rhs)
 {
 	return lhs != rhs.GetData();
+}
+
+String icinga::operator""_S(const char* ptr, size_t size)
+{
+	return String{ptr, size};
 }
 
 std::size_t std::hash<String>::operator()(const String& s) const noexcept

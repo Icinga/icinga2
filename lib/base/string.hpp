@@ -43,8 +43,10 @@ public:
 	String() = default;
 	String(const char *data);
 	String(std::string data);
+	String(const char *data, std::size_t size);
+	explicit String(std::string_view sv);
 	String(String::SizeType n, char c);
-	String(const String& other);
+	String(const String& other) = default;
 	String(String&& other) noexcept;
 
 #ifndef _MSC_VER
@@ -170,7 +172,9 @@ bool operator>=(const char *lhs, const String& rhs);
 
 bool operator!=(const String& lhs, const String& rhs);
 bool operator!=(const String& lhs, const char *rhs);
-bool operator!=(const char *lhs, const String& rhs);
+bool operator!=(const char* lhs, const String& rhs);
+
+String operator ""_S(const char* ptr, std::size_t size);
 }
 
 template<>
