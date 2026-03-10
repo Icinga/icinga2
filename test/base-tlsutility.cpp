@@ -6,6 +6,7 @@
 #include "base/utility.hpp"
 #include "remote/pkiutility.hpp"
 #include "test/remote-certificate-fixture.hpp"
+#include "test/test-ctest.hpp"
 #include <BoostTestTargetConfig.h>
 #include <openssl/evp.h>
 #include <openssl/x509.h>
@@ -171,7 +172,8 @@ BOOST_AUTO_TEST_CASE(static_certs_uptodate)
 	BOOST_CHECK(!IsCertUptodate(StringToCertificate(l_ExpiredCrt)));
 }
 
-BOOST_FIXTURE_TEST_CASE(create_verify_ca, CertificateFixture)
+BOOST_FIXTURE_TEST_CASE(create_verify_ca, CertificateFixture,
+	*CTestProperties("FIXTURES_REQUIRED dirty_ssl_certs"))
 {
 	auto cacert(GetX509Certificate(m_CaDir.string()+"/ca.crt"));
 	if constexpr (OPENSSL_VERSION_NUMBER >= 0x10100000L) {
@@ -195,7 +197,8 @@ BOOST_FIXTURE_TEST_CASE(create_verify_ca, CertificateFixture)
 	BOOST_CHECK(!IsCaUptodate(cacert.get())); // Still outdated, as it's less than LEAF_VALID_FOR.
 }
 
-BOOST_FIXTURE_TEST_CASE(create_verify_leaf_certs, CertificateFixture)
+BOOST_FIXTURE_TEST_CASE(create_verify_leaf_certs, CertificateFixture,
+	*CTestProperties("FIXTURES_REQUIRED dirty_ssl_certs"))
 {
 	String caDir = m_CaDir.string();
 	String certsDir = m_CertsDir.string();
