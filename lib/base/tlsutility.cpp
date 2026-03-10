@@ -136,7 +136,7 @@ static void InitSslContext(const Shared<boost::asio::ssl::context>::Ptr& context
 			BOOST_THROW_EXCEPTION(openssl_error()
 				<< boost::errinfo_api_function("SSL_CTX_use_certificate_chain_file")
 				<< errinfo_openssl_error(ERR_peek_error())
-				<< boost::errinfo_file_name(pubkey));
+				<< boost::errinfo_file_name(~pubkey));
 		}
 	}
 
@@ -148,7 +148,7 @@ static void InitSslContext(const Shared<boost::asio::ssl::context>::Ptr& context
 			BOOST_THROW_EXCEPTION(openssl_error()
 				<< boost::errinfo_api_function("SSL_CTX_use_PrivateKey_file")
 				<< errinfo_openssl_error(ERR_peek_error())
-				<< boost::errinfo_file_name(privkey));
+				<< boost::errinfo_file_name(~privkey));
 		}
 
 		if (!SSL_CTX_check_private_key(sslContext)) {
@@ -178,7 +178,7 @@ static void InitSslContext(const Shared<boost::asio::ssl::context>::Ptr& context
 			BOOST_THROW_EXCEPTION(openssl_error()
 				<< boost::errinfo_api_function("SSL_CTX_load_verify_locations")
 				<< errinfo_openssl_error(ERR_peek_error())
-				<< boost::errinfo_file_name(cakey));
+				<< boost::errinfo_file_name(~cakey));
 		}
 
 		STACK_OF(X509_NAME) *cert_names;
@@ -191,7 +191,7 @@ static void InitSslContext(const Shared<boost::asio::ssl::context>::Ptr& context
 			BOOST_THROW_EXCEPTION(openssl_error()
 				<< boost::errinfo_api_function("SSL_load_client_CA_file")
 				<< errinfo_openssl_error(ERR_peek_error())
-				<< boost::errinfo_file_name(cakey));
+				<< boost::errinfo_file_name(~cakey));
 		}
 
 		SSL_CTX_set_client_CA_list(sslContext, cert_names);
@@ -394,7 +394,7 @@ void AddCRLToSSLContext(X509_STORE *x509_store, const String& crlPath)
 		BOOST_THROW_EXCEPTION(openssl_error()
 			<< boost::errinfo_api_function("X509_LOOKUP_load_file")
 			<< errinfo_openssl_error(ERR_peek_error())
-			<< boost::errinfo_file_name(crlPath));
+			<< boost::errinfo_file_name(~crlPath));
 	}
 
 	X509_VERIFY_PARAM *param = X509_VERIFY_PARAM_new();
@@ -461,7 +461,7 @@ std::shared_ptr<X509> GetX509Certificate(const String& pemfile)
 		BOOST_THROW_EXCEPTION(openssl_error()
 			<< boost::errinfo_api_function("BIO_read_filename")
 			<< errinfo_openssl_error(ERR_peek_error())
-			<< boost::errinfo_file_name(pemfile));
+			<< boost::errinfo_file_name(~pemfile));
 	}
 
 	cert = PEM_read_bio_X509_AUX(fpcert, nullptr, nullptr, nullptr);
@@ -472,7 +472,7 @@ std::shared_ptr<X509> GetX509Certificate(const String& pemfile)
 		BOOST_THROW_EXCEPTION(openssl_error()
 			<< boost::errinfo_api_function("PEM_read_bio_X509_AUX")
 			<< errinfo_openssl_error(ERR_peek_error())
-			<< boost::errinfo_file_name(pemfile));
+			<< boost::errinfo_file_name(~pemfile));
 	}
 
 	BIO_free(fpcert);
@@ -531,7 +531,7 @@ int MakeX509CSR(
 		BOOST_THROW_EXCEPTION(openssl_error()
 			<< boost::errinfo_api_function("BIO_new_file")
 			<< errinfo_openssl_error(ERR_peek_error())
-			<< boost::errinfo_file_name(keyfile));
+			<< boost::errinfo_file_name(~keyfile));
 	}
 
 	if (!PEM_write_bio_RSAPrivateKey(bio, rsa, nullptr, nullptr, 0, nullptr, nullptr)) {
@@ -541,7 +541,7 @@ int MakeX509CSR(
 		BOOST_THROW_EXCEPTION(openssl_error()
 			<< boost::errinfo_api_function("PEM_write_bio_RSAPrivateKey")
 			<< errinfo_openssl_error(ERR_peek_error())
-			<< boost::errinfo_file_name(keyfile));
+			<< boost::errinfo_file_name(~keyfile));
 	}
 
 	BIO_free(bio);
@@ -573,7 +573,7 @@ int MakeX509CSR(
 			BOOST_THROW_EXCEPTION(openssl_error()
 				<< boost::errinfo_api_function("BIO_new_file")
 				<< errinfo_openssl_error(ERR_peek_error())
-				<< boost::errinfo_file_name(certfile));
+				<< boost::errinfo_file_name(~certfile));
 		}
 
 		if (!PEM_write_bio_X509(bio, cert.get())) {
@@ -583,7 +583,7 @@ int MakeX509CSR(
 			BOOST_THROW_EXCEPTION(openssl_error()
 				<< boost::errinfo_api_function("PEM_write_bio_X509")
 				<< errinfo_openssl_error(ERR_peek_error())
-				<< boost::errinfo_file_name(certfile));
+				<< boost::errinfo_file_name(~certfile));
 		}
 
 		BIO_free(bio);
@@ -627,7 +627,7 @@ int MakeX509CSR(
 			BOOST_THROW_EXCEPTION(openssl_error()
 				<< boost::errinfo_api_function("BIO_new_file")
 				<< errinfo_openssl_error(ERR_peek_error())
-				<< boost::errinfo_file_name(csrfile));
+				<< boost::errinfo_file_name(~csrfile));
 		}
 
 		if (!PEM_write_bio_X509_REQ(bio, req)) {
@@ -637,7 +637,7 @@ int MakeX509CSR(
 			BOOST_THROW_EXCEPTION(openssl_error()
 				<< boost::errinfo_api_function("PEM_write_bio_X509")
 				<< errinfo_openssl_error(ERR_peek_error())
-				<< boost::errinfo_file_name(csrfile));
+				<< boost::errinfo_file_name(~csrfile));
 		}
 
 		BIO_free(bio);

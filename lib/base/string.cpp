@@ -127,6 +127,26 @@ bool String::operator<(const String& rhs) const
 	return m_Data < rhs.m_Data;
 }
 
+std::string String::operator~() const&
+{
+	return m_Data;
+}
+
+std::string& String::operator*() &
+{
+	return m_Data;
+}
+
+std::string&& String::operator*() &&
+{
+	return std::move(m_Data);
+}
+
+const std::string& String::operator*() const&
+{
+	return m_Data;
+}
+
 String::operator std::string() const&
 {
 	return m_Data;

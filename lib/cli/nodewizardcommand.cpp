@@ -482,7 +482,7 @@ wizard_ticket:
 	std::getline(std::cin, answer);
 
 	if (answer.empty())
-		answer = endpointName;
+		answer = ~endpointName;
 
 	String zoneName = answer;
 	zoneName = zoneName.Trim();

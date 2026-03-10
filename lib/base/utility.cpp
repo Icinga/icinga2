@@ -405,7 +405,7 @@ static bool GlobHelper(const String& pathSpec, int type, std::vector<String>& fi
 		BOOST_THROW_EXCEPTION(win32_error()
 			<< boost::errinfo_api_function("FindFirstFile")
 			<< errinfo_win32_error(errorCode)
-			<< boost::errinfo_file_name(pathSpec));
+			<< boost::errinfo_file_name(~pathSpec));
 	}
 
 	do {
@@ -502,7 +502,7 @@ bool Utility::Glob(const String& pathSpec, const std::function<void (const Strin
 		BOOST_THROW_EXCEPTION(posix_error()
 			<< boost::errinfo_api_function("glob")
 			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(pathSpec));
+			<< boost::errinfo_file_name(~pathSpec));
 	}
 
 	if (gr.gl_pathc == 0) {
@@ -574,7 +574,7 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const std
 		BOOST_THROW_EXCEPTION(win32_error()
 			<< boost::errinfo_api_function("FindFirstFile")
 			<< errinfo_win32_error(errorCode)
-			<< boost::errinfo_file_name(pathSpec));
+			<< boost::errinfo_file_name(~pathSpec));
 	}
 
 	do {
@@ -610,7 +610,7 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const std
 		BOOST_THROW_EXCEPTION(posix_error()
 			<< boost::errinfo_api_function("opendir")
 			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(path));
+			<< boost::errinfo_file_name(~path));
 
 	while (dirp) {
 		dirent *pent;
@@ -623,7 +623,7 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const std
 			BOOST_THROW_EXCEPTION(posix_error()
 				<< boost::errinfo_api_function("readdir")
 				<< boost::errinfo_errno(errno)
-				<< boost::errinfo_file_name(path));
+				<< boost::errinfo_file_name(~path));
 		}
 
 		if (!pent)
@@ -687,7 +687,7 @@ void Utility::MkDir(const String& path, int mode)
 		BOOST_THROW_EXCEPTION(posix_error()
 			<< boost::errinfo_api_function("mkdir")
 			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(path));
+			<< boost::errinfo_file_name(~path));
 	}
 }
 

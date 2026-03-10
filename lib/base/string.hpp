@@ -76,7 +76,11 @@ public:
 
 	bool operator<(const String& rhs) const;
 
-	operator std::string() const &;
+	std::string operator~() const&;
+	std::string& operator*() &;
+	std::string&& operator*() &&;
+	const std::string& operator*() const&;
+	explicit operator std::string() const&;
 	operator std::string() &&;
 	operator std::string_view() const;
 	operator boost::beast::string_view() const;
