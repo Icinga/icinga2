@@ -177,12 +177,12 @@ const std::string& String::GetData() const &
 
 String::SizeType String::Find(const String& str, String::SizeType pos) const
 {
-	return m_Data.find(str, pos);
+	return m_Data.find(str.GetData(), pos);
 }
 
 String::SizeType String::RFind(const String& str, String::SizeType pos) const
 {
-	return m_Data.rfind(str, pos);
+	return m_Data.rfind(str.GetData(), pos);
 }
 
 String::SizeType String::FindFirstOf(const char *s, String::SizeType pos) const
@@ -229,7 +229,7 @@ std::vector<String> String::Split(const char *separators) const
 
 void String::Replace(String::SizeType first, String::SizeType second, const String& str)
 {
-	m_Data.replace(first, second, str);
+	m_Data.replace(first, second, str.GetData());
 }
 
 String String::Trim() const
@@ -267,7 +267,7 @@ void String::Append(int count, char ch)
 
 bool String::Contains(const String& str) const
 {
-	return (m_Data.find(str) != std::string::npos);
+	return (m_Data.find(str.GetData()) != std::string::npos);
 }
 
 void String::swap(String& str)
