@@ -259,7 +259,7 @@ bool Utility::CidrMatch(const String& pattern, const String& ip)
  */
 String Utility::DirName(const String& path)
 {
-	return boost::filesystem::path(path).parent_path().string();
+	return boost::filesystem::path{*path}.parent_path().string();
 }
 
 /**
@@ -270,7 +270,7 @@ String Utility::DirName(const String& path)
  */
 String Utility::BaseName(const String& path)
 {
-	return boost::filesystem::path(path).filename().string();
+	return boost::filesystem::path{*path}.filename().string();
 }
 
 /**
@@ -713,14 +713,14 @@ void Utility::Remove(const String& path)
 {
 	namespace fs = boost::filesystem;
 
-	(void)fs::remove(fs::path(path));
+	(void)fs::remove(fs::path{*path});
 }
 
 void Utility::RemoveDirRecursive(const String& path)
 {
 	namespace fs = boost::filesystem;
 
-	(void)fs::remove_all(fs::path(path));
+	(void)fs::remove_all(fs::path{*path});
 }
 
 /*
@@ -732,9 +732,9 @@ void Utility::CopyFile(const String& source, const String& target)
 	namespace fs = boost::filesystem;
 
 #if BOOST_VERSION >= 107400
-	fs::copy_file(fs::path(source), fs::path(target), fs::copy_options::overwrite_existing);
+	fs::copy_file(fs::path{*source}, fs::path{*target}, fs::copy_options::overwrite_existing);
 #else /* BOOST_VERSION */
-	fs::copy_file(fs::path(source), fs::path(target), fs::copy_option::overwrite_if_exists);
+	fs::copy_file(fs::path{*source}, fs::path{*source}, fs::copy_option::overwrite_if_exists);
 #endif /* BOOST_VERSION */
 }
 
@@ -746,7 +746,7 @@ void Utility::RenameFile(const String& source, const String& target)
 {
 	namespace fs = boost::filesystem;
 
-	fs::path sourcePath(source), targetPath(target);
+	fs::path sourcePath{*source}, targetPath{*target};
 
 #ifndef _WIN32
 	fs::rename(sourcePath, targetPath);
@@ -1265,15 +1265,15 @@ String Utility::EscapeCreateProcessArg(const String& arg)
 
 	String result = "\"";
 
-	for (String::ConstIterator it = arg.Begin(); ; it++) {
+	for (String::ConstIterator it = arg.begin(); ; it++) {
 		int numBackslashes = 0;
 
-		while (it != arg.End() && *it == '\\') {
+		while (it != arg.end() && *it == '\\') {
 			it++;
 			numBackslashes++;
 		}
 
-		if (it == arg.End()) {
+		if (it == arg.end()) {
 			result.Append(numBackslashes * 2, '\\');
 			break;
 		} else if (*it == '"') {
@@ -1509,7 +1509,7 @@ bool Utility::PathExists(const String& path)
 
 	boost::system::error_code ec;
 
-	return fs::exists(fs::path(path), ec) && !ec;
+	return fs::exists(fs::path{*path}, ec) && !ec;
 }
 
 time_t Utility::GetFileCreationTime(const String& path)
