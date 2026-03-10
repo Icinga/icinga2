@@ -80,7 +80,7 @@ void ConfigObjectUtility::RepairPackage(const String& package)
 	namespace fs = boost::filesystem;
 
 	/* Use iterators to workaround VS builds on Windows. */
-	fs::path path(dir.Begin(), dir.End());
+	fs::path path(dir);
 
 	fs::recursive_directory_iterator end;
 

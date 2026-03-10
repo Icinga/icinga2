@@ -280,46 +280,6 @@ String::Iterator String::erase(String::Iterator first, String::Iterator last)
 	return m_Data.erase(first, last);
 }
 
-String::Iterator String::Begin()
-{
-	return m_Data.begin();
-}
-
-String::ConstIterator String::Begin() const
-{
-	return m_Data.begin();
-}
-
-String::Iterator String::End()
-{
-	return m_Data.end();
-}
-
-String::ConstIterator String::End() const
-{
-	return m_Data.end();
-}
-
-String::ReverseIterator String::RBegin()
-{
-	return m_Data.rbegin();
-}
-
-String::ConstReverseIterator String::RBegin() const
-{
-	return m_Data.rbegin();
-}
-
-String::ReverseIterator String::REnd()
-{
-	return m_Data.rend();
-}
-
-String::ConstReverseIterator String::REnd() const
-{
-	return m_Data.rend();
-}
-
 std::ostream& icinga::operator<<(std::ostream& stream, const String& str)
 {
 	stream << str.GetData();
@@ -432,45 +392,6 @@ bool icinga::operator!=(const String& lhs, const char *rhs)
 bool icinga::operator!=(const char *lhs, const String& rhs)
 {
 	return lhs != rhs.GetData();
-}
-
-String::Iterator icinga::begin(String& x)
-{
-	return x.Begin();
-}
-
-String::ConstIterator icinga::begin(const String& x)
-{
-	return x.Begin();
-}
-
-String::Iterator icinga::end(String& x)
-{
-	return x.End();
-}
-
-String::ConstIterator icinga::end(const String& x)
-{
-	return x.End();
-}
-String::Iterator icinga::range_begin(String& x)
-{
-	return x.Begin();
-}
-
-String::ConstIterator icinga::range_begin(const String& x)
-{
-	return x.Begin();
-}
-
-String::Iterator icinga::range_end(String& x)
-{
-	return x.End();
-}
-
-String::ConstIterator icinga::range_end(const String& x)
-{
-	return x.End();
 }
 
 std::size_t std::hash<String>::operator()(const String& s) const noexcept

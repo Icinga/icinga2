@@ -125,14 +125,14 @@ public:
 		m_Data.insert(p, first, last);
 	}
 
-	Iterator Begin();
-	ConstIterator Begin() const;
-	Iterator End();
-	ConstIterator End() const;
-	ReverseIterator RBegin();
-	ConstReverseIterator RBegin() const;
-	ReverseIterator REnd();
-	ConstReverseIterator REnd() const;
+	Iterator begin() { return m_Data.begin(); }
+	ConstIterator begin() const { return m_Data.begin(); }
+	Iterator end() { return m_Data.end(); }
+	ConstIterator end() const { return m_Data.end(); }
+	ReverseIterator rbegin() { return m_Data.rbegin(); }
+	ConstReverseIterator rbegin() const { return m_Data.rbegin(); }
+	ReverseIterator rend() { return m_Data.rend(); }
+	ConstReverseIterator rend() const { return m_Data.rend(); }
 
 	static const SizeType NPos;
 
@@ -171,16 +171,6 @@ bool operator>=(const char *lhs, const String& rhs);
 bool operator!=(const String& lhs, const String& rhs);
 bool operator!=(const String& lhs, const char *rhs);
 bool operator!=(const char *lhs, const String& rhs);
-
-String::Iterator begin(String& x);
-String::ConstIterator begin(const String& x);
-String::Iterator end(String& x);
-String::ConstIterator end(const String& x);
-String::Iterator range_begin(String& x);
-String::ConstIterator range_begin(const String& x);
-String::Iterator range_end(String& x);
-String::ConstIterator range_end(const String& x);
-
 }
 
 template<>

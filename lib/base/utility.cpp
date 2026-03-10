@@ -259,7 +259,7 @@ bool Utility::CidrMatch(const String& pattern, const String& ip)
  */
 String Utility::DirName(const String& path)
 {
-	return boost::filesystem::path(path.Begin(), path.End()).parent_path().string();
+	return boost::filesystem::path(path).parent_path().string();
 }
 
 /**
@@ -270,7 +270,7 @@ String Utility::DirName(const String& path)
  */
 String Utility::BaseName(const String& path)
 {
-	return boost::filesystem::path(path.Begin(), path.End()).filename().string();
+	return boost::filesystem::path(path).filename().string();
 }
 
 /**
@@ -713,14 +713,14 @@ void Utility::Remove(const String& path)
 {
 	namespace fs = boost::filesystem;
 
-	(void)fs::remove(fs::path(path.Begin(), path.End()));
+	(void)fs::remove(fs::path(path));
 }
 
 void Utility::RemoveDirRecursive(const String& path)
 {
 	namespace fs = boost::filesystem;
 
-	(void)fs::remove_all(fs::path(path.Begin(), path.End()));
+	(void)fs::remove_all(fs::path(path));
 }
 
 /*
@@ -732,9 +732,9 @@ void Utility::CopyFile(const String& source, const String& target)
 	namespace fs = boost::filesystem;
 
 #if BOOST_VERSION >= 107400
-	fs::copy_file(fs::path(source.Begin(), source.End()), fs::path(target.Begin(), target.End()), fs::copy_options::overwrite_existing);
+	fs::copy_file(fs::path(source), fs::path(target), fs::copy_options::overwrite_existing);
 #else /* BOOST_VERSION */
-	fs::copy_file(fs::path(source.Begin(), source.End()), fs::path(target.Begin(), target.End()), fs::copy_option::overwrite_if_exists);
+	fs::copy_file(fs::path(source), fs::path(target), fs::copy_option::overwrite_if_exists);
 #endif /* BOOST_VERSION */
 }
 
@@ -746,7 +746,7 @@ void Utility::RenameFile(const String& source, const String& target)
 {
 	namespace fs = boost::filesystem;
 
-	fs::path sourcePath(source.Begin(), source.End()), targetPath(target.Begin(), target.End());
+	fs::path sourcePath(source), targetPath(target);
 
 #ifndef _WIN32
 	fs::rename(sourcePath, targetPath);
@@ -1509,7 +1509,7 @@ bool Utility::PathExists(const String& path)
 
 	boost::system::error_code ec;
 
-	return fs::exists(fs::path(path.Begin(), path.End()), ec) && !ec;
+	return fs::exists(fs::path(path), ec) && !ec;
 }
 
 time_t Utility::GetFileCreationTime(const String& path)
@@ -1801,7 +1801,7 @@ String Utility::ValidateUTF8(const String& input)
 	output.reserve(input.GetLength());
 
 	try {
-		utf8::replace_invalid(input.Begin(), input.End(), std::back_inserter(output));
+		utf8::replace_invalid(input.begin(), input.end(), std::back_inserter(output));
 	} catch (const utf8::not_enough_room&) {
 		output.insert(output.end(), (const char*)l_Utf8Replacement, (const char*)l_Utf8Replacement + 3);
 	}

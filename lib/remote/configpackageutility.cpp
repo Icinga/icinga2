@@ -386,7 +386,7 @@ bool ConfigPackageUtility::ValidateFreshName(const String& name)
 	if (ContainsDotDot(name))
 		return false;
 
-	return std::all_of(name.Begin(), name.End(), [](char c) {
+	return std::all_of(name.begin(), name.end(), [](char c) {
 		return std::isalnum(c, std::locale::classic()) || c == '_' || c == '-';
 	});
 }
