@@ -268,7 +268,7 @@ void SetCipherListToSSLContext(const Shared<boost::asio::ssl::context>::Ptr& con
  * @param version String of a TLS version, for example "TLSv1.2".
  * @return The value of the corresponding TLS*_VERSION macro.
  */
-int ResolveTlsProtocolVersion(const std::string& version) {
+int ResolveTlsProtocolVersion(const String& version) {
 	if (version == "TLSv1.2") {
 		return TLS1_2_VERSION;
 	} else if (version == "TLSv1.3") {
