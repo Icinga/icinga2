@@ -2959,48 +2959,6 @@ Dictionary::Ptr IcingaDB::SerializeState(const Checkable::Ptr& checkable)
 	return attrs;
 }
 
-std::vector<String>
-IcingaDB::UpdateObjectAttrs(const ConfigObject::Ptr& object, int fieldType,
-							   const String& typeNameOverride)
-{
-	Type::Ptr type = object->GetReflectionType();
-	Dictionary::Ptr attrs(new Dictionary);
-
-	for (int fid = 0; fid < type->GetFieldCount(); fid++) {
-		Field field = type->GetFieldInfo(fid);
-
-		if ((field.Attributes & fieldType) == 0)
-			continue;
-
-		Value val = object->GetField(fid);
-
-		/* hide attributes which shouldn't be user-visible */
-		if (field.Attributes & FANoUserView)
-			continue;
-
-		/* hide internal navigation fields */
-		if (field.Attributes & FANavigation && !(field.Attributes & (FAConfig | FAState)))
-			continue;
-
-		attrs->Set(field.Name, Serialize(val));
-	}
-
-	/* Downtimes require in_effect, which is not an attribute */
-	Downtime::Ptr downtime = dynamic_pointer_cast<Downtime>(object);
-	if (downtime) {
-		attrs->Set("in_effect", Serialize(downtime->IsInEffect()));
-		attrs->Set("trigger_time", Serialize(TimestampToMilliseconds(downtime->GetTriggerTime())));
-	}
-
-
-	/* Use the name checksum as unique key. */
-	String typeName = type->GetName().ToLower();
-	if (!typeNameOverride.IsEmpty())
-		typeName = typeNameOverride.ToLower();
-
-	return {GetObjectIdentifier(object), JsonEncode(attrs)};
-}
-
 void IcingaDB::StateChangeHandler(const ConfigObject::Ptr& object, const CheckResult::Ptr& cr, StateType type)
 {
 	for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
