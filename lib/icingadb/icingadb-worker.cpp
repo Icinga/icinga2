@@ -344,12 +344,9 @@ void IcingaDB::EnqueueDependencyChildRemoved(
 	}
 
 	Checkable::Ptr child(dependencies.front()->GetChild());
-	bool hadPendingRegistration = false; // Whether we had a pending child registration to cancel.
-
 	{
 		std::lock_guard lock(m_PendingItemsMutex);
 		if (auto it(m_PendingItems.find(std::make_pair(child, depGroup))); it != m_PendingItems.end()) {
-			hadPendingRegistration = true;
 			m_PendingItems.erase(it);
 			if (removeGroup) {
 				// If we're removing the entire group registration, we can also drop any pending dependency group
@@ -365,13 +362,6 @@ void IcingaDB::EnqueueDependencyChildRemoved(
 		// above), but since we can't reliably determine whether the node exists in Redis or not, we just enqueue the
 		// deletion anyway.
 		EnqueueRelationsDeletion(GetObjectIdentifier(child), {{CONFIG_REDIS_KEY_PREFIX "dependency:node", ""}});
-	}
-
-	if (hadPendingRegistration && depGroup->GetIcingaDBIdentifier().IsEmpty()) {
-		// If we had a pending registration that we just canceled above, and the dependency group has no
-		// IcingaDB identifier yet, then there's no need to proceed with any deletions, as the dependency
-		// group was never serialized to Redis in the first place.
-		return;
 	}
 
 	if (depGroup->IsRedundancyGroup() && depGroup->GetIcingaDBIdentifier().IsEmpty()) {
