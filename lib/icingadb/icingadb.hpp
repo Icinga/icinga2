@@ -298,7 +298,6 @@ private:
 
 	void ForwardHistoryEntries();
 
-	std::vector<String> UpdateObjectAttrs(const ConfigObject::Ptr& object, int fieldType, const String& typeNameOverride);
 	Dictionary::Ptr SerializeState(const Checkable::Ptr& checkable);
 
 	/* Stats */
