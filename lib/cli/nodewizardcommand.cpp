@@ -227,7 +227,7 @@ wizard_endpoint_loop_start:
 		endpointBuffer += "," + parentEndpointPort.Trim();
 	}
 
-	endpoints.push_back(endpointBuffer);
+	endpoints.emplace_back(std::move(endpointBuffer));
 
 	std::cout << ConsoleColorTag(Console_Bold) << "\nAdd more master/satellite endpoints?"
 		<< ConsoleColorTag(Console_Normal) << " [y/N]: ";
