@@ -78,6 +78,7 @@ public:
 
 	operator std::string() const &;
 	operator std::string() &&;
+	operator std::string_view() const;
 	operator boost::beast::string_view() const;
 
 	const char *CStr() const;

@@ -137,6 +137,11 @@ String::operator std::string() &&
 	return std::move(m_Data);
 }
 
+String::operator std::string_view() const
+{
+	return std::string_view(m_Data);
+}
+
 /**
  * Conversion function to boost::beast::string_view.
  *
