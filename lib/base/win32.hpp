@@ -11,6 +11,7 @@
 #define NOMINMAX
 #include <winsock2.h>
 #include <windows.h>
+#include <winternl.h>
 #include <ws2tcpip.h>
 #include <imagehlp.h>
 #include <shlwapi.h>

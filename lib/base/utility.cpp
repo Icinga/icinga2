@@ -1744,9 +1744,9 @@ String Utility::GetPlatformKernel()
 String Utility::GetPlatformKernelVersion()
 {
 #ifdef _WIN32
-	OSVERSIONINFO info;
-	info.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-	GetVersionEx(&info);
+	RTL_OSVERSIONINFOW info = {};
+	info.dwOSVersionInfoSize = sizeof(info);
+	RtlGetVersion(&info);
 
 	std::ostringstream msgbuf;
 	msgbuf << info.dwMajorVersion << "." << info.dwMinorVersion;
