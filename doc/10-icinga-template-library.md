@@ -3452,6 +3452,7 @@ linux\_netdev\_thresholds | **Optional.** Warning and critical thresholds. E.g. 
 The [check_netgear](https://github.com/Icinga/check-netgear) plugin queries the API provided by NETGEAR switches
 and retrieves device statistics such as CPU usage, memory usage,
 temperature, fan speed and port statistics.
+This plugin is intended only for use with NETGEAR AV Line devices.
 
 Performance data is returned by default and can be disabled using `noperfdata`.
 
