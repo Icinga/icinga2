@@ -3447,6 +3447,39 @@ linux\_netdev\_duration   | **Optional.** For how long to run. E.g. "10s" or "2m
 linux\_netdev\_exclude    | **Optional.** Which NICs to exclude. E.g. `eth0` or `eth?*`, may be an array. Default: none
 linux\_netdev\_thresholds | **Optional.** Warning and critical thresholds. E.g. `eth?*:tx:bytes:persec:w=1000000000` (see [plugin documentation](https://github.com/Al2Klimov/check_linux_netdev#usage)), may be an array. Default: none
 
+#### netgear <a id="check_netgear"></a>
+
+The [check_netgear](https://github.com/Icinga/check-netgear) plugin queries the API provided by NETGEAR switches
+and retrieves device statistics such as CPU usage, memory usage,
+temperature, fan speed and port statistics.
+
+Performance data is returned by default and can be disabled using `noperfdata`.
+
+Command line arguments are passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                    | Description
+------------------------|----------------------------------------------------------------------------------
+netgear_username                | **Required.** Username used for authentication.
+netgear_password                | **Required.** Password used for authentication.
+netgear_base-url                | **Optional.** Base URL of the NETGEAR API.
+netgear_cpu-warning             | **Optional.** CPU usage warning threshold (default: 50).
+netgear_cpu-critical            | **Optional.** CPU usage critical threshold (default: 90).
+netgear_mem-warning             | **Optional.** RAM usage warning threshold (default: 50).
+netgear_mem-critical            | **Optional.** RAM usage critical threshold (default: 90).
+netgear_temp-warning            | **Optional.** Temperature warning threshold (default: 50).
+netgear_femp-critical           | **Optional.** Temperature critical threshold (default: 70).
+netgear_fan-warning             | **Optional.** Fan speed warning threshold (default: 3000).
+netgear_fan-critical            | **Optional.** Fan speed critical threshold (default: 5000).
+netgear_stats-warning           | **Optional.** Port statistics warning threshold (default: 5).
+netgear_stats-critical          | **Optional.** Port statistics critical threshold (default: 20).
+netgear_mode                    | **Optional.** Output modes to enable `{basic|ports|poe|all}` (repeatable). Default: `basic`.
+netgear_port                    | **Optional.** Ports to check (repeatable). Default: `1,2,3,4,5,6,7,8`.
+netgear_noperfdata              | **Optional.** Disable performance data output.
+netgear_nocpu                   | **Optional.** Hide CPU information.
+netgear_nomem                   | **Optional.** Hide memory information.
+netgear_notemp                  | **Optional.** Hide temperature information.
+netgear_nofans                  | **Optional.** Hide fan information.
+
 #### nwc_health <a id="plugin-contrib-command-nwc_health"></a>
 
 The [check_nwc_health](https://labs.consol.de/de/nagios/check_nwc_health/index.html) plugin
@@ -6387,37 +6420,4 @@ phpfpm\_status\_verifyssl | **Optional.** If set, verify certificate and hostnam
 phpfpm\_status\_cacert    | **Optional.** Full path to the cacert.pem certificate authority used to verify ssl certificates (use with --verifyssl). if not given the cacert from Mozilla::CA cpan plugin will be used.
 phpfpm\_status\_warn      | **Optional.** MIN_AVAILABLE_PROCESSES,PROC_MAX_REACHED,QUEUE_MAX_REACHED number of available workers, or max states reached that will cause a warning. -1 for no warning
 phpfpm\_status\_critical  | **Optional.** MIN_AVAILABLE_PROCESSES,PROC_MAX_REACHED,QUEUE_MAX_REACHED number of available workers, or max states reached that will cause an error, -1 for no CRITICAL
-
-#### netgear <a id="check_netgear"></a>
-
-The [check_netgear](https://github.com/Icinga/check-netgear) plugin queries the API provided by NETGEAR switches
-and retrieves device statistics such as CPU usage, memory usage,
-temperature, fan speed and port statistics.
-
-Performance data is returned by default and can be disabled using `noperfdata`.
-
-Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
-
-Name                    | Description
-------------------------|----------------------------------------------------------------------------------
-username                | **Required.** Username used for authentication.
-password                | **Required.** Password used for authentication.
-base-url                | **Optional.** Base URL of the NETGEAR API.
-cpu-warning             | **Optional.** CPU usage warning threshold (default: 50).
-cpu-critical            | **Optional.** CPU usage critical threshold (default: 90).
-mem-warning             | **Optional.** RAM usage warning threshold (default: 50).
-mem-critical            | **Optional.** RAM usage critical threshold (default: 90).
-temp-warning            | **Optional.** Temperature warning threshold (default: 50).
-temp-critical           | **Optional.** Temperature critical threshold (default: 70).
-fan-warning             | **Optional.** Fan speed warning threshold (default: 3000).
-fan-critical            | **Optional.** Fan speed critical threshold (default: 5000).
-stats-warning           | **Optional.** Port statistics warning threshold (default: 5).
-stats-critical          | **Optional.** Port statistics critical threshold (default: 20).
-mode                    | **Optional.** Output modes to enable `{basic|ports|poe|all}` (repeatable). Default: `basic`.
-port                    | **Optional.** Ports to check (repeatable). Default: `1,2,3,4,5,6,7,8`.
-noperfdata              | **Optional.** Disable performance data output.
-nocpu                   | **Optional.** Hide CPU information.
-nomem                   | **Optional.** Hide memory information.
-notemp                  | **Optional.** Hide temperature information.
-nofans                  | **Optional.** Hide fan information.
 
