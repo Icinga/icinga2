@@ -271,6 +271,7 @@ static int InstallIcinga(void)
 	// TODO: In Icinga 2.14, rename features-available/mainlog.conf to mainlog.conf.deprecated
 	//       so that it's no longer listed as an available feature.
 
+/*
 	if (!ExecuteCommand("icacls", "\"" + dataDir + "\" /grant *S-1-5-20:(oi)(ci)m")){
 		throw std::runtime_error("failed to set ACLs for " + dataDir);
 	}
@@ -280,6 +281,7 @@ static int InstallIcinga(void)
 	if (!ExecuteCommand("icacls", "\"" + dataDir + "\\var\" /inheritance:r /grant:r *S-1-5-20:(oi)(ci)m *S-1-5-32-544:(oi)(ci)f")) {
 		throw std::runtime_error("failed to set ACLs for " + dataDir + "\\var");
 	}
+*/
 
 	ExecuteIcingaCommand("--scm-install daemon");
 
