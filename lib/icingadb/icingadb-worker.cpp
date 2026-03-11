@@ -51,26 +51,16 @@ void IcingaDB::PendingItemsThreadProc()
 	// Wait until the initial config dump is done. IcingaDB::OnConnectedHandler will notify us once it's finished.
 	while (GetActive() && !m_ConfigDumpDone) m_PendingItemsCV.wait(lock);
 
-	// Predicate to determine whether the worker thread is allowed to process pending items.
-	auto canContinue = [this] {
-		if (!GetActive()) {
-			return true;
-		}
-		return !m_PendingItems.empty() && m_RconWorker && m_RconWorker->IsConnected() && m_RconWorker->GetPendingQueryCount() < maxPendingQueries;
-	};
-
-	while (true) {
-		// Even if someone notifies us, we still need to verify whether the precondition is actually fulfilled.
-		// However, in case we don't receive any notification, we still want to wake up periodically on our own
-		// to check whether we can proceed (e.g. the Redis connection might have become available again and there
-		// was no activity on the pending items queue to trigger a notification). Thus, we use a timed wait here.
-		while (!canContinue()) m_PendingItemsCV.wait_for(lock, 100ms);
-
-		if (!GetActive()) {
-			break;
-		}
-		if (auto retryAfter = DequeueAndProcessOne(lock); retryAfter > 0ms) {
-			m_PendingItemsCV.wait_for(lock, retryAfter);
+	while (GetActive()) {
+		if (!m_PendingItems.empty() && m_RconWorker && m_RconWorker->IsConnected() && m_RconWorker->GetPendingQueryCount() < maxPendingQueries) {
+			if (auto retryAfter = DequeueAndProcessOne(lock); retryAfter > 0ms) {
+				m_PendingItemsCV.wait_for(lock, retryAfter);
+			}
+		} else {
+			// In case we don't receive any notification, we still want to wake up periodically on our own
+			// to check whether we can proceed (e.g. the Redis connection might have become available again and there
+			// was no activity on the pending items queue to trigger a notification). Thus, we use a timed wait here.
+			m_PendingItemsCV.wait_for(lock, 100ms);
 		}
 	}
 }
