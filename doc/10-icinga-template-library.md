@@ -6388,9 +6388,9 @@ phpfpm\_status\_cacert    | **Optional.** Full path to the cacert.pem certificat
 phpfpm\_status\_warn      | **Optional.** MIN_AVAILABLE_PROCESSES,PROC_MAX_REACHED,QUEUE_MAX_REACHED number of available workers, or max states reached that will cause a warning. -1 for no warning
 phpfpm\_status\_critical  | **Optional.** MIN_AVAILABLE_PROCESSES,PROC_MAX_REACHED,QUEUE_MAX_REACHED number of available workers, or max states reached that will cause an error, -1 for no CRITICAL
 
-#### NETGEAR <a id="check_netgear"></a>
+#### netgear <a id="check_netgear"></a>
 
-The `check_netgear` plugin queries the API provided by NETGEAR switches
+The [check_netgear](https://github.com/Icinga/check-netgear) plugin queries the API provided by NETGEAR switches
 and retrieves device statistics such as CPU usage, memory usage,
 temperature, fan speed and port statistics.
 
