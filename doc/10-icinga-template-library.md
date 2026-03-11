@@ -6387,3 +6387,35 @@ phpfpm\_status\_verifyssl | **Optional.** If set, verify certificate and hostnam
 phpfpm\_status\_cacert    | **Optional.** Full path to the cacert.pem certificate authority used to verify ssl certificates (use with --verifyssl). if not given the cacert from Mozilla::CA cpan plugin will be used.
 phpfpm\_status\_warn      | **Optional.** MIN_AVAILABLE_PROCESSES,PROC_MAX_REACHED,QUEUE_MAX_REACHED number of available workers, or max states reached that will cause a warning. -1 for no warning
 phpfpm\_status\_critical  | **Optional.** MIN_AVAILABLE_PROCESSES,PROC_MAX_REACHED,QUEUE_MAX_REACHED number of available workers, or max states reached that will cause an error, -1 for no CRITICAL
+
+#### NETGEAR <a id="check_netgear"></a>
+
+The check_netgear plugin uses the API provided by NETGEAR
+to fetch any possible statistics it provides.
+The plugin outputs performance data by default and can hide it if needed.
+
+Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                    | Description
+------------------------|----------------------------------------------------------------------------------
+username                | **Required.** Username for the Auth
+password                | **Required.** Password for the Auth
+base-url                | **Optional.** URL for the Auth and requests later
+cpu-warning             | **Optional.** CPU usage warning threshold (default 50)
+cpu-critical            | **Optional.** CPU usage critical threshold (default 90)
+mem-warning             | **Optional.** RAM usage warning threshold (default 50)
+mem-critical            | **Optional.** RAM usage critical threshold (default 90)
+temp-warning            | **Optional.** Temperature warning threshold (default 50)
+temp-critical           | **Optional.** Temperature critical threshold (default 70)
+fan-warning             | **Optional.** Fan speed warning threshold (default 3000)
+fan-critical            | **Optional.** Fan speed critical threshold (default 5000)
+stats-warning           | **Optional.** Port stats warning threshold (default 5)
+stats-critical          | **Optional.** Port stats critical threshold (default 20)
+mode                    | **Optional.** Output modes to enable {basic|ports|poe|all} (repeatable) (default: basic)
+port                    | **Optional.** Ports to check (repeatable) (default 1,2,3,4,5,6,7,8)
+noperfdata              | **Optional.** Do not output performance data
+nocpu                   | **Optional.** Hide the CPU info
+nomem                   | **Optional.** Hide the RAM info
+notemp                  | **Optional.** Hide the Temperature info
+nofans                  | **Optional.** Hide the Fans info
+
