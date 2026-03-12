@@ -3453,8 +3453,6 @@ The [check_netgear](https://github.com/Icinga/check-netgear) plugin queries the 
 and retrieves device statistics such as CPU usage, memory usage,
 temperature, fan speed and port statistics.
 
-Performance data is returned by default and can be disabled using `netgear_noperfdata`.
-
 Command line arguments are passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
 Name                    | Description
