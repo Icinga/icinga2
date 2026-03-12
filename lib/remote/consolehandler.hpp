@@ -6,12 +6,14 @@
 
 #include "remote/httphandler.hpp"
 #include "base/scriptframe.hpp"
+#include <mutex>
 
 namespace icinga
 {
 
 struct ApiScriptFrame
 {
+	std::mutex Mutex;
 	double Seen{0};
 	int NextLine{1};
 	std::map<String, String> Lines;

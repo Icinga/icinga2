@@ -31,6 +31,12 @@ static void ScriptFrameCleanupHandler()
 	std::vector<String> cleanup_keys;
 
 	for (auto& kv : l_ApiScriptFrames) {
+		std::unique_lock frameLock(kv.second->Mutex, std::try_to_lock);
+		if (!frameLock) {
+			// If the frame is locked, it's in use, don't expire it this time.
+			continue;
+		}
+
 		if (kv.second->Seen < Utility::GetTime() - 1800)
 			cleanup_keys.push_back(kv.first);
 	}
@@ -124,6 +130,13 @@ bool ConsoleHandler::ExecuteScriptHelper(const HttpApiRequest& request, HttpApiR
 	EnsureFrameCleanupTimer();
 
 	auto lsf = GetOrCreateScriptFrame(session);
+
+	std::unique_lock frameLock(lsf->Mutex, std::try_to_lock);
+	if (!frameLock) {
+		HttpUtility::SendJsonError(response, request.Params(), 409, "Session is currently in use by another request.");
+		return true;
+	}
+
 	lsf->Seen = Utility::GetTime();
 
 	if (!lsf->Locals)
@@ -198,6 +211,13 @@ bool ConsoleHandler::AutocompleteScriptHelper(const HttpApiRequest& request, Htt
 	EnsureFrameCleanupTimer();
 
 	auto lsf = GetOrCreateScriptFrame(session);
+
+	std::unique_lock frameLock(lsf->Mutex, std::try_to_lock);
+	if (!frameLock) {
+		HttpUtility::SendJsonError(response, request.Params(), 409, "Session is currently in use by another request.");
+		return true;
+	}
+
 	lsf->Seen = Utility::GetTime();
 
 	if (!lsf->Locals)
