@@ -36,6 +36,9 @@ namespace icinga
 #define CONFIG_REDIS_KEY_PREFIX "icinga:"
 #define CHECKSUM_REDIS_KEY_PREFIX CONFIG_REDIS_KEY_PREFIX "checksum:"
 
+namespace icingadb::task_queue
+{
+
 /**
  * Dirty bits for config/state changes.
  *
@@ -89,6 +92,20 @@ struct PendingQueueItem
 	virtual ConfigObject::Ptr GetObjectToLock() const { return nullptr; };
 	virtual void Execute(IcingaDB& icingadb) const = 0;
 };
+
+// A multi-index container for managing pending items with unique IDs and maintaining insertion order.
+// The first index is an ordered unique index based on the pending item key, allowing for efficient
+// lookups and ensuring uniqueness of items. The second index is a sequenced index that maintains the
+// order of insertion, enabling FIFO processing of pending items.
+using PendingItemsSet = boost::multi_index_container<
+	std::shared_ptr<PendingQueueItem>,
+	boost::multi_index::indexed_by<
+		boost::multi_index::ordered_unique<
+			boost::multi_index::const_mem_fun<PendingQueueItem, PendingQueueItem::Key, &PendingQueueItem::GetID>
+		>,
+		boost::multi_index::sequenced<>
+	>
+>;
 
 /**
  * A pending configuration object item.
@@ -176,6 +193,8 @@ struct RelationsDeletionItem : PendingQueueItem
 	Key GetID() const override { return ID; }
 	void Execute(IcingaDB& icingadb) const override;
 };
+
+} // namespace icingadb::task_queue
 
 /**
  * @ingroup icingadb
@@ -427,22 +446,8 @@ private:
 	static String m_EnvironmentId;
 	static std::mutex m_EnvironmentIdInitMutex;
 
-	// A multi-index container for managing pending items with unique IDs and maintaining insertion order.
-	// The first index is an ordered unique index based on the pending item key, allowing for efficient
-	// lookups and ensuring uniqueness of items. The second index is a sequenced index that maintains the
-	// order of insertion, enabling FIFO processing of pending items.
-	using PendingItemsSet = boost::multi_index_container<
-		std::shared_ptr<PendingQueueItem>,
-		boost::multi_index::indexed_by<
-			boost::multi_index::ordered_unique<
-				boost::multi_index::const_mem_fun<PendingQueueItem, PendingQueueItem::Key, &PendingQueueItem::GetID>
-			>,
-			boost::multi_index::sequenced<>
-		>
-	>;
-
 	std::thread m_PendingItemsThread; // The background worker thread (consumer of m_PendingItems).
-	PendingItemsSet m_PendingItems; // Container for pending items with dirty bits (access protected by m_PendingItemsMutex).
+	icingadb::task_queue::PendingItemsSet m_PendingItems; // Container for pending items with dirty bits (access protected by m_PendingItemsMutex).
 	std::mutex m_PendingItemsMutex; // Mutex to protect access to m_PendingItems.
 	std::condition_variable m_PendingItemsCV; // Condition variable to forcefully wake up the worker thread.
 
@@ -453,12 +458,12 @@ private:
 	void EnqueueDependencyGroupStateUpdate(const DependencyGroup::Ptr& depGroup);
 	void EnqueueDependencyChildRegistered(const DependencyGroup::Ptr& depGroup, const Checkable::Ptr& child);
 	void EnqueueDependencyChildRemoved(const DependencyGroup::Ptr& depGroup, const std::vector<Dependency::Ptr>& dependencies, bool removeGroup);
-	void EnqueueRelationsDeletion(const String& id, const RelationsDeletionItem::RelationsKeySet& relations);
+	void EnqueueRelationsDeletion(const String& id, const icingadb::task_queue::RelationsDeletionItem::RelationsKeySet& relations);
 
-	friend struct PendingConfigItem;
-	friend struct PendingDependencyGroupStateItem;
-	friend struct PendingDependencyEdgeItem;
-	friend struct RelationsDeletionItem;
+	friend struct icingadb::task_queue::PendingConfigItem;
+	friend struct icingadb::task_queue::PendingDependencyGroupStateItem;
+	friend struct icingadb::task_queue::PendingDependencyEdgeItem;
+	friend struct icingadb::task_queue::RelationsDeletionItem;
 };
 }
 
