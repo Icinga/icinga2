@@ -28,7 +28,18 @@ static void CleanupPersistentCertificateDir()
 	}
 }
 
-BOOST_FIXTURE_TEST_CASE(prepare_directory, ConfigurationDataDirFixture, *CTestProperties("FIXTURES_SETUP ssl_certs"))
+BOOST_FIXTURE_TEST_CASE(prepare_directory_for_dirty_tests, ConfigurationDataDirFixture,
+	*CTestProperties("FIXTURES_SETUP dirty_ssl_certs"))
+{
+	/* Same as the other prepare_directory below, only that the dirty_ssl_certs fixture this
+	 * establishes cleans up before and after tests that leave behind certs in a broken state.
+	 */
+	CleanupPersistentCertificateDir();
+}
+
+BOOST_FIXTURE_TEST_CASE(prepare_directory_for_regular_tests, ConfigurationDataDirFixture,
+	*CTestProperties("FIXTURES_CLEANUP dirty_ssl_certs")
+	*CTestProperties("FIXTURES_SETUP ssl_certs"))
 {
 	// Remove any existing left-overs of the persistent certificate directory from a previous
 	// test run.
