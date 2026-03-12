@@ -67,15 +67,14 @@ public:
 	void Join(bool stop = false);
 
 	template<typename VectorType, typename FuncType>
-	void ParallelFor(const VectorType& items, const FuncType& func)
+	void ParallelFor(VectorType&& items, const FuncType& func)
 	{
-		ParallelFor(items, true, func);
+		ParallelFor(std::forward<VectorType>(items), true, func);
 	}
 
-	template<typename VectorType, typename FuncType>
-	void ParallelFor(const VectorType& items, bool preChunk, const FuncType& func)
+	template<typename VectorType, typename FuncType, typename = std::enable_if_t<!std::is_rvalue_reference_v<VectorType&&>>>
+	void ParallelFor(VectorType&& items, bool preChunk, const FuncType& func)
 	{
-
 		const auto totalCount = std::size(items);
 		using SizeType = std::remove_const_t<decltype(totalCount)>;
 		const auto chunks = preChunk ? m_ThreadCount : totalCount;
