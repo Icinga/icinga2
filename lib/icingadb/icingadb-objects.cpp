@@ -354,7 +354,7 @@ void IcingaDB::UpdateAllConfigObjects()
 				auto checkable (dynamic_pointer_cast<Checkable>(object));
 
 				if (checkable && checkable->GetEnableActiveChecks()) {
-					EnqueueConfigObject(checkable, NextUpdate);
+					EnqueueConfigObject(checkable, icingadb::task_queue::NextUpdate);
 				}
 			}
 
@@ -1334,7 +1334,7 @@ void IcingaDB::UpdateState(const Checkable::Ptr& checkable, uint32_t mode)
 	String checksum = HashValue(stateAttrs);
 
 	auto [redisStateKey, redisChecksumKey] = GetCheckableStateKeys(checkable->GetReflectionType());
-	if (mode & VolatileState) {
+	if (mode & icingadb::task_queue::VolatileState) {
 		String objectKey = GetObjectIdentifier(checkable);
 		m_RconWorker->FireAndForgetQueries({
 			{"HSET", redisStateKey, objectKey, JsonEncode(stateAttrs)},
@@ -1342,7 +1342,7 @@ void IcingaDB::UpdateState(const Checkable::Ptr& checkable, uint32_t mode)
 		});
 	}
 
-	if (mode & RuntimeState) {
+	if (mode & icingadb::task_queue::RuntimeState) {
 		ObjectLock olock(stateAttrs);
 
 		RedisConnection::Query streamadd({
@@ -1815,7 +1815,7 @@ void IcingaDB::SendConfigDelete(const ConfigObject::Ptr& object)
 
 		auto [configStateKey, checksumStateKey] = GetCheckableStateKeys(checkable->GetReflectionType());
 		EnqueueRelationsDeletion(GetObjectIdentifier(checkable), {{configStateKey, checksumStateKey}});
-		EnqueueConfigObject(object, ConfigDelete | NextUpdate); // Send also ZREM for next update
+		EnqueueConfigObject(object, icingadb::task_queue::ConfigDelete | icingadb::task_queue::NextUpdate); // Send also ZREM for next update
 
 		if (service) {
 			SendGroupsChanged<ServiceGroup>(checkable, service->GetGroups(), nullptr);
@@ -1826,7 +1826,7 @@ void IcingaDB::SendConfigDelete(const ConfigObject::Ptr& object)
 		return;
 	}
 
-	EnqueueConfigObject(object, ConfigDelete);
+	EnqueueConfigObject(object, icingadb::task_queue::ConfigDelete);
 
 	if (type == TimePeriod::TypeInstance) {
 		TimePeriod::Ptr timeperiod = static_pointer_cast<TimePeriod>(object);
@@ -1888,7 +1888,7 @@ void IcingaDB::SendStateChange(const ConfigObject::Ptr& object, const CheckResul
 
 	tie(host, service) = GetHostService(checkable);
 
-	EnqueueConfigObject(checkable, RuntimeState);
+	EnqueueConfigObject(checkable, icingadb::task_queue::RuntimeState);
 
 	int hard_state{};
 	if (!cr) {
@@ -2069,7 +2069,7 @@ void IcingaDB::SendStartedDowntime(const Downtime::Ptr& downtime)
 		return;
 	}
 
-	EnqueueConfigObject(downtime, ConfigUpdate);
+	EnqueueConfigObject(downtime, icingadb::task_queue::ConfigUpdate);
 
 	auto checkable (downtime->GetCheckable());
 	auto triggeredBy (Downtime::GetByName(downtime->GetTriggeredBy()));
@@ -2079,7 +2079,7 @@ void IcingaDB::SendStartedDowntime(const Downtime::Ptr& downtime)
 	tie(host, service) = GetHostService(checkable);
 
 	/* Update checkable state as in_downtime may have changed. */
-	EnqueueConfigObject(checkable, FullState);
+	EnqueueConfigObject(checkable, icingadb::task_queue::FullState);
 
 	RedisConnection::Query xAdd ({
 		"XADD", "icinga:history:stream:downtime", "*",
@@ -2168,7 +2168,7 @@ void IcingaDB::SendRemovedDowntime(const Downtime::Ptr& downtime)
 		return;
 
 	/* Update checkable state as in_downtime may have changed. */
-	EnqueueConfigObject(checkable, FullState);
+	EnqueueConfigObject(checkable, icingadb::task_queue::FullState);
 
 	RedisConnection::Query xAdd ({
 		"XADD", "icinga:history:stream:downtime", "*",
@@ -2257,7 +2257,7 @@ void IcingaDB::SendAddedComment(const Comment::Ptr& comment)
 	tie(host, service) = GetHostService(checkable);
 
 	// Update the checkable state to so that the "last_comment_id" is correctly reflected.
-	EnqueueConfigObject(checkable, FullState);
+	EnqueueConfigObject(checkable, icingadb::task_queue::FullState);
 
 	RedisConnection::Query xAdd ({
 		"XADD", "icinga:history:stream:comment", "*",
@@ -2331,7 +2331,7 @@ void IcingaDB::SendRemovedComment(const Comment::Ptr& comment)
 	tie(host, service) = GetHostService(checkable);
 
 	// Update the checkable state to so that the "last_comment_id" is correctly reflected.
-	EnqueueConfigObject(checkable, FullState);
+	EnqueueConfigObject(checkable, icingadb::task_queue::FullState);
 
 	RedisConnection::Query xAdd ({
 		"XADD", "icinga:history:stream:comment", "*",
@@ -2488,7 +2488,7 @@ void IcingaDB::SendAcknowledgementSet(const Checkable::Ptr& checkable, const Str
 	tie(host, service) = GetHostService(checkable);
 
 	/* Update checkable state as is_acknowledged may have changed. */
-	EnqueueConfigObject(checkable, FullState);
+	EnqueueConfigObject(checkable, icingadb::task_queue::FullState);
 
 	RedisConnection::Query xAdd ({
 		"XADD", "icinga:history:stream:acknowledgement", "*",
@@ -2546,7 +2546,7 @@ void IcingaDB::SendAcknowledgementCleared(const Checkable::Ptr& checkable, const
 	tie(host, service) = GetHostService(checkable);
 
 	/* Update checkable state as is_acknowledged may have changed. */
-	EnqueueConfigObject(checkable, FullState);
+	EnqueueConfigObject(checkable, icingadb::task_queue::FullState);
 
 	RedisConnection::Query xAdd ({
 		"XADD", "icinga:history:stream:acknowledgement", "*",
@@ -2965,7 +2965,7 @@ void IcingaDB::ReachabilityChangeHandler(const std::set<Checkable::Ptr>& childre
 {
 	for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 		for (auto& checkable : children) {
-			rw->EnqueueConfigObject(checkable, FullState);
+			rw->EnqueueConfigObject(checkable, icingadb::task_queue::FullState);
 			for (const auto& dependencyGroup : checkable->GetDependencyGroups()) {
 				rw->EnqueueDependencyGroupStateUpdate(dependencyGroup);
 			}
@@ -2986,7 +2986,7 @@ void IcingaDB::VersionChangedHandler(const ConfigObject::Ptr& object)
 	if (object->IsActive()) {
 		for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 			// A runtime config change triggers also a full state update as well as next update event.
-			rw->EnqueueConfigObject(object, ConfigUpdate | FullState | NextUpdate);
+			rw->EnqueueConfigObject(object, icingadb::task_queue::ConfigUpdate | icingadb::task_queue::FullState | icingadb::task_queue::NextUpdate);
 		}
 	} else if (!object->IsActive() && object->GetExtension("ConfigObjectDeleted")) { // same as in apilistener-configsync.cpp
 		for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
@@ -3050,21 +3050,21 @@ void IcingaDB::FlappingChangeHandler(const Checkable::Ptr& checkable, double cha
 void IcingaDB::NewCheckResultHandler(const Checkable::Ptr& checkable)
 {
 	for (auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
-		rw->EnqueueConfigObject(checkable, VolatileState);
+		rw->EnqueueConfigObject(checkable, icingadb::task_queue::VolatileState);
 	}
 }
 
 void IcingaDB::NextCheckChangedHandler(const Checkable::Ptr& checkable)
 {
 	for (auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
-		rw->EnqueueConfigObject(checkable, VolatileState | NextUpdate);
+		rw->EnqueueConfigObject(checkable, icingadb::task_queue::VolatileState | icingadb::task_queue::NextUpdate);
 	}
 }
 
 void IcingaDB::DependencyGroupChildRegisteredHandler(const Checkable::Ptr& child, const DependencyGroup::Ptr& dependencyGroup)
 {
 	for (const auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
-		rw->EnqueueConfigObject(child, FullState); // Child requires a full state update.
+		rw->EnqueueConfigObject(child, icingadb::task_queue::FullState); // Child requires a full state update.
 		rw->EnqueueDependencyChildRegistered(dependencyGroup, child);
 		rw->EnqueueDependencyGroupStateUpdate(dependencyGroup);
 
@@ -3075,7 +3075,7 @@ void IcingaDB::DependencyGroupChildRegisteredHandler(const Checkable::Ptr& child
 			// Checkable as well. The grandparent Checkable may still have wrong numbers of total children, though it's
 			// not worth traversing the whole tree way up and sending config updates for each one of them, as the next
 			// Redis config dump is going to fix it anyway.
-			rw->EnqueueConfigObject(parent, ConfigUpdate | FullState);
+			rw->EnqueueConfigObject(parent, icingadb::task_queue::ConfigUpdate | icingadb::task_queue::FullState);
 		}
 	}
 }
@@ -3090,7 +3090,7 @@ void IcingaDB::DependencyGroupChildRemovedHandler(const DependencyGroup::Ptr& de
 void IcingaDB::HostProblemChangedHandler(const Service::Ptr& service) {
 	for (auto& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 		/* Host state changes affect is_handled and severity of services. */
-		rw->EnqueueConfigObject(service, FullState);
+		rw->EnqueueConfigObject(service, icingadb::task_queue::FullState);
 	}
 }
 
