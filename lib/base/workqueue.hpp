@@ -75,10 +75,10 @@ public:
 	template<typename VectorType, typename FuncType>
 	void ParallelFor(const VectorType& items, bool preChunk, const FuncType& func)
 	{
-		using SizeType = decltype(items.size());
 
-		SizeType totalCount = items.size();
-		SizeType chunks = preChunk ? m_ThreadCount : totalCount;
+		const auto totalCount = std::size(items);
+		using SizeType = std::remove_const_t<decltype(totalCount)>;
+		const auto chunks = preChunk ? m_ThreadCount : totalCount;
 
 		auto lock = AcquireLock();
 
@@ -103,7 +103,7 @@ public:
 			offset += count;
 		}
 
-		ASSERT(offset == items.size());
+		ASSERT(offset == totalCount);
 	}
 
 	bool IsWorkerThread() const;
