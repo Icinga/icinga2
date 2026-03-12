@@ -3459,7 +3459,7 @@ Command line arguments are passed as [command parameters](03-monitoring-basics.m
 
 Name                    | Description
 ------------------------|----------------------------------------------------------------------------------
-netgear_base_url        | **Optional.** Base URL of the NETGEAR API.
+netgear_base_url        | **Required.** Base URL of the NETGEAR API.
 netgear_username        | **Required.** Username used for authentication.
 netgear_password        | **Required.** Password used for authentication.
 netgear_cpu_warning     | **Optional.** CPU usage warning threshold (default: 50).
