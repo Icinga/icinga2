@@ -45,6 +45,8 @@ public:
 
 protected:
 	void OnConfigLoaded() override;
+	void OnAllConfigLoaded() override;
+
 	void Resume() override;
 	void Pause() override;
 

@@ -27,6 +27,14 @@ void ExternalCommandListener::StatsFunc(const Dictionary::Ptr& status, const Arr
 	status->Set("externalcommandlistener", new Dictionary(std::move(nodes)));
 }
 
+void ExternalCommandListener::OnAllConfigLoaded()
+{
+	ObjectImpl<ExternalCommandListener>::OnAllConfigLoaded();
+
+	Log(LogWarning, "ExternalCommandListener")
+		<< "This feature is DEPRECATED and will be removed in v2.18.";
+}
+
 /**
  * Starts the component.
  */
@@ -37,8 +45,6 @@ void ExternalCommandListener::Start(bool runtimeCreated)
 	Log(LogInformation, "ExternalCommandListener")
 		<< "'" << GetName() << "' started.";
 
-	Log(LogWarning, "ExternalCommandListener")
-		<< "This feature is DEPRECATED and may be removed in future releases. Check the roadmap at https://github.com/Icinga/icinga2/milestones";
 #ifndef _WIN32
 	String path = GetCommandPath();
 	m_CommandThread = std::thread([this, path]() { CommandPipeThread(path); });
