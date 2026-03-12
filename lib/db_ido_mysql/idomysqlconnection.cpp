@@ -586,7 +586,7 @@ void IdoMysqlConnection::FinishAsyncQueries()
 			BOOST_THROW_EXCEPTION(
 				database_error()
 				<< errinfo_message(m_Mysql->error(&m_Connection))
-				<< errinfo_database_query(query)
+				<< errinfo_database_query(~query)
 			);
 		}
 
@@ -609,7 +609,7 @@ void IdoMysqlConnection::FinishAsyncQueries()
 					BOOST_THROW_EXCEPTION(
 						database_error()
 						<< errinfo_message(m_Mysql->error(&m_Connection))
-						<< errinfo_database_query(query)
+						<< errinfo_database_query(~query)
 					);
 				}
 			} else
@@ -627,7 +627,7 @@ void IdoMysqlConnection::FinishAsyncQueries()
 				BOOST_THROW_EXCEPTION(
 					database_error()
 					<< errinfo_message(m_Mysql->error(&m_Connection))
-					<< errinfo_database_query(query)
+					<< errinfo_database_query(~query)
 				);
 			}
 		}
@@ -665,7 +665,7 @@ IdoMysqlResult IdoMysqlConnection::Query(const String& query)
 		BOOST_THROW_EXCEPTION(
 			database_error()
 			<< errinfo_message(m_Mysql->error(&m_Connection))
-			<< errinfo_database_query(query)
+			<< errinfo_database_query(~query)
 		);
 	}
 
@@ -683,7 +683,7 @@ IdoMysqlResult IdoMysqlConnection::Query(const String& query)
 			BOOST_THROW_EXCEPTION(
 				database_error()
 				<< errinfo_message(m_Mysql->error(&m_Connection))
-				<< errinfo_database_query(query)
+				<< errinfo_database_query(~query)
 			);
 		}
 

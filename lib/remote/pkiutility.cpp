@@ -389,7 +389,7 @@ static void CollectRequestHandler(const Dictionary::Ptr& requests, const String&
 	Dictionary::Ptr result = new Dictionary();
 
 	namespace fs = boost::filesystem;
-	fs::path file(requestFile.Begin(), requestFile.End());
+	fs::path file{*requestFile};
 	String fingerprint = file.stem().string();
 
 	String certRequestText = request->Get("cert_request");

@@ -533,7 +533,7 @@ void RedisConnection::Handshake(StreamPtr& strm, boost::asio::yield_context& yc)
 
 		if (pong.IsObjectType<RedisError>()) {
 			// Likely NOAUTH
-			BOOST_THROW_EXCEPTION(std::runtime_error(RedisError::Ptr(pong)->GetMessage()));
+			BOOST_THROW_EXCEPTION(std::runtime_error(~RedisError::Ptr(pong)->GetMessage()));
 		}
 	} else {
 		if (!m_ConnInfo->Password.IsEmpty()) {
@@ -557,7 +557,7 @@ void RedisConnection::Handshake(StreamPtr& strm, boost::asio::yield_context& yc)
 
 			if (select.IsObjectType<RedisError>()) {
 				// Likely NOAUTH or ERR DB
-				BOOST_THROW_EXCEPTION(std::runtime_error(RedisError::Ptr(select)->GetMessage()));
+				BOOST_THROW_EXCEPTION(std::runtime_error(~RedisError::Ptr(select)->GetMessage()));
 			}
 		}
 	}
