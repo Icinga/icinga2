@@ -3577,14 +3577,73 @@ Checks the CPU load of a network device.
 
 Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
-Name                           | Description
--------------------------------|--------------------------------------------------------
-thola_api_address              | **Required.** Address of the Thola API to connect to
-thola_device_address           | **Required.** The host's address. Defaults to "$address$" if the host's address attribute is set, “$address6$” otherwise.
-thola_device_snmp_community    | **Optional.** SNMP community of the device
-thola_device_snmp_protocol     | **Optional.** SNMP version to use
-thola_cpu_load_critical        | **Optional.** Critical threshold for the CPU load in %
-thola_cpu_load_warning         | **Optional.** Warning threshold for the CPU load in %
+Name                                                | Description
+----------------------------------------------------|--------------------------------------------------------
+thola_api_address                                   | **Required.** Address of the Thola API to connect to
+thola_api_username                                  | **Optional.** The username for authorization on the Thola API
+thola_api_password                                  | **Optional.** The password for authorization on the Thola API
+thola_api_format                                    | **Optional.** The format used to send data to the Thola API ('json' or 'xml')
+thola_insecure_ssl_cert                             | **Optional.** Allow insecure SSL certificate of the Thola API
+thola_json_metrics                                  | **Optional.** Output performance data as json
+thola_device_address                                | **Required.** The host's address. Defaults to "$address$" if the host's address attribute is set, “$address6$” otherwise
+thola_device_snmp_community                         | **Optional.** SNMP Community of target device
+thola_device_snmp_protocol                          | **Optional.** SNMP Version of target device
+thola_device_snmp_port                              | **Optional.** SNMP Port of target device
+thola_device_snmp_discover_parallel_requests        | **Optional.** Amount of parallel connection requests used while trying to get a valid SNMP connection
+thola_device_snmp_discover_retries                  | **Optional.** Number of discover retries
+thola_device_snmp_discover_timeout                  | **Optional.** The timeout in seconds used while trying to get a valid SNMP connection
+thola_device_snmp_max_repetitions                   | **Optional.** The max repetitions of the SNMP connection. Overrides the device class settings if set
+thola_device_snmp_v3_level                          | **Optional.** SNMP v3 level ('noAuthNoPriv', 'authNoPriv' or 'authPriv')
+thola_device_snmp_v3_context                        | **Optional.** SNMP v3 context name
+thola_device_snmp_v3_user                           | **Optional.** SNMP v3 user name
+thola_device_snmp_v3_auth_key                       | **Optional.** SNMP v3 authentication passphrase
+thola_device_snmp_v3_auth_proto                     | **Optional.** SNMP v3 authentication protocol (e.g. 'MD5' or 'SHA')
+thola_device_snmp_v3_priv_key                       | **Optional.** SNMP v3 privacy passphrase
+thola_device_snmp_v3_priv_proto                     | **Optional.** SNMP v3 privacy protocol (e.g. 'DES' or 'AES')
+thola_device_http_port                              | **Optional.** HTTP port
+thola_device_https_port                             | **Optional.** HTTPS port
+thola_device_http_username                          | **Optional.** HTTP username
+thola_device_http_password                          | **Optional.** HTTP password
+thola_timeout                                       | **Optional.** Timeout in seconds
+thola_cpu_load_critical                             | **Optional.** Critical threshold for the CPU load in %
+thola_cpu_load_warning                              | **Optional.** Warning threshold for the CPU load in %
+
+##### thola-disk <a id="plugin-contrib-command-thola-disk"></a>
+
+Checks the disk of a device.
+
+Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                                                | Description
+----------------------------------------------------|--------------------------------------------------------
+thola_api_address                                   | **Required.** Address of the Thola API to connect to
+thola_api_username                                  | **Optional.** The username for authorization on the Thola API
+thola_api_password                                  | **Optional.** The password for authorization on the Thola API
+thola_api_format                                    | **Optional.** The format used to send data to the Thola API ('json' or 'xml')
+thola_insecure_ssl_cert                             | **Optional.** Allow insecure SSL certificate of the Thola API
+thola_json_metrics                                  | **Optional.** Output performance data as json
+thola_device_address                                | **Required.** The host's address. Defaults to "$address$" if the host's address attribute is set, “$address6$” otherwise
+thola_device_snmp_community                         | **Optional.** SNMP Community of target device
+thola_device_snmp_protocol                          | **Optional.** SNMP Version of target device
+thola_device_snmp_port                              | **Optional.** SNMP Port of target device
+thola_device_snmp_discover_parallel_requests        | **Optional.** Amount of parallel connection requests used while trying to get a valid SNMP connection
+thola_device_snmp_discover_retries                  | **Optional.** Number of discover retries
+thola_device_snmp_discover_timeout                  | **Optional.** The timeout in seconds used while trying to get a valid SNMP connection
+thola_device_snmp_max_repetitions                   | **Optional.** The max repetitions of the SNMP connection. Overrides the device class settings if set
+thola_device_snmp_v3_level                          | **Optional.** SNMP v3 level ('noAuthNoPriv', 'authNoPriv' or 'authPriv')
+thola_device_snmp_v3_context                        | **Optional.** SNMP v3 context name
+thola_device_snmp_v3_user                           | **Optional.** SNMP v3 user name
+thola_device_snmp_v3_auth_key                       | **Optional.** SNMP v3 authentication passphrase
+thola_device_snmp_v3_auth_proto                     | **Optional.** SNMP v3 authentication protocol (e.g. 'MD5' or 'SHA')
+thola_device_snmp_v3_priv_key                       | **Optional.** SNMP v3 privacy passphrase
+thola_device_snmp_v3_priv_proto                     | **Optional.** SNMP v3 privacy protocol (e.g. 'DES' or 'AES')
+thola_device_http_port                              | **Optional.** HTTP port
+thola_device_https_port                             | **Optional.** HTTPS port
+thola_device_http_username                          | **Optional.** HTTP username
+thola_device_http_password                          | **Optional.** HTTP password
+thola_timeout                                       | **Optional.** Timeout in seconds
+thola_disk_critical                                 | **Optional.** Critical threshold for free disk space
+thola_disk_warning                                  | **Optional.** Warning threshold for free disk space
 
 ##### thola-interface-metrics <a id="plugin-contrib-command-thola-interface-metrics"></a>
 
@@ -3592,11 +3651,41 @@ Checks the interface metrics of a network device.
 
 Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
-Name                            | Description
---------------------------------|-----------------------------------------------------
-thola_api_address               | **Required.** Address of the Thola API to connect to
-thola_device_address            | **Required.** The host's address. Defaults to "$address$" if the host's address attribute is set, “$address6$” otherwise
-thola_device_snmp_community     | **Optional.** SNMP community of the device
+Name                                                | Description
+----------------------------------------------------|--------------------------------------------------------
+thola_api_address                                   | **Required.** Address of the Thola API to connect to
+thola_api_username                                  | **Optional.** The username for authorization on the Thola API
+thola_api_password                                  | **Optional.** The password for authorization on the Thola API
+thola_api_format                                    | **Optional.** The format used to send data to the Thola API ('json' or 'xml')
+thola_insecure_ssl_cert                             | **Optional.** Allow insecure SSL certificate of the Thola API
+thola_json_metrics                                  | **Optional.** Output performance data as json
+thola_device_address                                | **Required.** The host's address. Defaults to "$address$" if the host's address attribute is set, “$address6$” otherwise
+thola_device_snmp_community                         | **Optional.** SNMP Community of target device
+thola_device_snmp_protocol                          | **Optional.** SNMP Version of target device
+thola_device_snmp_port                              | **Optional.** SNMP Port of target device
+thola_device_snmp_discover_parallel_requests        | **Optional.** Amount of parallel connection requests used while trying to get a valid SNMP connection
+thola_device_snmp_discover_retries                  | **Optional.** Number of discover retries
+thola_device_snmp_discover_timeout                  | **Optional.** The timeout in seconds used while trying to get a valid SNMP connection
+thola_device_snmp_max_repetitions                   | **Optional.** The max repetitions of the SNMP connection. Overrides the device class settings if set
+thola_device_snmp_v3_level                          | **Optional.** SNMP v3 level ('noAuthNoPriv', 'authNoPriv' or 'authPriv')
+thola_device_snmp_v3_context                        | **Optional.** SNMP v3 context name
+thola_device_snmp_v3_user                           | **Optional.** SNMP v3 user name
+thola_device_snmp_v3_auth_key                       | **Optional.** SNMP v3 authentication passphrase
+thola_device_snmp_v3_auth_proto                     | **Optional.** SNMP v3 authentication protocol (e.g. 'MD5' or 'SHA')
+thola_device_snmp_v3_priv_key                       | **Optional.** SNMP v3 privacy passphrase
+thola_device_snmp_v3_priv_proto                     | **Optional.** SNMP v3 privacy protocol (e.g. 'DES' or 'AES')
+thola_device_http_port                              | **Optional.** HTTP port
+thola_device_https_port                             | **Optional.** HTTPS port
+thola_device_http_username                          | **Optional.** HTTP username
+thola_device_http_password                          | **Optional.** HTTP password
+thola_timeout                                       | **Optional.** Timeout in seconds
+thola_interface_metrics_value                       | **Optional.** If set, only the specified values will be read from the interfaces (e.g. 'ifDescr')
+thola_interface_metrics_snmp_gets_instead_of_walk   | **Optional.** Use SNMP Gets instead of Walks
+thola_interface_metrics_ifDescr_regex               | **Optional.** Apply a regex on the ifDescr of the interfaces. Use it together with the 'ifDescr-regex-replace' flag
+thola_interface_metrics_ifDescr_regex_replace       | **Optional.** Apply a regex on the ifDescr of the interfaces. Use it together with the 'ifDescr-regex' flag
+thola_interface_metrics_ifType_filter               | **Optional.** Filter out interfaces which ifType equals the given types
+thola_interface_metrics_ifName_filter               | **Optional.** Filter out interfaces which ifName matches the given regex
+thola_interface_metrics_ifDescr_filter              | **Optional.** Filter out interfaces which ifDescription matches the given regex
 
 ##### thola-hardware-health <a id="plugin-contrib-command-thola-hardware-health"></a>
 
@@ -3604,11 +3693,34 @@ Checks the hardware health of a network device.
 
 Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
-Name                          | Description
-------------------------------|-----------------------------------------------------
-thola_api_address             | **Required.** Address of the Thola API to connect to
-thola_device_address          | **Required.** The host's address. Defaults to "$address$" if the host's address attribute is set, “$address6$” otherwise
-thola_device_snmp_community   | **Optional.** SNMP community of the device
+Name                                                | Description
+----------------------------------------------------|--------------------------------------------------------
+thola_api_address                                   | **Required.** Address of the Thola API to connect to
+thola_api_username                                  | **Optional.** The username for authorization on the Thola API
+thola_api_password                                  | **Optional.** The password for authorization on the Thola API
+thola_api_format                                    | **Optional.** The format used to send data to the Thola API ('json' or 'xml')
+thola_insecure_ssl_cert                             | **Optional.** Allow insecure SSL certificate of the Thola API
+thola_json_metrics                                  | **Optional.** Output performance data as json
+thola_device_address                                | **Required.** The host's address. Defaults to "$address$" if the host's address attribute is set, “$address6$” otherwise
+thola_device_snmp_community                         | **Optional.** SNMP Community of target device
+thola_device_snmp_protocol                          | **Optional.** SNMP Version of target device
+thola_device_snmp_port                              | **Optional.** SNMP Port of target device
+thola_device_snmp_discover_parallel_requests        | **Optional.** Amount of parallel connection requests used while trying to get a valid SNMP connection
+thola_device_snmp_discover_retries                  | **Optional.** Number of discover retries
+thola_device_snmp_discover_timeout                  | **Optional.** The timeout in seconds used while trying to get a valid SNMP connection
+thola_device_snmp_max_repetitions                   | **Optional.** The max repetitions of the SNMP connection. Overrides the device class settings if set
+thola_device_snmp_v3_level                          | **Optional.** SNMP v3 level ('noAuthNoPriv', 'authNoPriv' or 'authPriv')
+thola_device_snmp_v3_context                        | **Optional.** SNMP v3 context name
+thola_device_snmp_v3_user                           | **Optional.** SNMP v3 user name
+thola_device_snmp_v3_auth_key                       | **Optional.** SNMP v3 authentication passphrase
+thola_device_snmp_v3_auth_proto                     | **Optional.** SNMP v3 authentication protocol (e.g. 'MD5' or 'SHA')
+thola_device_snmp_v3_priv_key                       | **Optional.** SNMP v3 privacy passphrase
+thola_device_snmp_v3_priv_proto                     | **Optional.** SNMP v3 privacy protocol (e.g. 'DES' or 'AES')
+thola_device_http_port                              | **Optional.** HTTP port
+thola_device_https_port                             | **Optional.** HTTPS port
+thola_device_http_username                          | **Optional.** HTTP username
+thola_device_http_password                          | **Optional.** HTTP password
+thola_timeout                                       | **Optional.** Timeout in seconds
 
 ##### thola-identify <a id="plugin-contrib-command-thola-identify"></a>
 
@@ -3616,17 +3728,44 @@ Checks if a device can be identified by the given properties.
 
 Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
-Name                               | Description
------------------------------------|--------------------------------------------------------------------------------
-thola_api_address                  | **Required.** Address of the Thola API to connect to
-thola_device_address               | **Required.** The host's address. Defaults to "$address$" if the host's address attribute is set, “$address6$” otherwise
-thola_device_snmp_community        | **Optional.** SNMP community of the device
-thola_identify_model               | **Optional.** Model that is compared to the actual model of the device
-thola_identify_os_version          | **Optional.** OS-version that is compared to the actual OS-version of the device
-thola_identify_vendor              | **Optional.** Vendor that is compared to the actual vendor of the device
-thola_identify_serial_number       | **Optional.** Serial number that is compared to the actual serial number of the device
-thola_identify_discover_retries    | **Optional.** The number of discover retries before aborting
-thola_identify_discover_timeouts   | **Optional.** The number of discover timeouts before aborting
+Name                                                | Description
+----------------------------------------------------|--------------------------------------------------------
+thola_api_address                                   | **Required.** Address of the Thola API to connect to
+thola_api_username                                  | **Optional.** The username for authorization on the Thola API
+thola_api_password                                  | **Optional.** The password for authorization on the Thola API
+thola_api_format                                    | **Optional.** The format used to send data to the Thola API ('json' or 'xml')
+thola_insecure_ssl_cert                             | **Optional.** Allow insecure SSL certificate of the Thola API
+thola_json_metrics                                  | **Optional.** Output performance data as json
+thola_device_address                                | **Required.** The host's address. Defaults to "$address$" if the host's address attribute is set, “$address6$” otherwise
+thola_device_snmp_community                         | **Optional.** SNMP Community of target device
+thola_device_snmp_protocol                          | **Optional.** SNMP Version of target device
+thola_device_snmp_port                              | **Optional.** SNMP Port of target device
+thola_device_snmp_discover_parallel_requests        | **Optional.** Amount of parallel connection requests used while trying to get a valid SNMP connection
+thola_device_snmp_discover_retries                  | **Optional.** Number of discover retries
+thola_device_snmp_discover_timeout                  | **Optional.** The timeout in seconds used while trying to get a valid SNMP connection
+thola_device_snmp_max_repetitions                   | **Optional.** The max repetitions of the SNMP connection. Overrides the device class settings if set
+thola_device_snmp_v3_level                          | **Optional.** SNMP v3 level ('noAuthNoPriv', 'authNoPriv' or 'authPriv')
+thola_device_snmp_v3_context                        | **Optional.** SNMP v3 context name
+thola_device_snmp_v3_user                           | **Optional.** SNMP v3 user name
+thola_device_snmp_v3_auth_key                       | **Optional.** SNMP v3 authentication passphrase
+thola_device_snmp_v3_auth_proto                     | **Optional.** SNMP v3 authentication protocol (e.g. 'MD5' or 'SHA')
+thola_device_snmp_v3_priv_key                       | **Optional.** SNMP v3 privacy passphrase
+thola_device_snmp_v3_priv_proto                     | **Optional.** SNMP v3 privacy protocol (e.g. 'DES' or 'AES')
+thola_device_http_port                              | **Optional.** HTTP port
+thola_device_https_port                             | **Optional.** HTTPS port
+thola_device_http_username                          | **Optional.** HTTP username
+thola_device_http_password                          | **Optional.** HTTP password
+thola_timeout                                       | **Optional.** Timeout in seconds
+thola_identify_vendor                               | **Optional.** Vendor that is compared to the actual vendor of the device
+thola_identify_model                                | **Optional.** Model that is compared to the actual model of the device
+thola_identify_os                                   | **Optional.** OS that is compared to the actual OS of the device
+thola_identify_os_version                           | **Optional.** OS-version that is compared to the actual OS-version of the device
+thola_identify_serial_number                        | **Optional.** Serial number that is compared to the actual serial number of the device
+thola_identify_vendor_diff_warning                  | **Optional.** Use warning level if vendor differs to the expected value
+thola_identify_model_diff_warning                   | **Optional.** Use warning level if model differs to the expected value
+thola_identify_os_diff_warning                      | **Optional.** Use warning level if os differs to the expected value
+thola_identify_os_version_diff_warning              | **Optional.** Use warning level if os version differs to the expected value
+thola_identify_serial_number_diff_warning           | **Optional.** Use warning level if serial number differs to the expected value
 
 > **Note**:
 >
@@ -3639,13 +3778,36 @@ Checks the memory usage of a device.
 
 Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
-Name                           | Description
--------------------------------|-----------------------------------------------------
-thola_api_address              | **Required.** Address of the Thola API to connect to
-thola_device_address           | **Required.** The host's address. Defaults to "$address$" if the host's address attribute is set, “$address6$” otherwise
-thola_device_snmp_community    | **Optional.** SNMP community of the device
-thola_memory_usage_critical    | **Optional.** Critical threshold for the memory usage in %
-thola_memory_usage_warning     | **Optional.** Warning threshold for the memory usage in %
+Name                                                | Description
+----------------------------------------------------|--------------------------------------------------------
+thola_api_address                                   | **Required.** Address of the Thola API to connect to
+thola_api_username                                  | **Optional.** The username for authorization on the Thola API
+thola_api_password                                  | **Optional.** The password for authorization on the Thola API
+thola_api_format                                    | **Optional.** The format used to send data to the Thola API ('json' or 'xml')
+thola_insecure_ssl_cert                             | **Optional.** Allow insecure SSL certificate of the Thola API
+thola_json_metrics                                  | **Optional.** Output performance data as json
+thola_device_address                                | **Required.** The host's address. Defaults to "$address$" if the host's address attribute is set, “$address6$” otherwise
+thola_device_snmp_community                         | **Optional.** SNMP Community of target device
+thola_device_snmp_protocol                          | **Optional.** SNMP Version of target device
+thola_device_snmp_port                              | **Optional.** SNMP Port of target device
+thola_device_snmp_discover_parallel_requests        | **Optional.** Amount of parallel connection requests used while trying to get a valid SNMP connection
+thola_device_snmp_discover_retries                  | **Optional.** Number of discover retries
+thola_device_snmp_discover_timeout                  | **Optional.** The timeout in seconds used while trying to get a valid SNMP connection
+thola_device_snmp_max_repetitions                   | **Optional.** The max repetitions of the SNMP connection. Overrides the device class settings if set
+thola_device_snmp_v3_level                          | **Optional.** SNMP v3 level ('noAuthNoPriv', 'authNoPriv' or 'authPriv')
+thola_device_snmp_v3_context                        | **Optional.** SNMP v3 context name
+thola_device_snmp_v3_user                           | **Optional.** SNMP v3 user name
+thola_device_snmp_v3_auth_key                       | **Optional.** SNMP v3 authentication passphrase
+thola_device_snmp_v3_auth_proto                     | **Optional.** SNMP v3 authentication protocol (e.g. 'MD5' or 'SHA')
+thola_device_snmp_v3_priv_key                       | **Optional.** SNMP v3 privacy passphrase
+thola_device_snmp_v3_priv_proto                     | **Optional.** SNMP v3 privacy protocol (e.g. 'DES' or 'AES')
+thola_device_http_port                              | **Optional.** HTTP port
+thola_device_https_port                             | **Optional.** HTTPS port
+thola_device_http_username                          | **Optional.** HTTP username
+thola_device_http_password                          | **Optional.** HTTP password
+thola_timeout                                       | **Optional.** Timeout in seconds
+thola_memory_usage_critical                         | **Optional.** Critical threshold for the memory usage in %
+thola_memory_usage_warning                          | **Optional.** Warning threshold for the memory usage in %
 
 ##### thola-sbc <a id="plugin-contrib-command-thola-sbc"></a>
 
@@ -3653,13 +3815,110 @@ Checks special metrics from sbc network devices.
 
 Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
-Name                                     | Description
------------------------------------------|-----------------------------------------------------------
-thola_api_address                        | **Required.** Address of the Thola API to connect to
-thola_device_address                     | **Required.** The host's address. Defaults to "$address$" if the host's address attribute is set, “$address6$” otherwise
-thola_device_snmp_community              | **Optional.** SNMP community of the device
-thola_sbc_system_health_score_critical   | **Optional.** Critical threshold for the health score in %
-thola_sbc_system_health_score_warning    | **Optional.** Warning threshold for the health score in %
+Name                                                | Description
+----------------------------------------------------|--------------------------------------------------------
+thola_api_address                                   | **Required.** Address of the Thola API to connect to
+thola_api_username                                  | **Optional.** The username for authorization on the Thola API
+thola_api_password                                  | **Optional.** The password for authorization on the Thola API
+thola_api_format                                    | **Optional.** The format used to send data to the Thola API ('json' or 'xml')
+thola_insecure_ssl_cert                             | **Optional.** Allow insecure SSL certificate of the Thola API
+thola_json_metrics                                  | **Optional.** Output performance data as json
+thola_device_address                                | **Required.** The host's address. Defaults to "$address$" if the host's address attribute is set, “$address6$” otherwise
+thola_device_snmp_community                         | **Optional.** SNMP Community of target device
+thola_device_snmp_protocol                          | **Optional.** SNMP Version of target device
+thola_device_snmp_port                              | **Optional.** SNMP Port of target device
+thola_device_snmp_discover_parallel_requests        | **Optional.** Amount of parallel connection requests used while trying to get a valid SNMP connection
+thola_device_snmp_discover_retries                  | **Optional.** Number of discover retries
+thola_device_snmp_discover_timeout                  | **Optional.** The timeout in seconds used while trying to get a valid SNMP connection
+thola_device_snmp_max_repetitions                   | **Optional.** The max repetitions of the SNMP connection. Overrides the device class settings if set
+thola_device_snmp_v3_level                          | **Optional.** SNMP v3 level ('noAuthNoPriv', 'authNoPriv' or 'authPriv')
+thola_device_snmp_v3_context                        | **Optional.** SNMP v3 context name
+thola_device_snmp_v3_user                           | **Optional.** SNMP v3 user name
+thola_device_snmp_v3_auth_key                       | **Optional.** SNMP v3 authentication passphrase
+thola_device_snmp_v3_auth_proto                     | **Optional.** SNMP v3 authentication protocol (e.g. 'MD5' or 'SHA')
+thola_device_snmp_v3_priv_key                       | **Optional.** SNMP v3 privacy passphrase
+thola_device_snmp_v3_priv_proto                     | **Optional.** SNMP v3 privacy protocol (e.g. 'DES' or 'AES')
+thola_device_http_port                              | **Optional.** HTTP port
+thola_device_https_port                             | **Optional.** HTTPS port
+thola_device_http_username                          | **Optional.** HTTP username
+thola_device_http_password                          | **Optional.** HTTP password
+thola_timeout                                       | **Optional.** Timeout in seconds
+thola_sbc_system_health_score_critical              | **Optional.** Critical threshold for the health score in %
+thola_sbc_system_health_score_warning               | **Optional.** Warning threshold for the health score in %
+
+##### thola-server <a id="plugin-contrib-command-thola-server"></a>
+
+Checks the server specific metrics of a device.
+
+Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                                                | Description
+----------------------------------------------------|--------------------------------------------------------
+thola_api_address                                   | **Required.** Address of the Thola API to connect to
+thola_api_username                                  | **Optional.** The username for authorization on the Thola API
+thola_api_password                                  | **Optional.** The password for authorization on the Thola API
+thola_api_format                                    | **Optional.** The format used to send data to the Thola API ('json' or 'xml')
+thola_insecure_ssl_cert                             | **Optional.** Allow insecure SSL certificate of the Thola API
+thola_json_metrics                                  | **Optional.** Output performance data as json
+thola_device_address                                | **Required.** The host's address. Defaults to "$address$" if the host's address attribute is set, “$address6$” otherwise
+thola_device_snmp_community                         | **Optional.** SNMP Community of target device
+thola_device_snmp_protocol                          | **Optional.** SNMP Version of target device
+thola_device_snmp_port                              | **Optional.** SNMP Port of target device
+thola_device_snmp_discover_parallel_requests        | **Optional.** Amount of parallel connection requests used while trying to get a valid SNMP connection
+thola_device_snmp_discover_retries                  | **Optional.** Number of discover retries
+thola_device_snmp_discover_timeout                  | **Optional.** The timeout in seconds used while trying to get a valid SNMP connection
+thola_device_snmp_max_repetitions                   | **Optional.** The max repetitions of the SNMP connection. Overrides the device class settings if set
+thola_device_snmp_v3_level                          | **Optional.** SNMP v3 level ('noAuthNoPriv', 'authNoPriv' or 'authPriv')
+thola_device_snmp_v3_context                        | **Optional.** SNMP v3 context name
+thola_device_snmp_v3_user                           | **Optional.** SNMP v3 user name
+thola_device_snmp_v3_auth_key                       | **Optional.** SNMP v3 authentication passphrase
+thola_device_snmp_v3_auth_proto                     | **Optional.** SNMP v3 authentication protocol (e.g. 'MD5' or 'SHA')
+thola_device_snmp_v3_priv_key                       | **Optional.** SNMP v3 privacy passphrase
+thola_device_snmp_v3_priv_proto                     | **Optional.** SNMP v3 privacy protocol (e.g. 'DES' or 'AES')
+thola_device_http_port                              | **Optional.** HTTP port
+thola_device_https_port                             | **Optional.** HTTPS port
+thola_device_http_username                          | **Optional.** HTTP username
+thola_device_http_password                          | **Optional.** HTTP password
+thola_timeout                                       | **Optional.** Timeout in seconds
+thola_server_procs_warning                          | **Optional.** Warning threshold for procs count
+thola_server_procs_critical                         | **Optional.** Critical threshold for procs count
+thola_server_users_warning                          | **Optional.** Warning threshold for users count
+thola_server_users_critical                         | **Optional.** Critical threshold for users count
+
+##### thola-snmp <a id="plugin-contrib-command-thola-snmp"></a>
+
+Checks the server specific metrics of a device.
+
+Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                                                | Description
+----------------------------------------------------|--------------------------------------------------------
+thola_api_address                                   | **Required.** Address of the Thola API to connect to
+thola_api_username                                  | **Optional.** The username for authorization on the Thola API
+thola_api_password                                  | **Optional.** The password for authorization on the Thola API
+thola_api_format                                    | **Optional.** The format used to send data to the Thola API ('json' or 'xml')
+thola_insecure_ssl_cert                             | **Optional.** Allow insecure SSL certificate of the Thola API
+thola_json_metrics                                  | **Optional.** Output performance data as json
+thola_device_address                                | **Required.** The host's address. Defaults to "$address$" if the host's address attribute is set, “$address6$” otherwise
+thola_device_snmp_community                         | **Optional.** SNMP Community of target device
+thola_device_snmp_protocol                          | **Optional.** SNMP Version of target device
+thola_device_snmp_port                              | **Optional.** SNMP Port of target device
+thola_device_snmp_discover_parallel_requests        | **Optional.** Amount of parallel connection requests used while trying to get a valid SNMP connection
+thola_device_snmp_discover_retries                  | **Optional.** Number of discover retries
+thola_device_snmp_discover_timeout                  | **Optional.** The timeout in seconds used while trying to get a valid SNMP connection
+thola_device_snmp_max_repetitions                   | **Optional.** The max repetitions of the SNMP connection. Overrides the device class settings if set
+thola_device_snmp_v3_level                          | **Optional.** SNMP v3 level ('noAuthNoPriv', 'authNoPriv' or 'authPriv')
+thola_device_snmp_v3_context                        | **Optional.** SNMP v3 context name
+thola_device_snmp_v3_user                           | **Optional.** SNMP v3 user name
+thola_device_snmp_v3_auth_key                       | **Optional.** SNMP v3 authentication passphrase
+thola_device_snmp_v3_auth_proto                     | **Optional.** SNMP v3 authentication protocol (e.g. 'MD5' or 'SHA')
+thola_device_snmp_v3_priv_key                       | **Optional.** SNMP v3 privacy passphrase
+thola_device_snmp_v3_priv_proto                     | **Optional.** SNMP v3 privacy protocol (e.g. 'DES' or 'AES')
+thola_device_http_port                              | **Optional.** HTTP port
+thola_device_https_port                             | **Optional.** HTTPS port
+thola_device_http_username                          | **Optional.** HTTP username
+thola_device_http_password                          | **Optional.** HTTP password
+thola_timeout                                       | **Optional.** Timeout in seconds
 
 ##### thola-thola-server <a id="plugin-contrib-command-thola-thola-server"></a>
 
@@ -3667,9 +3926,14 @@ Checks if a Thola API is running on a given server.
 
 Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
-Name                | Description
---------------------|-----------------------------------------------------
-thola_api_address   | **Required.** Address of the Thola API to connect to
+Name                                                | Description
+----------------------------------------------------|--------------------------------------------------------
+thola_api_address                                   | **Required.** Address of the Thola API to connect to
+thola_api_username                                  | **Optional.** The username for authorization on the Thola API
+thola_api_password                                  | **Optional.** The password for authorization on the Thola API
+thola_api_format                                    | **Optional.** The format used to send data to the Thola API ('json' or 'xml')
+thola_insecure_ssl_cert                             | **Optional.** Allow insecure SSL certificate of the Thola API
+thola_json_metrics                                  | **Optional.** Output performance data as json
 
 ##### thola-ups <a id="plugin-contrib-command-thola-ups"></a>
 
@@ -3677,31 +3941,54 @@ Checks whether a UPS device has its main voltage applied.
 
 Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
-Name                                        | Description
---------------------------------------------|-----------------------------------------------------------------
-thola_api_address                           | **Required.** Address of the Thola API to connect to
-thola_device_address                        | **Required.** The host's address. Defaults to "$address$" if the host's address attribute is set, “$address6$” otherwise
-thola_device_snmp_community                 | **Optional.** SNMP community of the device
-thola_ups_batt_current_critical_max         | **Optional.** High critical threshold for the battery current in Volt
-thola_ups_batt_current_critical_min         | **Optional.** Low critical threshold for the battery current in Volt
-thola_ups_batt_current_warning_max          | **Optional.** High warning threshold for the battery current in Volt
-thola_ups_batt_current_warning_min          | **Optional.** Low warning threshold for the battery current in Volt
-thola_ups_batt_temperature_critical_max     | **Optional.** High critical threshold for the battery temperature in degree celsius
-thola_ups_batt_temperature_critical_min     | **Optional.** Low critical threshold for the battery temperature in degree celsius
-thola_ups_batt_temperature_warning_max      | **Optional.** High warning threshold for the battery temperature in degree celsius
-thola_ups_batt_temperature_warning_min      | **Optional.** Low warning threshold for the battery temperature in degree celsius
-thola_ups_current_load_critical_max         | **Optional.** High critical threshold for the current load in percent
-thola_ups_current_load_critical_min         | **Optional.** Low critical threshold for the current load in percent
-thola_ups_current_load_warning_max          | **Optional.** High warning threshold for the current load in percent
-thola_ups_current_load_warning_min          | **Optional.** Low warning threshold for the current load in percent
-thola_ups_rectifier_current_critical_max    | **Optional.** High critical threshold for the current rectifier in Volt
-thola_ups_rectifier_current_critical_min    | **Optional.** Low critical threshold for the current rectifier in Volt
-thola_ups_rectifier_current_warning_max     | **Optional.** High warning threshold for the current rectifier in Volt
-thola_ups_rectifier_current_warning_min     | **Optional.** Low warning threshold for the current rectifier in Volt
-thola_ups_system_voltage_critical_max       | **Optional.** High critical threshold for the system voltage in Volt
-thola_ups_system_voltage_critical_min       | **Optional.** Low critical threshold for the system voltage in Volt
-thola_ups_system_voltage_warning_max        | **Optional.** High warning threshold for the system voltage in Volt
-thola_ups_system_voltage_warning_min        | **Optional.** Low warning threshold for the system voltage in Volt
+Name                                                | Description
+----------------------------------------------------|--------------------------------------------------------
+thola_api_address                                   | **Required.** Address of the Thola API to connect to
+thola_api_username                                  | **Optional.** The username for authorization on the Thola API
+thola_api_password                                  | **Optional.** The password for authorization on the Thola API
+thola_api_format                                    | **Optional.** The format used to send data to the Thola API ('json' or 'xml')
+thola_insecure_ssl_cert                             | **Optional.** Allow insecure SSL certificate of the Thola API
+thola_json_metrics                                  | **Optional.** Output performance data as json
+thola_device_address                                | **Required.** The host's address. Defaults to "$address$" if the host's address attribute is set, “$address6$” otherwise
+thola_device_snmp_community                         | **Optional.** SNMP Community of target device
+thola_device_snmp_protocol                          | **Optional.** SNMP Version of target device
+thola_device_snmp_port                              | **Optional.** SNMP Port of target device
+thola_device_snmp_discover_parallel_requests        | **Optional.** Amount of parallel connection requests used while trying to get a valid SNMP connection
+thola_device_snmp_discover_retries                  | **Optional.** Number of discover retries
+thola_device_snmp_discover_timeout                  | **Optional.** The timeout in seconds used while trying to get a valid SNMP connection
+thola_device_snmp_max_repetitions                   | **Optional.** The max repetitions of the SNMP connection. Overrides the device class settings if set
+thola_device_snmp_v3_level                          | **Optional.** SNMP v3 level ('noAuthNoPriv', 'authNoPriv' or 'authPriv')
+thola_device_snmp_v3_context                        | **Optional.** SNMP v3 context name
+thola_device_snmp_v3_user                           | **Optional.** SNMP v3 user name
+thola_device_snmp_v3_auth_key                       | **Optional.** SNMP v3 authentication passphrase
+thola_device_snmp_v3_auth_proto                     | **Optional.** SNMP v3 authentication protocol (e.g. 'MD5' or 'SHA')
+thola_device_snmp_v3_priv_key                       | **Optional.** SNMP v3 privacy passphrase
+thola_device_snmp_v3_priv_proto                     | **Optional.** SNMP v3 privacy protocol (e.g. 'DES' or 'AES')
+thola_device_http_port                              | **Optional.** HTTP port
+thola_device_https_port                             | **Optional.** HTTPS port
+thola_device_http_username                          | **Optional.** HTTP username
+thola_device_http_password                          | **Optional.** HTTP password
+thola_timeout                                       | **Optional.** Timeout in seconds
+thola_ups_batt_current_critical_max                 | **Optional.** High critical threshold for the battery current in Volt
+thola_ups_batt_current_critical_min                 | **Optional.** Low critical threshold for the battery current in Volt
+thola_ups_batt_current_warning_max                  | **Optional.** High warning threshold for the battery current in Volt
+thola_ups_batt_current_warning_min                  | **Optional.** Low warning threshold for the battery current in Volt
+thola_ups_batt_temperature_critical_max             | **Optional.** High critical threshold for the battery temperature in degree celsius
+thola_ups_batt_temperature_critical_min             | **Optional.** Low critical threshold for the battery temperature in degree celsius
+thola_ups_batt_temperature_warning_max              | **Optional.** High warning threshold for the battery temperature in degree celsius
+thola_ups_batt_temperature_warning_min              | **Optional.** Low warning threshold for the battery temperature in degree celsius
+thola_ups_current_load_critical_max                 | **Optional.** High critical threshold for the current load in percent
+thola_ups_current_load_critical_min                 | **Optional.** Low critical threshold for the current load in percent
+thola_ups_current_load_warning_max                  | **Optional.** High warning threshold for the current load in percent
+thola_ups_current_load_warning_min                  | **Optional.** Low warning threshold for the current load in percent
+thola_ups_rectifier_current_critical_max            | **Optional.** High critical threshold for the current rectifier in Volt
+thola_ups_rectifier_current_critical_min            | **Optional.** Low critical threshold for the current rectifier in Volt
+thola_ups_rectifier_current_warning_max             | **Optional.** High warning threshold for the current rectifier in Volt
+thola_ups_rectifier_current_warning_min             | **Optional.** Low warning threshold for the current rectifier in Volt
+thola_ups_system_voltage_critical_max               | **Optional.** High critical threshold for the system voltage in Volt
+thola_ups_system_voltage_critical_min               | **Optional.** Low critical threshold for the system voltage in Volt
+thola_ups_system_voltage_warning_max                | **Optional.** High warning threshold for the system voltage in Volt
+thola_ups_system_voltage_warning_min                | **Optional.** Low warning threshold for the system voltage in Volt
 
 ### Network Services <a id="plugin-contrib-network-services"></a>
 
