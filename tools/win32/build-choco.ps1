@@ -20,7 +20,7 @@ if(-not (Test-Path "$($env:ICINGA2_BUILDPATH)\*-x86_64.msi")) {
 }
 
 $hashMSIpackage64 =  Get-FileHash "$($env:ICINGA2_BUILDPATH)\*-x86_64.msi"
-Write-Output "File Hash for 32 bit MSI package: $($hashMSIpackage64.Hash)"
+Write-Output "File Hash for 64 bit MSI package: $($hashMSIpackage64.Hash)"
 
 $chocoInstallScript = $chocoInstallScript.Replace("%CHOCO_64BIT_CHECKSUM%", "$($hashMSIpackage64.Hash)")
 Write-Output $chocoInstallScript
