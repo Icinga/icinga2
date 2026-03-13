@@ -1214,6 +1214,7 @@ Configuration Attributes:
   port                      | Number                | **Required.** Elasticsearch port. Defaults to `9200`.
   index                     | String                | **Required.** Prefix for the index names. Defaults to `icinga2`.
   enable\_send\_perfdata    | Boolean               | **Optional.** Send parsed performance data metrics for check results. Defaults to `false`.
+  diconnect\_timeout        | Duration              | **Optional.** Timeout to wait for any outstanding data to be flushed to Elasticsearch before disconnecting. Defaults to `10s`.
   flush\_interval           | Duration              | **Optional.** How long to buffer data points before transferring to Elasticsearch. Defaults to `10s`.
   flush\_threshold          | Number                | **Optional.** How many data points to buffer before forcing a transfer to Elasticsearch.  Defaults to `1024`.
   username                  | String                | **Optional.** Basic auth username if Elasticsearch is hidden behind an HTTP proxy.
@@ -1310,6 +1311,7 @@ Configuration Attributes:
   --------------------------|-----------------------|----------------------------------
   host                      | String                | **Optional.** GELF receiver host address. Defaults to `127.0.0.1`.
   port                      | Number                | **Optional.** GELF receiver port. Defaults to `12201`.
+  diconnect\_timeout        | Duration              | **Optional.** Timeout to wait for any outstanding data to be flushed to GELF before disconnecting. Defaults to `10s`.
   source                    | String                | **Optional.** Source name for this instance. Defaults to `icinga2`.
   enable\_send\_perfdata    | Boolean               | **Optional.** Enable performance data for 'CHECK RESULT' events.
   enable\_ha                | Boolean               | **Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-features). Defaults to `false`.
@@ -1340,6 +1342,7 @@ Configuration Attributes:
   --------------------------|-----------------------|----------------------------------
   host                      | String                | **Optional.** Graphite Carbon host address. Defaults to `127.0.0.1`.
   port                      | Number                | **Optional.** Graphite Carbon port. Defaults to `2003`.
+  diconnect\_timeout        | Duration              | **Optional.** Timeout to wait for any outstanding data to be flushed to Graphite before disconnecting. Defaults to `10s`.
   host\_name\_template      | String                | **Optional.** Metric prefix for host name. Defaults to `icinga2.$host.name$.host.$host.check_command$`.
   service\_name\_template   | String                | **Optional.** Metric prefix for service name. Defaults to `icinga2.$host.name$.services.$service.name$.$service.check_command$`.
   enable\_send\_thresholds  | Boolean               | **Optional.** Send additional threshold metrics. Defaults to `false`.
@@ -1682,6 +1685,7 @@ Configuration Attributes:
   service\_template         | Dictionary            | **Required.** Service template to define the influxDB line protocol.
   enable\_send\_thresholds  | Boolean               | **Optional.** Whether to send warn, crit, min & max tagged data.
   enable\_send\_metadata    | Boolean               | **Optional.** Whether to send check metadata e.g. states, execution time, latency etc.
+  diconnect\_timeout        | Duration              | **Optional.** Timeout to wait for any outstanding data to be flushed to InfluxDB before disconnecting. Defaults to `10s`.
   flush\_interval           | Duration              | **Optional.** How long to buffer data points before transferring to InfluxDB. Defaults to `10s`.
   flush\_threshold          | Number                | **Optional.** How many data points to buffer before forcing a transfer to InfluxDB.  Defaults to `1024`.
   enable\_ha                | Boolean               | **Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-features). Defaults to `false`.
@@ -1745,6 +1749,7 @@ Configuration Attributes:
   service\_template         | Dictionary            | **Required.** Service template to define the influxDB line protocol.
   enable\_send\_thresholds  | Boolean               | **Optional.** Whether to send warn, crit, min & max tagged data.
   enable\_send\_metadata    | Boolean               | **Optional.** Whether to send check metadata e.g. states, execution time, latency etc.
+  diconnect\_timeout        | Duration              | **Optional.** Timeout to wait for any outstanding data to be flushed to InfluxDB before disconnecting. Defaults to `10s`.
   flush\_interval           | Duration              | **Optional.** How long to buffer data points before transferring to InfluxDB. Defaults to `10s`.
   flush\_threshold          | Number                | **Optional.** How many data points to buffer before forcing a transfer to InfluxDB.  Defaults to `1024`.
   enable\_ha                | Boolean               | **Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-features). Defaults to `false`.
@@ -1860,6 +1865,7 @@ Configuration Attributes:
   --------------------------|-----------------------|----------------------------------
   host            	    | String                | **Optional.** OpenTSDB host address. Defaults to `127.0.0.1`.
   port            	    | Number                | **Optional.** OpenTSDB port. Defaults to `4242`.
+  diconnect\_timeout    | Duration              | **Optional.** Timeout to wait for any outstanding data to be flushed to OpenTSDB before disconnecting. Defaults to `10s`.
   enable\_ha                | Boolean               | **Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-features). Defaults to `false`.
   enable_generic_metrics    | Boolean               | **Optional.** Re-use metric names to store different perfdata values for a particular check. Use tags to distinguish perfdata instead of metric name. Defaults to `false`.
   host_template             | Dictionary                | **Optional.** Specify additional tags to be included with host metrics. This requires a sub-dictionary named `tags`. Also specify a naming prefix by setting `metric`. More information can be found in [OpenTSDB custom tags](14-features.md#opentsdb-custom-tags) and [OpenTSDB Metric Prefix](14-features.md#opentsdb-metric-prefix). More information can be found in [OpenTSDB custom tags](14-features.md#opentsdb-custom-tags). Defaults to an `empty Dictionary`.
