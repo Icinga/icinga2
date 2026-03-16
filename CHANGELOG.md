@@ -7,6 +7,103 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.16.0 (2026-03-TBD)
+
+With this release the license of the project was updated to GPLv3 or later: [#10700](https://github.com/Icinga/icinga2/pull/10700)
+
+In this release we've added the OTLPMetricsWriter, a new perfdata writer targeting backends that support the OpenTelemetry protocol. We recommend users to replace other perfdata writers with this one if possible, especially ElasticsearchWriter, which has been deprecated and scheduled for removal in v2.18.
+
+Another big improvement is the addition of streaming support to our HTTP handlers. Most handlers now use chunked encoding to reduce the amount of the generated JSON document that has to be kept in memory at any one time. Some endpoints, notably `v1/objects/query`,  will also start to stream the response immediately, as the results are processed. This should solve most of the memory issues users where seeing when using the HTTP-API on large clusters.
+
+### Notes
+
+Thanks to all contributors:
+[brad0](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.16.0+author%3Abrad0),
+[cjsoftuk](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.16.0+author%3Acjsoftuk),
+[Donien](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.16.0+author%3ADonien),
+[Egor-OSSRevival](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.16.0+author%3AEgor-OSSRevival),
+[ETES-Stuttgart](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.16.0+author%3AETES-Stuttgart),
+[freaknils](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.16.0+author%3Afreaknils),
+[martialblog](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.16.0+author%3Amartialblog),
+[Napsty](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.16.0+author%3ANapsty),
+[RincewindsHat](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.16.0+author%3ARincewindsHat),
+[Tqnsls](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.16.0+author%3ATqnsls),
+[w1ll-i-code](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.16.0+author%3Aw1ll-i-code),
+[ymartin-ovh](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.16.0+author%3Aymartin-ovh)
+
+### Enhancements
+
++ OTLPMetricsWriter: A new perfdata writer for the OpenTelemetry protocol: [#10685](https://github.com/Icinga/icinga2/pull/10685)
++ HTTP API-handlers now stream results via chunked encoding where possible: [#10554](https://github.com/Icinga/icinga2/pull/10554), [#10692](https://github.com/Icinga/icinga2/pull/10692), [#10516](https://github.com/Icinga/icinga2/pull/10516) and [#10414](https://github.com/Icinga/icinga2/pull/10414)
++ New docker images: [#10505](https://github.com/Icinga/icinga2/pull/10505) and [#10666](https://github.com/Icinga/icinga2/pull/10666)
++ Better debug log messages for dependencies with non-existing parents or children: [#10737](https://github.com/Icinga/icinga2/pull/10737)
++ No longer require the unused 'queue' parameter for `v1/events`: [#10495](https://github.com/Icinga/icinga2/pull/10495)
++ Allow UID/GID values in `ICINGA2_USER` and `ICINGA2_GROUP` environment variables: [#10538](https://github.com/Icinga/icinga2/pull/10538)
++ Deterministic ordering of endpoints in zones (for manual load-balancing): [#10389](https://github.com/Icinga/icinga2/pull/10389), [#10393](https://github.com/Icinga/icinga2/pull/10393)
++ Add `messages_received_per_type` attribute to endpoints:  [#10387](https://github.com/Icinga/icinga2/pull/10387)
++ Better error messages on Redis connection errors: [#10727](https://github.com/Icinga/icinga2/pull/10727)
++ JSON-RPC utilization metrics and troubleshooting: [#10553](https://github.com/Icinga/icinga2/pull/10553)
++ New node-setup command option `--no-default-global-zones`: [#10028](https://github.com/Icinga/icinga2/pull/10028)
++ Warn on problematic object names: [#10770](https://github.com/Icinga/icinga2/pull/10770)
+
+### Bugfixes
+
++ Fixed a race condition in the `v1/console` handler: [#10681](https://github.com/Icinga/icinga2/pull/10681) and [#10675](https://github.com/Icinga/icinga2/pull/10675)
++ Fixed InfluxDBWriter failing when receiving an UTF-8 content type: [#10560](https://github.com/Icinga/icinga2/pull/10560)
++ Fixed a crash when querying objects that are simultaneously deleted: [#10698](https://github.com/Icinga/icinga2/pull/10698)
++ Fix a race condition leading to double notifications: [#10628](https://github.com/Icinga/icinga2/pull/10628)
++ New config option `http_response_headers` for ApiListener that allows to set arbitrary HTTP-headers that will be sent back with responses: [#10563](https://github.com/Icinga/icinga2/pull/10563)
++ Improved BSD support: [#10641](https://github.com/Icinga/icinga2/pull/10641), [#10640](https://github.com/Icinga/icinga2/pull/10640), [#10638](https://github.com/Icinga/icinga2/pull/10638) and [#10635](https://github.com/Icinga/icinga2/pull/10635)
++ TimePeriod: properly validate `ranges` field: [#10633](https://github.com/Icinga/icinga2/pull/10633)
++ Fix recovery notifications outside time period being lost: [#10613](https://github.com/Icinga/icinga2/pull/10613)
++ Send signals as Icinga user in safe-reload and logrotate: [#10530](https://github.com/Icinga/icinga2/pull/10530)
++ Prevent worst-case exponential complexity in dependency evaluation: [#10523](https://github.com/Icinga/icinga2/pull/10523)
++ Fix double-free error in `posix_error::what()`: [#10558](https://github.com/Icinga/icinga2/pull/10558)
++ Handle config package updates gracefully: [#10476](https://github.com/Icinga/icinga2/pull/10476)
++ Fix expiry times not applying correctly to Acknowledgements via ExternalCommandProcessor: [#10486](https://github.com/Icinga/icinga2/pull/10486)
++ Fix dropped or stalled connections blocking Icinga 2 shutdown on all perfdata writers: [#10668](https://github.com/Icinga/icinga2/pull/10668)
++ Add a missing null pointer check while evaluating expressions: [CVE-2025-61908](https://github.com/Icinga/icinga2/security/advisories/GHSA-v9jg-xqhj-f43g)
++ Prevent API users from accessing variables and objects they don't have access to within filter expressions: [CVE-2025-61907](https://github.com/Icinga/icinga2/security/advisories/GHSA-gg32-w9rm-vp2v)
+
+### ITL
+
++ Support for the `check_smart` plugin: [#8041](https://github.com/Icinga/icinga2/pull/8041)
++ Add `ssl_cert_long_output` option to `check_ssl_cert` plugin: [#10526](https://github.com/Icinga/icinga2/pull/10526)
+
+### SELinux
+
++ Allow to send `SIGTERM` to nagios plugins: [#10535](https://github.com/Icinga/icinga2/pull/10535)
++ Allow `logrotate` to execute `icinga2` binary: [#10621](https://github.com/Icinga/icinga2/pull/10621)
+
+### Optimizations
+
++ Several performance optimizations for the redis connection: [#10391](https://github.com/Icinga/icinga2/pull/10391), [#10732](https://github.com/Icinga/icinga2/pull/10732), [#10744](https://github.com/Icinga/icinga2/pull/10744)
++ Freeze registries after startup: [#10388](https://github.com/Icinga/icinga2/pull/10388)
++ Small code and performance optimizations in `Log` class: [#10504](https://github.com/Icinga/icinga2/pull/10504)
+
+### Windows
+
++ Properly set ACL on installation: [#10710](https://github.com/Icinga/icinga2/pull/10710)
++ OpenSSL shipped on Windows updated to 3.5: [#10679](https://github.com/Icinga/icinga2/pull/10679)
++ Boost version shipped on Windows updated to 1.90: [#10669](https://github.com/Icinga/icinga2/pull/10669)
++ Require Visual Studio 2022: [#10690](https://github.com/Icinga/icinga2/pull/10690)
+
+### Deprecations
+
+Features newly deprecated in this version:
++ `ElasticsearchWriter` (please use the new `OTLPMetricsWriter` instead)
++ User declared namespace objects (i.e. `namespace foo {}`)
+
+We've scheduled these features for removal in v2.18: [#10734](https://github.com/Icinga/icinga2/pull/10734)
+
+These features have already been deprecated and will also be removed in v2.18:
++ `IdoMySqlConnection`
++ `IdoPgsqlConnection`
++ `CompatLogger`
++ `ExternalCommandListener`
++ `LivestatusListener`
++ Windows check-plugins (i.e. `check_*.exe`) and `CheckCommand`s (please use our [PowerShell Plugins](https://github.com/Icinga/icinga-powershell-plugins) instead)
+
 ## 2.15.0 (2025-06-18)
 
 This Icinga 2 release is focused on adding Icinga 2 dependencies support to Icinga DB, but also includes a number
