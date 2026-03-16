@@ -16,12 +16,9 @@
 #include "base/array.hpp"
 #include "base/exception.hpp"
 #include "base/utility.hpp"
-#include "base/object-packer.hpp"
 #include "icinga/command.hpp"
-#include "icinga/compatutility.hpp"
 #include "icinga/customvarobject.hpp"
 #include "icinga/dependency.hpp"
-#include "icinga/host.hpp"
 #include "icinga/service.hpp"
 #include "icinga/hostgroup.hpp"
 #include "icinga/servicegroup.hpp"
@@ -38,7 +35,6 @@
 #include <cstdint>
 #include <iterator>
 #include <map>
-#include <memory>
 #include <mutex>
 #include <set>
 #include <utility>
@@ -48,42 +44,77 @@ using namespace icinga;
 
 using Prio = RedisConnection::QueryPriority;
 
-std::unordered_set<Type*> IcingaDB::m_IndexedTypes;
-
 INITIALIZE_ONCE(&IcingaDB::ConfigStaticInitialize);
 
-std::vector<Type::Ptr> IcingaDB::GetTypes()
+// A list of all types for which we want to sync custom variables, along with their corresponding Redis key.
+// They are sorted heuristically in the order they are most likely to be accessed, with the most commonly accessed
+// ones first. This is not strictly required, but it should avoid some linear searching in the common case.
+static constexpr std::pair<const Type::Ptr&, std::string_view> l_CustomVarKeys[] = {
+	{Notification::TypeInstance, CONFIG_REDIS_KEY_PREFIX "notification:customvar"},
+	{Service::TypeInstance, CONFIG_REDIS_KEY_PREFIX "service:customvar"},
+	{Host::TypeInstance, CONFIG_REDIS_KEY_PREFIX "host:customvar"},
+	{CheckCommand::TypeInstance, CONFIG_REDIS_KEY_PREFIX "checkcommand:customvar"},
+	{ServiceGroup::TypeInstance, CONFIG_REDIS_KEY_PREFIX "servicegroup:customvar"},
+	{HostGroup::TypeInstance, CONFIG_REDIS_KEY_PREFIX "hostgroup:customvar"},
+	{User::TypeInstance, CONFIG_REDIS_KEY_PREFIX "user:customvar"},
+	{UserGroup::TypeInstance, CONFIG_REDIS_KEY_PREFIX "usergroup:customvar"},
+	{TimePeriod::TypeInstance, CONFIG_REDIS_KEY_PREFIX "timeperiod:customvar"},
+	{NotificationCommand::TypeInstance, CONFIG_REDIS_KEY_PREFIX "notificationcommand:customvar"},
+	{EventCommand::TypeInstance, CONFIG_REDIS_KEY_PREFIX "eventcommand:customvar"},
+};
+
+// A list of all serializable types that we want to index in Redis, along with their corresponding object and checksum Redis keys.
+// They're sorted in the order they should be synced in the initial config sync.
+static constexpr std::pair<const Type::Ptr&, IcingaDB::QueryArgPair> l_SyncableTypes[] = {
+	// First sync the checkables to get their states ASAP.
+	{Host::TypeInstance, {CONFIG_REDIS_KEY_PREFIX "host", CHECKSUM_REDIS_KEY_PREFIX "host"}},
+	{Service::TypeInstance, {CONFIG_REDIS_KEY_PREFIX "service", CHECKSUM_REDIS_KEY_PREFIX "service"}},
+
+	// Then sync them for similar reasons.
+	{Downtime::TypeInstance, {CONFIG_REDIS_KEY_PREFIX "downtime", CHECKSUM_REDIS_KEY_PREFIX "downtime"}},
+	{Comment::TypeInstance, {CONFIG_REDIS_KEY_PREFIX "comment", CHECKSUM_REDIS_KEY_PREFIX "comment"}},
+
+	{HostGroup::TypeInstance, {CONFIG_REDIS_KEY_PREFIX "hostgroup", CHECKSUM_REDIS_KEY_PREFIX "hostgroup"}},
+	{ServiceGroup::TypeInstance, {CONFIG_REDIS_KEY_PREFIX "servicegroup", CHECKSUM_REDIS_KEY_PREFIX "servicegroup"}},
+	{CheckCommand::TypeInstance, {CONFIG_REDIS_KEY_PREFIX "checkcommand", CHECKSUM_REDIS_KEY_PREFIX "checkcommand"}},
+	{Endpoint::TypeInstance, {CONFIG_REDIS_KEY_PREFIX "endpoint", CHECKSUM_REDIS_KEY_PREFIX "endpoint"}},
+	{EventCommand::TypeInstance, {CONFIG_REDIS_KEY_PREFIX "eventcommand", CHECKSUM_REDIS_KEY_PREFIX "eventcommand"}},
+	{Notification::TypeInstance, {CONFIG_REDIS_KEY_PREFIX "notification", CHECKSUM_REDIS_KEY_PREFIX "notification"}},
+	{NotificationCommand::TypeInstance, {CONFIG_REDIS_KEY_PREFIX "notificationcommand", CHECKSUM_REDIS_KEY_PREFIX "notificationcommand"}},
+	{TimePeriod::TypeInstance, {CONFIG_REDIS_KEY_PREFIX "timeperiod", CHECKSUM_REDIS_KEY_PREFIX "timeperiod"}},
+	{User::TypeInstance, {CONFIG_REDIS_KEY_PREFIX "user", CHECKSUM_REDIS_KEY_PREFIX "user"}},
+	{UserGroup::TypeInstance, {CONFIG_REDIS_KEY_PREFIX "usergroup", CHECKSUM_REDIS_KEY_PREFIX "usergroup"}},
+	{Zone::TypeInstance, {CONFIG_REDIS_KEY_PREFIX "zone", CHECKSUM_REDIS_KEY_PREFIX "zone"}},
+};
+
+const IcingaDB::QueryArgPair& IcingaDB::GetSyncableTypeRedisKeys(const Type::Ptr& type)
 {
-	// The initial config sync will queue the types in the following order.
-	return {
-		// Sync them first to get their states ASAP.
-		Host::TypeInstance,
-		Service::TypeInstance,
+	auto it = std::find_if(std::begin(l_SyncableTypes), std::end(l_SyncableTypes), [&type](const auto& pair) {
+		return pair.first == type;
+	});
+	if (it == std::end(l_SyncableTypes)) {
+		BOOST_THROW_EXCEPTION(std::invalid_argument{"Could not find Redis keys for type " + type->ToString()});
+	}
+	return it->second;
+}
 
-		// Then sync them for similar reasons.
-		Downtime::TypeInstance,
-		Comment::TypeInstance,
-
-		HostGroup::TypeInstance,
-		ServiceGroup::TypeInstance,
-		CheckCommand::TypeInstance,
-		Endpoint::TypeInstance,
-		EventCommand::TypeInstance,
-		Notification::TypeInstance,
-		NotificationCommand::TypeInstance,
-		TimePeriod::TypeInstance,
-		User::TypeInstance,
-		UserGroup::TypeInstance,
-		Zone::TypeInstance
-	};
+/**
+ * Get all syncable types, along with their corresponding Redis keys as a list of pairs.
+ *
+ * The first element of the pair is the type, the second element is another pair containing the Redis
+ * key for the object and the Redis key for the checksum.
+ *
+ * TODO: Once we upgrade to C++20, this should return a std::span instead to avoid the unnecessary copy.
+ *
+ * @return A list of all syncable types, along with their corresponding Redis keys.
+ */
+std::vector<IcingaDB::SyncableTypeInfo> IcingaDB::GetSyncableTypes()
+{
+	return {std::begin(l_SyncableTypes), std::end(l_SyncableTypes)};
 }
 
 void IcingaDB::ConfigStaticInitialize()
 {
-	for (auto& type : GetTypes()) {
-		m_IndexedTypes.emplace(type.get());
-	}
-
 	/* triggered in ProcessCheckResult(), requires UpdateNextCheck() to be called before */
 	Checkable::OnStateChange.connect([](const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type, const MessageOrigin::Ptr&) {
 		IcingaDB::StateChangeHandler(checkable, cr, type);
@@ -168,10 +199,10 @@ void IcingaDB::ConfigStaticInitialize()
 	Service::OnGroupsChangedWithOldValue.connect([](const Service::Ptr& service, const Value& oldValues, const Value& newValues) {
 		IcingaDB::ServiceGroupsChangedHandler(service, oldValues, newValues);
 	});
-	Command::OnEnvChangedWithOldValue.connect([](const ConfigObject::Ptr& command, const Value& oldValues, const Value& newValues) {
+	Command::OnEnvChangedWithOldValue.connect([](const Command::Ptr& command, const Value& oldValues, const Value& newValues) {
 		IcingaDB::CommandEnvChangedHandler(command, oldValues, newValues);
 	});
-	Command::OnArgumentsChangedWithOldValue.connect([](const ConfigObject::Ptr& command, const Value& oldValues, const Value& newValues) {
+	Command::OnArgumentsChangedWithOldValue.connect([](const Command::Ptr& command, const Value& oldValues, const Value& newValues) {
 		IcingaDB::CommandArgumentsChangedHandler(command, oldValues, newValues);
 	});
 	CustomVarObject::OnVarsChangedWithOldValue.connect([](const ConfigObject::Ptr& object, const Value& oldValues, const Value& newValues) {
@@ -197,8 +228,6 @@ void IcingaDB::UpdateAllConfigObjects()
 	WorkQueue upq(25000, Configuration::Concurrency, LogNotice);
 	upq.SetName("IcingaDB:ConfigDump");
 
-	std::vector<Type::Ptr> types = GetTypes();
-
 	m_Rcon->SuppressQueryKind(Prio::CheckResult);
 	m_Rcon->SuppressQueryKind(Prio::RuntimeStateSync);
 
@@ -210,20 +239,20 @@ void IcingaDB::UpdateAllConfigObjects()
 	// Add a new type=* state=wip entry to the stream and remove all previous entries (MAXLEN 1).
 	m_Rcon->FireAndForgetQuery({"XADD", "icinga:dump", "MAXLEN", "1", "*", "key", "*", "state", "wip"}, Prio::Config);
 
-	const std::vector<String> globalKeys = {
-		m_PrefixConfigObject + "customvar",
-		m_PrefixConfigObject + "action:url",
-		m_PrefixConfigObject + "notes:url",
-		m_PrefixConfigObject + "icon:image",
+	const std::vector<RedisConnection::QueryArg> globalKeys = {
+		CONFIG_REDIS_KEY_PREFIX "customvar",
+		CONFIG_REDIS_KEY_PREFIX "action:url",
+		CONFIG_REDIS_KEY_PREFIX "notes:url",
+		CONFIG_REDIS_KEY_PREFIX "icon:image",
 
 		// These keys aren't tied to a specific Checkable type but apply to both "Host" and "Service" types,
 		// and as such we've to make sure to clear them before we actually start dumping the actual objects.
 		// This allows us to wait on both types to be dumped before we send a config dump done signal for those keys.
-		m_PrefixConfigObject + "dependency:node",
-		m_PrefixConfigObject + "dependency:edge",
-		m_PrefixConfigObject + "dependency:edge:state",
-		m_PrefixConfigObject + "redundancygroup",
-		m_PrefixConfigObject + "redundancygroup:state",
+		CONFIG_REDIS_KEY_PREFIX "dependency:node",
+		CONFIG_REDIS_KEY_PREFIX "dependency:edge",
+		CONFIG_REDIS_KEY_PREFIX "dependency:edge:state",
+		CONFIG_REDIS_KEY_PREFIX "redundancygroup",
+		CONFIG_REDIS_KEY_PREFIX "redundancygroup:state",
 	};
 	DeleteKeys(m_Rcon, globalKeys, Prio::Config);
 	DeleteKeys(m_Rcon, {"icinga:nextupdate:host", "icinga:nextupdate:service"}, Prio::Config);
@@ -237,29 +266,30 @@ void IcingaDB::UpdateAllConfigObjects()
 		m_DumpedGlobals.DependencyGroup.Reset();
 	});
 
-	upq.ParallelFor(types, false, [this](const Type::Ptr& type) {
-		String lcType = type->GetName().ToLower();
+	upq.ParallelFor(l_SyncableTypes, false, [this](const SyncableTypeInfo& info) {
+		// No structured binding is allowed here till C++20 (https://gcc.gnu.org/bugzilla/show_bug.cgi?id=85889).
+		Type::Ptr type;
+		QueryArgPair redisKeyPair;
+		std::tie(type, redisKeyPair) = info;
 		ConfigType *ctype = dynamic_cast<ConfigType *>(type.get());
 		if (!ctype)
 			return;
 
 		auto& rcon (m_Rcons.at(ctype));
 
-		std::vector<String> keys = GetTypeOverwriteKeys(lcType);
-		DeleteKeys(rcon, keys, Prio::Config);
+		DeleteKeys(rcon, GetTypeOverwriteKeys(type), Prio::Config);
 
 		WorkQueue upqObjectType(25000, Configuration::Concurrency, LogNotice);
-		upqObjectType.SetName("IcingaDB:ConfigDump:" + lcType);
+		upqObjectType.SetName("IcingaDB:ConfigDump:" + type->GetName().ToLower());
 
 		std::map<String, String> redisCheckSums;
-		String configCheckSum = m_PrefixConfigCheckSum + lcType;
 
-		upqObjectType.Enqueue([&rcon, &configCheckSum, &redisCheckSums]() {
+		upqObjectType.Enqueue([&rcon, &redisKeyPair, &redisCheckSums]() {
 			String cursor = "0";
 
 			do {
 				Array::Ptr res = rcon->GetResultOfQuery({
-					"HSCAN", configCheckSum, cursor, "COUNT", "1000"
+					"HSCAN", redisKeyPair.ChecksumKey, cursor, "COUNT", "1000"
 				}, Prio::Config);
 
 				AddKvsToMap(res->Get(1), redisCheckSums);
@@ -269,10 +299,9 @@ void IcingaDB::UpdateAllConfigObjects()
 		});
 
 		auto objectChunks (ChunkObjects(ctype->GetObjects(), 500));
-		String configObject = m_PrefixConfigObject + lcType;
 
 		// Skimmed away attributes and checksums HMSETs' keys and values by Redis key.
-		std::map<String, RedisConnection::Queries> ourContentRaw {{configCheckSum, {}}, {configObject, {}}};
+		std::map<RedisConnection::QueryArg, RedisConnection::Queries> ourContentRaw {{redisKeyPair.ChecksumKey, {}}, {redisKeyPair.ObjectKey, {}}};
 		std::mutex ourContentMutex;
 
 		upqObjectType.ParallelFor(objectChunks, [&](decltype(objectChunks)::const_reference chunk) {
@@ -292,11 +321,11 @@ void IcingaDB::UpdateAllConfigObjects()
 				}
 			});
 
-			bool dumpState = (lcType == "host" || lcType == "service");
+			auto [configStateKey, checksumStateKey] = GetCheckableStateKeys(type);
 
 			size_t bulkCounter = 0;
 			for (const ConfigObject::Ptr& object : chunk) {
-				if (lcType != GetLowerCaseTypeNameDB(object))
+				if (type != object->GetReflectionType())
 					continue;
 
 				// If we encounter not yet activated objects, i.e. they are currently being loaded and are about to
@@ -309,18 +338,18 @@ void IcingaDB::UpdateAllConfigObjects()
 				}
 
 				std::vector<Dictionary::Ptr> runtimeUpdates;
-				CreateConfigUpdate(object, lcType, hMSets, runtimeUpdates, false);
+				CreateConfigUpdate(object, redisKeyPair, hMSets, runtimeUpdates, false);
 
 				// Write out inital state for checkables
-				if (dumpState) {
+				if (!static_cast<std::string_view>(configStateKey).empty()) {
 					String objectKey = GetObjectIdentifier(object);
 					Dictionary::Ptr state = SerializeState(dynamic_pointer_cast<Checkable>(object));
 
-					auto& states = hMSets[m_PrefixConfigObject + lcType + ":state"];
+					auto& states = hMSets[configStateKey];
 					states.emplace_back(objectKey);
 					states.emplace_back(JsonEncode(state));
 
-					auto& statesChksms = hMSets[m_PrefixConfigCheckSum + lcType + ":state"];
+					auto& statesChksms = hMSets[checksumStateKey];
 					statesChksms.emplace_back(objectKey);
 					statesChksms.emplace_back(JsonEncode(new Dictionary({{"checksum", HashValue(state)}})));
 				}
@@ -363,7 +392,7 @@ void IcingaDB::UpdateAllConfigObjects()
 			}
 
 			Log(LogNotice, "IcingaDB")
-					<< "Dumped " << bulkCounter << " objects of type " << lcType;
+				<< "Dumped " << bulkCounter << " objects of " << type->ToString();
 		});
 
 		upqObjectType.Join();
@@ -376,7 +405,7 @@ void IcingaDB::UpdateAllConfigObjects()
 			}
 		}
 
-		std::map<String, std::map<String, String>> ourContent;
+		std::map<RedisConnection::QueryArg, std::map<String, String>> ourContent;
 
 		for (auto& source : ourContentRaw) {
 			auto& dest (ourContent[source.first]);
@@ -397,8 +426,8 @@ void IcingaDB::UpdateAllConfigObjects()
 		upqObjectType.Join();
 		ourContentRaw.clear();
 
-		auto& ourCheckSums (ourContent[configCheckSum]);
-		auto& ourObjects (ourContent[configObject]);
+		auto& ourCheckSums (ourContent[redisKeyPair.ChecksumKey]);
+		auto& ourObjects (ourContent[redisKeyPair.ObjectKey]);
 		RedisConnection::Query setChecksum, setObject, delChecksum, delObject;
 
 		auto redisCurrent (redisCheckSums.begin());
@@ -409,8 +438,8 @@ void IcingaDB::UpdateAllConfigObjects()
 		auto flushSets ([&]() {
 			auto affectedConfig (setObject.size() / 2u);
 
-			setChecksum.insert(setChecksum.begin(), {"HMSET", configCheckSum});
-			setObject.insert(setObject.begin(), {"HMSET", configObject});
+			setChecksum.insert(setChecksum.begin(), {"HMSET", redisKeyPair.ChecksumKey});
+			setObject.insert(setObject.begin(), {"HMSET", redisKeyPair.ObjectKey});
 
 			RedisConnection::Queries transaction;
 
@@ -428,8 +457,8 @@ void IcingaDB::UpdateAllConfigObjects()
 		auto flushDels ([&]() {
 			auto affectedConfig (delObject.size());
 
-			delChecksum.insert(delChecksum.begin(), {"HDEL", configCheckSum});
-			delObject.insert(delObject.begin(), {"HDEL", configObject});
+			delChecksum.insert(delChecksum.begin(), {"HDEL", redisKeyPair.ChecksumKey});
+			delObject.insert(delObject.begin(), {"HDEL", redisKeyPair.ObjectKey});
 
 			RedisConnection::Queries transaction;
 
@@ -501,7 +530,9 @@ void IcingaDB::UpdateAllConfigObjects()
 			flushSets();
 		}
 
-		for (auto& key : GetTypeDumpSignalKeys(type)) {
+		auto keys = GetTypeOverwriteKeys(type, true);
+		keys.emplace_back(redisKeyPair.ObjectKey);
+		for (auto& key : keys) {
 			rcon->FireAndForgetQuery({"XADD", "icinga:dump", "*", "key", key, "state", "done"}, Prio::Config);
 		}
 		rcon->Sync();
@@ -563,7 +594,7 @@ std::vector<std::vector<intrusive_ptr<ConfigObject>>> IcingaDB::ChunkObjects(std
 	return chunks;
 }
 
-void IcingaDB::DeleteKeys(const RedisConnection::Ptr& conn, const std::vector<String>& keys, RedisConnection::QueryPriority priority) {
+void IcingaDB::DeleteKeys(const RedisConnection::Ptr& conn, const std::vector<RedisConnection::QueryArg>& keys, RedisConnection::QueryPriority priority) {
 	RedisConnection::Query query = {"DEL"};
 	for (auto& key : keys) {
 		query.emplace_back(key);
@@ -572,59 +603,61 @@ void IcingaDB::DeleteKeys(const RedisConnection::Ptr& conn, const std::vector<St
 	conn->FireAndForgetQuery(std::move(query), priority);
 }
 
-std::vector<String> IcingaDB::GetTypeOverwriteKeys(const String& type)
+/**
+ * Gets the Redis key for the custom variables of a given type.
+ *
+ * @param type The type for which to get the custom variable Redis key.
+ * @return The corresponding customvar Redis key for the given type, or an empty string if the type does not have one.
+ */
+static RedisConnection::QueryArg GetRedisCustomVarKey(const Type::Ptr& type)
 {
-	std::vector<String> keys = {
-			m_PrefixConfigObject + type + ":customvar",
-	};
-
-	if (type == "host" || type == "service" || type == "user") {
-		keys.emplace_back(m_PrefixConfigObject + type + "group:member");
-		keys.emplace_back(m_PrefixConfigObject + type + ":state");
-		keys.emplace_back(m_PrefixConfigCheckSum + type + ":state");
-	} else if (type == "timeperiod") {
-		keys.emplace_back(m_PrefixConfigObject + type + ":override:include");
-		keys.emplace_back(m_PrefixConfigObject + type + ":override:exclude");
-		keys.emplace_back(m_PrefixConfigObject + type + ":range");
-	} else if (type == "notification") {
-		keys.emplace_back(m_PrefixConfigObject + type + ":user");
-		keys.emplace_back(m_PrefixConfigObject + type + ":usergroup");
-		keys.emplace_back(m_PrefixConfigObject + type + ":recipient");
-	} else if (type == "checkcommand" || type == "notificationcommand" || type == "eventcommand") {
-		keys.emplace_back(m_PrefixConfigObject + type + ":envvar");
-		keys.emplace_back(m_PrefixConfigCheckSum + type + ":envvar");
-		keys.emplace_back(m_PrefixConfigObject + type + ":argument");
-		keys.emplace_back(m_PrefixConfigCheckSum + type + ":argument");
+	auto it = std::find_if(std::begin(l_CustomVarKeys), std::end(l_CustomVarKeys), [&type](const auto& pair) {
+		return pair.first == type;
+	});
+	if (it != std::end(l_CustomVarKeys)) {
+		return it->second;
 	}
-
-	return keys;
+	return {""};
 }
 
-std::vector<String> IcingaDB::GetTypeDumpSignalKeys(const Type::Ptr& type)
+std::vector<RedisConnection::QueryArg> IcingaDB::GetTypeOverwriteKeys(const Type::Ptr& type, bool skipChecksums)
 {
-	String lcType = type->GetName().ToLower();
-	std::vector<String> keys = {m_PrefixConfigObject + lcType};
-
-	if (CustomVarObject::TypeInstance->IsAssignableFrom(type)) {
-		keys.emplace_back(m_PrefixConfigObject + lcType + ":customvar");
+	auto customvarKey = GetRedisCustomVarKey(type);
+	if (static_cast<std::string_view>(customvarKey).empty()) {
+		return {};
 	}
 
-	if (type == Host::TypeInstance || type == Service::TypeInstance) {
-		keys.emplace_back(m_PrefixConfigObject + lcType + "group:member");
-		keys.emplace_back(m_PrefixConfigObject + lcType + ":state");
-	} else if (type == User::TypeInstance) {
-		keys.emplace_back(m_PrefixConfigObject + lcType + "group:member");
-	} else if (type == TimePeriod::TypeInstance) {
-		keys.emplace_back(m_PrefixConfigObject + lcType + ":override:include");
-		keys.emplace_back(m_PrefixConfigObject + lcType + ":override:exclude");
-		keys.emplace_back(m_PrefixConfigObject + lcType + ":range");
-	} else if (type == Notification::TypeInstance) {
-		keys.emplace_back(m_PrefixConfigObject + lcType + ":user");
-		keys.emplace_back(m_PrefixConfigObject + lcType + ":usergroup");
-		keys.emplace_back(m_PrefixConfigObject + lcType + ":recipient");
-	} else if (type == CheckCommand::TypeInstance || type == NotificationCommand::TypeInstance || type == EventCommand::TypeInstance) {
-		keys.emplace_back(m_PrefixConfigObject + lcType + ":envvar");
-		keys.emplace_back(m_PrefixConfigObject + lcType + ":argument");
+	std::vector keys{customvarKey};
+	if (Host::TypeInstance == type) {
+		keys.emplace_back(CONFIG_REDIS_KEY_PREFIX "hostgroup:member");
+		keys.emplace_back(CONFIG_REDIS_KEY_PREFIX "host:state");
+		if (!skipChecksums) {
+			keys.emplace_back(CHECKSUM_REDIS_KEY_PREFIX "host:state");
+		}
+	} else if (Service::TypeInstance == type) {
+		keys.emplace_back(CONFIG_REDIS_KEY_PREFIX "servicegroup:member");
+		keys.emplace_back(CONFIG_REDIS_KEY_PREFIX "service:state");
+		if (!skipChecksums) {
+			keys.emplace_back(CHECKSUM_REDIS_KEY_PREFIX "service:state");
+		}
+	} else if (User::TypeInstance == type) {
+		keys.emplace_back(CONFIG_REDIS_KEY_PREFIX "usergroup:member");
+	} else if (TimePeriod::TypeInstance == type) {
+		keys.emplace_back(CONFIG_REDIS_KEY_PREFIX "timeperiod:override:include");
+		keys.emplace_back(CONFIG_REDIS_KEY_PREFIX "timeperiod:override:exclude");
+		keys.emplace_back(CONFIG_REDIS_KEY_PREFIX "timeperiod:range");
+	} else if (Notification::TypeInstance == type) {
+		keys.emplace_back(CONFIG_REDIS_KEY_PREFIX "notification:user");
+		keys.emplace_back(CONFIG_REDIS_KEY_PREFIX "notification:usergroup");
+		keys.emplace_back(CONFIG_REDIS_KEY_PREFIX "notification:recipient");
+	} else if (Command::TypeInstance->IsAssignableFrom(type)) {
+		const auto& cmdRedisKeys = GetCmdEnvArgKeys(type);
+		keys.emplace_back(cmdRedisKeys.ArgObjectKey);
+		keys.emplace_back(cmdRedisKeys.EnvObjectKey);
+		if (!skipChecksums) {
+			keys.emplace_back(cmdRedisKeys.ArgChecksumKey);
+			keys.emplace_back(cmdRedisKeys.EnvChecksumKey);
+		}
 	}
 
 	return keys;
@@ -636,9 +669,10 @@ static ConfigObject::Ptr GetObjectByName(const String& name)
 	return ConfigObject::GetObject<ConfigType>(name);
 }
 
-void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const String typeName,
+void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object,
 	std::map<RedisConnection::QueryArg, RedisConnection::Query>& hMSets, std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate)
 {
+	auto typeName = GetLowerCaseTypeNameDB(object);
 	String objectKey = GetObjectIdentifier(object);
 	String objectKeyName = typeName + "_id";
 
@@ -649,8 +683,9 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 	if (customVarObject) {
 		auto vars(SerializeVars(customVarObject->GetVars()));
 		if (vars) {
-			auto& typeCvs (hMSets[m_PrefixConfigObject + typeName + ":customvar"]);
-			auto& allCvs (hMSets[m_PrefixConfigObject + "customvar"]);
+			auto typeCvsKey = GetRedisCustomVarKey(type);
+			auto& typeCvs (hMSets[typeCvsKey]);
+			auto& allCvs (hMSets[CONFIG_REDIS_KEY_PREFIX "customvar"]);
 
 			ObjectLock varsLock(vars);
 			Array::Ptr varsArray(new Array);
@@ -663,7 +698,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 					allCvs.emplace_back(JsonEncode(kv.second));
 
 					if (runtimeUpdate) {
-						AddObjectDataToRuntimeUpdates(runtimeUpdates, kv.first, m_PrefixConfigObject + "customvar", kv.second);
+						AddObjectDataToRuntimeUpdates(runtimeUpdates, kv.first, CONFIG_REDIS_KEY_PREFIX "customvar", kv.second);
 					}
 				}
 
@@ -674,7 +709,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 				typeCvs.emplace_back(JsonEncode(data));
 
 				if (runtimeUpdate) {
-					AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + typeName + ":customvar", data);
+					AddObjectDataToRuntimeUpdates(runtimeUpdates, id, std::string(typeCvsKey), data);
 				}
 			}
 		}
@@ -687,7 +722,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 		String notesUrl = checkable->GetNotesUrl();
 		String iconImage = checkable->GetIconImage();
 		if (!actionUrl.IsEmpty()) {
-			auto& actionUrls (hMSets[m_PrefixConfigObject + "action:url"]);
+			auto& actionUrls (hMSets[CONFIG_REDIS_KEY_PREFIX "action:url"]);
 
 			auto id (HashValue(new Array({m_EnvironmentId, actionUrl})));
 
@@ -697,12 +732,12 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 				actionUrls.emplace_back(JsonEncode(data));
 
 				if (runtimeUpdate) {
-					AddObjectDataToRuntimeUpdates(runtimeUpdates, static_cast<String>(actionUrls.at(actionUrls.size() - 2u)), m_PrefixConfigObject + "action:url", data);
+					AddObjectDataToRuntimeUpdates(runtimeUpdates, static_cast<String>(actionUrls.at(actionUrls.size() - 2u)), CONFIG_REDIS_KEY_PREFIX "action:url", data);
 				}
 			}
 		}
 		if (!notesUrl.IsEmpty()) {
-			auto& notesUrls (hMSets[m_PrefixConfigObject + "notes:url"]);
+			auto& notesUrls (hMSets[CONFIG_REDIS_KEY_PREFIX "notes:url"]);
 
 			auto id (HashValue(new Array({m_EnvironmentId, notesUrl})));
 
@@ -712,12 +747,12 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 				notesUrls.emplace_back(JsonEncode(data));
 
 				if (runtimeUpdate) {
-					AddObjectDataToRuntimeUpdates(runtimeUpdates, static_cast<String>(notesUrls.at(notesUrls.size() - 2u)), m_PrefixConfigObject + "notes:url", data);
+					AddObjectDataToRuntimeUpdates(runtimeUpdates, static_cast<String>(notesUrls.at(notesUrls.size() - 2u)), CONFIG_REDIS_KEY_PREFIX "notes:url", data);
 				}
 			}
 		}
 		if (!iconImage.IsEmpty()) {
-			auto& iconImages (hMSets[m_PrefixConfigObject + "icon:image"]);
+			auto& iconImages (hMSets[CONFIG_REDIS_KEY_PREFIX "icon:image"]);
 
 			auto id (HashValue(new Array({m_EnvironmentId, iconImage})));
 
@@ -727,7 +762,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 				iconImages.emplace_back(JsonEncode(data));
 
 				if (runtimeUpdate) {
-					AddObjectDataToRuntimeUpdates(runtimeUpdates, static_cast<String>(iconImages.at(iconImages.size() - 2u)), m_PrefixConfigObject + "icon:image", data);
+					AddObjectDataToRuntimeUpdates(runtimeUpdates, static_cast<String>(iconImages.at(iconImages.size() - 2u)), CONFIG_REDIS_KEY_PREFIX "icon:image", data);
 				}
 			}
 		}
@@ -752,7 +787,13 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 
 			groupIds->Reserve(groups->GetLength());
 
-			auto& members (hMSets[m_PrefixConfigObject + typeName + "group:member"]);
+			std::string_view groupMemberKey;
+			if (service) {
+				groupMemberKey = CONFIG_REDIS_KEY_PREFIX "servicegroup:member";
+			} else {
+				groupMemberKey = CONFIG_REDIS_KEY_PREFIX "hostgroup:member";
+			}
+			auto& members (hMSets[groupMemberKey]);
 
 			for (auto& group : groups) {
 				auto groupObj ((*getGroup)(group));
@@ -763,7 +804,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 				members.emplace_back(JsonEncode(data));
 
 				if (runtimeUpdate) {
-					AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + typeName + "group:member", data);
+					AddObjectDataToRuntimeUpdates(runtimeUpdates, id, std::string(groupMemberKey), data);
 				}
 
 				groupIds->Add(groupId);
@@ -782,7 +823,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 		if (ranges) {
 			ObjectLock rangesLock(ranges);
 			Array::Ptr rangeIds(new Array);
-			auto& typeRanges (hMSets[m_PrefixConfigObject + typeName + ":range"]);
+			auto& typeRanges (hMSets[CONFIG_REDIS_KEY_PREFIX "timeperiod:range"]);
 
 			rangeIds->Reserve(ranges->GetLength());
 
@@ -796,7 +837,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 				typeRanges.emplace_back(JsonEncode(data));
 
 				if (runtimeUpdate) {
-					AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + typeName + ":range", data);
+					AddObjectDataToRuntimeUpdates(runtimeUpdates, id, CONFIG_REDIS_KEY_PREFIX "timeperiod:range", data);
 				}
 			}
 		}
@@ -814,7 +855,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 		includeChecksums->Reserve(includes->GetLength());
 
 
-		auto& includs (hMSets[m_PrefixConfigObject + typeName + ":override:include"]);
+		auto& includs (hMSets[CONFIG_REDIS_KEY_PREFIX "timeperiod:override:include"]);
 		for (auto include : includes) {
 			auto includeTp ((*getInclude)(include.Get<String>()));
 			String includeId = GetObjectIdentifier(includeTp);
@@ -826,7 +867,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			includs.emplace_back(JsonEncode(data));
 
 			if (runtimeUpdate) {
-				AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + typeName + ":override:include", data);
+				AddObjectDataToRuntimeUpdates(runtimeUpdates, id, CONFIG_REDIS_KEY_PREFIX "timeperiod:override:include", data);
 			}
 		}
 
@@ -843,7 +884,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 
 		excludeChecksums->Reserve(excludes->GetLength());
 
-		auto& excluds (hMSets[m_PrefixConfigObject + typeName + ":override:exclude"]);
+		auto& excluds (hMSets[CONFIG_REDIS_KEY_PREFIX "timeperiod:override:exclude"]);
 
 		for (auto exclude : excludes) {
 			auto excludeTp ((*getExclude)(exclude.Get<String>()));
@@ -856,7 +897,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			excluds.emplace_back(JsonEncode(data));
 
 			if (runtimeUpdate) {
-				AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + typeName + ":override:exclude", data);
+				AddObjectDataToRuntimeUpdates(runtimeUpdates, id, CONFIG_REDIS_KEY_PREFIX "timeperiod:override:exclude", data);
 			}
 		}
 
@@ -873,8 +914,8 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 
 			groupIds->Reserve(groups->GetLength());
 
-			auto& members (hMSets[m_PrefixConfigObject + typeName + "group:member"]);
-			auto& notificationRecipients (hMSets[m_PrefixConfigObject + "notification:recipient"]);
+			auto& members (hMSets[CONFIG_REDIS_KEY_PREFIX "usergroup:member"]);
+			auto& notificationRecipients (hMSets[CONFIG_REDIS_KEY_PREFIX "notification:recipient"]);
 
 			for (auto& group : groups) {
 				UserGroup::Ptr groupObj = UserGroup::GetByName(group);
@@ -885,7 +926,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 				members.emplace_back(JsonEncode(data));
 
 				if (runtimeUpdate) {
-					AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + typeName + "group:member", data);
+					AddObjectDataToRuntimeUpdates(runtimeUpdates, id, CONFIG_REDIS_KEY_PREFIX "usergroup:member", data);
 
 					// Recipients are handled by notifications during initial dumps and only need to be handled here during runtime (e.g. User creation).
 					for (auto& notification : groupObj->GetNotifications()) {
@@ -894,7 +935,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 						Dictionary::Ptr recipientData = new Dictionary({{"notification_id", GetObjectIdentifier(notification)}, {"environment_id", m_EnvironmentId}, {"user_id", objectKey}, {"usergroup_id", groupId}});
 						notificationRecipients.emplace_back(JsonEncode(recipientData));
 
-						AddObjectDataToRuntimeUpdates(runtimeUpdates, recipientId, m_PrefixConfigObject + "notification:recipient", recipientData);
+						AddObjectDataToRuntimeUpdates(runtimeUpdates, recipientId, CONFIG_REDIS_KEY_PREFIX "notification:recipient", recipientData);
 					}
 				}
 
@@ -916,8 +957,8 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 
 		userIds->Reserve(users.size());
 
-		auto& usrs (hMSets[m_PrefixConfigObject + typeName + ":user"]);
-		auto& notificationRecipients (hMSets[m_PrefixConfigObject + typeName + ":recipient"]);
+		auto& usrs (hMSets[CONFIG_REDIS_KEY_PREFIX "notification:user"]);
+		auto& notificationRecipients (hMSets[CONFIG_REDIS_KEY_PREFIX "notification:recipient"]);
 
 		for (auto& user : users) {
 			String userId = GetObjectIdentifier(user);
@@ -931,8 +972,8 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			notificationRecipients.emplace_back(dataJson);
 
 			if (runtimeUpdate) {
-				AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + typeName + ":user", data);
-				AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + typeName + ":recipient", data);
+				AddObjectDataToRuntimeUpdates(runtimeUpdates, id, CONFIG_REDIS_KEY_PREFIX "notification:user", data);
+				AddObjectDataToRuntimeUpdates(runtimeUpdates, id, CONFIG_REDIS_KEY_PREFIX "notification:recipient", data);
 			}
 
 			userIds->Add(userId);
@@ -940,7 +981,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 
 		usergroupIds->Reserve(usergroups.size());
 
-		auto& groups (hMSets[m_PrefixConfigObject + typeName + ":usergroup"]);
+		auto& groups (hMSets[CONFIG_REDIS_KEY_PREFIX "notification:usergroup"]);
 
 		for (auto& usergroup : usergroups) {
 			String usergroupId = GetObjectIdentifier(usergroup);
@@ -954,8 +995,8 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 			notificationRecipients.emplace_back(groupDataJson);
 
 			if (runtimeUpdate) {
-				AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + typeName + ":usergroup", groupData);
-				AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + typeName + ":recipient", groupData);
+				AddObjectDataToRuntimeUpdates(runtimeUpdates, id, CONFIG_REDIS_KEY_PREFIX "notification:usergroup", groupData);
+				AddObjectDataToRuntimeUpdates(runtimeUpdates, id, CONFIG_REDIS_KEY_PREFIX "notification:recipient", groupData);
 			}
 
 			for (const User::Ptr& user : usergroup->GetMembers()) {
@@ -966,7 +1007,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 				notificationRecipients.emplace_back(JsonEncode(userData));
 
 				if (runtimeUpdate) {
-					AddObjectDataToRuntimeUpdates(runtimeUpdates, recipientId, m_PrefixConfigObject + typeName + ":recipient", userData);
+					AddObjectDataToRuntimeUpdates(runtimeUpdates, recipientId, CONFIG_REDIS_KEY_PREFIX "notification:recipient", userData);
 				}
 			}
 
@@ -979,11 +1020,13 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 	if (type == CheckCommand::TypeInstance || type == NotificationCommand::TypeInstance || type == EventCommand::TypeInstance) {
 		Command::Ptr command = static_pointer_cast<Command>(object);
 
+		const auto& cmdRedisKeys = GetCmdEnvArgKeys(type);
+
 		Dictionary::Ptr arguments = command->GetArguments();
 		if (arguments) {
 			ObjectLock argumentsLock(arguments);
-			auto& typeArgs (hMSets[m_PrefixConfigObject + typeName + ":argument"]);
-			auto& argChksms (hMSets[m_PrefixConfigCheckSum + typeName + ":argument"]);
+			auto& typeArgs (hMSets[cmdRedisKeys.ArgObjectKey]);
+			auto& argChksms (hMSets[cmdRedisKeys.ArgChecksumKey]);
 
 			for (auto& kv : arguments) {
 				Dictionary::Ptr values;
@@ -1047,7 +1090,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 
 				if (runtimeUpdate) {
 					values->Set("checksum", checksum);
-					AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + typeName + ":argument", values);
+					AddObjectDataToRuntimeUpdates(runtimeUpdates, id, std::string(cmdRedisKeys.ArgObjectKey), values);
 				}
 			}
 		}
@@ -1056,8 +1099,8 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 		if (envvars) {
 			ObjectLock envvarsLock(envvars);
 			Array::Ptr envvarIds(new Array);
-			auto& typeVars (hMSets[m_PrefixConfigObject + typeName + ":envvar"]);
-			auto& varChksms (hMSets[m_PrefixConfigCheckSum + typeName + ":envvar"]);
+			auto& typeVars (hMSets[cmdRedisKeys.EnvObjectKey]);
+			auto& varChksms (hMSets[cmdRedisKeys.EnvChecksumKey]);
 
 			envvarIds->Reserve(envvars->GetLength());
 
@@ -1096,7 +1139,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
 
 				if (runtimeUpdate) {
 					values->Set("checksum", checksum);
-					AddObjectDataToRuntimeUpdates(runtimeUpdates, id, m_PrefixConfigObject + typeName + ":envvar", values);
+					AddObjectDataToRuntimeUpdates(runtimeUpdates, id, std::string(cmdRedisKeys.EnvObjectKey), values);
 				}
 			}
 		}
@@ -1111,12 +1154,12 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object, const S
  * This function is responsible for serializing the in memory representation Checkable dependencies into
  * Redis HMSETs and runtime updates (if any) according to the Icinga DB schema. The serialized data consists
  * of the following Redis HMSETs:
- * - RedisKey::DependencyNode: Contains dependency node data representing each host, service, and redundancy group
+ * - dependency:node: Contains dependency node data representing each host, service, and redundancy group
  *   in the dependency graph.
- * - RedisKey::DependencyEdge: Dependency edge information representing all connections between the nodes.
- * - RedisKey::RedundancyGroup: Redundancy group data representing all redundancy groups in the graph.
- * - RedisKey::RedundancyGroupState: State information for redundancy groups.
- * - RedisKey::DependencyEdgeState: State information for (each) dependency edge. Multiple edges may share the
+ * - dependency:edge: Dependency edge information representing all connections between the nodes.
+ * - redundancygroup: Redundancy group data representing all redundancy groups in the graph.
+ * - redundancygroup:state: State information for redundancy groups.
+ * - dependency:edge:state: State information for (each) dependency edge. Multiple edges may share the
  *	 same state.
  *
  * If the `onlyDependencyGroup` parameter is set, only dependencies from this group are processed. This is useful
@@ -1152,9 +1195,9 @@ void IcingaDB::InsertCheckableDependencies(
 			data->Set("service_id", checkableId);
 		}
 
-		AddDataToHmSets(hMSets, RedisKey::DependencyNode, checkableId, data);
+		AddDataToHmSets(hMSets, CONFIG_REDIS_KEY_PREFIX "dependency:node", checkableId, data);
 		if (runtimeUpdates) {
-			AddObjectDataToRuntimeUpdates(*runtimeUpdates, checkableId, m_PrefixConfigObject + "dependency:node", data);
+			AddObjectDataToRuntimeUpdates(*runtimeUpdates, checkableId, CONFIG_REDIS_KEY_PREFIX "dependency:node", data);
 		}
 	}
 
@@ -1190,7 +1233,7 @@ void IcingaDB::InsertCheckableDependencies(
 					{"display_name", dependencyGroup->GetRedundancyGroupName()},
 				});
 				// Set/refresh the redundancy group data in the Redis HMSETs (redundancy_group database table).
-				AddDataToHmSets(hMSets, RedisKey::RedundancyGroup, redundancyGroupId, groupData);
+				AddDataToHmSets(hMSets, CONFIG_REDIS_KEY_PREFIX "redundancygroup", redundancyGroupId, groupData);
 
 				Dictionary::Ptr nodeData(new Dictionary{
 					{"environment_id", m_EnvironmentId},
@@ -1198,12 +1241,12 @@ void IcingaDB::InsertCheckableDependencies(
 				});
 				// Obviously, the redundancy group is part of some dependency chain, thus we have to generate
 				// dependency node entry for it as well.
-				AddDataToHmSets(hMSets, RedisKey::DependencyNode, redundancyGroupId, nodeData);
+				AddDataToHmSets(hMSets, CONFIG_REDIS_KEY_PREFIX "dependency:node", redundancyGroupId, nodeData);
 
 				if (runtimeUpdates) {
 					// Send the same data sent to the Redis HMSETs to the runtime updates stream as well.
-					AddObjectDataToRuntimeUpdates(*runtimeUpdates, redundancyGroupId, m_PrefixConfigObject + "redundancygroup", groupData);
-					AddObjectDataToRuntimeUpdates(*runtimeUpdates, redundancyGroupId, m_PrefixConfigObject + "dependency:node", nodeData);
+					AddObjectDataToRuntimeUpdates(*runtimeUpdates, redundancyGroupId, CONFIG_REDIS_KEY_PREFIX "redundancygroup", groupData);
+					AddObjectDataToRuntimeUpdates(*runtimeUpdates, redundancyGroupId, CONFIG_REDIS_KEY_PREFIX "dependency:node", nodeData);
 				} else {
 					syncSharedEdgeState = true;
 
@@ -1212,8 +1255,8 @@ void IcingaDB::InsertCheckableDependencies(
 					// redundancy group, and since they all depend on the redundancy group, the state of that group is
 					// basically the state of the dependency edges between the children and the redundancy group.
 					auto stateAttrs(SerializeRedundancyGroupState(checkable, dependencyGroup));
-					AddDataToHmSets(hMSets, RedisKey::RedundancyGroupState, redundancyGroupId, stateAttrs);
-					AddDataToHmSets(hMSets, RedisKey::DependencyEdgeState, redundancyGroupId, Dictionary::Ptr(new Dictionary{
+					AddDataToHmSets(hMSets, CONFIG_REDIS_KEY_PREFIX "redundancygroup:state", redundancyGroupId, stateAttrs);
+					AddDataToHmSets(hMSets, CONFIG_REDIS_KEY_PREFIX "dependency:edge:state", redundancyGroupId, Dictionary::Ptr(new Dictionary{
 						{"id", redundancyGroupId},
 						{"environment_id", m_EnvironmentId},
 						{"failed", stateAttrs->Get("failed")},
@@ -1235,10 +1278,10 @@ void IcingaDB::InsertCheckableDependencies(
 			// is set to the redundancy group ID. Note that if this group has multiple children, they all will have the
 			// same "dependency_edge_state_id" value.
 			auto edgeId(HashValue(new Array{checkableId, redundancyGroupId}));
-			AddDataToHmSets(hMSets, RedisKey::DependencyEdge, edgeId, data);
+			AddDataToHmSets(hMSets, CONFIG_REDIS_KEY_PREFIX "dependency:edge", edgeId, data);
 
 			if (runtimeUpdates) {
-				AddObjectDataToRuntimeUpdates(*runtimeUpdates, edgeId, m_PrefixConfigObject + "dependency:edge", data);
+				AddObjectDataToRuntimeUpdates(*runtimeUpdates, edgeId, CONFIG_REDIS_KEY_PREFIX "dependency:edge", data);
 			}
 		}
 
@@ -1283,12 +1326,12 @@ void IcingaDB::InsertCheckableDependencies(
 			});
 
 			auto edgeId(HashValue(new Array{data->Get("from_node_id"), data->Get("to_node_id")}));
-			AddDataToHmSets(hMSets, RedisKey::DependencyEdge, edgeId, data);
+			AddDataToHmSets(hMSets, CONFIG_REDIS_KEY_PREFIX "dependency:edge", edgeId, data);
 
 			if (runtimeUpdates) {
-				AddObjectDataToRuntimeUpdates(*runtimeUpdates, edgeId, m_PrefixConfigObject + "dependency:edge", data);
+				AddObjectDataToRuntimeUpdates(*runtimeUpdates, edgeId, CONFIG_REDIS_KEY_PREFIX "dependency:edge", data);
 			} else if (syncSharedEdgeState) {
-				AddDataToHmSets(hMSets, RedisKey::DependencyEdgeState, edgeStateAttrs->Get("id"), edgeStateAttrs);
+				AddDataToHmSets(hMSets, CONFIG_REDIS_KEY_PREFIX "dependency:edge:state", edgeStateAttrs->Get("id"), edgeStateAttrs);
 			}
 		}
 	}
@@ -1315,16 +1358,13 @@ void IcingaDB::UpdateState(const Checkable::Ptr& checkable, StateUpdate mode)
 	if (!m_Rcon || !m_Rcon->IsConnected())
 		return;
 
-	String objectType = GetLowerCaseTypeNameDB(checkable);
-	String objectKey = GetObjectIdentifier(checkable);
-
 	Dictionary::Ptr stateAttrs = SerializeState(checkable);
 
-	String redisStateKey = m_PrefixConfigObject + objectType + ":state";
-	String redisChecksumKey = m_PrefixConfigCheckSum + objectType + ":state";
 	String checksum = HashValue(stateAttrs);
 
+	auto [redisStateKey, redisChecksumKey] = GetCheckableStateKeys(checkable->GetReflectionType());
 	if (mode & StateUpdate::Volatile) {
+		String objectKey = GetObjectIdentifier(checkable);
 		m_Rcon->FireAndForgetQueries({
 			{"HSET", redisStateKey, objectKey, JsonEncode(stateAttrs)},
 			{"HSET", redisChecksumKey, objectKey, JsonEncode(new Dictionary({{"checksum", checksum}}))},
@@ -1376,7 +1416,7 @@ void IcingaDB::UpdateDependenciesState(const Checkable::Ptr& checkable, const De
 	}
 
 	RedisConnection::Queries streamStates;
-	auto addDependencyStateToStream([&streamStates](const String& redisKey, const Dictionary::Ptr& stateAttrs) {
+	auto addDependencyStateToStream([&streamStates](std::string_view redisKey, const Dictionary::Ptr& stateAttrs) {
 		RedisConnection::Query xAdd{
 			"XADD", "icinga:runtime:state", "MAXLEN", "~", "1000000", "*", "runtime_type", "upsert",
 			"redis_key", redisKey
@@ -1428,8 +1468,8 @@ void IcingaDB::UpdateDependenciesState(const Checkable::Ptr& checkable, const De
 				}
 			}
 
-			addDependencyStateToStream(m_PrefixConfigObject + "dependency:edge:state", stateAttrs);
-			AddDataToHmSets(hMSets, RedisKey::DependencyEdgeState, stateAttrs->Get("id"), stateAttrs);
+			addDependencyStateToStream(CONFIG_REDIS_KEY_PREFIX "dependency:edge:state", stateAttrs);
+			AddDataToHmSets(hMSets, CONFIG_REDIS_KEY_PREFIX "dependency:edge:state", stateAttrs->Get("id"), stateAttrs);
 		}
 
 		if (isRedundancyGroup) {
@@ -1440,10 +1480,10 @@ void IcingaDB::UpdateDependenciesState(const Checkable::Ptr& checkable, const De
 			sharedGroupState->Remove("is_reachable");
 			sharedGroupState->Remove("last_state_change");
 
-			addDependencyStateToStream(m_PrefixConfigObject + "redundancygroup:state", stateAttrs);
-			addDependencyStateToStream(m_PrefixConfigObject + "dependency:edge:state", sharedGroupState);
-			AddDataToHmSets(hMSets, RedisKey::RedundancyGroupState, dependencyGroup->GetIcingaDBIdentifier(), stateAttrs);
-			AddDataToHmSets(hMSets, RedisKey::DependencyEdgeState, dependencyGroup->GetIcingaDBIdentifier(), sharedGroupState);
+			addDependencyStateToStream(CONFIG_REDIS_KEY_PREFIX "redundancygroup:state", stateAttrs);
+			addDependencyStateToStream(CONFIG_REDIS_KEY_PREFIX "dependency:edge:state", sharedGroupState);
+			AddDataToHmSets(hMSets, CONFIG_REDIS_KEY_PREFIX "redundancygroup:state", dependencyGroup->GetIcingaDBIdentifier(), stateAttrs);
+			AddDataToHmSets(hMSets, CONFIG_REDIS_KEY_PREFIX "dependency:edge:state", dependencyGroup->GetIcingaDBIdentifier(), sharedGroupState);
 		}
 	}
 
@@ -1465,12 +1505,10 @@ void IcingaDB::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpd
 	if (!m_Rcon || !m_Rcon->IsConnected())
 		return;
 
-	String typeName = GetLowerCaseTypeNameDB(object);
-
 	std::map<RedisConnection::QueryArg, RedisConnection::Query> hMSets;
 	std::vector<Dictionary::Ptr> runtimeUpdates;
 
-	CreateConfigUpdate(object, typeName, hMSets, runtimeUpdates, runtimeUpdate);
+	CreateConfigUpdate(object, GetSyncableTypeRedisKeys(object->GetReflectionType()), hMSets, runtimeUpdates, runtimeUpdate);
 	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
 	if (checkable) {
 		UpdateState(checkable, runtimeUpdate ? StateUpdate::Full : StateUpdate::Volatile);
@@ -1484,11 +1522,11 @@ void IcingaDB::SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpd
 }
 
 void IcingaDB::AddObjectDataToRuntimeUpdates(std::vector<Dictionary::Ptr>& runtimeUpdates,
-	String objectKey, const String& redisKey, const Dictionary::Ptr& data)
+	String objectKey, String redisKey, const Dictionary::Ptr& data)
 {
 	Dictionary::Ptr dataClone = data->ShallowClone();
 	dataClone->Set("id", std::move(objectKey));
-	dataClone->Set("redis_key", redisKey);
+	dataClone->Set("redis_key", std::move(redisKey));
 	dataClone->Set("runtime_type", "upsert");
 	runtimeUpdates.emplace_back(dataClone);
 }
@@ -1807,7 +1845,7 @@ bool IcingaDB::PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& a
  * icinga:config:object:downtime) need to be prepended. There is nothing to indicate success or failure.
  */
 void
-IcingaDB::CreateConfigUpdate(const ConfigObject::Ptr& object, const String typeName,
+IcingaDB::CreateConfigUpdate(const ConfigObject::Ptr& object, const QueryArgPair& redisKeyPair,
 	std::map<RedisConnection::QueryArg, RedisConnection::Query>& hMSets, std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate)
 {
 	/* TODO: This isn't essentially correct as we don't keep track of config objects ourselves. This would avoid duplicated config updates at startup.
@@ -1823,11 +1861,11 @@ IcingaDB::CreateConfigUpdate(const ConfigObject::Ptr& object, const String typeN
 	if (!PrepareObject(object, attr))
 		return;
 
-	InsertObjectDependencies(object, typeName, hMSets, runtimeUpdates, runtimeUpdate);
+	InsertObjectDependencies(object, hMSets, runtimeUpdates, runtimeUpdate);
 
 	String objectKey = GetObjectIdentifier(object);
-	auto& attrs (hMSets[m_PrefixConfigObject + typeName]);
-	auto& chksms (hMSets[m_PrefixConfigCheckSum + typeName]);
+	auto& attrs (hMSets[redisKeyPair.ObjectKey]);
+	auto& chksms (hMSets[redisKeyPair.ChecksumKey]);
 
 	attrs.emplace_back(objectKey);
 	attrs.emplace_back(JsonEncode(attr));
@@ -1839,7 +1877,7 @@ IcingaDB::CreateConfigUpdate(const ConfigObject::Ptr& object, const String typeN
 	/* Send an update event to subscribers. */
 	if (runtimeUpdate) {
 		attr->Set("checksum", checksum);
-		AddObjectDataToRuntimeUpdates(runtimeUpdates, objectKey, m_PrefixConfigObject + typeName, attr);
+		AddObjectDataToRuntimeUpdates(runtimeUpdates, objectKey, std::string(redisKeyPair.ObjectKey), attr);
 	}
 }
 
@@ -1849,15 +1887,15 @@ void IcingaDB::SendConfigDelete(const ConfigObject::Ptr& object)
 		return;
 
 	Type::Ptr type = object->GetReflectionType();
-	String typeName = type->GetName().ToLower();
 	String objectKey = GetObjectIdentifier(object);
+	auto redisKeyPair = GetSyncableTypeRedisKeys(type);
 
 	m_Rcon->FireAndForgetQueries({
-		{"HDEL", m_PrefixConfigObject + typeName, objectKey},
-		{"HDEL", m_PrefixConfigCheckSum + typeName, objectKey},
+		{"HDEL", redisKeyPair.ObjectKey, objectKey},
+		{"HDEL", redisKeyPair.ChecksumKey, objectKey},
 		{
 			"XADD", "icinga:runtime", "MAXLEN", "~", "1000000", "*",
-			"redis_key", m_PrefixConfigObject + typeName, "id", objectKey, "runtime_type", "delete"
+			"redis_key", redisKeyPair.ObjectKey, "id", objectKey, "runtime_type", "delete"
 		}
    	}, Prio::Config);
 
@@ -1881,9 +1919,10 @@ void IcingaDB::SendConfigDelete(const ConfigObject::Ptr& object)
 			GetObjectIdentifier(checkable)
 		}, Prio::CheckResult);
 
+		auto [configStateKey, checksumStateKey] = GetCheckableStateKeys(checkable->GetReflectionType());
 		m_Rcon->FireAndForgetQueries({
-			{"HDEL", m_PrefixConfigObject + typeName + ":state", objectKey},
-			{"HDEL", m_PrefixConfigCheckSum + typeName + ":state", objectKey}
+			{"HDEL", configStateKey, objectKey},
+			{"HDEL", checksumStateKey, objectKey}
 		}, Prio::RuntimeStateSync);
 
 		if (service) {
@@ -1918,8 +1957,9 @@ void IcingaDB::SendConfigDelete(const ConfigObject::Ptr& object)
 
 	if (type == CheckCommand::TypeInstance || type == NotificationCommand::TypeInstance || type == EventCommand::TypeInstance) {
 		Command::Ptr command = static_pointer_cast<Command>(object);
-		SendCommandArgumentsChanged(command, command->GetArguments(), nullptr);
-		SendCommandEnvChanged(command, command->GetEnv(), nullptr);
+		const auto& cmdRedisKeys = GetCmdEnvArgKeys(command->GetReflectionType());
+		SendCommandArgumentsChanged(command, cmdRedisKeys, command->GetArguments(), nullptr);
+		SendCommandEnvChanged(command, cmdRedisKeys, command->GetEnv(), nullptr);
 		return;
 	}
 }
@@ -2735,8 +2775,8 @@ void IcingaDB::SendNotificationUsersChanged(const Notification::Ptr& notificatio
 
 	for (const auto& userName : deletedUsers) {
 		String id = HashValue(new Array({m_EnvironmentId, "user", userName, notification->GetName()}));
-		DeleteRelationship(id, "notification:user");
-		DeleteRelationship(id, "notification:recipient");
+		DeleteRelationship(id, CONFIG_REDIS_KEY_PREFIX "notification:user");
+		DeleteRelationship(id, CONFIG_REDIS_KEY_PREFIX "notification:recipient");
 	}
 }
 
@@ -2750,12 +2790,12 @@ void IcingaDB::SendNotificationUserGroupsChanged(const Notification::Ptr& notifi
 	for (const auto& userGroupName : deletedUserGroups) {
 		UserGroup::Ptr userGroup = UserGroup::GetByName(userGroupName);
 		String id = HashValue(new Array({m_EnvironmentId, "usergroup", userGroupName, notification->GetName()}));
-		DeleteRelationship(id, "notification:usergroup");
-		DeleteRelationship(id, "notification:recipient");
+		DeleteRelationship(id, CONFIG_REDIS_KEY_PREFIX "notification:usergroup");
+		DeleteRelationship(id, CONFIG_REDIS_KEY_PREFIX "notification:recipient");
 
 		for (const User::Ptr& user : userGroup->GetMembers()) {
 			String userId = HashValue(new Array({m_EnvironmentId, "usergroupuser", user->GetName(), userGroupName, notification->GetName()}));
-			DeleteRelationship(userId, "notification:recipient");
+			DeleteRelationship(userId, CONFIG_REDIS_KEY_PREFIX "notification:recipient");
 		}
 	}
 }
@@ -2766,11 +2806,10 @@ void IcingaDB::SendTimePeriodRangesChanged(const TimePeriod::Ptr& timeperiod, co
 	}
 
 	std::vector<String> deletedKeys = GetDictionaryDeletedKeys(oldValues, newValues);
-	String typeName = GetLowerCaseTypeNameDB(timeperiod);
 
 	for (const auto& rangeKey : deletedKeys) {
 		String id = HashValue(new Array({m_EnvironmentId, rangeKey, oldValues->Get(rangeKey), timeperiod->GetName()}));
-		DeleteRelationship(id, "timeperiod:range");
+		DeleteRelationship(id, CONFIG_REDIS_KEY_PREFIX "timeperiod:range");
 	}
 }
 
@@ -2783,7 +2822,7 @@ void IcingaDB::SendTimePeriodIncludesChanged(const TimePeriod::Ptr& timeperiod, 
 
 	for (const auto& includeName : deletedIncludes) {
 		String id = HashValue(new Array({m_EnvironmentId, includeName, timeperiod->GetName()}));
-		DeleteRelationship(id, "timeperiod:override:include");
+		DeleteRelationship(id, CONFIG_REDIS_KEY_PREFIX "timeperiod:override:include");
 	}
 }
 
@@ -2796,7 +2835,7 @@ void IcingaDB::SendTimePeriodExcludesChanged(const TimePeriod::Ptr& timeperiod, 
 
 	for (const auto& excludeName : deletedExcludes) {
 		String id = HashValue(new Array({m_EnvironmentId, excludeName, timeperiod->GetName()}));
-		DeleteRelationship(id, "timeperiod:override:exclude");
+		DeleteRelationship(id, CONFIG_REDIS_KEY_PREFIX "timeperiod:override:exclude");
 	}
 }
 
@@ -2807,54 +2846,70 @@ void IcingaDB::SendGroupsChanged(const ConfigObject::Ptr& object, const Array::P
 	}
 
 	std::vector<Value> deletedGroups = GetArrayDeletedValues(oldValues, newValues);
-	String typeName = GetLowerCaseTypeNameDB(object);
+	std::string_view keyType;
+	if constexpr (std::is_same_v<T, UserGroup>) {
+		keyType = CONFIG_REDIS_KEY_PREFIX "usergroup:member";
+	} else if constexpr (std::is_same_v<T, HostGroup>) {
+		keyType = CONFIG_REDIS_KEY_PREFIX "hostgroup:member";
+	} else {
+		static_assert(std::is_same_v<T, ServiceGroup>, "IcingaDB::SendGroupsChanged<T>: T must be UserGroup, HostGroup or ServiceGroup");
+		keyType = CONFIG_REDIS_KEY_PREFIX "servicegroup:member";
+	}
 
 	for (const auto& groupName : deletedGroups) {
 		typename T::Ptr group = ConfigObject::GetObject<T>(groupName);
 		String id = HashValue(new Array({m_EnvironmentId, group->GetName(), object->GetName()}));
-		DeleteRelationship(id, typeName + "group:member");
+		DeleteRelationship(id, keyType);
 
 		if (std::is_same<T, UserGroup>::value) {
 			UserGroup::Ptr userGroup = dynamic_pointer_cast<UserGroup>(group);
 
 			for (const auto& notification : userGroup->GetNotifications()) {
 				String userId = HashValue(new Array({m_EnvironmentId, "usergroupuser", object->GetName(), groupName, notification->GetName()}));
-				DeleteRelationship(userId, "notification:recipient");
+				DeleteRelationship(userId, CONFIG_REDIS_KEY_PREFIX "notification:recipient");
 			}
 		}
 	}
 }
 
-void IcingaDB::SendCommandEnvChanged(const ConfigObject::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues) {
+void IcingaDB::SendCommandEnvChanged(
+	const ConfigObject::Ptr& command,
+	const CmdArgEnvRedisKeys& cmdRedisKeys,
+	const Dictionary::Ptr& oldValues,
+	const Dictionary::Ptr& newValues
+)
+{
 	if (!m_Rcon || !m_Rcon->IsConnected() || oldValues == newValues) {
 		return;
 	}
 
-	std::vector<String> deletedKeys = GetDictionaryDeletedKeys(oldValues, newValues);
-	String typeName = GetLowerCaseTypeNameDB(command);
-
-	for (const auto& envvarKey : deletedKeys) {
+	for (const auto& envvarKey : GetDictionaryDeletedKeys(oldValues, newValues)) {
 		String id = HashValue(new Array({m_EnvironmentId, envvarKey, command->GetName()}));
-		DeleteRelationship(id, typeName + ":envvar", true);
+		DeleteRelationship(id, cmdRedisKeys.EnvObjectKey, cmdRedisKeys.EnvChecksumKey);
 	}
 }
 
-void IcingaDB::SendCommandArgumentsChanged(const ConfigObject::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues) {
+void IcingaDB::SendCommandArgumentsChanged(
+	const ConfigObject::Ptr& command,
+	const CmdArgEnvRedisKeys& cmdRedisKeys,
+	const Dictionary::Ptr& oldValues,
+	const Dictionary::Ptr& newValues
+)
+{
 	if (!m_Rcon || !m_Rcon->IsConnected() || oldValues == newValues) {
 		return;
 	}
 
-	std::vector<String> deletedKeys = GetDictionaryDeletedKeys(oldValues, newValues);
-	String typeName = GetLowerCaseTypeNameDB(command);
-
-	for (const auto& argumentKey : deletedKeys) {
+	for (const auto& argumentKey : GetDictionaryDeletedKeys(oldValues, newValues)) {
 		String id = HashValue(new Array({m_EnvironmentId, argumentKey, command->GetName()}));
-		DeleteRelationship(id, typeName + ":argument", true);
+		DeleteRelationship(id, cmdRedisKeys.ArgObjectKey, cmdRedisKeys.ArgChecksumKey);
 	}
 }
 
 void IcingaDB::SendCustomVarsChanged(const ConfigObject::Ptr& object, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues) {
-	if (m_IndexedTypes.find(object->GetReflectionType().get()) == m_IndexedTypes.end()) {
+	const auto& type = object->GetReflectionType();
+	std::string_view customvarKey = GetRedisCustomVarKey(type);
+	if (customvarKey.empty()) {
 		return;
 	}
 
@@ -2865,12 +2920,9 @@ void IcingaDB::SendCustomVarsChanged(const ConfigObject::Ptr& object, const Dict
 	Dictionary::Ptr oldVars = SerializeVars(oldValues);
 	Dictionary::Ptr newVars = SerializeVars(newValues);
 
-	std::vector<String> deletedVars = GetDictionaryDeletedKeys(oldVars, newVars);
-	String typeName = GetLowerCaseTypeNameDB(object);
-
-	for (const auto& varId : deletedVars) {
+	for (const auto& varId : GetDictionaryDeletedKeys(oldVars, newVars)) {
 		String id = HashValue(new Array({m_EnvironmentId, varId, object->GetName()}));
-		DeleteRelationship(id, typeName + ":customvar");
+		DeleteRelationship(id, customvarKey);
 	}
 }
 
@@ -2921,8 +2973,8 @@ void IcingaDB::SendDependencyGroupChildRemoved(
 				// delete dependency edges from that group to the parent Checkables.
 				if (removeGroup) {
 					auto id(HashValue(new Array{dependencyGroup->GetIcingaDBIdentifier(), GetObjectIdentifier(parent)}));
-					DeleteRelationship(id, RedisKey::DependencyEdge);
-					DeleteState(id, RedisKey::DependencyEdgeState);
+					DeleteRelationship(id, CONFIG_REDIS_KEY_PREFIX "dependency:edge");
+					DeleteState(id, CONFIG_REDIS_KEY_PREFIX "dependency:edge:state");
 				}
 
 				// Remove the connection from the child Checkable to the redundancy group.
@@ -2932,7 +2984,7 @@ void IcingaDB::SendDependencyGroupChildRemoved(
 				edgeId = HashValue(new Array{GetObjectIdentifier(child), GetObjectIdentifier(parent)});
 			}
 
-			DeleteRelationship(edgeId, RedisKey::DependencyEdge);
+			DeleteRelationship(edgeId, CONFIG_REDIS_KEY_PREFIX "dependency:edge");
 
 			// The total_children and affects_children columns might now have different outcome, so update the parent
 			// Checkable as well. The grandparent Checkable may still have wrong numbers of total children, though it's
@@ -2942,27 +2994,27 @@ void IcingaDB::SendDependencyGroupChildRemoved(
 
 			if (!parent->HasAnyDependencies()) {
 				// If the parent Checkable isn't part of any other dependency chain anymore, drop its dependency node entry.
-				DeleteRelationship(GetObjectIdentifier(parent), RedisKey::DependencyNode);
+				DeleteRelationship(GetObjectIdentifier(parent), CONFIG_REDIS_KEY_PREFIX "dependency:node");
 			}
 		}
 	}
 
 	if (removeGroup && dependencyGroup->IsRedundancyGroup()) {
 		String redundancyGroupId(dependencyGroup->GetIcingaDBIdentifier());
-		DeleteRelationship(redundancyGroupId, RedisKey::DependencyNode);
-		DeleteRelationship(redundancyGroupId, RedisKey::RedundancyGroup);
+		DeleteRelationship(redundancyGroupId, CONFIG_REDIS_KEY_PREFIX "dependency:node");
+		DeleteRelationship(redundancyGroupId, CONFIG_REDIS_KEY_PREFIX "redundancygroup");
 
-		DeleteState(redundancyGroupId, RedisKey::RedundancyGroupState);
-		DeleteState(redundancyGroupId, RedisKey::DependencyEdgeState);
+		DeleteState(redundancyGroupId, CONFIG_REDIS_KEY_PREFIX "redundancygroup:state");
+		DeleteState(redundancyGroupId, CONFIG_REDIS_KEY_PREFIX "dependency:edge:state");
 	} else if (removeGroup) {
 		// Note: The Icinga DB identifier of a non-redundant dependency group is used as the edge state ID
 		// and shared by all of its dependency objects. See also SerializeDependencyEdgeState() for details.
-		DeleteState(dependencyGroup->GetIcingaDBIdentifier(), RedisKey::DependencyEdgeState);
+		DeleteState(dependencyGroup->GetIcingaDBIdentifier(), CONFIG_REDIS_KEY_PREFIX "dependency:edge:state");
 	}
 
 	if (!child->HasAnyDependencies()) {
 		// If the child Checkable has no parent and reverse dependencies, we can safely remove the dependency node.
-		DeleteRelationship(GetObjectIdentifier(child), RedisKey::DependencyNode);
+		DeleteRelationship(GetObjectIdentifier(child), CONFIG_REDIS_KEY_PREFIX "dependency:node");
 	}
 }
 
@@ -3158,8 +3210,10 @@ void IcingaDB::ReachabilityChangeHandler(const std::set<Checkable::Ptr>& childre
 void IcingaDB::VersionChangedHandler(const ConfigObject::Ptr& object)
 {
 	Type::Ptr type = object->GetReflectionType();
-
-	if (m_IndexedTypes.find(type.get()) == m_IndexedTypes.end()) {
+	auto it = std::find_if(std::begin(l_SyncableTypes), std::end(l_SyncableTypes), [&type](const auto& pair) {
+		return pair.first == type;
+	});
+	if (it == std::end(l_SyncableTypes)) {
 		return;
 	}
 
@@ -3341,15 +3395,17 @@ void IcingaDB::ServiceGroupsChangedHandler(const Service::Ptr& service, const Ar
 	}
 }
 
-void IcingaDB::CommandEnvChangedHandler(const ConfigObject::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues) {
+void IcingaDB::CommandEnvChangedHandler(const Command::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues) {
+	const auto& cmdRedisKeys = GetCmdEnvArgKeys(command->GetReflectionType());
 	for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
-		rw->SendCommandEnvChanged(command, oldValues, newValues);
+		rw->SendCommandEnvChanged(command, cmdRedisKeys, oldValues, newValues);
 	}
 }
 
-void IcingaDB::CommandArgumentsChangedHandler(const ConfigObject::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues) {
+void IcingaDB::CommandArgumentsChangedHandler(const Command::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues) {
+	const auto& cmdRedisKeys = GetCmdEnvArgKeys(command->GetReflectionType());
 	for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
-		rw->SendCommandArgumentsChanged(command, oldValues, newValues);
+		rw->SendCommandArgumentsChanged(command, cmdRedisKeys, oldValues, newValues);
 	}
 }
 
@@ -3359,111 +3415,62 @@ void IcingaDB::CustomVarsChangedHandler(const ConfigObject::Ptr& object, const D
 	}
 }
 
-void IcingaDB::DeleteRelationship(const String& id, const String& redisKeyWithoutPrefix, bool hasChecksum) {
-	Log(LogNotice, "IcingaDB") << "Deleting relationship '" << redisKeyWithoutPrefix << " -> '" << id << "'";
-
-	String redisKey = m_PrefixConfigObject + redisKeyWithoutPrefix;
+void IcingaDB::DeleteRelationship(const String& id, RedisConnection::QueryArg redisObjKey, RedisConnection::QueryArg redisChecksumKey) {
+	Log(LogNotice, "IcingaDB")
+		<< "Deleting relationship '" << static_cast<std::string_view>(redisObjKey) << " -> '" << id << "'";
 
 	RedisConnection::Queries queries;
 
-	if (hasChecksum) {
-		queries.push_back({"HDEL", m_PrefixConfigCheckSum + redisKeyWithoutPrefix, id});
+	if (!static_cast<std::string_view>(redisChecksumKey).empty()) {
+		queries.push_back({"HDEL", std::move(redisChecksumKey), id});
 	}
 
-	queries.push_back({"HDEL", redisKey, id});
+	queries.push_back({"HDEL", redisObjKey, id});
 	queries.push_back({
 		"XADD", "icinga:runtime", "MAXLEN", "~", "1000000", "*",
-		"redis_key", redisKey, "id", id, "runtime_type", "delete"
+		"redis_key", std::move(redisObjKey), "id", id, "runtime_type", "delete"
 	});
 
 	m_Rcon->FireAndForgetQueries(queries, Prio::Config);
 }
 
-void IcingaDB::DeleteRelationship(const String& id, RedisKey redisKey, bool hasChecksum)
+void IcingaDB::DeleteState(const String& id, RedisConnection::QueryArg redisObjKey, RedisConnection::QueryArg redisChecksumKey) const
 {
-	switch (redisKey) {
-		case RedisKey::RedundancyGroup:
-			DeleteRelationship(id, "redundancygroup", hasChecksum);
-			break;
-		case RedisKey::DependencyNode:
-			DeleteRelationship(id, "dependency:node", hasChecksum);
-			break;
-		case RedisKey::DependencyEdge:
-			DeleteRelationship(id, "dependency:edge", hasChecksum);
-			break;
-		default:
-			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid RedisKey provided"));
-	}
-}
-
-void IcingaDB::DeleteState(const String& id, RedisKey redisKey, bool hasChecksum) const
-{
-	String redisKeyWithoutPrefix;
-	switch (redisKey) {
-		case RedisKey::RedundancyGroupState:
-			redisKeyWithoutPrefix = "redundancygroup:state";
-			break;
-		case RedisKey::DependencyEdgeState:
-			redisKeyWithoutPrefix = "dependency:edge:state";
-			break;
-		default:
-			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid state RedisKey provided"));
-	}
-
 	Log(LogNotice, "IcingaDB")
-		<< "Deleting state " << std::quoted(redisKeyWithoutPrefix.CStr()) << " -> " << std::quoted(id.CStr());
+		<< "Deleting state '" << static_cast<std::string_view>(redisObjKey) << "' -> " << std::quoted(id.CStr());
 
-	RedisConnection::Queries hdels;
-	if (hasChecksum) {
-		hdels.emplace_back(RedisConnection::Query{"HDEL", m_PrefixConfigCheckSum + redisKeyWithoutPrefix, id});
+	RedisConnection::Queries hdels = {{"HDEL", std::move(redisObjKey), id}};
+	if (!static_cast<std::string_view>(redisChecksumKey).empty()) {
+		hdels.push_back({"HDEL", std::move(redisChecksumKey), id});
 	}
-	hdels.emplace_back(RedisConnection::Query{"HDEL", m_PrefixConfigObject + redisKeyWithoutPrefix, id});
 
 	m_Rcon->FireAndForgetQueries(std::move(hdels), Prio::RuntimeStateSync);
 	// TODO: This is currently purposefully commented out due to how Icinga DB (Go) handles runtime state
 	//       upsert and delete events. See https://github.com/Icinga/icingadb/pull/894 for more details.
 	/*m_Rcon->FireAndForgetQueries({{
 		"XADD", "icinga:runtime:state", "MAXLEN", "~", "1000000", "*",
-		"redis_key", m_PrefixConfigObject + redisKeyWithoutPrefix, "id", id, "runtime_type", "delete"
+		"redis_key", redisKey, "id", id, "runtime_type", "delete"
 	}}, Prio::RuntimeStateStream, {0, 1});*/
 }
 
 /**
  * Add the provided data to the Redis HMSETs map.
  *
- * Adds the provided data to the Redis HMSETs map for the provided Redis key. The actual Redis key is determined by
- * the provided RedisKey enum. The data will be json encoded before being added to the Redis HMSETs map.
- *
- * @param hMSets The map of RedisConnection::Query you want to add the data to.
- * @param redisKey The key of the Redis object you want to add the data to.
- * @param id Unique Redis identifier for the provided data.
- * @param data The actual data you want to add the Redis HMSETs map.
+ * @param hMSets The map of HMSETs to add the provided data to.
+ * @param redisKey The Redis key to which the HMSET query should be added.
+ * @param id The config object identifier to be added as the first field of the HMSET query.
+ * @param data The actual data to be added.
  */
-void IcingaDB::AddDataToHmSets(std::map<RedisConnection::QueryArg, RedisConnection::Query>& hMSets, RedisKey redisKey, const String& id, const Dictionary::Ptr& data) const
+void IcingaDB::AddDataToHmSets(
+	std::map<RedisConnection::QueryArg, RedisConnection::Query>& hMSets,
+	const RedisConnection::QueryArg& redisKey,
+	const String& id,
+	const Dictionary::Ptr& data
+)
 {
-	RedisConnection::Query* query;
-	switch (redisKey) {
-		case RedisKey::RedundancyGroup:
-			query = &hMSets[m_PrefixConfigObject + "redundancygroup"];
-			break;
-		case RedisKey::DependencyNode:
-			query = &hMSets[m_PrefixConfigObject + "dependency:node"];
-			break;
-		case RedisKey::DependencyEdge:
-			query = &hMSets[m_PrefixConfigObject + "dependency:edge"];
-			break;
-		case RedisKey::RedundancyGroupState:
-			query = &hMSets[m_PrefixConfigObject + "redundancygroup:state"];
-			break;
-		case RedisKey::DependencyEdgeState:
-			query = &hMSets[m_PrefixConfigObject + "dependency:edge:state"];
-			break;
-		default:
-			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid RedisKey provided"));
-	}
-
-	query->emplace_back(id);
-	query->emplace_back(JsonEncode(data));
+	RedisConnection::Query& query = hMSets[redisKey];
+	query.emplace_back(id);
+	query.emplace_back(JsonEncode(data));
 }
 
 /**

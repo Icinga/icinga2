@@ -12,6 +12,7 @@
 #include "base/workqueue.hpp"
 #include "icinga/customvarobject.hpp"
 #include "icinga/checkable.hpp"
+#include "icinga/command.hpp"
 #include "icinga/service.hpp"
 #include "icinga/downtime.hpp"
 #include "remote/messageorigin.hpp"
@@ -27,6 +28,9 @@
 
 namespace icinga
 {
+
+#define CONFIG_REDIS_KEY_PREFIX "icinga:"
+#define CHECKSUM_REDIS_KEY_PREFIX CONFIG_REDIS_KEY_PREFIX "checksum:"
 
 /**
  * @ingroup icingadb
@@ -68,6 +72,21 @@ public:
 		}
 	}
 
+	// Represents any pair of Redis keys that belong together, e.g, @c {icinga:host:state, icinga:checksum:host:state}.
+	struct QueryArgPair
+	{
+		std::string_view ObjectKey;
+		std::string_view ChecksumKey;
+	};
+
+	struct CmdArgEnvRedisKeys
+	{
+		std::string_view ArgObjectKey; // Represents `icinga:{command_type}:argument`.
+		std::string_view ArgChecksumKey; // Represents `icinga:checksum:{command_type}:argument`.
+		std::string_view EnvObjectKey; // Represents `icinga:{command_type}:envvar`.
+		std::string_view EnvChecksumKey; // Represents `icinga:checksum:{command_type}:envvar`.
+	};
+
 protected:
 	void ValidateTlsProtocolmin(const Lazy<String>& lvalue, const ValidationUtils& utils) override;
 	void ValidateConnectTimeout(const Lazy<double>& lvalue, const ValidationUtils& utils) override;
@@ -92,15 +111,6 @@ private:
 		Full        = Volatile | RuntimeOnly,
 	};
 
-	enum class RedisKey : uint8_t
-	{
-		RedundancyGroup,
-		DependencyNode,
-		DependencyEdge,
-		RedundancyGroupState,
-		DependencyEdgeState,
-	};
-
 	void OnConnectedHandler();
 
 	void PublishStatsTimerHandler();
@@ -109,27 +119,22 @@ private:
 	/* config & status dump */
 	void UpdateAllConfigObjects();
 	std::vector<std::vector<intrusive_ptr<ConfigObject>>> ChunkObjects(std::vector<intrusive_ptr<ConfigObject>> objects, size_t chunkSize);
-	void DeleteKeys(const RedisConnection::Ptr& conn, const std::vector<String>& keys, RedisConnection::QueryPriority priority);
-	std::vector<String> GetTypeOverwriteKeys(const String& type);
-	std::vector<String> GetTypeDumpSignalKeys(const Type::Ptr& type);
 	void InsertCheckableDependencies(const Checkable::Ptr& checkable, std::map<RedisConnection::QueryArg, RedisConnection::Query>& hMSets,
 		std::vector<Dictionary::Ptr>* runtimeUpdates, const DependencyGroup::Ptr& onlyDependencyGroup = nullptr);
-	void InsertObjectDependencies(const ConfigObject::Ptr& object, const String typeName,
+	void InsertObjectDependencies(const ConfigObject::Ptr& object,
 		std::map<RedisConnection::QueryArg, RedisConnection::Query>& hMSets, std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate);
 	void UpdateDependenciesState(const Checkable::Ptr& checkable, const DependencyGroup::Ptr& onlyDependencyGroup = nullptr,
 		std::set<DependencyGroup*>* seenGroups = nullptr) const;
 	void UpdateState(const Checkable::Ptr& checkable, StateUpdate mode);
 	void SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpdate);
-	void CreateConfigUpdate(const ConfigObject::Ptr& object, const String type,
+	void CreateConfigUpdate(const ConfigObject::Ptr& object, const QueryArgPair& redisKeyPair,
 		std::map<RedisConnection::QueryArg, RedisConnection::Query>& hMSets, std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate);
 	void SendConfigDelete(const ConfigObject::Ptr& object);
 	void SendStateChange(const ConfigObject::Ptr& object, const CheckResult::Ptr& cr, StateType type);
 	void AddObjectDataToRuntimeUpdates(std::vector<Dictionary::Ptr>& runtimeUpdates,
-		String objectKey, const String& redisKey, const Dictionary::Ptr& data);
-	void DeleteRelationship(const String& id, const String& redisKeyWithoutPrefix, bool hasChecksum = false);
-	void DeleteRelationship(const String& id, RedisKey redisKey, bool hasChecksum = false);
-	void DeleteState(const String& id, RedisKey redisKey, bool hasChecksum = false) const;
-	void AddDataToHmSets(std::map<RedisConnection::QueryArg, RedisConnection::Query>& hMSets, RedisKey redisKey, const String& id, const Dictionary::Ptr& data) const;
+		String objectKey, String redisKey, const Dictionary::Ptr& data);
+	void DeleteRelationship(const String& id, RedisConnection::QueryArg redisObjKey, RedisConnection::QueryArg redisChecksumKey = "");
+	void DeleteState(const String& id, RedisConnection::QueryArg redisObjKey, RedisConnection::QueryArg redisChecksumKey = "") const;
 
 	void SendSentNotification(
 		const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::set<User::Ptr>& users,
@@ -151,8 +156,8 @@ private:
 	void SendTimePeriodExcludesChanged(const TimePeriod::Ptr& timeperiod, const Array::Ptr& oldValues, const Array::Ptr& newValues);
 	template<class T>
 	void SendGroupsChanged(const ConfigObject::Ptr& command, const Array::Ptr& oldValues, const Array::Ptr& newValues);
-	void SendCommandEnvChanged(const ConfigObject::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
-	void SendCommandArgumentsChanged(const ConfigObject::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
+	void SendCommandEnvChanged(const ConfigObject::Ptr& command, const CmdArgEnvRedisKeys& cmdRedisKeys, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
+	void SendCommandArgumentsChanged(const ConfigObject::Ptr& command, const CmdArgEnvRedisKeys& cmdRedisKeys, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
 	void SendCustomVarsChanged(const ConfigObject::Ptr& object, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
 	void SendDependencyGroupChildRegistered(const Checkable::Ptr& child, const DependencyGroup::Ptr& dependencyGroup);
 	void SendDependencyGroupChildRemoved(const DependencyGroup::Ptr& dependencyGroup, const std::vector<Dependency::Ptr>& dependencies, bool removeGroup);
@@ -166,8 +171,13 @@ private:
 	static Dictionary::Ptr GetStats();
 
 	/* utilities */
+	static void DeleteKeys(const RedisConnection::Ptr& conn, const std::vector<RedisConnection::QueryArg>& keys, RedisConnection::QueryPriority priority);
+	static std::vector<RedisConnection::QueryArg> GetTypeOverwriteKeys(const Type::Ptr& type, bool skipChecksums = false);
+	static void AddDataToHmSets(std::map<RedisConnection::QueryArg, RedisConnection::Query>& hMSets, const RedisConnection::QueryArg& redisKey, const String& id, const Dictionary::Ptr& data);
 	static String FormatCheckSumBinary(const String& str);
 	static String FormatCommandLine(const Value& commandLine);
+	static QueryArgPair GetCheckableStateKeys(const Type::Ptr& type);
+	static CmdArgEnvRedisKeys GetCmdEnvArgKeys(const Type::Ptr& cmdType);
 	static long long TimestampToMilliseconds(double timestamp);
 	static String IcingaToStreamValue(const Value& value);
 	static std::vector<Value> GetArrayDeletedValues(const Array::Ptr& arrayOld, const Array::Ptr& arrayNew);
@@ -218,8 +228,8 @@ private:
 	static void UserGroupsChangedHandler(const User::Ptr& user, const Array::Ptr&, const Array::Ptr& newValues);
 	static void HostGroupsChangedHandler(const Host::Ptr& host, const Array::Ptr& oldValues, const Array::Ptr& newValues);
 	static void ServiceGroupsChangedHandler(const Service::Ptr& service, const Array::Ptr& oldValues, const Array::Ptr& newValues);
-	static void CommandEnvChangedHandler(const ConfigObject::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
-	static void CommandArgumentsChangedHandler(const ConfigObject::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
+	static void CommandEnvChangedHandler(const Command::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
+	static void CommandArgumentsChangedHandler(const Command::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
 	static void CustomVarsChangedHandler(const ConfigObject::Ptr& object, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
 
 	static void ExecuteRedisTransaction(const RedisConnection::Ptr& rcon,
@@ -229,7 +239,9 @@ private:
 
 	void ExceptionHandler(boost::exception_ptr exp);
 
-	static std::vector<Type::Ptr> GetTypes();
+	using SyncableTypeInfo = std::pair<const Type::Ptr, QueryArgPair>;
+	static std::vector<SyncableTypeInfo> GetSyncableTypes();
+	static const QueryArgPair& GetSyncableTypeRedisKeys(const Type::Ptr& type);
 
 	static void InitEnvironmentId();
 	static void PersistEnvironmentId();
@@ -239,9 +251,6 @@ private:
 
 	std::future<void> m_HistoryThread;
 	Bulker<RedisConnection::Query> m_HistoryBulker {4096, std::chrono::milliseconds(250)};
-
-	String m_PrefixConfigObject;
-	String m_PrefixConfigCheckSum;
 
 	bool m_ConfigDumpInProgress;
 	bool m_ConfigDumpDone;
@@ -263,8 +272,6 @@ private:
 	// initialization, the value is read-only and can be accessed without further synchronization.
 	static String m_EnvironmentId;
 	static std::mutex m_EnvironmentIdInitMutex;
-
-	static std::unordered_set<Type*> m_IndexedTypes;
 };
 }
 

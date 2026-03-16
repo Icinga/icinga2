@@ -350,6 +350,50 @@ String IcingaDB::GetLowerCaseTypeNameDB(const ConfigObject::Ptr& obj)
 	return obj->GetReflectionType()->GetName().ToLower();
 }
 
+IcingaDB::QueryArgPair IcingaDB::GetCheckableStateKeys(const Type::Ptr& type)
+{
+	QueryArgPair result;
+	if (Host::TypeInstance == type) {
+		result.ObjectKey = CONFIG_REDIS_KEY_PREFIX "host:state";
+		result.ChecksumKey = CHECKSUM_REDIS_KEY_PREFIX "host:state";
+	} else if (Service::TypeInstance == type) {
+		result.ObjectKey = CONFIG_REDIS_KEY_PREFIX "service:state";
+		result.ChecksumKey = CHECKSUM_REDIS_KEY_PREFIX "service:state";
+	}
+	return result;
+}
+
+/**
+ * Get the given command's environment variables and arguments Redis keys.
+ *
+ * @param cmdType The command to get the keys for.
+ *
+ * @return A struct containing the Redis keys for the command's environment variables and arguments.
+ */
+IcingaDB::CmdArgEnvRedisKeys IcingaDB::GetCmdEnvArgKeys(const Type::Ptr& cmdType)
+{
+	CmdArgEnvRedisKeys result;
+	if (CheckCommand::TypeInstance == cmdType) {
+		result.ArgObjectKey = CONFIG_REDIS_KEY_PREFIX "checkcommand:argument";
+		result.ArgChecksumKey = CHECKSUM_REDIS_KEY_PREFIX "checkcommand:argument";
+		result.EnvObjectKey = CONFIG_REDIS_KEY_PREFIX "checkcommand:envvar";
+		result.EnvChecksumKey = CHECKSUM_REDIS_KEY_PREFIX "checkcommand:envvar";
+	} else if (EventCommand::TypeInstance == cmdType) {
+		result.ArgObjectKey = CONFIG_REDIS_KEY_PREFIX "eventcommand:argument";
+		result.ArgChecksumKey = CHECKSUM_REDIS_KEY_PREFIX "eventcommand:argument";
+		result.EnvObjectKey = CONFIG_REDIS_KEY_PREFIX "eventcommand:envvar";
+		result.EnvChecksumKey = CHECKSUM_REDIS_KEY_PREFIX "eventcommand:envvar";
+	} else if (NotificationCommand::TypeInstance == cmdType) {
+		result.ArgObjectKey = CONFIG_REDIS_KEY_PREFIX "notificationcommand:argument";
+		result.ArgChecksumKey = CHECKSUM_REDIS_KEY_PREFIX "notificationcommand:argument";
+		result.EnvObjectKey = CONFIG_REDIS_KEY_PREFIX "notificationcommand:envvar";
+		result.EnvChecksumKey = CHECKSUM_REDIS_KEY_PREFIX "notificationcommand:envvar";
+	} else {
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid command type specified."));
+	}
+	return result;
+}
+
 long long IcingaDB::TimestampToMilliseconds(double timestamp) {
 	// In addition to the limits of the Icinga DB MySQL (0 - 2^64) and PostgreSQL (0 - 2^63) schemata,
 	// years not fitting in YYYY may cause problems, see e.g. https://github.com/golang/go/issues/4556.

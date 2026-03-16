@@ -94,6 +94,10 @@ struct RedisConnInfo final : SharedObject
 		class QueryArg
 		{
 		public:
+			constexpr QueryArg(std::string_view data) noexcept : m_Data(data)
+			{
+			}
+
 			QueryArg(const char data[]) noexcept : m_Data(std::in_place_type<std::string_view>, data)
 			{
 			}
