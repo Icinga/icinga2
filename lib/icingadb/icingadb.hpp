@@ -17,7 +17,6 @@
 #include "icinga/downtime.hpp"
 #include "remote/messageorigin.hpp"
 #include <boost/multi_index_container.hpp>
-#include <boost/multi_index/mem_fun.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/sequenced_index.hpp>
 #include <atomic>
@@ -61,92 +60,47 @@ enum DirtyBits : uint32_t
 	DirtyBitsAll = ConfigUpdate | ConfigDelete | FullState | NextUpdate
 };
 
-/**
- * A pending queue item.
- *
- * This struct represents a generic pending item in the queue that is associated with a unique identifier
- * and dirty bits indicating the type of updates required in Redis. The @c EnqueueTime field records the
- * time when the item was added to the queue, which can be useful for tracking how long an item waits before
- * being processed. This base struct is extended by more specific pending item types that operate on different
- * kinds of objects, such as configuration objects or dependency groups.
- *
- * @ingroup icingadb
- */
-struct PendingQueueItem
-{
-	/**
-	 * A variant type representing the identifier of a pending item.
-	 *
-	 * This variant can hold either a string representing a real Redis hash key or a pair consisting of
-	 * a configuration object pointer and a dependency group pointer. A pending item identified by the
-	 * latter variant type operates primarily on the associated configuration object or dependency group,
-	 * thus the pairs are used for uniqueness in the pending items container.
-	 */
-	using Key = std::variant<std::string /* Redis hash keys */, std::pair<ConfigObject::Ptr, DependencyGroup::Ptr>>;
-
-	virtual ~PendingQueueItem() = default;
-
-	const std::chrono::steady_clock::time_point EnqueueTime{std::chrono::steady_clock::now()};
-
-	virtual Key GetID() const = 0;
-	virtual ConfigObject::Ptr GetObjectToLock() const { return nullptr; };
-	virtual void Execute(IcingaDB& icingadb) const = 0;
-};
-
-// A multi-index container for managing pending items with unique IDs and maintaining insertion order.
-// The first index is an ordered unique index based on the pending item key, allowing for efficient
-// lookups and ensuring uniqueness of items. The second index is a sequenced index that maintains the
-// order of insertion, enabling FIFO processing of pending items.
-using PendingItemsSet = boost::multi_index_container<
-	std::shared_ptr<PendingQueueItem>,
-	boost::multi_index::indexed_by<
-		boost::multi_index::ordered_unique<
-			boost::multi_index::const_mem_fun<PendingQueueItem, PendingQueueItem::Key, &PendingQueueItem::GetID>
-		>,
-		boost::multi_index::sequenced<>
-	>
->;
 
 /**
  * A pending configuration object item.
  *
  * This struct represents a pending item in the queue that is associated with a configuration object.
  * It contains a pointer to the configuration object and the dirty bits indicating the type of updates
- * required for that object in Redis. A pending configuration item operates primarily on config objects,
- * thus the @c ID field in the base struct is only used for uniqueness in the pending items container.
+ * required for that object in Redis.
  *
  * @ingroup icingadb
  */
-struct PendingConfigItem : PendingQueueItem
+struct PendingConfigItem
 {
 	ConfigObject::Ptr Object;
 	uint32_t DirtyBits;
 
 	PendingConfigItem(const ConfigObject::Ptr& obj, uint32_t bits);
 
-	Key GetID() const override { return std::make_pair(Object, nullptr); }
-	ConfigObject::Ptr GetObjectToLock() const override;
-	void Execute(IcingaDB& icingadb) const override;
+	[[nodiscard]] ConfigObject* GetQueueLookupKey() const
+	{
+		return Object.get();
+	}
 };
 
 /**
  * A pending dependency group state item.
  *
  * This struct represents a pending item in the queue that is associated with a dependency group.
- * It contains a pointer to the dependency group for which state updates are required. The dirty bits
- * in the base struct are not used for this item type, as the operation is specific to updating the
- * state of the dependency group itself.
+ * It contains a pointer to the dependency group for which state updates are required.
  *
  * @ingroup icingadb
  */
-struct PendingDependencyGroupStateItem : PendingQueueItem
+struct PendingDependencyGroupStateItem
 {
 	DependencyGroup::Ptr DepGroup;
 
 	explicit PendingDependencyGroupStateItem(const DependencyGroup::Ptr& depGroup);
 
-	Key GetID() const override { return std::make_pair(nullptr, DepGroup.get()); }
-	void Execute(IcingaDB& icingadb) const override;
+	[[nodiscard]] DependencyGroup* GetQueueLookupKey() const
+	{
+		return DepGroup.get();
+	}
 };
 
 /**
@@ -154,21 +108,20 @@ struct PendingDependencyGroupStateItem : PendingQueueItem
  *
  * This struct represents a pending dependency child registration into a dependency group.
  * It contains a pointer to the dependency group and the checkable child being registered.
- * The dirty bits in the base struct are not used for this item type, as the operation is specific
- * to registering the child into the dependency group.
  *
  * @ingroup icingadb
  */
-struct PendingDependencyEdgeItem : PendingQueueItem
+struct PendingDependencyEdgeItem
 {
 	DependencyGroup::Ptr DepGroup;
 	Checkable::Ptr Child;
 
 	PendingDependencyEdgeItem(const DependencyGroup::Ptr& depGroup, const Checkable::Ptr& child);
 
-	Key GetID() const override { return std::make_pair(Child.get(), DepGroup.get()); }
-	ConfigObject::Ptr GetObjectToLock() const override { return Child; }
-	void Execute(IcingaDB& icingadb) const override;
+	[[nodiscard]] std::pair<DependencyGroup*, Checkable*> GetQueueLookupKey() const
+	{
+		return {DepGroup.get(), Child.get()};
+	}
 };
 
 /**
@@ -181,7 +134,7 @@ struct PendingDependencyEdgeItem : PendingQueueItem
  *
  * @ingroup icingadb
  */
-struct RelationsDeletionItem : PendingQueueItem
+struct RelationsDeletionItem
 {
 	std::string ID;
 	// Set of Redis keys from which to delete a relation, along with their checksums (if any).
@@ -190,9 +143,78 @@ struct RelationsDeletionItem : PendingQueueItem
 
 	RelationsDeletionItem(const String& id, const RelationsKeySet& relations);
 
-	Key GetID() const override { return ID; }
-	void Execute(IcingaDB& icingadb) const override;
+	[[nodiscard]] std::string_view GetQueueLookupKey() const
+	{
+		return ID;
+	}
 };
+
+/**
+ * A pending queue item.
+ *
+ * This struct represents a generic pending item in the queue. The @c EnqueueTime field records the
+ * time when the item was added to the queue, which can be useful for tracking how long an item waits before
+ * being processed. This base struct wraps one of the available more specific pending item types that operate
+ * on different kinds of objects, such as configuration objects or dependency groups.
+ *
+ * @ingroup icingadb
+ */
+struct PendingQueueItem
+{
+	using ItemVariant = std::variant<
+		PendingConfigItem,
+		PendingDependencyGroupStateItem,
+		PendingDependencyEdgeItem,
+		RelationsDeletionItem
+	>;
+
+	ItemVariant Item;
+	std::chrono::steady_clock::time_point EnqueueTime{std::chrono::steady_clock::now()};
+
+	template<typename T,
+		// don't hide the default copy and move constructors
+		typename = std::enable_if_t<!std::is_same_v<std::decay_t<T>, PendingQueueItem>>
+	>
+	explicit PendingQueueItem(T&& item) : Item(std::forward<T>(item)) {}
+};
+
+template<typename T>
+struct KeyExtractor /* not implemented, only the specialization for std::variant is used */;
+
+/**
+ * Helper to use @c PendingQueueItem in @c boost::multi_index_container.
+ *
+ * It implements a key extractor that @c multi_index_container will invoke for each element to create an index.
+ * Every individual type in @c PendingQueueItem::ItemVariant implements a method @c GetQueueLookupKey() that will
+ * be invoked by this key extractor. The return value from the individual type is then returned as part of a second
+ * variant type (its element types are automatically deduced from the individual @c GetQueueLookupKey() methods).
+ * @c multi_index_container will then just use the standard comparison operators on it for building the index.
+ *
+ * @ingroup icingadb
+ */
+template<typename ...Ts>
+struct KeyExtractor<std::variant<Ts...>> {
+	using result_type = std::variant<decltype(std::declval<Ts>().GetQueueLookupKey())...>;
+
+	result_type operator()(const PendingQueueItem& queueItem) const
+	{
+		return std::visit([](const auto& innerItem) -> result_type {
+			return innerItem.GetQueueLookupKey();
+		}, queueItem.Item);
+	};
+};
+
+// A multi-index container for managing pending items with unique IDs and maintaining insertion order.
+// The first index is an ordered unique index based on the pending item key, allowing for efficient
+// lookups and ensuring uniqueness of items. The second index is a sequenced index that maintains the
+// order of insertion, enabling FIFO processing of pending items.
+using PendingItemsSet = boost::multi_index_container<
+	PendingQueueItem,
+	boost::multi_index::indexed_by<
+		boost::multi_index::ordered_unique<KeyExtractor<PendingQueueItem::ItemVariant>>,
+		boost::multi_index::sequenced<>
+	>
+>;
 
 } // namespace icingadb::task_queue
 
@@ -453,16 +475,16 @@ private:
 	void PendingItemsThreadProc();
 	std::chrono::duration<double> DequeueAndProcessOne(std::unique_lock<std::mutex>& lock);
 
+	void ProcessQueueItem(const icingadb::task_queue::PendingConfigItem& item);
+	void ProcessQueueItem(const icingadb::task_queue::PendingDependencyGroupStateItem& item) const;
+	void ProcessQueueItem(const icingadb::task_queue::PendingDependencyEdgeItem& item);
+	void ProcessQueueItem(const icingadb::task_queue::RelationsDeletionItem& item);
+
 	void EnqueueConfigObject(const ConfigObject::Ptr& object, uint32_t bits);
 	void EnqueueDependencyGroupStateUpdate(const DependencyGroup::Ptr& depGroup);
 	void EnqueueDependencyChildRegistered(const DependencyGroup::Ptr& depGroup, const Checkable::Ptr& child);
 	void EnqueueDependencyChildRemoved(const DependencyGroup::Ptr& depGroup, const std::vector<Dependency::Ptr>& dependencies, bool removeGroup);
-	void EnqueueRelationsDeletion(const String& id, const icingadb::task_queue::RelationsDeletionItem::RelationsKeySet& relations);
-
-	friend struct icingadb::task_queue::PendingConfigItem;
-	friend struct icingadb::task_queue::PendingDependencyGroupStateItem;
-	friend struct icingadb::task_queue::PendingDependencyEdgeItem;
-	friend struct icingadb::task_queue::RelationsDeletionItem;
+	void EnqueueRelationsDeletion(const String& id, icingadb::task_queue::RelationsDeletionItem::RelationsKeySet relations);
 };
 }
 
