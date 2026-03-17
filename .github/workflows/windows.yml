@@ -3,8 +3,7 @@ name: Windows
 on:
   push:
     branches:
-      - master
-      - 'support/*'
+      - jschmidt/re-think-cpuboundwork-implementation-9988
   pull_request: {}
 
 concurrency:

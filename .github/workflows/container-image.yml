@@ -3,7 +3,7 @@ name: Container Image
 on:
   push:
     branches:
-      - master
+      - jschmidt/re-think-cpuboundwork-implementation-9988
   pull_request: {}
   release:
     types:
