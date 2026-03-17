@@ -26,10 +26,12 @@ using namespace icinga;
  * @param yc Needed to asynchronously wait for the condition variable.
  * @param strand Where to post the wake-up of the condition variable.
  */
-CpuBoundWork::CpuBoundWork(boost::asio::yield_context yc, boost::asio::io_context::strand& strand)
+CpuBoundWork::CpuBoundWork(boost::asio::yield_context yc)
 	: m_Done(false)
 {
-	VERIFY(strand.running_in_this_thread());
+	auto ae = boost::asio::get_associated_executor(yc);
+	const auto* strand = ae.target<boost::asio::io_context::strand>();
+	ASSERT(strand);
 
 	auto& ie (IoEngine::Get());
 	Shared<AsioConditionVariable>::Ptr cv;
@@ -55,7 +57,7 @@ CpuBoundWork::CpuBoundWork(boost::asio::yield_context yc, boost::asio::io_contex
 
 			// If the (hypothetical) slot mentioned above was taken by another coroutine,
 			// there are no free slots again, just as if no wake-ups happened just now.
-			ie.m_CpuBoundWaiting.emplace_back(strand, cv);
+			ie.m_CpuBoundWaiting.emplace_back(*strand, cv);
 		}
 
 		cv->Wait(yc);
