@@ -17,7 +17,7 @@
 
 using namespace icinga;
 
-CpuBoundWork::CpuBoundWork(boost::asio::yield_context yc)
+CpuBoundWork::CpuBoundWork(boost::asio::yield_context yc, boost::asio::io_context::strand&)
 	: m_Done(false)
 {
 	auto& ioEngine (IoEngine::Get());
@@ -35,42 +35,12 @@ CpuBoundWork::CpuBoundWork(boost::asio::yield_context yc)
 	}
 }
 
-CpuBoundWork::~CpuBoundWork()
-{
-	if (!m_Done) {
-		IoEngine::Get().m_CpuBoundSemaphore.fetch_add(1);
-	}
-}
-
 void CpuBoundWork::Done()
 {
 	if (!m_Done) {
 		IoEngine::Get().m_CpuBoundSemaphore.fetch_add(1);
 
 		m_Done = true;
-	}
-}
-
-IoBoundWorkSlot::IoBoundWorkSlot(boost::asio::yield_context yc)
-	: yc(yc)
-{
-	IoEngine::Get().m_CpuBoundSemaphore.fetch_add(1);
-}
-
-IoBoundWorkSlot::~IoBoundWorkSlot()
-{
-	auto& ioEngine (IoEngine::Get());
-
-	for (;;) {
-		auto availableSlots (ioEngine.m_CpuBoundSemaphore.fetch_sub(1));
-
-		if (availableSlots < 1) {
-			ioEngine.m_CpuBoundSemaphore.fetch_add(1);
-			IoEngine::YieldCurrentCoroutine(yc);
-			continue;
-		}
-
-		break;
 	}
 }
 
@@ -170,6 +140,30 @@ void AsioDualEvent::WaitForSet(boost::asio::yield_context yc)
 void AsioDualEvent::WaitForClear(boost::asio::yield_context yc)
 {
 	m_IsFalse.Wait(std::move(yc));
+}
+
+AsioConditionVariable::AsioConditionVariable(boost::asio::io_context& io)
+	: m_Timer(io)
+{
+	m_Timer.expires_at(decltype(m_Timer)::clock_type::time_point::max());
+}
+
+void AsioConditionVariable::Wait(boost::asio::yield_context yc)
+{
+	boost::system::error_code ec;
+	m_Timer.async_wait(yc[ec]);
+}
+
+bool AsioConditionVariable::NotifyOne()
+{
+	boost::system::error_code ec;
+	return m_Timer.cancel_one(ec);
+}
+
+size_t AsioConditionVariable::NotifyAll()
+{
+	boost::system::error_code ec;
+	return m_Timer.cancel(ec);
 }
 
 /**
