@@ -21,6 +21,7 @@
 #include <boost/exception/all.hpp>
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/io_context.hpp>
+#include <boost/asio/io_context_strand.hpp>
 #include <boost/asio/spawn.hpp>
 
 #if BOOST_VERSION >= 108700
@@ -38,36 +39,21 @@ namespace icinga
 class CpuBoundWork
 {
 public:
-	CpuBoundWork(boost::asio::yield_context yc);
+	CpuBoundWork(boost::asio::yield_context yc, boost::asio::io_context::strand&);
 	CpuBoundWork(const CpuBoundWork&) = delete;
 	CpuBoundWork(CpuBoundWork&&) = delete;
 	CpuBoundWork& operator=(const CpuBoundWork&) = delete;
 	CpuBoundWork& operator=(CpuBoundWork&&) = delete;
-	~CpuBoundWork();
+
+	inline ~CpuBoundWork()
+	{
+		Done();
+	}
 
 	void Done();
 
 private:
 	bool m_Done;
-};
-
-/**
- * Scope break for CPU-bound work done in an I/O thread
- *
- * @ingroup base
- */
-class IoBoundWorkSlot
-{
-public:
-	IoBoundWorkSlot(boost::asio::yield_context yc);
-	IoBoundWorkSlot(const IoBoundWorkSlot&) = delete;
-	IoBoundWorkSlot(IoBoundWorkSlot&&) = delete;
-	IoBoundWorkSlot& operator=(const IoBoundWorkSlot&) = delete;
-	IoBoundWorkSlot& operator=(IoBoundWorkSlot&&) = delete;
-	~IoBoundWorkSlot();
-
-private:
-	boost::asio::yield_context yc;
 };
 
 /**
@@ -78,7 +64,6 @@ private:
 class IoEngine
 {
 	friend CpuBoundWork;
-	friend IoBoundWorkSlot;
 
 public:
 	IoEngine(const IoEngine&) = delete;
