@@ -230,7 +230,7 @@ void AsioDualEvent::WaitForClear(boost::asio::yield_context yc)
 AsioConditionVariable::AsioConditionVariable(boost::asio::io_context& io)
 	: m_Timer(io)
 {
-	m_Timer.expires_at(decltype(m_Timer)::clock_type::time_point::max());
+	m_Timer.expires_at(boost::posix_time::pos_infin);
 }
 
 void AsioConditionVariable::Wait(boost::asio::yield_context yc)

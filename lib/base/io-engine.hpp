@@ -24,7 +24,6 @@
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/io_context_strand.hpp>
 #include <boost/asio/spawn.hpp>
-#include <boost/asio/system_timer.hpp>
 
 #if BOOST_VERSION >= 108700
 #	include <boost/asio/detached.hpp>
@@ -75,7 +74,7 @@ public:
 	size_t NotifyAll();
 
 private:
-	boost::asio::system_timer m_Timer;
+	boost::asio::deadline_timer m_Timer;
 };
 
 /**
