@@ -7,6 +7,7 @@
 #include "config/objectrule.hpp"
 #include "config/configcompiler.hpp"
 #include "base/application.hpp"
+#include "base/atomic.hpp"
 #include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
@@ -22,7 +23,6 @@
 #include "base/function.hpp"
 #include "base/utility.hpp"
 #include <boost/algorithm/string/join.hpp>
-#include <atomic>
 #include <sstream>
 #include <fstream>
 #include <algorithm>
@@ -450,7 +450,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 #endif /* I2_DEBUG */
 
 	for (auto& type : Type::GetConfigTypesSortedByLoadDependencies()) {
-		std::atomic<int> committed_items(0);
+		Atomic committed_items (0);
 
 		{
 			auto items (itemsByType.find(type.get()));
@@ -496,7 +496,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 #endif /* I2_DEBUG */
 
 	for (auto& type : Type::GetConfigTypesSortedByLoadDependencies()) {
-		std::atomic<int> notified_items(0);
+		Atomic notified_items (0);
 
 		{
 			auto items (itemsByType.find(type.get()));
