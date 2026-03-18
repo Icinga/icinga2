@@ -418,15 +418,17 @@ void ProcessRequest(
 	HttpApiResponse& response,
 	const WaitGroup::Ptr& waitGroup,
 	std::chrono::steady_clock::duration& cpuBoundWorkTime,
-	boost::asio::yield_context& yc
+	boost::asio::yield_context& yc,
+	boost::asio::io_context::strand& strand
 )
 {
 	try {
 		// Cache the elapsed time to acquire a CPU semaphore used to detect extremely heavy workloads.
 		auto start (std::chrono::steady_clock::now());
-		CpuBoundWork handlingRequest (yc);
+		auto handlingRequest (std::make_shared<CpuBoundWork>(yc, strand));
 		cpuBoundWorkTime = std::chrono::steady_clock::now() - start;
 
+		response.SetCpuBoundWork(handlingRequest);
 		HttpHandler::ProcessRequest(waitGroup, request, response, yc);
 		response.body().Finish();
 	} catch (const std::exception& ex) {
@@ -536,7 +538,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 
 			m_Seen = ch::steady_clock::time_point::max();
 
-			ProcessRequest(request, response, m_WaitGroup, cpuBoundWorkTime, yc);
+			ProcessRequest(request, response, m_WaitGroup, cpuBoundWorkTime, yc, m_IoStrand);
 
 			if (!request.keep_alive() || !m_ConnectionReusable) {
 				break;
