@@ -144,6 +144,10 @@ if(ICINGA2_WITH_NOTIFICATION)
   )
 endif()
 
+if(ICINGA2_WITH_OPENTELEMETRY)
+  list(APPEND base_test_SOURCES $<TARGET_OBJECTS:otel>)
+endif()
+
 if(ICINGA2_WITH_PERFDATA)
   list(APPEND base_test_SOURCES
     perfdata-elasticsearchwriter.cpp
