@@ -23,8 +23,8 @@ public:
 
 private:
 	void HandleGet(const HttpApiRequest& request, HttpApiResponse& response, boost::asio::yield_context& yc);
-	void HandlePost(const HttpApiRequest& request, HttpApiResponse& response);
-	void HandleDelete(const HttpApiRequest& request, HttpApiResponse& response);
+	void HandlePost(const HttpApiRequest& request, HttpApiResponse& response, boost::asio::yield_context& yc);
+	void HandleDelete(const HttpApiRequest& request, HttpApiResponse& response, boost::asio::yield_context& yc);
 
 };
 

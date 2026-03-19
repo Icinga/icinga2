@@ -73,7 +73,7 @@ bool StatusHandler::HandleRequest(
 	const WaitGroup::Ptr&,
 	const HttpApiRequest& request,
 	HttpApiResponse& response,
-	boost::asio::yield_context&
+	boost::asio::yield_context& yc
 )
 {
 	namespace http = boost::beast::http;
@@ -103,10 +103,10 @@ bool StatusHandler::HandleRequest(
 	try {
 		objs = FilterUtility::GetFilterTargets(qd, params, user);
 	} catch (const MissingPermissionError& ex) {
-		HttpUtility::SendJsonError(response, params, 403, ex.what());
+		HttpUtility::SendJsonError(response, params, 403, yc, ex.what());
 		return true;
 	} catch (const std::exception& ex) {
-		HttpUtility::SendJsonError(response, params, 404,
+		HttpUtility::SendJsonError(response, params, 404, yc,
 			"No objects found.",
 			DiagnosticInformation(ex));
 		return true;
@@ -117,7 +117,7 @@ bool StatusHandler::HandleRequest(
 	});
 
 	response.result(http::status::ok);
-	HttpUtility::SendJsonBody(response, params, result);
+	HttpUtility::SendJsonBody(response, params, result, yc);
 
 	return true;
 }

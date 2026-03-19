@@ -92,10 +92,10 @@ bool VariableQueryHandler::HandleRequest(
 	try {
 		objs = FilterUtility::GetFilterTargets(qd, params, user, "variable");
 	} catch (const MissingPermissionError& ex) {
-		HttpUtility::SendJsonError(response, params, 403, ex.what());
+		HttpUtility::SendJsonError(response, params, 403, yc, ex.what());
 		return true;
 	} catch (const std::exception& ex) {
-		HttpUtility::SendJsonError(response, params, 404,
+		HttpUtility::SendJsonError(response, params, 404, yc,
 			"No variables found.",
 			DiagnosticInformation(ex));
 		return true;
