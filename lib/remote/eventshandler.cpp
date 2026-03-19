@@ -61,14 +61,14 @@ bool EventsHandler::HandleRequest(
 		return false;
 
 	if (request.version() == 10) {
-		HttpUtility::SendJsonError(response, params, 400, "HTTP/1.0 not supported for event streams.");
+		HttpUtility::SendJsonError(response, params, 400, yc, "HTTP/1.0 not supported for event streams.");
 		return true;
 	}
 
 	Array::Ptr types = params->Get("types");
 
 	if (!types) {
-		HttpUtility::SendJsonError(response, params, 400, "'types' query parameter is required.");
+		HttpUtility::SendJsonError(response, params, 400, yc, "'types' query parameter is required.");
 		return true;
 	}
 

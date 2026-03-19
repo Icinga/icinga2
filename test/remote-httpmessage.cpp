@@ -267,7 +267,7 @@ BOOST_AUTO_TEST_CASE(response_sendjsonbody)
 		HttpApiResponse response(server);
 		response.result(http::status::ok);
 
-		HttpUtility::SendJsonBody(response, nullptr, new Dictionary{{"test", 1}});
+		HttpUtility::SendJsonBody(response, nullptr, new Dictionary{{"test", 1}}, yc);
 
 		BOOST_REQUIRE_NO_THROW(response.Flush(yc));
 
@@ -298,7 +298,7 @@ BOOST_AUTO_TEST_CASE(response_sendjsonerror)
 		// This has to be overwritten in SendJsonError.
 		response.result(http::status::ok);
 
-		HttpUtility::SendJsonError(response, nullptr, 404, "Not found.");
+		HttpUtility::SendJsonError(response, nullptr, 404, yc, "Not found.");
 
 		BOOST_REQUIRE_NO_THROW(response.Flush(yc));
 

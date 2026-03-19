@@ -26,9 +26,8 @@ public:
 	static Value GetLastParameter(const Dictionary::Ptr& params, const String& key);
 
 	static void SendJsonBody(HttpApiResponse& response, const Dictionary::Ptr& params, const Value& val, boost::asio::yield_context& yc);
-	static void SendJsonBody(HttpApiResponse& response, const Dictionary::Ptr& params, const Value& val);
 	static void SendJsonError(HttpApiResponse& response, const Dictionary::Ptr& params, const int code,
-		const String& info = {}, const String& diagnosticInformation = {});
+		boost::asio::yield_context& yc, const String& info = {}, const String& diagnosticInformation = {});
 
 	static bool IsValidHeaderName(std::string_view name);
 	static bool IsValidHeaderValue(std::string_view value);

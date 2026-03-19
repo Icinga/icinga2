@@ -114,7 +114,7 @@ bool ObjectQueryHandler::HandleRequest(
 	Type::Ptr type = FilterUtility::TypeFromPluralName(url->GetPath()[2]);
 
 	if (!type) {
-		HttpUtility::SendJsonError(response, params, 400, "Invalid type specified.");
+		HttpUtility::SendJsonError(response, params, 400, yc, "Invalid type specified.");
 		return true;
 	}
 
@@ -127,7 +127,7 @@ bool ObjectQueryHandler::HandleRequest(
 	try {
 		uattrs = params->Get("attrs");
 	} catch (const std::exception&) {
-		HttpUtility::SendJsonError(response, params, 400,
+		HttpUtility::SendJsonError(response, params, 400, yc,
 			"Invalid type for 'attrs' attribute specified. Array type is required.");
 		return true;
 	}
@@ -135,7 +135,7 @@ bool ObjectQueryHandler::HandleRequest(
 	try {
 		ujoins = params->Get("joins");
 	} catch (const std::exception&) {
-		HttpUtility::SendJsonError(response, params, 400,
+		HttpUtility::SendJsonError(response, params, 400, yc,
 			"Invalid type for 'joins' attribute specified. Array type is required.");
 		return true;
 	}
@@ -143,7 +143,7 @@ bool ObjectQueryHandler::HandleRequest(
 	try {
 		umetas = params->Get("meta");
 	} catch (const std::exception&) {
-		HttpUtility::SendJsonError(response, params, 400,
+		HttpUtility::SendJsonError(response, params, 400, yc,
 			"Invalid type for 'meta' attribute specified. Array type is required.");
 		return true;
 	}
@@ -158,7 +158,7 @@ bool ObjectQueryHandler::HandleRequest(
 			} else if (meta == "location") {
 				includeLocation = true;
 			} else {
-				HttpUtility::SendJsonError(response, params, 400, "Invalid field specified for meta: " + meta);
+				HttpUtility::SendJsonError(response, params, 400, yc, "Invalid field specified for meta: " + meta);
 				return true;
 			}
 		}
@@ -179,7 +179,7 @@ bool ObjectQueryHandler::HandleRequest(
 	try {
 		objs = FilterUtility::GetFilterTargets(qd, params, user);
 	} catch (const std::exception& ex) {
-		HttpUtility::SendJsonError(response, params, 404,
+		HttpUtility::SendJsonError(response, params, 404, yc,
 			"No objects found.",
 			DiagnosticInformation(ex));
 		return true;
