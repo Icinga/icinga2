@@ -38,9 +38,9 @@ bool ConfigStagesHandler::HandleRequest(
 	if (request.method() == http::verb::get)
 		HandleGet(request, response, yc);
 	else if (request.method() == http::verb::post)
-		HandlePost(request, response);
+		HandlePost(request, response, yc);
 	else if (request.method() == http::verb::delete_)
-		HandleDelete(request, response);
+		HandleDelete(request, response, yc);
 	else
 		return false;
 
@@ -67,10 +67,10 @@ void ConfigStagesHandler::HandleGet(const HttpApiRequest& request, HttpApiRespon
 	String stageName = HttpUtility::GetLastParameter(params, "stage");
 
 	if (!ConfigPackageUtility::ValidatePackageName(packageName))
-		return HttpUtility::SendJsonError(response, params, 400, "Invalid package name '" + packageName + "'.");
+		return HttpUtility::SendJsonError(response, params, 400, yc, "Invalid package name '" + packageName + "'.");
 
 	if (!ConfigPackageUtility::ValidateStageName(stageName))
-		return HttpUtility::SendJsonError(response, params, 400, "Invalid stage name '" + stageName + "'.");
+		return HttpUtility::SendJsonError(response, params, 400, yc, "Invalid stage name '" + stageName + "'.");
 
 	std::vector<std::pair<String, bool> > paths = ConfigPackageUtility::GetFiles(packageName, stageName);
 
@@ -90,7 +90,7 @@ void ConfigStagesHandler::HandleGet(const HttpApiRequest& request, HttpApiRespon
 	HttpUtility::SendJsonBody(response, params, result, yc);
 }
 
-void ConfigStagesHandler::HandlePost(const HttpApiRequest& request, HttpApiResponse& response)
+void ConfigStagesHandler::HandlePost(const HttpApiRequest& request, HttpApiResponse& response, boost::asio::yield_context& yc)
 {
 	namespace http = boost::beast::http;
 
@@ -106,7 +106,7 @@ void ConfigStagesHandler::HandlePost(const HttpApiRequest& request, HttpApiRespo
 	String packageName = HttpUtility::GetLastParameter(params, "package");
 
 	if (!ConfigPackageUtility::ValidatePackageName(packageName))
-		return HttpUtility::SendJsonError(response, params, 400, "Invalid package name '" + packageName + "'.");
+		return HttpUtility::SendJsonError(response, params, 400, yc, "Invalid package name '" + packageName + "'.");
 
 	bool reload = true;
 
@@ -131,7 +131,7 @@ void ConfigStagesHandler::HandlePost(const HttpApiRequest& request, HttpApiRespo
 
 		ConfigObjectsSharedLock configObjectsSharedLock(std::try_to_lock);
 		if (!configObjectsSharedLock) {
-			HttpUtility::SendJsonError(response, params, 503, "Icinga is reloading");
+			HttpUtility::SendJsonError(response, params, 503, yc, "Icinga is reloading");
 			return;
 		}
 
@@ -152,7 +152,7 @@ void ConfigStagesHandler::HandlePost(const HttpApiRequest& request, HttpApiRespo
 			 */
 			if (l_RunningPackageUpdates && l_LastReloadFailedTime == currentReloadFailedTime) {
 				return HttpUtility::SendJsonError(
-					response, params, 423,
+					response, params, 423, yc,
 					"Conflicting request, there is already an ongoing package update in progress. Please try it again later."
 				);
 			}
@@ -173,7 +173,7 @@ void ConfigStagesHandler::HandlePost(const HttpApiRequest& request, HttpApiRespo
 		/* validate the config. on success, activate stage and reload */
 		ConfigPackageUtility::AsyncTryActivateStage(packageName, stageName, activate, reload, resetPackageUpdates);
 	} catch (const std::exception& ex) {
-		return HttpUtility::SendJsonError(response, params, 500,
+		return HttpUtility::SendJsonError(response, params, 500, yc,
 			"Stage creation failed.",
 			DiagnosticInformation(ex));
 	}
@@ -198,10 +198,10 @@ void ConfigStagesHandler::HandlePost(const HttpApiRequest& request, HttpApiRespo
 	});
 
 	response.result(http::status::ok);
-	HttpUtility::SendJsonBody(response, params, result);
+	HttpUtility::SendJsonBody(response, params, result, yc);
 }
 
-void ConfigStagesHandler::HandleDelete(const HttpApiRequest& request, HttpApiResponse& response)
+void ConfigStagesHandler::HandleDelete(const HttpApiRequest& request, HttpApiResponse& response, boost::asio::yield_context& yc)
 {
 	namespace http = boost::beast::http;
 
@@ -221,21 +221,21 @@ void ConfigStagesHandler::HandleDelete(const HttpApiRequest& request, HttpApiRes
 	String stageName = HttpUtility::GetLastParameter(params, "stage");
 
 	if (!ConfigPackageUtility::ValidatePackageName(packageName))
-		return HttpUtility::SendJsonError(response, params, 400, "Invalid package name '" + packageName + "'.");
+		return HttpUtility::SendJsonError(response, params, 400, yc, "Invalid package name '" + packageName + "'.");
 
 	if (!ConfigPackageUtility::ValidateStageName(stageName))
-		return HttpUtility::SendJsonError(response, params, 400, "Invalid stage name '" + stageName + "'.");
+		return HttpUtility::SendJsonError(response, params, 400, yc, "Invalid stage name '" + stageName + "'.");
 
 	ConfigObjectsSharedLock lock(std::try_to_lock);
 	if (!lock) {
-		HttpUtility::SendJsonError(response, params, 503, "Icinga is reloading");
+		HttpUtility::SendJsonError(response, params, 503, yc, "Icinga is reloading");
 		return;
 	}
 
 	try {
 		ConfigPackageUtility::DeleteStage(packageName, stageName);
 	} catch (const std::exception& ex) {
-		return HttpUtility::SendJsonError(response, params, 500,
+		return HttpUtility::SendJsonError(response, params, 500, yc,
 			"Failed to delete stage '" + stageName + "' in package '" + packageName + "'.",
 			DiagnosticInformation(ex));
 	}
@@ -252,5 +252,5 @@ void ConfigStagesHandler::HandleDelete(const HttpApiRequest& request, HttpApiRes
 	});
 
 	response.result(http::status::ok);
-	HttpUtility::SendJsonBody(response, params, result);
+	HttpUtility::SendJsonBody(response, params, result, yc);
 }

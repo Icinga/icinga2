@@ -38,7 +38,7 @@ bool DeleteObjectHandler::HandleRequest(
 	Type::Ptr type = FilterUtility::TypeFromPluralName(url->GetPath()[2]);
 
 	if (!type) {
-		HttpUtility::SendJsonError(response, params, 400, "Invalid type specified.");
+		HttpUtility::SendJsonError(response, params, 400, yc, "Invalid type specified.");
 		return true;
 	}
 
@@ -59,7 +59,7 @@ bool DeleteObjectHandler::HandleRequest(
 	try {
 		objs = FilterUtility::GetFilterTargets(qd, params, user);
 	} catch (const std::exception& ex) {
-		HttpUtility::SendJsonError(response, params, 404,
+		HttpUtility::SendJsonError(response, params, 404, yc,
 			"No objects found.",
 			DiagnosticInformation(ex));
 		return true;
@@ -71,7 +71,7 @@ bool DeleteObjectHandler::HandleRequest(
 	ConfigObjectsSharedLock lock (std::try_to_lock);
 
 	if (!lock) {
-		HttpUtility::SendJsonError(response, params, 503, "Icinga is reloading");
+		HttpUtility::SendJsonError(response, params, 503, yc, "Icinga is reloading");
 		return true;
 	}
 
@@ -81,7 +81,7 @@ bool DeleteObjectHandler::HandleRequest(
 
 	std::shared_lock wgLock{*waitGroup, std::try_to_lock};
 	if (!wgLock) {
-		HttpUtility::SendJsonError(response, params, 503, "Shutting down.");
+		HttpUtility::SendJsonError(response, params, 503, yc, "Shutting down.");
 		return true;
 	}
 
