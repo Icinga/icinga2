@@ -4,6 +4,7 @@
 #pragma once
 
 #include "base/dictionary.hpp"
+#include "base/io-engine.hpp"
 #include "base/json.hpp"
 #include "base/tlsstream.hpp"
 #include "remote/apiuser.hpp"
@@ -11,6 +12,7 @@
 #include "remote/url.hpp"
 #include <boost/beast/http.hpp>
 #include <boost/version.hpp>
+#include <memory>
 #include <utility>
 
 namespace icinga {
@@ -265,9 +267,15 @@ public:
 
 	JsonEncoder GetJsonEncoder(bool pretty = false);
 
+	void SetCpuBoundWork(std::weak_ptr<CpuBoundWork> cbw)
+	{
+		m_CpuBoundWork = std::move(cbw);
+	}
+
 private:
 	Serializer m_Serializer{*this};
 	bool m_SerializationStarted = false;
+	std::weak_ptr<CpuBoundWork> m_CpuBoundWork;
 
 	StreamVariant m_Stream;
 };
