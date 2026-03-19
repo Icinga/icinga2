@@ -546,10 +546,10 @@ std::size_t OTel::Record(Gauge& gauge, T data, double start, double end, AttrsMa
 		static_cast<uint64_t>(ch::duration_cast<ch::nanoseconds>(ch::duration<double>(end)).count())
 	);
 
-	for (auto it{attrs.begin()}; it != attrs.end(); /* NOPE */) {
+	while (!attrs.empty()) {
 		auto* attr = dataPoint->add_attributes();
-		auto node = attrs.extract(it++);
-		SetAttribute(*attr, node.key(), node.mapped());
+		auto node = attrs.extract(attrs.begin());
+		SetAttribute(*attr, std::move(node.key()), std::move(node.mapped()));
 	}
 	return dataPoint->ByteSizeLong();
 }
