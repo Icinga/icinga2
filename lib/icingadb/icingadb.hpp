@@ -473,7 +473,6 @@ private:
 	std::condition_variable m_PendingItemsCV; // Condition variable to forcefully wake up the worker thread.
 
 	void PendingItemsThreadProc();
-	std::chrono::duration<double> DequeueAndProcessOne(std::unique_lock<std::mutex>& lock);
 
 	void ProcessQueueItem(const icingadb::task_queue::PendingConfigItem& item);
 	void ProcessQueueItem(const icingadb::task_queue::PendingDependencyGroupStateItem& item) const;
