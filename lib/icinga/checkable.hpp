@@ -102,7 +102,7 @@ public:
 	intrusive_ptr<CheckCommand> GetCheckCommand() const;
 	TimePeriod::Ptr GetCheckPeriod() const;
 
-	long GetSchedulingOffset();
+	long GetSchedulingOffset() const;
 	void SetSchedulingOffset(long offset);
 
 	void UpdateNextCheck(const MessageOrigin::Ptr& origin = nullptr);
@@ -110,6 +110,7 @@ public:
 	static String StateTypeToString(StateType type);
 
 	bool HasBeenChecked() const;
+	bool HasRunningCheck() const;
 	virtual bool IsStateOK(ServiceState state) const = 0;
 
 	double GetLastCheck() const final;
@@ -119,7 +120,7 @@ public:
 	static void UpdateStatistics(const CheckResult::Ptr& cr, CheckableType type);
 
 	void ExecuteRemoteCheck(const WaitGroup::Ptr& producer, const Dictionary::Ptr& resolvedMacros = nullptr);
-	void ExecuteCheck(const WaitGroup::Ptr& producer);
+	void ExecuteCheck(const WaitGroup::Ptr& producer, double scheduleStart);
 
 	enum class ProcessingResult
 	{
@@ -147,7 +148,15 @@ public:
 		bool, bool, double, double, const MessageOrigin::Ptr&)> OnAcknowledgementSet;
 	static boost::signals2::signal<void (const Checkable::Ptr&, const String&, double, const MessageOrigin::Ptr&)> OnAcknowledgementCleared;
 	static boost::signals2::signal<void (const Checkable::Ptr&, double)> OnFlappingChange;
-	static boost::signals2::signal<void (const Checkable::Ptr&)> OnNextCheckUpdated;
+	/**
+	 * This signal is a very special and noisy one. It is emitted whenever someone wants to enforce the LOCAL
+	 * scheduler to reschedule the next check of a checkable at the given timestamp. This can be due to a number
+	 * of reasons, for example: Icinga 2 was interrupted while a check was being executed, and the checkable needs
+	 * to be rescheduled on startup; or a parent host changed its state and all its children need to be rescheduled
+	 * to reflect the new reachability state. There are other cases as well, but the point is: this signal is meant
+	 * to only be used by the local @c CheckerComponent to update its internal queues.
+	 */
+	static boost::signals2::signal<void (const Checkable::Ptr&, double)> OnRescheduleCheck;
 	static boost::signals2::signal<void (const Checkable::Ptr&)> OnEventCommandExecuted;
 
 	static Atomic<uint_fast64_t> CurrentConcurrentChecks;
@@ -224,7 +233,7 @@ protected:
 
 private:
 	mutable std::mutex m_CheckableMutex;
-	bool m_CheckRunning{false};
+	std::atomic_bool m_CheckRunning{false};
 	long m_SchedulingOffset;
 
 	static std::mutex m_StatsMutex;
