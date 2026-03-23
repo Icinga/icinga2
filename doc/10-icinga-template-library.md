@@ -3457,7 +3457,7 @@ Command line arguments are passed as [command parameters](03-monitoring-basics.m
 
 Name                         | Description
 -----------------------------|----------------------------------------------------------------------------------
-netgear\_base\_url           | **Required.** Base URL of the NETGEAR API (example: "http://$check_address$").
+netgear\_base\_url           | **Required.** Base URL of the NETGEAR API (example: `http://$check_address$`).
 netgear\_username            | **Required.** Username used for authentication.
 netgear\_password            | **Required.** Password used for authentication.
 netgear\_cpu\_warning        | **Optional.** CPU usage warning threshold (default: 50).
@@ -3470,8 +3470,8 @@ netgear\_fan\_warning        | **Optional.** Fan speed warning threshold (defaul
 netgear\_fan\_critical       | **Optional.** Fan speed critical threshold (default: 5000).
 netgear\_stats\_warning      | **Optional.** Port statistics warning threshold (default: 5).
 netgear\_stats\_critical     | **Optional.** Port statistics critical threshold (default: 20).
-netgear\_mode                | **Optional.** Output modes to enable `{basic|ports|poe|all}` (repeatable). Default: `basic`.
-netgear\_ports               | **Optional.** Ports to check (repeatable). Default: `1,2,3,4,5,6,7,8`.
+netgear\_mode                | **Optional.** Output modes to enable. Array of `basic`, `ports`, `poe`, `all`. Default: [`basic`].
+netgear\_ports               | **Optional.** Ports to check as an arary. Default: [`1,2,3,4,5,6,7,8`].
 netgear\_hide\_perfdata      | **Optional.** Disable performance data output.
 netgear\_hide\_cpu           | **Optional.** Hide CPU information.
 netgear\_hide\_mem           | **Optional.** Hide memory information.
