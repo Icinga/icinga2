@@ -47,7 +47,7 @@ void IcingaDB::PendingItemsThreadProc()
 	// Redis queries when the Redis connection is saturated.
 	constexpr std::size_t maxPendingQueries = 128;
 	// The minimum age an item must have before it can be processed.
-	constexpr ch::milliseconds minItemAge{1000};
+	constexpr ch::milliseconds minItemAge{300};
 
 	std::unique_lock lock(m_PendingItemsMutex);
 	// Wait until the initial config dump is done. IcingaDB::OnConnectedHandler will notify us once it's finished.
