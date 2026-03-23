@@ -38,23 +38,61 @@ icingadb::task_queue::RelationsDeletionItem::RelationsDeletionItem(const String&
  */
 void IcingaDB::PendingItemsThreadProc()
 {
-	using namespace std::chrono_literals;
 	namespace ch = std::chrono;
+	namespace queue = icingadb::task_queue;
 
 	// Limits the number of pending queries the Rcon can have at any given time to reduce the memory overhead to
 	// the absolute minimum necessary, since the size of the pending queue items is much smaller than the size
 	// of the actual Redis queries. Thus, this will slow down the worker thread a bit from generating too many
 	// Redis queries when the Redis connection is saturated.
 	constexpr std::size_t maxPendingQueries = 128;
+	// The minimum age an item must have before it can be processed.
+	constexpr ch::milliseconds minItemAge{1000};
 
 	std::unique_lock lock(m_PendingItemsMutex);
 	// Wait until the initial config dump is done. IcingaDB::OnConnectedHandler will notify us once it's finished.
 	while (GetActive() && !m_ConfigDumpDone) m_PendingItemsCV.wait(lock);
 
+	auto& seqView = m_PendingItems.get<1>();
 	while (GetActive()) {
 		if (!m_PendingItems.empty() && m_RconWorker && m_RconWorker->IsConnected() && m_RconWorker->GetPendingQueryCount() < maxPendingQueries) {
-			if (auto retryAfter = DequeueAndProcessOne(lock); retryAfter > 0ms) {
-				m_PendingItemsCV.wait_for(lock, retryAfter);
+			auto now = ch::steady_clock::now();
+			auto it = seqView.begin();
+			if (auto age = now - it->EnqueueTime; minItemAge > age) {
+				m_PendingItemsCV.wait_for(lock, minItemAge - age);
+			} else {
+				ConfigObject::Ptr cobj;
+				if (auto confPtr = std::get_if<queue::PendingConfigItem>(&it->Item); confPtr) {
+					cobj = confPtr->Object;
+				} else if (auto edgePtr = std::get_if<queue::PendingDependencyEdgeItem>(&it->Item)) {
+					cobj = edgePtr->Child;
+				}
+
+				ObjectLock olock(cobj, std::defer_lock);
+				// To avoid a deadlock we can't use a regular `Lock` here since another thread might have acquired
+				// the olock already and is waiting to acquire the pending items mutex (which is currently locked here)
+				// to enqueue another update for this config object.
+				if (cobj && !olock.TryLock()) {
+					m_PendingItemsCV.wait_for(lock, 10ms);
+				} else {
+					auto itemToProcess = *it;
+					seqView.erase(it);
+
+					lock.unlock();
+					std::visit([this](auto &item) {
+						try {
+							ProcessQueueItem(item);
+						} catch (const std::exception& ex) {
+							Log(LogCritical, "IcingaDB")
+								<< "Exception while processing pending item of type '" << typeid(decltype(item)).name()
+								<< "': " << DiagnosticInformation(ex, GetActive());
+						}
+					}, itemToProcess.Item);
+					if (cobj) {
+						olock.Unlock();
+					}
+					lock.lock();
+				}
 			}
 		} else {
 			// In case we don't receive any notification, we still want to wake up periodically on our own
@@ -63,86 +101,6 @@ void IcingaDB::PendingItemsThreadProc()
 			m_PendingItemsCV.wait_for(lock, 100ms);
 		}
 	}
-}
-
-/**
- * Dequeue and process a single pending item.
- *
- * This function processes a single pending item from the pending items container. It iterates over
- * the items in insertion order and checks if the first item is old enough to be processed (at least
- * 1000ms old) unless we're being shutting down. If the item can be processed, it attempts to acquire
- * a lock on the associated config object (if applicable) and processes the item accordingly.
- *
- * If the item cannot be processed right now because it's too new, the function returns a duration
- * indicating how long to wait before retrying. Also, if no progress was made during this iteration
- * (i.e., no item was processed), it returns a short delay to avoid busy-looping.
- *
- * @param lock A unique lock on the pending items mutex (must be acquired before calling this function).
- *
- * @return A duration indicating how long to wait before retrying.
- */
-std::chrono::duration<double> IcingaDB::DequeueAndProcessOne(std::unique_lock<std::mutex>& lock)
-{
-	using namespace std::chrono_literals;
-	namespace ch = std::chrono;
-	namespace queue = icingadb::task_queue;
-
-	bool madeProgress = false; // Did we make any progress in this iteration?
-	ch::duration<double> retryAfter{0}; // If we can't process anything right now, how long to wait before retrying?
-	auto now = ch::steady_clock::now();
-
-	auto& seqView = m_PendingItems.get<1>();
-	for (auto it(seqView.begin()); it != seqView.end(); ++it) {
-		if (it != seqView.begin()) {
-			if (std::holds_alternative<queue::RelationsDeletionItem>(it->Item)) {
-				// We don't know whether the previous items are related to this deletion item or not,
-				// thus we can't just process this right now when there are older items in the queue.
-				// Otherwise, we might delete something that is going to be updated/created.
-				break;
-			}
-		}
-
-		if (auto age = now - it->EnqueueTime; 1000ms > age) {
-			if (it == seqView.begin()) {
-				retryAfter = 1000ms - age;
-			}
-			break;
-		}
-
-		ConfigObject::Ptr cobj;
-		if (auto confPtr = std::get_if<queue::PendingConfigItem>(&it->Item); confPtr) {
-			cobj = confPtr->Object;
-		} else if (auto edgePtr = std::get_if<queue::PendingDependencyEdgeItem>(&it->Item)) {
-			cobj = edgePtr->Child;
-		}
-		ObjectLock olock(cobj, std::defer_lock);
-		if (cobj && !olock.TryLock()) {
-			continue; // Can't lock the object right now, try the next one.
-		}
-
-		auto itemToProcess = *it;
-		seqView.erase(it);
-		madeProgress = true;
-
-		lock.unlock();
-		std::visit([this](auto &item) {
-			try {
-				ProcessQueueItem(item);
-			} catch (const std::exception& ex) {
-				Log(LogCritical, "IcingaDB")
-					<< "Exception while processing pending item of type '" << typeid(decltype(item)).name() << "': "
-					<< DiagnosticInformation(ex, GetActive());
-			}
-		}, itemToProcess.Item);
-		lock.lock();
-		break;
-	}
-
-	if (!madeProgress && retryAfter == 0ms) {
-		// We haven't made any progress, so give it a short delay before retrying.
-		retryAfter = 10ms;
-	}
-	return retryAfter;
 }
 
 /**
