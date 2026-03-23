@@ -120,7 +120,7 @@ public:
 	static void UpdateStatistics(const CheckResult::Ptr& cr, CheckableType type);
 
 	void ExecuteRemoteCheck(const WaitGroup::Ptr& producer, const Dictionary::Ptr& resolvedMacros = nullptr);
-	void ExecuteCheck(const WaitGroup::Ptr& producer);
+	void ExecuteCheck(const WaitGroup::Ptr& producer, double scheduleStart);
 
 	enum class ProcessingResult
 	{

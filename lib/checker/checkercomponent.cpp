@@ -205,13 +205,10 @@ void CheckerComponent::CheckThreadProc()
 			continue;
 		}
 
-
-		csi = GetCheckableScheduleInfo(checkable);
-
 		Log(LogDebug, "CheckerComponent")
 			<< "Scheduling info for checkable '" << checkable->GetName() << "' ("
 			<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", checkable->GetNextCheck()) << "): Object '"
-			<< csi.Object->GetName() << "', Next Check: "
+			<< checkable->GetName() << "', Next Check: "
 			<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", csi.NextCheck)
 			<< " (" << std::fixed << std::setprecision(0) << csi.NextCheck << ").";
 
@@ -235,16 +232,16 @@ void CheckerComponent::CheckThreadProc()
 		 */
 		CheckerComponent::Ptr checkComponent(this);
 
-		Utility::QueueAsyncCallback([this, checkComponent, checkable]() { ExecuteCheckHelper(checkable); });
+		Utility::QueueAsyncCallback([this, checkComponent, checkable, csi]() { ExecuteCheckHelper(checkable, csi); });
 
 		lock.lock();
 	}
 }
 
-void CheckerComponent::ExecuteCheckHelper(const Checkable::Ptr& checkable)
+void CheckerComponent::ExecuteCheckHelper(const Checkable::Ptr& checkable, const CheckableScheduleInfo& csi)
 {
 	try {
-		checkable->ExecuteCheck(m_WaitGroup);
+		checkable->ExecuteCheck(m_WaitGroup, csi.NextCheck);
 	} catch (const std::exception& ex) {
 		CheckResult::Ptr cr = new CheckResult();
 		cr->SetState(ServiceUnknown);

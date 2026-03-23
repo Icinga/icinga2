@@ -566,7 +566,7 @@ void Checkable::ExecuteRemoteCheck(const WaitGroup::Ptr& producer, const Diction
 	GetCheckCommand()->Execute(this, cr, producer, resolvedMacros, true);
 }
 
-void Checkable::ExecuteCheck(const WaitGroup::Ptr& producer)
+void Checkable::ExecuteCheck(const WaitGroup::Ptr& producer, double scheduleStart)
 {
 	CONTEXT("Executing check for object '" << GetName() << "'");
 
@@ -576,7 +576,6 @@ void Checkable::ExecuteCheck(const WaitGroup::Ptr& producer)
 	}
 
 	/* keep track of scheduling info in case the check type doesn't provide its own information */
-	double scheduled_start = GetNextCheck();
 	double before_check = Utility::GetTime();
 
 	SetLastCheckStarted(Utility::GetTime());
@@ -593,7 +592,7 @@ void Checkable::ExecuteCheck(const WaitGroup::Ptr& producer)
 
 	CheckResult::Ptr cr = new CheckResult();
 
-	cr->SetScheduleStart(scheduled_start);
+	cr->SetScheduleStart(scheduleStart);
 	cr->SetExecutionStart(before_check);
 
 	Endpoint::Ptr endpoint = GetCommandEndpoint();

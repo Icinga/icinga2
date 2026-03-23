@@ -93,7 +93,7 @@ private:
 	void CheckThreadProc();
 	void ResultTimerHandler();
 
-	void ExecuteCheckHelper(const Checkable::Ptr& checkable);
+	void ExecuteCheckHelper(const Checkable::Ptr& checkable, const CheckableScheduleInfo& csi);
 
 	void ObjectHandler(const ConfigObject::Ptr& object);
 	void NextCheckChangedHandler(const Checkable::Ptr& checkable, double nextCheck = -1);
