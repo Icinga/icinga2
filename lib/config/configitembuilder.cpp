@@ -105,6 +105,15 @@ ConfigItem::Ptr ConfigItemBuilder::Compile()
 			<< ", max: 255).\n" << oss.str();
 	}
 
+	if (std::any_of(m_Name.Begin(), m_Name.End(), [&](char c) { return std::iscntrl(c, classic); })) {
+		std::ostringstream oss;
+		ShowCodeLocation(oss, m_DebugInfo, false);
+
+		Log(LogWarning, "config")
+			<< "Object name of type '" << m_Type->GetName()
+			<< "' contains ctrl or newline characters, which may cause problems in some contexts.\n" << oss.str();
+	}
+
 	std::vector<std::unique_ptr<Expression> > exprs;
 
 	Array::Ptr templateArray = new Array({ m_Name });
