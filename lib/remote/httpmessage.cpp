@@ -146,8 +146,7 @@ void OutgoingHttpMessage<isRequest, Body, StreamVariant>::Clear()
 template<bool isRequest, typename Body, typename StreamVariant>
 void OutgoingHttpMessage<isRequest, Body, StreamVariant>::Flush(boost::asio::yield_context yc, bool finish)
 {
-	if (auto work (m_CpuBoundWork.lock()); work) {
-		work->Done();
+	if (m_CpuBoundWork) {
 		m_CpuBoundWork.reset();
 	}
 

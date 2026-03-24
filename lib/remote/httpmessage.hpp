@@ -267,15 +267,24 @@ public:
 
 	JsonEncoder GetJsonEncoder(bool pretty = false);
 
-	void SetCpuBoundWork(std::weak_ptr<CpuBoundWork> cbw)
+	/**
+	 * Acquire a CpuBoundWork slot
+	 *
+	 * It is automatically released the next time data is written using Flush() (when doing IO, it's no longer
+	 * CPU-bound), or when the object is destroyed.
+	 *
+	 * @param yc Yield context that is used for waiting.
+	 * @param strand Strand the caller is running on, used for synchronization.
+	 */
+	void StartCpuBoundWork(boost::asio::yield_context yc, boost::asio::io_context::strand& strand)
 	{
-		m_CpuBoundWork = std::move(cbw);
+		m_CpuBoundWork.emplace(yc, strand);
 	}
 
 private:
 	Serializer m_Serializer{*this};
 	bool m_SerializationStarted = false;
-	std::weak_ptr<CpuBoundWork> m_CpuBoundWork;
+	std::optional<CpuBoundWork> m_CpuBoundWork;
 
 	StreamVariant m_Stream;
 };
