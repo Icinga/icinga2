@@ -35,7 +35,7 @@ class OTLPMetricsWriter : ConfigObject
 		default {{{ return 15; }}}
 	};
 	[config] int64_t flush_threshold {
-		default {{{ return 32 * 1024 * 1024; }}}
+		default {{{ return 16 * 1024 * 1024; }}}
 	};
 	[config] bool enable_ha {
 		default {{{ return false; }}}
