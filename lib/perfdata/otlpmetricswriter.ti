@@ -38,7 +38,7 @@ class OTLPMetricsWriter : ConfigObject
 		default {{{ return 16 * 1024 * 1024; }}}
 	};
 	[config] bool enable_ha {
-		default {{{ return false; }}}
+		default {{{ return true; }}}
 	};
 	[config] bool enable_send_thresholds {
 		default {{{ return false; }}}
