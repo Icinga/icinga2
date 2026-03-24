@@ -56,6 +56,7 @@ void IcingaDB::Validate(int types, const ValidationUtils& utils)
 
 	try {
 		InitEnvironmentId();
+		Application::SetEnvironmentId(m_EnvironmentId);
 	} catch (const std::exception& e) {
 		BOOST_THROW_EXCEPTION(ValidationError(this, std::vector<String>(), e.what()));
 	}
