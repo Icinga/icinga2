@@ -96,6 +96,8 @@ public:
 
 	static String GetAppEnvironment();
 	static void SetAppEnvironment(const String& name);
+	static String GetEnvironmentId();
+	static void SetEnvironmentId(const String& envID);
 
 	static double GetStartTime();
 	static void SetStartTime(double ts);
@@ -129,6 +131,8 @@ private:
 	static bool m_RequestRestart; /**< A restart was requested through SIGHUP */
 	static pid_t m_ReloadProcess; /**< The PID of a subprocess doing a reload, only valid when l_Restarting==true */
 	static bool m_RequestReopenLogs; /**< Whether we should re-open log files. */
+
+	static AtomicOrLocked<String> m_EnvironmentId; /**< The cluster environment ID set by IcingaDB. */
 
 #ifndef _WIN32
 	static pid_t m_UmbrellaProcess; /**< The PID of the Icinga umbrella process */
