@@ -26,6 +26,15 @@ void Endpoint::OnAllConfigLoaded()
 	if (!m_Zone)
 		BOOST_THROW_EXCEPTION(ScriptError("Endpoint '" + GetName() +
 			"' does not belong to a zone.", GetDebugInfo()));
+
+	if (GetName().GetLength() > 64) {
+		std::ostringstream oss;
+		ShowCodeLocation(oss, GetDebugInfo(), false);
+
+		Log(LogWarning, "Endpoint")
+			<< "Endpoint name is too long (length: " << GetName().GetLength()
+			<< ", max: 64) to be used as CN in TLS certificates. Consider using a shorter name.\n" << oss.str();
+	}
 }
 
 void Endpoint::SetCachedZone(const Zone::Ptr& zone)
