@@ -22,6 +22,8 @@ public:
 
 	auto& GetConnection() { return *m_Conn; }
 
+	static inline const std::vector<String> RequiredCerts{"client", "server"};
+
 private:
 	Shared<boost::asio::ssl::context>::Ptr MakeContext(const std::string& name)
 	{
@@ -42,7 +44,7 @@ private:
 };
 
 BOOST_FIXTURE_TEST_SUITE(perfdata_connection, TlsPerfdataWriterFixture,
-	*CTestProperties("FIXTURES_REQUIRED ssl_certs")
+	*RequiresCertificate(TlsPerfdataWriterFixture::RequiredCerts)
 	*boost::unit_test::label("perfdata")
 	*boost::unit_test::label("network")
 )
