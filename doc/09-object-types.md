@@ -1902,7 +1902,7 @@ There are more configuration options available as described in the table below.
 | service\_resource\_attributes | Dictionary | **Optional.** Additional resource attributes to be included with service metrics. Defaults to none.                                          |
 | flush\_interval               | Duration   | **Optional.** How long to buffer data points before transferring to the OTLP backend. Defaults to `15s`.                                     |
 | flush\_threshold              | Number     | **Optional.** How many bytes to buffer before forcing a transfer to the OTLP backend. Defaults to `16MiB`.                                   |
-| enable\_ha                    | Boolean    | **Optional.** Enable the high availability functionality. Has no effect in non-cluster setups. Defaults to `false`.                          |
+| enable\_ha                    | Boolean    | **Optional.** Enable the high availability functionality. Has no effect in non-cluster setups. Defaults to `true`.                           |
 | enable\_send\_thresholds      | Boolean    | **Optional.** Whether to stream warning, critical, minimum & maximum as separate metrics to the OTLP backend. Defaults to `false`.           |
 | diconnect\_timeout            | Duration   | **Optional.** Timeout to wait for any outstanding data to be flushed to the OTLP backend before disconnecting. Defaults to `10s`.            |
 | enable\_tls                   | Boolean    | **Optional.** Whether to use a TLS stream. Defaults to `false`.                                                                              |
