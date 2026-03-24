@@ -33,7 +33,7 @@ static std::future<void> SpawnSynchronizedCoroutine(std::function<void(boost::as
 
 // clang-format off
 BOOST_FIXTURE_TEST_SUITE(remote_httpmessage, TlsStreamFixture,
-	*CTestProperties("FIXTURES_REQUIRED ssl_certs")
+	*RequiresCertificate(TlsStreamFixture::RequiredCerts)
 	*boost::unit_test::label("http"))
 // clang-format on
 

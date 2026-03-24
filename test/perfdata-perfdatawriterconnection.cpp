@@ -42,7 +42,7 @@ private:
 };
 
 BOOST_FIXTURE_TEST_SUITE(perfdata_connection, TlsPerfdataWriterFixture,
-	*CTestProperties("FIXTURES_REQUIRED ssl_certs")
+	*RequiresCertificate({"server", "client"})
 	*boost::unit_test::label("perfdata")
 	*boost::unit_test::label("network")
 )

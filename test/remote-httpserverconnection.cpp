@@ -96,11 +96,9 @@ private:
 
 REGISTER_URLHANDLER("/v1/test", UnitTestHandler);
 
-// clang-format off
 BOOST_FIXTURE_TEST_SUITE(remote_httpserverconnection, HttpServerConnectionFixture,
-	*CTestProperties("FIXTURES_REQUIRED ssl_certs")
+	*RequiresCertificate(TlsStreamFixture::RequiredCerts)
 	*boost::unit_test::label("http"))
-// clang-format on
 
 BOOST_AUTO_TEST_CASE(expect_100_continue)
 {

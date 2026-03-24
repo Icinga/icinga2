@@ -173,7 +173,7 @@ BOOST_AUTO_TEST_CASE(static_certs_uptodate)
 }
 
 BOOST_FIXTURE_TEST_CASE(create_verify_ca, CertificateFixture,
-	*CTestProperties("FIXTURES_REQUIRED dirty_ssl_certs"))
+	*RequiresCertificate({}, "tlsutility"))
 {
 	auto cacert(GetX509Certificate(m_CaDir.string()+"/ca.crt"));
 	if constexpr (OPENSSL_VERSION_NUMBER >= 0x10100000L) {
@@ -198,7 +198,7 @@ BOOST_FIXTURE_TEST_CASE(create_verify_ca, CertificateFixture,
 }
 
 BOOST_FIXTURE_TEST_CASE(create_verify_leaf_certs, CertificateFixture,
-	*CTestProperties("FIXTURES_REQUIRED dirty_ssl_certs"))
+	*RequiresCertificate({"example.com"}, "tlsutility"))
 {
 	String caDir = m_CaDir.string();
 	String certsDir = m_CertsDir.string();
@@ -208,7 +208,7 @@ BOOST_FIXTURE_TEST_CASE(create_verify_leaf_certs, CertificateFixture,
 	BOOST_CHECK(IsCaUptodate(cacert.get()));
 	BOOST_CHECK_EQUAL(1, X509_verify(cacert.get(), caprivatekey.get())); // 1 == equal, 0 == unequal, -1 == error
 
-	auto certInfo = EnsureCertFor("example.com", true); // Generates example.com.{key,csr,crt} files.
+	auto certInfo = EnsureCertFor("example.com"); // Generates example.com.{key,csr,crt} files.
 
 	auto cert(GetX509Certificate(certInfo.crtFile));
 	if constexpr (OPENSSL_VERSION_NUMBER >= 0x10100000L) {

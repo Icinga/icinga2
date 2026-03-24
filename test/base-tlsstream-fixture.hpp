@@ -104,6 +104,8 @@ struct TlsStreamFixture : CertificateFixture
 		return ret;
 	}
 
+	static inline const std::vector<String> RequiredCerts{"client", "server"};
+
 	Shared<AsioTlsStream>::Ptr client;
 	Shared<AsioTlsStream>::Ptr server;
 
