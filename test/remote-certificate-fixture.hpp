@@ -34,7 +34,7 @@ struct CertificateFixture : ConfigurationDataDirFixture
 		}
 	}
 
-	[[nodiscard]] auto EnsureCertFor(const std::string& name) const
+	[[nodiscard]] auto GetCertFor(const std::string& name) const
 	{
 		struct Cert
 		{

@@ -208,7 +208,7 @@ BOOST_FIXTURE_TEST_CASE(create_verify_leaf_certs, CertificateFixture,
 	BOOST_CHECK(IsCaUptodate(cacert.get()));
 	BOOST_CHECK_EQUAL(1, X509_verify(cacert.get(), caprivatekey.get())); // 1 == equal, 0 == unequal, -1 == error
 
-	auto certInfo = EnsureCertFor("example.com"); // Generates example.com.{key,csr,crt} files.
+	auto certInfo = GetCertFor("example.com"); // Gets example.com.{key,csr,crt} files.
 
 	auto cert(GetX509Certificate(certInfo.crtFile));
 	if constexpr (OPENSSL_VERSION_NUMBER >= 0x10100000L) {

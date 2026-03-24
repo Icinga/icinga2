@@ -21,8 +21,8 @@ struct TlsStreamFixture : CertificateFixture
 		using namespace boost::asio::ip;
 		using handshake_type = boost::asio::ssl::stream_base::handshake_type;
 
-		auto serverCert = EnsureCertFor("server");
-		auto clientCert = EnsureCertFor("client");
+		auto serverCert = GetCertFor("server");
+		auto clientCert = GetCertFor("client");
 
 		auto& io = IoEngine::Get().GetIoContext();
 

@@ -27,7 +27,7 @@ public:
 private:
 	Shared<boost::asio::ssl::context>::Ptr MakeContext(const std::string& name)
 	{
-		auto testCert = EnsureCertFor(name);
+		auto testCert = GetCertFor(name);
 		return SetupSslContext(
 			testCert.crtFile,
 			testCert.keyFile,
