@@ -10,17 +10,25 @@
 
 namespace icinga {
 
+class CTestPropertiesBase : public boost::unit_test::decorator::base
+{
+public:
+	virtual std::string Get() = 0;
+};
+
 /**
  * A boost test decorator to set additional ctest properties for the test.
  */
-class CTestProperties : public boost::unit_test::decorator::base
+class CTestProperties : public CTestPropertiesBase
 {
 public:
 	explicit CTestProperties(std::string props) : m_Props(std::move(props)) {}
 
-	std::string m_Props;
+	std::string Get() override { return m_Props; }
 
 private:
+	std::string m_Props;
+
 	/**
 	 * Doesn't do anything to the case/suite it's applied to.
 	 *
