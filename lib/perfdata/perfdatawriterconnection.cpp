@@ -3,6 +3,7 @@
 
 #include "perfdata/perfdatawriterconnection.hpp"
 #include "base/tcpsocket.hpp"
+#include "base/visit.hpp"
 #include <boost/asio/use_future.hpp>
 #include <boost/beast/http/read.hpp>
 #include <boost/beast/http/write.hpp>
@@ -75,14 +76,11 @@ void PerfdataWriterConnection::Disconnect()
 			 * result in exceptions thrown by the yield_context, even if its already queued for
 			 * completion.
 			 */
-			std::visit(
-				[](const auto& stream) {
-					if (stream->lowest_layer().is_open()) {
-						stream->lowest_layer().cancel();
-					}
-				},
-				m_Stream
-			);
+			Visit(m_Stream, [](const auto& stream) {
+				if (stream->lowest_layer().is_open()) {
+					stream->lowest_layer().cancel();
+				}
+			});
 			m_ReconnectTimer.cancel();
 
 			Disconnect(std::move(yc));
@@ -128,27 +126,26 @@ void PerfdataWriterConnection::EnsureConnected(const boost::asio::yield_context&
 		return;
 	}
 
-	std::visit(
-		[&](auto& stream) {
+	Visit(
+		m_Stream,
+		[&](const Shared<AsioTcpStream>::Ptr& stream) { ::Connect(stream->lowest_layer(), m_Host, m_Port, yc); },
+		[&](const Shared<AsioTlsStream>::Ptr& stream) {
 			::Connect(stream->lowest_layer(), m_Host, m_Port, yc);
 
-			if constexpr (std::is_same_v<std::decay_t<decltype(stream)>, Shared<AsioTlsStream>::Ptr>) {
-				using type = boost::asio::ssl::stream_base::handshake_type;
+			using type = boost::asio::ssl::stream_base::handshake_type;
 
-				stream->next_layer().async_handshake(type::client, yc);
+			stream->next_layer().async_handshake(type::client, yc);
 
-				if (m_VerifyPeerCertificate) {
-					if (!stream->next_layer().IsVerifyOK()) {
-						BOOST_THROW_EXCEPTION(
-							std::runtime_error{
-								"TLS certificate validation failed: " + stream->next_layer().GetVerifyError()
-							}
-						);
-					}
+			if (m_VerifyPeerCertificate) {
+				if (!stream->next_layer().IsVerifyOK()) {
+					BOOST_THROW_EXCEPTION(
+						std::runtime_error{
+							"TLS certificate validation failed: " + stream->next_layer().GetVerifyError()
+						}
+					);
 				}
 			}
-		},
-		m_Stream
+		}
 	);
 
 	m_Connected = true;
@@ -160,16 +157,13 @@ void PerfdataWriterConnection::Disconnect(boost::asio::yield_context yc)
 		return;
 	}
 
-	std::visit(
-		[&](auto& stream) {
-			if constexpr (std::is_same_v<std::decay_t<decltype(stream)>, Shared<AsioTlsStream>::Ptr>) {
-				stream->GracefulDisconnect(m_Strand, yc);
-			} else {
-				stream->lowest_layer().shutdown(boost::asio::socket_base::shutdown_both);
-				stream->lowest_layer().close();
-			}
-		},
-		m_Stream
+	Visit(
+		m_Stream,
+		[&](Shared<AsioTlsStream>::Ptr& stream) { stream->GracefulDisconnect(m_Strand, yc); },
+		[&](Shared<AsioTcpStream>::Ptr& stream) {
+			stream->lowest_layer().shutdown(boost::asio::socket_base::shutdown_both);
+			stream->lowest_layer().close();
+		}
 	);
 
 	m_Stream = MakeStream();
@@ -177,29 +171,23 @@ void PerfdataWriterConnection::Disconnect(boost::asio::yield_context yc)
 
 void PerfdataWriterConnection::WriteMessage(boost::asio::const_buffer buf, const boost::asio::yield_context& yc)
 {
-	std::visit(
-		[&](auto& stream) {
-			boost::asio::async_write(*stream, buf, yc);
-			stream->async_flush(yc);
-		},
-		m_Stream
-	);
+	Visit(m_Stream, [&](auto& stream) {
+		boost::asio::async_write(*stream, buf, yc);
+		stream->async_flush(yc);
+	});
 }
 
 HttpResponse PerfdataWriterConnection::WriteMessage(const HttpRequest& request, const boost::asio::yield_context& yc)
 {
 	boost::beast::http::response<boost::beast::http::string_body> response;
-	std::visit(
-		[&](auto& stream) {
-			boost::beast::http::request_serializer<boost::beast::http::string_body> sr{request};
-			boost::beast::http::async_write(*stream, sr, yc);
-			stream->async_flush(yc);
+	Visit(m_Stream, [&](auto& stream) {
+		boost::beast::http::request_serializer<boost::beast::http::string_body> sr{request};
+		boost::beast::http::async_write(*stream, sr, yc);
+		stream->async_flush(yc);
 
-			boost::beast::flat_buffer buf;
-			boost::beast::http::async_read(*stream, buf, response, yc);
-		},
-		m_Stream
-	);
+		boost::beast::flat_buffer buf;
+		boost::beast::http::async_read(*stream, buf, response, yc);
+	});
 
 	if (!response.keep_alive()) {
 		Disconnect(yc);
