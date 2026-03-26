@@ -4,6 +4,7 @@
 #pragma once
 
 #include "base/dictionary.hpp"
+#include "base/io-engine.hpp"
 #include "base/json.hpp"
 #include "base/tlsstream.hpp"
 #include "remote/apiuser.hpp"
@@ -11,6 +12,7 @@
 #include "remote/url.hpp"
 #include <boost/beast/http.hpp>
 #include <boost/version.hpp>
+#include <memory>
 #include <utility>
 
 namespace icinga {
@@ -265,9 +267,24 @@ public:
 
 	JsonEncoder GetJsonEncoder(bool pretty = false);
 
+	/**
+	 * Acquire a CpuBoundWork slot
+	 *
+	 * It is automatically released the next time data is written using Flush() (when doing IO, it's no longer
+	 * CPU-bound), or when the object is destroyed.
+	 *
+	 * @param yc Yield context that is used for waiting.
+	 * @param strand Strand the caller is running on, used for synchronization.
+	 */
+	void StartCpuBoundWork(boost::asio::yield_context yc, boost::asio::io_context::strand& strand)
+	{
+		m_CpuBoundWork.emplace(yc, strand);
+	}
+
 private:
 	Serializer m_Serializer{*this};
 	bool m_SerializationStarted = false;
+	std::optional<CpuBoundWork> m_CpuBoundWork;
 
 	StreamVariant m_Stream;
 };
