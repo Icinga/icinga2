@@ -832,7 +832,7 @@ means that only one writer in the cluster will be active at any given time, send
 The other OTLPMetrics Writer will remain in standby mode and ready to take over if the active endpoint fails or becomes
 unavailable for any reason. However, due to how HA works in Icinga 2, the failover mechanism won't take place until the
 two endpoints in the cluster lose connection with each other, and not just when the OTLPMetrics Writer fails. Therefore,
-as long as the cluster connection is healthy, the other riter won't take over even if the active writer encounters some
+as long as the cluster connection is healthy, the other writer won't take over even if the active writer encounters some
 issues connecting to the OTLP backend or sending metrics.
 
 In general, do not set `enable_ha` to `false` unless you have a specific use case that requires multiple OTLPMetrics
