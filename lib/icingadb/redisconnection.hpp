@@ -324,7 +324,7 @@ public:
 class RedisProtocolError : public std::runtime_error
 {
 protected:
-	inline explicit RedisProtocolError(std::string_view msg) : runtime_error("Redis protocol error: " + std::string(msg))
+	explicit RedisProtocolError(std::string_view msg) : runtime_error("Redis protocol error: " + std::string(msg))
 	{
 	}
 };
@@ -337,7 +337,7 @@ protected:
 class BadRedisType : public RedisProtocolError
 {
 public:
-	inline explicit BadRedisType(char type) : RedisProtocolError("bad type: " + std::string(&type, 1))
+	explicit BadRedisType(char type) : RedisProtocolError("bad type: " + std::string(&type, 1))
 	{
 	}
 };
@@ -350,7 +350,7 @@ public:
 class BadRedisInt : public RedisProtocolError
 {
 public:
-	inline explicit BadRedisInt(std::string_view intStr) : RedisProtocolError("bad int: " + std::string(intStr))
+	explicit BadRedisInt(std::string_view intStr) : RedisProtocolError("bad int: " + std::string(intStr))
 	{
 	}
 };
