@@ -28,6 +28,7 @@ public:
 
 protected:
 	void OnConfigLoaded() override;
+	void OnAllConfigLoaded() override;
 	void Start(bool runtimeCreated) override;
 	void Resume() override;
 	void Pause() override;

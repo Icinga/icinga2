@@ -47,6 +47,14 @@ void IdoMysqlConnection::OnConfigLoaded()
 	std::swap(m_Library, shimLibrary);
 }
 
+void IdoMysqlConnection::OnAllConfigLoaded()
+{
+	ObjectImpl<IdoMysqlConnection>::OnAllConfigLoaded();
+
+	Log(LogWarning, "IdoMysqlConnection")
+		<< "This feature is DEPRECATED and will be removed in v2.18.";
+}
+
 void IdoMysqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
 	DictionaryData nodes;

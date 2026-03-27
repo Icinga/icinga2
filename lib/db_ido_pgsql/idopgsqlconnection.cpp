@@ -55,6 +55,14 @@ void IdoPgsqlConnection::OnConfigLoaded()
 	std::swap(m_Library, shimLibrary);
 }
 
+void IdoPgsqlConnection::OnAllConfigLoaded()
+{
+	ObjectImpl<IdoPgsqlConnection>::OnAllConfigLoaded();
+
+	Log(LogWarning, "IdoPgsqlConnection")
+		<< "This feature is DEPRECATED and will be removed in v2.18.";
+}
+
 void IdoPgsqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
 	DictionaryData nodes;
