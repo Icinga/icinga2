@@ -376,4 +376,13 @@ void NodeUtility::UpdateConstant(const String& name, const String& value)
 
 	ifp.close();
 	ofp.Commit();
+
+	std::ofstream vars;
+	vars.exceptions(vars.eofbit | vars.failbit | vars.badbit);
+	vars.open(Configuration::VarsPath.CStr(), vars.out | vars.binary | vars.ate);
+
+	NetString::WriteStringToStream(vars, JsonEncode(new Dictionary({
+		{ "name", name },
+		{ "value", value }
+	})));
 }
