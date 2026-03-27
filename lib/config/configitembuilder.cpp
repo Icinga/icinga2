@@ -3,6 +3,7 @@
 
 #include "config/configitembuilder.hpp"
 #include "base/configtype.hpp"
+#include "base/logger.hpp"
 #include <sstream>
 
 using namespace icinga;
@@ -84,6 +85,33 @@ ConfigItem::Ptr ConfigItemBuilder::Compile()
 		std::ostringstream msgbuf;
 		msgbuf << "Name for object '" << m_Name << "' of type '" << m_Type->GetName() << "' is invalid: Object names may not contain '!'";
 		BOOST_THROW_EXCEPTION(ScriptError(msgbuf.str(), m_DebugInfo));
+	}
+
+	const auto& classic = std::locale::classic();
+	if (!m_Name.IsEmpty() && (std::isspace(m_Name[0], classic) || std::isspace(m_Name[m_Name.GetLength() - 1], classic))) {
+		std::ostringstream oss;
+		ShowCodeLocation(oss, m_DebugInfo, false);
+
+		Log(LogWarning, "config")
+			<< "Object name of type '" << m_Type->GetName() << "' contains leading/trailing whitespace.\n" << oss.str();
+	}
+
+	if (m_Name.GetLength() > 255) {
+		std::ostringstream oss;
+		ShowCodeLocation(oss, m_DebugInfo, false);
+
+		Log(LogWarning, "config")
+			<< "Object name of type '" << m_Type->GetName() << "' is too long (length: " << m_Name.GetLength()
+			<< ", max: 255).\n" << oss.str();
+	}
+
+	if (std::any_of(m_Name.Begin(), m_Name.End(), [&](char c) { return std::iscntrl(c, classic); })) {
+		std::ostringstream oss;
+		ShowCodeLocation(oss, m_DebugInfo, false);
+
+		Log(LogWarning, "config")
+			<< "Object name of type '" << m_Type->GetName()
+			<< "' contains ctrl or newline characters, which may cause problems in some contexts.\n" << oss.str();
 	}
 
 	std::vector<std::unique_ptr<Expression> > exprs;
