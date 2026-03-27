@@ -73,7 +73,7 @@ bool ConsoleHandler::HandleRequest(
 	const WaitGroup::Ptr&,
 	const HttpApiRequest& request,
 	HttpApiResponse& response,
-	boost::asio::yield_context&
+	boost::asio::yield_context& yc
 )
 {
 	namespace http = boost::beast::http;
@@ -106,21 +106,21 @@ bool ConsoleHandler::HandleRequest(
 	ConfigObjectsSharedLock lock (std::try_to_lock);
 
 	if (!lock) {
-		HttpUtility::SendJsonError(response, params, 503, "Icinga is reloading.");
+		HttpUtility::SendJsonError(response, params, 503, yc, "Icinga is reloading.");
 		return true;
 	}
 
 	if (methodName == "execute-script")
-		return ExecuteScriptHelper(request, response, command, session, sandboxed);
+		return ExecuteScriptHelper(request, response, command, session, sandboxed, yc);
 	else if (methodName == "auto-complete-script")
-		return AutocompleteScriptHelper(request, response, command, session, sandboxed);
+		return AutocompleteScriptHelper(request, response, command, session, sandboxed, yc);
 
-	HttpUtility::SendJsonError(response, params, 400, "Invalid method specified: " + methodName);
+	HttpUtility::SendJsonError(response, params, 400, yc, "Invalid method specified: " + methodName);
 	return true;
 }
 
 bool ConsoleHandler::ExecuteScriptHelper(const HttpApiRequest& request, HttpApiResponse& response,
-	const String& command, const String& session, bool sandboxed)
+	const String& command, const String& session, bool sandboxed, boost::asio::yield_context& yc)
 {
 	namespace http = boost::beast::http;
 
@@ -133,7 +133,7 @@ bool ConsoleHandler::ExecuteScriptHelper(const HttpApiRequest& request, HttpApiR
 
 	std::unique_lock frameLock(lsf->Mutex, std::try_to_lock);
 	if (!frameLock) {
-		HttpUtility::SendJsonError(response, request.Params(), 409, "Session is currently in use by another request.");
+		HttpUtility::SendJsonError(response, request.Params(), 409, yc, "Session is currently in use by another request.");
 		return true;
 	}
 
@@ -195,13 +195,13 @@ bool ConsoleHandler::ExecuteScriptHelper(const HttpApiRequest& request, HttpApiR
 	});
 
 	response.result(http::status::ok);
-	HttpUtility::SendJsonBody(response, request.Params(), result);
+	HttpUtility::SendJsonBody(response, request.Params(), result, yc);
 
 	return true;
 }
 
 bool ConsoleHandler::AutocompleteScriptHelper(const HttpApiRequest& request, HttpApiResponse& response,
-	const String& command, const String& session, bool sandboxed)
+	const String& command, const String& session, bool sandboxed, boost::asio::yield_context& yc)
 {
 	namespace http = boost::beast::http;
 
@@ -214,7 +214,7 @@ bool ConsoleHandler::AutocompleteScriptHelper(const HttpApiRequest& request, Htt
 
 	std::unique_lock frameLock(lsf->Mutex, std::try_to_lock);
 	if (!frameLock) {
-		HttpUtility::SendJsonError(response, request.Params(), 409, "Session is currently in use by another request.");
+		HttpUtility::SendJsonError(response, request.Params(), 409, yc, "Session is currently in use by another request.");
 		return true;
 	}
 
@@ -240,7 +240,7 @@ bool ConsoleHandler::AutocompleteScriptHelper(const HttpApiRequest& request, Htt
 	});
 
 	response.result(http::status::ok);
-	HttpUtility::SendJsonBody(response, request.Params(), result);
+	HttpUtility::SendJsonBody(response, request.Params(), result, yc);
 
 	return true;
 }

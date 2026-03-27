@@ -31,9 +31,9 @@ bool ConfigPackagesHandler::HandleRequest(
 	if (request.method() == http::verb::get)
 		HandleGet(request, response, yc);
 	else if (request.method() == http::verb::post)
-		HandlePost(request, response);
+		HandlePost(request, response, yc);
 	else if (request.method() == http::verb::delete_)
-		HandleDelete(request, response);
+		HandleDelete(request, response, yc);
 	else
 		return false;
 
@@ -55,7 +55,7 @@ void ConfigPackagesHandler::HandleGet(const HttpApiRequest& request, HttpApiResp
 	try {
 		packages = ConfigPackageUtility::GetPackages();
 	} catch (const std::exception& ex) {
-		HttpUtility::SendJsonError(response, params, 500, "Could not retrieve packages.",
+		HttpUtility::SendJsonError(response, params, 500, yc, "Could not retrieve packages.",
 			DiagnosticInformation(ex));
 		return;
 	}
@@ -90,7 +90,7 @@ void ConfigPackagesHandler::HandleGet(const HttpApiRequest& request, HttpApiResp
 	HttpUtility::SendJsonBody(response, params, result, yc);
 }
 
-void ConfigPackagesHandler::HandlePost(const HttpApiRequest& request, HttpApiResponse& response)
+void ConfigPackagesHandler::HandlePost(const HttpApiRequest& request, HttpApiResponse& response, boost::asio::yield_context& yc)
 {
 	namespace http = boost::beast::http;
 
@@ -106,13 +106,13 @@ void ConfigPackagesHandler::HandlePost(const HttpApiRequest& request, HttpApiRes
 	String packageName = HttpUtility::GetLastParameter(params, "package");
 
 	if (!ConfigPackageUtility::ValidatePackageName(packageName)) {
-		HttpUtility::SendJsonError(response, params, 400, "Invalid package name '" + packageName + "'.");
+		HttpUtility::SendJsonError(response, params, 400, yc, "Invalid package name '" + packageName + "'.");
 		return;
 	}
 
 	ConfigObjectsSharedLock configObjectsSharedLock(std::try_to_lock);
 	if (!configObjectsSharedLock) {
-		HttpUtility::SendJsonError(response, params, 503, "Icinga is reloading");
+		HttpUtility::SendJsonError(response, params, 503, yc, "Icinga is reloading");
 		return;
 	}
 
@@ -121,7 +121,7 @@ void ConfigPackagesHandler::HandlePost(const HttpApiRequest& request, HttpApiRes
 
 		ConfigPackageUtility::CreatePackage(packageName);
 	} catch (const std::exception& ex) {
-		HttpUtility::SendJsonError(response, params, 500, "Could not create package '" + packageName + "'.",
+		HttpUtility::SendJsonError(response, params, 500, yc, "Could not create package '" + packageName + "'.",
 			DiagnosticInformation(ex));
 		return;
 	}
@@ -137,10 +137,10 @@ void ConfigPackagesHandler::HandlePost(const HttpApiRequest& request, HttpApiRes
 	});
 
 	response.result(http::status::ok);
-	HttpUtility::SendJsonBody(response, params, result);
+	HttpUtility::SendJsonBody(response, params, result, yc);
 }
 
-void ConfigPackagesHandler::HandleDelete(const HttpApiRequest& request, HttpApiResponse& response)
+void ConfigPackagesHandler::HandleDelete(const HttpApiRequest& request, HttpApiResponse& response, boost::asio::yield_context& yc)
 {
 	namespace http = boost::beast::http;
 
@@ -156,20 +156,20 @@ void ConfigPackagesHandler::HandleDelete(const HttpApiRequest& request, HttpApiR
 	String packageName = HttpUtility::GetLastParameter(params, "package");
 
 	if (!ConfigPackageUtility::ValidatePackageName(packageName)) {
-		HttpUtility::SendJsonError(response, params, 400, "Invalid package name '" + packageName + "'.");
+		HttpUtility::SendJsonError(response, params, 400, yc, "Invalid package name '" + packageName + "'.");
 		return;
 	}
 
 	ConfigObjectsSharedLock lock(std::try_to_lock);
 	if (!lock) {
-		HttpUtility::SendJsonError(response, params, 503, "Icinga is reloading");
+		HttpUtility::SendJsonError(response, params, 503, yc, "Icinga is reloading");
 		return;
 	}
 
 	try {
 		ConfigPackageUtility::DeletePackage(packageName);
 	} catch (const std::exception& ex) {
-		HttpUtility::SendJsonError(response, params, 500, "Failed to delete package '" + packageName + "'.",
+		HttpUtility::SendJsonError(response, params, 500, yc, "Failed to delete package '" + packageName + "'.",
 			DiagnosticInformation(ex));
 		return;
 	}
@@ -185,5 +185,5 @@ void ConfigPackagesHandler::HandleDelete(const HttpApiRequest& request, HttpApiR
 	});
 
 	response.result(http::status::ok);
-	HttpUtility::SendJsonBody(response, params, result);
+	HttpUtility::SendJsonBody(response, params, result, yc);
 }
