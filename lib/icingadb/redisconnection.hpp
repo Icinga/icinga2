@@ -368,7 +368,7 @@ RedisConnection::Reply RedisConnection::ReadOne(StreamPtr& stream, boost::asio::
 	namespace asio = boost::asio;
 
 	if (!stream) {
-		throw RedisDisconnected();
+		BOOST_THROW_EXCEPTION(RedisDisconnected());
 	}
 
 	auto strm (stream);
@@ -403,7 +403,7 @@ void RedisConnection::WriteOne(StreamPtr& stream, RedisConnection::Query& query,
 	namespace asio = boost::asio;
 
 	if (!stream) {
-		throw RedisDisconnected();
+		BOOST_THROW_EXCEPTION(RedisDisconnected());
 	}
 
 	auto strm (stream);
@@ -540,7 +540,7 @@ Value RedisConnection::ReadRESP(AsyncReadStream& stream, boost::asio::yield_cont
 				try {
 					i = boost::lexical_cast<intmax_t>(boost::string_view(buf.data(), buf.size()));
 				} catch (...) {
-					throw BadRedisInt(std::string_view(buf.data(), buf.size()));
+					BOOST_THROW_EXCEPTION(BadRedisInt(std::string_view(buf.data(), buf.size())));
 				}
 
 				return (double)i;
@@ -553,7 +553,7 @@ Value RedisConnection::ReadRESP(AsyncReadStream& stream, boost::asio::yield_cont
 				try {
 					i = boost::lexical_cast<intmax_t>(boost::string_view(buf.data(), buf.size()));
 				} catch (...) {
-					throw BadRedisInt(std::string_view(buf.data(), buf.size()));
+					BOOST_THROW_EXCEPTION(BadRedisInt(std::string_view(buf.data(), buf.size())));
 				}
 
 				if (i < 0) {
@@ -579,7 +579,7 @@ Value RedisConnection::ReadRESP(AsyncReadStream& stream, boost::asio::yield_cont
 				try {
 					i = boost::lexical_cast<intmax_t>(boost::string_view(buf.data(), buf.size()));
 				} catch (...) {
-					throw BadRedisInt(std::string_view(buf.data(), buf.size()));
+					BOOST_THROW_EXCEPTION(BadRedisInt(std::string_view(buf.data(), buf.size())));
 				}
 
 				if (i < 0) {
@@ -597,7 +597,7 @@ Value RedisConnection::ReadRESP(AsyncReadStream& stream, boost::asio::yield_cont
 				return arr;
 			}
 		default:
-			throw BadRedisType(type);
+			BOOST_THROW_EXCEPTION(BadRedisType(type));
 	}
 }
 
