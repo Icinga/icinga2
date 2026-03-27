@@ -920,7 +920,7 @@ void Process::Run(const std::function<void(const ProcessResult&)>& callback)
 	envp[offset] = '\0';
 
 	if (!CreateProcess(nullptr, args, nullptr, nullptr, TRUE,
-		0 /*EXTENDED_STARTUPINFO_PRESENT*/, envp, nullptr, &si.StartupInfo, &pi)) {
+		BELOW_NORMAL_PRIORITY_CLASS, envp, nullptr, &si.StartupInfo, &pi)) {
 		DWORD error = GetLastError();
 		CloseHandle(outWritePipe);
 		CloseHandle(outWritePipeDup);
