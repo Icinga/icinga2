@@ -25,7 +25,7 @@ public:
 private:
 	Shared<boost::asio::ssl::context>::Ptr MakeContext(const std::string& name)
 	{
-		auto testCert = EnsureCertFor(name);
+		auto testCert = GetCertFor(name);
 		return SetupSslContext(
 			testCert.crtFile,
 			testCert.keyFile,
@@ -42,7 +42,7 @@ private:
 };
 
 BOOST_FIXTURE_TEST_SUITE(perfdata_connection, TlsPerfdataWriterFixture,
-	*CTestProperties("FIXTURES_REQUIRED ssl_certs")
+	*RequiresCertificate({"server", "client"})
 	*boost::unit_test::label("perfdata")
 	*boost::unit_test::label("network")
 )
