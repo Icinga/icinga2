@@ -257,7 +257,7 @@ void IdoPgsqlConnection::Reconnect()
 			<< "Connection to database '" << database << "' with user '" << user << "' on '" << host << ":" << port
 			<< "' failed: \"" << message << "\"";
 
-		BOOST_THROW_EXCEPTION(std::runtime_error(message));
+		BOOST_THROW_EXCEPTION(std::runtime_error(~message));
 	}
 
 	SetConnected(true);
@@ -490,8 +490,8 @@ IdoPgsqlResult IdoPgsqlConnection::Query(const String& query)
 
 		BOOST_THROW_EXCEPTION(
 			database_error()
-			<< errinfo_message(message)
-			<< errinfo_database_query(query)
+			<< errinfo_message(~message)
+			<< errinfo_database_query(~query)
 		);
 	}
 
@@ -512,8 +512,8 @@ IdoPgsqlResult IdoPgsqlConnection::Query(const String& query)
 
 		BOOST_THROW_EXCEPTION(
 			database_error()
-			<< errinfo_message(message)
-			<< errinfo_database_query(query)
+			<< errinfo_message(~message)
+			<< errinfo_database_query(~query)
 		);
 	}
 

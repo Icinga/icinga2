@@ -501,7 +501,7 @@ void ElasticsearchWriter::SendRequest(const String& body)
 	if (!username.IsEmpty() && !password.IsEmpty())
 		request.set(http::field::authorization, "Basic " + Base64::Encode(username + ":" + password));
 
-	request.body() = body;
+	request.body() = ~body;
 	request.content_length(request.body().size());
 
 	/* Don't log the request body to debug log, this is already done above. */

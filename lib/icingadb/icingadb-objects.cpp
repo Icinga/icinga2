@@ -2043,7 +2043,7 @@ void IcingaDB::SendStateChange(const ConfigObject::Ptr& object, const CheckResul
 
 		if (pos != String::NPos) {
 			auto longOutput (output.SubStr(pos + 1u));
-			output.erase(output.Begin() + pos, output.End());
+			output.erase(output.begin() + pos, output.end());
 
 			xAdd.emplace_back("long_output");
 			xAdd.emplace_back(Utility::ValidateUTF8(std::move(longOutput)));

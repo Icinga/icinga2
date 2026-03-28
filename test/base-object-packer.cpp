@@ -78,7 +78,7 @@ static inline bool ComparePackObjectResult(const String& actualOutput, const std
 	if (actualOutput.GetLength() != out.size())
 		return false;
 
-	auto actualOutputPos = actualOutput.Begin();
+	auto actualOutputPos = actualOutput.begin();
 	for (auto byte : out) {
 		if (*actualOutputPos != UIntToByte(byte))
 			return false;
