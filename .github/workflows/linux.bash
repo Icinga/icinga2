@@ -37,6 +37,7 @@ case "$DISTRO" in
     )
 
     ln -vs /usr/bin/cmake3 /usr/local/bin/cmake
+    ln -vs /usr/bin/ctest3 /usr/local/bin/ctest
     ln -vs /usr/bin/ninja-build /usr/local/bin/ninja
     CMAKE_OPTS+=(-DBOOST_{INCLUDEDIR=/boost_1_69_0,LIBRARYDIR=/boost_1_69_0/stage/lib})
     export LD_LIBRARY_PATH=/boost_1_69_0/stage/lib
@@ -117,6 +118,6 @@ cmake \
 
 ninja -v
 
-ninja test
+ctest -j$(nproc) --output-on-failure
 ninja install
 icinga2 daemon -C
