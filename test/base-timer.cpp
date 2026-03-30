@@ -6,6 +6,15 @@
 #include "base/application.hpp"
 #include <BoostTestTargetConfig.h>
 
+/**
+ * Windows needs a special handicap to keep up with the other OSs.
+ */
+#ifdef _WIN32
+static constexpr double timeMultiplier = 10;
+#else //_WIN32
+static constexpr double timeMultiplier = 1;
+#endif //_WIN32
+
 using namespace icinga;
 
 BOOST_AUTO_TEST_SUITE(base_timer)
@@ -29,10 +38,10 @@ BOOST_AUTO_TEST_CASE(invoke)
 
 	Timer::Ptr timer = Timer::Create();
 	timer->OnTimerExpired.connect([&counter](const Timer* const&) { counter++; });
-	timer->SetInterval(.1);
+	timer->SetInterval(.1 * timeMultiplier);
 
 	timer->Start();
-	Utility::Sleep(.55);
+	Utility::Sleep(.55 * timeMultiplier);
 	timer->Stop();
 
 	// At this point, the timer should have fired exactly 5 times (0.5 / 0.1) and the sixth time
@@ -46,12 +55,12 @@ BOOST_AUTO_TEST_CASE(scope)
 
 	Timer::Ptr timer = Timer::Create();
 	timer->OnTimerExpired.connect([&counter](const Timer* const&) { counter++; });
-	timer->SetInterval(.1);
+	timer->SetInterval(.1 * timeMultiplier);
 
 	timer->Start();
-	Utility::Sleep(.55);
+	Utility::Sleep(.55 * timeMultiplier);
 	timer.reset();
-	Utility::Sleep(.1);
+	Utility::Sleep(.1 * timeMultiplier);
 
 	// At this point, the timer should have fired exactly 5 times (0.5 / 0.1) and the sixth time
 	// should not have fired yet as we destroyed the timer after 0.55 seconds (0.6 would be needed),
