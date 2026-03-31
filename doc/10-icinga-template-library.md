@@ -3446,6 +3446,37 @@ linux\_netdev\_duration   | **Optional.** For how long to run. E.g. "10s" or "2m
 linux\_netdev\_exclude    | **Optional.** Which NICs to exclude. E.g. `eth0` or `eth?*`, may be an array. Default: none
 linux\_netdev\_thresholds | **Optional.** Warning and critical thresholds. E.g. `eth?*:tx:bytes:persec:w=1000000000` (see [plugin documentation](https://github.com/Al2Klimov/check_linux_netdev#usage)), may be an array. Default: none
 
+#### netgear <a id="check_netgear"></a>
+
+The [check_netgear](https://github.com/Icinga/check-netgear) plugin queries the API provided by NETGEAR AV Line switches
+and retrieves device statistics such as CPU usage, memory usage,
+temperature, fan speed and port statistics.
+
+Command line arguments are passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                         | Description
+-----------------------------|----------------------------------------------------------------------------------
+netgear\_base\_url           | **Required.** Base URL of the NETGEAR API (example: `http://$check_address$`).
+netgear\_username            | **Required.** Username used for authentication.
+netgear\_password            | **Required.** Password used for authentication.
+netgear\_cpu\_warning        | **Optional.** CPU usage warning threshold (default: 50).
+netgear\_cpu\_critical       | **Optional.** CPU usage critical threshold (default: 90).
+netgear\_mem\_warning        | **Optional.** RAM usage warning threshold (default: 50).
+netgear\_mem\_critical       | **Optional.** RAM usage critical threshold (default: 90).
+netgear\_temp\_warning       | **Optional.** Temperature warning threshold (default: 50).
+netgear\_femp\_critical      | **Optional.** Temperature critical threshold (default: 70).
+netgear\_fan\_warning        | **Optional.** Fan speed warning threshold (default: 3000).
+netgear\_fan\_critical       | **Optional.** Fan speed critical threshold (default: 5000).
+netgear\_stats\_warning      | **Optional.** Port statistics warning threshold (default: 5).
+netgear\_stats\_critical     | **Optional.** Port statistics critical threshold (default: 20).
+netgear\_mode                | **Optional.** Output modes to enable. Array of `basic`, `ports`, `poe`, `all`. Default: [`basic`].
+netgear\_ports               | **Optional.** Ports to check as an arary. Default: [`1,2,3,4,5,6,7,8`].
+netgear\_hide\_perfdata      | **Optional.** Disable performance data output.
+netgear\_hide\_cpu           | **Optional.** Hide CPU information.
+netgear\_hide\_mem           | **Optional.** Hide memory information.
+netgear\_hide\_temp          | **Optional.** Hide temperature information.
+netgear\_hide\_fans          | **Optional.** Hide fan information.
+
 #### nwc_health <a id="plugin-contrib-command-nwc_health"></a>
 
 The [check_nwc_health](https://labs.consol.de/de/nagios/check_nwc_health/index.html) plugin
