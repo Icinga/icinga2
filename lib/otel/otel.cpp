@@ -108,12 +108,20 @@ void OTel::Stop()
 		}
 
 		std::visit([this, &yc](auto& stream) {
-			{
+			// We only wait for ongoing export operations to complete if we're currently exporting,
+			// otherwise there will be nothing that would wake us up from the `WaitForClear` sleep
+			// below, and we would end up blocking indefinitely, so we have to check the exporting
+			// state here first.
+			if (Exporting()) {
 				Timeout writerTimeout(m_Strand, boost::posix_time::seconds(5), [&stream] {
 					boost::system::error_code ec;
 					stream->lowest_layer().cancel(ec);
 				});
 				m_Export.WaitForClear(yc);
+			} else {
+				// This must be in cleared state when stopping, so we clear it just in case to avoid
+				// any potential issues with the export loop waiting on it after the next resume/start.
+				m_Export.Clear();
 			}
 
 			using StreamType = std::decay_t<decltype(stream)>;
