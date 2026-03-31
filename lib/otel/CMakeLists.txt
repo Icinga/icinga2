@@ -33,7 +33,7 @@ add_library(otel OBJECT ${otel_SOURCES})
 add_dependencies(otel base remote)
 target_include_directories(otel
   SYSTEM PUBLIC
-    ${Protobuf_INCLUDE_DIRS}
+    $<TARGET_PROPERTY:protobuf::libprotobuf-lite,INTERFACE_INCLUDE_DIRECTORIES>
     ${CMAKE_CURRENT_BINARY_DIR}
 )
 

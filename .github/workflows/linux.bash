@@ -6,7 +6,6 @@ export CCACHE_DIR=/icinga2/ccache
 export CTEST_OUTPUT_ON_FAILURE=1
 CMAKE_OPTS=()
 SCL_ENABLE_GCC=()
-PROTOBUF_INCLUDE_DIR=""
 # -Wstringop-overflow is notorious for false positives and has been a problem for years.
 # See: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=88443
 # -Wtemplate-id-cdtor leaks from using the generated headers. We should reenable this once
@@ -100,8 +99,6 @@ gpgcheck=1
 gpgkey=https://packages.icinga.com/icinga.key
 EOF
         dnf install -y icinga-protobuf
-        # And of course, make sure to add our custom Protobuf includes to the compiler include path.
-        PROTOBUF_INCLUDE_DIR="-isystem $(rpm -E '%{_includedir}')/icinga-protobuf"
         # Tell CMake where to find our own Protobuf CMake config files.
         CMAKE_OPTS+=(-DCMAKE_PREFIX_PATH="$(rpm -E '%{_libdir}')/icinga-protobuf/cmake")
         ;;
@@ -138,7 +135,7 @@ case "$DISTRO" in
     if [ "$DISTRO" = "amazonlinux:2" ]; then
       CMAKE_OPTS+=(-DICINGA2_WITH_OPENTELEMETRY=OFF)
     fi
-    CMAKE_OPTS+=(-DCMAKE_{C,CXX}_FLAGS="$(rpm -E '%{optflags} %{?march_flag}') ${WARN_FLAGS} ${PROTOBUF_INCLUDE_DIR}")
+    CMAKE_OPTS+=(-DCMAKE_{C,CXX}_FLAGS="$(rpm -E '%{optflags} %{?march_flag}') ${WARN_FLAGS}")
     export LDFLAGS="$(rpm -E '%{?build_ldflags}')"
     ;;
 esac
