@@ -43,6 +43,14 @@ void ElasticsearchWriter::OnConfigLoaded()
 	}
 }
 
+void ElasticsearchWriter::OnAllConfigLoaded()
+{
+	ObjectImpl<ElasticsearchWriter>::OnAllConfigLoaded();
+
+	Log(LogWarning, "ElasticsearchWriter")
+		<< "This feature is DEPRECATED and will be removed in v2.18.";
+}
+
 void ElasticsearchWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
 	DictionaryData nodes;

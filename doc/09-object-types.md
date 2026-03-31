@@ -1160,8 +1160,7 @@ This configuration object is available as [compatlog feature](14-features.md#com
 
 > **Note**
 >
-> This feature is DEPRECATED and may be removed in future releases.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
+> This feature is DEPRECATED and will be removed in v2.18.
 
 Example:
 
@@ -1184,6 +1183,11 @@ Configuration Attributes:
 
 Writes check result metrics and performance data to an Elasticsearch or OpenSearch instance.
 This configuration object is available as [elasticsearch feature](14-features.md#elasticsearch-writer).
+
+> **Note**
+>
+> This feature is DEPRECATED and will be removed in v2.18.
+> For sending metrics to Elasticsearch, please migrate your setup to the [otlp-metrics feature](14-features.md#otlpmetrics-writer).
 
 Example:
 
@@ -1250,8 +1254,7 @@ This configuration object is available as [command feature](14-features.md#exter
 
 > **Note**
 >
-> This feature is DEPRECATED and may be removed in future releases.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
+> This feature is DEPRECATED and will be removed in v2.18.
 
 Example:
 
@@ -1419,8 +1422,7 @@ Configuration Attributes:
 
 > **Note**
 >
-> This feature is DEPRECATED and may be removed in future releases.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
+> This feature is DEPRECATED and will be removed in v2.18.
 
 IDO database adapter for MySQL.
 This configuration object is available as [ido-mysql feature](14-features.md#db-ido).
@@ -1526,8 +1528,7 @@ Runtime Attributes:
 
 > **Note**
 >
-> This feature is DEPRECATED and may be removed in future releases.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
+> This feature is DEPRECATED and will be removed in v2.18.
 
 IDO database adapter for PostgreSQL.
 This configuration object is available as [ido-pgsql feature](14-features.md#db-ido).
@@ -1796,8 +1797,7 @@ This configuration object is available as [livestatus feature](14-features.md#se
 
 > **Note**
 >
-> This feature is DEPRECATED and may be removed in future releases.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
+> This feature is DEPRECATED and will be removed in v2.18.
 
 Examples:
 
