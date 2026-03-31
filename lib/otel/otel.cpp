@@ -107,33 +107,33 @@ void OTel::Stop()
 			return;
 		}
 
-		std::visit([this, &yc](auto& stream) {
-			// We only wait for ongoing export operations to complete if we're currently exporting,
-			// otherwise there will be nothing that would wake us up from the `WaitForClear` sleep
-			// below, and we would end up blocking indefinitely, so we have to check the exporting
-			// state here first.
-			if (Exporting()) {
-				Timeout writerTimeout(m_Strand, boost::posix_time::seconds(5), [&stream] {
-					boost::system::error_code ec;
-					stream->lowest_layer().cancel(ec);
-				});
-				m_Export.WaitForClear(yc);
-			} else {
-				// This must be in cleared state when stopping, so we clear it just in case to avoid
-				// any potential issues with the export loop waiting on it after the next resume/start.
-				m_Export.Clear();
-			}
-
-			using StreamType = std::decay_t<decltype(stream)>;
-			if constexpr (std::is_same_v<StreamType, Shared<AsioTlsStream>::Ptr>) {
-				stream->GracefulDisconnect(m_Strand, yc);
-			} else {
-				static_assert(std::is_same_v<StreamType, Shared<AsioTcpStream>::Ptr>, "Unknown stream type");
+		// We only wait for ongoing export operations to complete if we're currently exporting,
+		// otherwise there will be nothing that would wake us up from the `WaitForClear` sleep
+		// below, and we would end up blocking indefinitely, so we have to check the exporting
+		// state here first.
+		if (Exporting()) {
+			Timeout writerTimeout(m_Strand, boost::posix_time::seconds(5), [this] {
 				boost::system::error_code ec;
-				stream->lowest_layer().shutdown(AsioTcpStream::lowest_layer_type::shutdown_both, ec);
-				stream->lowest_layer().close(ec);
+				std::visit([&ec](auto& stream) { stream->lowest_layer().cancel(ec); }, *m_Stream);
+			});
+			m_Export.WaitForClear(yc);
+		} else {
+			// This must be in cleared state when stopping, so we clear it just in case to avoid
+			// any potential issues with the export loop waiting on it after the next resume/start.
+			m_Export.Clear();
+		}
+
+		// Check if the stream is still valid before attempting to disconnect, since the above lowest_layer.cancel()
+		// may have caused the export loop to detect a broken connection and reset the stream already.
+		if (m_Stream) {
+			if (auto* tlsStreamPtr = std::get_if<Shared<AsioTlsStream>::Ptr>(&*m_Stream); tlsStreamPtr) {
+				(*tlsStreamPtr)->GracefulDisconnect(m_Strand, yc);
+			} else if (auto* tcpStreamPtr = std::get_if<Shared<AsioTcpStream>::Ptr>(&*m_Stream); tcpStreamPtr) {
+				boost::system::error_code ec;
+				(*tcpStreamPtr)->lowest_layer().shutdown(AsioTcpStream::lowest_layer_type::shutdown_both, ec);
+				(*tcpStreamPtr)->lowest_layer().close(ec);
 			}
-		}, *m_Stream);
+		}
 
 		Log(LogInformation, "OTelExporter")
 			<< "Disconnected from OpenTelemetry backend.";
