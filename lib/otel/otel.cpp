@@ -63,7 +63,7 @@ OTel::OTel(OTelConnInfo& connInfo): OTel{connInfo, IoEngine::Get().GetIoContext(
 OTel::OTel(OTelConnInfo& connInfo, boost::asio::io_context& io)
 	: m_ConnInfo{std::move(connInfo)},
 	  m_Strand{io},
-	  m_Export{io},
+	  m_ExportAsioCV{io},
 	  m_RetryExportAndConnTimer{io},
 	  m_Exporting{false},
 	  m_Stopped{false}
@@ -99,7 +99,7 @@ void OTel::Stop()
 
 	std::promise<void> promise;
 	IoEngine::SpawnCoroutine(m_Strand, [this, &promise, keepAlive = ConstPtr(this)](boost::asio::yield_context& yc) {
-		m_Export.Set();
+		m_ExportAsioCV.NotifyAll(); // Wake up the export loop if it's waiting for new export requests.
 		m_RetryExportAndConnTimer.cancel();
 
 		if (!m_Stream) {
@@ -116,11 +116,9 @@ void OTel::Stop()
 				boost::system::error_code ec;
 				std::visit([&ec](auto& stream) { stream->lowest_layer().cancel(ec); }, *m_Stream);
 			});
-			m_Export.WaitForClear(yc);
-		} else {
-			// This must be in cleared state when stopping, so we clear it just in case to avoid
-			// any potential issues with the export loop waiting on it after the next resume/start.
-			m_Export.Clear();
+			while (m_Request) {
+				m_ExportAsioCV.Wait(yc);
+			}
 		}
 
 		// Check if the stream is still valid before attempting to disconnect, since the above lowest_layer.cancel()
@@ -139,7 +137,6 @@ void OTel::Stop()
 			<< "Disconnected from OpenTelemetry backend.";
 
 		m_Stream.reset();
-		m_Request.reset();
 		promise.set_value();
 	});
 	promise.get_future().wait();
@@ -172,7 +169,7 @@ void OTel::Export(std::unique_ptr<MetricsRequest>&& request)
 	// Access to m_Request is serialized via m_Strand, so we must post the actual export operation to it.
 	boost::asio::post(m_Strand, [this, keepAlive = ConstPtr(this), request = std::move(request)]() mutable {
 		m_Request = std::move(request);
-		m_Export.Set();
+		m_ExportAsioCV.NotifyAll();
 	});
 }
 
@@ -293,14 +290,25 @@ void OTel::Connect(boost::asio::yield_context& yc)
 void OTel::ExportLoop(boost::asio::yield_context& yc)
 {
 	Defer cleanup{[this] {
-		m_Export.Clear();
+		m_Request.reset();
+		m_ExportAsioCV.NotifyAll();
 		ResetExporting(true /* notify all */);
 	}};
 
 	namespace ch = std::chrono;
 
-	while (!m_Stopped) {
-		m_Export.WaitForSet(yc);
+	while (true) {
+		// Wait for a new export request to be available. If the exporter is stopped while waiting,
+		// we will be notified without a new request, so we also check the stopped state here to
+		// avoid waiting indefinitely in that case.
+		while (!m_Request && !m_Stopped) {
+			m_ExportAsioCV.Wait(yc);
+		}
+
+		if (m_Stopped) {
+			break;
+		}
+
 		if (!m_Stream) {
 			Connect(yc);
 		}
@@ -309,7 +317,7 @@ void OTel::ExportLoop(boost::asio::yield_context& yc)
 			try {
 				ExportImpl(yc);
 				m_Request.reset();
-				m_Export.Clear();
+				m_ExportAsioCV.NotifyAll();
 				ResetExporting(false /* notify one */);
 				break;
 			} catch (const RetryableExportError& ex) {

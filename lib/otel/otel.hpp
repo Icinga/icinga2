@@ -113,7 +113,7 @@ private:
 	Shared<boost::asio::ssl::context>::Ptr m_TlsContext;
 	boost::asio::io_context::strand m_Strand;
 
-	AsioDualEvent m_Export; // Event to signal when a new export request is available.
+	AsioConditionVariable m_ExportAsioCV; // Event to signal when a new export request is available.
 	// Timer for scheduling retries of failed exports and reconnection attempts.
 	boost::asio::steady_timer m_RetryExportAndConnTimer;
 
