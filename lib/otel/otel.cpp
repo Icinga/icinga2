@@ -239,25 +239,36 @@ void OTel::Connect(boost::asio::yield_context& yc)
 
 	for (uint64_t attempt = 1; !m_Stopped; ++attempt) {
 		try {
-			boost::asio::ip::tcp::socket socket{m_Strand.context()};
-			icinga::Connect(socket, m_ConnInfo.Host, std::to_string(m_ConnInfo.Port), yc);
-
+			decltype(m_Stream) stream;
 			if (m_ConnInfo.EnableTls) {
-				auto tlsStream = Shared<AsioTlsStream>::Make(m_Strand.context(), *m_TlsContext, m_ConnInfo.Host);
-				tlsStream->lowest_layer() = std::move(socket);
-				tlsStream->next_layer().async_handshake(AsioTlsStream::next_layer_type::client, yc);
-
-				if (m_ConnInfo.VerifyPeerCertificate && !tlsStream->next_layer().IsVerifyOK()) {
-					BOOST_THROW_EXCEPTION(std::runtime_error(
-						"TLS certificate validation failed: " + tlsStream->next_layer().GetVerifyError()
-					));
-				}
-				m_Stream = std::move(tlsStream);
+				stream = Shared<AsioTlsStream>::Make(m_Strand.context(), *m_TlsContext, m_ConnInfo.Host);
 			} else {
-				auto tcpStream = Shared<AsioTcpStream>::Make(m_Strand.context());
-				tcpStream->lowest_layer() = std::move(socket);
-				m_Stream = std::move(tcpStream);
+				stream = Shared<AsioTcpStream>::Make(m_Strand.context());
 			}
+
+			Timeout timeout{m_Strand, boost::posix_time::seconds(10), [this, stream] {
+				Log(LogCritical, "OTelExporter")
+					<< "Timeout while connecting to OpenTelemetry backend '" << m_ConnInfo.Host << ":" << m_ConnInfo.Port << "', cancelling attempt.";
+
+				boost::system::error_code ec;
+				std::visit([&ec](auto& s) { s->lowest_layer().cancel(ec); }, *stream);
+			}};
+
+			std::visit([this, &yc](auto& streamArg) {
+				icinga::Connect(streamArg->lowest_layer(), m_ConnInfo.Host, std::to_string(m_ConnInfo.Port), yc);
+
+				if constexpr (std::is_same_v<std::decay_t<decltype(streamArg)>, Shared<AsioTlsStream>::Ptr>) {
+					streamArg->next_layer().async_handshake(AsioTlsStream::next_layer_type::client, yc);
+
+					if (m_ConnInfo.VerifyPeerCertificate && !streamArg->next_layer().IsVerifyOK()) {
+						BOOST_THROW_EXCEPTION(std::runtime_error(
+							"TLS certificate validation failed: " + streamArg->next_layer().GetVerifyError()
+						));
+					}
+				}
+			}, *stream);
+
+			m_Stream = std::move(stream);
 
 			Log(LogInformation, "OTelExporter")
 				<< "Successfully connected to OpenTelemetry backend.";
