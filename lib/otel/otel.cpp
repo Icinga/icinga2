@@ -369,7 +369,9 @@ void OTel::ExportImpl(boost::asio::yield_context& yc) const
 	[[maybe_unused]] auto serialized = m_Request->SerializeToZeroCopyStream(&outputS);
 	ASSERT(serialized);
 	// Must have completed chunk writing successfully, otherwise reading the response will hang forever.
-	VERIFY(outputS.WriterDone());
+	if (!outputS.WriterDone()) {
+		BOOST_THROW_EXCEPTION(std::runtime_error("BUG: Protobuf output stream writer did not complete successfully."));
+	}
 
 	IncomingHttpResponse responseMsg{*m_Stream};
 	responseMsg.Parse(yc);
