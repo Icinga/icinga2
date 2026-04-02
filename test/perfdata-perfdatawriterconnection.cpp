@@ -130,10 +130,9 @@ BOOST_AUTO_TEST_CASE(finish_during_timeout)
  */
 BOOST_AUTO_TEST_CASE(stuck_in_handshake)
 {
-	TestThread mockTargetThread{[&]() { Accept(); }};
-
 	std::promise<void> p;
 	TestThread timeoutThread{[&]() {
+		Accept();
 		auto f = p.get_future();
 		GetConnection().CancelAfterTimeout(f, 50ms);
 		BOOST_REQUIRE(f.wait_for(0ms) == std::future_status::timeout);
@@ -144,7 +143,6 @@ BOOST_AUTO_TEST_CASE(stuck_in_handshake)
 	);
 
 	REQUIRE_JOINS_WITHIN(timeoutThread, 1s);
-	REQUIRE_JOINS_WITHIN(mockTargetThread, 1s);
 }
 
 /* When the disconnect timeout runs out while sending something to a slow or blocking server, we
