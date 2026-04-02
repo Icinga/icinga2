@@ -8,6 +8,30 @@ Specific version upgrades are described below. Please note that version
 updates are incremental. An upgrade from v2.6 to v2.8 requires to
 follow the instructions for v2.7 too.
 
+## Upgrading to v2.16 <a id="upgrading-to-2-16"></a>
+
+### Migrating from ElasticsearchWriter to OTLPMetricsWriter
+
+ElasticsearchWriter is deprecated in v2.16 and will be removed in v2.18. In case you are using Elasticsearch 9.2 or
+later we suggest migrating to the new OTLPMetricsWriter as a replacement. The index data structure in
+Elasticsearch will be different though, so any third-party tools working with that data will need to be adapted as
+well.
+
+### Deprecation of user-defined DSL Namespaces
+
+If you were previously using constructs like `namespace my_utils { ... }` in your config, we suggest
+replacing them with global functions and variables, since user-defined namespaces will be removed in v2.18.
+
+### Previously deprecated features
+
+Since these previously deprecated features are now scheduled for removal in v2.18, please switch to the listed
+alternatives:
+
+* `IdoMySqlConnection` and `IdoPgsqlConnection`: Please switch to Icinga DB.
+* `CompatLogger`: Please switch your tools to use the Icinga 2 log format.
+* `ExternalCommandListener` and `LivestatusListener`: Please use the [Icinga 2 API](https://icinga.com/docs/icinga-2/2.10/doc/12-icinga2-api/) instead.
+* Windows check-plugins (`check_*.exe`) and `CheckCommand`s: Please use our [PowerShell plugins](https://github.com/Icinga/icinga-powershell-plugins) instead.
+
 ## Upgrading to v2.15 <a id="upgrading-to-2-15"></a>
 
 ### Icinga DB <a id="upgrading-to-2-15-icingadb"></a>
