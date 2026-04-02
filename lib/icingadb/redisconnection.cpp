@@ -13,7 +13,9 @@
 #include "base/utility.hpp"
 #include <boost/asio.hpp>
 #include <boost/coroutine/exceptions.hpp>
+#include <boost/container/static_vector.hpp>
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
+#include <boost/range/algorithm/min_element.hpp>
 #include <exception>
 #include <future>
 #include <iterator>
@@ -256,18 +258,20 @@ double RedisConnection::GetOldestPendingQueryTs() const
 	auto future (promise->get_future());
 
 	asio::post(m_Strand, [this, promise]() {
-		double oldest = 0;
+		boost::container::static_vector<double, 2> timestamps;
+
 		if (!m_Queues.HighWriteQ.empty()) {
-			oldest = m_Queues.HighWriteQ.front().CTime;
+			timestamps.push_back(m_Queues.HighWriteQ.front().CTime);
 		}
 		if (!m_Queues.NormalWriteQ.empty()) {
-			auto normalOldest = m_Queues.NormalWriteQ.front().CTime;
-			if (oldest == 0 || normalOldest < oldest) {
-				oldest = normalOldest;
-			}
+			timestamps.push_back(m_Queues.NormalWriteQ.front().CTime);
 		}
 
-		promise->set_value(oldest);
+		if (timestamps.empty()) {
+			timestamps.push_back(0);
+		}
+
+		promise->set_value(*boost::range::min_element(timestamps));
 	});
 
 	future.wait();
