@@ -10,7 +10,7 @@
 #include "base/lazy-init.hpp"
 #include "base/logger.hpp"
 #include "base/shared.hpp"
-#include <atomic>
+#include <cstdint>
 #include <exception>
 #include <memory>
 #include <mutex>
@@ -152,7 +152,7 @@ private:
 	boost::asio::executor_work_guard<boost::asio::io_context::executor_type> m_KeepAlive;
 	std::vector<std::thread> m_Threads;
 
-	std::atomic_uint_fast32_t m_CpuBoundSemaphore;
+	Atomic<int_fast32_t> m_CpuBoundSemaphore;
 	std::mutex m_CpuBoundWaitingMutex;
 	std::vector<std::pair<boost::asio::io_context::strand, Shared<AsioConditionVariable>::Ptr>> m_CpuBoundWaiting;
 };
