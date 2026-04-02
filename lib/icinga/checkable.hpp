@@ -105,7 +105,7 @@ public:
 	long GetSchedulingOffset();
 	void SetSchedulingOffset(long offset);
 
-	void UpdateNextCheck(const MessageOrigin::Ptr& origin = nullptr);
+	void UpdateNextCheck(const MessageOrigin::Ptr& origin = nullptr, bool suppressEvents = false);
 
 	static String StateTypeToString(StateType type);
 
