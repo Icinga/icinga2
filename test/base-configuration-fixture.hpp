@@ -5,6 +5,7 @@
 #define CONFIGURATION_FIXTURE_H
 
 #include "base/configuration.hpp"
+#include "base/utility.hpp"
 #include <boost/filesystem.hpp>
 #include <BoostTestTargetConfig.h>
 
@@ -13,7 +14,8 @@ namespace icinga {
 struct ConfigurationDataDirFixture
 {
 	ConfigurationDataDirFixture()
-		: m_DataDir(boost::filesystem::current_path() / "data"), m_PrevDataDir(Configuration::DataDir.GetData())
+		: m_DataDir(boost::filesystem::current_path() / "data" / std::string{Utility::NewUniqueID()}),
+		  m_PrevDataDir(Configuration::DataDir.GetData())
 	{
 		boost::filesystem::create_directories(m_DataDir);
 		Configuration::DataDir = m_DataDir.string();
@@ -25,16 +27,16 @@ struct ConfigurationDataDirFixture
 		Configuration::DataDir = m_PrevDataDir.string();
 	}
 
-	boost::filesystem::path m_DataDir;
-
 private:
+	boost::filesystem::path m_DataDir;
 	boost::filesystem::path m_PrevDataDir;
 };
 
 struct ConfigurationCacheDirFixture
 {
 	ConfigurationCacheDirFixture()
-		: m_CacheDir(boost::filesystem::current_path() / "cache"), m_PrevCacheDir(Configuration::CacheDir.GetData())
+		: m_CacheDir(boost::filesystem::current_path() / "cache" / std::string{Utility::NewUniqueID()}),
+		  m_PrevCacheDir(Configuration::CacheDir.GetData())
 	{
 		boost::filesystem::create_directories(m_CacheDir);
 		Configuration::CacheDir = m_CacheDir.string();
@@ -46,9 +48,8 @@ struct ConfigurationCacheDirFixture
 		Configuration::CacheDir = m_PrevCacheDir.string();
 	}
 
-	boost::filesystem::path m_CacheDir;
-
 private:
+	boost::filesystem::path m_CacheDir;
 	boost::filesystem::path m_PrevCacheDir;
 };
 
