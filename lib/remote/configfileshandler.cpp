@@ -44,7 +44,7 @@ bool ConfigFilesHandler::HandleRequest(
 	}
 
 	if (request[http::field::accept] == "application/json") {
-		HttpUtility::SendJsonError(response, params, 400, "Invalid Accept header. Either remove the Accept header or set it to 'application/octet-stream'.");
+		HttpUtility::SendJsonError(response, params, 400, yc, "Invalid Accept header. Either remove the Accept header or set it to 'application/octet-stream'.");
 		return true;
 	}
 
@@ -54,26 +54,26 @@ bool ConfigFilesHandler::HandleRequest(
 	String stageName = HttpUtility::GetLastParameter(params, "stage");
 
 	if (!ConfigPackageUtility::ValidatePackageName(packageName)) {
-		HttpUtility::SendJsonError(response, params, 400, "Invalid package name.");
+		HttpUtility::SendJsonError(response, params, 400, yc, "Invalid package name.");
 		return true;
 	}
 
 	if (!ConfigPackageUtility::ValidateStageName(stageName)) {
-		HttpUtility::SendJsonError(response, params, 400, "Invalid stage name.");
+		HttpUtility::SendJsonError(response, params, 400, yc, "Invalid stage name.");
 		return true;
 	}
 
 	String relativePath = HttpUtility::GetLastParameter(params, "path");
 
 	if (ConfigPackageUtility::ContainsDotDot(relativePath)) {
-		HttpUtility::SendJsonError(response, params, 400, "Path contains '..' (not allowed).");
+		HttpUtility::SendJsonError(response, params, 400, yc, "Path contains '..' (not allowed).");
 		return true;
 	}
 
 	String path = ConfigPackageUtility::GetPackageDir() + "/" + packageName + "/" + stageName + "/" + relativePath;
 
 	if (!Utility::PathExists(path)) {
-		HttpUtility::SendJsonError(response, params, 404, "Path not found.");
+		HttpUtility::SendJsonError(response, params, 404, yc, "Path not found.");
 		return true;
 	}
 
@@ -82,7 +82,7 @@ bool ConfigFilesHandler::HandleRequest(
 		response.set(http::field::content_type, "application/octet-stream");
 		response.SendFile(path, yc);
 	} catch (const std::exception& ex) {
-		HttpUtility::SendJsonError(response, params, 500, "Could not read file.",
+		HttpUtility::SendJsonError(response, params, 500, yc, "Could not read file.",
 			DiagnosticInformation(ex));
 	}
 

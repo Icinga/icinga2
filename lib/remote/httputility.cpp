@@ -75,16 +75,8 @@ void HttpUtility::SendJsonBody(HttpApiResponse& response, const Dictionary::Ptr&
 	response.GetJsonEncoder(params && GetLastParameter(params, "pretty")).Encode(val, &yc);
 }
 
-void HttpUtility::SendJsonBody(HttpApiResponse& response, const Dictionary::Ptr& params, const Value& val)
-{
-	namespace http = boost::beast::http;
-
-	response.set(http::field::content_type, "application/json");
-	response.GetJsonEncoder(params && GetLastParameter(params, "pretty")).Encode(val);
-}
-
-void HttpUtility::SendJsonError(HttpApiResponse& response,
-	const Dictionary::Ptr& params, int code, const String& info, const String& diagnosticInformation)
+void HttpUtility::SendJsonError(HttpApiResponse& response, const Dictionary::Ptr& params,
+	int code, boost::asio::yield_context& yc, const String& info, const String& diagnosticInformation)
 {
 	Dictionary::Ptr result = new Dictionary({ { "error", code } });
 
@@ -99,7 +91,7 @@ void HttpUtility::SendJsonError(HttpApiResponse& response,
 	response.Clear();
 	response.result(code);
 
-	HttpUtility::SendJsonBody(response, params, result);
+	HttpUtility::SendJsonBody(response, params, result, yc);
 }
 
 /**

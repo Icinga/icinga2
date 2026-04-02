@@ -91,7 +91,7 @@ void HttpHandler::ProcessRequest(
 	try {
 		request.DecodeParams();
 	} catch (const std::exception& ex) {
-		HttpUtility::SendJsonError(response, request.Params(), 400, "Invalid request body: " + DiagnosticInformation(ex, false));
+		HttpUtility::SendJsonError(response, request.Params(), 400, yc, "Invalid request body: " + DiagnosticInformation(ex, false));
 		return;
 	}
 
@@ -131,7 +131,7 @@ void HttpHandler::ProcessRequest(
 	}
 
 	if (!processed) {
-		HttpUtility::SendJsonError(response, request.Params(), 404, "The requested path '" + boost::algorithm::join(path, "/") +
+		HttpUtility::SendJsonError(response, request.Params(), 404, yc, "The requested path '" + boost::algorithm::join(path, "/") +
 			"' could not be found or the request method is not valid for this path.");
 		return;
 	}

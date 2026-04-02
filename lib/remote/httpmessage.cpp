@@ -154,8 +154,6 @@ void OutgoingHttpMessage<isRequest, Body, StreamVariant>::Clear()
 template<bool isRequest, typename Body, typename StreamVariant>
 void OutgoingHttpMessage<isRequest, Body, StreamVariant>::Flush(boost::asio::yield_context yc, bool finish)
 {
-	m_CpuBoundWork.reset();
-
 	if (!Base::chunked() && !Base::has_content_length()) {
 		ASSERT(!m_SerializationStarted);
 		Base::prepare_payload();
@@ -193,6 +191,7 @@ void OutgoingHttpMessage<isRequest, Body, StreamVariant>::Flush(boost::asio::yie
 template<bool isRequest, typename Body, typename StreamVariant>
 void OutgoingHttpMessage<isRequest, Body, StreamVariant>::StartStreaming()
 {
+	m_CpuBoundWork.reset();
 	ASSERT(Base::body().Size() == 0 && !m_SerializationStarted);
 	Base::body().Start();
 	Base::chunked(true);

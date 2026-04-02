@@ -36,9 +36,9 @@ public:
 
 private:
 	static bool ExecuteScriptHelper(const HttpApiRequest& request, HttpApiResponse& response,
-		const String& command, const String& session, bool sandboxed);
+		const String& command, const String& session, bool sandboxed, boost::asio::yield_context& yc);
 	static bool AutocompleteScriptHelper(const HttpApiRequest& request, HttpApiResponse& response,
-		const String& command, const String& session, bool sandboxed);
+		const String& command, const String& session, bool sandboxed, boost::asio::yield_context& yc);
 
 };
 
