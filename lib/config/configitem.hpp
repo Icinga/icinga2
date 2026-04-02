@@ -9,6 +9,7 @@
 #include "config/activationcontext.hpp"
 #include "base/configobject.hpp"
 #include "base/workqueue.hpp"
+#include <functional>
 
 namespace icinga
 {
@@ -44,6 +45,7 @@ public:
 
 	void Register();
 	void Unregister();
+	ConfigObject::Ptr Commit(bool discard = true);
 
 	DebugInfo GetDebugInfo() const;
 	Dictionary::Ptr GetScope() const;
@@ -63,6 +65,8 @@ public:
 	static std::vector<ConfigItem::Ptr> GetDefaultTemplates(const Type::Ptr& type);
 
 	static void RemoveIgnoredItems(const String& allowedConfigPath);
+
+	static thread_local std::function<void(ConfigItem*)> m_OverrideRegistry;
 
 private:
 	Type::Ptr m_Type; /**< The object type. */
@@ -96,8 +100,6 @@ private:
 
 	static ConfigItem::Ptr GetObjectUnlocked(const String& type,
 		const String& name);
-
-	ConfigObject::Ptr Commit(bool discard = true);
 
 	static bool CommitNewItems(const ActivationContext::Ptr& context, WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems);
 };
