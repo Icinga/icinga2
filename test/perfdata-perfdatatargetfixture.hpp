@@ -71,11 +71,20 @@ public:
 		BOOST_REQUIRE(stream->next_layer().IsVerifyOK());
 	}
 
-	void Shutdown()
+	void Shutdown(bool wait = false)
 	{
 		BOOST_REQUIRE(std::holds_alternative<Shared<AsioTlsStream>::Ptr>(m_Stream));
 		auto& stream = std::get<Shared<AsioTlsStream>::Ptr>(m_Stream);
 		try {
+			if (wait) {
+				std::array<std::byte, 128> buf{};
+				boost::asio::mutable_buffer readBuf (buf.data(), buf.size());
+				boost::system::error_code ec;
+
+				do {
+					stream->read_some(readBuf, ec);
+				} while (!ec);
+			}
 			stream->next_layer().shutdown();
 		} catch (const std::exception& ex) {
 			if (const auto* se = dynamic_cast<const boost::system::system_error*>(&ex);
