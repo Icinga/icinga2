@@ -61,20 +61,28 @@ public:
 	template<typename Buffer>
 	auto Send(Buffer&& buf)
 	{
+		Log(LogDebug, m_LogFacility) << "PerfdataWriterConnection::Send::1";
 		if (m_Stopped) {
+			Log(LogDebug, m_LogFacility) << "PerfdataWriterConnection::Send::1.1";
 			BOOST_THROW_EXCEPTION(Stopped{});
 		}
+		Log(LogDebug, m_LogFacility) << "PerfdataWriterConnection::Send::2";
 
 		using RetType = decltype(WriteMessage(std::declval<Buffer>(), std::declval<boost::asio::yield_context>()));
 		std::promise<RetType> promise;
 
 		IoEngine::SpawnCoroutine(m_Strand, [&](boost::asio::yield_context yc) {
+			Log(LogDebug, m_LogFacility) << "PerfdataWriterConnection::Send::3";
+
 			while (true) {
 				try {
+					Log(LogDebug, m_LogFacility) << "PerfdataWriterConnection::Send::5";
 					EnsureConnected(yc);
+					Log(LogDebug, m_LogFacility) << "PerfdataWriterConnection::Send::6";
 
 					if constexpr (std::is_void_v<RetType>) {
 						WriteMessage(std::forward<Buffer>(buf), yc);
+						Log(LogDebug, m_LogFacility) << "PerfdataWriterConnection::Send::7";
 						promise.set_value();
 					} else {
 						promise.set_value(WriteMessage(std::forward<Buffer>(buf), yc));
@@ -83,7 +91,9 @@ public:
 					m_RetryTimeout = InitialRetryWait;
 					return;
 				} catch (const std::exception& ex) {
+					Log(LogDebug, m_LogFacility) << "PerfdataWriterConnection::Send::8";
 					if (m_Stopped) {
+						Log(LogDebug, m_LogFacility) << "PerfdataWriterConnection::Send::8.1";
 						promise.set_exception(std::make_exception_ptr(Stopped{}));
 						return;
 					}
@@ -96,8 +106,11 @@ public:
 					m_Connected = false;
 
 					try {
+						Log(LogDebug, m_LogFacility) << "PerfdataWriterConnection::Send::9";
 						BackoffWait(yc);
+						Log(LogDebug, m_LogFacility) << "PerfdataWriterConnection::Send::10";
 					} catch (const std::exception&) {
+						Log(LogDebug, m_LogFacility) << "PerfdataWriterConnection::Send::11";
 						promise.set_exception(std::make_exception_ptr(Stopped{}));
 						return;
 					}

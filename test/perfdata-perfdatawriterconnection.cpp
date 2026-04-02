@@ -130,21 +130,29 @@ BOOST_AUTO_TEST_CASE(finish_during_timeout)
  */
 BOOST_AUTO_TEST_CASE(stuck_in_handshake)
 {
-	TestThread mockTargetThread{[&]() { Accept(); }};
-
+	Logger::SetConsoleLogSeverity(LogDebug);
+	Logger::EnableConsoleLog();
+	Log(LogDebug, "stuck_in_handshake") << "1";
 	std::promise<void> p;
 	TestThread timeoutThread{[&]() {
+		Log(LogDebug, "stuck_in_handshake") << "2";
+		Accept();
+		Log(LogDebug, "stuck_in_handshake") << "3";
 		auto f = p.get_future();
 		GetConnection().CancelAfterTimeout(f, 50ms);
+		Log(LogDebug, "stuck_in_handshake") << "4";
 		BOOST_REQUIRE(f.wait_for(0ms) == std::future_status::timeout);
+		Log(LogDebug, "stuck_in_handshake") << "5";
 	}};
 
+	Log(LogDebug, "stuck_in_handshake") << "6";
 	BOOST_REQUIRE_THROW(
 		GetConnection().Send(boost::asio::const_buffer{"foobar", 7}), PerfdataWriterConnection::Stopped
 	);
+	Log(LogDebug, "stuck_in_handshake") << "7";
 
 	REQUIRE_JOINS_WITHIN(timeoutThread, 1s);
-	REQUIRE_JOINS_WITHIN(mockTargetThread, 1s);
+	Log(LogDebug, "stuck_in_handshake") << "8";
 }
 
 /* When the disconnect timeout runs out while sending something to a slow or blocking server, we
