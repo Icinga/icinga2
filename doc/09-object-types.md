@@ -1871,6 +1871,54 @@ Configuration Attributes:
   host_template             | Dictionary                | **Optional.** Specify additional tags to be included with host metrics. This requires a sub-dictionary named `tags`. Also specify a naming prefix by setting `metric`. More information can be found in [OpenTSDB custom tags](14-features.md#opentsdb-custom-tags) and [OpenTSDB Metric Prefix](14-features.md#opentsdb-metric-prefix). More information can be found in [OpenTSDB custom tags](14-features.md#opentsdb-custom-tags). Defaults to an `empty Dictionary`.
   service_template          | Dictionary                | **Optional.** Specify additional tags to be included with service metrics. This requires a sub-dictionary named `tags`. Also specify a naming prefix by setting `metric`. More information can be found in [OpenTSDB custom tags](14-features.md#opentsdb-custom-tags) and [OpenTSDB Metric Prefix](14-features.md#opentsdb-metric-prefix). Defaults to an `empty Dictionary`.
 
+### OTLPMetricsWriter <a id="objecttype-otlpmetricswriter"></a>
+
+Emits metrics in [OpenTelemetry Protocol (OTLP)](https://opentelemetry.io/) format to a defined OpenTelemetry Collector
+or any other OTLP-compatible backend that accepts OTLP data over HTTP. This configuration object is available as
+[otlpmetrics feature](14-features.md#otlpmetrics-writer). You can find more information about OpenTelemetry and OTLP
+on the [OpenTelemetry website](https://opentelemetry.io/).
+
+A basic copy and pastable example configuration is shown below:
+
+```
+object OTLPMetricsWriter "otlp-metrics" {
+  host = "127.0.0.1"
+  port = 4318
+  metrics_endpoint = "/v1/metrics"
+  service_namespace = "icinga2-production"
+}
+```
+
+There are more configuration options available as described in the table below.
+
+| Name                          | Type       | Description                                                                                                                                  |
+|-------------------------------|------------|----------------------------------------------------------------------------------------------------------------------------------------------|
+| host                          | String     | **Required.** OTLP backend host address. Defaults to `127.0.0.1`.                                                                            |
+| port                          | Number     | **Required.** OTLP backend HTTP port. Defaults to `4318`.                                                                                    |
+| metrics\_endpoint             | String     | **Required.** OTLP metrics endpoint path. Defaults to `/v1/metrics`.                                                                         |
+| service\_namespace            | String     | **Required.** The namespace to associate with emitted metrics used in the `service.namespace` OTel resource attribute. Defaults to `icinga`. |
+| basic\_auth                   | Dictionary | **Optional.** Username and password for HTTP basic authentication.                                                                           |
+| host\_resource\_attributes    | Dictionary | **Optional.** Additional resource attributes to be included with host metrics. Defaults to none.                                             |
+| service\_resource\_attributes | Dictionary | **Optional.** Additional resource attributes to be included with service metrics. Defaults to none.                                          |
+| flush\_interval               | Duration   | **Optional.** How long to buffer data points before transferring to the OTLP backend. Defaults to `15s`.                                     |
+| flush\_threshold              | Number     | **Optional.** How many bytes to buffer before forcing a transfer to the OTLP backend. Defaults to `16MiB`.                                   |
+| enable\_ha                    | Boolean    | **Optional.** Enable the high availability functionality. Has no effect in non-cluster setups. Defaults to `true`.                           |
+| enable\_send\_thresholds      | Boolean    | **Optional.** Whether to stream warning, critical, minimum & maximum as separate metrics to the OTLP backend. Defaults to `false`.           |
+| diconnect\_timeout            | Duration   | **Optional.** Timeout to wait for any outstanding data to be flushed to the OTLP backend before disconnecting. Defaults to `10s`.            |
+| enable\_tls                   | Boolean    | **Optional.** Whether to use a TLS stream. Defaults to `false`.                                                                              |
+| tls\_insecure\_noverify       | Boolean    | **Optional.** Disable TLS peer verification. Defaults to `false`.                                                                            |
+| tls\_ca\_file                 | String     | **Optional.** Path to CA certificate to validate the remote host.                                                                            |
+| tls\_cert\_file               | String     | **Optional.** Path to the client certificate to present to the OTLP backend for mutual verification.                                         |
+| tls\_key\_file                | String     | **Optional.** Path to the client certificate key.                                                                                            |
+
+!!! tip
+
+    The `flush_threshold` is a byte size threshold, not a metric count threshold. By default, the writer will flush all
+    buffered metrics to the OTLP backend once the total size of buffered metrics exceeds 16 MiB. This number is chosen
+    based on the default `max_request_body_size` of the OpenTelemetry Collector, and you must adjust it according to the
+    `max_request_body_size` of your OTLP backend to avoid metrics being dropped due to exceeding the maximum request body
+    size. Furthermore, the writer may not flush at the exact byte size threshold due to the internal structure of OTLP
+    messages, so make sure that the threshold is lower than the configured `max_request_body_size` of your OTLP backend.
 
 ### PerfdataWriter <a id="objecttype-perfdatawriter"></a>
 
