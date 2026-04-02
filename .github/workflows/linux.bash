@@ -9,7 +9,23 @@ CMAKE_OPTS=()
 # See: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=88443
 # -Wtemplate-id-cdtor leaks from using the generated headers. We should reenable this once
 # we're considering moving to C++20 and/or the -ti.hpp files are generated differently.
-WARN_FLAGS="-Wall -Wextra -Wno-template-id-cdtor -Wno-stringop-overflow"
+# -Wdeprecated-declarations can be dropped, because we're well aware of old OpenSSL functions
+# still being used and don't need warnings on every distro for that.
+WARN_FLAGS="-Wall -Wextra -Wno-template-id-cdtor -Wno-stringop-overflow -Wno-deprecated-declarations"
+
+case "$DISTRO" in
+  amazonlinux:2)
+    # amazonlinux:2 has a really old GNU bison (3.0.4), which still emits register storage
+    # specifiers, that even the only slightly more modern compiler warns that C++17 does not
+    # allow (duh).
+    WARN_FLAGS="${WARN_FLAGS} -Wno-register"
+    ;;
+  debian:11)
+    # -Wattributes neededs to be disabled to not get warnings in old compilers about not-yet
+    # understood attributes, like [[gnu::no_dangling]] on debian:11.
+    WARN_FLAGS="${WARN_FLAGS} -Wno-attributes"
+    ;;
+esac
 
 case "$DISTRO" in
   alpine:*)
