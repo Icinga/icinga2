@@ -69,6 +69,7 @@ void PerfdataWriterConnection::Disconnect()
 	std::promise<void> promise;
 
 	IoEngine::SpawnCoroutine(m_Strand, [&](boost::asio::yield_context yc) {
+		Log(LogDebug, m_LogFacility) << "PerfdataWriterConnection::Disconnect::1";
 		try {
 			/* Cancel any outstanding operations of the other coroutine.
 			 * Since we're on the same strand we're hopefully guaranteed that all cancellations
@@ -85,9 +86,12 @@ void PerfdataWriterConnection::Disconnect()
 			);
 			m_ReconnectTimer.cancel();
 
+			Log(LogDebug, m_LogFacility) << "PerfdataWriterConnection::Disconnect::3";
 			Disconnect(std::move(yc));
+			Log(LogDebug, m_LogFacility) << "PerfdataWriterConnection::Disconnect::4";
 			promise.set_value();
 		} catch (const std::exception& ex) {
+			Log(LogDebug, m_LogFacility) << "PerfdataWriterConnection::Disconnect::5";
 			promise.set_exception(std::current_exception());
 		}
 	});
@@ -130,12 +134,16 @@ void PerfdataWriterConnection::EnsureConnected(const boost::asio::yield_context&
 
 	std::visit(
 		[&](auto& stream) {
+			Log(LogDebug, m_LogFacility) << "PerfdataWriterConnection::EnsureConnected::1";
 			::Connect(stream->lowest_layer(), m_Host, m_Port, yc);
+			Log(LogDebug, m_LogFacility) << "PerfdataWriterConnection::EnsureConnected::2";
 
 			if constexpr (std::is_same_v<std::decay_t<decltype(stream)>, Shared<AsioTlsStream>::Ptr>) {
+				Log(LogDebug, m_LogFacility) << "PerfdataWriterConnection::EnsureConnected::3";
 				using type = boost::asio::ssl::stream_base::handshake_type;
 
 				stream->next_layer().async_handshake(type::client, yc);
+				Log(LogDebug, m_LogFacility) << "PerfdataWriterConnection::EnsureConnected::4";
 
 				if (m_VerifyPeerCertificate) {
 					if (!stream->next_layer().IsVerifyOK()) {

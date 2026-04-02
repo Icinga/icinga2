@@ -83,6 +83,7 @@ void Connect(Socket& socket, const String& node, const String& service, boost::a
 
 			break;
 		} catch (const std::exception& ex) {
+			Log(LogDebug, "Connect") << "Execption: " << ex.what();
 			auto se (dynamic_cast<const boost::system::system_error*>(&ex));
 
 			if ((se && se->code() == boost::asio::error::operation_aborted) || ++current == result.end()) {

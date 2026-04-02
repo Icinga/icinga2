@@ -128,7 +128,7 @@ RUN --mount=type=bind,source=.,target=/icinga2,readonly \
         -DICINGA2_WITH_LIVESTATUS=OFF && \
     make -j$([ "$MAKE_JOBS" = auto ] && nproc || echo "$MAKE_JOBS") && \
     if [ "${ICINGA2_BUILD_TESTING}" = ON ]; then \
-        ctest -j$([ "$MAKE_JOBS" = auto ] && nproc || echo "$MAKE_JOBS") --output-on-failure; \
+        ctest -j$([ "$MAKE_JOBS" = auto ] && nproc || echo "$MAKE_JOBS") --verbose; \
     fi && \
     make install DESTDIR=/icinga2-install
 
