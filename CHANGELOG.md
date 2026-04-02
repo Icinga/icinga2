@@ -62,10 +62,8 @@ These features have already been deprecated and will also be removed in v2.18:
 * Better debug log messages for dependencies with non-existing parents or children: [#10737](https://github.com/Icinga/icinga2/pull/10737)
 * No longer require the unused 'queue' parameter for `v1/events`: [#10495](https://github.com/Icinga/icinga2/pull/10495)
 * Allow UID/GID values in `ICINGA2_USER` and `ICINGA2_GROUP` environment variables: [#10538](https://github.com/Icinga/icinga2/pull/10538)
-* Deterministic ordering of endpoints in zones (for manual load-balancing): [#10389](https://github.com/Icinga/icinga2/pull/10389), [#10393](https://github.com/Icinga/icinga2/pull/10393)
 * Add `messages_received_per_type` attribute to endpoints: [#10387](https://github.com/Icinga/icinga2/pull/10387)
 * Better error messages on Redis® connection errors: [#10727](https://github.com/Icinga/icinga2/pull/10727)
-* JSON-RPC utilization metrics and troubleshooting: [#10553](https://github.com/Icinga/icinga2/pull/10553)
 * New node-setup command option `--no-default-global-zones`: [#10028](https://github.com/Icinga/icinga2/pull/10028)
 * Warn on problematic object names: [#10770](https://github.com/Icinga/icinga2/pull/10770)
 * New config option `http_response_headers` for ApiListener that allows to set arbitrary HTTP-headers that will be sent
@@ -80,14 +78,10 @@ back with responses: [#10563](https://github.com/Icinga/icinga2/pull/10563)
 * Improved BSD support: [#10641](https://github.com/Icinga/icinga2/pull/10641), [#10640](https://github.com/Icinga/icinga2/pull/10640), [#10638](https://github.com/Icinga/icinga2/pull/10638) and [#10635](https://github.com/Icinga/icinga2/pull/10635)
 * TimePeriod: properly validate `ranges` field: [#10633](https://github.com/Icinga/icinga2/pull/10633)
 * Fix recovery notifications outside time period being lost: [#10613](https://github.com/Icinga/icinga2/pull/10613)
-* Send signals as Icinga user in safe-reload and logrotate: [#10530](https://github.com/Icinga/icinga2/pull/10530)
 * Prevent worst-case exponential complexity in dependency evaluation: [#10523](https://github.com/Icinga/icinga2/pull/10523)
 * Fix double-free error in `posix_error::what()`: [#10558](https://github.com/Icinga/icinga2/pull/10558)
-* Handle config package updates gracefully: [#10476](https://github.com/Icinga/icinga2/pull/10476)
 * Fix expiry times not applying correctly to Acknowledgements via ExternalCommandProcessor: [#10486](https://github.com/Icinga/icinga2/pull/10486)
 * Fix dropped or stalled connections blocking Icinga 2 shutdown on all perfdata writers: [#10668](https://github.com/Icinga/icinga2/pull/10668)
-* Add a missing null pointer check while evaluating expressions: [CVE-2025-61908](https://github.com/Icinga/icinga2/security/advisories/GHSA-v9jg-xqhj-f43g)
-* Prevent API users from accessing variables and objects they don't have access to within filter expressions: [CVE-2025-61907](https://github.com/Icinga/icinga2/security/advisories/GHSA-gg32-w9rm-vp2v)
 
 ### ITL
 
@@ -97,12 +91,6 @@ back with responses: [#10563](https://github.com/Icinga/icinga2/pull/10563)
 * Add plain fping CheckCommand to ITL: [#10494](https://github.com/Icinga/icinga2/pull/10494)
 * Remove clear variable from disk CheckCommand: [#10531](https://github.com/Icinga/icinga2/pull/10531)
 * Add a check command for NETGEAR monitoring: [#10753](https://github.com/Icinga/icinga2/pull/10753)
-
-### SELinux
-
-* Allow to send `SIGTERM` to nagios plugins: [#10535](https://github.com/Icinga/icinga2/pull/10535)
-* Allow `logrotate` to execute `icinga2` binary: [#10621](https://github.com/Icinga/icinga2/pull/10621)
-* Allow to query attrs of a filesystem: [#10726](https://github.com/Icinga/icinga2/pull/10726)
 
 ### Optimizations
 
@@ -151,10 +139,8 @@ back with responses: [#10563](https://github.com/Icinga/icinga2/pull/10563)
 
 ### Windows
 
-* Properly set ACL on installation: [#10710](https://github.com/Icinga/icinga2/pull/10710)
 * OpenSSL shipped on Windows updated to 3.5: [#10679](https://github.com/Icinga/icinga2/pull/10679)
 * Boost version shipped on Windows updated to 1.90: [#10669](https://github.com/Icinga/icinga2/pull/10669)
-* Require Visual Studio 2022: [#10690](https://github.com/Icinga/icinga2/pull/10690)
 
 ## 2.15.2 (2026-01-29)
 
