@@ -218,7 +218,6 @@ private:
 	);
 	void ListenerCoroutineProc(boost::asio::yield_context yc, const Shared<boost::asio::ip::tcp::acceptor>::Ptr& server);
 
-	WorkQueue m_RelayQueue;
 	WorkQueue m_SyncQueue{0, 4};
 
 	std::mutex m_LogLock;

@@ -59,7 +59,6 @@ REGISTER_APIFUNCTION(Hello, icinga, &ApiListener::HelloAPIHandler);
 
 ApiListener::ApiListener()
 {
-	m_RelayQueue.SetName("ApiListener, RelayQueue");
 	m_SyncQueue.SetName("ApiListener, SyncQueue");
 }
 
@@ -1191,7 +1190,7 @@ void ApiListener::RelayMessage(const MessageOrigin::Ptr& origin,
 	if (!IsActive())
 		return;
 
-	m_RelayQueue.Enqueue([this, origin, secobj, message, log]() { SyncRelayMessage(origin, secobj, message, log); }, PriorityNormal, true);
+	SyncRelayMessage(origin, secobj, message, log);
 }
 
 void ApiListener::PersistMessage(const Dictionary::Ptr& message, const ConfigObject::Ptr& secobj)
@@ -1745,10 +1744,8 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus()
 	size_t jsonRpcAnonymousClients = GetAnonymousClients().size();
 	size_t httpClients = GetHttpClients().size();
 	size_t syncQueueItems = m_SyncQueue.GetLength();
-	size_t relayQueueItems = m_RelayQueue.GetLength();
 	double workQueueItemRate = JsonRpcConnection::GetWorkQueueRate();
 	double syncQueueItemRate = m_SyncQueue.GetTaskCount(60) / 60.0;
-	double relayQueueItemRate = m_RelayQueue.GetTaskCount(60) / 60.0;
 
 	Dictionary::Ptr status = new Dictionary({
 		{ "identity", GetIdentity() },
@@ -1763,10 +1760,8 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus()
 		{ "json_rpc", new Dictionary({
 			{ "anonymous_clients", jsonRpcAnonymousClients },
 			{ "sync_queue_items", syncQueueItems },
-			{ "relay_queue_items", relayQueueItems },
 			{ "work_queue_item_rate", workQueueItemRate },
 			{ "sync_queue_item_rate", syncQueueItemRate },
-			{ "relay_queue_item_rate", relayQueueItemRate }
 		}) },
 
 		{ "http", new Dictionary({
@@ -1782,11 +1777,9 @@ std::pair<Dictionary::Ptr, Dictionary::Ptr> ApiListener::GetStatus()
 	perfdata->Set("num_json_rpc_anonymous_clients", jsonRpcAnonymousClients);
 	perfdata->Set("num_http_clients", httpClients);
 	perfdata->Set("num_json_rpc_sync_queue_items", syncQueueItems);
-	perfdata->Set("num_json_rpc_relay_queue_items", relayQueueItems);
 
 	perfdata->Set("num_json_rpc_work_queue_item_rate", workQueueItemRate);
 	perfdata->Set("num_json_rpc_sync_queue_item_rate", syncQueueItemRate);
-	perfdata->Set("num_json_rpc_relay_queue_item_rate", relayQueueItemRate);
 
 	return std::make_pair(status, perfdata);
 }
