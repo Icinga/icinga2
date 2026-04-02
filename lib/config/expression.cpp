@@ -39,6 +39,8 @@ void Expression::ScriptBreakpoint(ScriptFrame& frame, ScriptError *ex, const Deb
 
 ExpressionResult Expression::Evaluate(ScriptFrame& frame, DebugHint *dhint) const
 {
+	ExpressionResult result (Empty);
+
 	try {
 #ifdef I2_DEBUG
 /*		std::ostringstream msgbuf;
@@ -49,11 +51,15 @@ ExpressionResult Expression::Evaluate(ScriptFrame& frame, DebugHint *dhint) cons
 
 		frame.IncreaseStackDepth();
 
-		Defer decreaseStackDepth([&frame]{
+		try {
+			result = DoEvaluate(frame, dhint);
+		} catch (...) {
 			frame.DecreaseStackDepth();
-		});
+			throw;
+		}
 
-		ExpressionResult result = DoEvaluate(frame, dhint);
+		frame.DecreaseStackDepth();
+
 		return result;
 	} catch (ScriptError& ex) {
 		ScriptBreakpoint(frame, &ex, GetDebugInfo());
