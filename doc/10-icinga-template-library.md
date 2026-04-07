@@ -420,29 +420,28 @@ disk\_wfree      	| **Optional.** The free space warning threshold. Defaults to 
 disk\_cfree      	| **Optional.** The free space critical threshold. Defaults to "10%". If the percent sign is omitted, units from `disk_units` are used.
 disk\_inode\_wfree 	| **Optional.** The free inode warning threshold.
 disk\_inode\_cfree 	| **Optional.** The free inode critical threshold.
-disk\_partition		| **Optional.** The partition. **Deprecated in 2.3.**
-disk\_partition\_excluded  | **Optional.** The excluded partition. **Deprecated in 2.3.**
 disk\_partitions 	| **Optional.** The partition(s). Multiple partitions must be defined as array.
 disk\_partitions\_excluded | **Optional.** The excluded partition(s). Multiple partitions must be defined as array.
 disk\_exact\_match      | **Optional.** For paths or partitions specified with -p, only check for exact paths. May be true or false.
 disk\_errors\_only      | **Optional.** Display only devices/mountpoints with errors. May be true or false.
 disk\_ignore\_reserved  | **Optional.** If set, account root-reserved blocks are not accounted for freespace in perfdata. May be true or false.
+disk\_inode\_perfdata   | **Optional.** Display inode usage in perfdata. (Monitoring Plugins only)
 disk\_group             | **Optional.** Group paths. Thresholds apply to (free-)space of all partitions together.
-disk\_kilobytes         | **Optional.** Same as --units kB. May be true or false.
 disk\_local             | **Optional.** Only check local filesystems. May be true or false.
 disk\_stat\_remote\_fs  | **Optional.** Only check local filesystems against thresholds. Yet call stat on remote filesystems to test if they are accessible (e.g. to detect Stale NFS Handles). May be true or false.
 disk\_mountpoint          | **Optional.** Display the mountpoint instead of the partition. May be true or false.
-disk\_megabytes           | **Optional.** Same as --units MB. May be true or false.
 disk\_all                 | **Optional.** Explicitly select all paths. This is equivalent to -R '.\*'. May be true or false.
 disk\_eregi\_path         | **Optional.** Case insensitive regular expression for path/partition. Multiple regular expression strings must be defined as array.
 disk\_ereg\_path          | **Optional.** Regular expression for path or partition. Multiple regular expression strings must be defined as array.
 disk\_ignore\_eregi\_path | **Optional.** Regular expression to ignore selected path/partition (case insensitive). Multiple regular expression strings must be defined as array.
 disk\_ignore\_ereg\_path  | **Optional.** Regular expression to ignore selected path or partition. Multiple regular expression strings must be defined as array.
+disk\_ignore\_missing\    | **Optional.** Return OK if no filesystem matches, filesystem does not exist or is inaccessible. (Monitoring Plugins only)
 disk\_timeout             | **Optional.** Seconds before connection times out (default: 10).
 disk\_units               | **Optional.** Choose bytes, kB, MB, GB, TB.
+disk\_kilobytes         | **Optional.** Same as --units kB. May be true or false.
+disk\_megabytes           | **Optional.** Same as --units MB. May be true or false.
 disk\_exclude\_type       | **Optional.** Ignore all filesystems of indicated type. Multiple regular expression strings must be defined as array. Defaults to "none", "tmpfs", "sysfs", "proc", "configfs", "devtmpfs", "devfs", "mtmfs", "tracefs", "cgroup", "fuse.\*" (only Monitoring Plugins support this so far), "fuse.gvfsd-fuse", "fuse.gvfs-fuse-daemon", "fuse.sshfs", "fdescfs", "overlay", "nsfs", "squashfs".
 disk\_include\_type       | **Optional.** Check only filesystems of indicated type. Multiple regular expression strings must be defined as array.
-disk\_inode\_perfdata     | **Optional.** Display inode usage in perfdata
 disk\_np\_inode\_perfdata | **Optional.** Enable performance data for inode-based statistics (Requires: nagios-plugins >= 2.3.0)
 disk\_extra\_opts         | **Optional.** Read extra plugin options from an ini file.
 
