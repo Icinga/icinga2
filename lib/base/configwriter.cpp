@@ -63,7 +63,8 @@ void ConfigWriter::EmitScope(std::ostream& fp, int indentLevel, const Dictionary
 		for (const Value& import : imports) {
 			fp << "\n";
 			EmitIndent(fp, indentLevel);
-			fp << "import \"" << import << "\"";
+			fp << "import ";
+			EmitString(fp, import.Get<String>());
 		}
 
 		fp << "\n";
@@ -172,11 +173,6 @@ void ConfigWriter::EmitConfigItem(std::ostream& fp, const String& type, const St
 
 	fp << " ";
 	EmitScope(fp, 1, attrs, imports, true);
-}
-
-void ConfigWriter::EmitComment(std::ostream& fp, const String& text)
-{
-	fp << "/* " << text << " */\n";
 }
 
 void ConfigWriter::EmitFunctionCall(std::ostream& fp, const String& name, const Array::Ptr& arguments)
