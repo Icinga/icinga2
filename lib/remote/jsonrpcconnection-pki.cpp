@@ -226,13 +226,9 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 
 		String realTicket = PBKDF2_SHA1(cn, salt, 50000);
 
-		Log(LogDebug, "JsonRpcConnection")
-			<< "Certificate request for CN '" << cn << "': Comparing received ticket '"
-			<< ticket << "' with calculated ticket '" << realTicket << "'.";
-
 		if (!Utility::ComparePasswords(ticket, realTicket)) {
 			Log(LogWarning, "JsonRpcConnection")
-				<< "Ticket '" << ticket << "' for CN '" << cn << "' is invalid.";
+				<< "Received ticket for CN '" << cn << "' is invalid.";
 
 			result->Set("status_code", 1);
 			result->Set("error", "Invalid ticket for CN '" + cn + "'.");
