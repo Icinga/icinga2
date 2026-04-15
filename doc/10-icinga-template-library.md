@@ -3460,6 +3460,7 @@ Name                         | Description
 netgear\_base\_url           | **Required.** Base URL of the NETGEAR API (example: `http://$check_address$`).
 netgear\_username            | **Required.** Username used for authentication.
 netgear\_password            | **Required.** Password used for authentication.
+netgear\_password\_file      | **Optional.** Path to the file contatining the password.
 netgear\_cpu\_warning        | **Optional.** CPU usage warning threshold (default: 50).
 netgear\_cpu\_critical       | **Optional.** CPU usage critical threshold (default: 90).
 netgear\_mem\_warning        | **Optional.** RAM usage warning threshold (default: 50).
