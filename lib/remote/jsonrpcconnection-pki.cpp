@@ -38,9 +38,8 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 
 	/* Use the presented client certificate if not provided. */
 	if (certText.IsEmpty()) {
-		auto stream (origin->FromClient->GetStream());
-		cert = stream->next_layer().GetPeerCertificate();
-		chain = stream->next_layer().GetPeerCertificateChain();
+		cert = tlsConn.GetPeerCertificate(); 
+		chain = tlsConn.GetPeerCertificateChain();
 	} else {
 		cert = StringToCertificate(certText);
 		chain = nullptr;
