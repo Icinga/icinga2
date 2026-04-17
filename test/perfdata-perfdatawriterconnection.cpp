@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "perfdata/perfdatawriterconnection.hpp"
+#include "test/base-testloggerfixture.hpp"
 #include "test/perfdata-perfdatatargetfixture.hpp"
 #include "test/remote-certificate-fixture.hpp"
 #include "test/test-ctest.hpp"
@@ -10,17 +11,21 @@
 
 using namespace icinga;
 
-class TlsPerfdataWriterFixture : public CertificateFixture, public PerfdataWriterTargetFixture
+class TlsPerfdataWriterFixture : public CertificateFixture, public PerfdataWriterTargetFixture, public TestLoggerFixture
 {
 public:
 	TlsPerfdataWriterFixture() : PerfdataWriterTargetFixture(MakeContext("server"))
 	{
 		m_PdwSslContext = MakeContext("client");
 
-		m_Conn = new PerfdataWriterConnection{"Test", "test", "localhost", std::to_string(GetPort()), m_PdwSslContext};
+		ResetConnection();
 	}
 
 	auto& GetConnection() { return *m_Conn; }
+	void ResetConnection(String host = "localhost")
+	{
+		m_Conn = new PerfdataWriterConnection{"Test", "test", std::move(host), std::to_string(GetPort()), m_PdwSslContext};
+	}
 
 	static inline const std::vector<String> RequiredCerts{"client", "server"};
 
@@ -64,6 +69,30 @@ BOOST_AUTO_TEST_CASE(connection_refused)
 	);
 
 	REQUIRE_JOINS_WITHIN(timeoutThread, 1s);
+}
+
+/**
+ * Tests that the connection attempt fails when the host can not be verified correctly.
+ */
+BOOST_AUTO_TEST_CASE(tls_verify_host)
+{
+	/* The certificates are created with CN=localhost, so 127.0.0.1 should still connect
+	 * correctly, but fail the host name verification of the certificate.
+	 */
+	ResetConnection("127.0.0.1");
+
+	std::promise<void> p;
+	TestThread timeoutThread{[&]() {
+		Accept();
+		Handshake();
+		auto f = p.get_future();
+		GetConnection().CancelAfterTimeout(f, 200ms);
+	}};
+
+	BOOST_REQUIRE_THROW(GetConnection().Send(boost::asio::const_buffer{"foobar", 7}), PerfdataWriterConnection::Stopped);
+
+	REQUIRE_JOINS_WITHIN(timeoutThread, 10s);
+	REQUIRE_LOG_PATTERN("Error while connecting .*?: [hH]ostname mismatch", 10s);
 }
 
 /* The PerfdataWriterConnection connects automatically when sending the first data.
