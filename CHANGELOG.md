@@ -7,6 +7,17 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.15.3 (2026-04-23)
+
+This is a small release containing a few bugfixes backported from the v2.16.0 release.
+
+We will also no longer provide 32bit Windows MSIs via Chocolatey (#10761).
+
+* Bump OpenSSL shipped for Windows to v3.0.20: #10793
+* Fixed a race condition in the `v1/console` handler: #10755, and #10740
+* Fix double-free error in `posix_error::what()`: #10742
+* InfluxDBWriter: print full HTTP error body when request fails: #10739
+
 ## 2.15.2 (2026-01-29)
 
 This security release fixes a problem in the Icinga 2 Windows MSI that did not
