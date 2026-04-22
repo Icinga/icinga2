@@ -76,9 +76,13 @@ void PerfdataWriterConnection::Disconnect()
 			 * completion.
 			 */
 			std::visit(
-				[](const auto& stream) {
+				[&](const auto& stream) {
 					if (stream->lowest_layer().is_open()) {
-						stream->lowest_layer().cancel();
+						if (m_Connected) {
+							stream->lowest_layer().cancel();
+						} else {
+							stream->lowest_layer().close();
+						}
 					}
 				},
 				m_Stream
@@ -160,7 +164,7 @@ void PerfdataWriterConnection::EnsureConnected(const boost::asio::yield_context&
 
 void PerfdataWriterConnection::Disconnect(boost::asio::yield_context yc)
 {
-	if (!m_Connected.exchange(false, std::memory_order_relaxed)) {
+	if (!m_Connected.exchange(false)) {
 		return;
 	}
 
