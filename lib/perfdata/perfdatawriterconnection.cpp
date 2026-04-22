@@ -62,7 +62,7 @@ bool PerfdataWriterConnection::IsStopped() const
 
 void PerfdataWriterConnection::Disconnect()
 {
-	if (m_Stopped.exchange(true, std::memory_order_relaxed)) {
+	if (m_Stopped.exchange(true)) {
 		return;
 	}
 
@@ -133,6 +133,10 @@ void PerfdataWriterConnection::EnsureConnected(const boost::asio::yield_context&
 			::Connect(stream->lowest_layer(), m_Host, m_Port, yc);
 
 			if constexpr (std::is_same_v<std::decay_t<decltype(stream)>, Shared<AsioTlsStream>::Ptr>) {
+				if (m_Stopped) {
+					BOOST_THROW_EXCEPTION(Stopped{});
+				}
+
 				using type = boost::asio::ssl::stream_base::handshake_type;
 
 				stream->next_layer().async_handshake(type::client, yc);
