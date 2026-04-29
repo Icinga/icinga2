@@ -39,7 +39,6 @@ jobs:
           - fedora:43
           - fedora:44
 
-          - opensuse/leap:15.6
           - opensuse/leap:16.0
 
           # We don't actually support Rocky Linux as such!
