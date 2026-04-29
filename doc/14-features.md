@@ -678,10 +678,6 @@ icinga2 feature enable otlpmetrics
     icinga2 feature list | grep otlpmetrics
     ```
 
-    If you need `OTLPMetricsWriter` on these platforms, use one of the following:
-    1. Build Icinga 2 from source with a newer Protobuf toolchain and `ICINGA2_WITH_OPENTELEMETRY=ON`.
-    2. Use a newer distribution release where package dependencies satisfy the OpenTelemetry build requirements.
-
 By default, the OTLPMetrics Writer expects the OpenTelemetry Collector or any other OTLP HTTP receiver to listen at
 `127.0.0.1` on port `4318` but most of the third-party backends use their own ports, so you may need to adjust the
 configuration accordingly. Additionally, the `metrics_endpoint` can vary based on the backend you are using.

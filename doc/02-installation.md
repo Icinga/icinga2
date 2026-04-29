@@ -198,12 +198,6 @@ with `root` permissions unless noted otherwise.
 apt install icinga2
 ```
 
-!!! info
-
-    On Debian 11 and Ubuntu 22.04, the official Icinga 2 packages currently do **not**
-    provide the `otlpmetrics` feature (`OTLPMetricsWriter`). These package builds disable
-    OpenTelemetry support because the default Protobuf compiler version in those distributions
-    is too old for the required OpenTelemetry code generation.
 <!-- {% endif %} -->
 
 <!-- {% if rhel %} -->
