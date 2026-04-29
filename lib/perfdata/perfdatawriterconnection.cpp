@@ -66,7 +66,7 @@ void PerfdataWriterConnection::Disconnect()
 		return;
 	}
 
-	std::promise<void> promise;
+	SyncResult<void> ret;
 
 	IoEngine::SpawnCoroutine(m_Strand, [&](boost::asio::yield_context yc) {
 		try {
@@ -90,13 +90,13 @@ void PerfdataWriterConnection::Disconnect()
 			m_ReconnectTimer.cancel();
 
 			Disconnect(std::move(yc));
-			promise.set_value();
+			ret.SetValue();
 		} catch (const std::exception& ex) {
-			promise.set_exception(std::current_exception());
+			ret.SetException(std::current_exception());
 		}
 	});
 
-	promise.get_future().get();
+	ret.Get();
 }
 
 AsioTlsOrTcpStream PerfdataWriterConnection::MakeStream() const
