@@ -10,6 +10,7 @@
 #include <boost/beast/http/message.hpp>
 #include <boost/beast/http/string_body.hpp>
 #include <future>
+#include <utility>
 
 namespace icinga {
 
@@ -20,6 +21,56 @@ class PerfdataWriterConnection final : public Object
 {
 	static constexpr auto InitialRetryWait = 50ms;
 	static constexpr auto FinalRetryWait = 32s;
+
+	template<typename T>
+	class SyncResult
+	{
+		using ValueType = std::variant<std::monostate, std::conditional_t<std::is_void_v<T>, bool, T>, std::exception_ptr>;
+
+	public:
+		template<typename U, typename V = T, typename = std::enable_if_t<!std::is_void_v<V>>>
+		void SetValue(U&& v)
+		{
+			std::lock_guard lock(m_Mutex);
+			m_Value = std::forward<U>(v);
+			m_Cv.notify_one();
+		}
+
+		template<typename V = T, typename = std::enable_if_t<std::is_void_v<V>>>
+		void SetValue()
+		{
+			std::lock_guard lock(m_Mutex);
+			m_Value = true;
+			m_Cv.notify_one();
+		}
+
+		void SetException(std::exception_ptr ep)
+		{
+			std::lock_guard lock(m_Mutex);
+			m_Value = ValueType{ep};
+			m_Cv.notify_one();
+		}
+
+		T Get()
+		{
+			std::unique_lock l(m_Mutex);
+			m_Cv.wait(l, [&] { return !std::holds_alternative<std::monostate>(m_Value); });
+			if (std::holds_alternative<std::exception_ptr>(m_Value)) {
+				std::rethrow_exception(std::get<std::exception_ptr>(m_Value));
+			}
+
+			if constexpr (std::is_void_v<T>) {
+				return;
+			} else {
+				return std::move(std::get<T>(m_Value));
+			}
+		}
+
+	private:
+		std::mutex m_Mutex;
+		std::condition_variable m_Cv;
+		ValueType m_Value;
+	};
 
 public:
 	DECLARE_PTR_TYPEDEFS(PerfdataWriterConnection);
@@ -66,7 +117,7 @@ public:
 		}
 
 		using RetType = decltype(WriteMessage(std::declval<Buffer>(), std::declval<boost::asio::yield_context>()));
-		std::promise<RetType> promise;
+		SyncResult<RetType> ret;
 
 		IoEngine::SpawnCoroutine(m_Strand, [&](boost::asio::yield_context yc) {
 			while (true) {
@@ -75,16 +126,16 @@ public:
 
 					if constexpr (std::is_void_v<RetType>) {
 						WriteMessage(std::forward<Buffer>(buf), yc);
-						promise.set_value();
+						ret.SetValue();
 					} else {
-						promise.set_value(WriteMessage(std::forward<Buffer>(buf), yc));
+						ret.SetValue(WriteMessage(std::forward<Buffer>(buf), yc));
 					}
 
 					m_RetryTimeout = InitialRetryWait;
 					return;
 				} catch (const std::exception& ex) {
 					if (m_Stopped) {
-						promise.set_exception(std::make_exception_ptr(Stopped{}));
+						ret.SetException(std::make_exception_ptr(Stopped{}));
 						return;
 					}
 
@@ -98,14 +149,14 @@ public:
 					try {
 						BackoffWait(yc);
 					} catch (const std::exception&) {
-						promise.set_exception(std::make_exception_ptr(Stopped{}));
+						ret.SetException(std::make_exception_ptr(Stopped{}));
 						return;
 					}
 				}
 			}
 		});
 
-		return promise.get_future().get();
+		return ret.Get();
 	}
 
 	void Disconnect();
