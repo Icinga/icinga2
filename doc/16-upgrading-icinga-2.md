@@ -16,6 +16,12 @@ ElasticsearchWriter is deprecated in v2.16 and will be removed in v2.18. In case
 we suggest migrating to the new OTLPMetricsWriter as a replacement. The index data structure in Elasticsearch will be
 different though, so any third-party tools working with that data will need to be adapted as well.
 
+!!! info
+
+    The official Icinga 2 packages for Debian 11, Ubuntu 22.04 and Amazon Linux 2 are currently built without
+    OpenTelemetry support (`ICINGA2_WITH_OPENTELEMETRY=OFF`), so `OTLPMetricsWriter` is not
+    available there unless you build Icinga 2 with a newer Protobuf toolchain.
+
 ### Deprecation of user-defined DSL Namespaces
 
 If you were previously using constructs like `namespace my_utils { ... }` in your config, we suggest

@@ -663,6 +663,21 @@ In order to enable this feature, you can use the following command:
 icinga2 feature enable otlpmetrics
 ```
 
+!!! info
+
+    **Package availability note (Debian 11 / Ubuntu 22.04 / Amazon Linux 2):**
+    The official Icinga 2 packages for Debian 11, Ubuntu 22.04 and Amazon Linux 2 are built with
+    `-DICINGA2_WITH_OPENTELEMETRY=OFF`, because the default Protobuf compiler in these
+    distributions is too old for the OpenTelemetry code generation used by Icinga 2.
+    As a result, the `otlpmetrics` feature (and `OTLPMetricsWriter` type) is not available
+    in those package builds.
+
+    You can verify this on a node with:
+
+    ```bash
+    icinga2 feature list | grep otlpmetrics
+    ```
+
 By default, the OTLPMetrics Writer expects the OpenTelemetry Collector or any other OTLP HTTP receiver to listen at
 `127.0.0.1` on port `4318` but most of the third-party backends use their own ports, so you may need to adjust the
 configuration accordingly. Additionally, the `metrics_endpoint` can vary based on the backend you are using.
