@@ -1350,6 +1350,8 @@ Configuration Attributes:
   service\_name\_template   | String                | **Optional.** Metric prefix for service name. Defaults to `icinga2.$host.name$.services.$service.name$.$service.check_command$`.
   enable\_send\_thresholds  | Boolean               | **Optional.** Send additional threshold metrics. Defaults to `false`.
   enable\_send\_metadata    | Boolean               | **Optional.** Send additional metadata metrics. Defaults to `false`.
+  flush\_interval           | Duration              | **Optional.** How long to buffer data points before sending. Defaults to `15s`.
+  flush\_threshold          | Number                | **Optional.** How many bytes to buffer before forcing a flush to the backend. Defaults to `2MiB`.
   enable\_ha                | Boolean               | **Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-features). Defaults to `false`.
 
 Additional usage examples can be found [here](14-features.md#graphite-carbon-cache-writer).

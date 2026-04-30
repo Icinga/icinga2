@@ -36,13 +36,18 @@ protected:
 
 private:
 	PerfdataWriterConnection::Ptr m_Connection;
+	Timer::Ptr m_FlushTimer;
+	std::atomic_bool m_FlushTimerInQueue{false};
+	String m_MsgBuf;
 	WorkQueue m_WorkQueue{10000000, 1};
 
 	boost::signals2::connection m_HandleCheckResults;
 
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
-	void SendMetric(const Checkable::Ptr& checkable, const String& prefix, const String& name, double value, double ts);
-	void SendPerfdata(const Checkable::Ptr& checkable, const String& prefix, const CheckResult::Ptr& cr);
+	void AddMetric(const Checkable::Ptr& checkable, const String& prefix, const String& name, double value, double ts);
+	void AddPerfdata(const Checkable::Ptr& checkable, const String& prefix, const CheckResult::Ptr& cr);
+	void FlushTimeout();
+	void Flush();
 	static String EscapeMetric(const String& str);
 	static String EscapeMetricLabel(const String& str);
 	static Value EscapeMacroMetric(const Value& value);
