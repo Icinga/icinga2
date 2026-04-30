@@ -1317,6 +1317,8 @@ Configuration Attributes:
   diconnect\_timeout        | Duration              | **Optional.** Timeout to wait for any outstanding data to be flushed to GELF before disconnecting. Defaults to `10s`.
   source                    | String                | **Optional.** Source name for this instance. Defaults to `icinga2`.
   enable\_send\_perfdata    | Boolean               | **Optional.** Enable performance data for 'CHECK RESULT' events.
+  flush\_interval           | Duration              | **Optional.** How long to buffer data points before sending. Defaults to `15s`.
+  flush\_threshold          | Number                | **Optional.** How many bytes to buffer before forcing a flush to the backend. Defaults to `2MiB`.
   enable\_ha                | Boolean               | **Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-features). Defaults to `false`.
   enable\_tls               | Boolean               | **Optional.** Whether to use a TLS stream. Defaults to `false`.
   insecure\_noverify        | Boolean               | **Optional.** Disable TLS peer verification.
