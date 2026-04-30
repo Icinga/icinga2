@@ -18,7 +18,7 @@ different though, so any third-party tools working with that data will need to b
 
 !!! info
 
-    The official Icinga 2 packages for Debian 11 and Ubuntu 22.04 are currently built without
+    The official Icinga 2 packages for Debian 11, Ubuntu 22.04 and Amazon Linux 2 are currently built without
     OpenTelemetry support (`ICINGA2_WITH_OPENTELEMETRY=OFF`), so `OTLPMetricsWriter` is not
     available there unless you build Icinga 2 with a newer Protobuf toolchain.
 

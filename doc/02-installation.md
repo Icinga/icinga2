@@ -197,7 +197,6 @@ with `root` permissions unless noted otherwise.
 ```bash
 apt install icinga2
 ```
-
 <!-- {% endif %} -->
 
 <!-- {% if rhel %} -->

@@ -665,8 +665,8 @@ icinga2 feature enable otlpmetrics
 
 !!! info
 
-    **Package availability note (Debian 11 / Ubuntu 22.04):**
-    The official Icinga 2 packages for Debian 11 and Ubuntu 22.04 are built with
+    **Package availability note (Debian 11 / Ubuntu 22.04 / Amazon Linux 2):**
+    The official Icinga 2 packages for Debian 11, Ubuntu 22.04 and Amazon Linux 2 are built with
     `-DICINGA2_WITH_OPENTELEMETRY=OFF`, because the default Protobuf compiler in these
     distributions is too old for the OpenTelemetry code generation used by Icinga 2.
     As a result, the `otlpmetrics` feature (and `OTLPMetricsWriter` type) is not available

@@ -1880,7 +1880,7 @@ on the [OpenTelemetry website](https://opentelemetry.io/).
 
 !!! info
 
-    The official package builds for Debian 11 and Ubuntu 22.04 do not include this object type.
+    The official package builds for Debian 11, Ubuntu 22.04 and Amazon Linux 2 do not include this object type.
     These builds disable OpenTelemetry support (`ICINGA2_WITH_OPENTELEMETRY=OFF`) because the
     default Protobuf compiler version is too old for the required code generation.
 
