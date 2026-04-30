@@ -35,7 +35,9 @@ protected:
 
 private:
 	WorkQueue m_WorkQueue{10000000, 1};
-	std::string m_MsgBuf;
+	Timer::Ptr m_FlushTimer;
+	std::atomic_bool m_FlushTimerInQueue{false};
+	String m_MsgBuf;
 	PerfdataWriterConnection::Ptr m_Connection;
 
 	boost::signals2::connection m_HandleCheckResults;
@@ -46,6 +48,7 @@ private:
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 	void AddMetric(const Checkable::Ptr& checkable, const String& metric,
 		const std::map<String, String>& tags, double value, double ts);
+	void FlushTimeout();
 	void SendMsgBuffer();
 	void AddPerfdata(const Checkable::Ptr& checkable, const String& metric,
 		const std::map<String, String>& tags, const CheckResult::Ptr& cr, double ts);
