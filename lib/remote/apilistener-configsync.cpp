@@ -274,6 +274,19 @@ Value ApiListener::ConfigDeleteObjectAPIHandler(const MessageOrigin::Ptr& origin
 
 	ConfigObject::Ptr object = ctype->GetObject(objName);
 
+	// Check if the deletion is for an older object version
+	double objVersion = params->Get("version");
+	if (object && objVersion < object->GetVersion()) {
+		Log(LogNotice, "ApiListener")
+			<< "Discarding 'config delete object' message"
+			<< " from '" << identity << "' (endpoint: '" << endpoint->GetName() << "', zone: '" << endpointZone->GetName() << "')"
+			<< " for object '" << object->GetName()
+			<< "': Object version " << std::fixed << object->GetVersion()
+			<< " is more recent than the deleted version " << std::fixed << objVersion << ".";
+
+		return Empty;
+	}
+
 	if (!object) {
 		Log(LogNotice, "ApiListener")
 			<< "Could not delete non-existent object '" << objName << "' with type '" << params->Get("type") << "'.";
