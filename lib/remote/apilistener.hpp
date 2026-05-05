@@ -204,6 +204,9 @@ private:
 	void CleanupCertificateRequestsTimerHandler();
 	void CheckApiPackageIntegrity();
 
+	double GetRuntimeObjectDeletionTs(const String& typeName, const String& objName);
+	bool UpdateRuntimeObjectDeletionTs(const String& typeName, const String& objName, double ts);
+
 	bool AddListener(const String& node, const String& service);
 	void StopListener();
 	void AddConnection(const Endpoint::Ptr& endpoint);
