@@ -183,6 +183,7 @@ private:
 	std::set<HttpServerConnection::Ptr> m_HttpClients;
 
 	Timer::Ptr m_Timer;
+	Timer::Ptr m_DeletedRuntimeObjectsTimer;
 	Timer::Ptr m_ReconnectTimer;
 	Timer::Ptr m_AuthorityTimer;
 	Timer::Ptr m_CleanupCertificateRequestsTimer;
@@ -204,6 +205,7 @@ private:
 	void CleanupCertificateRequestsTimerHandler();
 	void CheckApiPackageIntegrity();
 
+	void PruneDeletedRuntimeObjects();
 	double GetRuntimeObjectDeletionTs(const String& typeName, const String& objName);
 	bool UpdateRuntimeObjectDeletionTs(const String& typeName, const String& objName, double ts);
 
