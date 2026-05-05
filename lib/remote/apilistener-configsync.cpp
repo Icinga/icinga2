@@ -98,6 +98,13 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 	/* update the object */
 	double objVersion = params->Get("version");
 
+	if (listener->GetRuntimeObjectDeletionTs(objType, objName) >= objVersion) {
+		Log(LogInformation, "ApiListener")
+			<< "Ignoring config update for deleted object '" << objName << "' of type '" << objType << "' from '"
+			<< identity << "' (endpoint: '" << endpoint->GetName() << "', zone: '" << endpointZone->GetName() << "')";
+		return Empty;
+	}
+
 	Type::Ptr ptype = Type::GetByName(objType);
 	auto *ctype = dynamic_cast<ConfigType *>(ptype.get());
 
@@ -287,6 +294,11 @@ Value ApiListener::ConfigDeleteObjectAPIHandler(const MessageOrigin::Ptr& origin
 		return Empty;
 	}
 
+	/* We need to store the deletion timestamp even if no object exists, to protect against
+	 * endpoints that try to sync back objects that would have been deleted by this message.
+	 */
+	listener->UpdateRuntimeObjectDeletionTs(objType, objName, objVersion);
+
 	if (!object) {
 		Log(LogNotice, "ApiListener")
 			<< "Could not delete non-existent object '" << objName << "' with type '" << params->Get("type") << "'.";
@@ -450,6 +462,24 @@ void ApiListener::DeleteConfigObject(const ConfigObject::Ptr& object, const Mess
 	if (object->GetPackage() != "_api")
 		return;
 
+	auto typeName = object->GetReflectionType()->GetName();
+	auto objName = object->GetName();
+
+	/* Update the deletion timestamp only if the deletion didn't originate from another
+	 * endpoint, because when this deletion was triggered via a JSON-RPC message, the
+	 * stored timestamp is the one that was set in `ApiListener::ConfigDeleteObjectAPIHandler`
+	 * and  already reflects the time the original deletion was triggered.
+	 * Also set if no timestamp was stored yet, as a safeguard. There shouldn't be any
+	 * situation where this happens, but that relies on the correct execution order of
+	 * many other functions, like cascading deletes always propagating in the correct
+	 * order through JSON-RPC, so the children are always deleted first.
+	 */
+	double deletionTime = GetRuntimeObjectDeletionTs(typeName, objName);
+	if (!origin || origin->IsLocal() || deletionTime == 0) {
+		deletionTime = Utility::GetTime();
+		UpdateRuntimeObjectDeletionTs(typeName, objName, deletionTime);
+	}
+
 	/* only send objects to zones which have access to the object */
 	if (client) {
 		Zone::Ptr target_zone = client->GetEndpoint()->GetZone();
@@ -473,7 +503,7 @@ void ApiListener::DeleteConfigObject(const ConfigObject::Ptr& object, const Mess
 
 	params->Set("name", object->GetName());
 	params->Set("type", object->GetReflectionType()->GetName());
-	params->Set("version", object->GetVersion());
+	params->Set("version", deletionTime);
 
 
 #ifdef I2_DEBUG
@@ -520,4 +550,48 @@ void ApiListener::SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient
 
 	Log(LogInformation, "ApiListener")
 		<< "Finished syncing runtime objects to endpoint '" << endpoint->GetName() << "'.";
+}
+
+static String MakeDeletionTimestampKey(const String& typeName, const String& objName)
+{
+	return typeName + ":" + objName;
+}
+
+/**
+ * Get the timestamp at which the object has been most recently deleted.
+ *
+ * @param typeName The name of the tyope of the object
+ * @param objName The name of the object
+ * @return the timestamp of the object, or 0 if there was no entry.
+ */
+double ApiListener::GetRuntimeObjectDeletionTs(const String& typeName, const String& objName)
+{
+	auto dict = GetDeletedRuntimeObjects();
+	auto ts = dict->Get(MakeDeletionTimestampKey(typeName, objName));
+	if (ts.IsNumber()) {
+		return ts.Get<double>();
+	}
+	return 0;
+}
+
+/**
+ * Updates the deletion timestamp for the object.
+ *
+ * The timestamp will not be changed in case a newer timestamp has already been stored
+ * for the object.
+ *
+ * @param typeName The name of the tyope of the object
+ * @param objName The name of the object
+ * @param ts the timestamp
+ */
+bool ApiListener::UpdateRuntimeObjectDeletionTs(const String& typeName, const String& objName, double ts)
+{
+	auto dict = GetDeletedRuntimeObjects();
+	ObjectLock lock(dict);
+	auto current = GetRuntimeObjectDeletionTs(typeName, objName);
+	if (current > ts) {
+		return false;
+	}
+	dict->Set(MakeDeletionTimestampKey(typeName, objName), ts);
+	return true;
 }
