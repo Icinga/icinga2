@@ -552,6 +552,38 @@ void ApiListener::SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient
 		<< "Finished syncing runtime objects to endpoint '" << endpoint->GetName() << "'.";
 }
 
+/**
+ * Prunes the list of deleted runtime objects.
+ *
+ * This takes into account the longest log duration of all the endpoints in the cluster and
+ * then deletes the entries for objects that are older than that.
+ *
+ * The reasoning is that once a deletion is older than log duration of an endpoint it is
+ * unlikely that we could still get any delayed updates to the object versions that were deleted.
+ * At that point, either all endpoints are up-to-date, or the problematic messages have been
+ * dropped from the replay log anyway.
+ */
+void ApiListener::PruneDeletedRuntimeObjects()
+{
+	auto deletedRuntimeObjects = GetDeletedRuntimeObjects();
+
+	double maxLogDuration = 0;
+	for (const auto &endpoint : ConfigType::GetObjectsByType<Endpoint>()) {
+		maxLogDuration = std::max(maxLogDuration, endpoint->GetLogDuration());
+	}
+	double cutoff = Utility::GetTime() - maxLogDuration;
+
+	ObjectLock lock(deletedRuntimeObjects);
+
+	for (auto it = deletedRuntimeObjects->Begin(); it != deletedRuntimeObjects->End();) {
+		if (it->second < cutoff) {
+			it = deletedRuntimeObjects->Remove(it);
+		} else {
+			it++;
+		};
+	}
+}
+
 static String MakeDeletionTimestampKey(const String& typeName, const String& objName)
 {
 	return typeName + ":" + objName;
