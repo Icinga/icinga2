@@ -8,6 +8,7 @@
 #include "base/generator.hpp"
 #include "base/objectlock.hpp"
 #include "base/json.hpp"
+#include "base/workqueue.hpp"
 #include <boost/algorithm/string/replace.hpp>
 #include <BoostTestTargetConfig.h>
 #include <limits>
@@ -149,6 +150,16 @@ BOOST_AUTO_TEST_CASE(invalid1)
 	BOOST_CHECK_THROW(JsonDecode("\"1.7"), std::exception);
 	BOOST_CHECK_THROW(JsonDecode("{8: \"test\"}"), std::exception);
 	BOOST_CHECK_THROW(JsonDecode("{\"test\": \"test\""), std::exception);
+}
+
+BOOST_AUTO_TEST_CASE(fail_in_workqueue)
+{
+	WorkQueue q;
+	//q.Enqueue([](){ JsonDecode(":)"); });
+	q.Enqueue([](){ throw std::invalid_argument("wtf"); });
+	q.Join();
+	BOOST_CHECK(q.HasExceptions());
+	BOOST_CHECK_EQUAL(q.GetExceptions().size(), 1);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
