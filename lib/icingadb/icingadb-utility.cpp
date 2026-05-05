@@ -92,7 +92,7 @@ String IcingaDB::GetObjectIdentifier(const ConfigObject::Ptr& object)
  */
 String IcingaDB::CalcEventID(const char* eventType, const ConfigObject::Ptr& object, double eventTime, NotificationType nt)
 {
-	Array::Ptr rawId = new Array({object->GetName()});
+	Array::Ptr rawId = new Array({GetObjectIdentifier(object)});
 	rawId->Insert(0, m_EnvironmentId);
 	rawId->Insert(1, eventType);
 

@@ -1905,7 +1905,7 @@ void IcingaDB::SendStateChange(const ConfigObject::Ptr& object, const CheckResul
 	auto eventTime (cr->GetExecutionEnd());
 	auto eventTs (TimestampToMilliseconds(eventTime));
 
-	Array::Ptr rawId = new Array({m_EnvironmentId, object->GetName()});
+	Array::Ptr rawId = new Array({m_EnvironmentId, GetObjectIdentifier(object)});
 	rawId->Add(eventTs);
 
 	RedisConnection::Query xAdd ({

@@ -61,6 +61,7 @@ if(ICINGA2_WITH_PGSQL)
 endif()
 
 if(ICINGA2_WITH_ICINGADB)
+  list(APPEND types_test_SOURCES icingadb-eventid.cpp)
   list(APPEND types_test_SOURCES $<TARGET_OBJECTS:icingadb>)
 endif()
 
