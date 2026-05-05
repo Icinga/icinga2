@@ -67,6 +67,10 @@ class ApiListener : ConfigObject
 	[config, no_user_modify] bool enforce_filter_expression_permission {
 		default {{{ return false; }}}
 	};
+
+	[state, no_user_modify] Dictionary::Ptr deleted_runtime_objects {
+		default {{{ return new Dictionary(); }}}
+	};
 };
 
 }
