@@ -309,4 +309,26 @@ BOOST_FIXTURE_TEST_CASE(create_verify_leaf_certs, CertificateFixture,
 	ASSERT_SIGNATURE_FAILURE(cacert, StringToCertificate(CertificateToString(newCert)));
 }
 
+BOOST_AUTO_TEST_CASE(binary_to_hex)
+{
+	using namespace std::string_view_literals;
+
+	// Helper to call with string_view and to cast from char to unsigned char.
+	auto f = [](std::string_view s) {
+		return BinaryToHex(reinterpret_cast<const unsigned char*>(s.data()), s.length());
+	};
+
+	// Hint: test data can be generated/verified with commands like this: printf ICINGA | xxd -p -c 0
+	BOOST_CHECK_EQUAL(f(""sv), "");
+	BOOST_CHECK_EQUAL(f("ICINGA"sv), "4943494e4741");
+	BOOST_CHECK_EQUAL(f("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"sv),
+		"6162636465666768696a6b6c6d6e6f707172737475767778797a4142434445464748494a4b4c4d4e4f505152535455565758595a");
+	BOOST_CHECK_EQUAL(f("handles\0correctly"sv), "68616e646c657300636f72726563746c79");
+	BOOST_CHECK_EQUAL(f("\0\0\0\0\0"sv), "0000000000");
+
+	// Long string of 10000 * 'D' (= 0x44) should become 10000 * '44' = 20000 * '4':
+	BOOST_CHECK_EQUAL(f(std::string(10000, 0x44)), std::string(20000, '4'));
+
+}
+
 BOOST_AUTO_TEST_SUITE_END()
