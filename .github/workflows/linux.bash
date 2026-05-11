@@ -119,7 +119,7 @@ case "$DISTRO" in
     ;;
   debian:*|ubuntu:*)
     CMAKE_OPTS+=(-DICINGA2_LTO_BUILD=ON)
-    source <(dpkg-buildflags --export=sh)
+    #source <(dpkg-buildflags --export=sh)
     export CFLAGS="${CFLAGS} ${WARN_FLAGS}"
     export CXXFLAGS="${CXXFLAGS} ${WARN_FLAGS}"
 
@@ -135,8 +135,8 @@ case "$DISTRO" in
     if [ "$DISTRO" = "amazonlinux:2" ]; then
       CMAKE_OPTS+=(-DICINGA2_WITH_OPENTELEMETRY=OFF)
     fi
-    CMAKE_OPTS+=(-DCMAKE_{C,CXX}_FLAGS="$(rpm -E '%{optflags} %{?march_flag}') ${WARN_FLAGS}")
-    export LDFLAGS="$(rpm -E '%{?build_ldflags}')"
+    CMAKE_OPTS+=(-DCMAKE_{C,CXX}_FLAGS="`#$(rpm -E '%{optflags} %{?march_flag}')` ${WARN_FLAGS}")
+    #export LDFLAGS="$(rpm -E '%{?build_ldflags}')"
     ;;
 esac
 
