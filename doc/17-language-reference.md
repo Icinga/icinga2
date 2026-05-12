@@ -1151,7 +1151,7 @@ Example:
 ```
 var num = 5
 
-while (num > 5) {
+while (num > 0) {
     log("Test")
     num -= 1
 }
