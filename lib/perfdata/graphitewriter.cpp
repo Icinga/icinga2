@@ -58,11 +58,12 @@ void GraphiteWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& 
 	for (const GraphiteWriter::Ptr& graphitewriter : ConfigType::GetObjectsByType<GraphiteWriter>()) {
 		size_t workQueueItems = graphitewriter->m_WorkQueue.GetLength();
 		double workQueueItemRate = graphitewriter->m_WorkQueue.GetTaskCount(60) / 60.0;
+		auto connection = graphitewriter->m_LockedConnection.load();
 
 		nodes.emplace_back(graphitewriter->GetName(), new Dictionary({
 			{ "work_queue_items", workQueueItems },
 			{ "work_queue_item_rate", workQueueItemRate },
-			{ "connected", graphitewriter->m_Connection->IsConnected() }
+			{ "connected", connection && connection->IsConnected() }
 		}));
 
 		perfdata->Add(new PerfdataValue("graphitewriter_" + graphitewriter->GetName() + "_work_queue_items", workQueueItems));
@@ -86,6 +87,7 @@ void GraphiteWriter::Resume()
 	m_WorkQueue.SetExceptionCallback([this](boost::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
 
 	m_Connection = new PerfdataWriterConnection{this, GetHost(), GetPort()};
+	m_LockedConnection.store(m_Connection);
 
 	/* Register event handlers. */
 	m_HandleCheckResults = Checkable::OnNewCheckResult.connect([this](const Checkable::Ptr& checkable,
