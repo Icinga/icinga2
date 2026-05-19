@@ -202,7 +202,6 @@ void ElasticsearchWriter::AddCheckResult(const Dictionary::Ptr& fields, const Ch
 	CheckCommand::Ptr checkCommand = checkable->GetCheckCommand();
 
 	if (perfdata) {
-		ObjectLock olock(perfdata);
 		for (const Value& val : perfdata) {
 			PerfdataValue::Ptr pdv;
 
