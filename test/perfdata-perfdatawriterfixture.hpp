@@ -63,7 +63,7 @@ object Host "h1" {
 	void ReceiveCheckResults(
 		std::size_t num,
 		ServiceState state,
-		const std::function<void(const CheckResult::Ptr&)>& fn = {}
+		const std::function<void(const CheckResult::Ptr&, const Array::Ptr&)>& fn = {}
 	)
 	{
 		::ReceiveCheckResults(m_Host, num, state, fn);
@@ -95,8 +95,8 @@ object Host "h1" {
 		auto start = std::chrono::steady_clock::now();
 		std::size_t unchangedCount = 0;
 		while(true){
-			ReceiveCheckResults(10, ServiceCritical, [&](const CheckResult::Ptr& cr) {
-				cr->GetPerformanceData()->Add(new PerfdataValue{GetRandomString("", 4096), 1});
+			ReceiveCheckResults(10, ServiceCritical, [&](const CheckResult::Ptr&, const Array::Ptr& perfdata) {
+				perfdata->Add(new PerfdataValue{GetRandomString("", 4096), 1});
 			});
 
 			if (std::chrono::steady_clock::now() - start >= timeout) {
