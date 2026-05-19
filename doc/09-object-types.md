@@ -1878,6 +1878,12 @@ or any other OTLP-compatible backend that accepts OTLP data over HTTP. This conf
 [otlpmetrics feature](14-features.md#otlpmetrics-writer). You can find more information about OpenTelemetry and OTLP
 on the [OpenTelemetry website](https://opentelemetry.io/).
 
+!!! info
+
+    The official package builds for Debian 11, Ubuntu 22.04 and Amazon Linux 2 do not include this object type.
+    These builds disable OpenTelemetry support (`ICINGA2_WITH_OPENTELEMETRY=OFF`) because the
+    default Protobuf compiler version is too old for the required code generation.
+
 A basic copy and pastable example configuration is shown below:
 
 ```
