@@ -39,24 +39,16 @@ public:
 	explicit PerfdataWriterTargetFixture(AsioTlsOrTcpStream stream)
 		: m_Stream(std::move(stream)),
 		  m_Acceptor(
-			  IoEngine::Get().GetIoContext()
+			  IoEngine::Get().GetIoContext(),
+			  boost::asio::ip::tcp::endpoint{boost::asio::ip::address_v4::loopback(), 0}
 		  )
 	{
-		boost::asio::ip::tcp::endpoint ep{boost::asio::ip::address_v4::loopback(), 0};
-		m_Acceptor.open(ep.protocol());
-		m_Acceptor.bind(ep);
 	}
 
 	unsigned short GetPort() { return m_Acceptor.local_endpoint().port(); }
 
-	void Listen()
-	{
-		m_Acceptor.listen();
-	}
-
 	void Accept()
 	{
-		Listen();
 		BOOST_REQUIRE_NO_THROW(
 			std::visit([&](auto& stream) { return m_Acceptor.accept(stream->lowest_layer()); }, m_Stream)
 		);
@@ -90,7 +82,7 @@ public:
 	void ResetStream()
 	{
 		if (std::holds_alternative<Shared<AsioTlsStream>::Ptr>(m_Stream)) {
-			m_Stream = Shared<AsioTlsStream>::Make(IoEngine::Get().GetIoContext(), *m_SslContext, "localhost");
+			m_Stream = Shared<AsioTlsStream>::Make(IoEngine::Get().GetIoContext(), *m_SslContext);
 		} else {
 			m_Stream = Shared<AsioTcpStream>::Make(IoEngine::Get().GetIoContext());
 		}
