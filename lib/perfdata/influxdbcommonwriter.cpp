@@ -266,7 +266,6 @@ void InfluxdbCommonWriter::CheckResultHandler(const Checkable::Ptr& checkable, c
 		double ts = cr->GetExecutionEnd();
 
 		if (Array::Ptr perfdata = cr->GetPerformanceData()) {
-			ObjectLock olock(perfdata);
 			for (const Value& val : perfdata) {
 				PerfdataValue::Ptr pdv;
 
