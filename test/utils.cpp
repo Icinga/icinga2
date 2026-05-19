@@ -93,7 +93,7 @@ void ReceiveCheckResults(
 	const icinga::Checkable::Ptr& host,
 	std::size_t num,
 	icinga::ServiceState state,
-	const std::function<void(const icinga::CheckResult::Ptr&)>& fn
+	const std::function<void(const icinga::CheckResult::Ptr&, const icinga::Array::Ptr&)>& fn
 )
 {
 	using namespace icinga;
@@ -114,11 +114,12 @@ void ReceiveCheckResults(
 
 		Array::Ptr perfData = new Array;
 		perfData->Add(new PerfdataValue{"dummy", 42});
-		cr->SetPerformanceData(perfData);
 
 		if (fn) {
-			fn(cr);
+			fn(cr, perfData);
 		}
+
+		cr->SetPerformanceData(perfData);
 
 		BOOST_REQUIRE(host->ProcessCheckResult(cr, wg) == Checkable::ProcessingResult::Ok);
 	}

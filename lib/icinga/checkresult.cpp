@@ -33,3 +33,9 @@ double CheckResult::CalculateLatency() const
 
 	return latency;
 }
+
+void CheckResult::SetPerformanceData(const Array::Ptr& value)
+{
+	value->Freeze();
+	ObjectImpl<CheckResult>::SetPerformanceData(value);
+}

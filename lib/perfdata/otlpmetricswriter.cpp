@@ -181,7 +181,6 @@ void OTLPMetricsWriter::CheckResultHandler(const Checkable::Ptr& checkable, cons
 		auto endTime = cr->GetExecutionEnd();
 
 		Array::Ptr perfdata = cr->GetPerformanceData();
-		ObjectLock olock(perfdata);
 		for (const Value& val : perfdata) {
 			PerfdataValue::Ptr pdv;
 			if (val.IsObjectType<PerfdataValue>()) {

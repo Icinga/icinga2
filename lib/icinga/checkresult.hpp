@@ -22,6 +22,7 @@ public:
 
 	double CalculateExecutionTime() const;
 	double CalculateLatency() const;
+	void SetPerformanceData(const Array::Ptr& value);
 };
 
 }

@@ -33,5 +33,5 @@ void ReceiveCheckResults(
 	const icinga::Checkable::Ptr& host,
 	std::size_t num,
 	icinga::ServiceState state,
-	const std::function<void(const icinga::CheckResult::Ptr&)>& fn = {}
+	const std::function<void(const icinga::CheckResult::Ptr&, const icinga::Array::Ptr&)>& fn = {}
 );

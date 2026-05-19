@@ -174,8 +174,6 @@ static void DoIfwNetIo(
 	}
 
 	if (perfdata) {
-		ObjectLock oLock (perfdata);
-
 		for (auto& pv : perfdata) {
 			if (!pv.IsString()) {
 				cr->SetOutput(
