@@ -6,19 +6,28 @@
 #include "icinga/service.hpp"
 #include "icinga/notification.hpp"
 #include "icinga/checkcommand.hpp"
+#include "icinga/macroprocessor.hpp"
 #include "icinga/compatutility.hpp"
+#include "base/tcpsocket.hpp"
 #include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
 #include "base/utility.hpp"
 #include "base/perfdatavalue.hpp"
+#include "base/application.hpp"
 #include "base/stream.hpp"
+#include "base/networkstream.hpp"
 #include "base/context.hpp"
 #include "base/exception.hpp"
 #include "base/json.hpp"
 #include "base/statsfunction.hpp"
 #include <boost/algorithm/string/replace.hpp>
 #include <utility>
+#include "base/io-engine.hpp"
+#include <boost/asio/write.hpp>
+#include <boost/asio/buffer.hpp>
+#include <boost/system/error_code.hpp>
+#include <boost/asio/error.hpp>
 
 using namespace icinga;
 
@@ -53,7 +62,7 @@ void GelfWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perf
 		nodes.emplace_back(gelfwriter->GetName(), new Dictionary({
 			{ "work_queue_items", workQueueItems },
 			{ "work_queue_item_rate", workQueueItemRate },
-			{ "connected", gelfwriter->m_Connection->IsConnected() },
+			{ "connected", gelfwriter->GetConnected() },
 			{ "source", gelfwriter->GetSource() }
 		}));
 
@@ -62,22 +71,6 @@ void GelfWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perf
 	}
 
 	status->Set("gelfwriter", new Dictionary(std::move(nodes)));
-}
-
-void GelfWriter::Start(bool runtimeCreated)
-{
-	ObjectImpl::Start(runtimeCreated);
-
-	/* Initialize connection */
-	if (GetEnableTls()) {
-		try {
-			m_SslContext = MakeAsioSslContext(GetCertPath(), GetKeyPath(), GetCaPath());
-		} catch (const std::exception& ex) {
-			Log(LogWarning, "GelfWriter")
-				<< "Unable to create SSL context.";
-			throw;
-		}
-	}
 }
 
 void GelfWriter::Resume()
@@ -90,7 +83,12 @@ void GelfWriter::Resume()
 	/* Register exception handler for WQ tasks. */
 	m_WorkQueue.SetExceptionCallback([this](boost::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
 
-	m_Connection = new PerfdataWriterConnection{this, GetHost(), GetPort(), m_SslContext, !GetInsecureNoverify()};
+	/* Timer for reconnecting */
+	m_ReconnectTimer = Timer::Create();
+	m_ReconnectTimer->SetInterval(10);
+	m_ReconnectTimer->OnTimerExpired.connect([this](const Timer * const&) { ReconnectTimerHandler(); });
+	m_ReconnectTimer->Start();
+	m_ReconnectTimer->Reschedule(0);
 
 	/* Register event handlers. */
 	m_HandleCheckResults = Checkable::OnNewCheckResult.connect([this](const Checkable::Ptr& checkable,
@@ -115,15 +113,18 @@ void GelfWriter::Pause()
 	m_HandleNotifications.disconnect();
 	m_HandleStateChanges.disconnect();
 
-	std::promise<void> queueDonePromise;
+	m_ReconnectTimer->Stop(true);
 
-	m_WorkQueue.Enqueue([&]() {
-		queueDonePromise.set_value();
-	}, PriorityLow);
+	m_WorkQueue.Enqueue([this]() {
+		try {
+			ReconnectInternal();
+		} catch (const std::exception&) {
+			Log(LogInformation, "GelfWriter")
+				<< "Unable to connect, not flushing buffers. Data may be lost.";
+		}
+	}, PriorityImmediate);
 
-	auto timeout = std::chrono::duration<double>{GetDisconnectTimeout()};
-	m_Connection->CancelAfterTimeout(queueDonePromise.get_future(), timeout);
-
+	m_WorkQueue.Enqueue([this]() { DisconnectInternal(); }, PriorityLow);
 	m_WorkQueue.Join();
 
 	Log(LogInformation, "GelfWriter")
@@ -141,6 +142,126 @@ void GelfWriter::ExceptionHandler(boost::exception_ptr exp)
 {
 	Log(LogCritical, "GelfWriter") << "Exception during Graylog Gelf operation: " << DiagnosticInformation(exp, false);
 	Log(LogDebug, "GelfWriter") << "Exception during Graylog Gelf operation: " << DiagnosticInformation(exp, true);
+
+	DisconnectInternal();
+}
+
+void GelfWriter::Reconnect()
+{
+	AssertOnWorkQueue();
+
+	if (IsPaused()) {
+		SetConnected(false);
+		return;
+	}
+
+	ReconnectInternal();
+}
+
+void GelfWriter::ReconnectInternal()
+{
+	double startTime = Utility::GetTime();
+
+	CONTEXT("Reconnecting to Graylog Gelf '" << GetName() << "'");
+
+	SetShouldConnect(true);
+
+	if (GetConnected())
+		return;
+
+	Log(LogNotice, "GelfWriter")
+		<< "Reconnecting to Graylog Gelf on host '" << GetHost() << "' port '" << GetPort() << "'.";
+
+	bool ssl = GetEnableTls();
+
+	if (ssl) {
+		Shared<boost::asio::ssl::context>::Ptr sslContext;
+
+		try {
+			sslContext = MakeAsioSslContext(GetCertPath(), GetKeyPath(), GetCaPath());
+		} catch (const std::exception& ex) {
+			Log(LogWarning, "GelfWriter")
+				<< "Unable to create SSL context.";
+			throw;
+		}
+
+		m_Stream.first = Shared<AsioTlsStream>::Make(IoEngine::Get().GetIoContext(), *sslContext, GetHost());
+
+	} else {
+		m_Stream.second = Shared<AsioTcpStream>::Make(IoEngine::Get().GetIoContext());
+	}
+
+	try {
+		icinga::Connect(ssl ? m_Stream.first->lowest_layer() : m_Stream.second->lowest_layer(), GetHost(), GetPort());
+	} catch (const std::exception& ex) {
+		Log(LogWarning, "GelfWriter")
+			<< "Can't connect to Graylog Gelf on host '" << GetHost() << "' port '" << GetPort() << ".'";
+		throw;
+	}
+
+	if (ssl) {
+		auto& tlsStream (m_Stream.first->next_layer());
+
+		try {
+			tlsStream.handshake(tlsStream.client);
+		} catch (const std::exception& ex) {
+			Log(LogWarning, "GelfWriter")
+				<< "TLS handshake with host '" << GetHost() << " failed.'";
+			throw;
+		}
+
+		if (!GetInsecureNoverify()) {
+			if (!tlsStream.GetPeerCertificate()) {
+				BOOST_THROW_EXCEPTION(std::runtime_error("Graylog Gelf didn't present any TLS certificate."));
+			}
+
+			if (!tlsStream.IsVerifyOK()) {
+				BOOST_THROW_EXCEPTION(std::runtime_error(
+					"TLS certificate validation failed: " + std::string(tlsStream.GetVerifyError())
+				));
+			}
+		}
+	}
+
+	SetConnected(true);
+
+	Log(LogInformation, "GelfWriter")
+		<< "Finished reconnecting to Graylog Gelf in " << std::setw(2) << Utility::GetTime() - startTime << " second(s).";
+}
+
+void GelfWriter::ReconnectTimerHandler()
+{
+	m_WorkQueue.Enqueue([this]() { Reconnect(); }, PriorityNormal);
+}
+
+void GelfWriter::Disconnect()
+{
+	AssertOnWorkQueue();
+
+	DisconnectInternal();
+}
+
+void GelfWriter::DisconnectInternal()
+{
+	if (!GetConnected())
+		return;
+
+	if (m_Stream.first) {
+		boost::system::error_code ec;
+		m_Stream.first->next_layer().shutdown(ec);
+
+		// https://stackoverflow.com/a/25703699
+		// As long as the error code's category is not an SSL category, then the protocol was securely shutdown
+		if (ec.category() == boost::asio::error::get_ssl_category()) {
+			Log(LogCritical, "GelfWriter")
+				<< "TLS shutdown with host '" << GetHost() << "' could not be done securely.";
+		}
+	} else if (m_Stream.second) {
+		m_Stream.second->close();
+	}
+
+	SetConnected(false);
+
 }
 
 void GelfWriter::CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
@@ -177,10 +298,6 @@ void GelfWriter::CheckResultHandler(const Checkable::Ptr& checkable, const Check
 	fields->Set("_check_command", checkCommand->GetName());
 
 	m_WorkQueue.Enqueue([this, checkable, cr, fields = std::move(fields)]() {
-		if (m_Connection->IsStopped()) {
-			return;
-		}
-
 		CONTEXT("GELF Processing check result for '" << checkable->GetName() << "'");
 
 		Log(LogDebug, "GelfWriter")
@@ -288,10 +405,6 @@ void GelfWriter::NotificationToUserHandler(const Checkable::Ptr& checkable, Noti
 	fields->Set("_check_command", checkable->GetCheckCommand()->GetName());
 
 	m_WorkQueue.Enqueue([this, checkable, ts, fields = std::move(fields)]() {
-		if (m_Connection->IsStopped()) {
-			return;
-		}
-
 		CONTEXT("GELF Processing notification to all users '" << checkable->GetName() << "'");
 
 		Log(LogDebug, "GelfWriter")
@@ -334,10 +447,6 @@ void GelfWriter::StateChangeHandler(const Checkable::Ptr& checkable, const Check
 	fields->Set("_check_source", cr->GetCheckSource());
 
 	m_WorkQueue.Enqueue([this, checkable, fields = std::move(fields), ts = cr->GetExecutionEnd()]() {
-		if (m_Connection->IsStopped()) {
-			return;
-		}
-
 		CONTEXT("GELF Processing state change '" << checkable->GetName() << "'");
 
 		Log(LogDebug, "GelfWriter")
@@ -364,15 +473,26 @@ void GelfWriter::SendLogMessage(const Checkable::Ptr& checkable, const String& g
 	msgbuf << gelfMessage;
 	msgbuf << '\0';
 
-	auto log = msgbuf.str();
+	String log = msgbuf.str();
+
+	if (!GetConnected())
+		return;
 
 	try {
 		Log(LogDebug, "GelfWriter")
 			<< "Checkable '" << checkable->GetName() << "' sending message '" << log << "'.";
 
-		m_Connection->Send(boost::asio::const_buffer{log.data(), log.length()});
-	} catch (const PerfdataWriterConnection::Stopped& ex) {
-		Log(LogDebug, "GelfWriter") << ex.what();
-		return;
+		if (m_Stream.first) {
+			boost::asio::write(*m_Stream.first, boost::asio::buffer(msgbuf.str()));
+			m_Stream.first->flush();
+		} else {
+			boost::asio::write(*m_Stream.second, boost::asio::buffer(msgbuf.str()));
+			m_Stream.second->flush();
+		}
+	} catch (const std::exception& ex) {
+		Log(LogCritical, "GelfWriter")
+			<< "Cannot write to TCP socket on host '" << GetHost() << "' port '" << GetPort() << "'.";
+
+		throw ex;
 	}
 }

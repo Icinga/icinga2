@@ -5,9 +5,11 @@
 #define OPENTSDBWRITER_H
 
 #include "perfdata/opentsdbwriter-ti.hpp"
-#include "icinga/checkable.hpp"
+#include "icinga/service.hpp"
 #include "base/configobject.hpp"
-#include "perfdata/perfdatawriterconnection.hpp"
+#include "base/tcpsocket.hpp"
+#include "base/timer.hpp"
+#include <fstream>
 
 namespace icinga
 {
@@ -34,23 +36,23 @@ protected:
 	void Pause() override;
 
 private:
-	WorkQueue m_WorkQueue{10000000, 1};
-	std::string m_MsgBuf;
-	PerfdataWriterConnection::Ptr m_Connection;
+	Shared<AsioTcpStream>::Ptr m_Stream;
 
 	boost::signals2::connection m_HandleCheckResults;
+	Timer::Ptr m_ReconnectTimer;
 
 	Dictionary::Ptr m_ServiceConfigTemplate;
 	Dictionary::Ptr m_HostConfigTemplate;
 
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
-	void AddMetric(const Checkable::Ptr& checkable, const String& metric,
+	void SendMetric(const Checkable::Ptr& checkable, const String& metric,
 		const std::map<String, String>& tags, double value, double ts);
-	void SendMsgBuffer();
-	void AddPerfdata(const Checkable::Ptr& checkable, const String& metric,
+	void SendPerfdata(const Checkable::Ptr& checkable, const String& metric,
 		const std::map<String, String>& tags, const CheckResult::Ptr& cr, double ts);
 	static String EscapeTag(const String& str);
 	static String EscapeMetric(const String& str);
+
+	void ReconnectTimerHandler();
 
 	void ReadConfigTemplate();
 };

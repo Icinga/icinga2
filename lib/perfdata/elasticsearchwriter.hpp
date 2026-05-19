@@ -5,10 +5,11 @@
 #define ELASTICSEARCHWRITER_H
 
 #include "perfdata/elasticsearchwriter-ti.hpp"
-#include "icinga/checkable.hpp"
+#include "icinga/service.hpp"
 #include "base/configobject.hpp"
 #include "base/workqueue.hpp"
-#include "perfdata/perfdatawriterconnection.hpp"
+#include "base/timer.hpp"
+#include "base/tlsstream.hpp"
 
 namespace icinga
 {
@@ -29,18 +30,16 @@ public:
 protected:
 	void OnConfigLoaded() override;
 	void OnAllConfigLoaded() override;
-	void Start(bool runtimeCreated) override;
 	void Resume() override;
 	void Pause() override;
 
 private:
+	String m_EventPrefix;
 	WorkQueue m_WorkQueue{10000000, 1};
 	boost::signals2::connection m_HandleCheckResults, m_HandleStateChanges, m_HandleNotifications;
 	Timer::Ptr m_FlushTimer;
-	std::atomic_bool m_FlushTimerInQueue{false};
 	std::vector<String> m_DataBuffer;
-	Shared<boost::asio::ssl::context>::Ptr m_SslContext;
-	PerfdataWriterConnection::Ptr m_Connection;
+	std::mutex m_DataBufferMutex;
 
 	void AddCheckResult(const Dictionary::Ptr& fields, const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 	void AddTemplateTags(const Dictionary::Ptr& fields, const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
@@ -53,6 +52,7 @@ private:
 	void Enqueue(const Checkable::Ptr& checkable, const String& type,
 		const Dictionary::Ptr& fields, double ts);
 
+	OptionalTlsStream Connect();
 	void AssertOnWorkQueue();
 	void ExceptionHandler(boost::exception_ptr exp);
 	void FlushTimeout();

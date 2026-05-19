@@ -43,7 +43,7 @@ class ElasticsearchWriter : ConfigObject
 	[config] double disconnect_timeout {
 		default {{{ return 10; }}}
 	};
-	[config] double flush_interval {
+	[config] int flush_interval {
 		default {{{ return 10; }}}
 	};
 	[config] int flush_threshold {
