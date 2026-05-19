@@ -308,7 +308,6 @@ void OpenTsdbWriter::AddPerfdata(const Checkable::Ptr& checkable, const String& 
 
 	CheckCommand::Ptr checkCommand = checkable->GetCheckCommand();
 
-	ObjectLock olock(perfdata);
 	for (const Value& val : perfdata) {
 		PerfdataValue::Ptr pdv;
 

@@ -185,8 +185,6 @@ String PluginUtility::FormatPerfdata(const Array::Ptr& perfdata, bool normalize)
 
 	std::ostringstream result;
 
-	ObjectLock olock(perfdata);
-
 	bool first = true;
 	for (const Value& pdv : perfdata) {
 		if (!first)
