@@ -5,13 +5,18 @@
 #define INFLUXDBCOMMONWRITER_H
 
 #include "perfdata/influxdbcommonwriter-ti.hpp"
-#include "icinga/checkable.hpp"
+#include "icinga/service.hpp"
 #include "base/configobject.hpp"
 #include "base/perfdatavalue.hpp"
+#include "base/tcpsocket.hpp"
+#include "base/timer.hpp"
+#include "base/tlsstream.hpp"
 #include "base/workqueue.hpp"
 #include "remote/url.hpp"
-#include "perfdata/perfdatawriterconnection.hpp"
+#include <boost/beast/http/message.hpp>
+#include <boost/beast/http/string_body.hpp>
 #include <atomic>
+#include <fstream>
 
 namespace icinga
 {
@@ -34,7 +39,6 @@ public:
 
 protected:
 	void OnConfigLoaded() override;
-	void Start(bool runtimeCreated) override;
 	void Resume() override;
 	void Pause() override;
 
@@ -46,21 +50,21 @@ protected:
 private:
 	boost::signals2::connection m_HandleCheckResults;
 	Timer::Ptr m_FlushTimer;
-	std::atomic_bool m_FlushTimerInQueue{false};
 	WorkQueue m_WorkQueue{10000000, 1};
 	std::vector<String> m_DataBuffer;
 	std::atomic_size_t m_DataBufferSize{0};
-	Shared<boost::asio::ssl::context>::Ptr m_SslContext;
-	PerfdataWriterConnection::Ptr m_Connection;
 
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 	void SendMetric(const Checkable::Ptr& checkable, const Dictionary::Ptr& tmpl,
 		const String& label, const Dictionary::Ptr& fields, double ts);
 	void FlushTimeout();
+	void FlushTimeoutWQ();
 	void FlushWQ();
 
 	static String EscapeKeyOrTagValue(const String& str);
 	static String EscapeValue(const Value& value);
+
+	OptionalTlsStream Connect();
 
 	void AssertOnWorkQueue();
 

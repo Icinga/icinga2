@@ -7,13 +7,16 @@
 #include "icinga/checkcommand.hpp"
 #include "icinga/macroprocessor.hpp"
 #include "icinga/icingaapplication.hpp"
+#include "base/tcpsocket.hpp"
 #include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
 #include "base/convert.hpp"
 #include "base/utility.hpp"
 #include "base/perfdatavalue.hpp"
+#include "base/application.hpp"
 #include "base/stream.hpp"
+#include "base/networkstream.hpp"
 #include "base/exception.hpp"
 #include "base/statsfunction.hpp"
 #include <boost/algorithm/string.hpp>
@@ -62,7 +65,7 @@ void GraphiteWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& 
 		nodes.emplace_back(graphitewriter->GetName(), new Dictionary({
 			{ "work_queue_items", workQueueItems },
 			{ "work_queue_item_rate", workQueueItemRate },
-			{ "connected", graphitewriter->m_Connection->IsConnected() }
+			{ "connected", graphitewriter->GetConnected() }
 		}));
 
 		perfdata->Add(new PerfdataValue("graphitewriter_" + graphitewriter->GetName() + "_work_queue_items", workQueueItems));
@@ -85,7 +88,12 @@ void GraphiteWriter::Resume()
 	/* Register exception handler for WQ tasks. */
 	m_WorkQueue.SetExceptionCallback([this](boost::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
 
-	m_Connection = new PerfdataWriterConnection{this, GetHost(), GetPort()};
+	/* Timer for reconnecting */
+	m_ReconnectTimer = Timer::Create();
+	m_ReconnectTimer->SetInterval(10);
+	m_ReconnectTimer->OnTimerExpired.connect([this](const Timer * const&) { ReconnectTimerHandler(); });
+	m_ReconnectTimer->Start();
+	m_ReconnectTimer->Reschedule(0);
 
 	/* Register event handlers. */
 	m_HandleCheckResults = Checkable::OnNewCheckResult.connect([this](const Checkable::Ptr& checkable,
@@ -100,17 +108,20 @@ void GraphiteWriter::Resume()
 void GraphiteWriter::Pause()
 {
 	m_HandleCheckResults.disconnect();
+	m_ReconnectTimer->Stop(true);
 
-	std::promise<void> queueDonePromise;
+	try {
+		ReconnectInternal();
+	} catch (const std::exception&) {
+		Log(LogInformation, "GraphiteWriter")
+			<< "'" << GetName() << "' paused. Unable to connect, not flushing buffers. Data may be lost on reload.";
 
-	m_WorkQueue.Enqueue([&]() {
-		queueDonePromise.set_value();
-	}, PriorityLow);
-
-	auto timeout = std::chrono::duration<double>{GetDisconnectTimeout()};
-	m_Connection->CancelAfterTimeout(queueDonePromise.get_future(), timeout);
+		ObjectImpl<GraphiteWriter>::Pause();
+		return;
+	}
 
 	m_WorkQueue.Join();
+	DisconnectInternal();
 
 	Log(LogInformation, "GraphiteWriter")
 		<< "'" << GetName() << "' paused.";
@@ -139,6 +150,105 @@ void GraphiteWriter::ExceptionHandler(boost::exception_ptr exp)
 
 	Log(LogDebug, "GraphiteWriter")
 		<< "Exception during Graphite operation: " << DiagnosticInformation(std::move(exp));
+
+	if (GetConnected()) {
+		m_Stream->close();
+
+		SetConnected(false);
+	}
+}
+
+/**
+ * Reconnect method, stops when the feature is paused in HA zones.
+ *
+ * Called inside the WQ.
+ */
+void GraphiteWriter::Reconnect()
+{
+	AssertOnWorkQueue();
+
+	if (IsPaused()) {
+		SetConnected(false);
+		return;
+	}
+
+	ReconnectInternal();
+}
+
+/**
+ * Reconnect method, connects to a TCP Stream
+ */
+void GraphiteWriter::ReconnectInternal()
+{
+	double startTime = Utility::GetTime();
+
+	CONTEXT("Reconnecting to Graphite '" << GetName() << "'");
+
+	SetShouldConnect(true);
+
+	if (GetConnected())
+		return;
+
+	Log(LogNotice, "GraphiteWriter")
+		<< "Reconnecting to Graphite on host '" << GetHost() << "' port '" << GetPort() << "'.";
+
+	m_Stream = Shared<AsioTcpStream>::Make(IoEngine::Get().GetIoContext());
+
+	try {
+		icinga::Connect(m_Stream->lowest_layer(), GetHost(), GetPort());
+	} catch (const std::exception& ex) {
+		Log(LogWarning, "GraphiteWriter")
+			<< "Can't connect to Graphite on host '" << GetHost() << "' port '" << GetPort() << ".'";
+
+		SetConnected(false);
+
+		throw;
+	}
+
+	SetConnected(true);
+
+	Log(LogInformation, "GraphiteWriter")
+		<< "Finished reconnecting to Graphite in " << std::setw(2) << Utility::GetTime() - startTime << " second(s).";
+}
+
+/**
+ * Reconnect handler called by the timer.
+ *
+ * Enqueues a reconnect task into the WQ.
+ */
+void GraphiteWriter::ReconnectTimerHandler()
+{
+	if (IsPaused())
+		return;
+
+	m_WorkQueue.Enqueue([this]() { Reconnect(); }, PriorityHigh);
+}
+
+/**
+ * Disconnect the stream.
+ *
+ * Called inside the WQ.
+ */
+void GraphiteWriter::Disconnect()
+{
+	AssertOnWorkQueue();
+
+	DisconnectInternal();
+}
+
+/**
+ * Disconnect the stream.
+ *
+ * Called outside the WQ.
+ */
+void GraphiteWriter::DisconnectInternal()
+{
+	if (!GetConnected())
+		return;
+
+	m_Stream->close();
+
+	SetConnected(false);
 }
 
 /**
@@ -192,11 +302,11 @@ void GraphiteWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 	}
 
 	m_WorkQueue.Enqueue([this, checkable, cr, prefix = std::move(prefix), metadata = std::move(metadata)]() {
-		if (m_Connection->IsStopped()) {
-			return;
-		}
-
 		CONTEXT("Processing check result for '" << checkable->GetName() << "'");
+
+		/* TODO: Deal with missing connection here. Needs refactoring
+		* into parsing the actual performance data and then putting it
+		* into a queue for re-inserting. */
 
 		for (auto& [name, val] : metadata) {
 			SendMetric(checkable, prefix + ".metadata", name, val, cr->GetExecutionEnd());
@@ -284,11 +394,19 @@ void GraphiteWriter::SendMetric(const Checkable::Ptr& checkable, const String& p
 	// do not send \n to debug log
 	msgbuf << "\n";
 
-	try {
-		m_Connection->Send(asio::buffer(msgbuf.str()));
-	} catch (const PerfdataWriterConnection::Stopped& ex) {
-		Log(LogDebug, "GraphiteWriter") << ex.what();
+	std::unique_lock<std::mutex> lock(m_StreamMutex);
+
+	if (!GetConnected())
 		return;
+
+	try {
+		asio::write(*m_Stream, asio::buffer(msgbuf.str()));
+		m_Stream->flush();
+	} catch (const std::exception& ex) {
+		Log(LogCritical, "GraphiteWriter")
+			<< "Cannot write to TCP socket on host '" << GetHost() << "' port '" << GetPort() << "'.";
+
+		throw ex;
 	}
 }
 

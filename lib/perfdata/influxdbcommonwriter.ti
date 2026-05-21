@@ -61,7 +61,7 @@ abstract class InfluxdbCommonWriter : ConfigObject
 	[config] bool enable_send_metadata {
 		default {{{ return false; }}}
 	};
-	[config] double flush_interval {
+	[config] int flush_interval {
 		default {{{ return 10; }}}
 	};
 	[config] int flush_threshold {

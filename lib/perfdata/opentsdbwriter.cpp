@@ -7,12 +7,17 @@
 #include "icinga/checkcommand.hpp"
 #include "icinga/macroprocessor.hpp"
 #include "icinga/icingaapplication.hpp"
+#include "icinga/compatutility.hpp"
+#include "base/tcpsocket.hpp"
 #include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/logger.hpp"
 #include "base/convert.hpp"
+#include "base/utility.hpp"
 #include "base/perfdatavalue.hpp"
+#include "base/application.hpp"
 #include "base/stream.hpp"
+#include "base/networkstream.hpp"
 #include "base/exception.hpp"
 #include "base/statsfunction.hpp"
 #include <boost/algorithm/string.hpp>
@@ -31,8 +36,6 @@ void OpenTsdbWriter::OnConfigLoaded()
 {
 	ObjectImpl<OpenTsdbWriter>::OnConfigLoaded();
 
-	m_WorkQueue.SetName("OpenTsdbWriter, " + GetName());
-
 	if (!GetEnableHa()) {
 		Log(LogDebug, "OpenTsdbWriter")
 			<< "HA functionality disabled. Won't pause connection: " << GetName();
@@ -48,26 +51,14 @@ void OpenTsdbWriter::OnConfigLoaded()
  *
  * @param status Key value pairs for feature stats
  */
-void OpenTsdbWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
+void OpenTsdbWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 {
 	DictionaryData nodes;
 
 	for (const OpenTsdbWriter::Ptr& opentsdbwriter : ConfigType::GetObjectsByType<OpenTsdbWriter>()) {
-		size_t workQueueItems = opentsdbwriter->m_WorkQueue.GetLength();
-		double workQueueItemRate = opentsdbwriter->m_WorkQueue.GetTaskCount(60) / 60.0;
-
-		nodes.emplace_back(
-			opentsdbwriter->GetName(),
-			new Dictionary({
-			{ "connected", opentsdbwriter->m_Connection->IsConnected() },
-				{"work_queue_items", workQueueItems},
-				{"work_queue_item_rate", workQueueItemRate}
-				}
-			)
-		);
-		
-		perfdata->Add(new PerfdataValue("opentsdbwriter_" + opentsdbwriter->GetName() + "_work_queue_items", workQueueItems));
-		perfdata->Add(new PerfdataValue("opentsdbwriter_" + opentsdbwriter->GetName() + "_work_queue_item_rate", workQueueItemRate));
+		nodes.emplace_back(opentsdbwriter->GetName(), new Dictionary({
+			{ "connected", opentsdbwriter->GetConnected() }
+		}));
 	}
 
 	status->Set("opentsdbwriter", new Dictionary(std::move(nodes)));
@@ -83,14 +74,13 @@ void OpenTsdbWriter::Resume()
 	Log(LogInformation, "OpentsdbWriter")
 		<< "'" << GetName() << "' resumed.";
 
-	m_WorkQueue.SetExceptionCallback([](const boost::exception_ptr& exp) {
-		Log(LogDebug, "OpenTsdbWriter")
-			<< "Exception during OpenTsdb operation: " << DiagnosticInformation(exp);
-	});
-
 	ReadConfigTemplate();
 
-	m_Connection = new PerfdataWriterConnection{this, GetHost(), GetPort()};
+	m_ReconnectTimer = Timer::Create();
+	m_ReconnectTimer->SetInterval(10);
+	m_ReconnectTimer->OnTimerExpired.connect([this](const Timer * const&) { ReconnectTimerHandler(); });
+	m_ReconnectTimer->Start();
+	m_ReconnectTimer->Reschedule(0);
 
 	m_HandleCheckResults = Service::OnNewCheckResult.connect([this](const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const MessageOrigin::Ptr&) {
 		CheckResultHandler(checkable, cr);
@@ -103,22 +93,58 @@ void OpenTsdbWriter::Resume()
 void OpenTsdbWriter::Pause()
 {
 	m_HandleCheckResults.disconnect();
-
-	std::promise<void> queueDonePromise;
-
-	m_WorkQueue.Enqueue([&]() {
-		queueDonePromise.set_value();
-	}, PriorityLow);
-
-	auto timeout = std::chrono::duration<double>{GetDisconnectTimeout()};
-	m_Connection->CancelAfterTimeout(queueDonePromise.get_future(), timeout);
-
-	m_WorkQueue.Join();
+	m_ReconnectTimer->Stop(true);
 
 	Log(LogInformation, "OpentsdbWriter")
 		<< "'" << GetName() << "' paused.";
 
+	m_Stream->close();
+
+	SetConnected(false);
+
 	ObjectImpl<OpenTsdbWriter>::Pause();
+}
+
+/**
+ * Reconnect handler called by the timer.
+ * Handles TLS
+ */
+void OpenTsdbWriter::ReconnectTimerHandler()
+{
+	if (IsPaused())
+		return;
+
+	SetShouldConnect(true);
+
+	if (GetConnected())
+		return;
+
+	double startTime = Utility::GetTime();
+
+	Log(LogNotice, "OpenTsdbWriter")
+		<< "Reconnecting to OpenTSDB TSD on host '" << GetHost() << "' port '" << GetPort() << "'.";
+
+	/*
+	 * We're using telnet as input method. Future PRs may change this into using the HTTP API.
+	 * http://opentsdb.net/docs/build/html/user_guide/writing/index.html#telnet
+	 */
+	m_Stream = Shared<AsioTcpStream>::Make(IoEngine::Get().GetIoContext());
+
+	try {
+		icinga::Connect(m_Stream->lowest_layer(), GetHost(), GetPort());
+	} catch (const std::exception& ex) {
+		Log(LogWarning, "OpenTsdbWriter")
+			<< "Can't connect to OpenTSDB on host '" << GetHost() << "' port '" << GetPort() << "'.";
+
+		SetConnected(false);
+
+		return;
+	}
+
+	SetConnected(true);
+
+	Log(LogInformation, "OpenTsdbWriter")
+		<< "Finished reconnecting to OpenTSDB in " << std::setw(2) << Utility::GetTime() - startTime << " second(s).";
 }
 
 /**
@@ -225,7 +251,7 @@ void OpenTsdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 	String escaped_hostName = EscapeTag(host->GetName());
 	tags["host"] = escaped_hostName;
 
-	std::vector<std::pair<String, double>> metadata;
+	double ts = cr->GetExecutionEnd();
 
 	if (service) {
 
@@ -236,55 +262,40 @@ void OpenTsdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 			String escaped_serviceName = EscapeMetric(serviceName);
 			metric = "icinga.service." + escaped_serviceName;
 		}
+		
+		SendMetric(checkable, metric + ".state", tags, service->GetState(), ts);
 
-		metadata.emplace_back("state", service->GetState());
 	} else {
 		if (!config_tmpl_metric.IsEmpty()) {
 			metric = config_tmpl_metric;
 		} else {
 			metric = "icinga.host";
 		}
-		metadata.emplace_back("state", host->GetState());
+		SendMetric(checkable, metric + ".state", tags, host->GetState(), ts);
 	}
 
-	metadata.emplace_back("state_type", checkable->GetStateType());
-	metadata.emplace_back("reachable", checkable->IsReachable());
-	metadata.emplace_back("downtime_depth", checkable->GetDowntimeDepth());
-	metadata.emplace_back("acknowledgement", checkable->GetAcknowledgement());
+	SendMetric(checkable, metric + ".state_type", tags, checkable->GetStateType(), ts);
+	SendMetric(checkable, metric + ".reachable", tags, checkable->IsReachable(), ts);
+	SendMetric(checkable, metric + ".downtime_depth", tags, checkable->GetDowntimeDepth(), ts);
+	SendMetric(checkable, metric + ".acknowledgement", tags, checkable->GetAcknowledgement(), ts);
 
-	m_WorkQueue.Enqueue(
-		[this, checkable, service, cr, metric = std::move(metric), tags = std::move(tags), metadata = std::move(metadata)]() mutable {
-			if (m_Connection->IsStopped()) {
-				return;
-			}
+	SendPerfdata(checkable, metric, tags, cr, ts);
 
-			double ts = cr->GetExecutionEnd();
+	metric = "icinga.check";
 
-			for (auto& [name, val] : metadata) {
-				AddMetric(checkable, metric + "." + name, tags, val, ts);
-			}
+	if (service) {
+		tags["type"] = "service";
+		String serviceName = service->GetShortName();
+		String escaped_serviceName = EscapeTag(serviceName);
+		tags["service"] = escaped_serviceName;
+	} else {
+		tags["type"] = "host";
+	}
 
-			AddPerfdata(checkable, metric, tags, cr, ts);
-
-			metric = "icinga.check";
-
-			if (service) {
-				tags["type"] = "service";
-				String serviceName = service->GetShortName();
-				String escaped_serviceName = EscapeTag(serviceName);
-				tags["service"] = escaped_serviceName;
-			} else {
-				tags["type"] = "host";
-			}
-
-			AddMetric(checkable, metric + ".current_attempt", tags, checkable->GetCheckAttempt(), ts);
-			AddMetric(checkable, metric + ".max_check_attempts", tags, checkable->GetMaxCheckAttempts(), ts);
-			AddMetric(checkable, metric + ".latency", tags, cr->CalculateLatency(), ts);
-			AddMetric(checkable, metric + ".execution_time", tags, cr->CalculateExecutionTime(), ts);
-
-			SendMsgBuffer();
-		}
-	);
+	SendMetric(checkable, metric + ".current_attempt", tags, checkable->GetCheckAttempt(), ts);
+	SendMetric(checkable, metric + ".max_check_attempts", tags, checkable->GetMaxCheckAttempts(), ts);
+	SendMetric(checkable, metric + ".latency", tags, cr->CalculateLatency(), ts);
+	SendMetric(checkable, metric + ".execution_time", tags, cr->CalculateExecutionTime(), ts);
 }
 
 /**
@@ -296,11 +307,9 @@ void OpenTsdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
  * @param cr Check result containing performance data
  * @param ts Timestamp when the check result was received
  */
-void OpenTsdbWriter::AddPerfdata(const Checkable::Ptr& checkable, const String& metric,
+void OpenTsdbWriter::SendPerfdata(const Checkable::Ptr& checkable, const String& metric,
 	const std::map<String, String>& tags, const CheckResult::Ptr& cr, double ts)
 {
-	ASSERT(m_WorkQueue.IsWorkerThread());
-
 	Array::Ptr perfdata = cr->GetPerformanceData();
 
 	if (!perfdata)
@@ -341,21 +350,21 @@ void OpenTsdbWriter::AddPerfdata(const Checkable::Ptr& checkable, const String& 
 			tags_new["label"] = escaped_key;
 		}
 
-		AddMetric(checkable, metric_name, tags_new, pdv->GetValue(), ts);
+		SendMetric(checkable, metric_name, tags_new, pdv->GetValue(), ts);
 
 		if (!pdv->GetCrit().IsEmpty())
-			AddMetric(checkable, metric_name + "_crit", tags_new, pdv->GetCrit(), ts);
+			SendMetric(checkable, metric_name + "_crit", tags_new, pdv->GetCrit(), ts);
 		if (!pdv->GetWarn().IsEmpty())
-			AddMetric(checkable, metric_name + "_warn", tags_new, pdv->GetWarn(), ts);
+			SendMetric(checkable, metric_name + "_warn", tags_new, pdv->GetWarn(), ts);
 		if (!pdv->GetMin().IsEmpty())
-			AddMetric(checkable, metric_name + "_min", tags_new, pdv->GetMin(), ts);
+			SendMetric(checkable, metric_name + "_min", tags_new, pdv->GetMin(), ts);
 		if (!pdv->GetMax().IsEmpty())
-			AddMetric(checkable, metric_name + "_max", tags_new, pdv->GetMax(), ts);
+			SendMetric(checkable, metric_name + "_max", tags_new, pdv->GetMax(), ts);
 	}
 }
 
 /**
- * Add given metric to the data buffer to be later sent to OpenTSDB
+ * Send given metric to OpenTSDB
  *
  * @param checkable Host/service object
  * @param metric Full metric name
@@ -363,11 +372,9 @@ void OpenTsdbWriter::AddPerfdata(const Checkable::Ptr& checkable, const String& 
  * @param value Floating point metric value
  * @param ts Timestamp where the metric was received from the check result
  */
-void OpenTsdbWriter::AddMetric(const Checkable::Ptr& checkable, const String& metric,
+void OpenTsdbWriter::SendMetric(const Checkable::Ptr& checkable, const String& metric,
 	const std::map<String, String>& tags, double value, double ts)
 {
-	ASSERT(m_WorkQueue.IsWorkerThread());
-
 	String tags_string = "";
 
 	for (auto& tag : tags) {
@@ -387,21 +394,22 @@ void OpenTsdbWriter::AddMetric(const Checkable::Ptr& checkable, const String& me
 
 	/* do not send \n to debug log */
 	msgbuf << "\n";
-	m_MsgBuf.append(msgbuf.str());
-}
+	String put = msgbuf.str();
 
-void OpenTsdbWriter::SendMsgBuffer()
-{
-	ASSERT(m_WorkQueue.IsWorkerThread());
+	ObjectLock olock(this);
 
-	Log(LogDebug, "OpenTsdbWriter")
-		<< "Flushing data buffer to OpenTsdb.";
+	if (!GetConnected())
+		return;
 
 	try {
-		m_Connection->Send(boost::asio::buffer(std::exchange(m_MsgBuf, std::string{})));
-	} catch (const PerfdataWriterConnection::Stopped& ex) {
-		Log(LogDebug, "OpenTsdbWriter") << ex.what();
-		return;
+		Log(LogDebug, "OpenTsdbWriter")
+			<< "Checkable '" << checkable->GetName() << "' sending message '" << put << "'.";
+
+		boost::asio::write(*m_Stream, boost::asio::buffer(msgbuf.str()));
+		m_Stream->flush();
+	} catch (const std::exception& ex) {
+		Log(LogCritical, "OpenTsdbWriter")
+			<< "Cannot write to TCP socket on host '" << GetHost() << "' port '" << GetPort() << "'.";
 	}
 }
 

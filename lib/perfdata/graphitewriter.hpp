@@ -5,10 +5,13 @@
 #define GRAPHITEWRITER_H
 
 #include "perfdata/graphitewriter-ti.hpp"
-#include "icinga/checkable.hpp"
+#include "icinga/service.hpp"
 #include "base/configobject.hpp"
+#include "base/tcpsocket.hpp"
+#include "base/timer.hpp"
 #include "base/workqueue.hpp"
-#include "perfdata/perfdatawriterconnection.hpp"
+#include <fstream>
+#include <mutex>
 
 namespace icinga
 {
@@ -35,10 +38,12 @@ protected:
 	void Pause() override;
 
 private:
-	PerfdataWriterConnection::Ptr m_Connection;
+	Shared<AsioTcpStream>::Ptr m_Stream;
+	std::mutex m_StreamMutex;
 	WorkQueue m_WorkQueue{10000000, 1};
 
 	boost::signals2::connection m_HandleCheckResults;
+	Timer::Ptr m_ReconnectTimer;
 
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 	void SendMetric(const Checkable::Ptr& checkable, const String& prefix, const String& name, double value, double ts);
@@ -46,6 +51,13 @@ private:
 	static String EscapeMetric(const String& str);
 	static String EscapeMetricLabel(const String& str);
 	static Value EscapeMacroMetric(const Value& value);
+
+	void ReconnectTimerHandler();
+
+	void Disconnect();
+	void DisconnectInternal();
+	void Reconnect();
+	void ReconnectInternal();
 
 	void AssertOnWorkQueue();
 
