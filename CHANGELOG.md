@@ -7,6 +7,17 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.16.1 (2026-05-21)
+
+This is a small release mostly to fix the issues some users were encountering in connection with perfdata writers,
+mostly Graphite and InfluxDB. The only significant change is that the changes from #10668 and #10799 are being
+reverted. This affects `ElasticsearchWriter`, `GraphiteWriter`, `GelfWriter`, `InfluxdbWriter`,
+`Influxdb2Writer` and `OpenTsdbWriter`.
+
+### Changes
+* Revert adding `PerfdataWriterConnection`: #10851
+* Docs: Note OTLP metrics package limitation on Debian 11 and Ubuntu 22.04 and Amazon Linux 2: #10837
+
 ## 2.16.0 (2026-04-23)
 
 With this release the license of the project was updated to GPLv3 or later (#10700).
