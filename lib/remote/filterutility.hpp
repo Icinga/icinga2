@@ -62,6 +62,19 @@ public:
 		const Object::Ptr& target, const String& variableName = String());
 };
 
+/**
+ * Exception to report a missing permission to an API user.
+ *
+ * IMPORTANT: The what() message is reported back to the user and MUST NOT contain sensitive information like names of
+ * objects they are not allowed to access. When using the exception, also pay attention that throwing the exception
+ * does not introduce a sidechannel. For example, it should not be returned if a user-specified object exists but the
+ * user is not allowed to access it, otherwise they would learn that the object exists.
+ */
+class MissingPermissionError : public ScriptError
+{
+	using ScriptError::ScriptError;
+};
+
 }
 
 #endif /* FILTERUTILITY_H */

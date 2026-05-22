@@ -58,6 +58,9 @@ bool DeleteObjectHandler::HandleRequest(
 
 	try {
 		objs = FilterUtility::GetFilterTargets(qd, params, user);
+	} catch (const MissingPermissionError& ex) {
+		HttpUtility::SendJsonError(response, params, 403, ex.what());
+		return true;
 	} catch (const std::exception& ex) {
 		HttpUtility::SendJsonError(response, params, 404,
 			"No objects found.",
