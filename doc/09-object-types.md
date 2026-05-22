@@ -1088,27 +1088,28 @@ object ApiListener "api" {
 
 Configuration Attributes:
 
-  Name                                  | Type                  | Description
-  --------------------------------------|-----------------------|----------------------------------
-  cert\_path                            | String                | **Deprecated.** Path to the public key.
-  key\_path                             | String                | **Deprecated.** Path to the private key.
-  ca\_path                              | String                | **Deprecated.** Path to the CA certificate file.
-  ticket\_salt                          | String                | **Optional.** Private key for [CSR auto-signing](06-distributed-monitoring.md#distributed-monitoring-setup-csr-auto-signing). **Required** for a signing master instance.
-  crl\_path                             | String                | **Optional.** Path to the CRL file.
-  bind\_host                            | String                | **Optional.** The IP address the api listener should be bound to. If not specified, the ApiListener is bound to `::` and listens for both IPv4 and IPv6 connections or to `0.0.0.0` if IPv6 is not supported by the operating system.
-  bind\_port                            | Number                | **Optional.** The port the api listener should be bound to. Defaults to `5665`.
-  accept\_config                        | Boolean               | **Optional.** Accept zone configuration. Defaults to `false`.
-  accept\_commands                      | Boolean               | **Optional.** Accept remote commands. Defaults to `false`.
-  max\_anonymous\_clients               | Number                | **Optional.** Limit the number of anonymous client connections (not configured endpoints and signing requests).
-  cipher\_list                          | String                | **Optional.** Cipher list that is allowed. For a list of available ciphers run `openssl ciphers`. Defaults to `ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256`.
-  tls\_protocolmin                      | String                | **Optional.** Minimum TLS protocol version. Since v2.11, only `TLSv1.2` is supported. Defaults to `TLSv1.2`.
-  tls\_handshake\_timeout               | Number                | **Deprecated.** TLS Handshake timeout. Defaults to `10s`.
-  connect\_timeout                      | Number                | **Optional.** Timeout for establishing new connections. Affects both incoming and outgoing connections. Within this time, the TCP and TLS handshakes must complete and either a HTTP request or an Icinga cluster connection must be initiated. Defaults to `15s`.
-  access\_control\_allow\_origin        | Array                 | **Optional.** Specifies an array of origin URLs that may access the API. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Origin)
-  access\_control\_allow\_credentials   | Boolean               | **Deprecated.** Indicates whether or not the actual request can be made using credentials. Defaults to `true`. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Credentials)
-  access\_control\_allow\_headers       | String                | **Deprecated.** Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request. Defaults to `Authorization`. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Headers)
-  access\_control\_allow\_methods       | String                | **Deprecated.** Used in response to a preflight request to indicate which HTTP methods can be used when making the actual request. Defaults to `GET, POST, PUT, DELETE`. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Methods)
-  environment                           | String                | **Optional.** Used as suffix in TLS SNI extension name; default from constant `ApiEnvironment`, which is empty.
+  Name                                    | Type       | Description
+  ----------------------------------------|------------|----------------------------------
+  cert\_path                              | String     | **Deprecated.** Path to the public key.
+  key\_path                               | String     | **Deprecated.** Path to the private key.
+  ca\_path                                | String     | **Deprecated.** Path to the CA certificate file.
+  ticket\_salt                            | String     | **Optional.** Private key for [CSR auto-signing](06-distributed-monitoring.md#distributed-monitoring-setup-csr-auto-signing). **Required** for a signing master instance.
+  crl\_path                               | String     | **Optional.** Path to the CRL file.
+  bind\_host                              | String     | **Optional.** The IP address the api listener should be bound to. If not specified, the ApiListener is bound to `::` and listens for both IPv4 and IPv6 connections or to `0.0.0.0` if IPv6 is not supported by the operating system.
+  bind\_port                              | Number     | **Optional.** The port the api listener should be bound to. Defaults to `5665`.
+  accept\_config                          | Boolean    | **Optional.** Accept zone configuration. Defaults to `false`.
+  accept\_commands                        | Boolean    | **Optional.** Accept remote commands. Defaults to `false`.
+  max\_anonymous\_clients                 | Number     | **Optional.** Limit the number of anonymous client connections (not configured endpoints and signing requests).
+  cipher\_list                            | String     | **Optional.** Cipher list that is allowed. For a list of available ciphers run `openssl ciphers`. Defaults to `ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256`.
+  tls\_protocolmin                        | String     | **Optional.** Minimum TLS protocol version. Since v2.11, only `TLSv1.2` is supported. Defaults to `TLSv1.2`.
+  tls\_handshake\_timeout                 | Number     | **Deprecated.** TLS Handshake timeout. Defaults to `10s`.
+  connect\_timeout                        | Number     | **Optional.** Timeout for establishing new connections. Affects both incoming and outgoing connections. Within this time, the TCP and TLS handshakes must complete and either a HTTP request or an Icinga cluster connection must be initiated. Defaults to `15s`.
+  access\_control\_allow\_origin          | Array      | **Optional.** Specifies an array of origin URLs that may access the API. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Origin)
+  access\_control\_allow\_credentials     | Boolean    | **Deprecated.** Indicates whether or not the actual request can be made using credentials. Defaults to `true`. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Credentials)
+  access\_control\_allow\_headers         | String     | **Deprecated.** Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request. Defaults to `Authorization`. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Headers)
+  access\_control\_allow\_methods         | String     | **Deprecated.** Used in response to a preflight request to indicate which HTTP methods can be used when making the actual request. Defaults to `GET, POST, PUT, DELETE`. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Methods)
+  environment                             | String     | **Optional.** Used as suffix in TLS SNI extension name; default from constant `ApiEnvironment`, which is empty.
+  enforce\_filter\_expression\_permission | Boolean    | **Optional.** Enforce the `filter-expression` permission. Defaults to `false` until v2.17 for compatibility.
 
 The attributes `access_control_allow_credentials`, `access_control_allow_headers` and `access_control_allow_methods`
 are controlled by Icinga 2 and are not changeable by config any more.
