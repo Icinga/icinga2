@@ -277,6 +277,7 @@ add_boost_test(base
     remote_configpackageutility/ValidateName
     remote_filterutility/safe_function_permissions
     remote_filterutility/variable_expression_permissions
+    remote_filterutility/filter_expression_permission
     remote_url/id_and_path
     remote_url/parameters
     remote_url/get_and_set
