@@ -500,7 +500,7 @@ up macros and their respective values:
 2. Service object
 3. Host object
 4. Command object
-5. Global custom variables in the `Vars` constant
+5. IcingaApplication object
 
 This execution order allows you to define default values for custom variables
 in your command objects.
