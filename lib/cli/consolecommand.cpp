@@ -390,7 +390,7 @@ incomplete:
 			std::getline(std::cin, line);
 #endif /* HAVE_EDITLINE */
 		} else
-			line = commandOnce;
+			line = ~commandOnce;
 
 		if (!line.empty() && line[0] == '$') {
 			if (line == "$continue" || line == "$quit" || line == "$exit")

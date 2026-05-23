@@ -48,7 +48,7 @@ void AddCRLToSSLContext(const Shared<boost::asio::ssl::context>::Ptr& context, c
 void AddCRLToSSLContext(X509_STORE *x509_store, const String& crlPath);
 void SetCipherListToSSLContext(const Shared<boost::asio::ssl::context>::Ptr& context, const String& cipherList);
 void SetTlsProtocolminToSSLContext(const Shared<boost::asio::ssl::context>::Ptr& context, const String& tlsProtocolmin);
-int ResolveTlsProtocolVersion(const std::string& version);
+int ResolveTlsProtocolVersion(const String& version);
 
 Shared<boost::asio::ssl::context>::Ptr SetupSslContext(String certPath, String keyPath,
 	String caPath, String crlPath, String cipherList, String protocolmin, DebugInfo di);
