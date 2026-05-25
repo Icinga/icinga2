@@ -10,6 +10,8 @@ function ThrowOnNativeFailure {
 	}
 }
 
+$InstalledChocolatey = $false
+
 
 $VsVersion = 2022
 $MsvcVersion = '14.3'
@@ -68,6 +70,12 @@ try {
 
 	Set-ItemProperty -Path $RegEnv -Name Path -Value ((Get-ItemProperty -Path $RegEnv -Name Path).Path + $ChocoPath)
 	$Env:Path += $ChocoPath
+	$InstalledChocolatey = $true
+}
+
+# Fresh Chocolatey installs may require a reboot before .NET tooling becomes usable.
+if ($InstalledChocolatey -and -not $Env:GITHUB_ACTIONS) {
+	throw 'Chocolatey was installed. Reboot Windows and run doc/win-dev.ps1 again.'
 }
 
 # GitHub Actions uses an image that comes with most dependencies preinstalled. Don't install them twice.
