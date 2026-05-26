@@ -173,8 +173,9 @@ void PerfdataWriterConnection::Disconnect(boost::asio::yield_context yc)
 			if constexpr (std::is_same_v<std::decay_t<decltype(stream)>, Shared<AsioTlsStream>::Ptr>) {
 				stream->GracefulDisconnect(m_Strand, yc);
 			} else {
-				stream->lowest_layer().shutdown(boost::asio::socket_base::shutdown_both);
-				stream->lowest_layer().close();
+				boost::system::error_code ec;
+				stream->lowest_layer().shutdown(boost::asio::socket_base::shutdown_both, ec);
+				stream->lowest_layer().close(ec);
 			}
 		},
 		m_Stream
