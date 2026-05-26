@@ -168,8 +168,9 @@ void PerfdataWriterConnection::Disconnect(boost::asio::yield_context yc)
 		m_Stream,
 		[&](Shared<AsioTlsStream>::Ptr& stream) { stream->GracefulDisconnect(m_Strand, yc); },
 		[&](Shared<AsioTcpStream>::Ptr& stream) {
-			stream->lowest_layer().shutdown(boost::asio::socket_base::shutdown_both);
-			stream->lowest_layer().close();
+			boost::system::error_code ec;
+			stream->lowest_layer().shutdown(boost::asio::socket_base::shutdown_both, ec);
+			stream->lowest_layer().close(ec);
 		}
 	);
 
