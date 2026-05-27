@@ -121,6 +121,7 @@ object Host "h1" {
 
 	void ResumeWriter()
 	{
+		Listen();
 		static_cast<ConfigObject::Ptr>(m_Writer)->OnConfigLoaded();
 		m_Writer->SetActive(true);
 		m_Writer->Activate();
