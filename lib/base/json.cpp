@@ -324,6 +324,8 @@ void JsonEncoder::Flusher::FlushIfSafe(boost::asio::yield_context* yc) const
 class JsonSax : public nlohmann::json_sax<nlohmann::json>
 {
 public:
+	explicit JsonSax(std::size_t depthLimit) : m_DepthLimit(depthLimit) {}
+
 	bool null() override;
 	bool boolean(bool val) override;
 	bool number_integer(number_integer_t val) override;
@@ -344,6 +346,7 @@ private:
 	Value m_Root;
 	std::stack<std::pair<Dictionary*, Array*>> m_CurrentSubtree;
 	String m_CurrentKey;
+	std::size_t m_DepthLimit;
 
 	void FillCurrentTarget(Value value);
 };
@@ -369,11 +372,23 @@ void icinga::JsonEncode(const Value& value, std::ostream& os, bool prettify)
 	encoder.Encode(value);
 }
 
-Value icinga::JsonDecode(const String& data)
+/**
+ * Parses a JSON string into the Icinga Value type.
+ *
+ * A depth limit can be provided. Both JSON arrays (mapped to icinga::Array) and JSON objects
+ * (mapped to icinga::Dictionary) count towards that limit. A limit of 1 means, that the outer object can be an array
+ * or object, but it can only contain scalar values.
+ *
+ * @param data The JSON to be parsed (throws if the JSON is invalid).
+ * @param depthLimit The maximum depth of the returned data structure,
+ *                   defaults to 24 (throws if the JSON is nested too deep).
+ * @return The parsed value.
+ */
+Value icinga::JsonDecode(const String& data, size_t depthLimit)
 {
 	String sanitized (Utility::ValidateUTF8(data));
 
-	JsonSax stateMachine;
+	JsonSax stateMachine{depthLimit};
 
 	nlohmann::json::sax_parse(sanitized.Begin(), sanitized.End(), &stateMachine);
 
@@ -443,6 +458,10 @@ bool JsonSax::start_object(std::size_t)
 
 	FillCurrentTarget(object);
 
+	if (m_CurrentSubtree.size() >= m_DepthLimit) {
+		BOOST_THROW_EXCEPTION(std::runtime_error("JSON decoding recursion limit reached"));
+	}
+
 	m_CurrentSubtree.push({object, nullptr});
 
 	return true;
@@ -471,6 +490,10 @@ bool JsonSax::start_array(std::size_t)
 	auto array (new Array());
 
 	FillCurrentTarget(array);
+
+	if (m_CurrentSubtree.size() >= m_DepthLimit) {
+		BOOST_THROW_EXCEPTION(std::runtime_error("JSON decoding recursion limit reached"));
+	}
 
 	m_CurrentSubtree.push({nullptr, array});
 

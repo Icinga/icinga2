@@ -151,4 +151,96 @@ BOOST_AUTO_TEST_CASE(invalid1)
 	BOOST_CHECK_THROW(JsonDecode("{\"test\": \"test\""), std::exception);
 }
 
+static std::string MakeNestedJsonArray(size_t depth)
+{
+	return std::string(depth, '[') + std::string(depth, ']');
+}
+
+static std::string MakeNestedJsonObject(size_t depth)
+{
+	std::ostringstream buf;
+	for (size_t i = 0; i < depth; ++i) {
+		buf << "{\"" << i << "\":";
+	}
+	buf << "null";
+	for (size_t i = 0; i < depth; ++i) {
+		buf << "}";
+	}
+	return buf.str();
+}
+
+BOOST_AUTO_TEST_CASE(decode_depth_limit)
+{
+	auto isDepthLimit = [](const std::exception& ex) {
+		return std::string_view(ex.what()) == "JSON decoding recursion limit reached";
+	};
+
+	// Scalars parse even with depth limit 0.
+	BOOST_CHECK_EQUAL(JsonDecode("42", 0), Value(42));
+	BOOST_CHECK_EQUAL(JsonDecode("true", 0), Value(true));
+	BOOST_CHECK_EQUAL(JsonDecode("\"test\"", 0), Value("test"));
+
+	// Arrays and objects require at least depth limit 1.
+	BOOST_CHECK_EXCEPTION(JsonDecode("[]", 0), std::exception, isDepthLimit);
+	BOOST_CHECK_EXCEPTION(JsonDecode("{}", 0), std::exception, isDepthLimit);
+	BOOST_CHECK_EXCEPTION(JsonDecode("[42]", 0), std::exception, isDepthLimit);
+	BOOST_CHECK_EXCEPTION(JsonDecode("{\"foo\": 23}", 0), std::exception, isDepthLimit);
+
+	// Array in array and object in object require at least depth limit 2.
+	BOOST_CHECK_EXCEPTION(JsonDecode("[[]]", 1), std::exception, isDepthLimit);
+	BOOST_CHECK_NO_THROW(JsonDecode("[[]]", 2));
+	BOOST_CHECK_EXCEPTION(JsonDecode(R"({"a":{}})", 1), std::exception, isDepthLimit);
+	BOOST_CHECK_NO_THROW(JsonDecode(R"({"a":{}})", 2));
+
+	// Mixed nesting of arrays and objects is both counted towards the same limit.
+	BOOST_CHECK_EXCEPTION(JsonDecode("[{}]", 1), std::exception, isDepthLimit);
+	BOOST_CHECK_NO_THROW(JsonDecode("[{}]", 2));
+	BOOST_CHECK_EXCEPTION(JsonDecode(R"({"a":[]})", 1), std::exception, isDepthLimit);
+	BOOST_CHECK_NO_THROW(JsonDecode(R"({"a":[]})", 2));
+
+	// Siblings are not added up for the depth check.
+	BOOST_CHECK_NO_THROW(JsonDecode("[[], [], [], {}, [], [], {}, {}, [], {}, {}, {}]", 2));
+	BOOST_CHECK_NO_THROW(JsonDecode(R"({"a": [], "b": {}, "c": {}, "d": [], "e": [], "f": {}})", 2));
+
+	// Some deeper nested array.
+	std::string arrayWithNesting42 = MakeNestedJsonArray(42);
+	BOOST_CHECK_EXCEPTION(JsonDecode(arrayWithNesting42, 41), std::exception, isDepthLimit);
+	BOOST_CHECK_NO_THROW(JsonDecode(arrayWithNesting42, 42));
+
+	// Some deeper nested object.
+	std::string objectWithNesting42 = MakeNestedJsonObject(42);
+	BOOST_CHECK_EXCEPTION(JsonDecode(objectWithNesting42, 41), std::exception, isDepthLimit);
+	BOOST_CHECK_NO_THROW(JsonDecode(objectWithNesting42, 42));
+
+	// And some deeper nested mixed containers.
+	std::string deeperMixedNesting = R"({
+		"1st-level": [
+			true,
+			"2nd-level",
+			{
+				"dummy": 42,
+				"3rd-level": {
+					"4th-level": [
+						"5th-level",
+						{
+							"6th-level": {
+								"7th-level": {
+									"8th-level": [
+										"9th-level",
+										[
+											"10th-level"
+										]
+									]
+								}
+							}
+						}
+					]
+				}
+			}
+		]
+	})";
+	BOOST_CHECK_EXCEPTION(JsonDecode(deeperMixedNesting, 9), std::exception, isDepthLimit);
+	BOOST_CHECK_NO_THROW(JsonDecode(deeperMixedNesting, 10));
+}
+
 BOOST_AUTO_TEST_SUITE_END()
