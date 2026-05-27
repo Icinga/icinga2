@@ -99,7 +99,7 @@ AsioTlsOrTcpStream PerfdataWriterConnection::MakeStream() const
 {
 	AsioTlsOrTcpStream ret;
 	if (m_SslContext) {
-		ret = Shared<AsioTlsStream>::Make(IoEngine::Get().GetIoContext(), *m_SslContext);
+		ret = Shared<AsioTlsStream>::Make(IoEngine::Get().GetIoContext(), *m_SslContext, m_Host);
 	} else {
 		ret = Shared<AsioTcpStream>::Make(IoEngine::Get().GetIoContext());
 	}

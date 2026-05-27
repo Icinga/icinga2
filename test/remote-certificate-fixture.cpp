@@ -95,19 +95,19 @@ void RequiresCertificate::AddCaFixture(const String& caFixtureName)
 	m_CaFixtures.emplace_back(caFixtureName);
 }
 
-void RequiresCertificate::AddCertFixture(const String& cn, const String& caFixture, const String& certFixture)
+void RequiresCertificate::AddCertFixture(const String& name, const String& caFixture, const String& certFixture)
 {
 	auto& mts = boost::unit_test::framework::master_test_suite();
 	boost::unit_test::decorator::base_ptr certLabel{new boost::unit_test::label{"cert"}};
 
 	auto* setup = boost::unit_test::make_test_case(
-		[cn]() {
+		[name]() {
 			CertificateFixture certFixture;
 			auto persistentCertsPath = CertificateFixture::m_PersistentCertsDir / "certs";
-			auto keyFile = persistentCertsPath / (cn.GetData() + ".key");
-			auto csrFile = persistentCertsPath / (cn.GetData() + ".csr");
-			auto crtFile = persistentCertsPath / (cn.GetData() + ".crt");
-			PkiUtility::NewCert(cn, keyFile.string(), csrFile.string(), "");
+			auto keyFile = persistentCertsPath / (name.GetData() + ".key");
+			auto csrFile = persistentCertsPath / (name.GetData() + ".csr");
+			auto crtFile = persistentCertsPath / (name.GetData() + ".crt");
+			PkiUtility::NewCert("localhost", keyFile.string(), csrFile.string(), "");
 			PkiUtility::SignCsr(csrFile.string(), crtFile.string());
 		},
 		certFixture.GetData() + "_setup",
