@@ -96,7 +96,25 @@ void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 			// Cache the elapsed time to acquire a CPU semaphore used to detect extremely heavy workloads.
 			cpuBoundDuration = ch::steady_clock::now() - start;
 
-			Dictionary::Ptr message = JsonRpc::DecodeMessage(jsonString);
+			Dictionary::Ptr message;
+			try {
+				message = JsonRpc::DecodeMessage(jsonString);
+			} catch (const std::exception& ex) {
+				if (m_Authenticated) {
+					Log (LogWarning, "JsonRpcConnection")
+						<< "Ignoring JSON-RPC message for identity '" << m_Identity
+						<< "' that could not be parsed: " << DiagnosticInformation(ex);
+
+					// If only the JSON message is broken but the netstring format is intact, we can continue with the
+					// next message as we know the message boundaries. This is done as a defensive approach so that if
+					// we missed a case that triggers the JSON decoding depth limit, this doesn't break the connection
+					// and worst case takes down the whole cluster communication with it.
+					continue;
+				}
+
+				// Unauthenticated clients proceed to the outer error handling that terminated the connection.
+				throw;
+			}
 			if (String method = message->Get("method"); !method.IsEmpty()) {
 				rpcMethod = std::move(method);
 			}
