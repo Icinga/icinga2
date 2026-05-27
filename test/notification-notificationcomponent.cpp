@@ -5,6 +5,7 @@
 #include "base/defer.hpp"
 #include "remote/apilistener.hpp"
 #include "test/base-testloggerfixture.hpp"
+#include "test/utils.hpp"
 #include "config/configcompiler.hpp"
 #include "notification/notificationcomponent.hpp"
 
@@ -194,22 +195,7 @@ object NotificationComponent "nc" {}
 
 	void ReceiveCheckResults(std::size_t num, ServiceState state)
 	{
-		StoppableWaitGroup::Ptr wg = new StoppableWaitGroup();
-
-		for (auto i = 0UL; i < num; ++i) {
-			CheckResult::Ptr cr = new CheckResult();
-
-			cr->SetState(state);
-
-			double now = Utility::GetTime();
-			cr->SetActive(false);
-			cr->SetScheduleStart(now);
-			cr->SetScheduleEnd(now);
-			cr->SetExecutionStart(now);
-			cr->SetExecutionEnd(now);
-
-			BOOST_REQUIRE(m_Host->ProcessCheckResult(cr, wg) == Checkable::ProcessingResult::Ok);
-		}
+		::ReceiveCheckResults(m_Host, num, state);
 	}
 
 	double GetLastNotificationTimestamp() { return m_Notification->GetLastNotification(); }
