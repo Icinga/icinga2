@@ -140,6 +140,7 @@ add_boost_test(base
     base_json/encode
     base_json/decode
     base_json/invalid1
+    base_json/decode_depth_limit
     base_object_packer/pack_null
     base_object_packer/pack_false
     base_object_packer/pack_true

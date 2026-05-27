@@ -502,7 +502,7 @@ void ConfigObject::DumpObjects(const String& filename, int attributeTypes)
 
 void ConfigObject::RestoreObject(const String& message, int attributeTypes)
 {
-	Dictionary::Ptr persistentObject = JsonDecode(message);
+	Dictionary::Ptr persistentObject = JsonDecode(message, std::numeric_limits<size_t>::max());
 
 	String type = persistentObject->Get("type");
 	String name = persistentObject->Get("name");
