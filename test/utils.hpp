@@ -3,7 +3,9 @@
 
 #pragma once
 
+#include "icinga/host.hpp"
 #include <ctime>
+#include <functional>
 #include <string>
 
 tm make_tm(std::string s);
@@ -24,3 +26,12 @@ struct GlobalTimezoneFixture
 
     char *tz;
 };
+
+std::string GetRandomString(std::string prefix, std::size_t length);
+
+void ReceiveCheckResults(
+	const icinga::Checkable::Ptr& host,
+	std::size_t num,
+	icinga::ServiceState state,
+	const std::function<void(const icinga::CheckResult::Ptr&)>& fn = {}
+);
