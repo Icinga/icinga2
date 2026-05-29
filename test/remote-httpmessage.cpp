@@ -353,4 +353,19 @@ BOOST_AUTO_TEST_CASE(response_sendfile)
 	BOOST_REQUIRE_EQUAL(ss.str(), parser.get().body());
 }
 
+BOOST_AUTO_TEST_CASE(response_sendfile_invalid_path)
+{
+	auto future = SpawnSynchronizedCoroutine([this](boost::asio::yield_context yc) {
+		HttpApiResponse response(server);
+
+		response.result(http::status::ok);
+		BOOST_REQUIRE_THROW(response.SendFile("", yc), std::ios_base::failure);
+	});
+
+	auto status = future.wait_for(10s);
+	if (status != std::future_status::ready) {
+		BOOST_FAIL("Exception not thrown.");
+	}
+}
+
 BOOST_AUTO_TEST_SUITE_END()
