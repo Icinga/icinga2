@@ -428,11 +428,9 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	}
 
 	if (!username.IsEmpty() && !password.IsEmpty()) {
-		auto authn (username + ":" + password);
-
-		req->set(field::authorization, "Basic " + Base64::Encode(authn));
+		req->set(field::authorization, "Basic " + Base64::Encode(username + ":" + password));
 		cmdLine->Add("--user");
-		cmdLine->Add(authn);
+		cmdLine->Add(username);
 	}
 
 	auto& io (IoEngine::Get().GetIoContext());
