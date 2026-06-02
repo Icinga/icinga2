@@ -266,7 +266,7 @@ bool Url::ParseUserinfo(const String& userinfo)
 	m_Username = Utility::UnescapeString(m_Username);
 	if (pos != String::NPos && pos != userinfo.GetLength() - 1) {
 		m_Password = userinfo.SubStr(pos+1);
-		if (!ValidateToken(m_Username, ACUSERINFO))
+		if (!ValidateToken(m_Password, ACUSERINFO))
 			return false;
 		m_Password = Utility::UnescapeString(m_Password);
 	} else
