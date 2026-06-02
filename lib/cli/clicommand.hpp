@@ -42,6 +42,7 @@ public:
 	virtual int GetMaxArguments() const;
 	virtual bool IsHidden() const;
 	virtual bool IsDeprecated() const;
+	virtual bool NeedsRLimitAdjustment() const;
 	virtual void InitParameters(boost::program_options::options_description& visibleDesc,
 		boost::program_options::options_description& hiddenDesc) const;
 	virtual ImpersonationLevel GetImpersonationLevel() const;

@@ -176,6 +176,11 @@ String DaemonCommand::GetShortDescription() const
 	return "starts Icinga 2";
 }
 
+bool DaemonCommand::NeedsRLimitAdjustment() const
+{
+	return true;
+}
+
 void DaemonCommand::InitParameters(boost::program_options::options_description& visibleDesc,
 	[[maybe_unused]] boost::program_options::options_description& hiddenDesc) const
 {
