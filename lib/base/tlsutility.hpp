@@ -39,6 +39,9 @@ const auto LEAF_VALID_FOR  = 60 * 60 * 24 * 397;
 const auto RENEW_THRESHOLD = 60 * 60 * 24 * 30;
 const auto RENEW_INTERVAL  = 60 * 60 * 24;
 
+// OpenSSL 1.x returns X509_NAME*, OpenSSL 4.x returns const X509_NAME*.
+using X509NamePtr = decltype(X509_get_subject_name(nullptr));
+
 void InitializeOpenSSL();
 
 String GetOpenSSLVersion();
@@ -66,8 +69,8 @@ int MakeX509CSR(
 );
 std::shared_ptr<X509> CreateCert(
 	EVP_PKEY* pubkey,
-	X509_NAME* subject,
-	X509_NAME* issuer,
+	X509NamePtr subject,
+	X509NamePtr issuer,
 	EVP_PKEY* cakey,
 	long validFrom,
 	long validFor,
@@ -83,7 +86,7 @@ inline String CertificateToString(const std::shared_ptr<X509>& cert)
 }
 
 std::shared_ptr<X509> StringToCertificate(const String& cert);
-std::shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject, long validFrom, long validFor, bool ca = false);
+std::shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509NamePtr subject, long validFrom, long validFor, bool ca = false);
 std::shared_ptr<X509> CreateCertIcingaCA(const std::shared_ptr<X509>& cert, long validFrom = 0, long validFor = LEAF_VALID_FOR);
 bool IsCertUptodate(const std::shared_ptr<X509>& cert);
 bool IsCaUptodate(X509* cert);
