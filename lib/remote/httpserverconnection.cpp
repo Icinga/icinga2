@@ -198,7 +198,7 @@ bool EnsureValidHeaders(
 		response.result(http::status::bad_request);
 
 		if (!httpError && request[http::field::accept] == "application/json") {
-			HttpUtility::SendJsonError(response, nullptr, 400, "Bad Request: " + errorMsg);
+			HttpUtility::SendJsonError(response, nullptr, 400, yc, "Bad Request: " + errorMsg);
 		} else {
 			response.set(http::field::content_type, "text/html");
 			response.body() << "<h1>Bad Request</h1><p><pre>" << errorMsg << "</pre></p>";
@@ -315,7 +315,7 @@ bool EnsureAuthenticatedUser(
 		response.set(http::field::connection, "close");
 
 		if (request[http::field::accept] == "application/json") {
-			HttpUtility::SendJsonError(response, nullptr, 401, "Unauthorized. Please check your user credentials.");
+			HttpUtility::SendJsonError(response, nullptr, 401, yc, "Unauthorized. Please check your user credentials.");
 		} else {
 			response.set(http::field::content_type, "text/html");
 			response.body() << "<h1>Unauthorized. Please check your user credentials.</h1>";
@@ -396,7 +396,7 @@ bool EnsureValidBody(
 		response.result(http::status::bad_request);
 
 		if (request[http::field::accept] == "application/json") {
-			HttpUtility::SendJsonError(response, nullptr, 400, "Bad Request: " + ec.message());
+			HttpUtility::SendJsonError(response, nullptr, 400, yc, "Bad Request: " + ec.message());
 		} else {
 			response.set(http::field::content_type, "text/html");
 			response.body() << "<h1>Bad Request</h1><p><pre>" << ec.message() << "</pre></p>";
@@ -438,7 +438,7 @@ void ProcessRequest(
 			throw;
 		}
 
-		HttpUtility::SendJsonError(response, request.Params(), 500, "Unhandled exception", DiagnosticInformation(ex));
+		HttpUtility::SendJsonError(response, request.Params(), 500, yc, "Unhandled exception", DiagnosticInformation(ex));
 	}
 
 	response.Flush(yc);

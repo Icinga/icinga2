@@ -22,7 +22,7 @@ bool MallocInfoHandler::HandleRequest(
 	const WaitGroup::Ptr&,
 	const HttpApiRequest& request,
 	HttpApiResponse& response,
-	boost::asio::yield_context&
+	boost::asio::yield_context& yc
 )
 {
 	namespace http = boost::beast::http;
@@ -42,7 +42,7 @@ bool MallocInfoHandler::HandleRequest(
 	FilterUtility::CheckPermission(user, "debug");
 
 #ifndef HAVE_MALLOC_INFO
-	HttpUtility::SendJsonError(response, params, 501, "malloc_info(3) not available.");
+	HttpUtility::SendJsonError(response, params, 501, yc, "malloc_info(3) not available.");
 #else /* HAVE_MALLOC_INFO */
 	char* buf = nullptr;
 	size_t bufSize = 0;

@@ -13,7 +13,7 @@ bool InfoHandler::HandleRequest(
 	const WaitGroup::Ptr&,
 	const HttpApiRequest& request,
 	HttpApiResponse& response,
-	boost::asio::yield_context&
+	boost::asio::yield_context& yc
 )
 {
 	namespace http = boost::beast::http;
@@ -73,7 +73,7 @@ bool InfoHandler::HandleRequest(
 			{ "results", new Array({ result1 }) }
 		});
 
-		HttpUtility::SendJsonBody(response, params, result);
+		HttpUtility::SendJsonBody(response, params, result, yc);
 	} else {
 		response.set(http::field::content_type, "text/html");
 

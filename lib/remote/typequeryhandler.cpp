@@ -82,7 +82,7 @@ bool TypeQueryHandler::HandleRequest(
 	try {
 		objs = FilterUtility::GetFilterTargets(qd, params, user);
 	} catch (const std::exception& ex) {
-		HttpUtility::SendJsonError(response, params, 404,
+		HttpUtility::SendJsonError(response, params, 404, yc,
 			"No objects found.",
 			DiagnosticInformation(ex));
 		return true;

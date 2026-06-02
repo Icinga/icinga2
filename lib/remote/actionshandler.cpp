@@ -37,7 +37,7 @@ bool ActionsHandler::HandleRequest(
 	ApiAction::Ptr action = ApiAction::GetByName(actionName);
 
 	if (!action) {
-		HttpUtility::SendJsonError(response, params, 404, "Action '" + actionName + "' does not exist.");
+		HttpUtility::SendJsonError(response, params, 404, yc, "Action '" + actionName + "' does not exist.");
 		return true;
 	}
 
@@ -55,14 +55,14 @@ bool ActionsHandler::HandleRequest(
 		try {
 			objs = FilterUtility::GetFilterTargets(qd, params, user);
 		} catch (const std::exception& ex) {
-			HttpUtility::SendJsonError(response, params, 404,
+			HttpUtility::SendJsonError(response, params, 404, yc,
 				"No objects found.",
 				DiagnosticInformation(ex));
 			return true;
 		}
 
 		if (objs.empty()) {
-			HttpUtility::SendJsonError(response, params, 404,
+			HttpUtility::SendJsonError(response, params, 404, yc,
 				"No objects found.");
 			return true;
 		}
@@ -83,7 +83,7 @@ bool ActionsHandler::HandleRequest(
 
 	std::shared_lock wgLock{*waitGroup, std::try_to_lock};
 	if (!wgLock) {
-		HttpUtility::SendJsonError(response, params, 503, "Shutting down.");
+		HttpUtility::SendJsonError(response, params, 503, yc, "Shutting down.");
 		return true;
 	}
 

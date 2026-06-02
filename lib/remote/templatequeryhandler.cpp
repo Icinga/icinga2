@@ -98,7 +98,7 @@ bool TemplateQueryHandler::HandleRequest(
 	Type::Ptr type = FilterUtility::TypeFromPluralName(url->GetPath()[2]);
 
 	if (!type) {
-		HttpUtility::SendJsonError(response, params, 400, "Invalid type specified.");
+		HttpUtility::SendJsonError(response, params, 400, yc, "Invalid type specified.");
 		return true;
 	}
 
@@ -120,7 +120,7 @@ bool TemplateQueryHandler::HandleRequest(
 	try {
 		objs = FilterUtility::GetFilterTargets(qd, params, user, "tmpl");
 	} catch (const std::exception& ex) {
-		HttpUtility::SendJsonError(response, params, 404,
+		HttpUtility::SendJsonError(response, params, 404, yc,
 			"No templates found.",
 			DiagnosticInformation(ex));
 		return true;

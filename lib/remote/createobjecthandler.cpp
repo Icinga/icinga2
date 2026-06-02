@@ -20,7 +20,7 @@ bool CreateObjectHandler::HandleRequest(
 	const WaitGroup::Ptr& waitGroup,
 	const HttpApiRequest& request,
 	HttpApiResponse& response,
-	boost::asio::yield_context&
+	boost::asio::yield_context& yc
 )
 {
 	namespace http = boost::beast::http;
@@ -38,7 +38,7 @@ bool CreateObjectHandler::HandleRequest(
 	Type::Ptr type = FilterUtility::TypeFromPluralName(url->GetPath()[2]);
 
 	if (!type) {
-		HttpUtility::SendJsonError(response, params, 400, "Invalid type specified.");
+		HttpUtility::SendJsonError(response, params, 400, yc, "Invalid type specified.");
 		return true;
 	}
 
@@ -99,13 +99,13 @@ bool CreateObjectHandler::HandleRequest(
 	ConfigObjectsSharedLock lock (std::try_to_lock);
 
 	if (!lock) {
-		HttpUtility::SendJsonError(response, params, 503, "Icinga is reloading");
+		HttpUtility::SendJsonError(response, params, 503, yc, "Icinga is reloading");
 		return true;
 	}
 
 	std::shared_lock wgLock{*waitGroup, std::try_to_lock};
 	if (!wgLock) {
-		HttpUtility::SendJsonError(response, params, 503, "Shutting down.");
+		HttpUtility::SendJsonError(response, params, 503, yc, "Shutting down.");
 		return true;
 	}
 
@@ -126,7 +126,7 @@ bool CreateObjectHandler::HandleRequest(
 		result1->Set("status", "Object could not be created.");
 
 		response.result(http::status::internal_server_error);
-		HttpUtility::SendJsonBody(response, params, result);
+		HttpUtility::SendJsonBody(response, params, result, yc);
 
 		return true;
 	}
@@ -143,7 +143,7 @@ bool CreateObjectHandler::HandleRequest(
 			result1->Set("diagnostic_information", diagnosticInformation);
 
 		response.result(http::status::internal_server_error);
-		HttpUtility::SendJsonBody(response, params, result);
+		HttpUtility::SendJsonBody(response, params, result, yc);
 
 		return true;
 	}
@@ -159,7 +159,7 @@ bool CreateObjectHandler::HandleRequest(
 		result1->Set("status", "Object was not created but 'ignore_on_error' was set to true");
 
 	response.result(http::status::ok);
-	HttpUtility::SendJsonBody(response, params, result);
+	HttpUtility::SendJsonBody(response, params, result, yc);
 
 	return true;
 }
