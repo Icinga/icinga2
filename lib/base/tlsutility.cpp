@@ -1049,7 +1049,7 @@ String BinaryToHex(const unsigned char* data, size_t length) {
 	static const char hexdigits[] = "0123456789abcdef";
 
 	String output(2*length, 0);
-	for (int i = 0; i < SHA_DIGEST_LENGTH; i++) {
+	for (size_t i = 0; i < length; i++) {
 		output[2 * i] = hexdigits[data[i] >> 4];
 		output[2 * i + 1] = hexdigits[data[i] & 0xf];
 	}
