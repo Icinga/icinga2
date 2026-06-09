@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "base/convert.hpp"
 #include "base/dictionary.hpp"
 #include "base/function.hpp"
 #include "base/namespace.hpp"
@@ -8,6 +9,7 @@
 #include "base/generator.hpp"
 #include "base/objectlock.hpp"
 #include "base/json.hpp"
+#include "test/utils.hpp"
 #include <boost/algorithm/string/replace.hpp>
 #include <BoostTestTargetConfig.h>
 #include <limits>
@@ -267,6 +269,33 @@ BOOST_AUTO_TEST_CASE(decode_depth_limit)
 	auto deeperPath = R"(root["1st-level"][2]["3rd-level"]["4th-level"][1]["6th-level"]["7th-level"]["8th-level"][1])";
 	BOOST_CHECK(ExpectLimitExceeded(deeperMixedNesting, 9, deeperPath));
 	BOOST_CHECK_NO_THROW(JsonDecode(deeperMixedNesting, 10));
+}
+
+/* This test case decodes JSON nested much deeper (see safetyFactor) than the default depth limit and performs some
+ * operations on the resulting values. This is done within a coroutine with its limited stack size on order to verify
+ * that the default limit is low enough to be safe. Note that this isn't an exact science unfortunately: other
+ * recursive operations may have larger stack frames and these operations aren't the only thing on a stack (could be
+ * done inside an HTTP or JSON-RPC connection for example). Therefor, aim for a sufficiently large safety factor.
+ */
+BOOST_AUTO_TEST_CASE(coroutine_stack_size)
+{
+	auto future = SpawnSynchronizedCoroutine([](boost::asio::yield_context) {
+		constexpr size_t safetyFactor = 10;
+		constexpr size_t depth = JsonDecodeDefaultDepthLimit * safetyFactor;
+
+		Value val;
+
+		BOOST_REQUIRE_NO_THROW(val = JsonDecode(MakeNestedJsonArray(depth), depth));
+		BOOST_REQUIRE_NO_THROW(val.Clone());
+		BOOST_REQUIRE_NO_THROW(Convert::ToString(val));
+		BOOST_REQUIRE_NO_THROW(JsonDecode(JsonEncode(val), depth));
+
+		BOOST_REQUIRE_NO_THROW(val = JsonDecode(MakeNestedJsonObject(depth), depth));
+		BOOST_REQUIRE_NO_THROW(val.Clone());
+		BOOST_REQUIRE_NO_THROW(Convert::ToString(val));
+		BOOST_REQUIRE_NO_THROW(JsonDecode(JsonEncode(val), depth));
+	});
+	future.get();
 }
 
 BOOST_AUTO_TEST_SUITE_END()
