@@ -4,12 +4,34 @@
 #include "base/function.hpp"
 #include "base/namespace.hpp"
 #include "base/array.hpp"
+#include "base/io-engine.hpp"
 #include "base/objectlock.hpp"
 #include "base/json.hpp"
+#include <functional>
+#include <future>
 #include <boost/algorithm/string/replace.hpp>
 #include <BoostTestTargetConfig.h>
 
 using namespace icinga;
+
+static std::future<void> SpawnSynchronizedCoroutine(std::function<void(boost::asio::yield_context)> fn)
+{
+	using namespace icinga;
+
+	auto promise = std::make_unique<std::promise<void>>();
+	auto future = promise->get_future();
+	auto& io = IoEngine::Get().GetIoContext();
+	IoEngine::SpawnCoroutine(io, [promise = std::move(promise), fn = std::move(fn)](boost::asio::yield_context yc) {
+		try {
+			fn(std::move(yc));
+		} catch (const std::exception&) {
+			promise->set_exception(std::current_exception());
+			return;
+		}
+		promise->set_value();
+	});
+	return future;
+}
 
 BOOST_AUTO_TEST_SUITE(base_json)
 
