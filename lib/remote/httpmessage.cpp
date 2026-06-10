@@ -226,7 +226,7 @@ void OutgoingHttpMessage<isRequest, Body, StreamVariant>::SendFile(
 )
 {
 	std::ifstream fp(path.CStr(), std::ifstream::in | std::ifstream::binary | std::ifstream::ate);
-	fp.exceptions(std::ifstream::badbit | std::ifstream::eofbit);
+	fp.exceptions(std::ifstream::failbit | std::ifstream::badbit | std::ifstream::eofbit);
 
 	std::uint64_t remaining = fp.tellg();
 	fp.seekg(0);
