@@ -33,3 +33,11 @@ double CheckResult::CalculateLatency() const
 
 	return latency;
 }
+
+void CheckResult::SetPerformanceData(const Array::Ptr& value, bool suppress_events, const Value& cookie)
+{
+	if (value) {
+		value->Freeze();
+	}
+	ObjectImpl<CheckResult>::SetPerformanceData(value, suppress_events, cookie);
+}
