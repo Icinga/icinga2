@@ -83,6 +83,18 @@ void HttpUtility::SendJsonBody(HttpApiResponse& response, const Dictionary::Ptr&
 	response.GetJsonEncoder(params && GetLastParameter(params, "pretty")).Encode(val);
 }
 
+/**
+ * Initialize the response object with the given error code and info.
+ *
+ * Note that this fully resets the response object so any additional headers will need to be set
+ * after initializing the response with this function.
+ *
+ * @param response A reference to the HTTP response to initialize
+ * @param params The parameters sent with the request
+ * @param code The error code to initialize the response with
+ * @param info The error message to include in the JSON body
+ * @param diagnosticInformation Additional debug information included when `verbose` is in params
+ */
 void HttpUtility::SendJsonError(HttpApiResponse& response,
 	const Dictionary::Ptr& params, int code, const String& info, const String& diagnosticInformation)
 {

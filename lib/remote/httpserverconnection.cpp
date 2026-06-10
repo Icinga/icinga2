@@ -310,16 +310,17 @@ bool EnsureAuthenticatedUser(
 		Log(LogWarning, "HttpServerConnection")
 			<< "Unauthorized request: " << request.method_string() << ' ' << request.target();
 
-		response.result(http::status::unauthorized);
-		response.set(http::field::www_authenticate, "Basic realm=\"Icinga 2\"");
-		response.set(http::field::connection, "close");
-
 		if (request[http::field::accept] == "application/json") {
 			HttpUtility::SendJsonError(response, nullptr, 401, "Unauthorized. Please check your user credentials.");
 		} else {
+			response.result(http::status::unauthorized);
 			response.set(http::field::content_type, "text/html");
 			response.body() << "<h1>Unauthorized. Please check your user credentials.</h1>";
 		}
+
+		// Set additional header fields after the response has been initialized in SendJsonError().
+		response.set(http::field::www_authenticate, "Basic realm=\"Icinga 2\"");
+		response.set(http::field::connection, "close");
 
 		response.Flush(yc);
 
