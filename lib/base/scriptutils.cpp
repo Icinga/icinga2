@@ -451,8 +451,9 @@ Array::Ptr ScriptUtils::GetTemplates(const Type::Ptr& type)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid type: Must not be null"));
 
 	ArrayData result;
+	auto items (ConfigItem::GetItems(type));
 
-	for (const ConfigItem::Ptr& item : ConfigItem::GetItems(type)) {
+	for (auto& item : *items) {
 		if (item->IsAbstract())
 			result.push_back(GetTargetForTemplate(item));
 	}
