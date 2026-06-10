@@ -124,6 +124,24 @@ void Notification::OnAllConfigLoaded()
 	if (!m_Checkable)
 		BOOST_THROW_EXCEPTION(ScriptError("Notification object refers to a host/service which doesn't exist.", GetDebugInfo()));
 
+	Endpoint::Ptr endpoint = GetCommandEndpoint();
+
+	if (endpoint) {
+		Zone::Ptr myZone = static_pointer_cast<Zone>(GetZone());
+
+		if (myZone) {
+			Zone::Ptr cmdZone = endpoint->GetZone();
+
+			if (cmdZone != myZone && cmdZone->GetParent() != myZone) {
+				BOOST_THROW_EXCEPTION(ValidationError(this, { "command_endpoint" },
+					"Command endpoint must be in zone '" + myZone->GetName() + "' or in a direct child zone thereof."));
+			}
+		} else {
+			BOOST_THROW_EXCEPTION(ValidationError(this, { "command_endpoint" },
+				"Notification with command endpoint requires a zone. Please check the troubleshooting documentation."));
+		}
+	}
+
 	GetCheckable()->RegisterNotification(this);
 }
 
@@ -605,7 +623,8 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 {
 	String notificationName = GetName();
 	String userName = user->GetName();
-	String checkableName = GetCheckable()->GetName();
+	auto checkable (GetCheckable());
+	String checkableName = checkable->GetName();
 
 	NotificationCommand::Ptr command = GetCommand();
 
@@ -616,9 +635,53 @@ void Notification::ExecuteNotificationHelper(NotificationType type, const User::
 	}
 
 	String commandName = command->GetName();
+	ApiListener::Ptr listener = ApiListener::GetInstance();
+	Endpoint::Ptr endpoint = GetCommandEndpoint();
+	bool local = !endpoint || endpoint == Endpoint::GetLocalEndpoint();
+
+	if (!local && !(endpoint->GetCapabilities() & (uint_fast64_t)ApiCapabilities::ExecuteNotificationCommand)) {
+		Log(LogWarning, "Notification")
+			<< "Sending notification '" << GetName() << "' locally as its command endpoint '"
+			<< endpoint->GetName() << "' doesn't support executing notification commands. Consider upgrading it.";
+		local = true;
+	}
+
+	if (!local && (!endpoint->GetConnected() || !listener)) {
+		Log(LogWarning, "Notification")
+			<< "Sending notification '" << GetName() << "' locally as its command endpoint '"
+			<< endpoint->GetName() << "' is not connected.";
+		local = true;
+	}
 
 	try {
-		command->Execute(this, user, cr, type, author, text);
+		if (local) {
+			command->Execute(this, user, cr, type, author, text);
+		} else {
+			Dictionary::Ptr macros = new Dictionary();
+			Host::Ptr host;
+			Service::Ptr service;
+			Dictionary::Ptr params = new Dictionary();
+			Dictionary::Ptr message = new Dictionary();
+
+			command->Execute(this, user, cr, type, author, text, macros, false);
+			tie(host, service) = GetHostService(checkable);
+
+			params->Set("command_type", "notification_command");
+			params->Set("command", command->GetName());
+			params->Set("macros", macros);
+			params->Set("notification", GetName());
+			params->Set("user", user->GetName());
+			params->Set("host", host->GetName());
+
+			if (service)
+				params->Set("service", service->GetShortName());
+
+			message->Set("jsonrpc", "2.0");
+			message->Set("method", "event::ExecuteCommand");
+			message->Set("params", params);
+
+			listener->SyncSendMessage(endpoint, message);
+		}
 
 		/* required by compatlogger */
 		Service::OnNotificationSentToUser(this, GetCheckable(), user, type, cr, author, text, commandName, nullptr);
