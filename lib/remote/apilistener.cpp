@@ -625,21 +625,30 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 		try {
 			boost::shared_lock<decltype(m_SSLContextMutex)> lock (m_SSLContextMutex);
 			auto sslConn (Shared<AsioTlsStream>::Make(io, *m_SSLContext, endpoint->GetName()));
+			bool timedOut = false;
 
 			lock.unlock();
 
 			Timeout timeout (*strand, boost::posix_time::microseconds(int64_t(GetConnectTimeout() * 1e6)),
-				[sslConn, endpoint, host, port] {
+				[sslConn, endpoint, host, port, &timedOut] {
 					Log(LogCritical, "ApiListener")
 						<< "Timeout while reconnecting to endpoint '" << endpoint->GetName() << "' via host '" << host
 						<< "' and port '" << port << "', cancelling attempt";
 
 					boost::system::error_code ec;
 					sslConn->lowest_layer().cancel(ec);
+					timedOut = true;
 				}
 			);
 
-			Connect(sslConn->lowest_layer(), host, port, yc);
+			auto ips (Resolve(host, port, yc));
+
+			if (timedOut) {
+				endpoint->SetConnecting(false);
+				return;
+			}
+
+			Connect(sslConn->lowest_layer(), ips, yc);
 
 			NewClientHandler(yc, strand, sslConn, endpoint->GetName(), RoleClient);
 
