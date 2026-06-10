@@ -15,6 +15,10 @@
 #include <openssl/ssl.h>
 #include <openssl/ssl3.h>
 #include <fstream>
+#include <memory>
+#include <optional>
+#include <utility>
+#include <vector>
 
 namespace icinga
 {
@@ -423,14 +427,83 @@ static String GetX509NameCN(X509_NAME *name)
 }
 
 /**
- * Retrieves the common name for an X509 certificate.
+ * Retrieves the DNS SAN (if exactly one) for an X509 certificate, fall back to the common name.
  *
  * @param certificate The X509 certificate.
- * @returns The common name.
+ * @returns The DNS SAN or common name.
  */
 String GetCertificateCN(const std::shared_ptr<X509>& certificate)
 {
-	return GetX509NameCN(X509_get_subject_name(certificate.get()));
+	std::unique_ptr<GENERAL_NAMES, void(*)(GENERAL_NAMES*)> sans (
+		(GENERAL_NAMES*)X509_get_ext_d2i(certificate.get(), NID_subject_alt_name, nullptr, nullptr),
+		&GENERAL_NAMES_free
+	);
+
+	std::vector<String> dnsSans;
+
+	if (sans) {
+		int totalSans = sk_GENERAL_NAME_num(sans.get());
+
+		for (int i = 0; i < totalSans; ++i) {
+			auto gn (sk_GENERAL_NAME_value(sans.get(), i));
+
+			if (gn->type == GEN_DNS) {
+				const unsigned char* dnsSan = nullptr;
+				auto asn1Str (gn->d.uniformResourceIdentifier);
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+				dnsSan = ASN1_STRING_data(asn1Str);
+#else /* OPENSSL_VERSION_NUMBER < 0x10100000L */
+				dnsSan = ASN1_STRING_get0_data(asn1Str);
+#endif /* OPENSSL_VERSION_NUMBER < 0x10100000L */
+
+				dnsSans.emplace_back(Convert::ToString(dnsSan));
+			}
+		}
+	}
+
+	if (dnsSans.size() == 1u) {
+		auto& dnsSan (dnsSans.at(0));
+		std::optional<String> cn;
+
+		try {
+			cn.emplace(GetX509NameCN(X509_get_subject_name(certificate.get())));
+		} catch (const std::exception&) {
+			// No CN - no problem
+			// GetX509NameCN() logs own errors if any
+		}
+
+		if (cn && *cn != dnsSan) {
+			Log(LogWarning, "SSL") << "Certificate's DNS SAN '" << dnsSan
+				<< "' doesn't match the CN '" << *cn << "'";
+		}
+
+		return std::move(dnsSan);
+	}
+
+	Log msg (LogWarning, "SSL");
+	decltype(dnsSans.size()) loggedSans = 0;
+
+	msg << "Expected 1 DNS SAN in certificate, found " << dnsSans.size();
+
+	for (auto& dnsSan : dnsSans) {
+		if (loggedSans) {
+			msg << ", ";
+		} else {
+			msg << ": ";
+		}
+
+		msg << "'" << dnsSan << "'";
+		++loggedSans;
+	}
+
+	// If GetX509NameCN() throws, msg is logged as-is - that's fine
+	// GetX509NameCN() logs own errors if any
+	auto cn (GetX509NameCN(X509_get_subject_name(certificate.get())));
+
+	msg << ". CN: '" << cn << "'";
+
+	return cn;
 }
 
 /**
