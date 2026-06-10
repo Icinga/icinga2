@@ -49,6 +49,8 @@ public:
 protected:
 	void CreateChildObjects(const Type::Ptr& childType) override;
 
+	Dictionary::Ptr MakeLocalsForApply() override;
+
 private:
 	Host::Ptr m_Host;
 
