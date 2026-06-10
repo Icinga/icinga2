@@ -101,7 +101,7 @@ private:
 	static std::mutex m_Mutex;
 	static std::set<Logger::Ptr> m_Loggers;
 	static bool m_ConsoleLogEnabled;
-	static std::atomic<bool> m_EarlyLoggingEnabled;
+	static Atomic<bool> m_EarlyLoggingEnabled;
 	static bool m_TimestampEnabled;
 	static LogSeverity m_ConsoleLogSeverity;
 	static std::mutex m_UpdateMinLogSeverityMutex;
