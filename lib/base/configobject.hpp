@@ -26,6 +26,8 @@ class ConfigObject : public ObjectImpl<ConfigObject>
 public:
 	DECLARE_OBJECT(ConfigObject);
 
+	static constexpr size_t VarDepthLimit = 16;
+
 	static boost::signals2::signal<void (const ConfigObject::Ptr&)> OnStateChanged;
 
 	bool IsActive() const;
