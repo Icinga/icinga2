@@ -78,6 +78,13 @@ void ConfigWriter::EmitScope(std::ostream& fp, int indentLevel, const Dictionary
 			if (splitDot) {
 				std::vector<String> tokens = kv.first.Split(".");
 
+				// This is reachable from CreateObjectHandler. This check prevents API clients from creating deeply
+				// nested data structures that could overflow the stack later on.
+				if (tokens.size() > ConfigObject::VarDepthLimit) {
+					BOOST_THROW_EXCEPTION(std::invalid_argument("Attribute '" + kv.first +
+						"' exceeds maximum nesting level of " + std::to_string(ConfigObject::VarDepthLimit) + "."));
+				}
+
 				EmitIdentifier(fp, tokens[0], true);
 
 				for (std::vector<String>::size_type i = 1; i < tokens.size(); i++) {
