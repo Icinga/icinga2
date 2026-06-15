@@ -24,6 +24,9 @@ if (-not ($env:PATH -contains $env:CMAKE_PATH)) {
 if (-not (Test-Path env:CMAKE_GENERATOR)) {
   $env:CMAKE_GENERATOR = 'Visual Studio 17 2022'
 }
+if (-not (Test-Path env:CMAKE_GENERATOR_TOOLSET)) {
+  $env:CMAKE_GENERATOR_TOOLSET = 'v143'
+}
 if (-not (Test-Path env:CMAKE_GENERATOR_PLATFORM)) {
   $env:CMAKE_GENERATOR_PLATFORM = 'x64'
 }
@@ -57,7 +60,8 @@ if (Test-Path CMakeCache.txt) {
 
 & cmake.exe "$sourcePath" `
   -DCMAKE_BUILD_TYPE="$env:CMAKE_BUILD_TYPE" `
-  -G "$env:CMAKE_GENERATOR" -A "$env:CMAKE_GENERATOR_PLATFORM" -DCPACK_GENERATOR=WIX `
+  -G "$env:CMAKE_GENERATOR" -A "$env:CMAKE_GENERATOR_PLATFORM" `
+  -T "$env:CMAKE_GENERATOR_TOOLSET" -DCPACK_GENERATOR=WIX `
   -DCMAKE_INSTALL_PREFIX="$env:ICINGA2_INSTALLPATH" `
   -DOPENSSL_ROOT_DIR="$env:OPENSSL_ROOT_DIR" `
   -DBOOST_LIBRARYDIR="$env:BOOST_LIBRARYDIR" `
