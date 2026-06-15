@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "perfdata/graphitewriter.hpp"
+#include "base/defer.hpp"
 #include "perfdata/graphitewriter-ti.cpp"
 #include "icinga/service.hpp"
 #include "icinga/checkcommand.hpp"
@@ -85,6 +86,13 @@ void GraphiteWriter::Resume()
 	/* Register exception handler for WQ tasks. */
 	m_WorkQueue.SetExceptionCallback([this](boost::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
 
+	/* Setup timer for periodically flushing m_DataBuffer */
+	m_FlushTimer = Timer::Create();
+	m_FlushTimer->SetInterval(GetFlushInterval());
+	m_FlushTimer->OnTimerExpired.connect([this](const Timer * const&) { FlushTimeout(); });
+	m_FlushTimer->Start();
+	m_FlushTimer->Reschedule(0);
+
 	m_Connection = new PerfdataWriterConnection{this, GetHost(), GetPort()};
 
 	/* Register event handlers. */
@@ -100,6 +108,8 @@ void GraphiteWriter::Resume()
 void GraphiteWriter::Pause()
 {
 	m_HandleCheckResults.disconnect();
+
+	m_FlushTimer->Stop(true);
 
 	std::promise<void> queueDonePromise;
 
@@ -199,10 +209,10 @@ void GraphiteWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 		CONTEXT("Processing check result for '" << checkable->GetName() << "'");
 
 		for (auto& [name, val] : metadata) {
-			SendMetric(checkable, prefix + ".metadata", name, val, cr->GetExecutionEnd());
+			AddMetric(checkable, prefix + ".metadata", name, val, cr->GetExecutionEnd());
 		}
 
-		SendPerfdata(checkable, prefix + ".perfdata", cr);
+		AddPerfdata(checkable, prefix + ".perfdata", cr);
 	});
 }
 
@@ -213,7 +223,7 @@ void GraphiteWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
  * @param prefix Metric prefix string
  * @param cr Check result including performance data
  */
-void GraphiteWriter::SendPerfdata(const Checkable::Ptr& checkable, const String& prefix, const CheckResult::Ptr& cr)
+void GraphiteWriter::AddPerfdata(const Checkable::Ptr& checkable, const String& prefix, const CheckResult::Ptr& cr)
 {
 	AssertOnWorkQueue();
 
@@ -245,17 +255,17 @@ void GraphiteWriter::SendPerfdata(const Checkable::Ptr& checkable, const String&
 		String escapedKey = EscapeMetricLabel(pdv->GetLabel());
 		double ts = cr->GetExecutionEnd();
 
-		SendMetric(checkable, prefix, escapedKey + ".value", pdv->GetValue(), ts);
+		AddMetric(checkable, prefix, escapedKey + ".value", pdv->GetValue(), ts);
 
 		if (GetEnableSendThresholds()) {
 			if (!pdv->GetCrit().IsEmpty())
-				SendMetric(checkable, prefix, escapedKey + ".crit", pdv->GetCrit(), ts);
+				AddMetric(checkable, prefix, escapedKey + ".crit", pdv->GetCrit(), ts);
 			if (!pdv->GetWarn().IsEmpty())
-				SendMetric(checkable, prefix, escapedKey + ".warn", pdv->GetWarn(), ts);
+				AddMetric(checkable, prefix, escapedKey + ".warn", pdv->GetWarn(), ts);
 			if (!pdv->GetMin().IsEmpty())
-				SendMetric(checkable, prefix, escapedKey + ".min", pdv->GetMin(), ts);
+				AddMetric(checkable, prefix, escapedKey + ".min", pdv->GetMin(), ts);
 			if (!pdv->GetMax().IsEmpty())
-				SendMetric(checkable, prefix, escapedKey + ".max", pdv->GetMax(), ts);
+				AddMetric(checkable, prefix, escapedKey + ".max", pdv->GetMax(), ts);
 		}
 	}
 }
@@ -269,7 +279,7 @@ void GraphiteWriter::SendPerfdata(const Checkable::Ptr& checkable, const String&
  * @param value Metric value
  * @param ts Timestamp when the check result was created
  */
-void GraphiteWriter::SendMetric(const Checkable::Ptr& checkable, const String& prefix, const String& name, double value, double ts)
+void GraphiteWriter::AddMetric(const Checkable::Ptr& checkable, const String& prefix, const String& name, double value, double ts)
 {
 	AssertOnWorkQueue();
 
@@ -284,11 +294,34 @@ void GraphiteWriter::SendMetric(const Checkable::Ptr& checkable, const String& p
 	// do not send \n to debug log
 	msgbuf << "\n";
 
+	m_MsgBuf += std::move(msgbuf).str();
+
+	if (GetFlushThreshold() <= m_MsgBuf.GetLength()) {
+		Flush();
+	}
+}
+
+/**
+ * Queues a Flush on the work-queue if none is queued yet.
+ */
+void GraphiteWriter::FlushTimeout()
+{
+	if (m_FlushTimerInQueue.exchange(true, std::memory_order_relaxed)) {
+		return;
+	}
+
+	m_WorkQueue.Enqueue([&]() {
+		Defer resetFlushTimer{[&]() { m_FlushTimerInQueue.store(false, std::memory_order_relaxed); }};
+		Flush();
+	});
+}
+
+void GraphiteWriter::Flush()
+{	
 	try {
-		m_Connection->Send(asio::buffer(msgbuf.str()));
+		m_Connection->Send(boost::asio::buffer(std::exchange(m_MsgBuf.GetData(), {})));
 	} catch (const PerfdataWriterConnection::Stopped& ex) {
 		Log(LogDebug, "GraphiteWriter") << ex.what();
-		return;
 	}
 }
 

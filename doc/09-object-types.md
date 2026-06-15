@@ -1317,6 +1317,8 @@ Configuration Attributes:
   diconnect\_timeout        | Duration              | **Optional.** Timeout to wait for any outstanding data to be flushed to GELF before disconnecting. Defaults to `10s`.
   source                    | String                | **Optional.** Source name for this instance. Defaults to `icinga2`.
   enable\_send\_perfdata    | Boolean               | **Optional.** Enable performance data for 'CHECK RESULT' events.
+  flush\_interval           | Duration              | **Optional.** How long to buffer data points before sending. Defaults to `15s`.
+  flush\_threshold          | Number                | **Optional.** How many bytes to buffer before forcing a flush to the backend. Defaults to `2MiB`.
   enable\_ha                | Boolean               | **Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-features). Defaults to `false`.
   enable\_tls               | Boolean               | **Optional.** Whether to use a TLS stream. Defaults to `false`.
   insecure\_noverify        | Boolean               | **Optional.** Disable TLS peer verification.
@@ -1350,6 +1352,8 @@ Configuration Attributes:
   service\_name\_template   | String                | **Optional.** Metric prefix for service name. Defaults to `icinga2.$host.name$.services.$service.name$.$service.check_command$`.
   enable\_send\_thresholds  | Boolean               | **Optional.** Send additional threshold metrics. Defaults to `false`.
   enable\_send\_metadata    | Boolean               | **Optional.** Send additional metadata metrics. Defaults to `false`.
+  flush\_interval           | Duration              | **Optional.** How long to buffer data points before sending. Defaults to `15s`.
+  flush\_threshold          | Number                | **Optional.** How many bytes to buffer before forcing a flush to the backend. Defaults to `2MiB`.
   enable\_ha                | Boolean               | **Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-features). Defaults to `false`.
 
 Additional usage examples can be found [here](14-features.md#graphite-carbon-cache-writer).
@@ -1865,6 +1869,8 @@ Configuration Attributes:
   --------------------------|-----------------------|----------------------------------
   host            	    | String                | **Optional.** OpenTSDB host address. Defaults to `127.0.0.1`.
   port            	    | Number                | **Optional.** OpenTSDB port. Defaults to `4242`.
+  flush\_interval           | Duration              | **Optional.** How long to buffer data points before sending. Defaults to `15s`.
+  flush\_threshold          | Number                | **Optional.** How many bytes to buffer before forcing a flush to the backend. Defaults to `2MiB`.
   diconnect\_timeout    | Duration              | **Optional.** Timeout to wait for any outstanding data to be flushed to OpenTSDB before disconnecting. Defaults to `10s`.
   enable\_ha                | Boolean               | **Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-features). Defaults to `false`.
   enable_generic_metrics    | Boolean               | **Optional.** Re-use metric names to store different perfdata values for a particular check. Use tags to distinguish perfdata instead of metric name. Defaults to `false`.

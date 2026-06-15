@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "perfdata/gelfwriter.hpp"
+#include "base/defer.hpp"
 #include "perfdata/gelfwriter-ti.cpp"
 #include "icinga/service.hpp"
 #include "icinga/notification.hpp"
@@ -90,6 +91,13 @@ void GelfWriter::Resume()
 	/* Register exception handler for WQ tasks. */
 	m_WorkQueue.SetExceptionCallback([this](boost::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
 
+	/* Setup timer for periodically flushing m_DataBuffer */
+	m_FlushTimer = Timer::Create();
+	m_FlushTimer->SetInterval(GetFlushInterval());
+	m_FlushTimer->OnTimerExpired.connect([this](const Timer * const&) { FlushTimeout(); });
+	m_FlushTimer->Start();
+	m_FlushTimer->Reschedule(0);
+
 	m_Connection = new PerfdataWriterConnection{this, GetHost(), GetPort(), m_SslContext, !GetInsecureNoverify()};
 
 	/* Register event handlers. */
@@ -114,6 +122,8 @@ void GelfWriter::Pause()
 	m_HandleCheckResults.disconnect();
 	m_HandleNotifications.disconnect();
 	m_HandleStateChanges.disconnect();
+
+	m_FlushTimer->Stop(true);
 
 	std::promise<void> queueDonePromise;
 
@@ -360,19 +370,38 @@ void GelfWriter::SendLogMessage(const Checkable::Ptr& checkable, const String& g
 {
 	AssertOnWorkQueue();
 
-	std::ostringstream msgbuf;
-	msgbuf << gelfMessage;
-	msgbuf << '\0';
+	Log(LogDebug, "GelfWriter")
+		<< "Checkable '" << checkable->GetName() << "' sending message '" << gelfMessage << "'.";
 
-	auto log = msgbuf.str();
+	m_MsgBuf.GetData().reserve(m_MsgBuf.GetLength() + gelfMessage.GetLength() + 1);
+	m_MsgBuf += gelfMessage;
+	m_MsgBuf += '\0';
 
+	if (GetFlushThreshold() <= m_MsgBuf.GetLength()) {
+		Flush();
+	}
+}
+
+/**
+ * Queues a Flush on the work-queue if none is queued yet.
+ */
+void GelfWriter::FlushTimeout()
+{
+	if (m_FlushTimerInQueue.exchange(true, std::memory_order_relaxed)) {
+		return;
+	}
+
+	m_WorkQueue.Enqueue([&]() {
+		Defer resetFlushTimer{[&]() { m_FlushTimerInQueue.store(false, std::memory_order_relaxed); }};
+		Flush();
+	});
+}
+
+void GelfWriter::Flush()
+{
 	try {
-		Log(LogDebug, "GelfWriter")
-			<< "Checkable '" << checkable->GetName() << "' sending message '" << log << "'.";
-
-		m_Connection->Send(boost::asio::const_buffer{log.data(), log.length()});
+		m_Connection->Send(boost::asio::buffer(std::exchange(m_MsgBuf.GetData(), {})));
 	} catch (const PerfdataWriterConnection::Stopped& ex) {
 		Log(LogDebug, "GelfWriter") << ex.what();
-		return;
 	}
 }

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "perfdata/opentsdbwriter.hpp"
+#include "base/defer.hpp"
 #include "perfdata/opentsdbwriter-ti.cpp"
 #include "icinga/service.hpp"
 #include "icinga/checkcommand.hpp"
@@ -88,6 +89,13 @@ void OpenTsdbWriter::Resume()
 			<< "Exception during OpenTsdb operation: " << DiagnosticInformation(exp);
 	});
 
+	/* Setup timer for periodically flushing m_DataBuffer */
+	m_FlushTimer = Timer::Create();
+	m_FlushTimer->SetInterval(GetFlushInterval());
+	m_FlushTimer->OnTimerExpired.connect([this](const Timer * const&) { FlushTimeout(); });
+	m_FlushTimer->Start();
+	m_FlushTimer->Reschedule(0);
+
 	ReadConfigTemplate();
 
 	m_Connection = new PerfdataWriterConnection{this, GetHost(), GetPort()};
@@ -103,6 +111,8 @@ void OpenTsdbWriter::Resume()
 void OpenTsdbWriter::Pause()
 {
 	m_HandleCheckResults.disconnect();
+
+	m_FlushTimer->Stop(true);
 
 	std::promise<void> queueDonePromise;
 
@@ -282,7 +292,9 @@ void OpenTsdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 			AddMetric(checkable, metric + ".latency", tags, cr->CalculateLatency(), ts);
 			AddMetric(checkable, metric + ".execution_time", tags, cr->CalculateExecutionTime(), ts);
 
-			SendMsgBuffer();
+			if (GetFlushThreshold() <= m_MsgBuf.GetLength()) {
+				SendMsgBuffer();
+			}
 		}
 	);
 }
@@ -387,7 +399,22 @@ void OpenTsdbWriter::AddMetric(const Checkable::Ptr& checkable, const String& me
 
 	/* do not send \n to debug log */
 	msgbuf << "\n";
-	m_MsgBuf.append(msgbuf.str());
+	m_MsgBuf += msgbuf.str();
+}
+
+/**
+ * Queues a Flush on the work-queue if none is queued yet.
+ */
+void OpenTsdbWriter::FlushTimeout()
+{
+	if (m_FlushTimerInQueue.exchange(true, std::memory_order_relaxed)) {
+		return;
+	}
+
+	m_WorkQueue.Enqueue([&]() {
+		Defer resetFlushTimer{[&]() { m_FlushTimerInQueue.store(false, std::memory_order_relaxed); }};
+		SendMsgBuffer();
+	});
 }
 
 void OpenTsdbWriter::SendMsgBuffer()
@@ -398,7 +425,7 @@ void OpenTsdbWriter::SendMsgBuffer()
 		<< "Flushing data buffer to OpenTsdb.";
 
 	try {
-		m_Connection->Send(boost::asio::buffer(std::exchange(m_MsgBuf, std::string{})));
+		m_Connection->Send(boost::asio::buffer(std::exchange(m_MsgBuf.GetData(), {})));
 	} catch (const PerfdataWriterConnection::Stopped& ex) {
 		Log(LogDebug, "OpenTsdbWriter") << ex.what();
 		return;

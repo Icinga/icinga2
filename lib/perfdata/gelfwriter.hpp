@@ -34,6 +34,9 @@ protected:
 
 private:
 	PerfdataWriterConnection::Ptr m_Connection;
+	Timer::Ptr m_FlushTimer;
+	std::atomic_bool m_FlushTimerInQueue{false};
+	String m_MsgBuf;
 	WorkQueue m_WorkQueue{10000000, 1};
 	Shared<boost::asio::ssl::context>::Ptr m_SslContext;
 
@@ -46,6 +49,8 @@ private:
 
 	String ComposeGelfMessage(const Dictionary::Ptr& fields, const String& source, double ts);
 	void SendLogMessage(const Checkable::Ptr& checkable, const String& gelfMessage);
+	void FlushTimeout();
+	void Flush();
 
 	void AssertOnWorkQueue();
 
