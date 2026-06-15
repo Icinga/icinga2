@@ -1,6 +1,8 @@
 Set-PsDebug -Trace 1
 
-# Specify default targets for VS 2022 for developers.
+. "$PSScriptRoot\find-vs.ps1"
+
+# Specify default targets for developers.
 
 if (-not (Test-Path env:ICINGA2_BUILDPATH)) {
   $env:ICINGA2_BUILDPATH = '.\debug'
@@ -22,7 +24,7 @@ if (-not ($env:PATH -contains $env:CMAKE_PATH)) {
   $env:PATH = $env:CMAKE_PATH + ';' + $env:PATH
 }
 if (-not (Test-Path env:CMAKE_GENERATOR)) {
-  $env:CMAKE_GENERATOR = 'Visual Studio 17 2022'
+  $env:CMAKE_GENERATOR = Get-VSCMakeGenerator
 }
 if (-not (Test-Path env:CMAKE_GENERATOR_PLATFORM)) {
   $env:CMAKE_GENERATOR_PLATFORM = 'x64'
