@@ -502,7 +502,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 				request.User(ApiUser::GetByAuthHeader(std::string(request[http::field::authorization])));
 			}
 
-			Log logMsg (LogInformation, "HttpServerConnection");
+			Log logMsg (LogNotice, "HttpServerConnection");
 
 			logMsg << "Request " << request.method_string() << ' ' << request.target()
 				<< " (from " << m_PeerAddress
