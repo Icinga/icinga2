@@ -70,7 +70,10 @@ try {
 	$Env:Path += $ChocoPath
 }
 
-# GitHub Actions uses an image that comes with most dependencies preinstalled. Don't install them twice.
+# GitHub Actions uses an image that comes with some dependencies preinstalled.
+# Don't install them twice.
+# It also comes with VS 2026, but our build server currently uses VS 2022, see:
+# https://github.com/Icinga/icinga2/issues/10885
 if (-not $Env:GITHUB_ACTIONS) {
     choco install -y `
         "visualstudio${VsVersion}community" `
@@ -87,7 +90,14 @@ if (-not $Env:GITHUB_ACTIONS) {
         wixtoolset
     ThrowOnNativeFailure
 } else {
-    choco install -y winflexbison3
+    choco install -y `
+        "visualstudio${VsVersion}community" `
+        "visualstudio${VsVersion}-workload-vctools" `
+        "visualstudio${VsVersion}-workload-manageddesktop" `
+        "visualstudio${VsVersion}-workload-nativedesktop" `
+        "visualstudio${VsVersion}-workload-universal" `
+        "visualstudio${VsVersion}buildtools" `
+        winflexbison3
     ThrowOnNativeFailure
 }
 
