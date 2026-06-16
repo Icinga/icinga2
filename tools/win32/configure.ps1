@@ -17,7 +17,7 @@ if (-not ($env:PATH -contains $env:CMAKE_PATH)) {
   $env:PATH = $env:CMAKE_PATH + ';' + $env:PATH
 }
 if (-not (Test-Path env:CMAKE_GENERATOR)) {
-  $env:CMAKE_GENERATOR = 'Visual Studio 17 2022'
+  $env:CMAKE_GENERATOR = 'Visual Studio 18 2026'
 }
 if (-not (Test-Path env:CMAKE_GENERATOR_TOOLSET)) {
   $env:CMAKE_GENERATOR_TOOLSET = 'v143'

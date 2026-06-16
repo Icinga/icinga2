@@ -18,7 +18,7 @@ if (-not (Test-Path $BUILD)) {
 if (Test-Path env:VS_INSTALL_PATH) {
   $VSBASE = $env:VS_INSTALL_PATH
 } else {
-  $VSBASE = "C:\Program Files\Microsoft Visual Studio\2022"
+  $VSBASE = "C:\Program Files\Microsoft Visual Studio\2026"
 }
 
 if (Test-Path env:BITS) {
