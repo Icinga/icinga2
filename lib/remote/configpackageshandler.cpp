@@ -54,9 +54,8 @@ void ConfigPackagesHandler::HandleGet(const HttpApiRequest& request, HttpApiResp
 
 	try {
 		packages = ConfigPackageUtility::GetPackages();
-	} catch (const std::exception& ex) {
-		HttpUtility::SendJsonError(response, params, 500, "Could not retrieve packages.",
-			DiagnosticInformation(ex));
+	} catch (const std::exception&) {
+		HttpUtility::SendJsonError(response, params, 500, "Could not retrieve packages.", std::current_exception());
 		return;
 	}
 
@@ -120,9 +119,8 @@ void ConfigPackagesHandler::HandlePost(const HttpApiRequest& request, HttpApiRes
 		std::unique_lock<std::mutex> lock(ConfigPackageUtility::GetStaticPackageMutex());
 
 		ConfigPackageUtility::CreatePackage(packageName);
-	} catch (const std::exception& ex) {
-		HttpUtility::SendJsonError(response, params, 500, "Could not create package '" + packageName + "'.",
-			DiagnosticInformation(ex));
+	} catch (const std::exception&) {
+		HttpUtility::SendJsonError(response, params, 500, "Could not create package '" + packageName + "'.", std::current_exception());
 		return;
 	}
 
@@ -168,9 +166,8 @@ void ConfigPackagesHandler::HandleDelete(const HttpApiRequest& request, HttpApiR
 
 	try {
 		ConfigPackageUtility::DeletePackage(packageName);
-	} catch (const std::exception& ex) {
-		HttpUtility::SendJsonError(response, params, 500, "Failed to delete package '" + packageName + "'.",
-			DiagnosticInformation(ex));
+	} catch (const std::exception&) {
+		HttpUtility::SendJsonError(response, params, 500, "Failed to delete package '" + packageName + "'.", std::current_exception());
 		return;
 	}
 
