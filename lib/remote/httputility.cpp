@@ -2,6 +2,7 @@
 
 #include "remote/httputility.hpp"
 #include "remote/url.hpp"
+#include "base/exception.hpp"
 #include "base/json.hpp"
 #include "base/logger.hpp"
 #include <map>
@@ -62,7 +63,7 @@ void HttpUtility::SendJsonBody(boost::beast::http::response<boost::beast::http::
 }
 
 void HttpUtility::SendJsonError(boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params, int code, const String& info, const String& diagnosticInformation)
+	const Dictionary::Ptr& params, int code, const String& info, const std::exception_ptr& ex)
 {
 	Dictionary::Ptr result = new Dictionary({ { "error", code } });
 
@@ -70,8 +71,8 @@ void HttpUtility::SendJsonError(boost::beast::http::response<boost::beast::http:
 		result->Set("status", info);
 	}
 
-	if (params && HttpUtility::GetLastParameter(params, "verbose") && !diagnosticInformation.IsEmpty()) {
-		result->Set("diagnostic_information", diagnosticInformation);
+	if (params && HttpUtility::GetLastParameter(params, "verbose") && ex) {
+		result->Set("diagnostic_information", DiagnosticInformation(ex));
 	}
 
 	response.result(code);
