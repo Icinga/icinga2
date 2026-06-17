@@ -13,7 +13,6 @@
 #include <boost/exception/errinfo_errno.hpp>
 #include <boost/exception/errinfo_file_name.hpp>
 #include <boost/exception/diagnostic_information.hpp>
-#include <boost/exception_ptr.hpp>
 #include <boost/stacktrace.hpp>
 
 #ifdef _WIN32
@@ -114,7 +113,7 @@ std::string to_string(const ContextTraceErrorInfo& e);
  */
 String DiagnosticInformation(const std::exception& ex, bool verbose = true,
 	boost::stacktrace::stacktrace *stack = nullptr, ContextTrace *context = nullptr);
-String DiagnosticInformation(const boost::exception_ptr& eptr, bool verbose = true);
+String DiagnosticInformation(const std::exception_ptr& eptr, bool verbose = true);
 
 class posix_error : virtual public std::exception, virtual public boost::exception {
 public:

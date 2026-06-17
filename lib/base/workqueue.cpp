@@ -162,7 +162,7 @@ bool WorkQueue::HasExceptions() const
  * Returns all exceptions which have occurred for tasks in this work queue. When a
  * custom exception callback is set this method will always return an empty list.
  */
-std::vector<boost::exception_ptr> WorkQueue::GetExceptions() const
+std::vector<std::exception_ptr> WorkQueue::GetExceptions() const
 {
 	std::unique_lock<std::mutex> lock(m_Mutex);
 
@@ -171,7 +171,7 @@ std::vector<boost::exception_ptr> WorkQueue::GetExceptions() const
 
 void WorkQueue::ReportExceptions(const String& facility, bool verbose) const
 {
-	std::vector<boost::exception_ptr> exceptions = GetExceptions();
+	std::vector<std::exception_ptr> exceptions = GetExceptions();
 
 	for (const auto& eptr : exceptions) {
 		Log(LogCritical, facility)
@@ -235,7 +235,7 @@ void WorkQueue::RunTaskFunction(const TaskFunction& func)
 	try {
 		func();
 	} catch (const std::exception&) {
-		boost::exception_ptr eptr = boost::current_exception();
+		std::exception_ptr eptr = std::current_exception();
 
 		{
 			std::unique_lock<std::mutex> mutex(m_Mutex);
