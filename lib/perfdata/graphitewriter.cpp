@@ -84,7 +84,7 @@ void GraphiteWriter::Resume()
 		<< "'" << GetName() << "' resumed.";
 
 	/* Register exception handler for WQ tasks. */
-	m_WorkQueue.SetExceptionCallback([this](boost::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
+	m_WorkQueue.SetExceptionCallback([this](std::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
 
 	m_Connection = new PerfdataWriterConnection{this, GetHost(), GetPort()};
 	m_LockedConnection.store(m_Connection);
@@ -135,7 +135,7 @@ void GraphiteWriter::AssertOnWorkQueue()
  *
  * @param exp Exception pointer
  */
-void GraphiteWriter::ExceptionHandler(boost::exception_ptr exp)
+void GraphiteWriter::ExceptionHandler(std::exception_ptr exp)
 {
 	Log(LogCritical, "GraphiteWriter", "Exception during Graphite operation: Verify that your backend is operational!");
 

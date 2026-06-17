@@ -54,7 +54,7 @@ private:
 		const Dictionary::Ptr& fields, double ts);
 
 	void AssertOnWorkQueue();
-	void ExceptionHandler(boost::exception_ptr exp);
+	void ExceptionHandler(std::exception_ptr exp);
 	void FlushTimeout();
 	void Flush();
 	void SendRequest(const String& body);

@@ -91,7 +91,7 @@ private:
 	void ClearTableBySession(const String& table);
 	void ClearTablesBySession();
 
-	void ExceptionHandler(boost::exception_ptr exp);
+	void ExceptionHandler(std::exception_ptr exp);
 
 	void FinishConnect(double startTime);
 };

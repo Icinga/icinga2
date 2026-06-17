@@ -99,7 +99,7 @@ void OTLPMetricsWriter::Resume()
 	Log(LogInformation, "OTLPMetricsWriter")
 		<< "'" << GetName() << "' resumed.";
 
-	m_WorkQueue.SetExceptionCallback([](boost::exception_ptr exp) {
+	m_WorkQueue.SetExceptionCallback([](std::exception_ptr exp) {
 		Log(LogCritical, "OTLPMetricsWriter")
 			<< "Exception while producing OTel metric: " << DiagnosticInformation(exp);
 	});

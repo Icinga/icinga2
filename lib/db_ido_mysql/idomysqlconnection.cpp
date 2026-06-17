@@ -89,7 +89,7 @@ void IdoMysqlConnection::Resume()
 
 	SetConnected(false);
 
-	m_QueryQueue.SetExceptionCallback([this](boost::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
+	m_QueryQueue.SetExceptionCallback([this](std::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
 
 	/* Immediately try to connect on Resume() without timer. */
 	m_QueryQueue.Enqueue([this]() { Reconnect(); }, PriorityImmediate);
@@ -130,7 +130,7 @@ void IdoMysqlConnection::Pause()
 
 }
 
-void IdoMysqlConnection::ExceptionHandler(boost::exception_ptr exp)
+void IdoMysqlConnection::ExceptionHandler(std::exception_ptr exp)
 {
 	Log(LogCritical, "IdoMysqlConnection", "Exception during database operation: Verify that your database is operational!");
 

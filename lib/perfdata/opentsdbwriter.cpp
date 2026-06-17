@@ -84,7 +84,7 @@ void OpenTsdbWriter::Resume()
 	Log(LogInformation, "OpentsdbWriter")
 		<< "'" << GetName() << "' resumed.";
 
-	m_WorkQueue.SetExceptionCallback([](const boost::exception_ptr& exp) {
+	m_WorkQueue.SetExceptionCallback([](const std::exception_ptr& exp) {
 		Log(LogDebug, "OpenTsdbWriter")
 			<< "Exception during OpenTsdb operation: " << DiagnosticInformation(exp);
 	});
