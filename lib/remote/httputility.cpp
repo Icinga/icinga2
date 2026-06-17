@@ -84,14 +84,14 @@ void HttpUtility::SendJsonBody(HttpApiResponse& response, const Dictionary::Ptr&
 }
 
 void HttpUtility::SendJsonError(HttpApiResponse& response,
-	const Dictionary::Ptr& params, int code, const String& info, const String& diagnosticInformation)
+	const Dictionary::Ptr& params, int code, const String& info, const std::exception_ptr& ex)
 {
 	if (response.HasSerializationStarted()) {
 		std::ostringstream err;
 		err << "Impossible to send error response after streaming has started: error: '" << code << "', status: '"
 			<< info << "'";
-		if (!diagnosticInformation.IsEmpty()) {
-			err << ", diagnostic_information: '" << diagnosticInformation << "'";
+		if (ex) {
+			err << ", diagnostic_information: '" << DiagnosticInformation(ex) << "'";
 		}
 		BOOST_THROW_EXCEPTION(std::logic_error{err.str()});
 	}
@@ -102,8 +102,8 @@ void HttpUtility::SendJsonError(HttpApiResponse& response,
 		result->Set("status", info);
 	}
 
-	if (params && HttpUtility::GetLastParameter(params, "verbose") && !diagnosticInformation.IsEmpty()) {
-		result->Set("diagnostic_information", diagnosticInformation);
+	if (params && HttpUtility::GetLastParameter(params, "verbose") && ex) {
+		result->Set("diagnostic_information", DiagnosticInformation(ex));
 	}
 
 	response.Clear();

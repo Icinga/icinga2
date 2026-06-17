@@ -430,7 +430,7 @@ void ProcessRequest(
 
 		HttpHandler::ProcessRequest(waitGroup, request, response, yc);
 		response.body().Finish();
-	} catch (const std::exception& ex) {
+	} catch (const std::exception&) {
 		/* Since we don't know the state the stream is in, we can't send an error response and
 		 * have to just cause a disconnect here.
 		 */
@@ -438,7 +438,7 @@ void ProcessRequest(
 			throw;
 		}
 
-		HttpUtility::SendJsonError(response, request.Params(), 500, "Unhandled exception", DiagnosticInformation(ex));
+		HttpUtility::SendJsonError(response, request.Params(), 500, "Unhandled exception", std::current_exception());
 	}
 
 	response.Flush(yc);
