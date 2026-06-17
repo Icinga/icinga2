@@ -49,11 +49,12 @@ void GelfWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perf
 	for (const GelfWriter::Ptr& gelfwriter : ConfigType::GetObjectsByType<GelfWriter>()) {
 		size_t workQueueItems = gelfwriter->m_WorkQueue.GetLength();
 		double workQueueItemRate = gelfwriter->m_WorkQueue.GetTaskCount(60) / 60.0;
+		auto connection = gelfwriter->m_LockedConnection.load();
 
 		nodes.emplace_back(gelfwriter->GetName(), new Dictionary({
 			{ "work_queue_items", workQueueItems },
 			{ "work_queue_item_rate", workQueueItemRate },
-			{ "connected", gelfwriter->m_Connection->IsConnected() },
+			{ "connected", connection && connection->IsConnected() },
 			{ "source", gelfwriter->GetSource() }
 		}));
 
@@ -91,6 +92,7 @@ void GelfWriter::Resume()
 	m_WorkQueue.SetExceptionCallback([this](boost::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
 
 	m_Connection = new PerfdataWriterConnection{this, GetHost(), GetPort(), m_SslContext, !GetInsecureNoverify()};
+	m_LockedConnection.store(m_Connection);
 
 	/* Register event handlers. */
 	m_HandleCheckResults = Checkable::OnNewCheckResult.connect([this](const Checkable::Ptr& checkable,

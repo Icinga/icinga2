@@ -55,11 +55,12 @@ void OpenTsdbWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& 
 	for (const OpenTsdbWriter::Ptr& opentsdbwriter : ConfigType::GetObjectsByType<OpenTsdbWriter>()) {
 		size_t workQueueItems = opentsdbwriter->m_WorkQueue.GetLength();
 		double workQueueItemRate = opentsdbwriter->m_WorkQueue.GetTaskCount(60) / 60.0;
+		auto connection = opentsdbwriter->m_LockedConnection.load();
 
 		nodes.emplace_back(
 			opentsdbwriter->GetName(),
 			new Dictionary({
-			{ "connected", opentsdbwriter->m_Connection->IsConnected() },
+			{ "connected", connection && connection->IsConnected() },
 				{"work_queue_items", workQueueItems},
 				{"work_queue_item_rate", workQueueItemRate}
 				}
@@ -91,6 +92,7 @@ void OpenTsdbWriter::Resume()
 	ReadConfigTemplate();
 
 	m_Connection = new PerfdataWriterConnection{this, GetHost(), GetPort()};
+	m_LockedConnection.store(m_Connection);
 
 	m_HandleCheckResults = Service::OnNewCheckResult.connect([this](const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const MessageOrigin::Ptr&) {
 		CheckResultHandler(checkable, cr);
