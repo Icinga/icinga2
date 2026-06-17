@@ -81,7 +81,7 @@ void GelfWriter::Resume()
 		<< "'" << GetName() << "' resumed.";
 
 	/* Register exception handler for WQ tasks. */
-	m_WorkQueue.SetExceptionCallback([this](boost::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
+	m_WorkQueue.SetExceptionCallback([this](std::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
 
 	/* Timer for reconnecting */
 	m_ReconnectTimer = Timer::Create();
@@ -138,7 +138,7 @@ void GelfWriter::AssertOnWorkQueue()
 	ASSERT(m_WorkQueue.IsWorkerThread());
 }
 
-void GelfWriter::ExceptionHandler(boost::exception_ptr exp)
+void GelfWriter::ExceptionHandler(std::exception_ptr exp)
 {
 	Log(LogCritical, "GelfWriter") << "Exception during Graylog Gelf operation: " << DiagnosticInformation(exp, false);
 	Log(LogDebug, "GelfWriter") << "Exception during Graylog Gelf operation: " << DiagnosticInformation(exp, true);
