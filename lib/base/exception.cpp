@@ -298,9 +298,9 @@ String icinga::DiagnosticInformation(const boost::exception_ptr& eptr, bool verb
 		boost::rethrow_exception(eptr);
 	} catch (const std::exception& ex) {
 		return DiagnosticInformation(ex, verbose, pt ? &stack : nullptr, pc ? &context : nullptr);
+	} catch (...) {
+		return boost::current_exception_diagnostic_information();
 	}
-
-	return boost::diagnostic_information(eptr);
 }
 
 ScriptError::ScriptError(String message)
