@@ -249,30 +249,61 @@ BOOST_AUTO_TEST_CASE(decode_depth_limit)
 }
 
 /* This test case decodes JSON nested much deeper (see safetyFactor) than the default depth limit and performs some
- * operations on the resulting values. This is done within a coroutine with its limited stack size on order to verify
- * that the default limit is low enough to be safe. Note that this isn't an exact science unfortunately: other
- * recursive operations may have larger stack frames and these operations aren't the only thing on a stack (could be
- * done inside an HTTP or JSON-RPC connection for example). Therefor, aim for a sufficiently large safety factor.
+ * operations on the resulting values. This is done with its limited stack size on order to verify that the default
+ * limit is low enough to be safe. Note that this isn't an exact science unfortunately: other recursive operations may
+ * have larger stack frames and these operations aren't the only thing on a stack (could be done inside an HTTP or
+ * JSON-RPC connection for example). Therefor, aim for a sufficiently large safety factor. The test function may be
+ * executed twice, once in a coroutine (which may not have a guard page and reliably detect an overflow depending on
+ * the Boost version), once in a pthread thread (which may not be available everywhere).
  */
-BOOST_AUTO_TEST_CASE(coroutine_stack_size)
+static void TestJsonStackSize()
+{
+	constexpr size_t safetyFactor = 10;
+	constexpr size_t depth = JsonDecodeDefaultDepthLimit * safetyFactor;
+
+	Value val;
+
+	BOOST_REQUIRE_NO_THROW(val = JsonDecode(MakeNestedJsonArray(depth), depth));
+	BOOST_REQUIRE_NO_THROW(val.Clone());
+	BOOST_REQUIRE_NO_THROW(Convert::ToString(val));
+	BOOST_REQUIRE_NO_THROW(JsonDecode(JsonEncode(val), depth));
+
+	BOOST_REQUIRE_NO_THROW(val = JsonDecode(MakeNestedJsonObject(depth), depth));
+	BOOST_REQUIRE_NO_THROW(val.Clone());
+	BOOST_REQUIRE_NO_THROW(Convert::ToString(val));
+	BOOST_REQUIRE_NO_THROW(JsonDecode(JsonEncode(val), depth));
+}
+
+BOOST_AUTO_TEST_CASE(stack_size_coroutine)
 {
 	auto future = SpawnSynchronizedCoroutine([](boost::asio::yield_context) {
-		constexpr size_t safetyFactor = 10;
-		constexpr size_t depth = JsonDecodeDefaultDepthLimit * safetyFactor;
-
-		Value val;
-
-		BOOST_REQUIRE_NO_THROW(val = JsonDecode(MakeNestedJsonArray(depth), depth));
-		BOOST_REQUIRE_NO_THROW(val.Clone());
-		BOOST_REQUIRE_NO_THROW(Convert::ToString(val));
-		BOOST_REQUIRE_NO_THROW(JsonDecode(JsonEncode(val), depth));
-
-		BOOST_REQUIRE_NO_THROW(val = JsonDecode(MakeNestedJsonObject(depth), depth));
-		BOOST_REQUIRE_NO_THROW(val.Clone());
-		BOOST_REQUIRE_NO_THROW(Convert::ToString(val));
-		BOOST_REQUIRE_NO_THROW(JsonDecode(JsonEncode(val), depth));
+		TestJsonStackSize();
 	});
 	future.get();
+}
+
+BOOST_AUTO_TEST_CASE(stack_size_pthread)
+{
+#ifdef HAVE_PTHREAD_CREATE
+	auto pagesize = sysconf(_SC_PAGESIZE);
+	BOOST_REQUIRE_GT(pagesize, 0);
+
+	pthread_attr_t attr;
+	BOOST_REQUIRE_EQUAL(0, pthread_attr_init(&attr));
+	BOOST_REQUIRE_EQUAL(0, pthread_attr_setstacksize(&attr, IoEngine::GetCoroutineStackSize()));
+	BOOST_REQUIRE_EQUAL(0, pthread_attr_setguardsize(&attr, pagesize));
+
+	pthread_t thread;
+	BOOST_REQUIRE_EQUAL(0, pthread_create(&thread, &attr, [](void*) -> void* {
+		TestJsonStackSize();
+		return nullptr;
+	}, nullptr));
+
+	BOOST_REQUIRE_EQUAL(0, pthread_join(thread, nullptr));
+	BOOST_REQUIRE_EQUAL(0, pthread_attr_destroy(&attr));
+#else /* HAVE_PTHREAD_CREATE */
+	BOOST_TEST_MESSAGE("pthread not available");
+#endif /* HAVE_PTHREAD_CREATE */
 }
 
 BOOST_AUTO_TEST_SUITE_END()
