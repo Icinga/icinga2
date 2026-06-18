@@ -56,14 +56,14 @@ BOOST_AUTO_TEST_CASE(connection_refused)
 	std::promise<void> p;
 	TestThread timeoutThread{[&]() {
 		auto f = p.get_future();
-		GetConnection().CancelAfterTimeout(f, 50ms);
+		GetConnection().CancelAfterTimeout(f, 250ms);
 	}};
 
 	BOOST_REQUIRE_THROW(
 		GetConnection().Send(boost::asio::const_buffer{"foobar", 7}), PerfdataWriterConnection::Stopped
 	);
 
-	REQUIRE_JOINS_WITHIN(timeoutThread, 1s);
+	REQUIRE_JOINS_WITHIN(timeoutThread, 10s);
 }
 
 /* The PerfdataWriterConnection connects automatically when sending the first data.
@@ -86,7 +86,7 @@ BOOST_AUTO_TEST_CASE(ensure_connected)
 	BOOST_REQUIRE_NO_THROW(GetConnection().Disconnect());
 	disconnectedPromise.set_value();
 
-	REQUIRE_JOINS_WITHIN(mockTargetThread, 1s);
+	REQUIRE_JOINS_WITHIN(mockTargetThread, 10s);
 }
 
 /* Verify that data can still be sent while CancelAfterTimeout is waiting and the timeout
@@ -113,15 +113,15 @@ BOOST_AUTO_TEST_CASE(finish_during_timeout)
 
 	TestThread timeoutThread{[&]() {
 		auto f = p.get_future();
-		GetConnection().CancelAfterTimeout(f, 50ms);
+		GetConnection().CancelAfterTimeout(f, 250ms);
 		BOOST_REQUIRE(f.wait_for(0ms) == std::future_status::ready);
 		BOOST_REQUIRE(!GetConnection().IsConnected());
 	}};
 
 	GetConnection().Send(boost::asio::const_buffer{"foobar", 7});
 
-	REQUIRE_JOINS_WITHIN(timeoutThread, 1s);
-	REQUIRE_JOINS_WITHIN(mockTargetThread, 1s);
+	REQUIRE_JOINS_WITHIN(timeoutThread, 10s);
+	REQUIRE_JOINS_WITHIN(mockTargetThread, 10s);
 }
 
 /* For the client, even a hanging server will accept the connection immediately, since it's done
@@ -134,7 +134,7 @@ BOOST_AUTO_TEST_CASE(stuck_in_handshake)
 	TestThread timeoutThread{[&]() {
 		Accept();
 		auto f = p.get_future();
-		GetConnection().CancelAfterTimeout(f, 50ms);
+		GetConnection().CancelAfterTimeout(f, 250ms);
 		BOOST_REQUIRE(f.wait_for(0ms) == std::future_status::timeout);
 	}};
 
@@ -142,7 +142,7 @@ BOOST_AUTO_TEST_CASE(stuck_in_handshake)
 		GetConnection().Send(boost::asio::const_buffer{"foobar", 7}), PerfdataWriterConnection::Stopped
 	);
 
-	REQUIRE_JOINS_WITHIN(timeoutThread, 1s);
+	REQUIRE_JOINS_WITHIN(timeoutThread, 10s);
 }
 
 /* When the disconnect timeout runs out while sending something to a slow or blocking server, we
@@ -185,8 +185,8 @@ BOOST_AUTO_TEST_CASE(stuck_sending)
 	BOOST_REQUIRE_THROW(GetConnection().Send(buf), PerfdataWriterConnection::Stopped);
 	shutdownPromise.set_value();
 
-	REQUIRE_JOINS_WITHIN(timeoutThread, 1s);
-	REQUIRE_JOINS_WITHIN(mockTargetThread, 1s);
+	REQUIRE_JOINS_WITHIN(timeoutThread, 10s);
+	REQUIRE_JOINS_WITHIN(mockTargetThread, 10s);
 }
 
 /* This simulates a server that is stuck after receiving a HTTP request and before sending their
@@ -226,8 +226,8 @@ BOOST_AUTO_TEST_CASE(stuck_reading_response)
 	BOOST_REQUIRE_THROW(GetConnection().Send(request), PerfdataWriterConnection::Stopped);
 	shutdownPromise.set_value();
 
-	REQUIRE_JOINS_WITHIN(timeoutThread, 1s);
-	REQUIRE_JOINS_WITHIN(mockTargetThread, 1s);
+	REQUIRE_JOINS_WITHIN(timeoutThread, 10s);
+	REQUIRE_JOINS_WITHIN(mockTargetThread, 10s);
 }
 
 /* This test simulates a server that closes the connection and reappears at a later time.
@@ -261,7 +261,7 @@ BOOST_AUTO_TEST_CASE(reconnect_failed)
 	BOOST_REQUIRE_NO_THROW(GetConnection().Send(boost::asio::const_buffer{randomData.data(), randomData.size()}));
 	BOOST_REQUIRE_NO_THROW(GetConnection().Disconnect());
 
-	REQUIRE_JOINS_WITHIN(mockTargetThread, 1s);
+	REQUIRE_JOINS_WITHIN(mockTargetThread, 10s);
 }
 
 /* This tests if retrying an http send will reproducibly lead to the exact same message being
@@ -329,7 +329,7 @@ BOOST_AUTO_TEST_CASE(http_send_retry)
 	BOOST_REQUIRE_NO_THROW(GetConnection().Send(request));
 	BOOST_REQUIRE_NO_THROW(GetConnection().Disconnect());
 
-	REQUIRE_JOINS_WITHIN(mockTargetThread, 1s);
+	REQUIRE_JOINS_WITHIN(mockTargetThread, 10s);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

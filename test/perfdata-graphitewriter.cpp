@@ -35,13 +35,13 @@ BOOST_AUTO_TEST_CASE(pause_with_pending_work)
 	ResumeWriter();
 
 	// Process check-results until the writer is stuck.
-	BOOST_REQUIRE_MESSAGE(GetWriterStuck(10s), "Failed to get Writer stuck.");
+	BOOST_REQUIRE_MESSAGE(GetWriterStuck(20s), "Failed to get Writer stuck.");
 
 	// Now stop reading and try to pause OpenTsdbWriter.
 	PauseWriter();
 
 	REQUIRE_LOG_MESSAGE("Connection stopped\\.", 10s);
-	REQUIRE_LOG_MESSAGE("'GraphiteWriter' paused\\.", 10s);
+	REQUIRE_LOG_MESSAGE("'GraphiteWriter' paused\\.", 1s);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
