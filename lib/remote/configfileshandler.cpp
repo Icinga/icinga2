@@ -81,9 +81,12 @@ bool ConfigFilesHandler::HandleRequest(
 		response.result(http::status::ok);
 		response.set(http::field::content_type, "application/octet-stream");
 		response.SendFile(path, yc);
-	} catch (const std::exception& ex) {
-		HttpUtility::SendJsonError(response, params, 500, "Could not read file.",
-			DiagnosticInformation(ex));
+	} catch (const std::ios_base::failure& ex) {
+		if (response.HasSerializationStarted()) {
+			throw;
+		}
+
+		HttpUtility::SendJsonError(response, params, 500, "Could not read file.", DiagnosticInformation(ex));
 	}
 
 	return true;
