@@ -40,7 +40,7 @@ const auto RENEW_THRESHOLD = 60 * 60 * 24 * 30;
 const auto RENEW_INTERVAL  = 60 * 60 * 24;
 
 // OpenSSL 1.x returns X509_NAME*, OpenSSL 4.x returns const X509_NAME*.
-using X509NamePtr = decltype(X509_get_subject_name(nullptr));
+typedef const X509_NAME* X509NamePtr;
 
 void InitializeOpenSSL();
 
