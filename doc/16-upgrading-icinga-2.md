@@ -8,6 +8,23 @@ Specific version upgrades are described below. Please note that version
 updates are incremental. An upgrade from v2.6 to v2.8 requires to
 follow the instructions for v2.7 too.
 
+## Upgrading to v2.16.2, v2.15.4, or v2.14.9 <a id="upgrading-to-2-16-2"></a>
+
+### New `filter-expression` permission
+
+When using the Icinga 2 REST API, filter expressions are a powerful tool. However, that power can also be abused for
+denial-of-service attacks by authenticated users. Given that these filter expressions are Icinga 2 DSL expressions and
+their evaluation happens in the main Icinga 2 worker process, this may also crash the Icinga 2 daemon.
+
+In order to allow mitigating such problems, a new permission named `filter-expression` was added. **Before v2.17, this
+permission will not be enforced by default** due to the impact on existing installations. Nonetheless, we recommend
+reviewing your `ApiUser` configuration, explicitly allowing the new permission where necessary and enabling the
+enforcement of the permission using the [`enforce_filter_expression_permission` attribute of
+`ApiListener`](09-object-types.md#objecttype-apilistener). If an `ApiUser` makes use of the permission while the
+permission is not enforced yet, it will be logged. Thus, it is also possible to upgrade, observe the logs, grant the
+permission as needed or adapting API clients to avoid using filters if possible, and enable the enforcement at a later
+time.
+
 ## Upgrading to v2.15.1, v2.14.7, or v2.13.13 <a id="upgrading-to-2-15-1"></a>
 
 These three versions include the same fix to the logrotate configuration in `/etc/logrotate.d/icinga2`. As this file is
