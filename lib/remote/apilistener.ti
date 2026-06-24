@@ -61,6 +61,10 @@ class ApiListener : ConfigObject
 	[no_user_modify] String identity;
 
 	[state, no_user_modify] Dictionary::Ptr last_failed_zones_stage_validation;
+
+	[config, no_user_modify] bool enforce_filter_expression_permission {
+		default {{{ return false; }}}
+	};
 };
 
 }
