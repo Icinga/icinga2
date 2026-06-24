@@ -1,9 +1,12 @@
 /* Icinga 2 | (c) 2025 Icinga GmbH | GPLv2+ */
 
 #include "utils.hpp"
+#include "base/io-engine.hpp"
 #include <cstring>
+#include <future>
 #include <iomanip>
 #include <sstream>
+#include <boost/asio/spawn.hpp>
 #include <boost/test/unit_test.hpp>
 
 tm make_tm(std::string s)
@@ -64,4 +67,23 @@ GlobalTimezoneFixture::~GlobalTimezoneFixture()
         unsetenv("TZ");
 #endif
     tzset();
+}
+
+std::future<void> SpawnSynchronizedCoroutine(std::function<void(boost::asio::yield_context)> fn)
+{
+	using namespace icinga;
+
+	auto promise = std::make_unique<std::promise<void>>();
+	auto future = promise->get_future();
+	auto& io = IoEngine::Get().GetIoContext();
+	IoEngine::SpawnCoroutine(io, [promise = std::move(promise), fn = std::move(fn)](boost::asio::yield_context yc) {
+		try {
+			fn(std::move(yc));
+		} catch (const std::exception&) {
+			promise->set_exception(std::current_exception());
+			return;
+		}
+		promise->set_value();
+	});
+	return future;
 }

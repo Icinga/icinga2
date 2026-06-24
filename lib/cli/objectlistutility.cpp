@@ -13,7 +13,7 @@ using namespace icinga;
 
 bool ObjectListUtility::PrintObject(std::ostream& fp, bool& first, const String& message, std::map<String, int>& type_count, const String& name_filter, const String& type_filter)
 {
-	Dictionary::Ptr object = JsonDecode(message);
+	Dictionary::Ptr object = JsonDecode(message, std::numeric_limits<size_t>::max());
 
 	Dictionary::Ptr properties = object->Get("properties");
 
