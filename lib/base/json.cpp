@@ -21,6 +21,8 @@ using namespace icinga;
 class JsonSax : public nlohmann::json_sax<nlohmann::json>
 {
 public:
+	explicit JsonSax(std::size_t depthLimit) : m_DepthLimit(depthLimit) {}
+
 	bool null() override;
 	bool boolean(bool val) override;
 	bool number_integer(number_integer_t val) override;
@@ -38,11 +40,22 @@ public:
 	Value GetResult();
 
 private:
+	struct Node
+	{
+		Dictionary::Ptr m_Dictionary{};
+		Array::Ptr m_Array{};
+		String m_CurrentKey{};
+
+		explicit Node(Dictionary::Ptr dict) : m_Dictionary(std::move(dict)) {}
+		explicit Node(Array::Ptr array) : m_Array(std::move(array)) {}
+	};
+
 	Value m_Root;
-	std::stack<std::pair<Dictionary*, Array*>> m_CurrentSubtree;
-	String m_CurrentKey;
+	std::vector<Node> m_Stack;
+	std::size_t m_DepthLimit;
 
 	void FillCurrentTarget(Value value);
+	void CheckDepthLimit() const;
 };
 
 const char l_Null[] = "null";
@@ -206,11 +219,23 @@ String icinga::JsonEncode(const Value& value, bool pretty_print)
 	}
 }
 
-Value icinga::JsonDecode(const String& data)
+/**
+ * Parses a JSON string into the Icinga Value type.
+ *
+ * A depth limit can be provided. Both JSON arrays (mapped to icinga::Array) and JSON objects
+ * (mapped to icinga::Dictionary) count towards that limit. A limit of 1 means, that the outer object can be an array
+ * or object, but it can only contain scalar values.
+ *
+ * @param data The JSON to be parsed (throws if the JSON is invalid).
+ * @param depthLimit The maximum depth of the returned data structure,
+ *                   defaults to 24 (throws if the JSON is nested too deep).
+ * @return The parsed value.
+ */
+Value icinga::JsonDecode(const String& data, size_t depthLimit)
 {
 	String sanitized (Utility::ValidateUTF8(data));
 
-	JsonSax stateMachine;
+	JsonSax stateMachine{depthLimit};
 
 	nlohmann::json::sax_parse(sanitized.Begin(), sanitized.End(), &stateMachine);
 
@@ -277,10 +302,9 @@ inline
 bool JsonSax::start_object(std::size_t)
 {
 	auto object (new Dictionary());
-
 	FillCurrentTarget(object);
-
-	m_CurrentSubtree.push({object, nullptr});
+	CheckDepthLimit();
+	m_Stack.push_back(Node{object});
 
 	return true;
 }
@@ -288,7 +312,7 @@ bool JsonSax::start_object(std::size_t)
 inline
 bool JsonSax::key(JsonSax::string_t& val)
 {
-	m_CurrentKey = String(std::move(val));
+	m_Stack.back().m_CurrentKey = String(std::move(val));
 
 	return true;
 }
@@ -296,8 +320,7 @@ bool JsonSax::key(JsonSax::string_t& val)
 inline
 bool JsonSax::end_object()
 {
-	m_CurrentSubtree.pop();
-	m_CurrentKey = String();
+	m_Stack.pop_back();
 
 	return true;
 }
@@ -306,10 +329,9 @@ inline
 bool JsonSax::start_array(std::size_t)
 {
 	auto array (new Array());
-
 	FillCurrentTarget(array);
-
-	m_CurrentSubtree.push({nullptr, array});
+	CheckDepthLimit();
+	m_Stack.push_back(Node{array});
 
 	return true;
 }
@@ -317,7 +339,7 @@ bool JsonSax::start_array(std::size_t)
 inline
 bool JsonSax::end_array()
 {
-	m_CurrentSubtree.pop();
+	m_Stack.pop_back();
 
 	return true;
 }
@@ -337,16 +359,35 @@ Value JsonSax::GetResult()
 inline
 void JsonSax::FillCurrentTarget(Value value)
 {
-	if (m_CurrentSubtree.empty()) {
+	if (m_Stack.empty()) {
 		m_Root = value;
 	} else {
-		auto& node (m_CurrentSubtree.top());
+		auto& node (m_Stack.back());
 
-		if (node.first) {
-			node.first->Set(m_CurrentKey, value);
+		if (node.m_Dictionary) {
+			node.m_Dictionary->Set(node.m_CurrentKey, value);
 		} else {
-			node.second->Add(value);
+			node.m_Array->Add(value);
 		}
+	}
+}
+
+void JsonSax::CheckDepthLimit() const
+{
+	if (m_Stack.size() >= m_DepthLimit) {
+		std::ostringstream buf;
+		buf << "JSON decoding recursion limit reached (path: root";
+		for (const auto& node : m_Stack) {
+			buf << "[";
+			if (node.m_Dictionary) {
+				buf << JsonEncode(node.m_CurrentKey);
+			} else {
+				buf << node.m_Array->GetLength() - 1;
+			}
+			buf << "]";
+		}
+		buf << ")";
+		BOOST_THROW_EXCEPTION(std::runtime_error(buf.str()));
 	}
 }
 
