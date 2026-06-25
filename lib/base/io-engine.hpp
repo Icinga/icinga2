@@ -20,7 +20,6 @@
 #include <stdexcept>
 #include <boost/context/fixedsize_stack.hpp>
 #include <boost/exception/all.hpp>
-#include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/io_context_strand.hpp>
 #include <boost/asio/spawn.hpp>
@@ -197,7 +196,7 @@ public:
 	void Wait(boost::asio::yield_context yc);
 
 private:
-	boost::asio::deadline_timer m_Timer;
+	boost::asio::steady_timer m_Timer;
 };
 
 /**
@@ -225,7 +224,7 @@ private:
  *
  * This class provides a workaround for Boost.ASIO's lack of built-in timeout support.
  * While Boost.ASIO handles asynchronous operations, it does not natively support timeouts for these operations.
- * This class uses a boost::asio::deadline_timer to emulate a timeout by scheduling a callback to be triggered
+ * This class uses a boost::asio::steady_timer to emulate a timeout by scheduling a callback to be triggered
  * after a specified duration, effectively adding timeout behavior where none exists.
  * The callback is executed within the provided strand, ensuring thread-safety.
  *
@@ -244,7 +243,7 @@ private:
 class Timeout
 {
 public:
-	using Timer = boost::asio::deadline_timer;
+	using Timer = boost::asio::steady_timer;
 
 	/**
 	 * Schedules onTimeout to be triggered after timeoutFromNow on strand.
@@ -255,7 +254,7 @@ public:
 	 * @param onTimeout The callback to invoke when the timeout occurs.
 	 */
 	template<class OnTimeout>
-	Timeout(boost::asio::io_context::strand& strand, const Timer::duration_type& timeoutFromNow, OnTimeout onTimeout)
+	Timeout(boost::asio::io_context::strand& strand, const Timer::duration& timeoutFromNow, OnTimeout onTimeout)
 		: m_Timer(strand.context(), timeoutFromNow), m_Cancelled(Shared<Atomic<bool>>::Make(false))
 	{
 		ASSERT(IoEngine::IsStrandRunningOnThisThread(strand));

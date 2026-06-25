@@ -425,9 +425,9 @@ BOOST_AUTO_TEST_CASE(client_shutdown)
 		response.StartStreaming(false);
 		response.Flush(yc);
 
-		boost::asio::deadline_timer dt{IoEngine::Get().GetIoContext()};
+		boost::asio::steady_timer dt{IoEngine::Get().GetIoContext()};
 		for (;;) {
-			dt.expires_from_now(boost::posix_time::seconds(1));
+			dt.expires_after(1s);
 			dt.async_wait(yc);
 
 			if (!response.IsClientDisconnected()) {

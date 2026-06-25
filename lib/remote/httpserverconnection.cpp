@@ -561,7 +561,7 @@ void HttpServerConnection::CheckLiveness(boost::asio::yield_context yc)
 		// Wait for the half of the liveness timeout to give the connection some leeway to do other work.
 		// But never wait longer than 5 seconds to ensure timely shutdowns.
 		auto sleepTime = std::min(5000ms, m_LivenessTimeout / 2);
-		m_CheckLivenessTimer.expires_from_now(boost::posix_time::milliseconds(sleepTime.count()));
+		m_CheckLivenessTimer.expires_after(sleepTime);
 		m_CheckLivenessTimer.async_wait(yc[ec]);
 
 		if (m_ShuttingDown) {

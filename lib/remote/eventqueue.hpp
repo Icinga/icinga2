@@ -7,7 +7,7 @@
 #include "remote/httphandler.hpp"
 #include "base/object.hpp"
 #include "config/expression.hpp"
-#include <boost/asio/deadline_timer.hpp>
+#include <boost/asio/steady_timer.hpp>
 #include <boost/asio/spawn.hpp>
 #include <condition_variable>
 #include <cstddef>
@@ -96,7 +96,7 @@ public:
 	const Expression::Ptr& GetFilter();
 
 	void Push(Dictionary::Ptr event);
-	Dictionary::Ptr Shift(boost::asio::yield_context yc, double timeout = 5);
+	Dictionary::Ptr Shift(boost::asio::yield_context yc, std::chrono::milliseconds timeout = 5s);
 
 private:
 	struct Filter
@@ -111,7 +111,7 @@ private:
 	std::mutex m_Mutex;
 	decltype(m_Filters.begin()) m_Filter;
 	std::queue<Dictionary::Ptr> m_Queue;
-	boost::asio::deadline_timer m_Timer;
+	boost::asio::steady_timer m_Timer;
 };
 
 class EventsSubscriber

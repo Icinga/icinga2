@@ -357,11 +357,11 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 		}
 	}
 
-	auto checkTimeout (command->GetTimeout());
+	std::chrono::duration<float> checkTimeout{command->GetTimeout()};
 	auto checkableTimeout (checkable->GetCheckTimeout());
 
 	if (!checkableTimeout.IsEmpty())
-		checkTimeout = checkableTimeout;
+		checkTimeout = std::chrono::duration<float>{checkableTimeout.Get<double>()};
 
 	if (resolvedMacros && !useResolvedMacros)
 		return;
@@ -457,7 +457,7 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	IoEngine::SpawnCoroutine(
 		*strand,
 		[strand, checkable, cr, psCommand, psHost, expectedSan, psPort, conn, req, checkTimeout, reportResult = std::move(reportResult)](asio::yield_context yc) {
-			Timeout timeout (*strand, boost::posix_time::microseconds(int64_t(checkTimeout * 1e6)),
+			Timeout timeout (*strand, std::chrono::duration_cast<std::chrono::microseconds>(checkTimeout),
 				[&conn, &checkable] {
 					Log(LogNotice, "IfwApiCheckTask")
 						<< "Timeout while checking " << checkable->GetReflectionType()->GetName()

@@ -141,7 +141,7 @@ void AsioTlsStream::GracefulDisconnect(boost::asio::io_context::strand& strand, 
 	}
 
 	{
-		Timeout shutdownTimeout (strand, boost::posix_time::seconds(10),
+		Timeout shutdownTimeout (strand, 10s,
 			[this] {
 				// Forcefully terminate the connection if async_shutdown() blocked more than 10 seconds.
 				ForceDisconnect();

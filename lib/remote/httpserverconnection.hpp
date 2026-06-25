@@ -9,7 +9,7 @@
 #include "base/tlsstream.hpp"
 #include "base/wait-group.hpp"
 #include <memory>
-#include <boost/asio/deadline_timer.hpp>
+#include <boost/asio/steady_timer.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/io_context_strand.hpp>
 #include <boost/asio/spawn.hpp>
@@ -58,7 +58,7 @@ private:
 	boost::asio::io_context::strand m_IoStrand;
 	bool m_ShuttingDown;
 	bool m_ConnectionReusable;
-	boost::asio::deadline_timer m_CheckLivenessTimer;
+	boost::asio::steady_timer m_CheckLivenessTimer;
 
 	HttpServerConnection(const WaitGroup::Ptr& waitGroup, const String& identity, bool authenticated,
 		const Shared<AsioTlsStream>::Ptr& stream, boost::asio::io_context& io);

@@ -27,7 +27,7 @@ void JsonRpcConnection::HandleAndWriteHeartbeats(boost::asio::yield_context yc)
 	boost::system::error_code ec;
 
 	for (;;) {
-		m_HeartbeatTimer.expires_from_now(boost::posix_time::seconds(20));
+		m_HeartbeatTimer.expires_after(20s);
 		m_HeartbeatTimer.async_wait(yc[ec]);
 
 		if (m_ShuttingDown) {

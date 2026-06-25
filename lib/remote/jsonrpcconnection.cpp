@@ -263,7 +263,7 @@ void JsonRpcConnection::Disconnect()
 			{
 				Timeout writerTimeout(
 					m_IoStrand,
-					boost::posix_time::seconds(5),
+					5s,
 					[this]() {
 						// The writer coroutine could not finish soon enough to unblock the waiter down blow,
 						// so we have to do this on our own, and the coroutine will be terminated forcibly when
@@ -412,7 +412,7 @@ void JsonRpcConnection::CheckLiveness(boost::asio::yield_context yc)
 		 * leaking the connection. Therefore close it after a timeout.
 		 */
 
-		m_CheckLivenessTimer.expires_from_now(boost::posix_time::seconds(10));
+		m_CheckLivenessTimer.expires_after(10s);
 		m_CheckLivenessTimer.async_wait(yc[ec]);
 
 		if (m_ShuttingDown) {
@@ -427,7 +427,7 @@ void JsonRpcConnection::CheckLiveness(boost::asio::yield_context yc)
 		Disconnect();
 	} else {
 		for (;;) {
-			m_CheckLivenessTimer.expires_from_now(boost::posix_time::seconds(30));
+			m_CheckLivenessTimer.expires_after(30s);
 			m_CheckLivenessTimer.async_wait(yc[ec]);
 
 			if (m_ShuttingDown) {
