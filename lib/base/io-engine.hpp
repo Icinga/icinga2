@@ -21,7 +21,6 @@
 #include <boost/context/protected_fixedsize_stack.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/asio/io_context.hpp>
-#include <boost/asio/io_context_strand.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/asio/steady_timer.hpp>
 
@@ -32,6 +31,8 @@
 namespace icinga
 {
 
+using IoStrand = boost::asio::strand<boost::asio::io_context::executor_type>;
+
 /**
  * Scope lock for CPU-bound work done in an I/O thread
  *
@@ -40,7 +41,7 @@ namespace icinga
 class CpuBoundWork
 {
 public:
-	CpuBoundWork(boost::asio::yield_context yc, boost::asio::io_context::strand&);
+	CpuBoundWork(boost::asio::yield_context yc, IoStrand&);
 	CpuBoundWork(const CpuBoundWork&) = delete;
 	CpuBoundWork(CpuBoundWork&&) = delete;
 	CpuBoundWork& operator=(const CpuBoundWork&) = delete;
@@ -111,7 +112,7 @@ public:
 	 * [^2]: https://bugs.llvm.org/show_bug.cgi?id=19177
 	 * [^3]: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=26461
 	 */
-	BOOST_NOINLINE static bool IsStrandRunningOnThisThread(const boost::asio::io_context::strand& strand)
+	BOOST_NOINLINE static bool IsStrandRunningOnThisThread(const IoStrand& strand)
 	{
 		return strand.running_in_this_thread();
 	}
@@ -174,7 +175,7 @@ private:
 
 	std::atomic_uint_fast32_t m_CpuBoundSemaphore;
 	std::mutex m_CpuBoundWaitingMutex;
-	std::vector<std::pair<boost::asio::io_context::strand, Shared<AsioConditionVariable>::Ptr>> m_CpuBoundWaiting;
+	std::vector<std::pair<IoStrand, Shared<AsioConditionVariable>::Ptr>> m_CpuBoundWaiting;
 };
 
 class TerminateIoThread : public std::exception
@@ -255,11 +256,11 @@ public:
 	 */
 	template<class OnTimeout, class Rep, class Period>
 	Timeout(
-		boost::asio::io_context::strand& strand,
+		IoStrand& strand,
 		const std::chrono::duration<Rep, Period>& timeoutFromNow,
 		OnTimeout onTimeout
 	)
-		: m_Timer(strand.context(), std::chrono::duration_cast<Timer::duration>(timeoutFromNow)),
+		: m_Timer(strand.get_inner_executor().context(), std::chrono::duration_cast<Timer::duration>(timeoutFromNow)),
 		  m_Cancelled(Shared<Atomic<bool>>::Make(false))
 	{
 		ASSERT(IoEngine::IsStrandRunningOnThisThread(strand));

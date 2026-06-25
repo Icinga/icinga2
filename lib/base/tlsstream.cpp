@@ -133,7 +133,7 @@ void AsioTlsStream::ForceDisconnect()
  * @param strand Asio strand used for other operations on this connection.
  * @param yc Yield context for Asio coroutines
  */
-void AsioTlsStream::GracefulDisconnect(boost::asio::io_context::strand& strand, boost::asio::yield_context& yc)
+void AsioTlsStream::GracefulDisconnect(IoStrand& strand, boost::asio::yield_context& yc)
 {
 	if (!lowest_layer().is_open()) {
 		// Already disconnected, nothing to do.

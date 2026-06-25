@@ -27,7 +27,7 @@ using namespace icinga;
  * @param yc Needed to asynchronously wait for the condition variable.
  * @param strand Where to post the wake-up of the condition variable.
  */
-CpuBoundWork::CpuBoundWork(boost::asio::yield_context yc, boost::asio::io_context::strand& strand)
+CpuBoundWork::CpuBoundWork(boost::asio::yield_context yc, IoStrand& strand)
 	: m_Done(false)
 {
 	VERIFY(IoEngine::IsStrandRunningOnThisThread(strand));
