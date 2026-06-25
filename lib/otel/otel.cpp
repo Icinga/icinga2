@@ -112,7 +112,7 @@ void OTel::Stop()
 		// below, and we would end up blocking indefinitely, so we have to check the exporting
 		// state here first.
 		if (Exporting()) {
-			Timeout writerTimeout(m_Strand, boost::posix_time::seconds(5), [this] {
+			Timeout writerTimeout(m_Strand, 5s, [this] {
 				boost::system::error_code ec;
 				std::visit([&ec](auto& stream) { stream->lowest_layer().cancel(ec); }, *m_Stream);
 			});
@@ -246,7 +246,7 @@ void OTel::Connect(boost::asio::yield_context& yc)
 				stream = Shared<AsioTcpStream>::Make(m_Strand.context());
 			}
 
-			Timeout timeout{m_Strand, boost::posix_time::seconds(10), [this, stream] {
+			Timeout timeout{m_Strand, 10s, [this, stream] {
 				Log(LogCritical, "OTelExporter")
 					<< "Timeout while connecting to OpenTelemetry backend '" << m_ConnInfo.Host << ":" << m_ConnInfo.Port << "', cancelling attempt.";
 

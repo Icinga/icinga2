@@ -174,14 +174,14 @@ void EventsInbox::Push(Dictionary::Ptr event)
 	std::unique_lock<std::mutex> lock (m_Mutex);
 
 	m_Queue.emplace(std::move(event));
-	m_Timer.expires_at(boost::posix_time::neg_infin);
+	m_Timer.expires_at(boost::asio::steady_timer::time_point::min());
 }
 
-Dictionary::Ptr EventsInbox::Shift(boost::asio::yield_context yc, double timeout)
+Dictionary::Ptr EventsInbox::Shift(boost::asio::yield_context yc, std::chrono::milliseconds timeout)
 {
 	std::unique_lock<std::mutex> lock (m_Mutex, std::defer_lock);
 
-	m_Timer.expires_at(boost::posix_time::neg_infin);
+	m_Timer.expires_at(boost::asio::steady_timer::time_point::min());
 
 	{
 		boost::system::error_code ec;
@@ -192,7 +192,7 @@ Dictionary::Ptr EventsInbox::Shift(boost::asio::yield_context yc, double timeout
 	}
 
 	if (m_Queue.empty()) {
-		m_Timer.expires_from_now(boost::posix_time::milliseconds((unsigned long)(timeout * 1000.0)));
+		m_Timer.expires_after(timeout);
 		lock.unlock();
 
 		{

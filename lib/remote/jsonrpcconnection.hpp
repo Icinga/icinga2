@@ -82,7 +82,7 @@ private:
 	AsioEvent m_WriterDone;
 	Atomic<bool> m_ShuttingDown;
 	WaitGroup::Ptr m_WaitGroup;
-	boost::asio::deadline_timer m_CheckLivenessTimer, m_HeartbeatTimer;
+	boost::asio::steady_timer m_CheckLivenessTimer, m_HeartbeatTimer;
 
 	JsonRpcConnection(const WaitGroup::Ptr& waitgroup, const String& identity, bool authenticated,
 		const Shared<AsioTlsStream>::Ptr& stream, ConnectionRole role, boost::asio::io_context& io);

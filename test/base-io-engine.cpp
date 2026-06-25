@@ -19,16 +19,16 @@ BOOST_AUTO_TEST_CASE(timeout_run)
 	int called = 0;
 
 	IoEngine::SpawnCoroutine(strand, [&](boost::asio::yield_context yc) {
-		boost::asio::deadline_timer timer (io);
+		boost::asio::steady_timer timer (io);
 
-		Timeout timeout (strand, boost::posix_time::millisec(300), [&called] { ++called; });
+		Timeout timeout (strand, 300ms, [&called] { ++called; });
 		BOOST_CHECK_EQUAL(called, 0);
 
-		timer.expires_from_now(boost::posix_time::millisec(200));
+		timer.expires_after(200ms);
 		timer.async_wait(yc);
 		BOOST_CHECK_EQUAL(called, 0);
 
-		timer.expires_from_now(boost::posix_time::millisec(200));
+		timer.expires_after(200ms);
 		timer.async_wait(yc);
 	});
 
@@ -46,16 +46,16 @@ BOOST_AUTO_TEST_CASE(timeout_cancelled)
 	int called = 0;
 
 	IoEngine::SpawnCoroutine(strand, [&](boost::asio::yield_context yc) {
-		boost::asio::deadline_timer timer (io);
-		Timeout timeout (strand, boost::posix_time::millisec(300), [&called] { ++called; });
+		boost::asio::steady_timer timer (io);
+		Timeout timeout (strand, 300ms, [&called] { ++called; });
 
-		timer.expires_from_now(boost::posix_time::millisec(200));
+		timer.expires_after(200ms);
 		timer.async_wait(yc);
 
 		timeout.Cancel();
 		BOOST_CHECK_EQUAL(called, 0);
 
-		timer.expires_from_now(boost::posix_time::millisec(200));
+		timer.expires_after(200ms);
 		timer.async_wait(yc);
 	});
 
@@ -73,18 +73,18 @@ BOOST_AUTO_TEST_CASE(timeout_scope)
 	int called = 0;
 
 	IoEngine::SpawnCoroutine(strand, [&](boost::asio::yield_context yc) {
-		boost::asio::deadline_timer timer (io);
+		boost::asio::steady_timer timer (io);
 
 		{
-			Timeout timeout (strand, boost::posix_time::millisec(300), [&called] { ++called; });
+			Timeout timeout (strand, 300ms, [&called] { ++called; });
 
-			timer.expires_from_now(boost::posix_time::millisec(200));
+			timer.expires_after(200ms);
 			timer.async_wait(yc);
 		}
 
 		BOOST_CHECK_EQUAL(called, 0);
 
-		timer.expires_from_now(boost::posix_time::millisec(200));
+		timer.expires_after(200ms);
 		timer.async_wait(yc);
 	});
 
@@ -102,8 +102,8 @@ BOOST_AUTO_TEST_CASE(timeout_due_cancelled)
 	int called = 0;
 
 	IoEngine::SpawnCoroutine(strand, [&](boost::asio::yield_context yc) {
-		boost::asio::deadline_timer timer (io);
-		Timeout timeout (strand, boost::posix_time::millisec(300), [&called] { ++called; });
+		boost::asio::steady_timer timer (io);
+		Timeout timeout (strand, 300ms, [&called] { ++called; });
 
 		// Give the timeout enough time to become due while blocking its strand to prevent it from actually running...
 		Utility::Sleep(0.4);
@@ -115,7 +115,7 @@ BOOST_AUTO_TEST_CASE(timeout_due_cancelled)
 
 		BOOST_CHECK_EQUAL(called, 0);
 
-		timer.expires_from_now(boost::posix_time::millisec(100));
+		timer.expires_after(100ms);
 		timer.async_wait(yc);
 	});
 
@@ -133,10 +133,10 @@ BOOST_AUTO_TEST_CASE(timeout_due_scope)
 	int called = 0;
 
 	IoEngine::SpawnCoroutine(strand, [&](boost::asio::yield_context yc) {
-		boost::asio::deadline_timer timer (io);
+		boost::asio::steady_timer timer (io);
 
 		{
-			Timeout timeout (strand, boost::posix_time::millisec(300), [&called] { ++called; });
+			Timeout timeout (strand, 300ms, [&called] { ++called; });
 
 			// Give the timeout enough time to become due while blocking its strand to prevent it from actually running...
 			Utility::Sleep(0.4);
@@ -146,7 +146,7 @@ BOOST_AUTO_TEST_CASE(timeout_due_scope)
 
 		BOOST_CHECK_EQUAL(called, 0);
 
-		timer.expires_from_now(boost::posix_time::millisec(100));
+		timer.expires_after(100ms);
 		timer.async_wait(yc);
 	});
 
