@@ -21,10 +21,10 @@ case "$DISTRO" in
 
   amazonlinux:2)
     amazon-linux-extras install -y epel
-    yum install -y bison ccache cmake3 gcc-c++ flex ninja-build system-rpm-config \
+    yum install -y bison ccache cmake3 gcc10-c++ flex ninja-build system-rpm-config \
       {libedit,mariadb,ncurses,openssl,postgresql,systemd}-devel
 
-    yum install -y bzip2 tar wget
+    yum install -y bzip2 gcc-c++ tar wget
     wget https://archives.boost.io/release/1.69.0/source/boost_1_69_0.tar.bz2
     tar -xjf boost_1_69_0.tar.bz2
 
@@ -36,7 +36,10 @@ case "$DISTRO" in
 
     ln -vs /usr/bin/cmake3 /usr/local/bin/cmake
     ln -vs /usr/bin/ninja-build /usr/local/bin/ninja
+
     CMAKE_OPTS+=(-DBOOST_{INCLUDEDIR=/boost_1_69_0,LIBRARYDIR=/boost_1_69_0/stage/lib})
+    CMAKE_OPTS+=(-DCMAKE_CXX_COMPILER=gcc10-g++ -DCMAKE_C_COMPILER=gcc10-gcc)
+
     export LD_LIBRARY_PATH=/boost_1_69_0/stage/lib
     ;;
 
