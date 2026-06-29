@@ -84,15 +84,16 @@ case "$DISTRO" in
         # Our Protobuf package on RHEL 8 is built with GCC 13, and since the ABI is not compatible with GCC 8,
         # we need to enable the SCL repository and install the GCC 13 packages to be able to link against it.
         SCL_ENABLE_GCC=(scl enable gcc-toolset-13 --)
-        dnf install -y gcc-toolset-13-gcc-c++ gcc-toolset-13-annobin-plugin-gcc
+        dnf install -y boost1.78-devel gcc-toolset-13-gcc-c++ gcc-toolset-13-annobin-plugin-gcc
         ;;
       *)
         dnf config-manager --enable crb
+        dnf install -y boost-devel
         ;;
     esac
 
     dnf install -y bison ccache cmake gcc-c++ flex ninja-build redhat-rpm-config \
-      {boost,bzip2,libedit,mariadb,ncurses,openssl,postgresql,systemd,xz,libzstd}-devel
+      {bzip2,libedit,mariadb,ncurses,openssl,postgresql,systemd,xz,libzstd}-devel
 
     # Rocky Linux 8 and 9 don't have a recent enough Protobuf compiler for OTel, so we need to add
     # our repository to install the pre-built Protobuf devel package.
