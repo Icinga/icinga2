@@ -1,6 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "remote/filterutility.hpp"
+#include "remote/apilistener.hpp"
 #include "remote/httputility.hpp"
 #include "config/applyrule.hpp"
 #include "config/configcompiler.hpp"
@@ -299,6 +300,22 @@ bool FilterUtility::HasPermission(const ApiUser::Ptr& user, const String& permis
 		}
 	}
 
+	// Requiring the "filter-expression" permission to use any filter expression is an incompatible change. Therefore,
+	// there is a config option to configure whether that permission check is enforced or not. If it is not enforced,
+	// a message is logged, allowing the admin to determine which ApiUsers require this permission. This allows granting
+	// the permission and/or adapting clients as needed until this message does not show up anymore and then switching
+	// to enforcing the permission check.
+	if (!foundPermission && permission == ApiUser::FilterExpressionPerm) {
+		ApiListener::Ptr listener = ApiListener::GetInstance();
+		if (listener && !listener->GetEnforceFilterExpressionPermission()) {
+			Log(LogWarning, "FilterUtility") << "ApiUser '" << user->GetName()
+				<< "' was allowed to use a filter expression despite missing the '" << ApiUser::FilterExpressionPerm
+				<< "' permission due to ApiListener.enforce_filter_expression_permission = false.";
+
+			return true;
+		}
+	}
+
 	if (!foundPermission) {
 		Log(LogWarning, "FilterUtility")
 			<< "Missing permission: " << requiredPermission;
@@ -310,7 +327,7 @@ bool FilterUtility::HasPermission(const ApiUser::Ptr& user, const String& permis
 void FilterUtility::CheckPermission(const ApiUser::Ptr& user, const String& permission, std::unique_ptr<Expression>* permissionFilter)
 {
 	if (!HasPermission(user, permission, permissionFilter)) {
-		BOOST_THROW_EXCEPTION(ScriptError("Missing permission: " + permission.ToLower()));
+		BOOST_THROW_EXCEPTION(MissingPermissionError("Missing permission: " + permission.ToLower()));
 	}
 }
 
@@ -385,6 +402,7 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 		frame.PermChecker = permissionChecker;
 
 		if (query->Contains("filter")) {
+			CheckPermission(user, ApiUser::FilterExpressionPerm, nullptr);
 			String filter = HttpUtility::GetLastParameter(query, "filter");
 			std::unique_ptr<Expression> ufilter = ConfigCompiler::CompileText("<API query>", filter);
 			Dictionary::Ptr filter_vars = query->Get("filter_vars");

@@ -118,6 +118,9 @@ bool TemplateQueryHandler::HandleRequest(
 
 	try {
 		objs = FilterUtility::GetFilterTargets(qd, params, user, "tmpl");
+	} catch (const MissingPermissionError& ex) {
+		HttpUtility::SendJsonError(response, params, 403, ex.what());
+		return true;
 	} catch (const std::exception& ex) {
 		HttpUtility::SendJsonError(response, params, 404,
 			"No templates found.",
