@@ -98,6 +98,13 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value, bool 
 
 	std::vector<String> tokens = attr.Split(".");
 
+	// This is reachable from ModifyObjectHandler. This check prevents API clients from creating deeply nested data
+	// structures that could overflow the stack later on.
+	if (tokens.size() > VarDepthLimit) {
+		BOOST_THROW_EXCEPTION(std::invalid_argument("Attribute '" + attr + "' exceeds maximum nesting level of " +
+			std::to_string(VarDepthLimit) + "."));
+	}
+
 	String fieldName = tokens[0];
 
 	int fid = type->GetFieldId(fieldName);
@@ -503,7 +510,7 @@ void ConfigObject::DumpObjects(const String& filename, int attributeTypes)
 
 void ConfigObject::RestoreObject(const String& message, int attributeTypes)
 {
-	Dictionary::Ptr persistentObject = JsonDecode(message);
+	Dictionary::Ptr persistentObject = JsonDecode(message, std::numeric_limits<size_t>::max());
 
 	String type = persistentObject->Get("type");
 	String name = persistentObject->Get("name");
