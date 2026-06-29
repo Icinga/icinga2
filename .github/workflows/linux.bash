@@ -61,6 +61,14 @@ case "$DISTRO" in
       {boost,libedit,mariadb,ncurses,openssl,postgresql,systemd,protobuf-lite}-devel
     ;;
 
+  *suse*:15.*)
+    zypper in -y --allow-downgrade bison ccache cmake flex gcc14-c++ ninja rpm-config-SUSE \
+      {lib{edit,mariadb,openssl},ncurses,postgresql,systemd,protobuf}-devel \
+      libboost_{context,coroutine,filesystem,iostreams,program_options,regex,system,test,thread}-devel
+
+    CMAKE_OPTS+=(-DCMAKE_CXX_COMPILER=g++-14 -DCMAKE_C_COMPILER=gcc-14)
+    ;;
+
   *suse*)
     zypper in -y --allow-downgrade bison ccache cmake flex gcc-c++ ninja rpm-config-SUSE \
       {lib{edit,mariadb,openssl},ncurses,postgresql,systemd,protobuf}-devel \
