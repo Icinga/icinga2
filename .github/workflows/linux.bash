@@ -25,11 +25,11 @@ case "$DISTRO" in
       {libedit,mariadb,ncurses,openssl,postgresql,systemd}-devel
 
     yum install -y bzip2 gcc-c++ tar wget
-    wget https://archives.boost.io/release/1.69.0/source/boost_1_69_0.tar.bz2
-    tar -xjf boost_1_69_0.tar.bz2
+    wget https://archives.boost.io/release/1.83.0/source/boost_1_83_0.tar.bz2
+    tar -xjf boost_1_83_0.tar.bz2
 
     (
-      cd boost_1_69_0
+      cd boost_1_83_0
       ./bootstrap.sh --with-libraries=context,coroutine,date_time,filesystem,iostreams,program_options,regex,system,test,thread
       ./b2 define=BOOST_COROUTINES_NO_DEPRECATION_WARNING
     )
@@ -37,10 +37,10 @@ case "$DISTRO" in
     ln -vs /usr/bin/cmake3 /usr/local/bin/cmake
     ln -vs /usr/bin/ninja-build /usr/local/bin/ninja
 
-    CMAKE_OPTS+=(-DBOOST_{INCLUDEDIR=/boost_1_69_0,LIBRARYDIR=/boost_1_69_0/stage/lib})
+    CMAKE_OPTS+=(-DBOOST_{INCLUDEDIR=/boost_1_83_0,LIBRARYDIR=/boost_1_83_0/stage/lib})
     CMAKE_OPTS+=(-DCMAKE_CXX_COMPILER=gcc10-g++ -DCMAKE_C_COMPILER=gcc10-gcc)
 
-    export LD_LIBRARY_PATH=/boost_1_69_0/stage/lib
+    export LD_LIBRARY_PATH=/boost_1_83_0/stage/lib
     ;;
 
   amazonlinux:20*)
