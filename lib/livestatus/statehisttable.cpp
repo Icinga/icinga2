@@ -41,7 +41,7 @@ void StateHistTable::UpdateLogEntries(const Dictionary::Ptr& log_entry_attrs, in
 	unsigned int time = log_entry_attrs->Get("time");
 	String host_name = log_entry_attrs->Get("host_name");
 	String service_description = log_entry_attrs->Get("service_description");
-	unsigned long state = log_entry_attrs->Get("state");
+	int state = log_entry_attrs->Get("state");
 	int log_type = log_entry_attrs->Get("log_type");
 	String state_type = log_entry_attrs->Get("state_type"); //SOFT, HARD, STARTED, STOPPED, ...
 	String log_line = log_entry_attrs->Get("message"); /* use message from log table */
