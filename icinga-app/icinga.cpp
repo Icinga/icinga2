@@ -784,7 +784,8 @@ static int SetupService(bool install, int argc, char **argv)
 			return 1;
 		}
 
-		SERVICE_DESCRIPTION sdDescription = { "The Icinga 2 monitoring application" };
+		char svcDesc[] = "The Icinga 2 monitoring application";
+		SERVICE_DESCRIPTION sdDescription = { svcDesc };
 		if(!ChangeServiceConfig2(schService, SERVICE_CONFIG_DESCRIPTION, &sdDescription)) {
 			printf("ChangeServiceConfig2 failed (%d)\n", GetLastError());
 			CloseServiceHandle(schService);
@@ -952,8 +953,9 @@ int main(int argc, char **argv)
 	}
 
 	if (argc > 1 && strcmp(argv[1], "--scm") == 0) {
+		char svcName[] = "icinga2";
 		SERVICE_TABLE_ENTRY dispatchTable[] = {
-			{ "icinga2", ServiceMain },
+			{ svcName, ServiceMain },
 			{ nullptr, nullptr }
 		};
 
