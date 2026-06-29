@@ -185,6 +185,16 @@ add_definitions(-DBOOST_FILESYSTEM_NO_DEPRECATED)
 # Required for Boost v1.74+
 add_definitions(-DBOOST_ASIO_USE_TS_EXECUTOR_AS_DEFAULT)
 
+# Boost.Asio's C++20 concept checks (completion_token_for / initiation_archetype)
+# have a hard error with certain socket types; disable them and fall back to SFINAE.
+add_definitions(-DBOOST_ASIO_DISABLE_CONCEPTS)
+
+# icinga2 uses Boost.Coroutine (yield_context), not C++20 coroutines.
+# Disabling co_await support prevents co_composed.hpp from compiling its
+# concept-constrained template bodies, which fail when BOOST_ASIO_DISABLE_CONCEPTS
+# leaves async_operation undefined.
+add_definitions(-DBOOST_ASIO_DISABLE_CO_AWAIT)
+
 link_directories(${Boost_LIBRARY_DIRS})
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
