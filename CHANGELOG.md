@@ -7,6 +7,25 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.16.2 (2026-06-29)
+
+This release fixes some critical security vulnerabilities in Icinga 2. Users are advised to upgrade immediately, as two
+of them allow an unauthenticated attacker to take over or crash the Icinga 2 process over the network. The other
+security fixes only affect authenticated API users.
+
+In addition, a new permission named `filter-expression` is introduced, which allows specifying if individual API users
+are allowed to use DSL filter expressions in API queries. This allows further restricting some API users that don't need
+this capability, for example, those only submitting individual check results. Due to the incompatibility of this change,
+enforcement of this permission is opt-in until v2.17; see the
+[upgrading docs](https://icinga.com/docs/icinga-2/latest/doc/16-upgrading-icinga-2/#upgrading-to-2-16-2) for details.
+
+* Verify that certificate update requests come from an authorized endpoint ([GHSA-vj39-ww8j-vvx5](https://github.com/Icinga/icinga2/security/advisories/GHSA-vj39-ww8j-vvx5))
+* Fix stack overflow due to deeply nested data structures ([GHSA-wh38-wg57-5w7g](https://github.com/Icinga/icinga2/security/advisories/GHSA-wh38-wg57-5w7g))
+* Prevent arbitrary config injection on object creation via the API ([GHSA-jgqj-x5j9-vgcm](https://github.com/Icinga/icinga2/security/advisories/GHSA-jgqj-x5j9-vgcm))
+* Fix that `/v1/config/files` could send uninitialized memory in case of file I/O errors (#10871)
+* Add `filter-expression` permission to make it possible to prevent API users from using DSL filter expressions
+* Windows: Update bundled OpenSSL to v3.5.7 (#10893)
+
 ## 2.16.1 (2026-05-21)
 
 This is a small release mostly to fix the issues some users were encountering in connection with perfdata writers,
@@ -130,6 +149,24 @@ We will also no longer provide 32bit Windows MSIs via Chocolatey (#10757).
 
 * OpenSSL shipped on Windows updated to 3.5.6: #10786
 * Boost version shipped on Windows updated to 1.90: #10669
+
+## 2.15.4 (2026-06-29)
+
+This release fixes some critical security vulnerabilities in Icinga 2. Users are advised to upgrade immediately, as two
+of them allow an unauthenticated attacker to take over or crash the Icinga 2 process over the network. The other
+security fixes only affect authenticated API users.
+
+In addition, a new permission named `filter-expression` is introduced, which allows specifying if individual API users
+are allowed to use DSL filter expressions in API queries. This allows further restricting some API users that don't need
+this capability, for example, those only submitting individual check results. Due to the incompatibility of this change,
+enforcement of this permission is opt-in until v2.17; see the
+[upgrading docs](https://icinga.com/docs/icinga-2/latest/doc/16-upgrading-icinga-2/#upgrading-to-2-16-2) for details.
+
+* Verify that certificate update requests come from an authorized endpoint ([GHSA-vj39-ww8j-vvx5](https://github.com/Icinga/icinga2/security/advisories/GHSA-vj39-ww8j-vvx5))
+* Fix stack overflow due to deeply nested data structures ([GHSA-wh38-wg57-5w7g](https://github.com/Icinga/icinga2/security/advisories/GHSA-wh38-wg57-5w7g))
+* Prevent arbitrary config injection on object creation via the API ([GHSA-jgqj-x5j9-vgcm](https://github.com/Icinga/icinga2/security/advisories/GHSA-jgqj-x5j9-vgcm))
+* Add `filter-expression` permission to make it possible to prevent API users from using DSL filter expressions
+* Windows: Update bundled OpenSSL to v3.0.21 (#10876)
 
 ## 2.15.3 (2026-04-23)
 
@@ -353,6 +390,24 @@ Thanks to all contributors:
 * Fix various compiler warnings. #9731 #10442
 * Reduce task function allocation overhead by using a per-thread created lambda in `WorkQueue`. #9575
 * Remove redundant trailing empty lines and add missing newlines in some files. #7799
+
+## 2.14.9 (2026-06-29)
+
+This release fixes some critical security vulnerabilities in Icinga 2. Users are advised to upgrade immediately, as two
+of them allow an unauthenticated attacker to take over or crash the Icinga 2 process over the network. The other
+security fixes only affect authenticated API users.
+
+In addition, a new permission named `filter-expression` is introduced, which allows specifying if individual API users
+are allowed to use DSL filter expressions in API queries. This allows further restricting some API users that don't need
+this capability, for example, those only submitting individual check results. Due to the incompatibility of this change,
+enforcement of this permission is opt-in until v2.17; see the
+[upgrading docs](https://icinga.com/docs/icinga-2/latest/doc/16-upgrading-icinga-2/#upgrading-to-2-16-2) for details.
+
+* Verify that certificate update requests come from an authorized endpoint ([GHSA-vj39-ww8j-vvx5](https://github.com/Icinga/icinga2/security/advisories/GHSA-vj39-ww8j-vvx5))
+* Fix stack overflow due to deeply nested data structures ([GHSA-wh38-wg57-5w7g](https://github.com/Icinga/icinga2/security/advisories/GHSA-wh38-wg57-5w7g))
+* Prevent arbitrary config injection on object creation via the API ([GHSA-jgqj-x5j9-vgcm](https://github.com/Icinga/icinga2/security/advisories/GHSA-jgqj-x5j9-vgcm))
+* Add `filter-expression` permission to make it possible to prevent API users from using DSL filter expressions
+* Windows: Update bundled OpenSSL to v3.0.21 (#10894)
 
 ## 2.14.8 (2026-01-29)
 
