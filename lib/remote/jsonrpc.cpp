@@ -147,7 +147,9 @@ String JsonRpc::ReadMessage(const Shared<AsioTlsStream>::Ptr& stream, boost::asi
  */
 Dictionary::Ptr JsonRpc::DecodeMessage(const String& message)
 {
-	Value value = JsonDecode(message);
+	// Use something a bit higher than the default limit to accommodate for data that was accepted by Icinga 2 elsewhere
+	// and gained some additional nesting levels when being wrapped in a JSON-RPC message.
+	Value value = JsonDecode(message, JsonDecodeDefaultDepthLimit + 8);
 
 	if (!value.IsObjectType<Dictionary>()) {
 		BOOST_THROW_EXCEPTION(std::invalid_argument("JSON-RPC"

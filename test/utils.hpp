@@ -4,7 +4,10 @@
 #pragma once
 
 #include <ctime>
+#include <functional>
+#include <future>
 #include <string>
+#include <boost/asio/spawn.hpp>
 
 tm make_tm(std::string s);
 
@@ -24,3 +27,5 @@ struct GlobalTimezoneFixture
 
     char *tz;
 };
+
+std::future<void> SpawnSynchronizedCoroutine(std::function<void(boost::asio::yield_context)> fn);

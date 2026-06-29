@@ -1,13 +1,16 @@
 // SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "base/convert.hpp"
 #include "base/dictionary.hpp"
 #include "base/function.hpp"
 #include "base/namespace.hpp"
 #include "base/array.hpp"
 #include "base/generator.hpp"
+#include "base/io-engine.hpp"
 #include "base/objectlock.hpp"
 #include "base/json.hpp"
+#include "test/utils.hpp"
 #include <boost/algorithm/string/replace.hpp>
 #include <BoostTestTargetConfig.h>
 #include <limits>
@@ -150,5 +153,180 @@ BOOST_AUTO_TEST_CASE(invalid1)
 	BOOST_CHECK_THROW(JsonDecode("{8: \"test\"}"), std::exception);
 	BOOST_CHECK_THROW(JsonDecode("{\"test\": \"test\""), std::exception);
 }
+
+static std::string MakeNestedJsonArray(size_t depth)
+{
+	return std::string(depth, '[') + std::string(depth, ']');
+}
+
+static std::string MakeNestedJsonObject(size_t depth)
+{
+	std::ostringstream buf;
+	for (size_t i = 0; i < depth; ++i) {
+		buf << "{\"" << i << "\":";
+	}
+	buf << "null";
+	for (size_t i = 0; i < depth; ++i) {
+		buf << "}";
+	}
+	return buf.str();
+}
+
+BOOST_AUTO_TEST_CASE(decode_depth_limit)
+{
+	auto ExpectLimitExceeded = [](std::string_view input, size_t limit, std::string_view path) {
+		try {
+			JsonDecode(std::string(input), limit);
+
+			boost::test_tools::assertion_result result{false};
+			result.message() << "Decoding '" << input << "' with limit " << limit << " did not throw an exception";
+			return result;
+		} catch (const std::exception& ex) {
+			std::ostringstream expected;
+			expected << "JSON decoding recursion limit reached (path: " << path << ")";
+
+			boost::test_tools::assertion_result result{ex.what() == expected.str()};
+			result.message() << "Decoding '" << input << "' with limit " << limit << ":\n"
+				<< "      got exception: " << ex.what() << "\n"
+				<< " expected exception: " << expected.str() << "\n";
+			return result;
+		}
+	};
+
+	// Scalars parse even with depth limit 0.
+	BOOST_CHECK_EQUAL(JsonDecode("42", 0), Value(42));
+	BOOST_CHECK_EQUAL(JsonDecode("true", 0), Value(true));
+	BOOST_CHECK_EQUAL(JsonDecode("\"test\"", 0), Value("test"));
+
+	// Arrays and objects require at least depth limit 1.
+	BOOST_CHECK(ExpectLimitExceeded("[]", 0, "root"));
+	BOOST_CHECK(ExpectLimitExceeded("{}", 0, "root"));
+	BOOST_CHECK(ExpectLimitExceeded("[42]", 0, "root"));
+	BOOST_CHECK(ExpectLimitExceeded("{\"foo\": 23}", 0, "root"));
+
+	// Array in array and object in object require at least depth limit 2.
+	BOOST_CHECK(ExpectLimitExceeded("[[]]", 1, "root[0]"));
+	BOOST_CHECK_NO_THROW(JsonDecode("[[]]", 2));
+	BOOST_CHECK(ExpectLimitExceeded(R"({"a":{}})", 1, R"(root["a"])"));
+	BOOST_CHECK_NO_THROW(JsonDecode(R"({"a":{}})", 2));
+
+	// Mixed nesting of arrays and objects is both counted towards the same limit.
+	BOOST_CHECK(ExpectLimitExceeded("[{}]", 1, "root[0]"));
+	BOOST_CHECK_NO_THROW(JsonDecode("[{}]", 2));
+	BOOST_CHECK(ExpectLimitExceeded(R"({"a":[]})", 1, R"(root["a"])"));
+	BOOST_CHECK_NO_THROW(JsonDecode(R"({"a":[]})", 2));
+
+	// Siblings are not added up for the depth check.
+	BOOST_CHECK_NO_THROW(JsonDecode("[[], [], [], {}, [], [], {}, {}, [], {}, {}, {}]", 2));
+	BOOST_CHECK_NO_THROW(JsonDecode(R"({"a": [], "b": {}, "c": {}, "d": [], "e": [], "f": {}})", 2));
+
+	// Some deeper nested array.
+	std::string arrayWithNesting42 = MakeNestedJsonArray(42);
+	std::ostringstream arrayPathWithNesting41;
+	arrayPathWithNesting41 << "root";
+	for (size_t i = 0; i < 41; ++i) {
+		arrayPathWithNesting41 << "[0]";
+	}
+	BOOST_CHECK(ExpectLimitExceeded(arrayWithNesting42, 41, arrayPathWithNesting41.str()));
+	BOOST_CHECK_NO_THROW(JsonDecode(arrayWithNesting42, 42));
+
+	// Some deeper nested object.
+	std::string objectWithNesting42 = MakeNestedJsonObject(42);
+	std::ostringstream objectPathWithNesting41;
+	objectPathWithNesting41 << "root";
+	for (size_t i = 0; i < 41; ++i) {
+		objectPathWithNesting41 << "[\"" << i << "\"]";
+	}
+	BOOST_CHECK(ExpectLimitExceeded(objectWithNesting42, 41, objectPathWithNesting41.str()));
+	BOOST_CHECK_NO_THROW(JsonDecode(objectWithNesting42, 42));
+
+	// And some deeper nested mixed containers.
+	std::string deeperMixedNesting = R"({
+		"1st-level": [
+			true,
+			"2nd-level",
+			{
+				"dummy": 42,
+				"3rd-level": {
+					"4th-level": [
+						"5th-level",
+						{
+							"6th-level": {
+								"7th-level": {
+									"8th-level": [
+										"9th-level",
+										[
+											"10th-level"
+										]
+									]
+								}
+							}
+						}
+					]
+				}
+			}
+		]
+	})";
+	auto deeperPath = R"(root["1st-level"][2]["3rd-level"]["4th-level"][1]["6th-level"]["7th-level"]["8th-level"][1])";
+	BOOST_CHECK(ExpectLimitExceeded(deeperMixedNesting, 9, deeperPath));
+	BOOST_CHECK_NO_THROW(JsonDecode(deeperMixedNesting, 10));
+}
+
+/* This test case decodes JSON nested much deeper (see safetyFactor) than the default depth limit and performs some
+ * operations on the resulting values. This is done with its limited stack size on order to verify that the default
+ * limit is low enough to be safe. Note that this isn't an exact science unfortunately: other recursive operations may
+ * have larger stack frames and these operations aren't the only thing on a stack (could be done inside an HTTP or
+ * JSON-RPC connection for example). Therefor, aim for a sufficiently large safety factor. The test function may be
+ * executed twice, once in a coroutine (which may not have a guard page and reliably detect an overflow depending on
+ * the Boost version), once in a pthread thread (which may not be available everywhere).
+ */
+static void TestJsonStackSize()
+{
+	constexpr size_t safetyFactor = 10;
+	constexpr size_t depth = JsonDecodeDefaultDepthLimit * safetyFactor;
+
+	Value val;
+
+	BOOST_REQUIRE_NO_THROW(val = JsonDecode(MakeNestedJsonArray(depth), depth));
+	BOOST_REQUIRE_NO_THROW(val.Clone());
+	BOOST_REQUIRE_NO_THROW(Convert::ToString(val));
+	BOOST_REQUIRE_NO_THROW(JsonDecode(JsonEncode(val), depth));
+
+	BOOST_REQUIRE_NO_THROW(val = JsonDecode(MakeNestedJsonObject(depth), depth));
+	BOOST_REQUIRE_NO_THROW(val.Clone());
+	BOOST_REQUIRE_NO_THROW(Convert::ToString(val));
+	BOOST_REQUIRE_NO_THROW(JsonDecode(JsonEncode(val), depth));
+}
+
+BOOST_AUTO_TEST_CASE(stack_size_coroutine)
+{
+	auto future = SpawnSynchronizedCoroutine([](boost::asio::yield_context) {
+		TestJsonStackSize();
+	});
+	future.get();
+}
+
+#ifdef HAVE_PTHREAD_CREATE
+BOOST_AUTO_TEST_CASE(stack_size_pthread)
+{
+	auto pagesize = sysconf(_SC_PAGESIZE);
+	BOOST_REQUIRE_GT(pagesize, 0);
+
+	pthread_attr_t attr;
+	BOOST_REQUIRE_EQUAL(0, pthread_attr_init(&attr));
+	BOOST_REQUIRE_EQUAL(0, pthread_attr_setstacksize(&attr, IoEngine::GetCoroutineStackSize()));
+	BOOST_REQUIRE_EQUAL(0, pthread_attr_setguardsize(&attr, pagesize));
+
+	pthread_t thread;
+	BOOST_REQUIRE_EQUAL(0, pthread_create(&thread, &attr, [](void*) -> void* {
+		TestJsonStackSize();
+		return nullptr;
+	}, nullptr));
+
+	BOOST_REQUIRE_EQUAL(0, pthread_join(thread, nullptr));
+	BOOST_REQUIRE_EQUAL(0, pthread_attr_destroy(&attr));
+
+}
+#endif /* HAVE_PTHREAD_CREATE */
 
 BOOST_AUTO_TEST_SUITE_END()

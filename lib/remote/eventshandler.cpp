@@ -92,7 +92,18 @@ bool EventsHandler::HandleRequest(
 		}
 	}
 
-	EventsSubscriber subscriber (std::move(eventTypes), HttpUtility::GetLastParameter(params, "filter"), l_ApiQuery);
+	String filter = "";
+	if (params && params->Contains("filter")) {
+		if (!FilterUtility::HasPermission(request.User(), ApiUser::FilterExpressionPerm, nullptr)) {
+			HttpUtility::SendJsonError(response, params, 403,
+				"Missing permission: " + ApiUser::FilterExpressionPerm);
+			return true;
+		}
+
+		filter = HttpUtility::GetLastParameter(params, "filter");
+	}
+
+	EventsSubscriber subscriber (std::move(eventTypes), std::move(filter), l_ApiQuery);
 
 	response.result(http::status::ok);
 	response.set(http::field::content_type, "application/json");

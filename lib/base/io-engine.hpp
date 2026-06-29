@@ -18,7 +18,7 @@
 #include <utility>
 #include <vector>
 #include <stdexcept>
-#include <boost/context/fixedsize_stack.hpp>
+#include <boost/context/protected_fixedsize_stack.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/io_context.hpp>
@@ -153,7 +153,7 @@ public:
 
 #if BOOST_VERSION >= 108700
 		boost::asio::spawn(h,
-			std::allocator_arg, boost::context::fixedsize_stack(GetCoroutineStackSize()),
+			std::allocator_arg, boost::context::protected_fixedsize_stack(GetCoroutineStackSize()),
 			std::move(wrapper),
 			boost::asio::detached
 		);
