@@ -14,6 +14,60 @@ BOOST_AUTO_TEST_SUITE(remote_filterutility,
 	*boost::unit_test::label("config"))
 // clang-format on
 
+BOOST_FIXTURE_TEST_CASE(filter_expression_permission, IcingaApplicationFixture)
+{
+	auto createObjects = []() {
+		String config = R"CONFIG({
+object CheckCommand "dummy" {
+  command = "/bin/echo"
+}
+
+object ApiUser "withFilterPermission" {
+  permissions = [ "objects/query/*", "filter-expression" ]
+}
+
+object ApiUser "withoutFilterPermission" {
+  permissions = [ "objects/query/*" ]
+}
+
+object Host "host1" {
+  address = "host1"
+  check_command = "dummy"
+}
+})CONFIG";
+		std::unique_ptr<Expression> expr = ConfigCompiler::CompileText("<test>", config);
+		expr->Evaluate(*ScriptFrame::GetCurrentFrame());
+	};
+
+	ConfigItem::RunWithActivationContext(new Function("CreateTestObjects", createObjects));
+
+	auto userWithPerm = ApiUser::GetByName("withFilterPermission");
+	auto userWithoutPerm = ApiUser::GetByName("withoutFilterPermission");
+
+	QueryDescription qd;
+	qd.Types.insert("Host");
+	qd.Permission = "objects/query/Host";
+
+	Dictionary::Ptr queryParams = new Dictionary();
+	queryParams->Set("type", "Host");
+
+	// This is a filter that uses a get_object call on an object the permissionFilterUser
+	// has access to. A second user is tested that has access to everything, to make sure
+	// the filter evaluates properly in the first place.
+	queryParams->Set("filter", "true");
+
+	std::vector<Value> objs;
+	BOOST_REQUIRE_NO_THROW(objs = FilterUtility::GetFilterTargets(qd, queryParams, userWithPerm));
+	BOOST_CHECK_EQUAL(objs.size(), 1);
+
+	BOOST_CHECK_EXCEPTION(FilterUtility::GetFilterTargets(qd, queryParams, userWithoutPerm), std::exception,
+		[](const std::exception& ex) {
+			boost::test_tools::assertion_result result{std::string_view(ex.what()) == "Missing permission: filter-expression"};
+			result.message() << "got exception: " << ex.what();
+			return result;
+		});
+}
+
 BOOST_FIXTURE_TEST_CASE(safe_function_permissions, IcingaApplicationFixture)
 {
 	auto createObjects = []() {
@@ -28,6 +82,7 @@ object ApiUser "allPermissionsUser" {
 
 object ApiUser "permissionFilterUser" {
   permissions = [
+    "filter-expression",
     {
       permission = "objects/query/Host"
       filter = {{ host.name == {{{host1}}} }}
@@ -160,6 +215,7 @@ object ApiUser "allPermissionsUser" {
 
 object ApiUser "permissionFilterUser" {
   permissions = [
+    "filter-expression",
     "objects/query/Host",
     {
       permission = "variables"
@@ -169,7 +225,10 @@ object ApiUser "permissionFilterUser" {
 }
 
 object ApiUser "noVariablePermUser" {
-  permissions = [ "objects/query/Host" ]
+  permissions = [
+    "filter-expression",
+    "objects/query/Host",
+  ]
 }
 
 object Host "host1" {

@@ -232,6 +232,18 @@ void ApiListener::OnAllConfigLoaded()
 
 	if (!m_LocalEndpoint)
 		BOOST_THROW_EXCEPTION(ScriptError("Endpoint object for '" + GetIdentity() + "' is missing.", GetDebugInfo()));
+
+	if (!GetEnforceFilterExpressionPermission()) {
+		Log(LogWarning, "ApiListener") << "Security notice:\n"
+			"    Currently, all ApiUsers are allowed to use Icinga 2 DSL filter expressions\n"
+			"    in API queries because enforce_filter_expression_permission is set to false.\n"
+			"    This can pose a security risk as filters are evaluated within the Icinga 2\n"
+			"    process and their complexity can be used for denial of service attacks. The\n"
+			"    new '" << ApiUser::FilterExpressionPerm << "' permission can be used to allow this for individual\n"
+			"    ApiUsers, which should only be granted to trusted users. It is recommended\n"
+			"    to set enforce_filter_expression_permission to true to enforce the\n"
+			"    permission. This will become the default in v2.17.";
+	}
 }
 
 /**

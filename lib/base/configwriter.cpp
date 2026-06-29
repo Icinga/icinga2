@@ -63,7 +63,8 @@ void ConfigWriter::EmitScope(std::ostream& fp, int indentLevel, const Dictionary
 		for (const Value& import : imports) {
 			fp << "\n";
 			EmitIndent(fp, indentLevel);
-			fp << "import \"" << import << "\"";
+			fp << "import ";
+			EmitString(fp, import.Get<String>());
 		}
 
 		fp << "\n";
@@ -77,6 +78,13 @@ void ConfigWriter::EmitScope(std::ostream& fp, int indentLevel, const Dictionary
 
 			if (splitDot) {
 				std::vector<String> tokens = kv.first.Split(".");
+
+				// This is reachable from CreateObjectHandler. This check prevents API clients from creating deeply
+				// nested data structures that could overflow the stack later on.
+				if (tokens.size() > ConfigObject::VarDepthLimit) {
+					BOOST_THROW_EXCEPTION(std::invalid_argument("Attribute '" + kv.first +
+						"' exceeds maximum nesting level of " + std::to_string(ConfigObject::VarDepthLimit) + "."));
+				}
 
 				EmitIdentifier(fp, tokens[0], true);
 
@@ -172,11 +180,6 @@ void ConfigWriter::EmitConfigItem(std::ostream& fp, const String& type, const St
 
 	fp << " ";
 	EmitScope(fp, 1, attrs, imports, true);
-}
-
-void ConfigWriter::EmitComment(std::ostream& fp, const String& text)
-{
-	fp << "/* " << text << " */\n";
 }
 
 void ConfigWriter::EmitFunctionCall(std::ostream& fp, const String& name, const Array::Ptr& arguments)
