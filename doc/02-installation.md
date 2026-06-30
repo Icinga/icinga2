@@ -363,15 +363,6 @@ Run the following command to:
 icinga2 api setup
 ```
 
-For new installations, it is recommended to set the following additional attribute inside the `ApiListener` object
-definition in `/etc/icinga2/features-enabled/api.conf`. This will already enforce stricter permissions as they will
-become the default with v2.17 (see the [upgrading documentation](16-upgrading-icinga-2.md#upgrading-to-2-16-2) for the
-version that introduced that setting for more details):
-
-```
-enforce_filter_expression_permission = true
-```
-
 Restart Icinga 2 for these changes to take effect.
 
 ```bash
