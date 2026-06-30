@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "remote/infohandler.hpp"
 #include "remote/httputility.hpp"
@@ -10,9 +11,9 @@ REGISTER_URLHANDLER("/", InfoHandler);
 
 bool InfoHandler::HandleRequest(
 	const WaitGroup::Ptr&,
-	const HttpRequest& request,
-	HttpResponse& response,
-	boost::asio::yield_context& yc
+	const HttpApiRequest& request,
+	HttpApiResponse& response,
+	boost::asio::yield_context&
 )
 {
 	namespace http = boost::beast::http;

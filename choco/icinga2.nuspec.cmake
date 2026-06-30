@@ -13,7 +13,7 @@
     <description>Icinga is an open source monitoring platform which notifies users about host and service outages.</description>
     <projectUrl>https://icinga.com/</projectUrl>
     <tags>icinga2 icinga agent monitoring admin</tags>
-    <licenseUrl>https://github.com/Icinga/icinga2/blob/master/COPYING</licenseUrl>
+    <licenseUrl>https://github.com/Icinga/icinga2/blob/master/LICENSE.md</licenseUrl>
     <releaseNotes>https://github.com/Icinga/icinga2/blob/master/ChangeLog</releaseNotes>
     <docsUrl>https://icinga.com/docs/icinga2/latest/</docsUrl>
     <bugTrackerUrl>https://github.com/Icinga/icinga2/issues</bugTrackerUrl>

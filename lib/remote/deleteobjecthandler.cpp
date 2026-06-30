@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "remote/deleteobjecthandler.hpp"
 #include "remote/configobjectslock.hpp"
@@ -17,8 +18,8 @@ REGISTER_URLHANDLER("/v1/objects", DeleteObjectHandler);
 
 bool DeleteObjectHandler::HandleRequest(
 	const WaitGroup::Ptr& waitGroup,
-	const HttpRequest& request,
-	HttpResponse& response,
+	const HttpApiRequest& request,
+	HttpApiResponse& response,
 	boost::asio::yield_context& yc
 )
 {
@@ -133,16 +134,24 @@ bool DeleteObjectHandler::HandleRequest(
 		results.push_back(result);
 	}
 
-	Dictionary::Ptr result = new Dictionary({
-		{ "results", new Array(std::move(results)) }
-	});
+	// Unlock the mutexes before starting to stream the response, so that we don't block the shutdown process.
+	lock.Unlock();
+	if (wgLock.owns_lock()) {
+		wgLock.unlock();
+	}
+
+	Array::Ptr resultArray = new Array{std::move(results)};
+	resultArray->Freeze();
+
+	Dictionary::Ptr result = new Dictionary({{ "results",  std::move(resultArray)}});
+	result->Freeze();
 
 	if (!success)
 		response.result(http::status::internal_server_error);
 	else
 		response.result(http::status::ok);
 
-	HttpUtility::SendJsonBody(response, params, result);
+	HttpUtility::SendJsonBody(response, params, result, yc);
 
 	return true;
 }

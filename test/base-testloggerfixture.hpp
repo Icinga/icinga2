@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2025 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2025 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #ifndef TEST_LOGGER_FIXTURE_H
 #define TEST_LOGGER_FIXTURE_H
@@ -9,6 +10,12 @@
 #include <boost/regex.hpp>
 #include <boost/test/test_tools.hpp>
 #include <future>
+
+#define CHECK_LOG_MESSAGE(pattern, timeout) BOOST_CHECK(ExpectLogPattern(pattern, timeout))
+#define REQUIRE_LOG_MESSAGE(pattern, timeout) BOOST_REQUIRE(ExpectLogPattern(pattern, timeout))
+
+#define CHECK_NO_LOG_MESSAGE(pattern, timeout) BOOST_CHECK(!ExpectLogPattern(pattern, timeout))
+#define REQUIRE_NO_LOG_MESSAGE(pattern, timeout) BOOST_REQUIRE(!ExpectLogPattern(pattern, timeout))
 
 namespace icinga {
 
@@ -95,8 +102,8 @@ struct TestLoggerFixture
 	TestLoggerFixture()
 	{
 		testLogger->SetSeverity(testLogger->SeverityToString(LogDebug));
-		testLogger->Activate(true);
 		testLogger->SetActive(true);
+		testLogger->Activate(true);
 	}
 
 	~TestLoggerFixture()

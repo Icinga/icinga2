@@ -907,11 +907,13 @@ current year as this implies yearly updates we don't want.
 Depending on the file type, this must be a comment.
 
 ```cpp
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2026 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-3.0-or-later
 ```
 
 ```bash
-# Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+
+# SPDX-FileCopyrightText: 2026 Icinga GmbH <https://icinga.com>
+# SPDX-License-Identifier: GPL-3.0-or-later
 ```
 
 #### Code Formatting <a id="development-develop-code-formatting"></a>
@@ -1242,7 +1244,7 @@ rewriting large code parts.
 If you consider an external library or code to be included with Icinga, the following
 requirements must be fulfilled:
 
-- License is compatible with GPLv2+. Boost license, MIT works, Apache is not.
+- License is compatible with GPLv3+. Like Boost license, MIT, Apache etc., works.
 - C++17 is supported
 - Header only implementations are preferred, external libraries require packages on every distribution.
 - No additional frameworks, Boost is the only allowed.
@@ -1813,12 +1815,12 @@ cd .\icinga2\
 mkdir build
 cd .\build\
 
-& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" `
+& "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" `
   -DICINGA2_UNITY_BUILD=OFF -DBoost_INCLUDE_DIR=C:\local\boost_1_85_0-Win64 `
   -DBISON_EXECUTABLE=C:\ProgramData\chocolatey\lib\winflexbison3\tools\win_bison.exe `
   -DFLEX_EXECUTABLE=C:\ProgramData\chocolatey\lib\winflexbison3\tools\win_flex.exe ..
 
-& "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" .\icinga2.sln
+& "C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe" .\icinga2.sln
 ```
 
 Building icinga2.sln via Visual Studio itself seems to require a reboot

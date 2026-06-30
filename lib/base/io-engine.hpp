@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #ifndef IO_ENGINE_H
 #define IO_ENGINE_H
@@ -12,6 +13,7 @@
 #include <atomic>
 #include <exception>
 #include <memory>
+#include <mutex>
 #include <thread>
 #include <utility>
 #include <vector>
@@ -20,7 +22,9 @@
 #include <boost/exception/all.hpp>
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/io_context.hpp>
+#include <boost/asio/io_context_strand.hpp>
 #include <boost/asio/spawn.hpp>
+#include <boost/asio/steady_timer.hpp>
 
 #if BOOST_VERSION >= 108700
 #	include <boost/asio/detached.hpp>
@@ -37,36 +41,41 @@ namespace icinga
 class CpuBoundWork
 {
 public:
-	CpuBoundWork(boost::asio::yield_context yc);
+	CpuBoundWork(boost::asio::yield_context yc, boost::asio::io_context::strand&);
 	CpuBoundWork(const CpuBoundWork&) = delete;
 	CpuBoundWork(CpuBoundWork&&) = delete;
 	CpuBoundWork& operator=(const CpuBoundWork&) = delete;
 	CpuBoundWork& operator=(CpuBoundWork&&) = delete;
-	~CpuBoundWork();
+
+	inline ~CpuBoundWork()
+	{
+		Done();
+	}
 
 	void Done();
 
 private:
+	static bool TryAcquireSlot();
+
 	bool m_Done;
 };
 
 /**
- * Scope break for CPU-bound work done in an I/O thread
+ * Condition variable which doesn't block I/O threads
  *
  * @ingroup base
  */
-class IoBoundWorkSlot
+class AsioConditionVariable
 {
 public:
-	IoBoundWorkSlot(boost::asio::yield_context yc);
-	IoBoundWorkSlot(const IoBoundWorkSlot&) = delete;
-	IoBoundWorkSlot(IoBoundWorkSlot&&) = delete;
-	IoBoundWorkSlot& operator=(const IoBoundWorkSlot&) = delete;
-	IoBoundWorkSlot& operator=(IoBoundWorkSlot&&) = delete;
-	~IoBoundWorkSlot();
+	AsioConditionVariable(boost::asio::io_context& io);
+
+	void Wait(boost::asio::yield_context yc);
+	bool NotifyOne();
+	size_t NotifyAll();
 
 private:
-	boost::asio::yield_context yc;
+	boost::asio::steady_timer m_Timer;
 };
 
 /**
@@ -77,7 +86,6 @@ private:
 class IoEngine
 {
 	friend CpuBoundWork;
-	friend IoBoundWorkSlot;
 
 public:
 	IoEngine(const IoEngine&) = delete;
@@ -87,6 +95,27 @@ public:
 	~IoEngine();
 
 	static IoEngine& Get();
+
+	/**
+	 * Checks whether the given strand is currently running in the calling thread.
+	 *
+	 * This is a simple wrapper around @c running_in_this_thread() with a little but significant difference:
+	 * It is marked as @c noinline to prevent the compiler from ever inlining the call to this function and
+	 * thus potentially optimizing away the thread-local storage access that is required for this function
+	 * to work correctly. This is especially important for the case where the caller is a coroutine that have
+	 * some suspension points between the calls to this function, and cause the compiler to assume that the
+	 * thread-local access performed by @c running_in_this_thread() is invariant across these suspensions and
+	 * thus optimize it by caching the result in a register or on the stack, which would lead to incorrect
+	 * results after resuming the coroutine on a different thread. For more details, see [^1][^2][^3].
+	 *
+	 * [^1]: https://github.com/chriskohlhoff/asio/issues/1366
+	 * [^2]: https://bugs.llvm.org/show_bug.cgi?id=19177
+	 * [^3]: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=26461
+	 */
+	BOOST_NOINLINE static bool IsStrandRunningOnThisThread(const boost::asio::io_context::strand& strand)
+	{
+		return strand.running_in_this_thread();
+	}
 
 	boost::asio::io_context& GetIoContext();
 
@@ -133,12 +162,6 @@ public:
 #endif // BOOST_VERSION >= 108700
 	}
 
-	static inline
-	void YieldCurrentCoroutine(boost::asio::yield_context yc)
-	{
-		Get().m_AlreadyExpiredTimer.async_wait(yc);
-	}
-
 private:
 	IoEngine();
 
@@ -149,8 +172,10 @@ private:
 	boost::asio::io_context m_IoContext;
 	boost::asio::executor_work_guard<boost::asio::io_context::executor_type> m_KeepAlive;
 	std::vector<std::thread> m_Threads;
-	boost::asio::deadline_timer m_AlreadyExpiredTimer;
-	std::atomic_int_fast32_t m_CpuBoundSemaphore;
+
+	std::atomic_uint_fast32_t m_CpuBoundSemaphore;
+	std::mutex m_CpuBoundWaitingMutex;
+	std::vector<std::pair<boost::asio::io_context::strand, Shared<AsioConditionVariable>::Ptr>> m_CpuBoundWaiting;
 };
 
 class TerminateIoThread : public std::exception
@@ -233,7 +258,7 @@ public:
 	Timeout(boost::asio::io_context::strand& strand, const Timer::duration_type& timeoutFromNow, OnTimeout onTimeout)
 		: m_Timer(strand.context(), timeoutFromNow), m_Cancelled(Shared<Atomic<bool>>::Make(false))
 	{
-		VERIFY(strand.running_in_this_thread());
+		ASSERT(IoEngine::IsStrandRunningOnThisThread(strand));
 
 		m_Timer.async_wait(boost::asio::bind_executor(
 			strand, [cancelled = m_Cancelled, onTimeout = std::move(onTimeout)](boost::system::error_code ec) {

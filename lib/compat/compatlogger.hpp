@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #ifndef COMPATLOGGER_H
 #define COMPATLOGGER_H
@@ -27,6 +28,8 @@ public:
 	void ValidateRotationMethod(const Lazy<String>& lvalue, const ValidationUtils& utils) override;
 
 protected:
+	void OnAllConfigLoaded() override;
+
 	void Start(bool runtimeCreated) override;
 	void Stop(bool runtimeRemoved) override;
 

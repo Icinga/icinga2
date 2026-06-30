@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #ifndef I2BASE_H
 #define I2BASE_H
@@ -75,5 +76,10 @@
 #define BOOST_BIND_NO_PLACEHOLDERS
 
 #include <functional>
+#include <chrono>
+
+namespace icinga {
+using namespace std::chrono_literals;
+} // namespace icinga
 
 #endif /* I2BASE_H */

@@ -7,6 +7,200 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.16.1 (2026-05-21)
+
+This is a small release mostly to fix the issues some users were encountering in connection with perfdata writers,
+mostly Graphite and InfluxDB. The only significant change is that the changes from #10668 and #10799 are being
+reverted. This affects `ElasticsearchWriter`, `GraphiteWriter`, `GelfWriter`, `InfluxdbWriter`,
+`Influxdb2Writer` and `OpenTsdbWriter`.
+
+### Changes
+* Revert adding `PerfdataWriterConnection`: #10851
+* Docs: Note OTLP metrics package limitation on Debian 11 and Ubuntu 22.04 and Amazon Linux 2: #10837
+
+## 2.16.0 (2026-04-23)
+
+With this release the license of the project was updated to GPLv3 or later (#10700).
+
+In this release we've added the `OTLPMetricsWriter`, a new perfdata writer targeting backends that support the
+OpenTelemetry protocol. We recommend users to replace other perfdata writers with this one if possible, especially
+`ElasticsearchWriter`, which is now deprecated and scheduled for removal in v2.18.
+
+Another big improvement is the addition of streaming support to our HTTP handlers. Most handlers now use chunked
+encoding to reduce the amount of the generated JSON document that has to be kept in memory at any one time. Some
+endpoints, notably `v1/objects/query`, will also start to stream the response immediately, as the results are processed.
+This should solve most of the memory issues users were seeing when using the Icinga 2 API on large clusters.
+
+We've also redone our Docker images with this version, with some changes to how the `/data` directory is mounted and
+initialized, so make sure you read the new documentation page for
+[installing Icinga 2 in containers](https://icinga.com/docs/icinga-2/latest/doc/02-installation/For-Container).
+
+Below is a summary of the changes relevant for our users. For the complete list of issues and PRs, please see the
+[milestone on GitHub](https://github.com/Icinga/icinga2/issues?q=is%3Aclosed+milestone%3A2.16.0).
+
+### Notes
+
+Thanks to all contributors:
+[brad0](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.16.0+author%3Abrad0),
+[cjsoftuk](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.16.0+author%3Acjsoftuk),
+[Donien](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.16.0+author%3ADonien),
+[Egor-OSSRevival](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.16.0+author%3AEgor-OSSRevival),
+[ETES-Stuttgart](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.16.0+author%3AETES-Stuttgart),
+[freaknils](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.16.0+author%3Afreaknils),
+[martialblog](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.16.0+author%3Amartialblog),
+[Napsty](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.16.0+author%3ANapsty),
+[RincewindsHat](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.16.0+author%3ARincewindsHat),
+[Tqnsls](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.16.0+author%3ATqnsls),
+[w1ll-i-code](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.16.0+author%3Aw1ll-i-code),
+[ymartin-ovh](https://github.com/Icinga/icinga2/pulls?q=is%3Apr+is%3Aclosed+milestone%3A2.16.0+author%3Aymartin-ovh)
+
+### Deprecations
+
+Features newly deprecated in this version:
+* `ElasticsearchWriter` (please use the new `OTLPMetricsWriter` instead)
+* User declared namespace objects (i.e. `namespace foo {}`)
+
+We've scheduled these features for removal in v2.18 (#10734).
+
+These features have already been deprecated and will also be removed in v2.18:
+* `IdoMySqlConnection`
+* `IdoPgsqlConnection`
+* `CompatLogger`
+* `ExternalCommandListener`
+* `LivestatusListener`
+* Windows check-plugins (i.e. `check_*.exe`) and `CheckCommand`s (please use our [PowerShell Plugins](https://github.com/Icinga/icinga-powershell-plugins) instead)
+
+We will also no longer provide 32bit Windows MSIs via Chocolatey (#10757).
+
+### Enhancements
+
+* OTLPMetricsWriter: A new perfdata writer for the OpenTelemetry protocol: #10685, #10789, and #10800
+* HTTP API-handlers now stream results via chunked encoding where possible: #10554, #10692, #10516, and #10414
+* Rework docker images build: #10505, #10666, and #10738
+* Better debug log messages for dependencies with non-existing parents or children: #10737
+* No longer require the unused `queue` parameter for `v1/events`: #10495
+* Allow UID/GID values in `ICINGA2_USER` and `ICINGA2_GROUP` environment variables: #10538
+* Add `messages_received_per_type` attribute to endpoints: #10387
+* Better error messages on Redis® connection errors: #10727
+* New node-setup command option `--no-default-global-zones`: #10028
+* Warn on problematic object names: #10770
+* New config option `http_response_headers` for ApiListener that allows to set arbitrary HTTP-headers that will be sent
+  back with responses: #10563, #10664, and #10662
+
+### Bugfixes
+
+* Fix a race condition in the `v1/console` handler: #10681 and #10675
+* InfluxDBWriter: Print full HTTP error body when request fails: #10560
+* Fix a crash when querying objects that are simultaneously deleted: #10698
+* Fix a race condition leading to double notifications: #10628
+* Improve BSD support: #10641, #10640, #10638, and #10635
+* TimePeriod: Properly validate `ranges` field: #10633
+* Fix recovery notifications outside time period being lost: #10613
+* Prevent worst-case exponential complexity in dependency evaluation: #10523
+* Fix double-free error in `posix_error::what()`: #10558
+* Fix expiry times not applying correctly to Acknowledgements via ExternalCommandProcessor: #10486
+* Fix dropped or stalled connections blocking Icinga 2 shutdown on all perfdata writers: #10668 and #10799
+* Fix misleading TLS handshake error logging: #10798
+* SELinux: Allow to query attrs of a filesystem: #10726
+
+### ITL
+
+* Support for the `check_smart` plugin: #8041
+* Add `ssl_cert_long_output` option to `check_ssl_cert` plugin: #10526
+* Enhanced SMART attributes monitoring plugin check configuration with more parameters: #10564
+* Add plain fping CheckCommand to ITL: #10494
+* Remove clear variable from disk CheckCommand: #10531
+* Add a check command for NETGEAR monitoring: #10753
+
+### Optimizations
+
+* Several performance optimizations for the Redis® connection: #10391, #10732, and #10744
+* IcingaDB: Better config and state update queueing: #10619
+* Freeze registries after startup: #10388
+* Small code and performance optimizations in `Log` class: #10504
+* Improved efficiency of the `CpuBoundWork` implementation: #9990 and #10795
+
+### Miscellaneous
+
+* Documentation Improvements: #10481, #10493, #10501, #10513, #10514, #10683, #10686, #10702, and #10745
+* Code Quality Improvements: #9411, #10609, #9728, #9729, #9730, #10499, #10552, #10693, #10715, #10716, and #10756
+* Unit-Test Improvements: #10350, #10528, #10561, #10749, #10550, #10767, and #10776
+
+### Windows
+
+* OpenSSL shipped on Windows updated to 3.5.6: #10786
+* Boost version shipped on Windows updated to 1.90: #10669
+
+## 2.15.3 (2026-04-23)
+
+This is a small release containing a few bugfixes backported from the v2.16.0 release.
+
+We will also no longer provide 32bit Windows MSIs via Chocolatey (#10761).
+
+* Bump OpenSSL shipped for Windows to v3.0.20: #10793
+* Fixed a race condition in the `v1/console` handler: #10755, and #10740
+* Fix double-free error in `posix_error::what()`: #10742
+* InfluxDBWriter: print full HTTP error body when request fails: #10739
+
+## 2.15.2 (2026-01-29)
+
+This security release fixes a problem in the Icinga 2 Windows MSI that did not
+set proper permissions for `%ProgramData%\icinga2\var`. Additionally, it includes
+two minor bug fixes regarding our SELinux policy and updates the OpenSSL version
+shipped on Windows.
+
+* CVE-2026-24413: Fix permissions of `%ProgramData%\icinga2\var` on Windows.
+* Windows: Update to OpenSSL 3.0.19. #10706
+* SELinux: Fix policy to allow `logrotate` to execute the `icinga2` binary in order to send `SIGUSR1` for log rotation. #10643
+* SELinux: Fix policy to allow `icinga2` to send `SIGTERM` to nagios plugins processes on timeout. #10694
+* doc: Update Windows development docs to use Visual Studio 2022 instead of 2019. #10695
+
+## 2.15.1 (2025-10-16)
+
+This release fixes multiple security issues. Two of them allow authenticated
+API users to learn restricted information or crash Icinga 2. A third issue
+affects the scripts provided with Icinga 2 and allows a limited privilege
+escalation where the Icinga 2 daemon user can trick root into sending signals to
+arbitrary processes.
+
+In addition, this version also includes bug fixes regarding config deployments
+and improvements to allow for better debugging of problems related to JSON-RPC
+cluster communication.
+
+Note that one fix affects the logrotate configuration. If it was modified
+locally, it might not be updated automatically by the package manager and
+applying the changes manually is necessary. For details, please check the
+[upgrading docs](https://icinga.com/docs/icinga-2/latest/doc/16-upgrading-icinga-2/#upgrading-to-2-15-1).
+
+### Security
+
+* CVE-2025-61907: Prevent API users from accessing variables and objects they
+  don't have access to within filter expressions. This allowed authenticated
+  API users to learn information they aren't allowed to access directly.
+* CVE-2025-61908: Add a missing null pointer check while evaluating
+  expressions. This allowed authenticated API users to crash the Icinga 2
+  daemon by supplying a crafted filter expression.
+* CVE-2025-61909: Don't send signals as root in safe-reload script and
+  logrotate config. This allowed a limited privilege escalation from the Icinga
+  2 service user to root. The scope is limited to sending SIGHUP or SIGUSR1 to
+  an arbitrary process. #10590
+* Windows: Update to OpenSSL 3.0.18. #10591
+
+### Bugfixes
+
+* When a reload triggered from Icinga Director (or the /v1/config API) fails,
+  the corresponding state is cleared, allowing to deploy a new config without
+  having to restart Icinga 2 manually first. #10584
+
+### Enhancements
+
+* Add JSON-RPC utilization metrics and troubleshooting docs. #10586
+* When sending cluster messages to other zones, prefer endpoints in the order
+  as specified in the zone configuration. #10587
+* Track the number of JSON-RPC messages received for each message type per
+  endpoint. #10585
+* Add support for building with Boost v1.89 and use it on Windows. #10578
+
 ## 2.15.0 (2025-06-18)
 
 This Icinga 2 release is focused on adding Icinga 2 dependencies support to Icinga DB, but also includes a number
@@ -159,6 +353,44 @@ Thanks to all contributors:
 * Fix various compiler warnings. #9731 #10442
 * Reduce task function allocation overhead by using a per-thread created lambda in `WorkQueue`. #9575
 * Remove redundant trailing empty lines and add missing newlines in some files. #7799
+
+## 2.14.8 (2026-01-29)
+
+This security release fixes a problem in the Icinga 2 Windows MSI that did not
+set proper permissions for `%ProgramData%\icinga2\var`. Additionally, it
+updates the bundled OpenSSL library and includes changes to allow building with
+newer toolchains.
+
+* CVE-2026-24413: Fix permissions of `%ProgramData%\icinga2\var` on Windows.
+* Windows: Update to OpenSSL 3.0.19. #10705
+* Bump Boost shipped for Windows to v1.87. #10651
+* Allow building with CMake 4. #10624
+
+## 2.14.7 (2025-10-16)
+
+This release fixes multiple security issues. Two of them allow authenticated
+API users to learn restricted information or crash Icinga 2. A third issue
+affects the scripts provided with Icinga 2 and allows a limited privilege
+escalation where the Icinga 2 daemon user can trick root into sending signals to
+arbitrary processes.
+
+Note that one fix affects the logrotate configuration. If it was modified
+locally, it might not be updated automatically by the package manager and
+applying the changes manually is necessary. For details, please check the
+[upgrading docs](https://icinga.com/docs/icinga-2/latest/doc/16-upgrading-icinga-2/#upgrading-to-2-15-1).
+
+* CVE-2025-61907: Prevent API users from accessing variables and objects they
+  don't have access to within filter expressions. This allowed authenticated
+  API users to learn information they aren't allowed to access directly.
+* CVE-2025-61908: Add a missing null pointer check while evaluating
+  expressions. This allowed authenticated API users to crash the Icinga 2
+  daemon by supplying a crafted filter expression.
+* CVE-2025-61909: Don't send signals as root in safe-reload script and
+  logrotate config. This allowed a limited privilege escalation from the Icinga
+  2 service user to root. The scope is limited to sending SIGHUP or SIGUSR1 to
+  an arbitrary process. #10597
+* Windows: Update to OpenSSL 3.0.18. #10595
+* Windows: upgrade build toolchain to Visual Studio 2022. #10594
 
 ## 2.14.6 (2025-05-27)
 
@@ -493,6 +725,45 @@ Add `linux_netdev` check command. #9045
 * Documentation: several fixes and improvements.  #8954 #9741 #9763 #9767 #9769 #9777
 * Several code quality improvements. #8815 #9106 #9250
   #9508 #9517 #9537 #9594 #9605 #9606 #9641 #9658 #9702 #9717 #9738
+
+## 2.13.14 (2026-01-29)
+
+This security release fixes a problem in the Icinga 2 Windows MSI that did not
+set proper permissions for `%ProgramData%\icinga2\var`. Additionally, it
+updates the bundled OpenSSL library and includes changes to allow building with
+newer toolchains.
+
+* CVE-2026-24413: Fix permissions of `%ProgramData%\icinga2\var` on Windows.
+* Windows: Update to OpenSSL 3.0.19. #10704
+* Allow building with CMake 4. #10625
+
+## 2.13.13 (2025-10-16)
+
+This release fixes multiple security issues. Two of them allow authenticated
+API users to learn restricted information or crash Icinga 2. A third issue
+affects the scripts provided with Icinga 2 and allows a limited privilege
+escalation where the Icinga 2 daemon user can trick root into sending signals to
+arbitrary processes.
+
+Note that one fix affects the logrotate configuration. If it was modified
+locally, it might not be updated automatically by the package manager and
+applying the changes manually is necessary. For details, please check the
+[upgrading docs](https://icinga.com/docs/icinga-2/latest/doc/16-upgrading-icinga-2/#upgrading-to-2-15-1).
+
+* CVE-2025-61907: Prevent API users from accessing variables and objects they
+  don't have access to within filter expressions. This allowed authenticated
+  API users to learn information they aren't allowed to access directly. In this
+  version this also applies to the TicketSalt variable which was previously
+  accessible through the /v1/variables API in this version.
+* CVE-2025-61908: Add a missing null pointer check while evaluating
+  expressions. This allowed authenticated API users to crash the Icinga 2
+  daemon by supplying a crafted filter expression.
+* CVE-2025-61909: Don't send signals as root in safe-reload script and
+  logrotate config. This allowed a limited privilege escalation from the Icinga
+  2 service user to root. The scope is limited to sending SIGHUP or SIGUSR1 to
+  an arbitrary process. #10601
+* Windows: Update to OpenSSL 3.0.18. #10602
+* Windows: upgrade build toolchain to Visual Studio 2022. #10598
 
 ## 2.13.12 (2025-05-27)
 
@@ -927,6 +1198,153 @@ Thanks to all contributors:
   * check_mysql: Don't set -H if -s is given #8020
 * Metrics
   * OpenTSDB-Writer: Remove incorrect space causing missing tag error #8245
+
+## 2.12.12 (2025-05-27)
+
+This security release fixes a critical issue in the certificate renewal logic in Icinga 2, which
+might incorrectly renew an invalid certificate. However, only nodes with access to the Icinga CA
+private key running with OpenSSL older than version 1.1.0 (released in 2016) are vulnerable. So this
+typically affects Icinga 2 masters running on operating systems like RHEL 7 and Amazon Linux 2.
+
+* CVE-2025-48057: Prevent invalid certificates from being renewed with OpenSSL older than v1.1.0.
+* Fix use-after-free in VerifyCertificate(): Additionally, a use-after-free was found in the same
+  function which is fixed as well, but in case it is triggered, typically only a wrong error code
+  may be shown in a log message.
+* Windows: Update OpenSSL shipped on Windows to v3.0.16. #10455
+* Windows: Fix unknown ctest(1) `--log_level` argument. #10453
+* Don't require to build .msi as admin. #10454
+
+## 2.12.11 (2024-11-12)
+
+This security release fixes a TLS certificate validation bypass.
+Given the severity of that issue, users are advised to upgrade all nodes immediately.
+
+* Security: fix TLS certificate validation bypass. CVE-2024-49369
+* Security: update OpenSSL shipped on Windows to v3.0.15.
+* Windows: sign MSI packages with a certificate the OS trusts by default.
+
+## 2.12.10 (2023-02-16)
+
+This security release updates Boost and OpenSSL libraries bundled on Windows
+and repairs broken SELinux policies.
+
+### Security
+
+* Windows: update bundled OpenSSL to v1.1.1t. #9686
+
+### Bugfixes
+
+* SELinux: fix user and domain creation by explicitly setting the role. #9689
+
+### Enhancements
+
+* Windows: update bundled Boost to v1.81. #9686
+
+## 2.12.9 (2022-06-30)
+
+This release includes some fixes and a performance improvement
+resulting in faster config validation and reload times.
+
+### Bugfixes
+
+* Fix a race-condition involving object attribute updates that could result in a crash. #9394
+* Speed up config validation by avoiding redundant serialization of objects. #9401
+* Windows: Update bundled version OpenSSL. #9414
+
+## 2.12.8 (2022-04-28)
+
+In the previous version 2.12.7, one bugfix was applied incorrectly. This is fixed by this release.
+
+### Downtimes
+
+* Scheduling downtimes for all children and all services no longer fails due to an object name conflict.
+  Only version 2.11.7 was affected by this issue. #9349
+
+### Windows
+
+* Update the bundled version of Boost to 1.79.0. #9359
+
+## 2.12.7 (2022-04-14)
+
+This version includes bugfixes for many features of Icinga 2, including fixes for multiple crashes.
+
+### API
+
+* The /v1/config/stages endpoint now immediately rejects parallel config updates
+  instead of accepting and then later failing to verify and activate them. #9326
+
+### Certificates
+
+* The lifetime of newly issued node certificates is reduced from 15 years to 397 days. #9338
+* Compare cluster certificate tickets in constant time. #9334
+
+### Notifications
+
+* Fix a crash that could happen while sending notifications shortly after Icinga 2 started. #9125
+
+### Checks and Commands
+
+* Fix a deadlock when processing check results for checkables with dependencies. #9229
+* Fix a message routing loop that can happen for event commands that are executed within a zone
+  using `command_endpoint` that resulted in excessive execution of the command. #9261
+
+### Downtimes
+
+* Fix scheduling of downtimes for all services on child hosts. #9184
+* Creating fixed downtimes starting immediately now send a corresponding notification. #9185
+* Fix some issues involving daylight saving time changes that could result in an hour missing
+  from scheduled downtimes. This fix applies to time periods as well. #9246
+* Fix a bug where downtimes on the day after a daylight saving time change could be off by an hour. #9253
+
+### Configuration
+
+* Fix the evaluation order of default templates when used in combination with apply rules.
+  Now default templates are imported first as stated in the documentation and
+  as it already happens for objects defined without using apply. #9294
+
+### IDO
+
+* Fix an issue where contacts were not written correctly to the notification history
+  if multiple IDO instances are active on the same node. #9243
+* Explicitly set the encoding for MySQL connections as a workaround for changed defaults
+  in Debian bullseye. #9313
+* Ship a MySQL schema upgrade that fixes inconsistent version information in the
+  full schema file and upgrade files which could have resulted in inaccurate reports
+  of an outdated schema version. #9140
+
+### Performance Data Writers
+
+* Fix a race condition in the InfluxDB Writers that could result in a crash. #9247
+* All writers no longer send metrics multiple times after HA failovers. #9329
+
+### Build
+
+* Fix the order of linker flags to fix builds on some ARM platforms. #9167
+* Fix an issue when building within an unrelated Git repository,
+  version information from that repository could incorrectly be used for Icinga 2. #9156
+* Windows: Update bundled Boost version to 1.78.0 and OpenSSL to 1.1.1n #9320 #9327
+
+### Internals
+
+* Fix some race conditions due to missing synchronization.
+  These race conditions should not have caused any practical problems
+  besides incorrect numbers in debug log message. #9305
+* Move the startup.log and status files created when validating incoming cluster config updates
+  to /var/lib/icinga2/api and always keep the last failed startup.log to ease debugging. #9336
+* Remove outdated and incorrect of the severity attributes #9244
+
+## 2.12.6 (2021-08-19)
+
+The main focus of these versions is a security vulnerability in the TLS certificate verification of our metrics writers ElasticsearchWriter, GelfWriter and InfluxdbWriter.
+
+### Security
+
+* Add TLS server certificate validation to ElasticsearchWriter, GelfWriter and InfluxdbWriter
+
+Depending on your setup, manual intervention beyond installing the new versions
+may be required, so please read the more detailed information in the
+[release blog post](https://icinga.com/blog/2021/08/19/icinga-2-13-1-security-release//)
+carefully
 
 ## 2.12.5 (2021-07-15)
 

@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #ifndef EVENTQUEUE_H
 #define EVENTQUEUE_H
@@ -59,11 +60,7 @@ private:
  *
  * @ingroup base
  */
-class EventQueueRegistry : public Registry<EventQueueRegistry, EventQueue::Ptr>
-{
-public:
-	static EventQueueRegistry *GetInstance();
-};
+using EventQueueRegistry = Registry<EventQueue::Ptr>;
 
 enum class EventType : uint_fast8_t
 {

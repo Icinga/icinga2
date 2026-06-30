@@ -8,6 +8,35 @@ Specific version upgrades are described below. Please note that version
 updates are incremental. An upgrade from v2.6 to v2.8 requires to
 follow the instructions for v2.7 too.
 
+## Upgrading to v2.16 <a id="upgrading-to-2-16"></a>
+
+### Migrating from ElasticsearchWriter to OTLPMetricsWriter
+
+ElasticsearchWriter is deprecated in v2.16 and will be removed in v2.18. In case you are using Elasticsearch 9.2 or later,
+we suggest migrating to the new OTLPMetricsWriter as a replacement. The index data structure in Elasticsearch will be
+different though, so any third-party tools working with that data will need to be adapted as well.
+
+!!! info
+
+    The official Icinga 2 packages for Debian 11, Ubuntu 22.04 and Amazon Linux 2 are currently built without
+    OpenTelemetry support (`ICINGA2_WITH_OPENTELEMETRY=OFF`), so `OTLPMetricsWriter` is not
+    available there unless you build Icinga 2 with a newer Protobuf toolchain.
+
+### Deprecation of user-defined DSL Namespaces
+
+If you were previously using constructs like `namespace my_utils { ... }` in your config, we suggest
+replacing them with global functions and variables, since user-defined namespaces will be removed in v2.18.
+
+### Previously deprecated features
+
+Since these previously deprecated features are now scheduled for removal in v2.18, please switch to the listed
+alternatives:
+
+* `IdoMySqlConnection` and `IdoPgsqlConnection`: Please switch to Icinga DB.
+* `CompatLogger`: For detailed logging of state changes, use the [/v1/events API endpoint](https://icinga.com/docs/icinga-2/latest/doc/12-icinga2-api/#event-streams).
+* `ExternalCommandListener` and `LivestatusListener`: Please use the [Icinga 2 API](https://icinga.com/docs/icinga-2/latest/doc/12-icinga2-api/) instead.
+* Windows check-plugins (`check_*.exe`) and `CheckCommand`s: Please use our [PowerShell plugins](https://github.com/Icinga/icinga-powershell-plugins) instead.
+
 ## Upgrading to v2.15 <a id="upgrading-to-2-15"></a>
 
 ### Icinga DB <a id="upgrading-to-2-15-icingadb"></a>

@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2024 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2024 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "icinga/dependency.hpp"
 #include "base/object-packer.hpp"
@@ -141,6 +142,22 @@ void DependencyGroup::LoadParents(std::set<Checkable::Ptr>& parents) const
 	for (auto& [compositeKey, children] : m_Members) {
 		parents.insert(std::get<0>(compositeKey));
 	}
+}
+
+/**
+ * Retrieve any child Checkable from the current dependency group.
+ *
+ * @return - Returns the first child Checkable found in this group, or nullptr if there are no children.
+ */
+Checkable::Ptr DependencyGroup::GetAnyChild() const
+{
+	std::lock_guard lock(m_Mutex);
+	for (auto& [_, children] : m_Members) {
+		if (!children.empty()) {
+			return children.begin()->second->GetChild();
+		}
+	}
+	return nullptr;
 }
 
 /**

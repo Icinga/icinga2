@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2025 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2025 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -20,8 +21,8 @@ struct TlsStreamFixture : CertificateFixture
 		using namespace boost::asio::ip;
 		using handshake_type = boost::asio::ssl::stream_base::handshake_type;
 
-		auto serverCert = EnsureCertFor("server");
-		auto clientCert = EnsureCertFor("client");
+		auto serverCert = GetCertFor("server");
+		auto clientCert = GetCertFor("client");
 
 		auto& io = IoEngine::Get().GetIoContext();
 
@@ -102,6 +103,8 @@ struct TlsStreamFixture : CertificateFixture
 		ret.message() << "Error: " << ec.message();
 		return ret;
 	}
+
+	static inline const std::vector<String> RequiredCerts{"client", "server"};
 
 	Shared<AsioTlsStream>::Ptr client;
 	Shared<AsioTlsStream>::Ptr server;

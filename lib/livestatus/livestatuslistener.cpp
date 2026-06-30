@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "livestatus/livestatuslistener.hpp"
 #include "livestatus/livestatuslistener-ti.cpp"
@@ -39,6 +40,14 @@ void LivestatusListener::StatsFunc(const Dictionary::Ptr& status, const Array::P
 	}
 
 	status->Set("livestatuslistener", new Dictionary(std::move(nodes)));
+}
+
+void LivestatusListener::OnAllConfigLoaded()
+{
+	ObjectImpl<LivestatusListener>::OnAllConfigLoaded();
+
+	Log(LogWarning, "LivestatusListener")
+		<< "This feature is DEPRECATED and will be removed in v2.18.";
 }
 
 /**

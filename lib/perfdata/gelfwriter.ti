@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "base/configobject.hpp"
 
@@ -24,9 +25,8 @@ class GelfWriter : ConfigObject
 		default {{{ return false; }}}
 	};
 
-	[no_user_modify] bool connected;
-	[no_user_modify] bool should_connect {
-		default {{{ return true; }}}
+	[config] double disconnect_timeout {
+		default {{{ return 10; }}}
 	};
 	[config] bool enable_ha {
 		default {{{ return false; }}}

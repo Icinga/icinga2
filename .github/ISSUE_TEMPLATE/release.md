@@ -21,6 +21,7 @@ assignees: ''
 - [ ] Create release on GitHub
 - [ ] Update public docs
 - [ ] Announce release
+- [ ] Forward-port the `CHANGELOG` changes to `master`
 
 ## Update Bundled Windows Dependencies
 

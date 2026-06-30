@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "base/type.hpp"
 #include "base/atomic.hpp"
@@ -202,7 +203,7 @@ int Type::GetActivationPriority() const
 	return 0;
 }
 
-void Type::RegisterAttributeHandler(int fieldId, const AttributeHandler& callback)
+void Type::RegisterAttributeHandler([[maybe_unused]] int fieldId, const AttributeHandler&)
 {
 	throw std::runtime_error("Invalid field ID.");
 }

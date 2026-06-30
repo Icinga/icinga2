@@ -1,4 +1,5 @@
-# Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+
+# SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 if(MSVC)
   set(WindowsSources icinga.rc)
@@ -47,6 +48,10 @@ endif()
 
 if(ICINGA2_WITH_NOTIFICATION)
   list(APPEND icinga_app_SOURCES $<TARGET_OBJECTS:notification>)
+endif()
+
+if(ICINGA2_WITH_OPENTELEMETRY)
+  list(APPEND icinga_app_SOURCES $<TARGET_OBJECTS:otel>)
 endif()
 
 if(ICINGA2_WITH_PERFDATA)

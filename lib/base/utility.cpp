@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "base/atomic-file.hpp"
 #include "base/utility.hpp"
@@ -430,7 +431,7 @@ static bool GlobHelper(const String& pathSpec, int type, std::vector<String>& fi
 #endif /* _WIN32 */
 
 #ifndef _WIN32
-static int GlobErrorHandler(const char *epath, int eerrno)
+static int GlobErrorHandler([[maybe_unused]] const char *epath, int eerrno)
 {
 	if (eerrno == ENOTDIR)
 		return 0;

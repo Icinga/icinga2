@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #ifndef APIFUNCTION_H
 #define APIFUNCTION_H
@@ -47,11 +48,7 @@ private:
  *
  * @ingroup base
  */
-class ApiFunctionRegistry : public Registry<ApiFunctionRegistry, ApiFunction::Ptr>
-{
-public:
-	static ApiFunctionRegistry *GetInstance();
-};
+using ApiFunctionRegistry = Registry<ApiFunction::Ptr>;
 
 #define REGISTER_APIFUNCTION(name, ns, callback) \
 	INITIALIZE_ONCE([]() { \

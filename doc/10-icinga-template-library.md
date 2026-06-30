@@ -108,6 +108,16 @@ cluster\_lag\_critical | **Optional.** Critical threshold for log lag in seconds
 ### icingadb <a id="itl-icinga-icingadb"></a>
 
 Check command for the built-in `icingadb` check.
+It performs multiple checks, such as verifying that:
+
+- The `IcingaDB` object has an active Redis connection.
+- The Icinga DB daemon is active and has recently sent a heartbeat to Redis.
+- Exactly one Icinga DB daemon is claiming responsibility in HA mode.
+- Icinga 2 does not take too long dumping the configuration to Redis (_full dump_).
+- The Icinga DB daemon does not take too long synchronizing the configuration to the relational database (_full sync_).
+- Icinga 2 does not generate more entires than it can write into the Redis queue (_redis backlog_).
+- Icinga DB does keep up with reading entries from the Redis queue and writing it to the relational database (_database backlog_).
+  This might result in outdated history entries and object attributes, used for filtering by Icinga DB Web.
 
 Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
 
@@ -1731,8 +1741,7 @@ uptime_since    | **Optional.** Show last boot in yyyy-mm-dd HH:MM:SS format (ou
 >
 > These plugins are DEPRECATED in favor of our
 > [PowerShell Plugins](https://github.com/Icinga/icinga-powershell-plugins)
-> and may be removed in a future release.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
+> and will be removed in v2.18.
 
 To allow a basic monitoring of Windows clients Icinga 2 comes with a set of Windows only plugins. While trying to mirror the functionalities of their linux cousins from the monitoring-plugins package, the differences between Windows and Linux are too big to be able use the same CheckCommands for both systems.
 
@@ -3046,6 +3055,30 @@ smart_attributes_ssd_only              | **Optional.** If set to true, only SSDs
 smart_attributes_options               | **Optional.** Additional parameters forwarded to smartctl binary
 
 
+#### smart-advanced <a id="plugin-contrib-command-smart-advanced"></a>
+
+The [check_smart](https://www.claudiokuenzler.com/monitoring-plugins/check_smart.php) plugin uses the `smartctl` command from the `smartmontools` package to monitor SMART values of physical drives. Hard, solid state and NVMe drives are supported. Both direct drive access or drives behind a storage controller (such as RAID) are supported.
+
+`smart_device` is required. `smart_interface` defaults to 'auto'. If `smart_device_is_glob` is set to true, a glob expression will be used for the given device(s) in `smart_device`.
+
+Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                   | Description
+-----------------------|-----------------------------------------------------------------------
+smart_device           | **Required.** Path to physical block device to be SMART monitored, e.g. /dev/sda. In combination with `smart_device_is_glob` (set to true) can also be used to monitor multiple drives at the same time (e.g. "/dev/sd[a-z]").
+smart_interface        | **Optional.** Drive's interface type, must be one of: auto, ata, scsi, nvme, 3ware,N, areca,N, hpt,L/M/N, cciss,N, megaraid,N.
+smart_device_is_glob   | **Optional.** If set to true, will use `smart_device` as glob expression (e.g. "/dev/sd[a-z]"). Allows to monitor multiple drives with one check.
+smart_raw_list         | **Optional.** List (comma separated, without spaces!) of SMART attributes to check for their raw values.
+smart_exclude_list     | **Optional.** List of (comma separated) SMART attributes which should be excluded (=ignored) from checks, but still appear in perfdata.
+smart_exclude_all_list | **Optional.** List of (comma separated) SMART attributes which should be excluded (=ignored) **completely** from checks and perfdata.
+smart_bad              | **Optional.** Threshold value (integer) when to warn for N bad entries (ATA: Current Pending Sector, SCSI: Grown defect list). Note: Deprecated for ATA drives, use `smart_warn` instead. Continue to use this for SCSI drives.
+smart_warn             | **Optional.** Comma separated list of thresholds for ATA drives (e.g. `"Reallocated_Sector_Ct=10,Current_Pending_Sector=62"`).
+smart_selftest         | **Optional.** If set to true, additionally check SMART's selftest log for errors.
+smart_ssd_lifetime     | **Optional.** If set to true, additionally check SSD attribute 'Percent_Lifetime_Remain'.
+smart_quiet            | **Optional.** If set to true, only show failing drive(s) when faults are detected (only affects output when `smart_device_is_glob` is set to true).
+smart_skip_self_assessment | **Optional.** If set to true, skip the SMART self assessment health check (not recommended).
+
+
 ### IcingaCLI <a id="plugin-contrib-icingacli"></a>
 
 This category includes all plugins using the icingacli provided by Icinga Web 2.
@@ -3369,7 +3402,7 @@ iftraffic64_max_counter	| **Optional.** Maximum counter value of net devices in 
 
 #### interfaces <a id="plugin-contrib-command-interfaces"></a>
 
-The [check_interfaces](https://git.netways.org/plugins/check_interfaces) plugin
+The [check_interfaces](https://github.com/NETWAYS/check_interfaces) plugin
 uses SNMP to monitor network interfaces and their utilization.
 
 Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
@@ -3412,6 +3445,37 @@ Name                      | Description
 linux\_netdev\_duration   | **Optional.** For how long to run. E.g. "10s" or "2m". Default: "1m"
 linux\_netdev\_exclude    | **Optional.** Which NICs to exclude. E.g. `eth0` or `eth?*`, may be an array. Default: none
 linux\_netdev\_thresholds | **Optional.** Warning and critical thresholds. E.g. `eth?*:tx:bytes:persec:w=1000000000` (see [plugin documentation](https://github.com/Al2Klimov/check_linux_netdev#usage)), may be an array. Default: none
+
+#### netgear <a id="check_netgear"></a>
+
+The [check_netgear](https://github.com/Icinga/check-netgear) plugin queries the API provided by NETGEAR AV Line switches
+and retrieves device statistics such as CPU usage, memory usage,
+temperature, fan speed and port statistics.
+
+Command line arguments are passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                         | Description
+-----------------------------|----------------------------------------------------------------------------------
+netgear\_base\_url           | **Required.** Base URL of the NETGEAR API (example: `http://$check_address$`).
+netgear\_username            | **Required.** Username used for authentication.
+netgear\_password            | **Required.** Password used for authentication.
+netgear\_cpu\_warning        | **Optional.** CPU usage warning threshold (default: 50).
+netgear\_cpu\_critical       | **Optional.** CPU usage critical threshold (default: 90).
+netgear\_mem\_warning        | **Optional.** RAM usage warning threshold (default: 50).
+netgear\_mem\_critical       | **Optional.** RAM usage critical threshold (default: 90).
+netgear\_temp\_warning       | **Optional.** Temperature warning threshold (default: 50).
+netgear\_femp\_critical      | **Optional.** Temperature critical threshold (default: 70).
+netgear\_fan\_warning        | **Optional.** Fan speed warning threshold (default: 3000).
+netgear\_fan\_critical       | **Optional.** Fan speed critical threshold (default: 5000).
+netgear\_stats\_warning      | **Optional.** Port statistics warning threshold (default: 5).
+netgear\_stats\_critical     | **Optional.** Port statistics critical threshold (default: 20).
+netgear\_mode                | **Optional.** Output modes to enable. Array of `basic`, `ports`, `poe`, `all`. Default: [`basic`].
+netgear\_ports               | **Optional.** Ports to check as an arary. Default: [`1,2,3,4,5,6,7,8`].
+netgear\_hide\_perfdata      | **Optional.** Disable performance data output.
+netgear\_hide\_cpu           | **Optional.** Hide CPU information.
+netgear\_hide\_mem           | **Optional.** Hide memory information.
+netgear\_hide\_temp          | **Optional.** Hide temperature information.
+netgear\_hide\_fans          | **Optional.** Hide fan information.
 
 #### nwc_health <a id="plugin-contrib-command-nwc_health"></a>
 

@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #ifndef ACTIONSHANDLER_H
 #define ACTIONSHANDLER_H
@@ -13,12 +14,10 @@ class ActionsHandler final : public HttpHandler
 public:
 	DECLARE_PTR_TYPEDEFS(ActionsHandler);
 
-	static thread_local ApiUser::Ptr AuthenticatedApiUser;
-
 	bool HandleRequest(
 		const WaitGroup::Ptr& waitGroup,
-		const HttpRequest& request,
-		HttpResponse& response,
+		const HttpApiRequest& request,
+		HttpApiResponse& response,
 		boost::asio::yield_context& yc
 	) override;
 };

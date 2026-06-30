@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #ifndef TLSSTREAM_H
 #define TLSSTREAM_H
@@ -13,6 +14,7 @@
 #include <atomic>
 #include <memory>
 #include <utility>
+#include <variant>
 #include <boost/asio/buffered_stream.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/tcp.hpp>
@@ -122,9 +124,9 @@ private:
 	}
 };
 
-typedef boost::asio::buffered_stream<boost::asio::ip::tcp::socket> AsioTcpStream;
-typedef std::pair<Shared<AsioTlsStream>::Ptr, Shared<AsioTcpStream>::Ptr> OptionalTlsStream;
-
+using AsioTcpStream = boost::asio::buffered_stream<boost::asio::ip::tcp::socket>;
+using OptionalTlsStream = std::pair<Shared<AsioTlsStream>::Ptr, Shared<AsioTcpStream>::Ptr>;
+using AsioTlsOrTcpStream = std::variant<Shared<AsioTlsStream>::Ptr, Shared<AsioTcpStream>::Ptr>;
 }
 
 #endif /* TLSSTREAM_H */

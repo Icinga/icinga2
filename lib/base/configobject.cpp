@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "base/atomic-file.hpp"
 #include "base/configobject.hpp"
@@ -421,7 +422,7 @@ void ConfigObject::OnAllConfigLoaded()
 		m_Zone = ctype->GetObject(zoneName);
 }
 
-void ConfigObject::CreateChildObjects(const Type::Ptr& childType)
+void ConfigObject::CreateChildObjects(const Type::Ptr&)
 {
 	/* Nothing to do here. */
 }

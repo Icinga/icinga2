@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "icinga/downtime.hpp"
 #include "icinga/downtime-ti.cpp"
@@ -253,7 +254,7 @@ Downtime::Ptr Downtime::AddDowntime(const Checkable::Ptr& checkable, const Strin
 	const String& comment, double startTime, double endTime, bool fixed,
 	const Downtime::Ptr& parentDowntime, double duration,
 	const String& scheduledDowntime, const String& scheduledBy, const String& parent,
-	const String& id, const MessageOrigin::Ptr& origin)
+	const String& id)
 {
 	String fullName;
 	String triggeredBy;

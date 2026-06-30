@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #ifndef ICINGADB_H
 #define ICINGADB_H
@@ -11,9 +12,13 @@
 #include "base/workqueue.hpp"
 #include "icinga/customvarobject.hpp"
 #include "icinga/checkable.hpp"
+#include "icinga/command.hpp"
 #include "icinga/service.hpp"
 #include "icinga/downtime.hpp"
 #include "remote/messageorigin.hpp"
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/sequenced_index.hpp>
 #include <atomic>
 #include <chrono>
 #include <future>
@@ -26,6 +31,192 @@
 
 namespace icinga
 {
+
+#define CONFIG_REDIS_KEY_PREFIX "icinga:"
+#define CHECKSUM_REDIS_KEY_PREFIX CONFIG_REDIS_KEY_PREFIX "checksum:"
+
+namespace icingadb::task_queue
+{
+
+/**
+ * Dirty bits for config/state changes.
+ *
+ * These are used to mark objects as "dirty" in order to trigger appropriate updates in Redis.
+ * Each bit represents a different type of change that requires a specific action to be taken.
+ *
+ * @ingroup icingadb
+ */
+enum DirtyBits : uint32_t
+{
+	ConfigUpdate  = 1<<0, // Trigger a Redis config update for the object.
+	ConfigDelete  = 1<<1, // Send a deletion command for the object to Redis.
+	VolatileState = 1<<2, // Send a volatile state update to Redis (affects only checkables).
+	RuntimeState  = 1<<3, // Send a runtime state update to Redis (affects only checkables).
+	NextUpdate    = 1<<4, // Update the `icinga:nextupdate:{host,service}` Redis keys (affects only checkables).
+
+	FullState = VolatileState | RuntimeState, // A combination of all (non-dependency) state-related dirty bits.
+
+	// All valid dirty bits combined used for masking input values.
+	DirtyBitsAll = ConfigUpdate | ConfigDelete | FullState | NextUpdate
+};
+
+
+/**
+ * A pending configuration object item.
+ *
+ * This struct represents a pending item in the queue that is associated with a configuration object.
+ * It contains a pointer to the configuration object and the dirty bits indicating the type of updates
+ * required for that object in Redis.
+ *
+ * @ingroup icingadb
+ */
+struct PendingConfigItem
+{
+	ConfigObject::Ptr Object;
+	uint32_t DirtyBits;
+
+	PendingConfigItem(const ConfigObject::Ptr& obj, uint32_t bits);
+
+	[[nodiscard]] ConfigObject* GetQueueLookupKey() const
+	{
+		return Object.get();
+	}
+};
+
+/**
+ * A pending dependency group state item.
+ *
+ * This struct represents a pending item in the queue that is associated with a dependency group.
+ * It contains a pointer to the dependency group for which state updates are required.
+ *
+ * @ingroup icingadb
+ */
+struct PendingDependencyGroupStateItem
+{
+	DependencyGroup::Ptr DepGroup;
+
+	explicit PendingDependencyGroupStateItem(const DependencyGroup::Ptr& depGroup);
+
+	[[nodiscard]] DependencyGroup* GetQueueLookupKey() const
+	{
+		return DepGroup.get();
+	}
+};
+
+/**
+ * A pending dependency edge item.
+ *
+ * This struct represents a pending dependency child registration into a dependency group.
+ * It contains a pointer to the dependency group and the checkable child being registered.
+ *
+ * @ingroup icingadb
+ */
+struct PendingDependencyEdgeItem
+{
+	DependencyGroup::Ptr DepGroup;
+	Checkable::Ptr Child;
+
+	PendingDependencyEdgeItem(const DependencyGroup::Ptr& depGroup, const Checkable::Ptr& child);
+
+	[[nodiscard]] std::pair<DependencyGroup*, Checkable*> GetQueueLookupKey() const
+	{
+		return {DepGroup.get(), Child.get()};
+	}
+};
+
+/**
+ * A pending relations deletion item.
+ *
+ * This struct represents a pending item in the queue that is associated with the deletion of relations
+ * in Redis. It contains a map of Redis keys from which the relation identified by the @c ID field should
+ * be deleted. The @c ID field represents the unique identifier of the relation to be deleted, and the
+ * @c Relations map specifies the Redis keys and whether to delete the corresponding checksum keys.
+ *
+ * @ingroup icingadb
+ */
+struct RelationsDeletionItem
+{
+	std::string ID;
+	// Set of Redis keys from which to delete a relation, along with their checksums (if any).
+	using RelationsKeySet = std::set<std::pair<RedisConnection::QueryArg, RedisConnection::QueryArg>>;
+	RelationsKeySet Relations;
+
+	RelationsDeletionItem(const String& id, const RelationsKeySet& relations);
+
+	[[nodiscard]] std::string_view GetQueueLookupKey() const
+	{
+		return ID;
+	}
+};
+
+/**
+ * A pending queue item.
+ *
+ * This struct represents a generic pending item in the queue. The @c EnqueueTime field records the
+ * time when the item was added to the queue, which can be useful for tracking how long an item waits before
+ * being processed. This base struct wraps one of the available more specific pending item types that operate
+ * on different kinds of objects, such as configuration objects or dependency groups.
+ *
+ * @ingroup icingadb
+ */
+struct PendingQueueItem
+{
+	using ItemVariant = std::variant<
+		PendingConfigItem,
+		PendingDependencyGroupStateItem,
+		PendingDependencyEdgeItem,
+		RelationsDeletionItem
+	>;
+
+	ItemVariant Item;
+	std::chrono::steady_clock::time_point EnqueueTime{std::chrono::steady_clock::now()};
+
+	template<typename T,
+		// don't hide the default copy and move constructors
+		typename = std::enable_if_t<!std::is_same_v<std::decay_t<T>, PendingQueueItem>>
+	>
+	explicit PendingQueueItem(T&& item) : Item(std::forward<T>(item)) {}
+};
+
+template<typename T>
+struct KeyExtractor /* not implemented, only the specialization for std::variant is used */;
+
+/**
+ * Helper to use @c PendingQueueItem in @c boost::multi_index_container.
+ *
+ * It implements a key extractor that @c multi_index_container will invoke for each element to create an index.
+ * Every individual type in @c PendingQueueItem::ItemVariant implements a method @c GetQueueLookupKey() that will
+ * be invoked by this key extractor. The return value from the individual type is then returned as part of a second
+ * variant type (its element types are automatically deduced from the individual @c GetQueueLookupKey() methods).
+ * @c multi_index_container will then just use the standard comparison operators on it for building the index.
+ *
+ * @ingroup icingadb
+ */
+template<typename ...Ts>
+struct KeyExtractor<std::variant<Ts...>> {
+	using result_type = std::variant<decltype(std::declval<Ts>().GetQueueLookupKey())...>;
+
+	result_type operator()(const PendingQueueItem& queueItem) const
+	{
+		return std::visit([](const auto& innerItem) -> result_type {
+			return innerItem.GetQueueLookupKey();
+		}, queueItem.Item);
+	};
+};
+
+// A multi-index container for managing pending items with unique IDs and maintaining insertion order.
+// The first index is an ordered unique index based on the pending item key, allowing for efficient
+// lookups and ensuring uniqueness of items. The second index is a sequenced index that maintains the
+// order of insertion, enabling FIFO processing of pending items.
+using PendingItemsSet = boost::multi_index_container<
+	PendingQueueItem,
+	boost::multi_index::indexed_by<
+		boost::multi_index::ordered_unique<KeyExtractor<PendingQueueItem::ItemVariant>>,
+		boost::multi_index::sequenced<>
+	>
+>;
+
+} // namespace icingadb::task_queue
 
 /**
  * @ingroup icingadb
@@ -46,10 +237,12 @@ public:
 
 	String GetEnvironmentId() const override;
 
-	inline RedisConnection::Ptr GetConnection()
+	inline RedisConnection::Ptr GetConnection() const
 	{
 		return m_RconLocked.load();
 	}
+
+	void LoadPendingItemsStats(const Array::Ptr& perfdata) const;
 
 	template<class T>
 	static void AddKvsToMap(const Array::Ptr& kvs, T& map)
@@ -67,9 +260,25 @@ public:
 		}
 	}
 
+	// Represents any pair of Redis keys that belong together, e.g, @c {icinga:host:state, icinga:checksum:host:state}.
+	struct QueryArgPair
+	{
+		std::string_view ObjectKey;
+		std::string_view ChecksumKey;
+	};
+
+	struct CmdArgEnvRedisKeys
+	{
+		std::string_view ArgObjectKey; // Represents `icinga:{command_type}:argument`.
+		std::string_view ArgChecksumKey; // Represents `icinga:checksum:{command_type}:argument`.
+		std::string_view EnvObjectKey; // Represents `icinga:{command_type}:envvar`.
+		std::string_view EnvChecksumKey; // Represents `icinga:checksum:{command_type}:envvar`.
+	};
+
 protected:
 	void ValidateTlsProtocolmin(const Lazy<String>& lvalue, const ValidationUtils& utils) override;
 	void ValidateConnectTimeout(const Lazy<double>& lvalue, const ValidationUtils& utils) override;
+	RedisConnInfo::ConstPtr GetRedisConnInfo() const;
 
 private:
 	class DumpedGlobals
@@ -83,22 +292,6 @@ private:
 		std::mutex m_Mutex;
 	};
 
-	enum StateUpdate
-	{
-		Volatile    = 1ull << 0,
-		RuntimeOnly = 1ull << 1,
-		Full        = Volatile | RuntimeOnly,
-	};
-
-	enum class RedisKey : uint8_t
-	{
-		RedundancyGroup,
-		DependencyNode,
-		DependencyEdge,
-		RedundancyGroupState,
-		DependencyEdgeState,
-	};
-
 	void OnConnectedHandler();
 
 	void PublishStatsTimerHandler();
@@ -107,27 +300,20 @@ private:
 	/* config & status dump */
 	void UpdateAllConfigObjects();
 	std::vector<std::vector<intrusive_ptr<ConfigObject>>> ChunkObjects(std::vector<intrusive_ptr<ConfigObject>> objects, size_t chunkSize);
-	void DeleteKeys(const RedisConnection::Ptr& conn, const std::vector<String>& keys, RedisConnection::QueryPriority priority);
-	std::vector<String> GetTypeOverwriteKeys(const String& type);
-	std::vector<String> GetTypeDumpSignalKeys(const Type::Ptr& type);
-	void InsertCheckableDependencies(const Checkable::Ptr& checkable, std::map<String, RedisConnection::Query>& hMSets,
+	void InsertCheckableDependencies(const Checkable::Ptr& checkable, std::map<RedisConnection::QueryArg, RedisConnection::Query>& hMSets,
 		std::vector<Dictionary::Ptr>* runtimeUpdates, const DependencyGroup::Ptr& onlyDependencyGroup = nullptr);
-	void InsertObjectDependencies(const ConfigObject::Ptr& object, const String typeName, std::map<String, std::vector<String>>& hMSets,
-			std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate);
-	void UpdateDependenciesState(const Checkable::Ptr& checkable, const DependencyGroup::Ptr& onlyDependencyGroup = nullptr,
-		std::set<DependencyGroup*>* seenGroups = nullptr) const;
-	void UpdateState(const Checkable::Ptr& checkable, StateUpdate mode);
-	void SendConfigUpdate(const ConfigObject::Ptr& object, bool runtimeUpdate);
-	void CreateConfigUpdate(const ConfigObject::Ptr& object, const String type, std::map<String, std::vector<String>>& hMSets,
-			std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate);
+	void InsertObjectDependencies(const ConfigObject::Ptr& object,
+		std::map<RedisConnection::QueryArg, RedisConnection::Query>& hMSets, std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate);
+	void UpdateDependenciesState(const Checkable::Ptr& checkable, const DependencyGroup::Ptr& dependencyGroup) const;
+	void UpdateState(const Checkable::Ptr& checkable, uint32_t mode);
+	void CreateConfigUpdate(const ConfigObject::Ptr& object, const QueryArgPair& redisKeyPair,
+		std::map<RedisConnection::QueryArg, RedisConnection::Query>& hMSets, std::vector<Dictionary::Ptr>& runtimeUpdates, bool runtimeUpdate);
 	void SendConfigDelete(const ConfigObject::Ptr& object);
 	void SendStateChange(const ConfigObject::Ptr& object, const CheckResult::Ptr& cr, StateType type);
-	void AddObjectDataToRuntimeUpdates(std::vector<Dictionary::Ptr>& runtimeUpdates, const String& objectKey,
-			const String& redisKey, const Dictionary::Ptr& data);
-	void DeleteRelationship(const String& id, const String& redisKeyWithoutPrefix, bool hasChecksum = false);
-	void DeleteRelationship(const String& id, RedisKey redisKey, bool hasChecksum = false);
-	void DeleteState(const String& id, RedisKey redisKey, bool hasChecksum = false) const;
-	void AddDataToHmSets(std::map<String, RedisConnection::Query>& hMSets, RedisKey redisKey, const String& id, const Dictionary::Ptr& data) const;
+	void AddObjectDataToRuntimeUpdates(std::vector<Dictionary::Ptr>& runtimeUpdates,
+		String objectKey, String redisKey, const Dictionary::Ptr& data);
+	void DeleteRelationship(const String& id, RedisConnection::QueryArg redisObjKey, RedisConnection::QueryArg redisChecksumKey = "");
+	void DeleteState(const String& id, RedisConnection::QueryArg redisObjKey, RedisConnection::QueryArg redisChecksumKey = "") const;
 
 	void SendSentNotification(
 		const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::set<User::Ptr>& users,
@@ -139,7 +325,6 @@ private:
 	void SendAddedComment(const Comment::Ptr& comment);
 	void SendRemovedComment(const Comment::Ptr& comment);
 	void SendFlappingChange(const Checkable::Ptr& checkable, double changeTime, double flappingLastChange);
-	void SendNextUpdate(const Checkable::Ptr& checkable);
 	void SendAcknowledgementSet(const Checkable::Ptr& checkable, const String& author, const String& comment, AcknowledgementType type, bool persistent, double changeTime, double expiry);
 	void SendAcknowledgementCleared(const Checkable::Ptr& checkable, const String& removedBy, double changeTime, double ackLastChange);
 	void SendNotificationUsersChanged(const Notification::Ptr& notification, const Array::Ptr& oldValues, const Array::Ptr& newValues);
@@ -149,23 +334,26 @@ private:
 	void SendTimePeriodExcludesChanged(const TimePeriod::Ptr& timeperiod, const Array::Ptr& oldValues, const Array::Ptr& newValues);
 	template<class T>
 	void SendGroupsChanged(const ConfigObject::Ptr& command, const Array::Ptr& oldValues, const Array::Ptr& newValues);
-	void SendCommandEnvChanged(const ConfigObject::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
-	void SendCommandArgumentsChanged(const ConfigObject::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
+	void SendCommandEnvChanged(const ConfigObject::Ptr& command, const CmdArgEnvRedisKeys& cmdRedisKeys, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
+	void SendCommandArgumentsChanged(const ConfigObject::Ptr& command, const CmdArgEnvRedisKeys& cmdRedisKeys, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
 	void SendCustomVarsChanged(const ConfigObject::Ptr& object, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
-	void SendDependencyGroupChildRegistered(const Checkable::Ptr& child, const DependencyGroup::Ptr& dependencyGroup);
-	void SendDependencyGroupChildRemoved(const DependencyGroup::Ptr& dependencyGroup, const std::vector<Dependency::Ptr>& dependencies, bool removeGroup);
 
 	void ForwardHistoryEntries();
 
-	std::vector<String> UpdateObjectAttrs(const ConfigObject::Ptr& object, int fieldType, const String& typeNameOverride);
 	Dictionary::Ptr SerializeState(const Checkable::Ptr& checkable);
 
 	/* Stats */
 	static Dictionary::Ptr GetStats();
 
 	/* utilities */
+	static void DeleteKeys(const RedisConnection::Ptr& conn, const std::vector<RedisConnection::QueryArg>& keys);
+	static std::vector<RedisConnection::QueryArg> GetTypeOverwriteKeys(const Type::Ptr& type, bool skipChecksums = false);
+	static void AddDataToHmSets(std::map<RedisConnection::QueryArg, RedisConnection::Query>& hMSets, const RedisConnection::QueryArg& redisKey, const String& id, const Dictionary::Ptr& data);
+	static bool IsStateKey(const RedisConnection::QueryArg& key);
 	static String FormatCheckSumBinary(const String& str);
 	static String FormatCommandLine(const Value& commandLine);
+	static QueryArgPair GetCheckableStateKeys(const Type::Ptr& type);
+	static CmdArgEnvRedisKeys GetCmdEnvArgKeys(const Type::Ptr& cmdType);
 	static long long TimestampToMilliseconds(double timestamp);
 	static String IcingaToStreamValue(const Value& value);
 	static std::vector<Value> GetArrayDeletedValues(const Array::Ptr& arrayOld, const Array::Ptr& arrayNew);
@@ -180,6 +368,7 @@ private:
 	static Dictionary::Ptr SerializeVars(const Dictionary::Ptr& vars);
 	static Dictionary::Ptr SerializeDependencyEdgeState(const DependencyGroup::Ptr& dependencyGroup, const Dependency::Ptr& dep);
 	static Dictionary::Ptr SerializeRedundancyGroupState(const Checkable::Ptr& child, const DependencyGroup::Ptr& redundancyGroup);
+	static String GetDependencyEdgeStateId(const DependencyGroup::Ptr& dependencyGroup, const Dependency::Ptr& dep);
 
 	static String HashValue(const Value& value);
 	static String HashValue(const Value& value, const std::set<String>& propertiesBlacklist, bool propertiesWhitelist = false);
@@ -202,7 +391,7 @@ private:
 	static void CommentRemovedHandler(const Comment::Ptr& comment);
 	static void FlappingChangeHandler(const Checkable::Ptr& checkable, double changeTime);
 	static void NewCheckResultHandler(const Checkable::Ptr& checkable);
-	static void NextCheckUpdatedHandler(const Checkable::Ptr& checkable);
+	static void NextCheckChangedHandler(const Checkable::Ptr& checkable);
 	static void DependencyGroupChildRegisteredHandler(const Checkable::Ptr& child, const DependencyGroup::Ptr& dependencyGroup);
 	static void DependencyGroupChildRemovedHandler(const DependencyGroup::Ptr& dependencyGroup, const std::vector<Dependency::Ptr>& dependencies, bool removeGroup);
 	static void HostProblemChangedHandler(const Service::Ptr& service);
@@ -216,18 +405,20 @@ private:
 	static void UserGroupsChangedHandler(const User::Ptr& user, const Array::Ptr&, const Array::Ptr& newValues);
 	static void HostGroupsChangedHandler(const Host::Ptr& host, const Array::Ptr& oldValues, const Array::Ptr& newValues);
 	static void ServiceGroupsChangedHandler(const Service::Ptr& service, const Array::Ptr& oldValues, const Array::Ptr& newValues);
-	static void CommandEnvChangedHandler(const ConfigObject::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
-	static void CommandArgumentsChangedHandler(const ConfigObject::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
+	static void CommandEnvChangedHandler(const Command::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
+	static void CommandArgumentsChangedHandler(const Command::Ptr& command, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
 	static void CustomVarsChangedHandler(const ConfigObject::Ptr& object, const Dictionary::Ptr& oldValues, const Dictionary::Ptr& newValues);
 
-	static void ExecuteRedisTransaction(const RedisConnection::Ptr& rcon, std::map<String, RedisConnection::Query>& hMSets,
-		const std::vector<Dictionary::Ptr>& runtimeUpdates);
+	static void ExecuteRedisTransaction(const RedisConnection::Ptr& rcon,
+		std::map<RedisConnection::QueryArg, RedisConnection::Query>& hMSets, const std::vector<Dictionary::Ptr>& runtimeUpdates);
 
 	void AssertOnWorkQueue();
 
 	void ExceptionHandler(boost::exception_ptr exp);
 
-	static std::vector<Type::Ptr> GetTypes();
+	using SyncableTypeInfo = std::pair<const Type::Ptr, QueryArgPair>;
+	static std::vector<SyncableTypeInfo> GetSyncableTypes();
+	static const QueryArgPair& GetSyncableTypeRedisKeys(const Type::Ptr& type);
 
 	static void InitEnvironmentId();
 	static void PersistEnvironmentId();
@@ -238,17 +429,32 @@ private:
 	std::future<void> m_HistoryThread;
 	Bulker<RedisConnection::Query> m_HistoryBulker {4096, std::chrono::milliseconds(250)};
 
-	String m_PrefixConfigObject;
-	String m_PrefixConfigCheckSum;
-
 	bool m_ConfigDumpInProgress;
-	bool m_ConfigDumpDone;
+	std::atomic_bool m_ConfigDumpDone{false};
 
+	/**
+	 * The primary Redis connection used to send history and heartbeat queries.
+	 *
+	 * This connection is used exclusively for sending history and heartbeat queries to Redis. It ensures that
+	 * history and heartbeat operations do not interfere with other Redis operations. Also, it is the leader for
+	 * all other Redis connections including @c m_RconWorker, and is the only source of truth for all IcingaDB Redis
+	 * related connection statistics.
+	 *
+	 * Note: This will still be shared with the icingadb check command, as that command also sends
+	 * only XREAD queries which are similar in nature to history/heartbeat queries.
+	 */
 	RedisConnection::Ptr m_Rcon;
-	// m_RconLocked containes a copy of the value in m_Rcon where all accesses are guarded by a mutex to allow safe
-	// concurrent access like from the icingadb check command. It's a copy to still allow fast access without additional
-	// syncronization to m_Rcon within the IcingaDB feature itself.
+	// m_RconLocked contains a copy of the value in m_Rcon where all accesses are guarded by a mutex to
+	// allow safe concurrent access like from the icingadb check command. It's a copy to still allow fast access
+	// without additional synchronization to m_Rcon within the IcingaDB feature itself.
 	Locked<RedisConnection::Ptr> m_RconLocked;
+	/**
+	 * A Redis connection for config and state updates.
+	 *
+	 * This connection is used for all non-history and non-heartbeat related queries to Redis.
+	 * It is a child of @c m_Rcon, meaning it forwards all its connection stats to @c m_Rcon as well.
+	 */
+	RedisConnection::Ptr m_RconWorker;
 	std::unordered_map<ConfigType*, RedisConnection::Ptr> m_Rcons;
 	std::atomic_size_t m_PendingRcons;
 
@@ -262,7 +468,23 @@ private:
 	static String m_EnvironmentId;
 	static std::mutex m_EnvironmentIdInitMutex;
 
-	static std::unordered_set<Type*> m_IndexedTypes;
+	std::thread m_PendingItemsThread; // The background worker thread (consumer of m_PendingItems).
+	icingadb::task_queue::PendingItemsSet m_PendingItems; // Container for pending items with dirty bits (access protected by m_PendingItemsMutex).
+	mutable std::mutex m_PendingItemsMutex; // Mutex to protect access to m_PendingItems.
+	std::condition_variable m_PendingItemsCV; // Condition variable to forcefully wake up the worker thread.
+
+	void PendingItemsThreadProc();
+
+	void ProcessQueueItem(const icingadb::task_queue::PendingConfigItem& item);
+	void ProcessQueueItem(const icingadb::task_queue::PendingDependencyGroupStateItem& item) const;
+	void ProcessQueueItem(const icingadb::task_queue::PendingDependencyEdgeItem& item);
+	void ProcessQueueItem(const icingadb::task_queue::RelationsDeletionItem& item);
+
+	void EnqueueConfigObject(const ConfigObject::Ptr& object, uint32_t bits);
+	void EnqueueDependencyGroupStateUpdate(const DependencyGroup::Ptr& depGroup);
+	void EnqueueDependencyChildRegistered(const DependencyGroup::Ptr& depGroup, const Checkable::Ptr& child);
+	void EnqueueDependencyChildRemoved(const DependencyGroup::Ptr& depGroup, const std::vector<Dependency::Ptr>& dependencies, bool removeGroup);
+	void EnqueueRelationsDeletion(const String& id, icingadb::task_queue::RelationsDeletionItem::RelationsKeySet relations);
 };
 }
 

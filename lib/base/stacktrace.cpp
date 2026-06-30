@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2020 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2020 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <base/i2-base.hpp>
 #include "base/stacktrace.hpp"

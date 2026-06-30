@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "cli/clicommand.hpp"
 #include "base/logger.hpp"
@@ -131,18 +132,18 @@ void CLICommand::Unregister(const std::vector<String>& name)
 	GetRegistry().erase(name);
 }
 
-std::vector<String> CLICommand::GetArgumentSuggestions(const String& argument, const String& word) const
+std::vector<String> CLICommand::GetArgumentSuggestions([[maybe_unused]] const String& argument, [[maybe_unused]] const String& word) const
 {
 	return std::vector<String>();
 }
 
-std::vector<String> CLICommand::GetPositionalSuggestions(const String& word) const
+std::vector<String> CLICommand::GetPositionalSuggestions([[maybe_unused]] const String& word) const
 {
 	return std::vector<String>();
 }
 
-void CLICommand::InitParameters(boost::program_options::options_description& visibleDesc,
-	boost::program_options::options_description& hiddenDesc) const
+void CLICommand::InitParameters([[maybe_unused]] boost::program_options::options_description& visibleDesc,
+	[[maybe_unused]] boost::program_options::options_description& hiddenDesc) const
 { }
 
 ImpersonationLevel CLICommand::GetImpersonationLevel() const

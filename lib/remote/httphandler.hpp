@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #ifndef HTTPHANDLER_H
 #define HTTPHANDLER_H
@@ -30,16 +31,16 @@ public:
 
 	virtual bool HandleRequest(
 		const WaitGroup::Ptr& waitGroup,
-		const HttpRequest& request,
-		HttpResponse& response,
+		const HttpApiRequest& request,
+		HttpApiResponse& response,
 		boost::asio::yield_context& yc
 	) = 0;
 
 	static void Register(const Url::Ptr& url, const HttpHandler::Ptr& handler);
 	static void ProcessRequest(
 		const WaitGroup::Ptr& waitGroup,
-		HttpRequest& request,
-		HttpResponse& response,
+		HttpApiRequest& request,
+		HttpApiResponse& response,
 		boost::asio::yield_context& yc
 	);
 

@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "cli/pkinewcacommand.hpp"
 #include "remote/pkiutility.hpp"
@@ -23,7 +24,7 @@ String PKINewCACommand::GetShortDescription() const
  *
  * @returns An exit status.
  */
-int PKINewCACommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
+int PKINewCACommand::Run(const boost::program_options::variables_map&, [[maybe_unused]] const std::vector<std::string>& ap) const
 {
 	return PkiUtility::NewCa();
 }

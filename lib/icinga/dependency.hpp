@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #ifndef DEPENDENCY_H
 #define DEPENDENCY_H
@@ -163,6 +164,7 @@ public:
 	void RemoveDependency(const Dependency::Ptr& dependency);
 	std::vector<Dependency::Ptr> GetDependenciesForChild(const Checkable* child) const;
 	void LoadParents(std::set<Checkable::Ptr>& parents) const;
+	Checkable::Ptr GetAnyChild() const;
 	size_t GetDependenciesCount() const;
 
 	void SetIcingaDBIdentifier(const String& identifier);

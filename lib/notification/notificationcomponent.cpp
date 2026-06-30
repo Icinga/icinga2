@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "notification/notificationcomponent.hpp"
 #include "notification/notificationcomponent-ti.cpp"
@@ -161,6 +162,7 @@ void NotificationComponent::NotificationTimerHandler()
 		}
 
 		Checkable::Ptr checkable = notification->GetCheckable();
+		ObjectLock lock{checkable};
 
 		if (!IcingaApplication::GetInstance()->GetEnableNotifications() || !checkable->GetEnableNotifications())
 			continue;
@@ -226,8 +228,6 @@ void NotificationComponent::NotificationTimerHandler()
 			Host::Ptr host;
 			Service::Ptr service;
 			tie(host, service) = GetHostService(checkable);
-
-			ObjectLock olock(checkable);
 
 			if (checkable->GetStateType() == StateTypeSoft)
 				continue;

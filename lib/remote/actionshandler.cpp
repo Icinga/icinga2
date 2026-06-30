@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "remote/actionshandler.hpp"
 #include "remote/httputility.hpp"
@@ -11,14 +12,12 @@
 
 using namespace icinga;
 
-thread_local ApiUser::Ptr ActionsHandler::AuthenticatedApiUser;
-
 REGISTER_URLHANDLER("/v1/actions", ActionsHandler);
 
 bool ActionsHandler::HandleRequest(
 	const WaitGroup::Ptr& waitGroup,
-	const HttpRequest& request,
-	HttpResponse& response,
+	const HttpApiRequest& request,
+	HttpApiResponse& response,
 	boost::asio::yield_context& yc
 )
 {
@@ -79,11 +78,6 @@ bool ActionsHandler::HandleRequest(
 
 	bool verbose = false;
 
-	ActionsHandler::AuthenticatedApiUser = user;
-	Defer a ([]() {
-		ActionsHandler::AuthenticatedApiUser = nullptr;
-	});
-
 	if (params)
 		verbose = HttpUtility::GetLastParameter(params, "verbose");
 
@@ -110,7 +104,7 @@ bool ActionsHandler::HandleRequest(
 		}
 
 		try {
-			results.emplace_back(action->Invoke(obj, params));
+			results.emplace_back(action->Invoke(obj, user, params));
 		} catch (const std::exception& ex) {
 			Dictionary::Ptr fail = new Dictionary({
 				{ "code", 500 },
@@ -123,6 +117,11 @@ bool ActionsHandler::HandleRequest(
 
 			results.emplace_back(std::move(fail));
 		}
+	}
+
+	if (wgLock.owns_lock()) {
+		// Unlock before starting to stream the response, so that we don't block the shutdown process.
+		wgLock.unlock();
 	}
 
 	int statusCode = 500;
@@ -155,11 +154,13 @@ bool ActionsHandler::HandleRequest(
 
 	response.result(statusCode);
 
-	Dictionary::Ptr result = new Dictionary({
-		{ "results", new Array(std::move(results)) }
-	});
+	Array::Ptr resultArray{new Array{std::move(results)}};
+	resultArray->Freeze(); // Allows the JSON encoder to yield while encoding the array.
 
-	HttpUtility::SendJsonBody(response, params, result);
+	Dictionary::Ptr result = new Dictionary{{"results", std::move(resultArray)}};
+	result->Freeze();
+
+	HttpUtility::SendJsonBody(response, params, result, yc);
 
 	return true;
 }

@@ -1,4 +1,5 @@
-# Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+
+# SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 mkclass_target(application.ti application-ti.cpp application-ti.hpp)
 mkclass_target(configobject.ti configobject-ti.cpp configobject-ti.hpp)
@@ -143,9 +144,6 @@ if(HAVE_SYSTEMD)
 endif()
 
 add_library(base OBJECT ${base_SOURCES})
-
-include_directories(SYSTEM ${icinga2_SOURCE_DIR}/third-party/execvpe)
-link_directories(${icinga2_BINARY_DIR}/third-party/execvpe)
 
 include_directories(SYSTEM ${icinga2_SOURCE_DIR}/third-party/mmatch)
 link_directories(${icinga2_BINARY_DIR}/third-party/mmatch)

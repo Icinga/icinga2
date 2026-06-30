@@ -1,4 +1,5 @@
-# Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+
+# SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 include(DiscoverBoostTests)
 
@@ -67,6 +68,10 @@ if(ICINGA2_WITH_NOTIFICATION)
   list(APPEND types_test_SOURCES $<TARGET_OBJECTS:notification>)
 endif()
 
+if(ICINGA2_WITH_OPENTELEMETRY)
+  list(APPEND types_test_SOURCES $<TARGET_OBJECTS:otel>)
+endif()
+
 if(ICINGA2_WITH_PERFDATA)
   list(APPEND types_test_SOURCES $<TARGET_OBJECTS:perfdata>)
 endif()
@@ -106,7 +111,7 @@ set(base_test_SOURCES
   base-stream.cpp
   base-string.cpp
   base-timer.cpp
-  base-tlsutility.cpp
+  base-tlsutility.cpp base-tlsutility.hpp
   base-utility.cpp
   base-value.cpp
   config-apply.cpp
@@ -136,6 +141,22 @@ if(ICINGA2_WITH_NOTIFICATION)
   list(APPEND base_test_SOURCES
     notification-notificationcomponent.cpp
     $<TARGET_OBJECTS:notification>
+  )
+endif()
+
+if(ICINGA2_WITH_OPENTELEMETRY)
+  list(APPEND base_test_SOURCES $<TARGET_OBJECTS:otel>)
+endif()
+
+if(ICINGA2_WITH_PERFDATA)
+  list(APPEND base_test_SOURCES
+    perfdata-elasticsearchwriter.cpp
+    perfdata-gelfwriter.cpp
+    perfdata-graphitewriter.cpp
+    perfdata-influxdbwriter.cpp
+    perfdata-opentsdbwriter.cpp
+    perfdata-perfdatawriterconnection.cpp
+    $<TARGET_OBJECTS:perfdata>
   )
 endif()
 

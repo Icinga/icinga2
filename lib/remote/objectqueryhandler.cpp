@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "remote/objectqueryhandler.hpp"
 #include "base/generator.hpp"
@@ -93,8 +94,8 @@ Dictionary::Ptr ObjectQueryHandler::SerializeObjectAttrs(const Object::Ptr& obje
 
 bool ObjectQueryHandler::HandleRequest(
 	const WaitGroup::Ptr&,
-	const HttpRequest& request,
-	HttpResponse& response,
+	const HttpApiRequest& request,
+	HttpApiResponse& response,
 	boost::asio::yield_context& yc
 )
 {
@@ -209,15 +210,7 @@ bool ObjectQueryHandler::HandleRequest(
 	std::unordered_map<Type*, std::pair<bool, std::unique_ptr<Expression>>> typePermissions;
 	std::unordered_map<Object*, bool> objectAccessAllowed;
 
-	auto it = objs.begin();
-	auto generatorFunc = [&]() -> std::optional<Value> {
-		if (it == objs.end()) {
-			return std::nullopt;
-		}
-
-		ConfigObject::Ptr obj = *it;
-		++it;
-
+	auto generatorFunc = [&](const ConfigObject::Ptr& obj) -> Value {
 		DictionaryData result1{
 			{ "name", obj->GetName() },
 			{ "type", obj->GetReflectionType()->GetName() }
@@ -326,15 +319,11 @@ bool ObjectQueryHandler::HandleRequest(
 		return new Dictionary{std::move(result1)};
 	};
 
-	response.result(http::status::ok);
-	response.set(http::field::content_type, "application/json");
-	response.StartStreaming();
-
-	Dictionary::Ptr results = new Dictionary{{"results", new ValueGenerator{generatorFunc}}};
+	Dictionary::Ptr results = new Dictionary{{"results", new ValueGenerator{objs, generatorFunc}}};
 	results->Freeze();
 
-	bool pretty = HttpUtility::GetLastParameter(params, "pretty");
-	response.GetJsonEncoder(pretty).Encode(results, &yc);
+	response.result(http::status::ok);
+	HttpUtility::SendJsonBody(response, params, results, yc);
 
 	return true;
 }

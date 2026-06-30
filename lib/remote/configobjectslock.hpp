@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2023 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2023 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
@@ -30,6 +31,10 @@ public:
 	constexpr explicit operator bool() const
 	{
 		return true;
+	}
+
+	constexpr void Unlock()
+	{
 	}
 };
 
@@ -66,6 +71,11 @@ public:
 	inline explicit operator bool() const
 	{
 		return m_Lock.owns();
+	}
+
+	void Unlock()
+	{
+		m_Lock.unlock();
 	}
 
 private:

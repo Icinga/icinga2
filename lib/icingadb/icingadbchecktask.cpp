@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2022 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2022 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "icingadb/icingadbchecktask.hpp"
 #include "icinga/host.hpp"
@@ -100,7 +101,7 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 
 	auto redis (conn->GetConnection());
 
-	if (!redis || !redis->GetConnected()) {
+	if (!redis || !redis->IsConnected()) {
 		ReportIcingadbCheck(checkable, commandObj, cr, producer, "Icinga DB CRITICAL: Not connected to Redis.", ServiceCritical);
 		return;
 	}
@@ -126,7 +127,8 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 					"0-0", "0-0", "0-0", "0-0", "0-0", "0-0",
 				}
 			},
-			RedisConnection::QueryPriority::Heartbeat
+			{},
+			true /* high priority */
 		));
 
 		redisTime = std::move(replies.at(0));
@@ -477,6 +479,7 @@ void IcingadbCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckR
 		perfdata->Add(new PerfdataValue(String("icinga2_") + subject.Name + "_items_5mins", (redis.get()->*subject.Getter)(5 * 60, now), false, "", Empty, Empty, 0));
 		perfdata->Add(new PerfdataValue(String("icinga2_") + subject.Name + "_items_15mins", (redis.get()->*subject.Getter)(15 * 60, now), false, "", Empty, Empty, 0));
 	}
+	conn->LoadPendingItemsStats(perfdata);
 
 	ServiceState state;
 	std::ostringstream msgbuf;

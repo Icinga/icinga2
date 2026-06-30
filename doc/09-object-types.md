@@ -1160,8 +1160,7 @@ This configuration object is available as [compatlog feature](14-features.md#com
 
 > **Note**
 >
-> This feature is DEPRECATED and may be removed in future releases.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
+> This feature is DEPRECATED and will be removed in v2.18.
 
 Example:
 
@@ -1184,6 +1183,11 @@ Configuration Attributes:
 
 Writes check result metrics and performance data to an Elasticsearch or OpenSearch instance.
 This configuration object is available as [elasticsearch feature](14-features.md#elasticsearch-writer).
+
+> **Note**
+>
+> This feature is DEPRECATED and will be removed in v2.18.
+> For sending metrics to Elasticsearch, please migrate your setup to the [otlp-metrics feature](14-features.md#otlpmetrics-writer).
 
 Example:
 
@@ -1214,6 +1218,7 @@ Configuration Attributes:
   port                      | Number                | **Required.** Elasticsearch port. Defaults to `9200`.
   index                     | String                | **Required.** Prefix for the index names. Defaults to `icinga2`.
   enable\_send\_perfdata    | Boolean               | **Optional.** Send parsed performance data metrics for check results. Defaults to `false`.
+  diconnect\_timeout        | Duration              | **Optional.** Timeout to wait for any outstanding data to be flushed to Elasticsearch before disconnecting. Defaults to `10s`.
   flush\_interval           | Duration              | **Optional.** How long to buffer data points before transferring to Elasticsearch. Defaults to `10s`.
   flush\_threshold          | Number                | **Optional.** How many data points to buffer before forcing a transfer to Elasticsearch.  Defaults to `1024`.
   username                  | String                | **Optional.** Basic auth username if Elasticsearch is hidden behind an HTTP proxy.
@@ -1249,8 +1254,7 @@ This configuration object is available as [command feature](14-features.md#exter
 
 > **Note**
 >
-> This feature is DEPRECATED and may be removed in future releases.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
+> This feature is DEPRECATED and will be removed in v2.18.
 
 Example:
 
@@ -1310,6 +1314,7 @@ Configuration Attributes:
   --------------------------|-----------------------|----------------------------------
   host                      | String                | **Optional.** GELF receiver host address. Defaults to `127.0.0.1`.
   port                      | Number                | **Optional.** GELF receiver port. Defaults to `12201`.
+  diconnect\_timeout        | Duration              | **Optional.** Timeout to wait for any outstanding data to be flushed to GELF before disconnecting. Defaults to `10s`.
   source                    | String                | **Optional.** Source name for this instance. Defaults to `icinga2`.
   enable\_send\_perfdata    | Boolean               | **Optional.** Enable performance data for 'CHECK RESULT' events.
   enable\_ha                | Boolean               | **Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-features). Defaults to `false`.
@@ -1340,6 +1345,7 @@ Configuration Attributes:
   --------------------------|-----------------------|----------------------------------
   host                      | String                | **Optional.** Graphite Carbon host address. Defaults to `127.0.0.1`.
   port                      | Number                | **Optional.** Graphite Carbon port. Defaults to `2003`.
+  diconnect\_timeout        | Duration              | **Optional.** Timeout to wait for any outstanding data to be flushed to Graphite before disconnecting. Defaults to `10s`.
   host\_name\_template      | String                | **Optional.** Metric prefix for host name. Defaults to `icinga2.$host.name$.host.$host.check_command$`.
   service\_name\_template   | String                | **Optional.** Metric prefix for service name. Defaults to `icinga2.$host.name$.services.$service.name$.$service.check_command$`.
   enable\_send\_thresholds  | Boolean               | **Optional.** Send additional threshold metrics. Defaults to `false`.
@@ -1416,8 +1422,7 @@ Configuration Attributes:
 
 > **Note**
 >
-> This feature is DEPRECATED and may be removed in future releases.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
+> This feature is DEPRECATED and will be removed in v2.18.
 
 IDO database adapter for MySQL.
 This configuration object is available as [ido-mysql feature](14-features.md#db-ido).
@@ -1523,8 +1528,7 @@ Runtime Attributes:
 
 > **Note**
 >
-> This feature is DEPRECATED and may be removed in future releases.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
+> This feature is DEPRECATED and will be removed in v2.18.
 
 IDO database adapter for PostgreSQL.
 This configuration object is available as [ido-pgsql feature](14-features.md#db-ido).
@@ -1682,6 +1686,7 @@ Configuration Attributes:
   service\_template         | Dictionary            | **Required.** Service template to define the influxDB line protocol.
   enable\_send\_thresholds  | Boolean               | **Optional.** Whether to send warn, crit, min & max tagged data.
   enable\_send\_metadata    | Boolean               | **Optional.** Whether to send check metadata e.g. states, execution time, latency etc.
+  diconnect\_timeout        | Duration              | **Optional.** Timeout to wait for any outstanding data to be flushed to InfluxDB before disconnecting. Defaults to `10s`.
   flush\_interval           | Duration              | **Optional.** How long to buffer data points before transferring to InfluxDB. Defaults to `10s`.
   flush\_threshold          | Number                | **Optional.** How many data points to buffer before forcing a transfer to InfluxDB.  Defaults to `1024`.
   enable\_ha                | Boolean               | **Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-features). Defaults to `false`.
@@ -1745,6 +1750,7 @@ Configuration Attributes:
   service\_template         | Dictionary            | **Required.** Service template to define the influxDB line protocol.
   enable\_send\_thresholds  | Boolean               | **Optional.** Whether to send warn, crit, min & max tagged data.
   enable\_send\_metadata    | Boolean               | **Optional.** Whether to send check metadata e.g. states, execution time, latency etc.
+  diconnect\_timeout        | Duration              | **Optional.** Timeout to wait for any outstanding data to be flushed to InfluxDB before disconnecting. Defaults to `10s`.
   flush\_interval           | Duration              | **Optional.** How long to buffer data points before transferring to InfluxDB. Defaults to `10s`.
   flush\_threshold          | Number                | **Optional.** How many data points to buffer before forcing a transfer to InfluxDB.  Defaults to `1024`.
   enable\_ha                | Boolean               | **Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-features). Defaults to `false`.
@@ -1791,8 +1797,7 @@ This configuration object is available as [livestatus feature](14-features.md#se
 
 > **Note**
 >
-> This feature is DEPRECATED and may be removed in future releases.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
+> This feature is DEPRECATED and will be removed in v2.18.
 
 Examples:
 
@@ -1860,11 +1865,66 @@ Configuration Attributes:
   --------------------------|-----------------------|----------------------------------
   host            	    | String                | **Optional.** OpenTSDB host address. Defaults to `127.0.0.1`.
   port            	    | Number                | **Optional.** OpenTSDB port. Defaults to `4242`.
+  diconnect\_timeout    | Duration              | **Optional.** Timeout to wait for any outstanding data to be flushed to OpenTSDB before disconnecting. Defaults to `10s`.
   enable\_ha                | Boolean               | **Optional.** Enable the high availability functionality. Only valid in a [cluster setup](06-distributed-monitoring.md#distributed-monitoring-high-availability-features). Defaults to `false`.
   enable_generic_metrics    | Boolean               | **Optional.** Re-use metric names to store different perfdata values for a particular check. Use tags to distinguish perfdata instead of metric name. Defaults to `false`.
   host_template             | Dictionary                | **Optional.** Specify additional tags to be included with host metrics. This requires a sub-dictionary named `tags`. Also specify a naming prefix by setting `metric`. More information can be found in [OpenTSDB custom tags](14-features.md#opentsdb-custom-tags) and [OpenTSDB Metric Prefix](14-features.md#opentsdb-metric-prefix). More information can be found in [OpenTSDB custom tags](14-features.md#opentsdb-custom-tags). Defaults to an `empty Dictionary`.
   service_template          | Dictionary                | **Optional.** Specify additional tags to be included with service metrics. This requires a sub-dictionary named `tags`. Also specify a naming prefix by setting `metric`. More information can be found in [OpenTSDB custom tags](14-features.md#opentsdb-custom-tags) and [OpenTSDB Metric Prefix](14-features.md#opentsdb-metric-prefix). Defaults to an `empty Dictionary`.
 
+### OTLPMetricsWriter <a id="objecttype-otlpmetricswriter"></a>
+
+Emits metrics in [OpenTelemetry Protocol (OTLP)](https://opentelemetry.io/) format to a defined OpenTelemetry Collector
+or any other OTLP-compatible backend that accepts OTLP data over HTTP. This configuration object is available as
+[otlpmetrics feature](14-features.md#otlpmetrics-writer). You can find more information about OpenTelemetry and OTLP
+on the [OpenTelemetry website](https://opentelemetry.io/).
+
+!!! info
+
+    The official package builds for Debian 11, Ubuntu 22.04 and Amazon Linux 2 do not include this object type.
+    These builds disable OpenTelemetry support (`ICINGA2_WITH_OPENTELEMETRY=OFF`) because the
+    default Protobuf compiler version is too old for the required code generation.
+
+A basic copy and pastable example configuration is shown below:
+
+```
+object OTLPMetricsWriter "otlp-metrics" {
+  host = "127.0.0.1"
+  port = 4318
+  metrics_endpoint = "/v1/metrics"
+  service_namespace = "icinga2-production"
+}
+```
+
+There are more configuration options available as described in the table below.
+
+| Name                          | Type       | Description                                                                                                                                  |
+|-------------------------------|------------|----------------------------------------------------------------------------------------------------------------------------------------------|
+| host                          | String     | **Required.** OTLP backend host address. Defaults to `127.0.0.1`.                                                                            |
+| port                          | Number     | **Required.** OTLP backend HTTP port. Defaults to `4318`.                                                                                    |
+| metrics\_endpoint             | String     | **Required.** OTLP metrics endpoint path. Defaults to `/v1/metrics`.                                                                         |
+| service\_namespace            | String     | **Required.** The namespace to associate with emitted metrics used in the `service.namespace` OTel resource attribute. Defaults to `icinga`. |
+| basic\_auth                   | Dictionary | **Optional.** Username and password for HTTP basic authentication.                                                                           |
+| host\_resource\_attributes    | Dictionary | **Optional.** Additional resource attributes to be included with host metrics. Defaults to none.                                             |
+| service\_resource\_attributes | Dictionary | **Optional.** Additional resource attributes to be included with service metrics. Defaults to none.                                          |
+| flush\_interval               | Duration   | **Optional.** How long to buffer data points before transferring to the OTLP backend. Defaults to `15s`.                                     |
+| flush\_threshold              | Number     | **Optional.** How many bytes to buffer before forcing a transfer to the OTLP backend. Defaults to `16MiB`.                                   |
+| enable\_ha                    | Boolean    | **Optional.** Enable the high availability functionality. Has no effect in non-cluster setups. Defaults to `true`.                           |
+| enable\_send\_thresholds      | Boolean    | **Optional.** Whether to stream warning, critical, minimum & maximum as separate metrics to the OTLP backend. Defaults to `false`.           |
+| diconnect\_timeout            | Duration   | **Optional.** Timeout to wait for any outstanding data to be flushed to the OTLP backend before disconnecting. Defaults to `10s`.            |
+| enable\_tls                   | Boolean    | **Optional.** Whether to use a TLS stream. Defaults to `false`.                                                                              |
+| tls\_insecure\_noverify       | Boolean    | **Optional.** Disable TLS peer verification. Defaults to `false`.                                                                            |
+| tls\_ca\_file                 | String     | **Optional.** Path to CA certificate to validate the remote host.                                                                            |
+| tls\_cert\_file               | String     | **Optional.** Path to the client certificate to present to the OTLP backend for mutual verification.                                         |
+| tls\_key\_file                | String     | **Optional.** Path to the client certificate key.                                                                                            |
+
+!!! tip
+
+    The `flush_threshold` is a byte size threshold, not a metric count threshold. By default, the writer will flush all
+    buffered metrics to the OTLP backend once the total size of buffered metrics exceeds 16 MiB. This number is chosen
+    based on the default `max_request_body_size` of the OpenTelemetry Collector, and you must adjust it according to the
+    `max_request_body_size` of your OTLP backend to avoid metrics being dropped due to exceeding the maximum request body
+    size. Furthermore, the writer may not flush at the exact byte size threshold due to the internal structure of OTLP
+    messages, so make sure that the threshold is lower than the configured `max_request_body_size` of your OTLP backend.
 
 ### PerfdataWriter <a id="objecttype-perfdatawriter"></a>
 

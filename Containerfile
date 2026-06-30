@@ -1,4 +1,5 @@
-# Icinga 2 Docker image | (c) 2025 Icinga GmbH | GPLv2+
+# SPDX-FileCopyrightText: 2025 Icinga GmbH <https://icinga.com>
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 FROM debian:trixie-slim AS build-base
 
@@ -37,6 +38,8 @@ RUN apt-get update && \
         libpq-dev \
         libssl-dev \
         libsystemd-dev \
+        libprotobuf-dev \
+        protobuf-compiler \
         make && \
     rm -rf /var/lib/apt/lists/*
 
@@ -126,7 +129,7 @@ RUN --mount=type=bind,source=.,target=/icinga2,readonly \
         -DICINGA2_WITH_COMPAT=OFF \
         -DICINGA2_WITH_LIVESTATUS=OFF && \
     make -j$([ "$MAKE_JOBS" = auto ] && nproc || echo "$MAKE_JOBS") && \
-    CTEST_OUTPUT_ON_FAILURE=1 make test && \
+    if [ "${ICINGA2_BUILD_TESTING}" = ON ]; then CTEST_OUTPUT_ON_FAILURE=1 make test; fi && \
     make install DESTDIR=/icinga2-install
 
 RUN rm -rf /icinga2-install/etc/icinga2/features-enabled/mainlog.conf \
@@ -164,6 +167,7 @@ RUN apt-get update && \
         libmariadb3 \
         libmoosex-role-timer-perl \
         libpq5 \
+        libprotobuf-lite32t64 \
         libssl3 \
         libsystemd0 \
         mailutils \

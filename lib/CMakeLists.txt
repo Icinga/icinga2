@@ -1,4 +1,5 @@
-# Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+
+# SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 add_subdirectory(base)
 add_subdirectory(cli)
@@ -47,6 +48,10 @@ endif()
 
 if(ICINGA2_WITH_NOTIFICATION)
   add_subdirectory(notification)
+endif()
+
+if(ICINGA2_WITH_OPENTELEMETRY)
+  add_subdirectory(otel)
 endif()
 
 if(ICINGA2_WITH_PERFDATA)

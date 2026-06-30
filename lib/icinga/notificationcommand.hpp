@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #ifndef NOTIFICATIONCOMMAND_H
 #define NOTIFICATIONCOMMAND_H
@@ -24,7 +25,7 @@ public:
 
 	static thread_local NotificationCommand::Ptr ExecuteOverride;
 
-	virtual Dictionary::Ptr Execute(const intrusive_ptr<Notification>& notification,
+	Dictionary::Ptr Execute(const intrusive_ptr<Notification>& notification,
 		const User::Ptr& user, const CheckResult::Ptr& cr, const NotificationType& type,
 		const String& author, const String& comment,
 		const Dictionary::Ptr& resolvedMacros = nullptr,

@@ -1,17 +1,21 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "remote/apiaction.hpp"
-#include "base/singleton.hpp"
 
 using namespace icinga;
+
+INITIALIZE_ONCE_WITH_PRIORITY([]{
+	ApiActionRegistry::GetInstance()->Freeze();
+}, InitializePriority::FreezeNamespaces);
 
 ApiAction::ApiAction(std::vector<String> types, Callback action)
 	: m_Types(std::move(types)), m_Callback(std::move(action))
 { }
 
-Value ApiAction::Invoke(const ConfigObject::Ptr& target, const Dictionary::Ptr& params)
+Value ApiAction::Invoke(const ConfigObject::Ptr& target, const ApiUser::Ptr& user, const Dictionary::Ptr& params)
 {
-	return m_Callback(target, params);
+	return m_Callback(target, user, params);
 }
 
 const std::vector<String>& ApiAction::GetTypes() const
@@ -27,9 +31,4 @@ ApiAction::Ptr ApiAction::GetByName(const String& name)
 void ApiAction::Register(const String& name, const ApiAction::Ptr& action)
 {
 	ApiActionRegistry::GetInstance()->Register(name, action);
-}
-
-ApiActionRegistry *ApiActionRegistry::GetInstance()
-{
-	return Singleton<ApiActionRegistry>::GetInstance();
 }

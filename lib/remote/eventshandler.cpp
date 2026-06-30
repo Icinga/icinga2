@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "remote/eventshandler.hpp"
 #include "remote/httputility.hpp"
@@ -41,8 +42,8 @@ const String l_ApiQuery ("<API query>");
 
 bool EventsHandler::HandleRequest(
 	const WaitGroup::Ptr&,
-	const HttpRequest& request,
-	HttpResponse& response,
+	const HttpApiRequest& request,
+	HttpApiResponse& response,
 	boost::asio::yield_context& yc
 )
 {
@@ -78,13 +79,6 @@ bool EventsHandler::HandleRequest(
 		}
 	}
 
-	String queueName = HttpUtility::GetLastParameter(params, "queue");
-
-	if (queueName.IsEmpty()) {
-		HttpUtility::SendJsonError(response, params, 400, "'queue' query parameter is required.");
-		return true;
-	}
-
 	std::set<EventType> eventTypes;
 
 	{
@@ -99,8 +93,6 @@ bool EventsHandler::HandleRequest(
 	}
 
 	EventsSubscriber subscriber (std::move(eventTypes), HttpUtility::GetLastParameter(params, "filter"), l_ApiQuery);
-
-	IoBoundWorkSlot dontLockTheIoThread (yc);
 
 	response.result(http::status::ok);
 	response.set(http::field::content_type, "application/json");

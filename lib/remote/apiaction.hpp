@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #ifndef APIACTION_H
 #define APIACTION_H
@@ -8,6 +9,7 @@
 #include "base/value.hpp"
 #include "base/dictionary.hpp"
 #include "base/configobject.hpp"
+#include "remote/apiuser.hpp"
 #include <vector>
 #include <boost/algorithm/string/replace.hpp>
 
@@ -24,11 +26,11 @@ class ApiAction final : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(ApiAction);
 
-	typedef std::function<Value(const ConfigObject::Ptr& target, const Dictionary::Ptr& params)> Callback;
+	typedef std::function<Value(const ConfigObject::Ptr& target, const ApiUser::Ptr&, const Dictionary::Ptr& params)> Callback;
 
 	ApiAction(std::vector<String> registerTypes, Callback function);
 
-	Value Invoke(const ConfigObject::Ptr& target, const Dictionary::Ptr& params);
+	Value Invoke(const ConfigObject::Ptr& target, const ApiUser::Ptr& user, const Dictionary::Ptr& params);
 
 	const std::vector<String>& GetTypes() const;
 
@@ -45,11 +47,7 @@ private:
  *
  * @ingroup remote
  */
-class ApiActionRegistry : public Registry<ApiActionRegistry, ApiAction::Ptr>
-{
-public:
-	static ApiActionRegistry *GetInstance();
-};
+using ApiActionRegistry = Registry<ApiAction::Ptr>;
 
 #define REGISTER_APIACTION(name, types, callback) \
 	INITIALIZE_ONCE([]() { \

@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "remote/modifyobjecthandler.hpp"
 #include "remote/configobjectslock.hpp"
@@ -15,8 +16,8 @@ REGISTER_URLHANDLER("/v1/objects", ModifyObjectHandler);
 
 bool ModifyObjectHandler::HandleRequest(
 	const WaitGroup::Ptr& waitGroup,
-	const HttpRequest& request,
-	HttpResponse& response,
+	const HttpApiRequest& request,
+	HttpApiResponse& response,
 	boost::asio::yield_context& yc
 )
 {
@@ -178,13 +179,20 @@ bool ModifyObjectHandler::HandleRequest(
 
 		results.push_back(std::move(result1));
 	}
+	// Unlock the mutexes before starting to stream the response, so that we don't block the shutdown process.
+	lock.Unlock();
+	if (wgLock.owns_lock()) {
+		wgLock.unlock();
+	}
 
-	Dictionary::Ptr result = new Dictionary({
-		{ "results", new Array(std::move(results)) }
-	});
+	Array::Ptr resultArray = new Array{std::move(results)};
+	resultArray->Freeze();
+
+	Dictionary::Ptr result = new Dictionary{{"results", std::move(resultArray)}};
+	result->Freeze();
 
 	response.result(http::status::ok);
-	HttpUtility::SendJsonBody(response, params, result);
+	HttpUtility::SendJsonBody(response, params, result, yc);
 
 	return true;
 }

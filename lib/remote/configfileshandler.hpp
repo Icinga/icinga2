@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #ifndef CONFIGFILESHANDLER_H
 #define CONFIGFILESHANDLER_H
@@ -15,8 +16,8 @@ public:
 
 	bool HandleRequest(
 		const WaitGroup::Ptr& waitGroup,
-		const HttpRequest& request,
-		HttpResponse& response,
+		const HttpApiRequest& request,
+		HttpApiResponse& response,
 		boost::asio::yield_context& yc
 	) override;
 };

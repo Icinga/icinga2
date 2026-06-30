@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "remote/createobjecthandler.hpp"
 #include "remote/configobjectslock.hpp"
@@ -17,9 +18,9 @@ REGISTER_URLHANDLER("/v1/objects", CreateObjectHandler);
 
 bool CreateObjectHandler::HandleRequest(
 	const WaitGroup::Ptr& waitGroup,
-	const HttpRequest& request,
-	HttpResponse& response,
-	boost::asio::yield_context& yc
+	const HttpApiRequest& request,
+	HttpApiResponse& response,
+	boost::asio::yield_context&
 )
 {
 	namespace http = boost::beast::http;

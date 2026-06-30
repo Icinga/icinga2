@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "cli/casigncommand.hpp"
 #include "base/logger.hpp"
@@ -55,7 +56,7 @@ ImpersonationLevel CASignCommand::GetImpersonationLevel() const
  *
  * @return An exit status.
  */
-int CASignCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
+int CASignCommand::Run(const boost::program_options::variables_map&, const std::vector<std::string>& ap) const
 {
 	String requestFile = ApiListener::GetCertificateRequestsDir() + "/" + ap[0] + ".json";
 

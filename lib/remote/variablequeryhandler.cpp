@@ -1,11 +1,11 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "remote/variablequeryhandler.hpp"
 #include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
-#include "base/configtype.hpp"
+#include "base/generator.hpp"
 #include "base/scriptglobal.hpp"
-#include "base/logger.hpp"
 #include "base/serializer.hpp"
 #include "base/namespace.hpp"
 #include <set>
@@ -19,7 +19,7 @@ class VariableTargetProvider final : public TargetProvider
 public:
 	DECLARE_PTR_TYPEDEFS(VariableTargetProvider);
 
-	void FindTargets(const String& type,
+	void FindTargets([[maybe_unused]] const String& type,
 		const std::function<void (const Value&)>& addTarget) const override
 	{
 		Namespace::Ptr globals = ScriptGlobal::GetGlobals();
@@ -39,7 +39,7 @@ public:
 		}
 	}
 
-	Value GetTargetByName(const String& type, const String& name) const override
+	Value GetTargetByName([[maybe_unused]] const String& type, const String& name) const override
 	{
 		if (name == "TicketSalt") {
 			BOOST_THROW_EXCEPTION(std::invalid_argument{"Access to TicketSalt via /v1/variables is not permitted."});
@@ -52,7 +52,7 @@ public:
 		return type == "Variable";
 	}
 
-	String GetPluralName(const String& type) const override
+	String GetPluralName([[maybe_unused]] const String& type) const override
 	{
 		return "variables";
 	}
@@ -60,8 +60,8 @@ public:
 
 bool VariableQueryHandler::HandleRequest(
 	const WaitGroup::Ptr&,
-	const HttpRequest& request,
-	HttpResponse& response,
+	const HttpApiRequest& request,
+	HttpApiResponse& response,
 	boost::asio::yield_context& yc
 )
 {
@@ -98,22 +98,19 @@ bool VariableQueryHandler::HandleRequest(
 		return true;
 	}
 
-	ArrayData results;
-
-	for (Dictionary::Ptr var : objs) {
-		results.emplace_back(new Dictionary({
+	auto generatorFunc = [](const Dictionary::Ptr& var) -> Value {
+		return new Dictionary{
 			{ "name", var->Get("name") },
 			{ "type", var->Get("type") },
 			{ "value", Serialize(var->Get("value"), 0) }
-		}));
-	}
+		};
+	};
 
-	Dictionary::Ptr result = new Dictionary({
-		{ "results", new Array(std::move(results)) }
-	});
+	Dictionary::Ptr result = new Dictionary{{"results", new ValueGenerator{objs, generatorFunc}}};
+	result->Freeze();
 
 	response.result(http::status::ok);
-	HttpUtility::SendJsonBody(response, params, result);
+	HttpUtility::SendJsonBody(response, params, result, yc);
 
 	return true;
 }

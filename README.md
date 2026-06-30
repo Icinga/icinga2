@@ -56,8 +56,8 @@ or ask an Icinga partner for [professional support](https://icinga.com/support/)
 ## License
 
 Icinga 2 and the Icinga 2 documentation are licensed under the terms of the GNU
-General Public License Version 2, you will find a copy of this license in the
-COPYING file included in the source package.
+General Public License Version 3 or later, you will find a copy of this license in the
+`LICENSE.md` file included in the source package.
 
 In addition, as a special exception, the copyright holders give
 permission to link the code of portions of this program with the
@@ -72,6 +72,16 @@ file(s), but you are not obligated to do so. If you do not wish to do
 so, delete this exception statement from your version. If you delete
 this exception statement from all source files in the program, then
 also delete it here.
+
+> **Note**
+>
+> Historically, Icinga 2 has been licensed under the GNU General Public License Version 2 or later. However, due to
+> newly introduced dependencies licensed under the Apache License 2.0 (which is not compatible with GPLv2), we have
+> decided to upgrade the license of Icinga 2 to GPLv3+, effective from version `v2.16.0` onwards. All versions prior to
+> `v2.16.0` and all existing source code files remain licensed under GPLv2+ (see the license information in those files).
+>
+> Also, the OpenSSL linking exception is only relevant for OpenSSL 1.x. OpenSSL >= 3.0 is licensed under the
+> Apache License version 2.0, which is compatible with GPLv3 and no longer requires an exception.
 
 ## Contributing
 

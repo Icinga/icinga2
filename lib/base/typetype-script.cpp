@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "base/type.hpp"
 #include "base/dictionary.hpp"
@@ -15,7 +16,7 @@ static void TypeRegisterAttributeHandler(const String& fieldName, const Function
 	REQUIRE_NOT_NULL(self);
 
 	int fid = self->GetFieldId(fieldName);
-	self->RegisterAttributeHandler(fid, [callback](const Object::Ptr& object, const Value& cookie) {
+	self->RegisterAttributeHandler(fid, [callback](const Object::Ptr& object, [[maybe_unused]] const Value& cookie) {
 		callback->Invoke({ object });
 	});
 }

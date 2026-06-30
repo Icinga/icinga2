@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "remote/configpackageshandler.hpp"
 #include "remote/configpackageutility.hpp"
@@ -13,8 +14,8 @@ REGISTER_URLHANDLER("/v1/config/packages", ConfigPackagesHandler);
 
 bool ConfigPackagesHandler::HandleRequest(
 	const WaitGroup::Ptr&,
-	const HttpRequest& request,
-	HttpResponse& response,
+	const HttpApiRequest& request,
+	HttpApiResponse& response,
 	boost::asio::yield_context& yc
 )
 {
@@ -28,7 +29,7 @@ bool ConfigPackagesHandler::HandleRequest(
 		return false;
 
 	if (request.method() == http::verb::get)
-		HandleGet(request, response);
+		HandleGet(request, response, yc);
 	else if (request.method() == http::verb::post)
 		HandlePost(request, response);
 	else if (request.method() == http::verb::delete_)
@@ -39,7 +40,7 @@ bool ConfigPackagesHandler::HandleRequest(
 	return true;
 }
 
-void ConfigPackagesHandler::HandleGet(const HttpRequest& request, HttpResponse& response)
+void ConfigPackagesHandler::HandleGet(const HttpApiRequest& request, HttpApiResponse& response, boost::asio::yield_context& yc)
 {
 	namespace http = boost::beast::http;
 
@@ -79,15 +80,17 @@ void ConfigPackagesHandler::HandleGet(const HttpRequest& request, HttpResponse& 
 		}
 	}
 
-	Dictionary::Ptr result = new Dictionary({
-		{ "results", new Array(std::move(results)) }
-	});
+	Array::Ptr resultsArr = new Array(std::move(results));
+	resultsArr->Freeze();
+
+	Dictionary::Ptr result = new Dictionary{{"results",  resultsArr}};
+	result->Freeze();
 
 	response.result(http::status::ok);
-	HttpUtility::SendJsonBody(response, params, result);
+	HttpUtility::SendJsonBody(response, params, result, yc);
 }
 
-void ConfigPackagesHandler::HandlePost(const HttpRequest& request, HttpResponse& response)
+void ConfigPackagesHandler::HandlePost(const HttpApiRequest& request, HttpApiResponse& response)
 {
 	namespace http = boost::beast::http;
 
@@ -137,7 +140,7 @@ void ConfigPackagesHandler::HandlePost(const HttpRequest& request, HttpResponse&
 	HttpUtility::SendJsonBody(response, params, result);
 }
 
-void ConfigPackagesHandler::HandleDelete(const HttpRequest& request, HttpResponse& response)
+void ConfigPackagesHandler::HandleDelete(const HttpApiRequest& request, HttpApiResponse& response)
 {
 	namespace http = boost::beast::http;
 

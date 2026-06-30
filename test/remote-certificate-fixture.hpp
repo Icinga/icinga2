@@ -1,11 +1,12 @@
-/* Icinga 2 | (c) 2025 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2025 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <BoostTestTargetConfig.h>
 #include "remote/apilistener.hpp"
-#include "remote/pkiutility.hpp"
 #include "test/base-configuration-fixture.hpp"
+#include "test/test-ctest.hpp"
 
 namespace icinga {
 
@@ -19,33 +20,21 @@ struct CertificateFixture : ConfigurationDataDirFixture
 		m_CertsDir = ApiListener::GetCertsDir();
 		m_CaCrtFile = m_CertsDir / "ca.crt";
 
-		fs::create_directories(m_PersistentCertsDir / "ca");
-		fs::create_directories(m_PersistentCertsDir / "certs");
+		Utility::MkDirP((m_PersistentCertsDir / "ca").string(), 0700);
+		Utility::MkDirP((m_PersistentCertsDir / "certs").string(), 0700);
 
-		if (fs::exists(m_DataDir / "ca")) {
-			fs::remove(m_DataDir / "ca");
-		}
-		if (fs::exists(m_DataDir / "certs")) {
-			fs::remove(m_DataDir / "certs");
+		Utility::MkDirP(m_CaDir.string(), 0700);
+		for (const auto& entry : fs::directory_iterator{m_PersistentCertsDir / "ca"}) {
+			Utility::CopyFile(entry.path().string(), (m_CaDir / entry.path().filename()).string());
 		}
 
-		fs::rename(m_PersistentCertsDir / "ca", m_DataDir / "ca");
-		fs::rename(m_PersistentCertsDir / "certs", m_DataDir / "certs");
-
-		if (!fs::exists(m_CaCrtFile)) {
-			PkiUtility::NewCa();
-			fs::copy_file(m_CaDir / "ca.crt", m_CaCrtFile);
+		Utility::MkDirP(m_CertsDir.string(), 0700);
+		for (const auto& entry : fs::directory_iterator{m_PersistentCertsDir / "certs"}) {
+			Utility::CopyFile(entry.path().string(), (m_CertsDir / entry.path().filename()).string());
 		}
 	}
 
-	~CertificateFixture()
-	{
-		namespace fs = boost::filesystem;
-		fs::rename(m_DataDir / "ca", m_PersistentCertsDir / "ca");
-		fs::rename(m_DataDir / "certs", m_PersistentCertsDir / "certs");
-	}
-
-	[[nodiscard]] auto EnsureCertFor(const std::string& name) const
+	[[nodiscard]] auto GetCertFor(const std::string& name) const
 	{
 		struct Cert
 		{
@@ -59,10 +48,9 @@ struct CertificateFixture : ConfigurationDataDirFixture
 		cert.keyFile = (m_CertsDir / (name + ".key")).string();
 		cert.csrFile = (m_CertsDir / (name + ".csr")).string();
 
-		if (!Utility::PathExists(cert.crtFile)) {
-			PkiUtility::NewCert(name, cert.keyFile, cert.csrFile, cert.crtFile);
-			PkiUtility::SignCsr(cert.csrFile, cert.crtFile);
-		}
+		BOOST_REQUIRE(Utility::PathExists(cert.crtFile));
+		BOOST_REQUIRE(Utility::PathExists(cert.keyFile));
+		BOOST_REQUIRE(Utility::PathExists(cert.csrFile));
 
 		return cert;
 	}
@@ -70,7 +58,44 @@ struct CertificateFixture : ConfigurationDataDirFixture
 	boost::filesystem::path m_CaDir;
 	boost::filesystem::path m_CertsDir;
 	boost::filesystem::path m_CaCrtFile;
-	static const boost::filesystem::path m_PersistentCertsDir;
+	static inline const auto m_PersistentCertsDir = boost::filesystem::current_path() / "persistent" / "certs";
+};
+
+/**
+ * A unit-test decorator that declares that the test requires a given set of certificates.
+ *
+ * If no list of certs is given to the constructor, the test will still require the CA to be
+ * generated before it executes.
+ *
+ * When adding this decorator, a CTest fixture (in the form of new setup and cleanup units) is
+ * generated for the CA and each certificate. These fixtures are shared by all other test-cases
+ * that require them and will ensure that the CA/certificates exist until all those tests complete.
+ *
+ * If the prefix argument is given to the constructor, A separate CA is generated and the
+ * test-cases will be ensured to not run in parallel to other tests that use a different or no
+ * prefix.
+ */
+class RequiresCertificate : public CTestPropertiesBase
+{
+public:
+	explicit RequiresCertificate(const std::vector<String>& certs, const String& prefix = "remote");
+
+	std::string Get() override;
+
+	[[nodiscard]] boost::unit_test::decorator::base_ptr clone() const override
+	{
+		return boost::unit_test::decorator::base_ptr{new RequiresCertificate{*this}};
+	}
+
+	void apply(boost::unit_test::test_unit&) override {}
+
+private:
+	std::vector<String> m_RequiredFixtures;
+	static inline std::vector<String> m_CertFixtures;
+	static inline std::vector<String> m_CaFixtures;
+
+	static void AddCaFixture(const String& caFixtureName);
+	static void AddCertFixture(const String& name, const String& caFixture, const String& certFixture);
 };
 
 } // namespace icinga

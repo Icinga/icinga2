@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "remote/pkiutility.hpp"
 #include "remote/apilistener.hpp"
@@ -37,7 +38,7 @@ int PkiUtility::NewCa()
 
 	Utility::MkDirP(caDir, 0700);
 
-	MakeX509CSR("Icinga CA", caKeyFile, String(), caCertFile, true);
+	MakeX509CSR("Icinga CA", caKeyFile, String(), caCertFile, 0, ROOT_VALID_FOR, true);
 
 	return 0;
 }
@@ -72,7 +73,7 @@ int PkiUtility::SignCsr(const String& csrfile, const String& certfile)
 	BIO_free(csrbio);
 
 	std::shared_ptr<EVP_PKEY> pubkey = std::shared_ptr<EVP_PKEY>(X509_REQ_get_pubkey(req), EVP_PKEY_free);
-	std::shared_ptr<X509> cert = CreateCertIcingaCA(pubkey.get(), X509_REQ_get_subject_name(req));
+	std::shared_ptr<X509> cert = CreateCertIcingaCA(pubkey.get(), X509_REQ_get_subject_name(req), 0, LEAF_VALID_FOR);
 
 	X509_REQ_free(req);
 

@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "icinga/cib.hpp"
 #include "icinga/host.hpp"
@@ -277,7 +278,7 @@ std::pair<Dictionary::Ptr, Array::Ptr> CIB::GetFeatureStats()
 
 REGISTER_STATSFUNCTION(CIB, &CIB::StatsFunc);
 
-void CIB::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata) {
+void CIB::StatsFunc(const Dictionary::Ptr& status, [[maybe_unused]] const Array::Ptr& perfdata) {
 	double interval = Utility::GetTime() - Application::GetStartTime();
 
 	if (interval > 60)

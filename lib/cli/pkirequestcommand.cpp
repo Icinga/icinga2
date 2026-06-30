@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "cli/pkirequestcommand.hpp"
 #include "remote/pkiutility.hpp"
@@ -22,7 +23,7 @@ String PKIRequestCommand::GetShortDescription() const
 }
 
 void PKIRequestCommand::InitParameters(boost::program_options::options_description& visibleDesc,
-	boost::program_options::options_description& hiddenDesc) const
+	[[maybe_unused]] boost::program_options::options_description& hiddenDesc) const
 {
 	visibleDesc.add_options()
 		("key", po::value<std::string>(), "Key file path (input)")
@@ -51,7 +52,7 @@ std::vector<String> PKIRequestCommand::GetArgumentSuggestions(const String& argu
  *
  * @returns An exit status.
  */
-int PKIRequestCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
+int PKIRequestCommand::Run(const boost::program_options::variables_map& vm, [[maybe_unused]] const std::vector<std::string>& ap) const
 {
 	if (!vm.count("host")) {
 		Log(LogCritical, "cli", "Icinga 2 host (--host) must be specified.");

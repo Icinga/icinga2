@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "compat/compatlogger.hpp"
 #include "compat/compatlogger-ti.cpp"
@@ -36,6 +37,14 @@ void CompatLogger::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
 	status->Set("compatlogger", new Dictionary(std::move(nodes)));
 }
 
+void CompatLogger::OnAllConfigLoaded()
+{
+	ObjectImpl<CompatLogger>::OnAllConfigLoaded();
+
+	Log(LogWarning, "CompatLogger")
+		<< "This feature is DEPRECATED and will be removed in v2.18.";
+}
+
 /**
  * @threadsafety Always.
  */
@@ -45,9 +54,6 @@ void CompatLogger::Start(bool runtimeCreated)
 
 	Log(LogInformation, "CompatLogger")
 		<< "'" << GetName() << "' started.";
-
-	Log(LogWarning, "CompatLogger")
-		<< "This feature is DEPRECATED and may be removed in future releases. Check the roadmap at https://github.com/Icinga/icinga2/milestones";
 
 	Checkable::OnNewCheckResult.connect([this](const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const MessageOrigin::Ptr&) {
 		CheckResultHandler(checkable, cr);

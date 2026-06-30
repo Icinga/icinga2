@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #ifndef WORKQUEUE_H
 #define WORKQUEUE_H
@@ -66,18 +67,17 @@ public:
 	void Join(bool stop = false);
 
 	template<typename VectorType, typename FuncType>
-	void ParallelFor(const VectorType& items, const FuncType& func)
+	void ParallelFor(VectorType&& items, const FuncType& func)
 	{
-		ParallelFor(items, true, func);
+		ParallelFor(std::forward<VectorType>(items), true, func);
 	}
 
-	template<typename VectorType, typename FuncType>
-	void ParallelFor(const VectorType& items, bool preChunk, const FuncType& func)
+	template<typename VectorType, typename FuncType, typename = std::enable_if_t<!std::is_rvalue_reference_v<VectorType&&>>>
+	void ParallelFor(VectorType&& items, bool preChunk, const FuncType& func)
 	{
-		using SizeType = decltype(items.size());
-
-		SizeType totalCount = items.size();
-		SizeType chunks = preChunk ? m_ThreadCount : totalCount;
+		const auto totalCount = std::size(items);
+		using SizeType = std::remove_const_t<decltype(totalCount)>;
+		const auto chunks = preChunk ? m_ThreadCount : totalCount;
 
 		auto lock = AcquireLock();
 
@@ -102,7 +102,7 @@ public:
 			offset += count;
 		}
 
-		ASSERT(offset == items.size());
+		ASSERT(offset == totalCount);
 	}
 
 	bool IsWorkerThread() const;

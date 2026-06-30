@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "db_ido_pgsql/idopgsqlconnection.hpp"
 #include "db_ido_pgsql/idopgsqlconnection-ti.cpp"
@@ -52,6 +53,14 @@ void IdoPgsqlConnection::OnConfigLoaded()
 	m_Pgsql.reset(create_pgsql_shim());
 
 	std::swap(m_Library, shimLibrary);
+}
+
+void IdoPgsqlConnection::OnAllConfigLoaded()
+{
+	ObjectImpl<IdoPgsqlConnection>::OnAllConfigLoaded();
+
+	Log(LogWarning, "IdoPgsqlConnection")
+		<< "This feature is DEPRECATED and will be removed in v2.18.";
 }
 
 void IdoPgsqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)

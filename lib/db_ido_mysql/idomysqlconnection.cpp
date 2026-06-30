@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "db_ido_mysql/idomysqlconnection.hpp"
 #include "db_ido_mysql/idomysqlconnection-ti.cpp"
@@ -44,6 +45,14 @@ void IdoMysqlConnection::OnConfigLoaded()
 	m_Mysql.reset(create_mysql_shim());
 
 	std::swap(m_Library, shimLibrary);
+}
+
+void IdoMysqlConnection::OnAllConfigLoaded()
+{
+	ObjectImpl<IdoMysqlConnection>::OnAllConfigLoaded();
+
+	Log(LogWarning, "IdoMysqlConnection")
+		<< "This feature is DEPRECATED and will be removed in v2.18.";
 }
 
 void IdoMysqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)

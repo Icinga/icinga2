@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "base/logger.hpp"
 #include "remote/httphandler.hpp"
@@ -48,8 +49,8 @@ void HttpHandler::Register(const Url::Ptr& url, const HttpHandler::Ptr& handler)
 
 void HttpHandler::ProcessRequest(
 	const WaitGroup::Ptr& waitGroup,
-	HttpRequest& request,
-	HttpResponse& response,
+	HttpApiRequest& request,
+	HttpApiResponse& response,
 	boost::asio::yield_context& yc
 )
 {

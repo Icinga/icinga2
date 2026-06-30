@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "base/scriptutils.hpp"
 #include "base/function.hpp"
@@ -508,7 +509,7 @@ void ScriptUtils::Assert(const Value& arg)
 		BOOST_THROW_EXCEPTION(std::runtime_error("Assertion failed"));
 }
 
-String ScriptUtils::MsiGetComponentPathShim(const String& component)
+String ScriptUtils::MsiGetComponentPathShim([[maybe_unused]] const String& component)
 {
 #ifdef _WIN32
 	TCHAR productCode[39];

@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #ifndef IDOPGSQLCONNECTION_H
 #define IDOPGSQLCONNECTION_H
@@ -37,6 +38,7 @@ public:
 
 protected:
 	void OnConfigLoaded() override;
+	void OnAllConfigLoaded() override;
 	void Resume() override;
 	void Pause() override;
 

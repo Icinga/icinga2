@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "classcompiler.hpp"
 #include <iostream>
@@ -151,7 +152,7 @@ static std::string FieldTypeToIcingaName(const Field& field, bool inner)
 	if (field.Attributes & FAEnum)
 		return "Number";
 
-	if (ftype == "int" || ftype == "double")
+	if (ftype == "int" || ftype == "int64_t" || ftype == "double")
 		return "Number";
 	else if (ftype == "bool")
 		return "Boolean";

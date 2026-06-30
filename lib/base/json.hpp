@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #ifndef JSON_H
 #define JSON_H
@@ -73,7 +74,7 @@ public:
 
 private:
 	void EncodeArray(const Array::Ptr& array, boost::asio::yield_context* yc);
-	void EncodeValueGenerator(const ValueGenerator::Ptr& generator, boost::asio::yield_context* yc);
+	void EncodeValueGenerator(const Generator::Ptr& generator, boost::asio::yield_context* yc);
 
 	template<typename Iterable, typename ValExtractor>
 	void EncodeObject(const Iterable& container, const ValExtractor& extractor, boost::asio::yield_context* yc);

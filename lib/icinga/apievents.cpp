@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "icinga/apievents.hpp"
 #include "icinga/service.hpp"
@@ -34,7 +35,7 @@ void ApiEvents::StaticInitialize()
 	ConfigObject::OnVersionChanged.connect(&ApiEvents::OnVersionChangedHandler);
 }
 
-void ApiEvents::CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const MessageOrigin::Ptr& origin)
+void ApiEvents::CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const MessageOrigin::Ptr&)
 {
 	std::vector<EventQueue::Ptr> queues = EventQueue::GetQueuesForType("CheckResult");
 	auto inboxes (EventsRouter::GetInstance().GetInboxes(EventType::CheckResult));
@@ -68,7 +69,7 @@ void ApiEvents::CheckResultHandler(const Checkable::Ptr& checkable, const CheckR
 	inboxes.Push(std::move(result));
 }
 
-void ApiEvents::StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType type, const MessageOrigin::Ptr& origin)
+void ApiEvents::StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType, const MessageOrigin::Ptr&)
 {
 	std::vector<EventQueue::Ptr> queues = EventQueue::GetQueuesForType("StateChange");
 	auto inboxes (EventsRouter::GetInstance().GetInboxes(EventType::StateChange));
@@ -106,7 +107,7 @@ void ApiEvents::StateChangeHandler(const Checkable::Ptr& checkable, const CheckR
 
 void ApiEvents::NotificationSentToAllUsersHandler(const Notification::Ptr& notification,
 	const Checkable::Ptr& checkable, const std::set<User::Ptr>& users, NotificationType type,
-	const CheckResult::Ptr& cr, const String& author, const String& text, const MessageOrigin::Ptr& origin)
+	const CheckResult::Ptr& cr, const String& author, const String& text, const MessageOrigin::Ptr&)
 {
 	std::vector<EventQueue::Ptr> queues = EventQueue::GetQueuesForType("Notification");
 	auto inboxes (EventsRouter::GetInstance().GetInboxes(EventType::Notification));
@@ -152,7 +153,7 @@ void ApiEvents::NotificationSentToAllUsersHandler(const Notification::Ptr& notif
 	inboxes.Push(std::move(result));
 }
 
-void ApiEvents::FlappingChangedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr& origin)
+void ApiEvents::FlappingChangedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr&)
 {
 	std::vector<EventQueue::Ptr> queues = EventQueue::GetQueuesForType("Flapping");
 	auto inboxes (EventsRouter::GetInstance().GetInboxes(EventType::Flapping));
@@ -190,7 +191,7 @@ void ApiEvents::FlappingChangedHandler(const Checkable::Ptr& checkable, const Me
 
 void ApiEvents::AcknowledgementSetHandler(const Checkable::Ptr& checkable,
 	const String& author, const String& comment, AcknowledgementType type,
-	bool notify, bool persistent, double, double expiry, const MessageOrigin::Ptr& origin)
+	bool notify, bool persistent, double, double expiry, const MessageOrigin::Ptr&)
 {
 	std::vector<EventQueue::Ptr> queues = EventQueue::GetQueuesForType("AcknowledgementSet");
 	auto inboxes (EventsRouter::GetInstance().GetInboxes(EventType::AcknowledgementSet));
@@ -229,7 +230,7 @@ void ApiEvents::AcknowledgementSetHandler(const Checkable::Ptr& checkable,
 	inboxes.Push(std::move(result));
 }
 
-void ApiEvents::AcknowledgementClearedHandler(const Checkable::Ptr& checkable, const String& removedBy, double, const MessageOrigin::Ptr& origin)
+void ApiEvents::AcknowledgementClearedHandler(const Checkable::Ptr& checkable, [[maybe_unused]] const String& removedBy, double, const MessageOrigin::Ptr&)
 {
 	std::vector<EventQueue::Ptr> queues = EventQueue::GetQueuesForType("AcknowledgementCleared");
 	auto inboxes (EventsRouter::GetInstance().GetInboxes(EventType::AcknowledgementCleared));

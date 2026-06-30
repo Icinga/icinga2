@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "cli/featuredisablecommand.hpp"
 #include "cli/featureutility.hpp"
@@ -44,7 +45,7 @@ ImpersonationLevel FeatureDisableCommand::GetImpersonationLevel() const
  *
  * @returns An exit status.
  */
-int FeatureDisableCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
+int FeatureDisableCommand::Run(const boost::program_options::variables_map&, const std::vector<std::string>& ap) const
 {
 	if (ap.empty()) {
 		Log(LogCritical, "cli", "Cannot disable feature(s). Name(s) are missing!");

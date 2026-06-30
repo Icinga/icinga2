@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "remote/templatequeryhandler.hpp"
 #include "remote/httputility.hpp"
@@ -77,8 +78,8 @@ public:
 
 bool TemplateQueryHandler::HandleRequest(
 	const WaitGroup::Ptr&,
-	const HttpRequest& request,
-	HttpResponse& response,
+	const HttpApiRequest& request,
+	HttpApiResponse& response,
 	boost::asio::yield_context& yc
 )
 {
@@ -125,12 +126,14 @@ bool TemplateQueryHandler::HandleRequest(
 		return true;
 	}
 
-	Dictionary::Ptr result = new Dictionary({
-		{ "results", new Array(std::move(objs)) }
-	});
+	Array::Ptr resultArr = new Array(std::move(objs));
+	resultArr->Freeze();
+
+	Dictionary::Ptr result = new Dictionary{{"results", resultArr}};
+	result->Freeze();
 
 	response.result(http::status::ok);
-	HttpUtility::SendJsonBody(response, params, result);
+	HttpUtility::SendJsonBody(response, params, result, yc);
 
 	return true;
 }

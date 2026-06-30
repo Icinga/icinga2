@@ -364,7 +364,7 @@ interface(`icinga2_execstrans',`
 	')
 
 	domtrans_pattern(icinga2_t, $1, $2)
-        allow icinga2_t $2:process sigkill;
+        allow icinga2_t $2:process { signal sigkill };
 ')
 
 ######################################

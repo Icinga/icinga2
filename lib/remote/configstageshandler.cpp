@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "remote/configstageshandler.hpp"
 #include "remote/configpackageutility.hpp"
@@ -20,8 +21,8 @@ static std::mutex l_RunningPackageUpdatesMutex; // Protects the above two variab
 
 bool ConfigStagesHandler::HandleRequest(
 	const WaitGroup::Ptr&,
-	const HttpRequest& request,
-	HttpResponse& response,
+	const HttpApiRequest& request,
+	HttpApiResponse& response,
 	boost::asio::yield_context& yc
 )
 {
@@ -35,7 +36,7 @@ bool ConfigStagesHandler::HandleRequest(
 		return false;
 
 	if (request.method() == http::verb::get)
-		HandleGet(request, response);
+		HandleGet(request, response, yc);
 	else if (request.method() == http::verb::post)
 		HandlePost(request, response);
 	else if (request.method() == http::verb::delete_)
@@ -46,7 +47,7 @@ bool ConfigStagesHandler::HandleRequest(
 	return true;
 }
 
-void ConfigStagesHandler::HandleGet(const HttpRequest& request, HttpResponse& response)
+void ConfigStagesHandler::HandleGet(const HttpApiRequest& request, HttpApiResponse& response, boost::asio::yield_context& yc)
 {
 	namespace http = boost::beast::http;
 
@@ -71,28 +72,25 @@ void ConfigStagesHandler::HandleGet(const HttpRequest& request, HttpResponse& re
 	if (!ConfigPackageUtility::ValidateStageName(stageName))
 		return HttpUtility::SendJsonError(response, params, 400, "Invalid stage name '" + stageName + "'.");
 
-	ArrayData results;
-
 	std::vector<std::pair<String, bool> > paths = ConfigPackageUtility::GetFiles(packageName, stageName);
 
 	String prefixPath = ConfigPackageUtility::GetPackageDir() + "/" + packageName + "/" + stageName + "/";
 
-	for (const auto& kv : paths) {
-		results.push_back(new Dictionary({
+	auto generatorFunc = [&prefixPath](const std::pair<String, bool>& kv) -> Value {
+		return new Dictionary{
 			{ "type", kv.second ? "directory" : "file" },
-			{ "name", kv.first.SubStr(prefixPath.GetLength()) }
-		}));
-	}
+			{ "name", kv.first.SubStr(prefixPath.GetLength()) },
+		};
+	};
 
-	Dictionary::Ptr result = new Dictionary({
-		{ "results", new Array(std::move(results)) }
-	});
+	Dictionary::Ptr result = new Dictionary{{"results", new ValueGenerator{paths, generatorFunc}}};
+	result->Freeze();
 
 	response.result(http::status::ok);
-	HttpUtility::SendJsonBody(response, params, result);
+	HttpUtility::SendJsonBody(response, params, result, yc);
 }
 
-void ConfigStagesHandler::HandlePost(const HttpRequest& request, HttpResponse& response)
+void ConfigStagesHandler::HandlePost(const HttpApiRequest& request, HttpApiResponse& response)
 {
 	namespace http = boost::beast::http;
 
@@ -203,7 +201,7 @@ void ConfigStagesHandler::HandlePost(const HttpRequest& request, HttpResponse& r
 	HttpUtility::SendJsonBody(response, params, result);
 }
 
-void ConfigStagesHandler::HandleDelete(const HttpRequest& request, HttpResponse& response)
+void ConfigStagesHandler::HandleDelete(const HttpApiRequest& request, HttpApiResponse& response)
 {
 	namespace http = boost::beast::http;
 

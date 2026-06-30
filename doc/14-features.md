@@ -73,6 +73,7 @@ best practice is to provide performance data.
 
 This data is parsed by features sending metrics to time series databases (TSDB):
 
+* [OpenTelemetry](14-features.md#otlpmetrics-writer)
 * [Graphite](14-features.md#graphite-carbon-cache-writer)
 * [InfluxDB](14-features.md#influxdb-writer)
 * [OpenTSDB](14-features.md#opentsdb-writer)
@@ -331,113 +332,6 @@ More integrations:
 
 * [Logstash output](https://icinga.com/products/integrations/elastic/) for the Icinga 2 API.
 * [Logstash Grok Pattern](https://icinga.com/products/integrations/elastic/) for Icinga 2 logs.
-
-#### Elasticsearch Writer <a id="elasticsearch-writer"></a>
-
-This feature forwards check results, state changes and notification events
-to an [Elasticsearch](https://www.elastic.co/products/elasticsearch) or an [OpenSearch](https://opensearch.org/) installation over its HTTP API.
-
-The check results include parsed performance data metrics if enabled.
-
-> **Note**
->
-> Elasticsearch 7.x, 8.x or Opensearch 2.12.x are required. This feature has been successfully tested with
-> Elasticsearch 7.17.10, 8.8.1 and OpenSearch 2.13.0.
-
-Enable the feature and restart Icinga 2.
-
-```bash
-icinga2 feature enable elasticsearch
-```
-
-The default configuration expects an Elasticsearch instance running on `localhost` on port `9200`
- and writes to an index called `icinga2`.
-
-More configuration details can be found [here](09-object-types.md#objecttype-elasticsearchwriter).
-
-#### Current Elasticsearch Schema <a id="elastic-writer-schema"></a>
-
-The following event types are written to Elasticsearch:
-
-* icinga2.event.checkresult
-* icinga2.event.statechange
-* icinga2.event.notification
-
-Performance data metrics must be explicitly enabled with the `enable_send_perfdata`
-attribute. Be aware that this will create a new field mapping in the index for each performance data metric in a check plugin.
-See: [ElasticsearchWriter](09-object-types.md#objecttype-elasticsearchwriter)
-
-Metric values are stored like this:
-
-```
-check_result.perfdata.<perfdata-label>.value
-```
-
-The following characters are escaped in perfdata labels:
-
-  Character   | Escaped character
-  ------------|--------------------------
-  whitespace  | _
-  \           | _
-  /           | _
-  ::          | .
-
-Note that perfdata labels may contain dots (`.`) allowing to
-add more subsequent levels inside the tree.
-`::` adds support for [multi performance labels](https://github.com/flackem/check_multi/blob/next/doc/configuration/performance.md)
-and is therefore replaced by `.`.
-
-Icinga 2 automatically adds the following threshold metrics
-if existing:
-
-```
-check_result.perfdata.<perfdata-label>.min
-check_result.perfdata.<perfdata-label>.max
-check_result.perfdata.<perfdata-label>.warn
-check_result.perfdata.<perfdata-label>.crit
-```
-
-Additionally it is possible to configure custom tags that are applied to the metrics via `host_tags_template` or `service_tags_template`.
-Depending on whether the write event was triggered on a service or host object, additional tags are added to the ElasticSearch entries.
-
-A host metrics entry configured with the following `host_tags_template`:
-
-```
-host_tags_template = {
-
-  os_name = "$host.vars.os$"
-  custom_label = "A Custom Label"
-  list = [ "$host.groups$", "$host.vars.foo$" ]
-}
-```
-
-Will in addition to the above mentioned lines also contain:
-
-```
-os_name = "Linux"
-custom_label = "A Custom Label"
-list = [ "group-A;linux-servers", "bar" ]
-```
-
-#### Elasticsearch in Cluster HA Zones <a id="elasticsearch-writer-cluster-ha"></a>
-
-The Elasticsearch feature supports [high availability](06-distributed-monitoring.md#distributed-monitoring-high-availability-features)
-in cluster zones since 2.11.
-
-By default, all endpoints in a zone will activate the feature and start
-writing events to the Elasticsearch HTTP API. In HA enabled scenarios,
-it is possible to set `enable_ha = true` in all feature configuration
-files. This allows each endpoint to calculate the feature authority,
-and only one endpoint actively writes events, the other endpoints
-pause the feature.
-
-When the cluster connection breaks at some point, the remaining endpoint(s)
-in that zone will automatically resume the feature. This built-in failover
-mechanism ensures that events are written even if the cluster fails.
-
-The recommended way of running Elasticsearch in this scenario is a dedicated server
-where you either have the Elasticsearch HTTP API, or a TLS secured HTTP proxy,
-or Logstash for additional filtering.
 
 ### Graylog Integration <a id="graylog-integration"></a>
 
@@ -751,6 +645,282 @@ mechanism ensures that metrics are written even if the cluster fails.
 The recommended way of running OpenTSDB in this scenario is a dedicated server
 where you have OpenTSDB running.
 
+### OTLPMetrics Writer <a id="otlpmetrics-writer"></a>
+
+The [OpenTelemetry Protocol (OTLP/HTTP)](https://opentelemetry.io/docs/specs/otlp/#otlphttp) metrics Writer feature
+allows Icinga 2 to send metrics to OpenTelemetry Collector or any other backend that supports the OTLP HTTP protocol,
+such as [Prometheus OTLP](https://prometheus.io/docs/guides/opentelemetry/) receiver,
+[Grafana Mimir](https://grafana.com/docs/mimir/latest/configure/configure-otel-collector/),
+[OpenSearch Data Prepper](https://docs.opensearch.org/latest/data-prepper/pipelines/configuration/sources/otlp-source/),
+etc. It enables seamless integration of Icinga 2 metrics into modern observability stacks, allowing you to leverage the
+capabilities of OpenTelemetry for advanced analysis and visualization of your monitoring data. OpenTelemetry provides a
+standardized way to collect, process, and export telemetry data, making it easier to integrate with numerous
+[monitoring and observability](https://opentelemetry.io/docs/collector/components/exporter/) tools effortlessly.
+
+In order to enable this feature, you can use the following command:
+
+```bash
+icinga2 feature enable otlpmetrics
+```
+
+!!! info
+
+    **Package availability note (Debian 11 / Ubuntu 22.04 / Amazon Linux 2):**
+    The official Icinga 2 packages for Debian 11, Ubuntu 22.04 and Amazon Linux 2 are built with
+    `-DICINGA2_WITH_OPENTELEMETRY=OFF`, because the default Protobuf compiler in these
+    distributions is too old for the OpenTelemetry code generation used by Icinga 2.
+    As a result, the `otlpmetrics` feature (and `OTLPMetricsWriter` type) is not available
+    in those package builds.
+
+    You can verify this on a node with:
+
+    ```bash
+    icinga2 feature list | grep otlpmetrics
+    ```
+
+By default, the OTLPMetrics Writer expects the OpenTelemetry Collector or any other OTLP HTTP receiver to listen at
+`127.0.0.1` on port `4318` but most of the third-party backends use their own ports, so you may need to adjust the
+configuration accordingly. Additionally, the `metrics_endpoint` can vary based on the backend you are using.
+For example, OpenTelemetry Collector uses `/v1/metrics` by default, while the Prometheus OTLP receiver uses
+`/api/v1/otlp/v1/metrics`. Therefore, it is important to set the correct `metrics_endpoint` in the configuration file.
+
+You can find more details about the configuration options [here](09-object-types.md#objecttype-otlpmetricswriter).
+
+The generated metric names follow the OpenTelemetry naming conventions and cannot be customized by end-users and are
+therefore always the same across all Icinga 2 installations. The OTLP metrics writer currently sends the following metrics:
+
+| Metric Name           | Description                                                          |
+|-----------------------|----------------------------------------------------------------------|
+| state_check.perfdata  | Performance data metrics from checks.                                |
+| state_check.threshold | Threshold values for perfdata metrics (warning, critical, min, max). |
+
+By default, the writer will not stream any data point for the `state_check.threshold` metric. To enable the streaming
+of threshold metrics, you need to set the `enable_send_thresholds` option to `true` in the OTLPMetrics Writer
+configuration. Once enabled, it will send the threshold values for each performance data metric if they are available
+in the produced check results.
+
+The data points type for all the above metrics is [`gauge`](https://opentelemetry.io/docs/specs/otel/metrics/data-model/#gauge)
+and the perfdata labels and their units (if available) are mapped to OpenTelemetry metric points attributes. For example,
+a perfdata label `file_size` with a value of `42` and unit `B` will be sent to the `state_check.perfdata` metric stream,
+with a metric point having a value of `42`, along with the attributes `perfdata_label="file_size"` and `unit="B"`.
+Additionally, each metric point will also include other relevant attributes such as `icinga2.host.name`, `icinga2.service.name`,
+`icinga2.command.name`, etc. as resource attributes. You can find the full list of metric point formats and attributes
+in the [OTLPMetrics data format](#otlpmetrics-writer-data-format) section below.
+
+In addition to the default attributes, it is also possible to configure custom resource attributes that are sent along
+with the metrics to the OpenTelemetry backend. You can use the `host_resource_attributes` and `service_resource_attributes`
+options in the OTLPMetrics Writer configuration to define custom resource attributes for host and service checks
+respectively. You can use macros in the attribute values to dynamically populate them based on the check context.
+For instance, you can add a custom resource attribute `host.os` with the value `$host.vars.os$` and it will be populated
+with the value of `vars.os` for each host that has this variable defined, otherwise it will silently be ignored.
+All custom resource attributes will be prefixed with `icinga2.custom.` to avoid naming conflicts with existing
+OpenTelemetry and Icinga 2's built-in resource attributes. For example, if you define a custom resource attribute
+`host.os`, it will be sent as `icinga2.custom.host.os` to OpenTelemetry.
+
+!!! warning
+
+    Be cautious when defining custom resource attributes, as they are sent with every metric and can lead to high
+    cardinality issues if not used carefully. It is recommended to only define custom resource attributes that are
+    necessary for your monitoring use case and to avoid using attributes with high variability or a large number of
+    unique values.
+
+Apart from custom resource attributes, the OTLPMetrics Writer also allows you to configure an additional resource
+attribute called [`service.namespace`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/service/#service-namespace)
+via the `service_namespace` option in the OTLPMetrics Writer configuration. This attribute is not specific to any host
+or service but is a general attribute that applies to all metrics emitted by one OTLPMetrics Writer instance.
+By default, it is set to `icinga`. You can customize it to better fit your monitoring environment. For example, you
+might set it to `production`, `staging`, or any other relevant namespace that categorizes your Icinga 2 metrics emitted
+to the OpenTelemetry backend effectively.
+
+#### OTLPMetrics in HA Cluster Zones <a id="otlpmetrics-writer-ha-cluster"></a>
+
+This writer supports [High Availability (HA)](06-distributed-monitoring.md#distributed-monitoring-high-availability-features)
+cluster zones in Icinga 2. By default, the `enable_ha` option is set to `true` in the OTLPMetrics Writer config, which
+means that only one writer in the cluster will be active at any given time, sending metrics to the configured OTLP backend.
+The other OTLPMetrics Writer will remain in standby mode and ready to take over if the active endpoint fails or becomes
+unavailable for any reason. However, due to how HA works in Icinga 2, the failover mechanism won't take place until the
+two endpoints in the cluster lose connection with each other, and not just when the OTLPMetrics Writer fails. Therefore,
+as long as the cluster connection is healthy, the other writer won't take over even if the active writer encounters some
+issues connecting to the OTLP backend or sending metrics.
+
+In general, do not set `enable_ha` to `false` unless you have a specific use case that requires multiple OTLPMetrics
+Writer instances to be active at the same time, sending metrics to different OTLP backends. In most cases, it is
+recommended to keep `enable_ha` set to `true` to ensure that only one writer is active even in a non-HA cluster zone.
+
+#### OTLPMetrics Data Format <a id="otlpmetrics-writer-data-format"></a>
+
+The OTLPMetrics Writer sends metrics to the configured OTLP HTTP endpoint in the OpenTelemetry Protocol (OTLP) format.
+The metric names and attributes follow the OpenTelemetry naming conventions. The `state_check.perfdata` metric includes
+performance data metrics from checks, while the `state_check.threshold` metric is used to stream all threshold related
+data points. In general, both metric streams share the same set of resource attributes, they only differ in the concrete
+metric point attributes. Below is an example of the full data format for both metrics and can be used as a reference for
+configuring your OTLP backend to properly receive and process the emitted metrics.
+
+```json
+{
+  "resourceMetrics": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "Icinga 2"
+            }
+          },
+          {
+            "key": "service.instance.id",
+            "value": {
+              "stringValue": "9a1f9d6d58648f2274c539bbdd5f09388b68fc0a"
+            }
+          },
+          {
+            "key": "service.version",
+            "value": {
+              "stringValue": "v2.15.0-285-g196ba8e9d"
+            }
+          },
+          {
+            "key": "telemetry.sdk.language",
+            "value": {
+              "stringValue": "cpp"
+            }
+          },
+          {
+            "key": "telemetry.sdk.name",
+            "value": {
+              "stringValue": "Icinga 2 OTel Integration"
+            }
+          },
+          {
+            "key": "telemetry.sdk.version",
+            "value": {
+              "stringValue": "v2.15.0-285-g196ba8e9d"
+            }
+          },
+          {
+            "key": "service.namespace",
+            "value": {
+              "stringValue": "icinga"
+            }
+          },
+          {
+            "key": "icinga2.host.name",
+            "value": {
+              "stringValue": "something"
+            }
+          },
+          {
+            "key": "icinga2.service.name",
+            "value": {
+              "stringValue": "something-service"
+            }
+          },
+          {
+            "key": "icinga2.command.name",
+            "value": {
+              "stringValue": "icinga"
+            }
+          }
+        ],
+        "entityRefs": [
+          {
+            "type": "service",
+            "idKeys": [
+              "icinga2.host.name",
+              "icinga2.service.name"
+            ]
+          }
+        ]
+      },
+      "scopeMetrics": [
+        {
+          "scope": {
+            "name": "icinga2",
+            "version": "v2.15.0-285-g196ba8e9d"
+          },
+          "metrics": [
+            {
+              "name": "state_check.perfdata",
+              "gauge": {
+                "dataPoints": [
+                  {
+                    "attributes": [
+                      {
+                        "key": "perfdata_label",
+                        "value": {
+                          "stringValue": "some_perfdata_label"
+                        }
+                      }
+                    ],
+                    "startTimeUnixNano": "1770385516896651008",
+                    "timeUnixNano": "1770385516896651008",
+                    "asDouble": 1
+                  }
+                ]
+              }
+            },
+            {
+              "name": "state_check.threshold",
+              "gauge": {
+                "dataPoints": [
+                  {
+                    "attributes": [
+                      {
+                        "key": "perfdata_label",
+                        "value": {
+                          "stringValue": "some_perfdata_label"
+                        }
+                      },
+                      {
+                        "key": "threshold_type",
+                        "value": {
+                          "stringValue": "critical"
+                        }
+                      }
+                    ],
+                    "startTimeUnixNano": "1770385516896651008",
+                    "timeUnixNano": "1770385516896651008",
+                    "asDouble": 0
+                  },
+                  {
+                    "attributes": [
+                      {
+                        "key": "perfdata_label",
+                        "value": {
+                          "stringValue": "some_perfdata_label"
+                        }
+                      },
+                      {
+                        "key": "threshold_type",
+                        "value": {
+                          "stringValue": "warning"
+                        }
+                      }
+                    ],
+                    "startTimeUnixNano": "1770385516896651008",
+                    "timeUnixNano": "1770385516896651008",
+                    "asDouble": 0
+                  }
+                ]
+              }
+            }
+          ],
+          "schemaUrl": "https://opentelemetry.io/schemas/1.39.0"
+        }
+      ],
+      "schemaUrl": "https://opentelemetry.io/schemas/1.39.0"
+    }
+  ]
+}
+```
+
+As you can see in the above example, most of the attributes are resource attributes that are shared across all emitted
+metrics. The only attributes that are specific to the OTLPMetrics Writer have `icinga2.` prefix like `icinga2.host.name`
+etc. The `state_check.perfdata` metric has an additional attribute `perfdata_label` that corresponds to the perfdata
+label of the emitted metric point value. Likewise, the `state_check.threshold` metric has two additional attributes
+`perfdata_label` and `threshold_type` that correspond to the perfdata label they belong to and the threshold type
+(warning, critical, min, max) respectively.
 
 ### Writing Performance Data Files <a id="writing-performance-data-files"></a>
 
@@ -805,12 +975,123 @@ is running on.
 
 ## Deprecated Features <a id="deprecated-features"></a>
 
+#### Elasticsearch Writer <a id="elasticsearch-writer"></a>
+
+> **Note**
+>
+> This feature is DEPRECATED and will be removed in v2.18.
+> For sending metrics to Elasticsearch, please migrate your setup to the [otlp-metrics feature](14-features.md#otlpmetrics-writer).
+
+This feature forwards check results, state changes and notification events
+to an [Elasticsearch](https://www.elastic.co/products/elasticsearch) or an [OpenSearch](https://opensearch.org/) installation over its HTTP API.
+
+The check results include parsed performance data metrics if enabled.
+
+> **Note**
+>
+> Elasticsearch 7.x, 8.x or Opensearch 2.12.x are required. This feature has been successfully tested with
+> Elasticsearch 7.17.10, 8.8.1 and OpenSearch 2.13.0.
+
+Enable the feature and restart Icinga 2.
+
+```bash
+icinga2 feature enable elasticsearch
+```
+
+The default configuration expects an Elasticsearch instance running on `localhost` on port `9200`
+ and writes to an index called `icinga2`.
+
+More configuration details can be found [here](09-object-types.md#objecttype-elasticsearchwriter).
+
+#### Current Elasticsearch Schema <a id="elastic-writer-schema"></a>
+
+The following event types are written to Elasticsearch:
+
+* icinga2.event.checkresult
+* icinga2.event.statechange
+* icinga2.event.notification
+
+Performance data metrics must be explicitly enabled with the `enable_send_perfdata`
+attribute. Be aware that this will create a new field mapping in the index for each performance data metric in a check plugin.
+See: [ElasticsearchWriter](09-object-types.md#objecttype-elasticsearchwriter)
+
+Metric values are stored like this:
+
+```
+check_result.perfdata.<perfdata-label>.value
+```
+
+The following characters are escaped in perfdata labels:
+
+  Character   | Escaped character
+  ------------|--------------------------
+  whitespace  | _
+  \           | _
+  /           | _
+  ::          | .
+
+Note that perfdata labels may contain dots (`.`) allowing to
+add more subsequent levels inside the tree.
+`::` adds support for [multi performance labels](https://github.com/flackem/check_multi/blob/next/doc/configuration/performance.md)
+and is therefore replaced by `.`.
+
+Icinga 2 automatically adds the following threshold metrics
+if existing:
+
+```
+check_result.perfdata.<perfdata-label>.min
+check_result.perfdata.<perfdata-label>.max
+check_result.perfdata.<perfdata-label>.warn
+check_result.perfdata.<perfdata-label>.crit
+```
+
+Additionally it is possible to configure custom tags that are applied to the metrics via `host_tags_template` or `service_tags_template`.
+Depending on whether the write event was triggered on a service or host object, additional tags are added to the ElasticSearch entries.
+
+A host metrics entry configured with the following `host_tags_template`:
+
+```
+host_tags_template = {
+
+  os_name = "$host.vars.os$"
+  custom_label = "A Custom Label"
+  list = [ "$host.groups$", "$host.vars.foo$" ]
+}
+```
+
+Will in addition to the above mentioned lines also contain:
+
+```
+os_name = "Linux"
+custom_label = "A Custom Label"
+list = [ "group-A;linux-servers", "bar" ]
+```
+
+#### Elasticsearch in Cluster HA Zones <a id="elasticsearch-writer-cluster-ha"></a>
+
+The Elasticsearch feature supports [high availability](06-distributed-monitoring.md#distributed-monitoring-high-availability-features)
+in cluster zones since 2.11.
+
+By default, all endpoints in a zone will activate the feature and start
+writing events to the Elasticsearch HTTP API. In HA enabled scenarios,
+it is possible to set `enable_ha = true` in all feature configuration
+files. This allows each endpoint to calculate the feature authority,
+and only one endpoint actively writes events, the other endpoints
+pause the feature.
+
+When the cluster connection breaks at some point, the remaining endpoint(s)
+in that zone will automatically resume the feature. This built-in failover
+mechanism ensures that events are written even if the cluster fails.
+
+The recommended way of running Elasticsearch in this scenario is a dedicated server
+where you either have the Elasticsearch HTTP API, or a TLS secured HTTP proxy,
+or Logstash for additional filtering.
+
 ### IDO Database (DB IDO) <a id="db-ido"></a>
 
 > **Note**
 >
-> This feature is DEPRECATED and may be removed in future releases.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
+> This feature is DEPRECATED and will be removed in v2.18.
 
 The IDO (Icinga Data Output) feature for Icinga 2 takes care of exporting all
 configuration and status information into a database. The IDO database is used
@@ -1162,8 +1443,7 @@ VACUUM
 
 > **Note**
 >
-> This feature is DEPRECATED and may be removed in future releases.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
+> This feature is DEPRECATED and will be removed in v2.18.
 
 The Icinga 1.x log format is considered being the `Compat Log`
 in Icinga 2 provided with the `CompatLogger` object.
@@ -1193,8 +1473,7 @@ in `/var/log/icinga2/compat`. Rotated log files are moved into
 
 > **Note**
 >
-> This feature is DEPRECATED and may be removed in future releases.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
+> This feature is DEPRECATED and will be removed in v2.18.
 
 Icinga 2 provides an external command pipe for processing commands
 triggering specific actions (for example rescheduling a service check
@@ -1233,8 +1512,7 @@ on the [Icinga 1.x documentation](https://docs.icinga.com/latest/en/extcommands2
 
 > **Note**
 >
-> This feature is DEPRECATED and may be removed in future releases.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
+> This feature is DEPRECATED and will be removed in v2.18.
 
 The [MK Livestatus](https://exchange.nagios.org/directory/Documentation/MK-Livestatus/details) project
 implements a query protocol that lets users query their Icinga instance for

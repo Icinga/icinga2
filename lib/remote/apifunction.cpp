@@ -1,9 +1,13 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "remote/apifunction.hpp"
-#include "base/singleton.hpp"
 
 using namespace icinga;
+
+INITIALIZE_ONCE_WITH_PRIORITY([]{
+	ApiFunctionRegistry::GetInstance()->Freeze();
+}, InitializePriority::FreezeNamespaces);
 
 ApiFunction::ApiFunction(const char* name, Callback function)
 	: m_Name(name), m_Callback(std::move(function))
@@ -22,9 +26,4 @@ ApiFunction::Ptr ApiFunction::GetByName(const String& name)
 void ApiFunction::Register(const String& name, const ApiFunction::Ptr& function)
 {
 	ApiFunctionRegistry::GetInstance()->Register(name, function);
-}
-
-ApiFunctionRegistry *ApiFunctionRegistry::GetInstance()
-{
-	return Singleton<ApiFunctionRegistry>::GetInstance();
 }

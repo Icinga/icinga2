@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "cli/featureenablecommand.hpp"
 #include "cli/featureutility.hpp"
@@ -44,7 +45,7 @@ ImpersonationLevel FeatureEnableCommand::GetImpersonationLevel() const
  *
  * @returns An exit status.
  */
-int FeatureEnableCommand::Run(const boost::program_options::variables_map& vm, const std::vector<std::string>& ap) const
+int FeatureEnableCommand::Run(const boost::program_options::variables_map&, const std::vector<std::string>& ap) const
 {
 	return FeatureUtility::EnableFeatures(ap);
 }

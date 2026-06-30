@@ -110,6 +110,9 @@ if [ ! -e "$ca" ]; then
                 printf "%s" "$value" > "$ca"
                 chmod 0644 "$ca"
                 ;;
+            "log_level")
+                # Ignore. To be used when launching Icinga 2 below.
+                ;;
             *)
                 # We don't know how to handle this environment variable, so log it and move on.
                 icinga2_log "warning" "Ignoring unknown environment variable $k"
@@ -137,6 +140,11 @@ if [ ! -e "$msmtprc_path" ] && [ -n "${MSMTPRC}" ]; then
     chmod 0644 "$msmtprc_path"
 fi
 
-icinga2_log "information" "Starting Icinga 2 daemon."
+icinga2_log "information" "Finished Icinga 2 Docker entrypoint script."
+
+if [ -v "ICINGA_LOG_LEVEL" ] && [ "$(basename "$1")" = "icinga2" ]; then
+    icinga2_log "information" "Launching Icinga 2 in \"$ICINGA_LOG_LEVEL\" log level."
+    exec "$@" "--log-level" "$ICINGA_LOG_LEVEL"
+fi
 
 exec "$@"

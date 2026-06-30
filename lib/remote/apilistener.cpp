@@ -1,4 +1,5 @@
-/* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
+// SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "remote/apilistener.hpp"
 #include "remote/apilistener-ti.cpp"
@@ -112,7 +113,7 @@ double ApiListener::GetTlsHandshakeTimeout() const
 	return Configuration::TlsHandshakeTimeout;
 }
 
-void ApiListener::SetTlsHandshakeTimeout(double value, bool suppress_events, const Value& cookie)
+void ApiListener::SetTlsHandshakeTimeout(double value, [[maybe_unused]] bool suppress_events, [[maybe_unused]] const Value& cookie)
 {
 	Configuration::TlsHandshakeTimeout = value;
 }
@@ -187,7 +188,7 @@ std::shared_ptr<X509> ApiListener::RenewCert(const std::shared_ptr<X509>& cert, 
 	std::shared_ptr<EVP_PKEY> pubkey (X509_get_pubkey(cert.get()), EVP_PKEY_free);
 	auto subject (X509_get_subject_name(cert.get()));
 	auto cacert (GetX509Certificate(GetDefaultCaPath()));
-	auto newcert (CreateCertIcingaCA(pubkey.get(), subject, ca));
+	auto newcert (CreateCertIcingaCA(pubkey.get(), subject, 0, ca ? ROOT_VALID_FOR : LEAF_VALID_FOR, ca));
 
 	/* verify that the new cert matches the CA we're using for the ApiListener;
 	 * this ensures that the CA we have in /var/lib/icinga2/ca matches the one
@@ -742,7 +743,8 @@ void ApiListener::NewClientHandlerInternal(
 		}
 
 		Log(LogCritical, "ApiListener")
-			<< "Client TLS handshake failed (" << conninfo << "): " << ec.message();
+			<< (role == RoleClient ? "Client" : "Server")
+			<< " TLS handshake failed (" << conninfo << "): " << ec.message();
 		return;
 	}
 
