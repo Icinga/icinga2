@@ -85,6 +85,7 @@ add_boost_test(base
     base_io_engine/timeout_due_scope
     base_json/encode
     base_json/decode
+    base_json/decode_dsl_single_argument
     base_json/invalid1
     base_json/decode_depth_limit
     base_json/stack_size_coroutine

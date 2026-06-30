@@ -8,6 +8,7 @@
 #include "base/io-engine.hpp"
 #include "base/objectlock.hpp"
 #include "base/json.hpp"
+#include "base/scriptglobal.hpp"
 #include <functional>
 #include <future>
 #include <boost/algorithm/string/replace.hpp>
@@ -121,6 +122,20 @@ BOOST_AUTO_TEST_CASE(decode)
 
 	auto uint (output->Get("uint"));
 	BOOST_CHECK(uint.IsNumber() && uint.Get<double>() == 23.0);
+}
+
+BOOST_AUTO_TEST_CASE(decode_dsl_single_argument)
+{
+	/* Regression test for #10913: the Json.decode() DSL function must accept a
+	 * single argument. JsonDecode()'s optional depthLimit parameter must not
+	 * leak into the function binding as a required argument.
+	 */
+	Namespace::Ptr systemNS = ScriptGlobal::Get("System");
+	Namespace::Ptr jsonNS = systemNS->Get("Json");
+	Function::Ptr decode = jsonNS->Get("decode");
+
+	BOOST_REQUIRE(decode);
+	BOOST_CHECK_EQUAL(decode->Invoke({ "2" }), Value(2));
 }
 
 BOOST_AUTO_TEST_CASE(invalid1)
