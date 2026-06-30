@@ -7,6 +7,16 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.15.5 (2026-07-01)
+
+This is a hotfix release that fixes a regression with the `Json.decode()` DSL function that was introduced in v2.15.4:
+The addition of a second argument to the internal `JsonDecode()` function unintentionally leaked into the DSL as a
+required argument. This version restores the old and intended behavior of `Json.decode()`.
+
+### Changes
+
+* Restore single-argument `Json.decode()` in the DSL (#10920)
+
 ## 2.15.4 (2026-06-29)
 
 This release fixes some critical security vulnerabilities in Icinga 2. Users are advised to upgrade immediately, as two
