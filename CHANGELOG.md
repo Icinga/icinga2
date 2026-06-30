@@ -412,6 +412,16 @@ Thanks to all contributors:
 * Reduce task function allocation overhead by using a per-thread created lambda in `WorkQueue`. #9575
 * Remove redundant trailing empty lines and add missing newlines in some files. #7799
 
+## 2.14.10 (2026-07-01)
+
+This is a hotfix release that fixes a regression with the `Json.decode()` DSL function that was introduced in v2.14.9:
+The addition of a second argument to the internal `JsonDecode()` function unintentionally leaked into the DSL as a
+required argument. This version restores the old and intended behavior of `Json.decode()`.
+
+### Changes
+
+* Restore single-argument `Json.decode()` in the DSL (#10922)
+
 ## 2.14.9 (2026-06-29)
 
 This release fixes some critical security vulnerabilities in Icinga 2. Users are advised to upgrade immediately, as two
