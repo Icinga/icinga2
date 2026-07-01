@@ -296,14 +296,7 @@ syn keyword		valueNull		contained	null
 " ########################################
 " ### Where to apply
 
-syn region		icingaDefBody start='{' end='}'
-	\ contains=icinga2Comment, icinga2LineComment, StringS, StringD, macro, Braces, Parens, Lambda, icinga2ObjType, icinga2ObjDef,
-	\ icinga2ApplyDef, icinga2ObjAttr, icinga2Keyword, icinga2AssignCond,
-	\ icinga2Cond, icinga2Loop, icinga2Exception, icinga2Debugger, icinga2Operators, icinga2GFunction, icinga2AFunction,
-	\ icinga2MathFunction, icinga2GlobalConstant, icinga2PathConstant, icinga2UserConstant, icinga2Gconst, icinga2Namespace,
-	\ icinga2JsonFunction, icinga2NumberFunction, icinga2BoolFunction,
-	\ icinga2StrFunction, icinga2ObjectFunction, icinga2TypeFunction, icinga2ArrFunction, icinga2DictFunction,
-	\ icinga2DTFunction, valueNumber, valueBoolean, valueNull
+syn region		icingaDefBody start='{' end='}' contains=icinga2Comment,icinga2LineComment,StringS,StringD,macro,Braces,Parens,Lambda,icinga2ObjType,icinga2ObjDef,icinga2ApplyDef,icinga2ObjAttr,icinga2Keyword,icinga2AssignCond,icinga2Cond,icinga2Loop,icinga2Exception,icinga2Debugger,icinga2Operators,icinga2GFunction,icinga2AFunction,icinga2MathFunction,icinga2GlobalConstant,icinga2PathConstant,icinga2UserConstant,icinga2Gconst,icinga2Namespace,icinga2JsonFunction,icinga2NumberFunction,icinga2BoolFunction,icinga2StrFunction,icinga2ObjectFunction,icinga2TypeFunction,icinga2ArrFunction,icinga2DictFunction,icinga2DTFunction,valueNumber,valueBoolean,valueNull
 
 
 " ########################################
