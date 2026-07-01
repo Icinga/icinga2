@@ -285,7 +285,7 @@ void RedisConnection::Connect(asio::yield_context& yc)
 {
 	Defer notConnecting ([this]() { m_Connecting.store(m_Connected.load()); });
 
-	boost::asio::deadline_timer timer (m_Strand.context());
+	boost::asio::steady_timer timer (m_Strand.context());
 
 	for (;;) {
 		try {
@@ -363,7 +363,7 @@ void RedisConnection::Connect(asio::yield_context& yc)
 				<< "'): " << ex.what();
 		}
 
-		timer.expires_from_now(boost::posix_time::seconds(5));
+		timer.expires_after(5s);
 		timer.async_wait(yc);
 	}
 
@@ -476,11 +476,11 @@ void RedisConnection::LogStats(asio::yield_context& yc)
 {
 	double lastMessage = 0;
 
-	m_LogStatsTimer.expires_from_now(boost::posix_time::seconds(10));
+	m_LogStatsTimer.expires_after(10s);
 
 	for (;;) {
 		m_LogStatsTimer.async_wait(yc);
-		m_LogStatsTimer.expires_from_now(boost::posix_time::seconds(10));
+		m_LogStatsTimer.expires_after(10s);
 
 		if (!IsConnected())
 			continue;

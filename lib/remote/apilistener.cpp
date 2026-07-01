@@ -584,7 +584,8 @@ void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const Sha
 			auto strand (Shared<asio::io_context::strand>::Make(io));
 
 			IoEngine::SpawnCoroutine(*strand, [this, strand, sslConn, remoteEndpoint](asio::yield_context yc) {
-				Timeout timeout (*strand, boost::posix_time::microseconds(int64_t(GetConnectTimeout() * 1e6)),
+				std::chrono::duration<float> connectTo{GetConnectTimeout()};
+				Timeout timeout (*strand, std::chrono::duration_cast<std::chrono::microseconds>(connectTo),
 					[sslConn, remoteEndpoint] {
 						Log(LogWarning, "ApiListener")
 							<< "Timeout while processing incoming connection from " << remoteEndpoint;
@@ -640,7 +641,8 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 
 			lock.unlock();
 
-			Timeout timeout (*strand, boost::posix_time::microseconds(int64_t(GetConnectTimeout() * 1e6)),
+			std::chrono::duration<float> connectTimeout{GetConnectTimeout()};
+			Timeout timeout (*strand, std::chrono::duration_cast<std::chrono::microseconds>(connectTimeout),
 				[sslConn, endpoint, host, port] {
 					Log(LogCritical, "ApiListener")
 						<< "Timeout while reconnecting to endpoint '" << endpoint->GetName() << "' via host '" << host
@@ -733,9 +735,10 @@ void ApiListener::NewClientHandlerInternal(
 	boost::system::error_code ec;
 
 	{
+		std::chrono::duration<float> tlsHandShakeTimeout{Configuration::TlsHandshakeTimeout};
 		Timeout handshakeTimeout (
 			*strand,
-			boost::posix_time::microseconds(intmax_t(Configuration::TlsHandshakeTimeout * 1000000)),
+			std::chrono::duration_cast<std::chrono::microseconds>(tlsHandShakeTimeout),
 			[client] {
 				boost::system::error_code ec;
 				client->lowest_layer().cancel(ec);

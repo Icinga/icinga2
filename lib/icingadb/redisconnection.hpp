@@ -17,7 +17,7 @@
 #include "base/value.hpp"
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/buffered_stream.hpp>
-#include <boost/asio/deadline_timer.hpp>
+#include <boost/asio/steady_timer.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/io_context_strand.hpp>
 #include <boost/asio/ip/tcp.hpp>
@@ -347,7 +347,7 @@ struct RedisConnInfo final : SharedObject
 		// Number of pending Redis queries, always 0 if m_Parent is set unless m_TrackOwnPendingQueries is true.
 		std::atomic_size_t m_PendingQueries{0};
 		bool m_TrackOwnPendingQueries; // Whether to track pending queries even if m_Parent is set.
-		boost::asio::deadline_timer m_LogStatsTimer;
+		boost::asio::steady_timer m_LogStatsTimer;
 		Ptr m_Parent;
 	};
 
@@ -568,9 +568,10 @@ void RedisConnection::Handshake(StreamPtr& strm, boost::asio::yield_context& yc)
 template<class StreamPtr>
 Timeout RedisConnection::MakeTimeout(StreamPtr& stream)
 {
+	std::chrono::duration<float> connectTimeout{m_ConnInfo->ConnectTimeout};
 	return Timeout(
 		m_Strand,
-		boost::posix_time::microseconds(intmax_t(m_ConnInfo->ConnectTimeout * 1000000)),
+		std::chrono::duration_cast<std::chrono::microseconds>(connectTimeout),
 		[stream] {
 			boost::system::error_code ec;
 			stream->lowest_layer().cancel(ec);
