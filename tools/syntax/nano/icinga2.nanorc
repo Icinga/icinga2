@@ -126,7 +126,6 @@ icolor green		"\s(/=)\s"
 icolor yellow 	"(PrefixDir|SysconfDir|ZonesDir|LocalStateDir|RunDir|PkgDataDir|StatePath|ObjectsPath)"
 icolor yellow 	"(PidPath|NodeName|ApplicationType|EnableNotifications|EnableEventHandlers|EnableFlapping)"
 icolor yellow 	"(EnableHostChecks|EnableServiceChecks|EnablePerfdata|UseVfork|RunAsUser|RunAsGroup|PluginDir)"
-icolor yellow 	"(Vars\s+)"
 
 ## Boolean
 icolor blue 	"(true|false)"

@@ -506,7 +506,6 @@ ZonesDir            |**Read-only.** Contains the path of the zones.d directory. 
 
 Constant            | Description
 --------------------|-------------------
-Vars                |**Read-write.** Contains a dictionary with global custom variables. Not set by default.
 NodeName            |**Read-write.** Contains the cluster node name. Set to the local hostname by default.
 ReloadTimeout       |**Read-write.** Defines the reload timeout for child processes. Defaults to `300s`.
 Environment         |**Read-write.** The name of the Icinga environment. Included in the SNI host name for outbound connections. Not set by default.
