@@ -114,6 +114,7 @@ set(base_test_SOURCES
   base-tlsutility.cpp base-tlsutility.hpp
   base-utility.cpp
   base-value.cpp
+  base-visit.cpp
   config-apply.cpp
   config-ops.cpp
   icinga-checkresult.cpp
