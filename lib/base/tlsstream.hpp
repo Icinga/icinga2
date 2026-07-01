@@ -5,6 +5,7 @@
 #define TLSSTREAM_H
 
 #include "base/i2-base.hpp"
+#include "base/io-engine.hpp"
 #include "base/shared.hpp"
 #include "base/socket.hpp"
 #include "base/stream.hpp"
@@ -114,7 +115,7 @@ public:
 	}
 
 	void ForceDisconnect();
-	void GracefulDisconnect(boost::asio::io_context::strand& strand, boost::asio::yield_context& yc);
+	void GracefulDisconnect(IoStrand& strand, boost::asio::yield_context& yc);
 
 private:
 	inline

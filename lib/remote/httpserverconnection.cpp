@@ -41,7 +41,7 @@ HttpServerConnection::HttpServerConnection(const WaitGroup::Ptr& waitGroup, cons
 }
 
 HttpServerConnection::HttpServerConnection(const WaitGroup::Ptr& waitGroup, const String& identity, bool authenticated, const Shared<AsioTlsStream>::Ptr& stream, boost::asio::io_context& io)
-	: m_WaitGroup(waitGroup), m_Stream(stream), m_IoStrand(io), m_ShuttingDown(false), m_ConnectionReusable(true), m_CheckLivenessTimer(io)
+	: m_WaitGroup(waitGroup), m_Stream(stream), m_IoStrand(io.get_executor()), m_ShuttingDown(false), m_ConnectionReusable(true), m_CheckLivenessTimer(io)
 {
 	if (authenticated) {
 		m_ApiUser = ApiUser::GetByClientCN(identity);
@@ -419,7 +419,7 @@ void ProcessRequest(
 	const WaitGroup::Ptr& waitGroup,
 	std::chrono::steady_clock::duration& cpuBoundWorkTime,
 	boost::asio::yield_context& yc,
-	boost::asio::io_context::strand& strand
+	IoStrand& strand
 )
 {
 	try {

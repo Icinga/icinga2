@@ -291,7 +291,7 @@ public:
 	 * @param yc Yield context that is used for waiting.
 	 * @param strand Strand the caller is running on, used for synchronization.
 	 */
-	void StartCpuBoundWork(boost::asio::yield_context yc, boost::asio::io_context::strand& strand)
+	void StartCpuBoundWork(boost::asio::yield_context yc, IoStrand& strand)
 	{
 		m_CpuBoundWork.emplace(yc, strand);
 	}
