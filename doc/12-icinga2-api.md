@@ -305,12 +305,6 @@ Available permissions that are not bound to specific URL endpoints:
   ------------------------------|------------
   filter-expression             | Allows the user to provide their own [advanced filter expressions](12-icinga2-api.md#icinga2-api-advanced-filters).
 
-!!! warning
-
-    The `filter-expression` permission was introduced in v2.16.2 and is only enforced if the
-    [`enforce_filter_expression_permission` attribute of `ApiListener`](09-object-types.md#objecttype-apilistener)
-    is set to `true`. For compatibility reasons, this will not be enforced by default until v2.17.
-
 The required actions or types can be replaced by using a wildcard match ("\*").
 
 
@@ -452,10 +446,6 @@ be defined once in the provided string value.
     In order to use these advanced filters, the `ApiUser` must be granted the `filter-expression` permission,
     which should only be done for trusted users. The evaluation happens in the main Icinga 2 worker process and may be
     abused for denial-of-service attacks, potentially crashing the Icinga 2 daemon.
-
-    Note that before v2.17, this permission is not enforced by default but only if the
-    [`enforce_filter_expression_permission` attribute of `ApiListener`](09-object-types.md#objecttype-apilistener)
-    is set accordingly.
 
 > **Note**
 >
