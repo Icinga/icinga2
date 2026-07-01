@@ -156,7 +156,8 @@ zypper ref
     Don't forget to fill in the username and password section with your credentials in the local .repo file.
 
 ```bash
-wget https://packages.icinga.com/subscription/amazon/ICINGA-release.repo -O /etc/yum.repos.d/ICINGA-release.repo
+dnf install spal-release
+dnf install nagios-plugins-all
 ```
 
 The packages for **Amazon Linux 2** depend on other packages which are distributed
