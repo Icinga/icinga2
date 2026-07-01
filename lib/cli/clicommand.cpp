@@ -96,6 +96,11 @@ bool CLICommand::IsDeprecated() const
 	return false;
 }
 
+bool CLICommand::NeedsRLimitAdjustment() const
+{
+	return false;
+}
+
 std::mutex& CLICommand::GetRegistryMutex()
 {
 	static std::mutex mtx;
