@@ -175,6 +175,10 @@ endif()
 
 find_package(Boost ${BOOST_MIN_VERSION} COMPONENTS coroutine context date_time filesystem iostreams thread program_options regex REQUIRED)
 
+# Suppress only OpenSSL's own deprecation attributes (we must keep supporting
+# OpenSSL 1.0/1.1 API).
+add_compile_definitions(OPENSSL_SUPPRESS_DEPRECATED)
+
 # Boost.Coroutine2 (the successor of Boost.Coroutine)
 # (1) doesn't even exist in old Boost versions and
 # (2) isn't supported by ASIO, yet.
