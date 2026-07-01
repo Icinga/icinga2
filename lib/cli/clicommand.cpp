@@ -334,7 +334,7 @@ void CLICommand::ShowCommands(int argc, char **argv, po::options_description *vi
 			goto complete_option;
 		}
 
-		odesc = visibleDesc->find_nothrow(aname, false);
+		odesc = visibleDesc->find_nothrow(aname.GetData(), false);
 
 		if (!odesc)
 			return;
