@@ -3,6 +3,7 @@
 
 if(MSVC)
   set(WindowsSources icinga.rc)
+  list(APPEND icinga_app_SOURCES app.manifest)
 else()
   set(WindowsSources "")
 endif()
