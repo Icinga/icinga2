@@ -438,7 +438,7 @@ incomplete:
 					result = ExecuteScript(l_Session, command, scriptFrame.Sandboxed);
 				} catch (const ScriptError&) {
 					/* Re-throw the exception for the outside try-catch block. */
-					boost::rethrow_exception(boost::current_exception());
+					throw;
 				} catch (const std::exception& ex) {
 					Log(LogCritical, "ConsoleCommand")
 						<< "HTTP query failed: " << ex.what();
