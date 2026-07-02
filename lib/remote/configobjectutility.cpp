@@ -235,7 +235,7 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 				Log(LogNotice, "ConfigObjectUtility")
 					<< "Failed to commit config item '" << fullName << "'. Aborting and removing config path '" << path << "'.";
 
-				for (const boost::exception_ptr& ex : upq.GetExceptions()) {
+				for (const std::exception_ptr& ex : upq.GetExceptions()) {
 					errors->Add(DiagnosticInformation(ex, false));
 
 					if (diagnosticInformation)
@@ -256,7 +256,7 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 				Log(LogNotice, "ConfigObjectUtility")
 					<< "Failed to activate config object '" << fullName << "'. Aborting and removing config path '" << path << "'.";
 
-				for (const boost::exception_ptr& ex : upq.GetExceptions()) {
+				for (const std::exception_ptr& ex : upq.GetExceptions()) {
 					errors->Add(DiagnosticInformation(ex, false));
 
 					if (diagnosticInformation)

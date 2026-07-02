@@ -9,7 +9,6 @@
 #include "base/ringbuffer.hpp"
 #include "base/logger.hpp"
 #include <boost/thread/thread.hpp>
-#include <boost/exception_ptr.hpp>
 #include <condition_variable>
 #include <mutex>
 #include <queue>
@@ -52,7 +51,7 @@ bool operator<(const Task& a, const Task& b);
 class WorkQueue
 {
 public:
-	typedef std::function<void (boost::exception_ptr)> ExceptionCallback;
+	using ExceptionCallback = std::function<void(std::exception_ptr)>;
 
 	WorkQueue(size_t maxItems = 0, int threadCount = 1, LogSeverity statsLogLevel = LogInformation);
 	~WorkQueue();
@@ -113,7 +112,7 @@ public:
 	void SetExceptionCallback(const ExceptionCallback& callback);
 
 	bool HasExceptions() const;
-	std::vector<boost::exception_ptr> GetExceptions() const;
+	std::vector<std::exception_ptr> GetExceptions() const;
 	void ReportExceptions(const String& facility, bool verbose = false) const;
 
 protected:
@@ -137,7 +136,7 @@ private:
 	std::priority_queue<Task, std::deque<Task> > m_Tasks;
 	int m_NextTaskID{0};
 	ExceptionCallback m_ExceptionCallback;
-	std::vector<boost::exception_ptr> m_Exceptions;
+	std::vector<std::exception_ptr> m_Exceptions;
 	Timer::Ptr m_StatusTimer;
 	double m_StatusTimerTimeout;
 	LogSeverity m_StatsLogLevel;

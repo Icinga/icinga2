@@ -76,7 +76,7 @@ void IcingaDB::Start(bool runtimeCreated)
 	m_ConfigDumpInProgress = false;
 	m_ConfigDumpDone = false;
 
-	m_WorkQueue.SetExceptionCallback([this](boost::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
+	m_WorkQueue.SetExceptionCallback([this](std::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
 
 	RedisConnInfo::ConstPtr connInfo = GetRedisConnInfo();
 
@@ -130,7 +130,7 @@ void IcingaDB::Start(bool runtimeCreated)
 	m_PendingItemsThread = std::thread([this, keepAlive] { PendingItemsThreadProc(); });
 }
 
-void IcingaDB::ExceptionHandler(boost::exception_ptr exp)
+void IcingaDB::ExceptionHandler(std::exception_ptr exp)
 {
 	Log(LogCritical, "IcingaDB", "Exception during redis query. Verify that Redis is operational.");
 

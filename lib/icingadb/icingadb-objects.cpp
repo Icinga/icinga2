@@ -369,9 +369,9 @@ void IcingaDB::UpdateAllConfigObjects()
 		upqObjectType.Join();
 
 		if (upqObjectType.HasExceptions()) {
-			for (boost::exception_ptr exc : upqObjectType.GetExceptions()) {
+			for (std::exception_ptr exc : upqObjectType.GetExceptions()) {
 				if (exc) {
-					boost::rethrow_exception(exc);
+					std::rethrow_exception(exc);
 				}
 			}
 		}
@@ -512,10 +512,10 @@ void IcingaDB::UpdateAllConfigObjects()
 	upq.Join();
 
 	if (upq.HasExceptions()) {
-		for (boost::exception_ptr exc : upq.GetExceptions()) {
+		for (std::exception_ptr exc : upq.GetExceptions()) {
 			try {
 				if (exc) {
-					boost::rethrow_exception(exc);
+					std::rethrow_exception(exc);
 			}
 			} catch(const std::exception& e) {
 				Log(LogCritical, "IcingaDB")

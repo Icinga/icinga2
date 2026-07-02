@@ -83,7 +83,7 @@ void InfluxdbCommonWriter::Resume()
 		<< "'" << GetName() << "' resumed.";
 
 	/* Register exception handler for WQ tasks. */
-	m_WorkQueue.SetExceptionCallback([this](boost::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
+	m_WorkQueue.SetExceptionCallback([this](std::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
 
 	/* Setup timer for periodically flushing m_DataBuffer */
 	m_FlushTimer = Timer::Create();
@@ -135,7 +135,7 @@ void InfluxdbCommonWriter::AssertOnWorkQueue()
 	ASSERT(m_WorkQueue.IsWorkerThread());
 }
 
-void InfluxdbCommonWriter::ExceptionHandler(boost::exception_ptr exp)
+void InfluxdbCommonWriter::ExceptionHandler(std::exception_ptr exp)
 {
 	Log(LogCritical, GetReflectionType()->GetName(), "Exception during InfluxDB operation: Verify that your backend is operational!");
 
