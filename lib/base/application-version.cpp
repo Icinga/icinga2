@@ -2,17 +2,31 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "base/application.hpp"
-#include "icinga-version.h"
-#include "icinga-spec-version.h"
+#include "config.h"
 
 using namespace icinga;
 
 String Application::GetAppVersion()
 {
-	return VERSION;
+	return ICINGA_VERSION;
+}
+
+bool Application::GetAppIncludePackageInfo()
+{
+	return ICINGA2_INCLUDE_PACKAGE_INFO;
 }
 
 String Application::GetAppPackageVersion()
 {
-	return SPEC_VERSION;
+	return ICINGA_PACKAGE_VERSION;
+}
+
+String Application::GetAppPackageRevision()
+{
+	return ICINGA_PACKAGE_REVISION;
+}
+
+String Application::GetAppPackageVendor()
+{
+	return ICINGA_PACKAGE_VENDOR;
 }
