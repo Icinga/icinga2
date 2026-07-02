@@ -5,13 +5,14 @@
 #define INFLUXDBCOMMONWRITER_H
 
 #include "perfdata/influxdbcommonwriter-ti.hpp"
+#include "base/atomic.hpp"
 #include "icinga/checkable.hpp"
 #include "base/configobject.hpp"
 #include "base/perfdatavalue.hpp"
 #include "base/workqueue.hpp"
 #include "remote/url.hpp"
 #include "perfdata/perfdatawriterconnection.hpp"
-#include <atomic>
+#include <cstddef>
 
 namespace icinga
 {
@@ -49,7 +50,7 @@ private:
 	std::atomic_bool m_FlushTimerInQueue{false};
 	WorkQueue m_WorkQueue{10000000, 1};
 	std::vector<String> m_DataBuffer;
-	std::atomic_size_t m_DataBufferSize{0};
+	Atomic<size_t> m_DataBufferSize {0};
 	Shared<boost::asio::ssl::context>::Ptr m_SslContext;
 	PerfdataWriterConnection::Ptr m_Connection;
 
