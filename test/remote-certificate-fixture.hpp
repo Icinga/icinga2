@@ -95,7 +95,7 @@ private:
 	static inline std::vector<String> m_CaFixtures;
 
 	static void AddCaFixture(const String& caFixtureName);
-	static void AddCertFixture(const String& cn, const String& caFixture, const String& certFixture);
+	static void AddCertFixture(const String& name, const String& caFixture, const String& certFixture);
 };
 
 } // namespace icinga
