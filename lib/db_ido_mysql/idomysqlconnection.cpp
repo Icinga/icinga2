@@ -722,15 +722,16 @@ String IdoMysqlConnection::Escape(const String& s)
 	String utf8s = Utility::ValidateUTF8(s);
 
 	size_t length = utf8s.GetLength();
-	auto *to = new char[utf8s.GetLength() * 2 + 1];
+	std::vector<char> to(length * 2 + 1);
 
-	m_Mysql->real_escape_string(&m_Connection, to, utf8s.CStr(), length);
+    m_Mysql->real_escape_string(
+        &m_Connection,
+        to.data(),
+        utf8s.CStr(),
+        length
+    );
 
-	String result = String(to);
-
-	delete [] to;
-
-	return result;
+	return String(to.data());
 }
 
 Dictionary::Ptr IdoMysqlConnection::FetchRow(const IdoMysqlResult& result)
