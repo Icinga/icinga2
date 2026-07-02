@@ -28,6 +28,7 @@ set(icinga_SOURCES
   i2-icinga.hpp icinga-itl.cpp
   apiactions.cpp apiactions.hpp
   apievents.cpp apievents.hpp
+  apply-utility.cpp apply-utility.hpp
   checkable.cpp checkable.hpp checkable-ti.hpp
   checkable-check.cpp checkable-comment.cpp checkable-dependency.cpp
   checkable-downtime.cpp checkable-event.cpp checkable-flapping.cpp
