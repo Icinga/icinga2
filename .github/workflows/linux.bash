@@ -8,9 +8,7 @@ CMAKE_OPTS=()
 SCL_ENABLE_GCC=()
 # -Wstringop-overflow is notorious for false positives and has been a problem for years.
 # See: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=88443
-# -Wtemplate-id-cdtor leaks from using the generated headers. We should reenable this once
-# we're considering moving to C++20 and/or the -ti.hpp files are generated differently.
-WARN_FLAGS="-Wall -Wextra -Wno-template-id-cdtor -Wno-stringop-overflow"
+WARN_FLAGS="-Wall -Wextra -Wno-stringop-overflow"
 
 # amazonlinux:2 has a really old GNU bison (3.0.4), which still emits register storage
 # specifiers, that even the only slightly more modern compiler warns that C++17 does not
@@ -45,23 +43,28 @@ case "$DISTRO" in
 
   amazonlinux:2)
     amazon-linux-extras install -y epel
-    yum install -y bison ccache cmake3 gcc-c++ flex ninja-build system-rpm-config \
+    yum install -y bison ccache cmake3 gcc10-c++ flex ninja-build system-rpm-config \
       {libedit,mariadb,ncurses,openssl,postgresql,systemd}-devel
 
-    yum install -y bzip2 tar wget
-    wget https://archives.boost.io/release/1.69.0/source/boost_1_69_0.tar.bz2
-    tar -xjf boost_1_69_0.tar.bz2
+    # TODO: remove this and use this instead:
+    # https://git.icinga.com/packages/special/icinga-boost/-/merge_requests/1
+    yum install -y bzip2 gcc-c++ tar wget
+    wget https://archives.boost.io/release/1.74.0/source/boost_1_74_0.tar.bz2
+    tar -xjf boost_1_74_0.tar.bz2
 
     (
-      cd boost_1_69_0
+      cd boost_1_74_0
       ./bootstrap.sh --with-libraries=context,coroutine,date_time,filesystem,iostreams,program_options,regex,system,test,thread
       ./b2 define=BOOST_COROUTINES_NO_DEPRECATION_WARNING
     )
 
     ln -vs /usr/bin/cmake3 /usr/local/bin/cmake
     ln -vs /usr/bin/ninja-build /usr/local/bin/ninja
-    CMAKE_OPTS+=(-DBOOST_{INCLUDEDIR=/boost_1_69_0,LIBRARYDIR=/boost_1_69_0/stage/lib})
-    export LD_LIBRARY_PATH=/boost_1_69_0/stage/lib
+
+    CMAKE_OPTS+=(-DBOOST_{INCLUDEDIR=/boost_1_74_0,LIBRARYDIR=/boost_1_74_0/stage/lib})
+    CMAKE_OPTS+=(-DCMAKE_CXX_COMPILER=gcc10-g++ -DCMAKE_C_COMPILER=gcc10-gcc)
+
+    export LD_LIBRARY_PATH=/boost_1_74_0/stage/lib
     ;;
 
   amazonlinux:20*)
@@ -81,6 +84,29 @@ case "$DISTRO" in
       {boost,libedit,mariadb,ncurses,openssl,postgresql,systemd,protobuf-lite}-devel
     ;;
 
+  *suse*:15.*)
+    zypper in -y --allow-downgrade bison ccache cmake flex gcc14-c++ ninja rpm-config-SUSE \
+      {lib{edit,mariadb,openssl},ncurses,postgresql,systemd,protobuf}-devel \
+      libboost_{context,coroutine,filesystem,iostreams,program_options,regex,system,test,thread}-devel
+
+    CMAKE_OPTS+=(-DCMAKE_CXX_COMPILER=g++-14 -DCMAKE_C_COMPILER=gcc-14)
+
+    # TODO: remove this and use this instead:
+    # https://git.icinga.com/packages/special/icinga-boost/-/merge_requests/1
+    zypper in -y --allow-downgrade bzip2 gcc-c++ tar wget
+    wget https://archives.boost.io/release/1.74.0/source/boost_1_74_0.tar.bz2
+    tar -xjf boost_1_74_0.tar.bz2
+
+    (
+      cd boost_1_74_0
+      ./bootstrap.sh --with-libraries=context,coroutine,date_time,filesystem,iostreams,program_options,regex,system,test,thread
+      ./b2 define=BOOST_COROUTINES_NO_DEPRECATION_WARNING
+    )
+
+    CMAKE_OPTS+=(-DBOOST_{INCLUDEDIR=/boost_1_74_0,LIBRARYDIR=/boost_1_74_0/stage/lib})
+    export LD_LIBRARY_PATH=/boost_1_74_0/stage/lib
+    ;;
+
   *suse*)
     zypper in -y --allow-downgrade bison ccache cmake flex gcc-c++ ninja rpm-config-SUSE \
       {lib{edit,mariadb,openssl},ncurses,postgresql,systemd,protobuf}-devel \
@@ -96,15 +122,16 @@ case "$DISTRO" in
         # Our Protobuf package on RHEL 8 is built with GCC 13, and since the ABI is not compatible with GCC 8,
         # we need to enable the SCL repository and install the GCC 13 packages to be able to link against it.
         SCL_ENABLE_GCC=(scl enable gcc-toolset-13 --)
-        dnf install -y gcc-toolset-13-gcc-c++ gcc-toolset-13-annobin-plugin-gcc
+        dnf install -y boost1.78-devel gcc-toolset-13-gcc-c++ gcc-toolset-13-annobin-plugin-gcc
         ;;
       *)
         dnf config-manager --enable crb
+        dnf install -y boost-devel
         ;;
     esac
 
     dnf install -y bison ccache cmake gcc-c++ flex ninja-build redhat-rpm-config \
-      {boost,bzip2,libedit,mariadb,ncurses,openssl,postgresql,systemd,xz,libzstd}-devel
+      {bzip2,libedit,mariadb,ncurses,openssl,postgresql,systemd,xz,libzstd}-devel
 
     # Rocky Linux 8 and 9 don't have a recent enough Protobuf compiler for OTel, so we need to add
     # our repository to install the pre-built Protobuf devel package.

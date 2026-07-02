@@ -245,8 +245,9 @@ void printErrorInfo(unsigned long err)
 		NULL, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&mBuf, 0, NULL))
 		std::wcout << "Failed to format error message, last error was: " << err << '\n';
 	else {
-		boost::trim_right(std::wstring(mBuf));
-		std::wcout << mBuf << std::endl;
+		std::wstring trimmed(mBuf);
+		boost::trim_right(trimmed);
+		std::wcout << trimmed << std::endl;
 	}
 }
 

@@ -208,18 +208,21 @@ static int check_network(std::vector<nInterface>& vInterfaces)
 
 	PDH_FMT_COUNTERVALUE_ITEM *pDisplayValuesIn = NULL, *pDisplayValuesOut = NULL;
 
+	const WCHAR *perfIn = L"\\Network Interface(*)\\Bytes Received/sec";
+	const WCHAR *perfOut = L"\\Network Interface(*)\\Bytes Sent/sec";
+	DWORD dwBufferSizeIn = 0;
+	DWORD dwBufferSizeOut = 0;
+
 	PDH_HQUERY phQuery;
 	PDH_STATUS err = PdhOpenQuery(NULL, NULL, &phQuery);
 	if (!SUCCEEDED(err))
 		goto die;
 
-	const WCHAR *perfIn = L"\\Network Interface(*)\\Bytes Received/sec";
 	PDH_HCOUNTER phCounterIn;
 	err = PdhAddEnglishCounter(phQuery, perfIn, NULL, &phCounterIn);
 	if (!SUCCEEDED(err))
 		goto die;
 
-	const WCHAR *perfOut = L"\\Network Interface(*)\\Bytes Sent/sec";
 	PDH_HCOUNTER phCounterOut;
 	err = PdhAddEnglishCounter(phQuery, perfOut, NULL, &phCounterOut);
 	if (!SUCCEEDED(err))
@@ -248,14 +251,12 @@ static int check_network(std::vector<nInterface>& vInterfaces)
 		std::wcout << L"Creating formatted counter arrays" << '\n';
 
 	DWORD dwItemCount;
-	DWORD dwBufferSizeIn = 0;
 	err = PdhGetFormattedCounterArray(phCounterIn, PDH_FMT_LONG, &dwBufferSizeIn, &dwItemCount, pDisplayValuesIn);
 	if (err == PDH_MORE_DATA || SUCCEEDED(err))
 		pDisplayValuesIn = reinterpret_cast<PDH_FMT_COUNTERVALUE_ITEM*>(new BYTE[dwItemCount*dwBufferSizeIn]);
 	else
 		goto die;
 
-	DWORD dwBufferSizeOut = 0;
 	err = PdhGetFormattedCounterArray(phCounterOut, PDH_FMT_LONG, &dwBufferSizeOut, &dwItemCount, pDisplayValuesOut);
 	if (err == PDH_MORE_DATA || SUCCEEDED(err))
 		pDisplayValuesOut = reinterpret_cast<PDH_FMT_COUNTERVALUE_ITEM*>(new BYTE[dwItemCount*dwBufferSizeIn]);

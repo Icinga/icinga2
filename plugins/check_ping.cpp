@@ -125,7 +125,7 @@ static int parseArguments(int ac, WCHAR **av, po::variables_map& vm, printInfoSt
 	}
 
 	if (vm.count("version")) {
-		std::cout << progName << " Version: " << VERSION << '\n';
+		std::wcout << progName << L" Version: " << VERSION << L'\n';
 		return 0;
 	}
 
@@ -290,18 +290,19 @@ static int check_ping4(const printInfoStruct& pi, response& response)
 	if (l_Debug)
 		std::wcout << L"Creating Icmp File\n";
 
+	void *repBuf = nullptr;
+	unsigned int rtt = 0;
+	int num = pi.num;
+	DWORD dwRepSize = sizeof(ICMP_ECHO_REPLY) + 8;
+
 	HANDLE hIcmp;
 	if ((hIcmp = IcmpCreateFile()) == INVALID_HANDLE_VALUE)
 		goto die;
 
-	DWORD dwRepSize = sizeof(ICMP_ECHO_REPLY) + 8;
-	void *repBuf = reinterpret_cast<VOID *>(new BYTE[dwRepSize]);
+	repBuf = reinterpret_cast<VOID *>(new BYTE[dwRepSize]);
 
 	if (repBuf == NULL)
 		goto die;
-
-	unsigned int rtt = 0;
-	int num = pi.num;
 
 	LARGE_INTEGER frequency;
 	QueryPerformanceFrequency(&frequency);
