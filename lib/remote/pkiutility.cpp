@@ -345,9 +345,17 @@ String PkiUtility::GetCertificateInformation(const std::shared_ptr<X509>& cert) 
 
 	pre = "\n Serial:              ";
 	BIO_write(out, pre.CStr(), pre.GetLength());
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+	const ASN1_INTEGER *asn1_serial = X509_get0_serialNumber(cert.get());
+	int serial_len = ASN1_STRING_length(asn1_serial);
+	const unsigned char *serial_data = ASN1_STRING_get0_data(asn1_serial);
+#else /* OPENSSL_VERSION_NUMBER >= 0x10100000L */
 	ASN1_INTEGER *asn1_serial = X509_get_serialNumber(cert.get());
-	for (int i = 0; i < asn1_serial->length; i++) {
-		BIO_printf(out, "%02x%c", asn1_serial->data[i], ((i + 1 == asn1_serial->length) ? '\n' : ':'));
+	int serial_len = asn1_serial->length;
+	const unsigned char *serial_data = asn1_serial->data;
+#endif /* OPENSSL_VERSION_NUMBER >= 0x10100000L */
+	for (int i = 0; i < serial_len; ++i) {
+		BIO_printf(out, "%02x%c", serial_data[i], i + 1 == serial_len ? '\n' : ':');
 	}
 
 	pre = "\n Signature Algorithm: " + GetSignatureAlgorithm(cert);

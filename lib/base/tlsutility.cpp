@@ -403,7 +403,7 @@ void AddCRLToSSLContext(X509_STORE *x509_store, const String& crlPath)
 	X509_VERIFY_PARAM_free(param);
 }
 
-static String GetX509NameCN(X509_NAME *name)
+static String GetX509NameCN(X509NamePtr name)
 {
 	char errbuf[256];
 	char buffer[256];
@@ -598,8 +598,25 @@ int MakeX509CSR(
 		X509_REQ_set_version(req, 0);
 		X509_REQ_set_pubkey(req, key);
 
-		X509_NAME *name = X509_REQ_get_subject_name(req);
-		X509_NAME_add_entry_by_txt(name, "CN", MBSTRING_ASC, (unsigned char *)cn.CStr(), -1, -1, 0);
+		std::unique_ptr<X509_NAME, decltype(&X509_NAME_free)> name{X509_NAME_new(), &X509_NAME_free};
+		if (!name) {
+			unsigned long err = ERR_peek_error();
+			BOOST_THROW_EXCEPTION(openssl_error()
+				<< boost::errinfo_api_function("X509_NAME_new")
+				<< errinfo_openssl_error(err));
+		}
+
+		X509_NAME_add_entry_by_txt(name.get(), "CN", MBSTRING_ASC, (unsigned char *)cn.CStr(), -1, -1, 0);
+
+		if (!X509_REQ_set_subject_name(req, name.get())) {
+			unsigned long err = ERR_peek_error();
+			ERR_error_string_n(err, errbuf, sizeof errbuf);
+			Log(LogCritical, "SSL")
+				<< "Error while setting CSR subject name: " << err << ", \"" << errbuf << "\"";
+			BOOST_THROW_EXCEPTION(openssl_error()
+				<< boost::errinfo_api_function("X509_REQ_set_subject_name")
+				<< errinfo_openssl_error(err));
+		}
 
 		if (!ca) {
 			String san = "DNS:" + cn;
@@ -652,8 +669,8 @@ int MakeX509CSR(
 
 std::shared_ptr<X509> CreateCert(
 	EVP_PKEY* pubkey,
-	X509_NAME* subject,
-	X509_NAME* issuer,
+	X509NamePtr subject,
+	X509NamePtr issuer,
 	EVP_PKEY* cakey,
 	long validFrom,
 	long validFor,
@@ -746,7 +763,7 @@ String GetIcingaCADir()
 	return Configuration::DataDir + "/ca";
 }
 
-std::shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509_NAME *subject, long validFrom, long validFor, bool ca)
+std::shared_ptr<X509> CreateCertIcingaCA(EVP_PKEY *pubkey, X509NamePtr subject, long validFrom, long validFor, bool ca)
 {
 	char errbuf[256];
 
