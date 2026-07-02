@@ -297,6 +297,12 @@ void ApiListener::Start(bool runtimeCreated)
 	m_Timer->Start();
 	m_Timer->Reschedule(0);
 
+	m_DeletedRuntimeObjectsTimer = Timer::Create();
+	m_DeletedRuntimeObjectsTimer->OnTimerExpired.connect([this](const Timer* const&) { PruneDeletedRuntimeObjects(); });
+	m_DeletedRuntimeObjectsTimer->SetInterval(15 * 60);
+	m_DeletedRuntimeObjectsTimer->Start();
+	m_DeletedRuntimeObjectsTimer->Reschedule(0);
+
 	m_ReconnectTimer = Timer::Create();
 	m_ReconnectTimer->OnTimerExpired.connect([this](const Timer * const&) { ApiReconnectTimerHandler(); });
 	m_ReconnectTimer->SetInterval(10);
@@ -379,6 +385,7 @@ void ApiListener::Stop(bool runtimeDeleted)
 	m_CleanupCertificateRequestsTimer->Stop(true);
 	m_AuthorityTimer->Stop(true);
 	m_ReconnectTimer->Stop(true);
+	m_DeletedRuntimeObjectsTimer->Stop(true);
 	m_Timer->Stop(true);
 	m_RenewOwnCertTimer->Stop(true);
 
