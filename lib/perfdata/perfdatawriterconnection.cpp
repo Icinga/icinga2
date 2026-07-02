@@ -62,11 +62,11 @@ bool PerfdataWriterConnection::IsStopped() const
 
 void PerfdataWriterConnection::Disconnect()
 {
-	if (m_Stopped.exchange(true, std::memory_order_relaxed)) {
+	if (m_Stopped.exchange(true)) {
 		return;
 	}
 
-	std::promise<void> promise;
+	SyncResult<void> ret;
 
 	IoEngine::SpawnCoroutine(m_Strand, [&](boost::asio::yield_context yc) {
 		try {
@@ -76,9 +76,13 @@ void PerfdataWriterConnection::Disconnect()
 			 * completion.
 			 */
 			std::visit(
-				[](const auto& stream) {
+				[&](const auto& stream) {
 					if (stream->lowest_layer().is_open()) {
-						stream->lowest_layer().cancel();
+						if (m_Connected) {
+							stream->lowest_layer().cancel();
+						} else {
+							stream->lowest_layer().close();
+						}
 					}
 				},
 				m_Stream
@@ -86,13 +90,13 @@ void PerfdataWriterConnection::Disconnect()
 			m_ReconnectTimer.cancel();
 
 			Disconnect(std::move(yc));
-			promise.set_value();
+			ret.SetValue();
 		} catch (const std::exception& ex) {
-			promise.set_exception(std::current_exception());
+			ret.SetException(std::current_exception());
 		}
 	});
 
-	promise.get_future().get();
+	ret.Get();
 }
 
 AsioTlsOrTcpStream PerfdataWriterConnection::MakeStream() const
@@ -133,6 +137,10 @@ void PerfdataWriterConnection::EnsureConnected(const boost::asio::yield_context&
 			::Connect(stream->lowest_layer(), m_Host, m_Port, yc);
 
 			if constexpr (std::is_same_v<std::decay_t<decltype(stream)>, Shared<AsioTlsStream>::Ptr>) {
+				if (m_Stopped) {
+					BOOST_THROW_EXCEPTION(Stopped{});
+				}
+
 				using type = boost::asio::ssl::stream_base::handshake_type;
 
 				stream->next_layer().async_handshake(type::client, yc);
@@ -156,7 +164,7 @@ void PerfdataWriterConnection::EnsureConnected(const boost::asio::yield_context&
 
 void PerfdataWriterConnection::Disconnect(boost::asio::yield_context yc)
 {
-	if (!m_Connected.exchange(false, std::memory_order_relaxed)) {
+	if (!m_Connected.exchange(false)) {
 		return;
 	}
 
@@ -165,8 +173,9 @@ void PerfdataWriterConnection::Disconnect(boost::asio::yield_context yc)
 			if constexpr (std::is_same_v<std::decay_t<decltype(stream)>, Shared<AsioTlsStream>::Ptr>) {
 				stream->GracefulDisconnect(m_Strand, yc);
 			} else {
-				stream->lowest_layer().shutdown(boost::asio::socket_base::shutdown_both);
-				stream->lowest_layer().close();
+				boost::system::error_code ec;
+				stream->lowest_layer().shutdown(boost::asio::socket_base::shutdown_both, ec);
+				stream->lowest_layer().close(ec);
 			}
 		},
 		m_Stream
