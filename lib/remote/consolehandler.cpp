@@ -6,6 +6,7 @@
 #include "remote/httputility.hpp"
 #include "remote/filterutility.hpp"
 #include "config/configcompiler.hpp"
+#include "base/application.hpp"
 #include "base/configwriter.hpp"
 #include "base/scriptglobal.hpp"
 #include "base/logger.hpp"
@@ -104,8 +105,7 @@ bool ConsoleHandler::HandleRequest(
 	bool sandboxed = HttpUtility::GetLastParameter(params, "sandboxed");
 
 	ConfigObjectsSharedLock lock (std::try_to_lock);
-
-	if (!lock) {
+	if (!lock || Application::IsRestarting() || Application::IsShuttingDown()) {
 		HttpUtility::SendJsonError(response, params, 503, "Icinga is reloading.");
 		return true;
 	}
