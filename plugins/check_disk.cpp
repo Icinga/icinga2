@@ -43,6 +43,7 @@ static int check_drives(std::vector<drive>& vDrives, std::vector<std::wstring>& 
 {
 	DWORD dwResult, dwSize = 0, dwVolumePathNamesLen = MAX_PATH + 1;
 	WCHAR szLogicalDrives[1024], szVolumeName[MAX_PATH], *szVolumePathNames = NULL;
+	LPTSTR szSingleDrive = szLogicalDrives;
 	HANDLE hVolume = NULL;
 	std::wstring wsLogicalDrives;
 	size_t volumeNameEnd = 0;
@@ -58,7 +59,6 @@ static int check_drives(std::vector<drive>& vDrives, std::vector<std::wstring>& 
 	if (l_Debug)
 		std::wcout << "Splitting string into single drive names\n";
 
-	LPTSTR szSingleDrive = szLogicalDrives;
 	while (*szSingleDrive) {
 		std::wstring drname = szSingleDrive;
 		sDrives.insert(drname);
