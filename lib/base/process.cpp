@@ -597,10 +597,10 @@ bool Process::GetAdjustPriority() const
 void Process::IOThreadProc(int tid)
 {
 #ifdef _WIN32
-	HANDLE *handles = nullptr;
-	HANDLE *fhandles = nullptr;
+	std::vector<HANDLE> handles;
+	std::vector<HANDLE> fhandles;
 #else /* _WIN32 */
-	pollfd *pfds = nullptr;
+	std::vector<pollfd> pfds;
 #endif /* _WIN32 */
 	int count = 0;
 	double now;
@@ -617,13 +617,13 @@ void Process::IOThreadProc(int tid)
 
 			count = 1 + l_Processes[tid].size();
 #ifdef _WIN32
-			handles = reinterpret_cast<HANDLE *>(realloc(handles, sizeof(HANDLE) * count));
-			fhandles = reinterpret_cast<HANDLE *>(realloc(fhandles, sizeof(HANDLE) * count));
+			handles.resize(count);
+			fhandles.resize(count);
 
 			fhandles[0] = l_Events[tid];
 
 #else /* _WIN32 */
-			pfds = reinterpret_cast<pollfd *>(realloc(pfds, sizeof(pollfd) * count));
+			pfds.resize(count);
 
 			pfds[0].fd = l_EventFDs[tid][0];
 			pfds[0].events = POLLIN;
@@ -670,9 +670,9 @@ void Process::IOThreadProc(int tid)
 		timeout *= 1000;
 
 #ifdef _WIN32
-		DWORD rc = WaitForMultipleObjects(count, fhandles, FALSE, timeout == -1 ? INFINITE : static_cast<DWORD>(timeout));
+		DWORD rc = WaitForMultipleObjects(count, fhandles.data(), FALSE, timeout == -1 ? INFINITE : static_cast<DWORD>(timeout));
 #else /* _WIN32 */
-		int rc = poll(pfds, count, timeout);
+		int rc = poll(pfds.data(), count, timeout);
 
 		if (rc < 0)
 			continue;
