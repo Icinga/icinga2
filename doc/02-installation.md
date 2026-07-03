@@ -158,15 +158,6 @@ zypper ref
 ```bash
 wget https://packages.icinga.com/subscription/amazon/ICINGA-release.repo -O /etc/yum.repos.d/ICINGA-release.repo
 ```
-
-The packages for **Amazon Linux 2** depend on other packages which are distributed
-as part of the [EPEL repository](https://fedoraproject.org/wiki/EPEL).
-
-```bash
-yum install epel-release
-```
-
-The packages for newer versions of Amazon Linux don't require additional repositories.
 <!-- {% endif %} -->
 
 <!-- {% if windows %} -->
@@ -327,14 +318,6 @@ zypper install --recommends monitoring-plugins-all
 <!-- {% if not icingaDocs %} -->
 #### Amazon Linux
 <!-- {% endif %} -->
-The packages for **Amazon Linux 2** depend on other packages which are distributed as part of the EPEL repository.
-
-```bash
-amazon-linux-extras install epel
-
-yum install nagios-plugins-all
-```
-
 Unfortunately newer versions of Amazon Linux don't provide those plugins, yet.
 <!-- {% endif %} -->
 
