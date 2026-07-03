@@ -25,7 +25,6 @@ jobs:
           # The "alpine:bash" image will be built below based on "alpine:3".
           - alpine:bash
 
-          - amazonlinux:2
           - amazonlinux:2023
 
           # Raspberry Pi OS is close enough to Debian to test just one of them.
