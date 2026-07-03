@@ -345,10 +345,8 @@ String PkiUtility::GetCertificateInformation(const std::shared_ptr<X509>& cert) 
 
 	pre = "\n Serial:              ";
 	BIO_write(out, pre.CStr(), pre.GetLength());
-	ASN1_INTEGER *asn1_serial = X509_get_serialNumber(cert.get());
-	for (int i = 0; i < asn1_serial->length; i++) {
-		BIO_printf(out, "%02x%c", asn1_serial->data[i], ((i + 1 == asn1_serial->length) ? '\n' : ':'));
-	}
+	i2a_ASN1_INTEGER(out, X509_get0_serialNumber(cert.get()));
+	BIO_write(out, "\n", 1);
 
 	pre = "\n Signature Algorithm: " + GetSignatureAlgorithm(cert);
 	BIO_write(out, pre.CStr(), pre.GetLength());
