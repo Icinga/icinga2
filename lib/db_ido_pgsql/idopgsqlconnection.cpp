@@ -97,7 +97,7 @@ void IdoPgsqlConnection::Resume()
 
 	SetConnected(false);
 
-	m_QueryQueue.SetExceptionCallback([this](boost::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
+	m_QueryQueue.SetExceptionCallback([this](std::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
 
 	/* Immediately try to connect on Resume() without timer. */
 	m_QueryQueue.Enqueue([this]() { Reconnect(); }, PriorityImmediate);
@@ -129,7 +129,7 @@ void IdoPgsqlConnection::Pause()
 		<< "'" << GetName() << "' paused.";
 }
 
-void IdoPgsqlConnection::ExceptionHandler(boost::exception_ptr exp)
+void IdoPgsqlConnection::ExceptionHandler(std::exception_ptr exp)
 {
 	Log(LogWarning, "IdoPgsqlConnection", "Exception during database operation: Verify that your database is operational!");
 
