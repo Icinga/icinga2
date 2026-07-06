@@ -173,7 +173,7 @@ BOOST_AUTO_TEST_CASE(static_certs_uptodate)
 }
 
 BOOST_FIXTURE_TEST_CASE(create_verify_ca, CertificateFixture,
-	*CTestProperties("FIXTURES_REQUIRED dirty_ssl_certs"))
+	*RequiresCertificate({}, "base_tlsutility"))
 {
 	auto cacert(GetX509Certificate(m_CaDir.string()+"/ca.crt"));
 	if constexpr (OPENSSL_VERSION_NUMBER >= 0x10100000L) {
@@ -198,7 +198,7 @@ BOOST_FIXTURE_TEST_CASE(create_verify_ca, CertificateFixture,
 }
 
 BOOST_FIXTURE_TEST_CASE(create_verify_leaf_certs, CertificateFixture,
-	*CTestProperties("FIXTURES_REQUIRED dirty_ssl_certs"))
+	*RequiresCertificate({"example.com"}, "base_tlsutility"))
 {
 	String caDir = m_CaDir.string();
 	String certsDir = m_CertsDir.string();
@@ -208,7 +208,7 @@ BOOST_FIXTURE_TEST_CASE(create_verify_leaf_certs, CertificateFixture,
 	BOOST_CHECK(IsCaUptodate(cacert.get()));
 	BOOST_CHECK_EQUAL(1, X509_verify(cacert.get(), caprivatekey.get())); // 1 == equal, 0 == unequal, -1 == error
 
-	auto certInfo = EnsureCertFor("example.com", true); // Generates example.com.{key,csr,crt} files.
+	auto certInfo = GetCertFor("example.com"); // Gets example.com.{key,csr,crt} files.
 
 	auto cert(GetX509Certificate(certInfo.crtFile));
 	if constexpr (OPENSSL_VERSION_NUMBER >= 0x10100000L) {
@@ -307,6 +307,28 @@ BOOST_FIXTURE_TEST_CASE(create_verify_leaf_certs, CertificateFixture,
 	BOOST_CHECK(VerifyCertificate(newCACert, newCert, String()));
 	// Verification should fail because the new leaf certificate was signed by the newly generated CA.
 	ASSERT_SIGNATURE_FAILURE(cacert, StringToCertificate(CertificateToString(newCert)));
+}
+
+BOOST_AUTO_TEST_CASE(binary_to_hex)
+{
+	using namespace std::string_view_literals;
+
+	// Helper to call with string_view and to cast from char to unsigned char.
+	auto f = [](std::string_view s) {
+		return BinaryToHex(reinterpret_cast<const unsigned char*>(s.data()), s.length());
+	};
+
+	// Hint: test data can be generated/verified with commands like this: printf ICINGA | xxd -p -c 0
+	BOOST_CHECK_EQUAL(f(""sv), "");
+	BOOST_CHECK_EQUAL(f("ICINGA"sv), "4943494e4741");
+	BOOST_CHECK_EQUAL(f("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"sv),
+		"6162636465666768696a6b6c6d6e6f707172737475767778797a4142434445464748494a4b4c4d4e4f505152535455565758595a");
+	BOOST_CHECK_EQUAL(f("handles\0correctly"sv), "68616e646c657300636f72726563746c79");
+	BOOST_CHECK_EQUAL(f("\0\0\0\0\0"sv), "0000000000");
+
+	// Long string of 10000 * 'D' (= 0x44) should become 10000 * '44' = 20000 * '4':
+	BOOST_CHECK_EQUAL(f(std::string(10000, 0x44)), std::string(20000, '4'));
+
 }
 
 BOOST_AUTO_TEST_SUITE_END()

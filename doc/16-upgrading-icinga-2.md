@@ -8,6 +8,63 @@ Specific version upgrades are described below. Please note that version
 updates are incremental. An upgrade from v2.6 to v2.8 requires to
 follow the instructions for v2.7 too.
 
+## Upgrading to v2.16.2, v2.15.4, or v2.14.9 <a id="upgrading-to-2-16-2"></a>
+
+### New `filter-expression` permission
+
+When using the Icinga 2 REST API, filter expressions are a powerful tool. However, that power can also be abused for
+denial-of-service attacks by authenticated users. Given that these filter expressions are Icinga 2 DSL expressions and
+their evaluation happens in the main Icinga 2 worker process, this may also crash the Icinga 2 daemon.
+
+In order to allow mitigating such problems, a new permission named `filter-expression` was added. **Before v2.17, this
+permission will not be enforced by default** due to the impact on existing installations. Nonetheless, we recommend
+reviewing your `ApiUser` configuration, explicitly allowing the new permission where necessary and enabling the
+enforcement of the permission using the [`enforce_filter_expression_permission` attribute of
+`ApiListener`](09-object-types.md#objecttype-apilistener). If an `ApiUser` makes use of the permission while the
+permission is not enforced yet, it will be logged. Thus, it is also possible to upgrade, observe the logs, grant the
+permission as needed or adapting API clients to avoid using filters if possible, and enable the enforcement at a later
+time.
+
+## Upgrading to v2.16 <a id="upgrading-to-2-16"></a>
+
+### Migrating from ElasticsearchWriter to OTLPMetricsWriter
+
+ElasticsearchWriter is deprecated in v2.16 and will be removed in v2.18. In case you are using Elasticsearch 9.2 or later,
+we suggest migrating to the new OTLPMetricsWriter as a replacement. The index data structure in Elasticsearch will be
+different though, so any third-party tools working with that data will need to be adapted as well.
+
+!!! info
+
+    The official Icinga 2 packages for Debian 11, Ubuntu 22.04 and Amazon Linux 2 are currently built without
+    OpenTelemetry support (`ICINGA2_WITH_OPENTELEMETRY=OFF`), so `OTLPMetricsWriter` is not
+    available there unless you build Icinga 2 with a newer Protobuf toolchain.
+
+### Deprecation of user-defined DSL Namespaces
+
+If you were previously using constructs like `namespace my_utils { ... }` in your config, we suggest
+replacing them with global functions and variables, since user-defined namespaces will be removed in v2.18.
+
+### Previously deprecated features
+
+Since these previously deprecated features are now scheduled for removal in v2.18, please switch to the listed
+alternatives:
+
+* `IdoMySqlConnection` and `IdoPgsqlConnection`: Please switch to Icinga DB.
+* `CompatLogger`: For detailed logging of state changes, use the [/v1/events API endpoint](https://icinga.com/docs/icinga-2/latest/doc/12-icinga2-api/#event-streams).
+* `ExternalCommandListener` and `LivestatusListener`: Please use the [Icinga 2 API](https://icinga.com/docs/icinga-2/latest/doc/12-icinga2-api/) instead.
+* Windows check-plugins (`check_*.exe`) and `CheckCommand`s: Please use our [PowerShell plugins](https://github.com/Icinga/icinga-powershell-plugins) instead.
+
+## Upgrading to v2.15.1, v2.14.7, or v2.13.13 <a id="upgrading-to-2-15-1"></a>
+
+These three versions include the same fix to the logrotate configuration in `/etc/logrotate.d/icinga2`. As this file is
+tracked as a configuration file by package managers, it may not be updated automatically if it was modified locally.
+After upgrading, make sure to check if there are any files with an extension like `.dpkg-dist` or `.rpmnew` next to it.
+If so, you need to incorporate the changes into your configuration manually.
+
+To verify that the fix was applied correctly, check the contents of `/etc/logrotate.d/icinga2`: If the file uses the
+command `"$DAEMON" internal signal --sig SIGHUP --pid "$pid"` (instead of `kill -HUP "$pid"`), it was upgraded
+correctly.
+
 ## Upgrading to v2.15 <a id="upgrading-to-2-15"></a>
 
 ### Icinga DB <a id="upgrading-to-2-15-icingadb"></a>

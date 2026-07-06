@@ -37,6 +37,7 @@ option(ICINGA2_WITH_LIVESTATUS "Build the Livestatus module" ${ICINGA2_MASTER})
 option(ICINGA2_WITH_NOTIFICATION "Build the notification module" ON)
 option(ICINGA2_WITH_PERFDATA "Build the perfdata module" ${ICINGA2_MASTER})
 option(ICINGA2_WITH_ICINGADB "Build the IcingaDB module" ${ICINGA2_MASTER})
+option(ICINGA2_WITH_OPENTELEMETRY "Build the OpenTelemetry integration module" ${ICINGA2_MASTER})
 
 option (USE_SYSTEMD
  "Configure icinga as native systemd service instead of a SysV initscript" OFF)
@@ -174,6 +175,10 @@ endif()
 
 find_package(Boost ${BOOST_MIN_VERSION} COMPONENTS coroutine context date_time filesystem iostreams thread program_options regex REQUIRED)
 
+# Suppress only OpenSSL's own deprecation attributes (we must keep supporting
+# OpenSSL 1.0/1.1 API).
+add_compile_definitions(OPENSSL_SUPPRESS_DEPRECATED)
+
 # Boost.Coroutine2 (the successor of Boost.Coroutine)
 # (1) doesn't even exist in old Boost versions and
 # (2) isn't supported by ASIO, yet.
@@ -207,14 +212,27 @@ set(HAVE_EDITLINE "${EDITLINE_FOUND}")
 find_package(Termcap)
 set(HAVE_TERMCAP "${TERMCAP_FOUND}")
 
+if(ICINGA2_WITH_OPENTELEMETRY)
+  # Newer Protobuf versions provide a CMake config package that we should prefer, since it implicitly
+  # links against all its dependencies (like absl, etc.) that would otherwise need to be linked manually.
+  # Thus, first try to find Protobuf in config mode and only fall back to module mode if that fails.
+  find_package(Protobuf CONFIG)
+  if(NOT Protobuf_FOUND)
+    # FindProtobuf.cmake in CMake versions < 3.31.0 is just broken and mixes up the Protobuf output directories
+    # and it doesn't even support to pass any PLUGIN_OPTIONS like "lite" to the protobuf_generate() function in
+    # order to generate code for the lite runtime without having to modify the proto files directly.
+    if(CMAKE_VERSION VERSION_LESS 3.31.0)
+      list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/third-party/cmake/protobuf")
+    endif()
+    find_package(Protobuf REQUIRED)
+  endif()
+  list(APPEND base_DEPS protobuf::libprotobuf-lite)
+endif()
+
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/lib
   ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR}/lib
 )
-
-if(UNIX OR CYGWIN)
-  list(APPEND base_OBJS $<TARGET_OBJECTS:execvpe>)
-endif()
 
 if(HAVE_SYSTEMD)
   list(APPEND base_DEPS systemd)
@@ -372,6 +390,7 @@ check_function_exists(backtrace_symbols HAVE_BACKTRACE_SYMBOLS)
 check_function_exists(pipe2 HAVE_PIPE2)
 check_function_exists(nice HAVE_NICE)
 check_function_exists(malloc_info HAVE_MALLOC_INFO)
+check_function_exists(pthread_create HAVE_PTHREAD_CREATE)
 check_function_exists(pthread_set_name_np HAVE_PTHREAD_SET_NAME_NP)
 check_function_exists(pthread_setname_np HAVE_PTHREAD_SETNAME_NP)
 check_library_exists(dl dladdr "dlfcn.h" HAVE_DLADDR)

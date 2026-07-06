@@ -96,11 +96,10 @@ private:
 
 REGISTER_URLHANDLER("/v1/test", UnitTestHandler);
 
-// clang-format off
 BOOST_FIXTURE_TEST_SUITE(remote_httpserverconnection, HttpServerConnectionFixture,
-	*CTestProperties("FIXTURES_REQUIRED ssl_certs")
+	*RequiresCertificate(TlsStreamFixture::RequiredCerts)
+	*boost::unit_test::label("network")
 	*boost::unit_test::label("http"))
-// clang-format on
 
 BOOST_AUTO_TEST_CASE(expect_100_continue)
 {
@@ -296,6 +295,7 @@ BOOST_AUTO_TEST_CASE(authenticate_error_wronguser)
 
 	BOOST_REQUIRE_EQUAL(response.version(), 11);
 	BOOST_REQUIRE_EQUAL(response.result(), http::status::unauthorized);
+	BOOST_REQUIRE(!response[http::field::www_authenticate].empty());
 	Dictionary::Ptr body = JsonDecode(response.body());
 	BOOST_REQUIRE(body);
 	BOOST_REQUIRE_EQUAL(body->Get("error"), 401);

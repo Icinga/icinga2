@@ -55,6 +55,14 @@ void IdoPgsqlConnection::OnConfigLoaded()
 	std::swap(m_Library, shimLibrary);
 }
 
+void IdoPgsqlConnection::OnAllConfigLoaded()
+{
+	ObjectImpl<IdoPgsqlConnection>::OnAllConfigLoaded();
+
+	Log(LogWarning, "IdoPgsqlConnection")
+		<< "This feature is DEPRECATED and will be removed in v2.18.";
+}
+
 void IdoPgsqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
 	DictionaryData nodes;
@@ -89,7 +97,7 @@ void IdoPgsqlConnection::Resume()
 
 	SetConnected(false);
 
-	m_QueryQueue.SetExceptionCallback([this](boost::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
+	m_QueryQueue.SetExceptionCallback([this](std::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
 
 	/* Immediately try to connect on Resume() without timer. */
 	m_QueryQueue.Enqueue([this]() { Reconnect(); }, PriorityImmediate);
@@ -121,7 +129,7 @@ void IdoPgsqlConnection::Pause()
 		<< "'" << GetName() << "' paused.";
 }
 
-void IdoPgsqlConnection::ExceptionHandler(boost::exception_ptr exp)
+void IdoPgsqlConnection::ExceptionHandler(std::exception_ptr exp)
 {
 	Log(LogWarning, "IdoPgsqlConnection", "Exception during database operation: Verify that your database is operational!");
 

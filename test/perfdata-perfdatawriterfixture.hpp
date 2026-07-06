@@ -96,7 +96,7 @@ object Host "h1" {
 		std::size_t unchangedCount = 0;
 		while(true){
 			ReceiveCheckResults(10, ServiceCritical, [&](const CheckResult::Ptr& cr) {
-				cr->GetPerformanceData()->Add(new PerfdataValue{GetRandomString("", 4096), 1});
+				cr->SetPerformanceData(new Array{new PerfdataValue{GetRandomString("", 4096), 1}});
 			});
 
 			if (std::chrono::steady_clock::now() - start >= timeout) {

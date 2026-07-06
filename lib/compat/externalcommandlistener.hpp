@@ -27,6 +27,8 @@ public:
 	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 protected:
+	void OnAllConfigLoaded() override;
+
 	void Start(bool runtimeCreated) override;
 	void Stop(bool runtimeRemoved) override;
 

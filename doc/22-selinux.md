@@ -122,7 +122,7 @@ Having this boolean enabled allows icinga2 to connect to all ports. This can be 
 
 **icinga2_run_sudo**
 
-To allow Icinga 2 executing plugins via sudo you can toggle this boolean. It is disabled by default, resulting in error messages like `execvpe(sudo) failed: Permission denied`.
+To allow Icinga 2 executing plugins via sudo you can toggle this boolean. It is disabled by default, resulting in error messages like `execvp(sudo) failed: Permission denied`.
 
 **httpd_can_write_icinga2_command**
 
@@ -219,7 +219,7 @@ In this case it is the CheckCommand [running_kernel](10-icinga-template-library.
       assign where host.name == NodeName
     }
 
-Having this Service defined will result in a UNKNOWN state and the error message `execvpe(sudo) failed: Permission denied` because SELinux denying the execution.
+Having this Service defined will result in a UNKNOWN state and the error message `execvp(sudo) failed: Permission denied` because SELinux denying the execution.
 
 Switching the boolean `icinga2_run_sudo` to allow the execution will result in the check executed successfully.
 

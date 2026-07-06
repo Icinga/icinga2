@@ -17,15 +17,17 @@ public:
 	{
 		m_PdwSslContext = MakeContext("client");
 
-		m_Conn = new PerfdataWriterConnection{"Test", "test", "127.0.0.1", std::to_string(GetPort()), m_PdwSslContext};
+		m_Conn = new PerfdataWriterConnection{"Test", "test", "localhost", std::to_string(GetPort()), m_PdwSslContext};
 	}
 
 	auto& GetConnection() { return *m_Conn; }
 
+	static inline const std::vector<String> RequiredCerts{"client", "server"};
+
 private:
 	Shared<boost::asio::ssl::context>::Ptr MakeContext(const std::string& name)
 	{
-		auto testCert = EnsureCertFor(name);
+		auto testCert = GetCertFor(name);
 		return SetupSslContext(
 			testCert.crtFile,
 			testCert.keyFile,
@@ -42,7 +44,7 @@ private:
 };
 
 BOOST_FIXTURE_TEST_SUITE(perfdata_connection, TlsPerfdataWriterFixture,
-	*CTestProperties("FIXTURES_REQUIRED ssl_certs")
+	*RequiresCertificate(TlsPerfdataWriterFixture::RequiredCerts)
 	*boost::unit_test::label("perfdata")
 	*boost::unit_test::label("network")
 )
@@ -128,10 +130,9 @@ BOOST_AUTO_TEST_CASE(finish_during_timeout)
  */
 BOOST_AUTO_TEST_CASE(stuck_in_handshake)
 {
-	TestThread mockTargetThread{[&]() { Accept(); }};
-
 	std::promise<void> p;
 	TestThread timeoutThread{[&]() {
+		Accept();
 		auto f = p.get_future();
 		GetConnection().CancelAfterTimeout(f, 50ms);
 		BOOST_REQUIRE(f.wait_for(0ms) == std::future_status::timeout);
@@ -142,7 +143,6 @@ BOOST_AUTO_TEST_CASE(stuck_in_handshake)
 	);
 
 	REQUIRE_JOINS_WITHIN(timeoutThread, 1s);
-	REQUIRE_JOINS_WITHIN(mockTargetThread, 1s);
 }
 
 /* When the disconnect timeout runs out while sending something to a slow or blocking server, we

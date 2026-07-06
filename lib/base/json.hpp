@@ -118,9 +118,11 @@ private:
 	} m_Flusher;
 };
 
+static constexpr size_t JsonDecodeDefaultDepthLimit = 24;
+
 String JsonEncode(const Value& value, bool prettify = false);
 void JsonEncode(const Value& value, std::ostream& os, bool prettify = false);
-Value JsonDecode(const String& data);
+Value JsonDecode(const String& data, size_t depthLimit = JsonDecodeDefaultDepthLimit);
 
 }
 

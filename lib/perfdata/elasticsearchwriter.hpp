@@ -28,6 +28,7 @@ public:
 
 protected:
 	void OnConfigLoaded() override;
+	void OnAllConfigLoaded() override;
 	void Start(bool runtimeCreated) override;
 	void Resume() override;
 	void Pause() override;
@@ -53,7 +54,7 @@ private:
 		const Dictionary::Ptr& fields, double ts);
 
 	void AssertOnWorkQueue();
-	void ExceptionHandler(boost::exception_ptr exp);
+	void ExceptionHandler(std::exception_ptr exp);
 	void FlushTimeout();
 	void Flush();
 	void SendRequest(const String& body);

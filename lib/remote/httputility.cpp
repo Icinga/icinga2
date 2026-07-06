@@ -83,17 +83,39 @@ void HttpUtility::SendJsonBody(HttpApiResponse& response, const Dictionary::Ptr&
 	response.GetJsonEncoder(params && GetLastParameter(params, "pretty")).Encode(val);
 }
 
+/**
+ * Initialize the response object with the given error code and info.
+ *
+ * Note that this fully resets the response object so any additional headers will need to be set
+ * after initializing the response with this function.
+ *
+ * @param response A reference to the HTTP response to initialize
+ * @param params The parameters sent with the request
+ * @param code The error code to initialize the response with
+ * @param info The error message to include in the JSON body
+ * @param diagnosticInformation Additional debug information included when `verbose` is in params
+ */
 void HttpUtility::SendJsonError(HttpApiResponse& response,
-	const Dictionary::Ptr& params, int code, const String& info, const String& diagnosticInformation)
+	const Dictionary::Ptr& params, int code, const String& info, const std::exception_ptr& ex)
 {
+	if (response.HasSerializationStarted()) {
+		std::ostringstream err;
+		err << "Impossible to send error response after streaming has started: error: '" << code << "', status: '"
+			<< info << "'";
+		if (ex) {
+			err << ", diagnostic_information: '" << DiagnosticInformation(ex) << "'";
+		}
+		BOOST_THROW_EXCEPTION(std::logic_error{err.str()});
+	}
+
 	Dictionary::Ptr result = new Dictionary({ { "error", code } });
 
 	if (!info.IsEmpty()) {
 		result->Set("status", info);
 	}
 
-	if (params && HttpUtility::GetLastParameter(params, "verbose") && !diagnosticInformation.IsEmpty()) {
-		result->Set("diagnostic_information", diagnosticInformation);
+	if (params && HttpUtility::GetLastParameter(params, "verbose") && ex) {
+		result->Set("diagnostic_information", DiagnosticInformation(ex));
 	}
 
 	response.Clear();
@@ -168,7 +190,7 @@ bool HttpUtility::IsValidHeaderValue(std::string_view value)
 		}
 	}
 
-	return std::all_of(value.begin(), value.end(), [](char c) {
-		return c == ' ' || c == '\t' || ('\x21' <= c && c <= '\x7e') || ('\x80' <= c && c <= '\xff');
+	return std::all_of(value.begin(), value.end(), [](unsigned char c) {
+		return c == ' ' || c == '\t' || (c >= 0x21 && c <= 0x7e) || c >= 0x80;
 	});
 }

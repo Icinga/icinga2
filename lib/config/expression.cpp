@@ -918,6 +918,17 @@ ExpressionResult ApplyExpression::DoEvaluate(ScriptFrame& frame, DebugHint*) con
 
 ExpressionResult NamespaceExpression::DoEvaluate(ScriptFrame&, DebugHint*) const
 {
+	DebugInfo adjustedDI = m_DebugInfo;
+	adjustedDI.LastLine = adjustedDI.FirstLine;
+	adjustedDI.LastColumn = 0;
+
+	std::ostringstream oss;
+	ShowCodeLocation(oss, adjustedDI, false);
+
+	Log(LogWarning, "config")
+		<< "User-defined namespaces are deprecated and will be removed in v2.18:\n"
+		<< oss.str();
+
 	Namespace::Ptr ns = new Namespace(true);
 
 	ScriptFrame innerFrame(true, ns);

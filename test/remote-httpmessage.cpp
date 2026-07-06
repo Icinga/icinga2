@@ -8,34 +8,17 @@
 #include "remote/httputility.hpp"
 #include "test/base-tlsstream-fixture.hpp"
 #include "test/test-ctest.hpp"
+#include "test/utils.hpp"
 #include <fstream>
 #include <utility>
 
 using namespace icinga;
 using namespace boost::beast;
 
-static std::future<void> SpawnSynchronizedCoroutine(std::function<void(boost::asio::yield_context)> fn)
-{
-	auto promise = std::make_unique<std::promise<void>>();
-	auto future = promise->get_future();
-	auto& io = IoEngine::Get().GetIoContext();
-	IoEngine::SpawnCoroutine(io, [promise = std::move(promise), fn = std::move(fn)](boost::asio::yield_context yc) {
-		try {
-			fn(std::move(yc));
-		} catch (const std::exception&) {
-			promise->set_exception(std::current_exception());
-			return;
-		}
-		promise->set_value();
-	});
-	return future;
-}
-
-// clang-format off
 BOOST_FIXTURE_TEST_SUITE(remote_httpmessage, TlsStreamFixture,
-	*CTestProperties("FIXTURES_REQUIRED ssl_certs")
+	*RequiresCertificate(TlsStreamFixture::RequiredCerts)
+	*boost::unit_test::label("network")
 	*boost::unit_test::label("http"))
-// clang-format on
 
 BOOST_AUTO_TEST_CASE(request_parse)
 {
@@ -352,6 +335,21 @@ BOOST_AUTO_TEST_CASE(response_sendfile)
 	std::stringstream ss;
 	ss << fp.rdbuf();
 	BOOST_REQUIRE_EQUAL(ss.str(), parser.get().body());
+}
+
+BOOST_AUTO_TEST_CASE(response_sendfile_invalid_path)
+{
+	auto future = SpawnSynchronizedCoroutine([this](boost::asio::yield_context yc) {
+		HttpApiResponse response(server);
+
+		response.result(http::status::ok);
+		BOOST_REQUIRE_THROW(response.SendFile("", yc), std::ios_base::failure);
+	});
+
+	auto status = future.wait_for(10s);
+	if (status != std::future_status::ready) {
+		BOOST_FAIL("Exception not thrown.");
+	}
 }
 
 BOOST_AUTO_TEST_SUITE_END()

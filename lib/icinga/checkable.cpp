@@ -9,12 +9,30 @@
 #include "base/utility.hpp"
 #include "base/exception.hpp"
 #include "base/timer.hpp"
+#include <boost/range/algorithm/find.hpp>
 #include <boost/thread/once.hpp>
 
 using namespace icinga;
 
 REGISTER_TYPE(Checkable);
 INITIALIZE_ONCE(&Checkable::StaticInitialize);
+
+static constexpr std::array l_DeprecatedCheckCommands{
+	"disk-windows",
+	"load-windows",
+	"memory-windows",
+	"network-windows",
+	"perfmon-windows",
+	"ping-windows",
+	"ping4-windows",
+	"ping6-windows",
+	"procs-windows",
+	"service-windows",
+	"swap-windows",
+	"update-windows",
+	"uptime-windows",
+	"users-windows",
+};
 
 const std::map<String, int> Checkable::m_FlappingStateFilterMap ({
 	{"OK", FlappingStateFilterOk},
@@ -59,6 +77,21 @@ void Checkable::OnConfigLoaded()
 void Checkable::OnAllConfigLoaded()
 {
 	ObjectImpl<Checkable>::OnAllConfigLoaded();
+
+	const auto it = boost::range::find(l_DeprecatedCheckCommands, GetCheckCommandRaw());
+	if (it != l_DeprecatedCheckCommands.end()) {
+		static std::mutex warnedSetMutex;
+		static std::unordered_set<std::string_view> alreadyWarned;
+
+		std::unique_lock lock{warnedSetMutex};
+		auto [_, inserted] = alreadyWarned.emplace(*it);
+		lock.unlock();
+		if (inserted) {
+			Log(LogWarning, "Checkable")
+				<< "CheckCommand '" << GetCheckCommandRaw() << "' used by '" << GetName() << "' (" << GetDebugInfo()
+				<< ") is DEPRECATED and will be removed in v2.18. Further uses of this check command won't be logged.";
+		}
+	}
 
 	Endpoint::Ptr endpoint = GetCommandEndpoint();
 

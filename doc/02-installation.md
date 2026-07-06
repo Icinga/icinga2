@@ -158,15 +158,6 @@ zypper ref
 ```bash
 wget https://packages.icinga.com/subscription/amazon/ICINGA-release.repo -O /etc/yum.repos.d/ICINGA-release.repo
 ```
-
-The packages for **Amazon Linux 2** depend on other packages which are distributed
-as part of the [EPEL repository](https://fedoraproject.org/wiki/EPEL).
-
-```bash
-yum install epel-release
-```
-
-The packages for newer versions of Amazon Linux don't require additional repositories.
 <!-- {% endif %} -->
 
 <!-- {% if windows %} -->
@@ -327,14 +318,6 @@ zypper install --recommends monitoring-plugins-all
 <!-- {% if not icingaDocs %} -->
 #### Amazon Linux
 <!-- {% endif %} -->
-The packages for **Amazon Linux 2** depend on other packages which are distributed as part of the EPEL repository.
-
-```bash
-amazon-linux-extras install epel
-
-yum install nagios-plugins-all
-```
-
 Unfortunately newer versions of Amazon Linux don't provide those plugins, yet.
 <!-- {% endif %} -->
 
@@ -361,6 +344,15 @@ Run the following command to:
 
 ```bash
 icinga2 api setup
+```
+
+For new installations, it is recommended to set the following additional attribute inside the `ApiListener` object
+definition in `/etc/icinga2/features-enabled/api.conf`. This will already enforce stricter permissions as they will
+become the default with v2.17 (see the [upgrading documentation](16-upgrading-icinga-2.md#upgrading-to-2-16-2) for the
+version that introduced that setting for more details):
+
+```
+enforce_filter_expression_permission = true
 ```
 
 Restart Icinga 2 for these changes to take effect.

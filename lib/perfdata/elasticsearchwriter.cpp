@@ -43,6 +43,14 @@ void ElasticsearchWriter::OnConfigLoaded()
 	}
 }
 
+void ElasticsearchWriter::OnAllConfigLoaded()
+{
+	ObjectImpl<ElasticsearchWriter>::OnAllConfigLoaded();
+
+	Log(LogWarning, "ElasticsearchWriter")
+		<< "This feature is DEPRECATED and will be removed in v2.18.";
+}
+
 void ElasticsearchWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
 	DictionaryData nodes;
@@ -85,7 +93,7 @@ void ElasticsearchWriter::Resume()
 	Log(LogInformation, "ElasticsearchWriter")
 		<< "'" << GetName() << "' resumed.";
 
-	m_WorkQueue.SetExceptionCallback([this](boost::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
+	m_WorkQueue.SetExceptionCallback([this](std::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
 
 	/* Setup timer for periodically flushing m_DataBuffer */
 	m_FlushTimer = Timer::Create();
@@ -194,7 +202,6 @@ void ElasticsearchWriter::AddCheckResult(const Dictionary::Ptr& fields, const Ch
 	CheckCommand::Ptr checkCommand = checkable->GetCheckCommand();
 
 	if (perfdata) {
-		ObjectLock olock(perfdata);
 		for (const Value& val : perfdata) {
 			PerfdataValue::Ptr pdv;
 
@@ -569,7 +576,7 @@ void ElasticsearchWriter::AssertOnWorkQueue()
 	ASSERT(m_WorkQueue.IsWorkerThread());
 }
 
-void ElasticsearchWriter::ExceptionHandler(boost::exception_ptr exp)
+void ElasticsearchWriter::ExceptionHandler(std::exception_ptr exp)
 {
 	Log(LogCritical, "ElasticsearchWriter", "Exception during Elastic operation: Verify that your backend is operational!");
 

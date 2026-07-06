@@ -24,7 +24,7 @@ jobs:
         # GitHub doesn't allow to alter any file within the .github/workflows directory using the default GITHUB_TOKEN.
         # This action will create a token with the permissions defined below and is valid only for 1 hour, but if the
         # job completes before that 1 hour limit, the token will automatically be revoked.
-        uses: actions/create-github-app-token@v3.0.0
+        uses: actions/create-github-app-token@v3.1.1
         id: backbot-token
         with:
           app-id: ${{ secrets.BACKBOT_APP_ID }}
@@ -44,7 +44,7 @@ jobs:
           sha: ${{ github.event.pull_request.head.sha }} # Checkout the latest commit of the merged PR.
 
       - name: Run Backbot
-        uses: korthout/backport-action@3c06f323a58619da1e8522229ebc8d5de2633e46 # v4.3.0
+        uses: korthout/backport-action@ad30f01dbe543be4a24431001c38f3617af8c745 # v4.4.0
         with:
           github_token: ${{ steps.backbot-token.outputs.token }}
           copy_labels_pattern: '^(?!cla\/signed$).*' # copy all labels other than the cla/signed label

@@ -266,7 +266,7 @@ syn keyword	icinga2PathConstant	ObjectsPath PidPath PkgDataDir PrefixDir Program
 syn keyword 	icinga2PathConstant	VarsPath ZonesDir
 
 " Global constants
-syn keyword 	icinga2GlobalConstant	Vars NodeName Environment RunAsUser RunAsGroup MaxConcurrentChecks ApiBindHost ApiBindPort EventEngine AttachDebugger
+syn keyword 	icinga2GlobalConstant	NodeName Environment RunAsUser RunAsGroup MaxConcurrentChecks ApiBindHost ApiBindPort EventEngine AttachDebugger
 
 " Application runtime constants
 syn keyword	icinga2GlobalConstant	PlatformName PlatformVersion PlatformKernel PlatformKernelVersion BuildCompilerName BuildCompilerVersion BuildHostName

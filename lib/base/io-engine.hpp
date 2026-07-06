@@ -18,7 +18,7 @@
 #include <utility>
 #include <vector>
 #include <stdexcept>
-#include <boost/context/fixedsize_stack.hpp>
+#include <boost/context/protected_fixedsize_stack.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/io_context.hpp>
@@ -96,6 +96,27 @@ public:
 
 	static IoEngine& Get();
 
+	/**
+	 * Checks whether the given strand is currently running in the calling thread.
+	 *
+	 * This is a simple wrapper around @c running_in_this_thread() with a little but significant difference:
+	 * It is marked as @c noinline to prevent the compiler from ever inlining the call to this function and
+	 * thus potentially optimizing away the thread-local storage access that is required for this function
+	 * to work correctly. This is especially important for the case where the caller is a coroutine that have
+	 * some suspension points between the calls to this function, and cause the compiler to assume that the
+	 * thread-local access performed by @c running_in_this_thread() is invariant across these suspensions and
+	 * thus optimize it by caching the result in a register or on the stack, which would lead to incorrect
+	 * results after resuming the coroutine on a different thread. For more details, see [^1][^2][^3].
+	 *
+	 * [^1]: https://github.com/chriskohlhoff/asio/issues/1366
+	 * [^2]: https://bugs.llvm.org/show_bug.cgi?id=19177
+	 * [^3]: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=26461
+	 */
+	BOOST_NOINLINE static bool IsStrandRunningOnThisThread(const boost::asio::io_context::strand& strand)
+	{
+		return strand.running_in_this_thread();
+	}
+
 	boost::asio::io_context& GetIoContext();
 
 	static inline size_t GetCoroutineStackSize() {
@@ -132,7 +153,7 @@ public:
 
 #if BOOST_VERSION >= 108700
 		boost::asio::spawn(h,
-			std::allocator_arg, boost::context::fixedsize_stack(GetCoroutineStackSize()),
+			std::allocator_arg, boost::context::protected_fixedsize_stack(GetCoroutineStackSize()),
 			std::move(wrapper),
 			boost::asio::detached
 		);
@@ -237,7 +258,7 @@ public:
 	Timeout(boost::asio::io_context::strand& strand, const Timer::duration_type& timeoutFromNow, OnTimeout onTimeout)
 		: m_Timer(strand.context(), timeoutFromNow), m_Cancelled(Shared<Atomic<bool>>::Make(false))
 	{
-		VERIFY(strand.running_in_this_thread());
+		ASSERT(IoEngine::IsStrandRunningOnThisThread(strand));
 
 		m_Timer.async_wait(boost::asio::bind_executor(
 			strand, [cancelled = m_Cancelled, onTimeout = std::move(onTimeout)](boost::system::error_code ec) {

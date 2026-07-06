@@ -145,9 +145,6 @@ endif()
 
 add_library(base OBJECT ${base_SOURCES})
 
-include_directories(SYSTEM ${icinga2_SOURCE_DIR}/third-party/execvpe)
-link_directories(${icinga2_BINARY_DIR}/third-party/execvpe)
-
 include_directories(SYSTEM ${icinga2_SOURCE_DIR}/third-party/mmatch)
 link_directories(${icinga2_BINARY_DIR}/third-party/mmatch)
 

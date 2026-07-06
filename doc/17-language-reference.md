@@ -229,6 +229,10 @@ log(value) // Prints "Hi!" because the variable was changed
 
 ### Namespaces <a id="namespaces"></a>
 
+> **Note**
+>
+> User-defined namespaces are DEPRECATED and will be removed in v2.18.
+
 Namespaces can be used to organize variables and functions. They are used to avoid name conflicts. The `namespace`
 keyword is used to create a new namespace:
 
@@ -502,7 +506,6 @@ ZonesDir            |**Read-only.** Contains the path of the zones.d directory. 
 
 Constant            | Description
 --------------------|-------------------
-Vars                |**Read-write.** Contains a dictionary with global custom variables. Not set by default.
 NodeName            |**Read-write.** Contains the cluster node name. Set to the local hostname by default.
 ReloadTimeout       |**Read-write.** Defines the reload timeout for child processes. Defaults to `300s`.
 Environment         |**Read-write.** The name of the Icinga environment. Included in the SNI host name for outbound connections. Not set by default.
@@ -1147,7 +1150,7 @@ Example:
 ```
 var num = 5
 
-while (num > 5) {
+while (num > 0) {
     log("Test")
     num -= 1
 }

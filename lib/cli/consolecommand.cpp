@@ -167,6 +167,11 @@ ImpersonationLevel ConsoleCommand::GetImpersonationLevel() const
 	return ImpersonateNone;
 }
 
+bool ConsoleCommand::NeedsRLimitAdjustment() const
+{
+	return true;
+}
+
 void ConsoleCommand::InitParameters(boost::program_options::options_description& visibleDesc,
 	[[maybe_unused]] boost::program_options::options_description& hiddenDesc) const
 {
@@ -438,7 +443,7 @@ incomplete:
 					result = ExecuteScript(l_Session, command, scriptFrame.Sandboxed);
 				} catch (const ScriptError&) {
 					/* Re-throw the exception for the outside try-catch block. */
-					boost::rethrow_exception(boost::current_exception());
+					throw;
 				} catch (const std::exception& ex) {
 					Log(LogCritical, "ConsoleCommand")
 						<< "HTTP query failed: " << ex.what();

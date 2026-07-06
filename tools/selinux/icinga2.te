@@ -151,6 +151,13 @@ kernel_read_system_state(icinga2_t)
 kernel_read_network_state(icinga2_t)
 kernel_dgram_send(icinga2_t)
 
+# On some Linux distributions, boost::filesystem::copy_file emits a `fstatfs` syscall to query the filesystem metadata
+# to determine if it can use `copy_file_range` or if it needs to fall back to a read/write loop. Denying this syscall
+# does not cause any functional issues, as the fallback logic is also used in case of EACCES, but it prevents the use
+# of `copy_file_range` which can lead to significant performance improvements when copying large files.
+# For more details see https://github.com/Icinga/icinga2/issues/10711.
+fs_getattr_xattr_fs(icinga2_t)
+
 # should be moved to nagios_plugin_template in nagios.if
 icinga2_execstrans(nagios_admin_plugin_exec_t, nagios_admin_plugin_t)
 icinga2_execstrans(nagios_checkdisk_plugin_exec_t, nagios_checkdisk_plugin_t)

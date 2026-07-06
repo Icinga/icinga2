@@ -49,11 +49,12 @@ void GelfWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perf
 	for (const GelfWriter::Ptr& gelfwriter : ConfigType::GetObjectsByType<GelfWriter>()) {
 		size_t workQueueItems = gelfwriter->m_WorkQueue.GetLength();
 		double workQueueItemRate = gelfwriter->m_WorkQueue.GetTaskCount(60) / 60.0;
+		auto connection = gelfwriter->m_LockedConnection.load();
 
 		nodes.emplace_back(gelfwriter->GetName(), new Dictionary({
 			{ "work_queue_items", workQueueItems },
 			{ "work_queue_item_rate", workQueueItemRate },
-			{ "connected", gelfwriter->m_Connection->IsConnected() },
+			{ "connected", connection && connection->IsConnected() },
 			{ "source", gelfwriter->GetSource() }
 		}));
 
@@ -88,9 +89,10 @@ void GelfWriter::Resume()
 		<< "'" << GetName() << "' resumed.";
 
 	/* Register exception handler for WQ tasks. */
-	m_WorkQueue.SetExceptionCallback([this](boost::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
+	m_WorkQueue.SetExceptionCallback([this](std::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
 
 	m_Connection = new PerfdataWriterConnection{this, GetHost(), GetPort(), m_SslContext, !GetInsecureNoverify()};
+	m_LockedConnection.store(m_Connection);
 
 	/* Register event handlers. */
 	m_HandleCheckResults = Checkable::OnNewCheckResult.connect([this](const Checkable::Ptr& checkable,
@@ -137,7 +139,7 @@ void GelfWriter::AssertOnWorkQueue()
 	ASSERT(m_WorkQueue.IsWorkerThread());
 }
 
-void GelfWriter::ExceptionHandler(boost::exception_ptr exp)
+void GelfWriter::ExceptionHandler(std::exception_ptr exp)
 {
 	Log(LogCritical, "GelfWriter") << "Exception during Graylog Gelf operation: " << DiagnosticInformation(exp, false);
 	Log(LogDebug, "GelfWriter") << "Exception during Graylog Gelf operation: " << DiagnosticInformation(exp, true);
@@ -196,7 +198,6 @@ void GelfWriter::CheckResultHandler(const Checkable::Ptr& checkable, const Check
 			Array::Ptr perfdata = cr->GetPerformanceData();
 
 			if (perfdata) {
-				ObjectLock olock(perfdata);
 				for (const Value& val : perfdata) {
 					PerfdataValue::Ptr pdv;
 

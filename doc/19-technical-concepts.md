@@ -578,9 +578,14 @@ This takes some minutes and requires all nodes to reconnect to each other.
 There is an additional scenario: The setup on a child node does
 not necessarily need a connection to the parent node.
 
-This mode leaves the node in a semi-configured state. You need
-to manually copy the master's public CA key into `/var/lib/icinga2/certs/ca.crt`
-on the client before starting Icinga 2.
+Running `icinga2 node setup` without using the `--parent_host` argument will leave
+the node in a semi-configured state. I.e., you will need to manually copy the master's
+public CA key into `/var/lib/icinga2/certs/ca.crt` on the client before starting 
+Icinga2. After which the TLS communication can be established.
+
+To complete the certificate signing, the `icinga2 ca list` and `icinga2 ca sign`
+commands must be used on the Icinga CA server to complete the certificate signing
+process if no ticket was provided using the `--ticket` argument.
 
 > **Note**
 >

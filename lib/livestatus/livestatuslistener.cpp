@@ -42,6 +42,14 @@ void LivestatusListener::StatsFunc(const Dictionary::Ptr& status, const Array::P
 	status->Set("livestatuslistener", new Dictionary(std::move(nodes)));
 }
 
+void LivestatusListener::OnAllConfigLoaded()
+{
+	ObjectImpl<LivestatusListener>::OnAllConfigLoaded();
+
+	Log(LogWarning, "LivestatusListener")
+		<< "This feature is DEPRECATED and will be removed in v2.18.";
+}
+
 /**
  * Starts the component.
  */

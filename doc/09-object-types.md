@@ -1088,28 +1088,29 @@ object ApiListener "api" {
 
 Configuration Attributes:
 
-  Name                                  | Type                  | Description
-  --------------------------------------|-----------------------|----------------------------------
-  cert\_path                            | String                | **Deprecated.** Path to the public key.
-  key\_path                             | String                | **Deprecated.** Path to the private key.
-  ca\_path                              | String                | **Deprecated.** Path to the CA certificate file.
-  ticket\_salt                          | String                | **Optional.** Private key for [CSR auto-signing](06-distributed-monitoring.md#distributed-monitoring-setup-csr-auto-signing). **Required** for a signing master instance.
-  crl\_path                             | String                | **Optional.** Path to the CRL file.
-  bind\_host                            | String                | **Optional.** The IP address the api listener should be bound to. If not specified, the ApiListener is bound to `::` and listens for both IPv4 and IPv6 connections or to `0.0.0.0` if IPv6 is not supported by the operating system.
-  bind\_port                            | Number                | **Optional.** The port the api listener should be bound to. Defaults to `5665`.
-  accept\_config                        | Boolean               | **Optional.** Accept zone configuration. Defaults to `false`.
-  accept\_commands                      | Boolean               | **Optional.** Accept remote commands. Defaults to `false`.
-  max\_anonymous\_clients               | Number                | **Optional.** Limit the number of anonymous client connections (not configured endpoints and signing requests).
-  cipher\_list                          | String                | **Optional.** Cipher list that is allowed. For a list of available ciphers run `openssl ciphers`. Defaults to `ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256`.
-  tls\_protocolmin                      | String                | **Optional.** Minimum TLS protocol version. Since v2.11, only `TLSv1.2` is supported. Defaults to `TLSv1.2`.
-  tls\_handshake\_timeout               | Number                | **Deprecated.** TLS Handshake timeout. Defaults to `10s`.
-  connect\_timeout                      | Number                | **Optional.** Timeout for establishing new connections. Affects both incoming and outgoing connections. Within this time, the TCP and TLS handshakes must complete and either a HTTP request or an Icinga cluster connection must be initiated. Defaults to `15s`.
-  access\_control\_allow\_origin        | Array                 | **Optional.** Specifies an array of origin URLs that may access the API. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Origin)
-  access\_control\_allow\_credentials   | Boolean               | **Deprecated.** Indicates whether or not the actual request can be made using credentials. Defaults to `true`. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Credentials)
-  access\_control\_allow\_headers       | String                | **Deprecated.** Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request. Defaults to `Authorization`. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Headers)
-  access\_control\_allow\_methods       | String                | **Deprecated.** Used in response to a preflight request to indicate which HTTP methods can be used when making the actual request. Defaults to `GET, POST, PUT, DELETE`. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Methods)
-  environment                           | String                | **Optional.** Used as suffix in TLS SNI extension name; default from constant `ApiEnvironment`, which is empty.
-  http\_response\_headers               | Dictionary            | **Optional.** Additional headers to add to HTTP responses, for example `{"Strict-Transport-Security" = "max-age=31536000"}`. Defaults to none.
+  Name                                    | Type       | Description
+  ----------------------------------------|------------|----------------------------------
+  cert\_path                              | String     | **Deprecated.** Path to the public key.
+  key\_path                               | String     | **Deprecated.** Path to the private key.
+  ca\_path                                | String     | **Deprecated.** Path to the CA certificate file.
+  ticket\_salt                            | String     | **Optional.** Private key for [CSR auto-signing](06-distributed-monitoring.md#distributed-monitoring-setup-csr-auto-signing). **Required** for a signing master instance.
+  crl\_path                               | String     | **Optional.** Path to the CRL file.
+  bind\_host                              | String     | **Optional.** The IP address the api listener should be bound to. If not specified, the ApiListener is bound to `::` and listens for both IPv4 and IPv6 connections or to `0.0.0.0` if IPv6 is not supported by the operating system.
+  bind\_port                              | Number     | **Optional.** The port the api listener should be bound to. Defaults to `5665`.
+  accept\_config                          | Boolean    | **Optional.** Accept zone configuration. Defaults to `false`.
+  accept\_commands                        | Boolean    | **Optional.** Accept remote commands. Defaults to `false`.
+  max\_anonymous\_clients                 | Number     | **Optional.** Limit the number of anonymous client connections (not configured endpoints and signing requests).
+  cipher\_list                            | String     | **Optional.** Cipher list that is allowed. For a list of available ciphers run `openssl ciphers`. Defaults to `ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256`.
+  tls\_protocolmin                        | String     | **Optional.** Minimum TLS protocol version. Since v2.11, only `TLSv1.2` is supported. Defaults to `TLSv1.2`.
+  tls\_handshake\_timeout                 | Number     | **Deprecated.** TLS Handshake timeout. Defaults to `10s`.
+  connect\_timeout                        | Number     | **Optional.** Timeout for establishing new connections. Affects both incoming and outgoing connections. Within this time, the TCP and TLS handshakes must complete and either a HTTP request or an Icinga cluster connection must be initiated. Defaults to `15s`.
+  access\_control\_allow\_origin          | Array      | **Optional.** Specifies an array of origin URLs that may access the API. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Origin)
+  access\_control\_allow\_credentials     | Boolean    | **Deprecated.** Indicates whether or not the actual request can be made using credentials. Defaults to `true`. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Credentials)
+  access\_control\_allow\_headers         | String     | **Deprecated.** Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request. Defaults to `Authorization`. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Headers)
+  access\_control\_allow\_methods         | String     | **Deprecated.** Used in response to a preflight request to indicate which HTTP methods can be used when making the actual request. Defaults to `GET, POST, PUT, DELETE`. [(MDN docs)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Methods)
+  environment                             | String     | **Optional.** Used as suffix in TLS SNI extension name; default from constant `ApiEnvironment`, which is empty.
+  http\_response\_headers                 | Dictionary | **Optional.** Additional headers to add to HTTP responses, for example `{"Strict-Transport-Security" = "max-age=31536000"}`. Defaults to none.
+  enforce\_filter\_expression\_permission | Boolean    | **Optional.** Enforce the `filter-expression` permission. Defaults to `false` until v2.17 for compatibility.
 
 The attributes `access_control_allow_credentials`, `access_control_allow_headers` and `access_control_allow_methods`
 are controlled by Icinga 2 and are not changeable by config any more.
@@ -1160,8 +1161,7 @@ This configuration object is available as [compatlog feature](14-features.md#com
 
 > **Note**
 >
-> This feature is DEPRECATED and may be removed in future releases.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
+> This feature is DEPRECATED and will be removed in v2.18.
 
 Example:
 
@@ -1184,6 +1184,11 @@ Configuration Attributes:
 
 Writes check result metrics and performance data to an Elasticsearch or OpenSearch instance.
 This configuration object is available as [elasticsearch feature](14-features.md#elasticsearch-writer).
+
+> **Note**
+>
+> This feature is DEPRECATED and will be removed in v2.18.
+> For sending metrics to Elasticsearch, please migrate your setup to the [otlp-metrics feature](14-features.md#otlpmetrics-writer).
 
 Example:
 
@@ -1250,8 +1255,7 @@ This configuration object is available as [command feature](14-features.md#exter
 
 > **Note**
 >
-> This feature is DEPRECATED and may be removed in future releases.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
+> This feature is DEPRECATED and will be removed in v2.18.
 
 Example:
 
@@ -1419,8 +1423,7 @@ Configuration Attributes:
 
 > **Note**
 >
-> This feature is DEPRECATED and may be removed in future releases.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
+> This feature is DEPRECATED and will be removed in v2.18.
 
 IDO database adapter for MySQL.
 This configuration object is available as [ido-mysql feature](14-features.md#db-ido).
@@ -1526,8 +1529,7 @@ Runtime Attributes:
 
 > **Note**
 >
-> This feature is DEPRECATED and may be removed in future releases.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
+> This feature is DEPRECATED and will be removed in v2.18.
 
 IDO database adapter for PostgreSQL.
 This configuration object is available as [ido-pgsql feature](14-features.md#db-ido).
@@ -1796,8 +1798,7 @@ This configuration object is available as [livestatus feature](14-features.md#se
 
 > **Note**
 >
-> This feature is DEPRECATED and may be removed in future releases.
-> Check the [roadmap](https://github.com/Icinga/icinga2/milestones).
+> This feature is DEPRECATED and will be removed in v2.18.
 
 Examples:
 
@@ -1871,6 +1872,60 @@ Configuration Attributes:
   host_template             | Dictionary                | **Optional.** Specify additional tags to be included with host metrics. This requires a sub-dictionary named `tags`. Also specify a naming prefix by setting `metric`. More information can be found in [OpenTSDB custom tags](14-features.md#opentsdb-custom-tags) and [OpenTSDB Metric Prefix](14-features.md#opentsdb-metric-prefix). More information can be found in [OpenTSDB custom tags](14-features.md#opentsdb-custom-tags). Defaults to an `empty Dictionary`.
   service_template          | Dictionary                | **Optional.** Specify additional tags to be included with service metrics. This requires a sub-dictionary named `tags`. Also specify a naming prefix by setting `metric`. More information can be found in [OpenTSDB custom tags](14-features.md#opentsdb-custom-tags) and [OpenTSDB Metric Prefix](14-features.md#opentsdb-metric-prefix). Defaults to an `empty Dictionary`.
 
+### OTLPMetricsWriter <a id="objecttype-otlpmetricswriter"></a>
+
+Emits metrics in [OpenTelemetry Protocol (OTLP)](https://opentelemetry.io/) format to a defined OpenTelemetry Collector
+or any other OTLP-compatible backend that accepts OTLP data over HTTP. This configuration object is available as
+[otlpmetrics feature](14-features.md#otlpmetrics-writer). You can find more information about OpenTelemetry and OTLP
+on the [OpenTelemetry website](https://opentelemetry.io/).
+
+!!! info
+
+    The official package builds for Debian 11 and Ubuntu 22.04 do not include this object type.
+    These builds disable OpenTelemetry support (`ICINGA2_WITH_OPENTELEMETRY=OFF`) because the
+    default Protobuf compiler version is too old for the required code generation.
+
+A basic copy and pastable example configuration is shown below:
+
+```
+object OTLPMetricsWriter "otlp-metrics" {
+  host = "127.0.0.1"
+  port = 4318
+  metrics_endpoint = "/v1/metrics"
+  service_namespace = "icinga2-production"
+}
+```
+
+There are more configuration options available as described in the table below.
+
+| Name                          | Type       | Description                                                                                                                                  |
+|-------------------------------|------------|----------------------------------------------------------------------------------------------------------------------------------------------|
+| host                          | String     | **Required.** OTLP backend host address. Defaults to `127.0.0.1`.                                                                            |
+| port                          | Number     | **Required.** OTLP backend HTTP port. Defaults to `4318`.                                                                                    |
+| metrics\_endpoint             | String     | **Required.** OTLP metrics endpoint path. Defaults to `/v1/metrics`.                                                                         |
+| service\_namespace            | String     | **Required.** The namespace to associate with emitted metrics used in the `service.namespace` OTel resource attribute. Defaults to `icinga`. |
+| basic\_auth                   | Dictionary | **Optional.** Username and password for HTTP basic authentication.                                                                           |
+| host\_resource\_attributes    | Dictionary | **Optional.** Additional resource attributes to be included with host metrics. Defaults to none.                                             |
+| service\_resource\_attributes | Dictionary | **Optional.** Additional resource attributes to be included with service metrics. Defaults to none.                                          |
+| flush\_interval               | Duration   | **Optional.** How long to buffer data points before transferring to the OTLP backend. Defaults to `15s`.                                     |
+| flush\_threshold              | Number     | **Optional.** How many bytes to buffer before forcing a transfer to the OTLP backend. Defaults to `16MiB`.                                   |
+| enable\_ha                    | Boolean    | **Optional.** Enable the high availability functionality. Has no effect in non-cluster setups. Defaults to `true`.                           |
+| enable\_send\_thresholds      | Boolean    | **Optional.** Whether to stream warning, critical, minimum & maximum as separate metrics to the OTLP backend. Defaults to `false`.           |
+| diconnect\_timeout            | Duration   | **Optional.** Timeout to wait for any outstanding data to be flushed to the OTLP backend before disconnecting. Defaults to `10s`.            |
+| enable\_tls                   | Boolean    | **Optional.** Whether to use a TLS stream. Defaults to `false`.                                                                              |
+| tls\_insecure\_noverify       | Boolean    | **Optional.** Disable TLS peer verification. Defaults to `false`.                                                                            |
+| tls\_ca\_file                 | String     | **Optional.** Path to CA certificate to validate the remote host.                                                                            |
+| tls\_cert\_file               | String     | **Optional.** Path to the client certificate to present to the OTLP backend for mutual verification.                                         |
+| tls\_key\_file                | String     | **Optional.** Path to the client certificate key.                                                                                            |
+
+!!! tip
+
+    The `flush_threshold` is a byte size threshold, not a metric count threshold. By default, the writer will flush all
+    buffered metrics to the OTLP backend once the total size of buffered metrics exceeds 16 MiB. This number is chosen
+    based on the default `max_request_body_size` of the OpenTelemetry Collector, and you must adjust it according to the
+    `max_request_body_size` of your OTLP backend to avoid metrics being dropped due to exceeding the maximum request body
+    size. Furthermore, the writer may not flush at the exact byte size threshold due to the internal structure of OTLP
+    messages, so make sure that the threshold is lower than the configured `max_request_body_size` of your OTLP backend.
 
 ### PerfdataWriter <a id="objecttype-perfdatawriter"></a>
 

@@ -310,16 +310,17 @@ bool EnsureAuthenticatedUser(
 		Log(LogWarning, "HttpServerConnection")
 			<< "Unauthorized request: " << request.method_string() << ' ' << request.target();
 
-		response.result(http::status::unauthorized);
-		response.set(http::field::www_authenticate, "Basic realm=\"Icinga 2\"");
-		response.set(http::field::connection, "close");
-
 		if (request[http::field::accept] == "application/json") {
 			HttpUtility::SendJsonError(response, nullptr, 401, "Unauthorized. Please check your user credentials.");
 		} else {
+			response.result(http::status::unauthorized);
 			response.set(http::field::content_type, "text/html");
 			response.body() << "<h1>Unauthorized. Please check your user credentials.</h1>";
 		}
+
+		// Set additional header fields after the response has been initialized in SendJsonError().
+		response.set(http::field::www_authenticate, "Basic realm=\"Icinga 2\"");
+		response.set(http::field::connection, "close");
 
 		response.Flush(yc);
 
@@ -430,7 +431,7 @@ void ProcessRequest(
 
 		HttpHandler::ProcessRequest(waitGroup, request, response, yc);
 		response.body().Finish();
-	} catch (const std::exception& ex) {
+	} catch (const std::exception&) {
 		/* Since we don't know the state the stream is in, we can't send an error response and
 		 * have to just cause a disconnect here.
 		 */
@@ -438,7 +439,7 @@ void ProcessRequest(
 			throw;
 		}
 
-		HttpUtility::SendJsonError(response, request.Params(), 500, "Unhandled exception", DiagnosticInformation(ex));
+		HttpUtility::SendJsonError(response, request.Params(), 500, "Unhandled exception", std::current_exception());
 	}
 
 	response.Flush(yc);

@@ -234,6 +234,18 @@ void ApiListener::OnAllConfigLoaded()
 
 	if (!m_LocalEndpoint)
 		BOOST_THROW_EXCEPTION(ScriptError("Endpoint object for '" + GetIdentity() + "' is missing.", GetDebugInfo()));
+
+	if (!GetEnforceFilterExpressionPermission()) {
+		Log(LogWarning, "ApiListener") << "Security notice:\n"
+			"    Currently, all ApiUsers are allowed to use Icinga 2 DSL filter expressions\n"
+			"    in API queries because enforce_filter_expression_permission is set to false.\n"
+			"    This can pose a security risk as filters are evaluated within the Icinga 2\n"
+			"    process and their complexity can be used for denial of service attacks. The\n"
+			"    new '" << ApiUser::FilterExpressionPerm << "' permission can be used to allow this for individual\n"
+			"    ApiUsers, which should only be granted to trusted users. It is recommended\n"
+			"    to set enforce_filter_expression_permission to true to enforce the\n"
+			"    permission. This will become the default in v2.17.";
+	}
 }
 
 /**
@@ -743,19 +755,10 @@ void ApiListener::NewClientHandlerInternal(
 		}
 
 		Log(LogCritical, "ApiListener")
-			<< "Client TLS handshake failed (" << conninfo << "): " << ec.message();
+			<< (role == RoleClient ? "Client" : "Server")
+			<< " TLS handshake failed (" << conninfo << "): " << ec.message();
 		return;
 	}
-
-	Defer shutdownSslConn ([&sslConn, &yc]() {
-		// Ignore the error, but do not throw an exception being swallowed at all cost.
-		// https://github.com/Icinga/icinga2/issues/7351
-		boost::system::error_code ec;
-
-		// Using async_shutdown() instead of AsioTlsStream::GracefulDisconnect() as this whole function
-		// is already guarded by a timeout based on the connect timeout.
-		sslConn.async_shutdown(yc[ec]);
-	});
 
 	std::shared_ptr<X509> cert (sslConn.GetPeerCertificate());
 	bool verify_ok = false;
@@ -808,8 +811,46 @@ void ApiListener::NewClientHandlerInternal(
 
 	ClientType ctype;
 
-	try {
-		if (role == RoleClient) {
+	if (role == RoleClient) {
+		JsonRpc::SendMessage(client, new Dictionary({
+			{ "jsonrpc", "2.0" },
+			{ "method", "icinga::Hello" },
+			{ "params", new Dictionary({
+				{ "version", (double)l_AppVersionInt },
+				{ "capabilities", (double)ApiCapabilities::MyCapabilities }
+			}) }
+		}), yc);
+
+		client->async_flush(yc);
+
+		ctype = ClientJsonRpc;
+	} else {
+		{
+			boost::system::error_code ec;
+
+			if (client->async_fill(yc[ec]) == 0u) {
+				if (identity.IsEmpty()) {
+					Log(LogInformation, "ApiListener")
+						<< "No data received on new API connection " << conninfo << ": " << ec.message()
+						<< ". Ensure that the remote endpoints are properly configured in a cluster setup.";
+				} else {
+					Log(LogWarning, "ApiListener")
+						<< "No data received on new API connection " << conninfo << " for identity '" << identity << "': " << ec.message()
+						<< ". Ensure that the remote endpoints are properly configured in a cluster setup.";
+				}
+
+				return;
+			}
+		}
+
+		char firstByte = 0;
+
+		{
+			asio::mutable_buffer firstByteBuf (&firstByte, 1);
+			client->peek(firstByteBuf);
+		}
+
+		if (firstByte >= '0' && firstByte <= '9') {
 			JsonRpc::SendMessage(client, new Dictionary({
 				{ "jsonrpc", "2.0" },
 				{ "method", "icinga::Hello" },
@@ -823,58 +864,15 @@ void ApiListener::NewClientHandlerInternal(
 
 			ctype = ClientJsonRpc;
 		} else {
-			{
-				boost::system::error_code ec;
-
-				if (client->async_fill(yc[ec]) == 0u) {
-					if (identity.IsEmpty()) {
-						Log(LogInformation, "ApiListener")
-							<< "No data received on new API connection " << conninfo << ": " << ec.message()
-							<< ". Ensure that the remote endpoints are properly configured in a cluster setup.";
-					} else {
-						Log(LogWarning, "ApiListener")
-							<< "No data received on new API connection " << conninfo << " for identity '" << identity << "': " << ec.message()
-							<< ". Ensure that the remote endpoints are properly configured in a cluster setup.";
-					}
-
-					return;
-				}
-			}
-
-			char firstByte = 0;
-
-			{
-				asio::mutable_buffer firstByteBuf (&firstByte, 1);
-				client->peek(firstByteBuf);
-			}
-
-			if (firstByte >= '0' && firstByte <= '9') {
-				JsonRpc::SendMessage(client, new Dictionary({
-					{ "jsonrpc", "2.0" },
-					{ "method", "icinga::Hello" },
-					{ "params", new Dictionary({
-						{ "version", (double)l_AppVersionInt },
-						{ "capabilities", (double)ApiCapabilities::MyCapabilities }
-					}) }
-				}), yc);
-
-				client->async_flush(yc);
-
-				ctype = ClientJsonRpc;
-			} else {
-				ctype = ClientHttp;
-			}
+			ctype = ClientHttp;
 		}
-	} catch (const boost::system::system_error& systemError) {
-		if (systemError.code() == boost::asio::error::operation_aborted) {
-			shutdownSslConn.Cancel();
-		}
-
-		throw;
 	}
 
 	std::shared_lock wgLock(*m_ListenerWaitGroup, std::try_to_lock);
 	if (!wgLock) {
+		// Close the connection cleanly, signals to the other endpoint that it wasn't closed due to an error.
+		client->GracefulDisconnect(*strand, yc);
+
 		return;
 	}
 
@@ -909,20 +907,19 @@ void ApiListener::NewClientHandlerInternal(
 				<< "Ignoring anonymous JSON-RPC connection " << conninfo
 				<< ". Max connections (" << GetMaxAnonymousClients() << ") exceeded.";
 
-			aclient = nullptr;
+			// Close the connection cleanly, signals to the other endpoint that it wasn't closed due to an error.
+			client->GracefulDisconnect(*strand, yc);
+
+			return;
 		}
 
-		if (aclient) {
-			aclient->Start();
-			shutdownSslConn.Cancel();
-		}
+		aclient->Start();
 	} else {
 		Log(LogNotice, "ApiListener", "New HTTP client");
 
 		HttpServerConnection::Ptr aclient = new HttpServerConnection(m_WaitGroup, identity, verify_ok, client);
 		AddHttpClient(aclient);
 		aclient->Start();
-		shutdownSslConn.Cancel();
 	}
 }
 

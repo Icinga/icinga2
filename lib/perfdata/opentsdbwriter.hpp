@@ -37,6 +37,7 @@ private:
 	WorkQueue m_WorkQueue{10000000, 1};
 	std::string m_MsgBuf;
 	PerfdataWriterConnection::Ptr m_Connection;
+	Locked<PerfdataWriterConnection::Ptr> m_LockedConnection;
 
 	boost::signals2::connection m_HandleCheckResults;
 

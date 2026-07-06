@@ -44,12 +44,12 @@ private:
 
 inline void intrusive_ptr_add_ref(const SharedObject *object)
 {
-	object->m_References.fetch_add(1);
+	object->m_References.fetch_add(1, std::memory_order_relaxed);
 }
 
 inline void intrusive_ptr_release(const SharedObject *object)
 {
-	if (object->m_References.fetch_sub(1) == 1u) {
+	if (object->m_References.fetch_sub(1, std::memory_order_acq_rel) == 1u) {
 		delete object;
 	}
 }

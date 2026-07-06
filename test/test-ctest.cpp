@@ -42,9 +42,9 @@ void CTestFileGenerator::visit(const boost::unit_test::test_case& test)
 
 	auto decs = test.p_decorators.get();
 	for (auto& dec : decs) {
-		auto ctp = boost::dynamic_pointer_cast<CTestProperties>(dec);
+		auto ctp = boost::dynamic_pointer_cast<CTestPropertiesBase>(dec);
 		if (ctp) {
-			m_Fp << "  " << ctp->m_Props << "\n";
+			m_Fp << "  " << ctp->Get() << "\n";
 		}
 	}
 
@@ -58,9 +58,9 @@ bool CTestFileGenerator::test_suite_start(const boost::unit_test::test_suite& su
 
 	auto decs = suite.p_decorators.get();
 	for (auto& dec : decs) {
-		auto ctp = boost::dynamic_pointer_cast<CTestProperties>(dec);
+		auto ctp = boost::dynamic_pointer_cast<CTestPropertiesBase>(dec);
 		if (ctp) {
-			m_PropsStack.back().push_back(ctp->m_Props);
+			m_PropsStack.back().push_back(ctp->Get());
 		}
 	}
 

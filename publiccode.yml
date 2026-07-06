@@ -60,7 +60,7 @@ description:
       - https://icinga.com/wp-content/uploads/2025/07/demo_screenshot-scaled.png
       - https://icinga.com/wp-content/uploads/2025/05/icinga-for-kubernetes-screenshot.png
 legal:
-  license: GPL-2.0-or-later
+  license: GPL-3.0-or-later
 maintenance:
   type: internal
   contacts:

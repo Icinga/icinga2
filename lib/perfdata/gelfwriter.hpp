@@ -34,6 +34,7 @@ protected:
 
 private:
 	PerfdataWriterConnection::Ptr m_Connection;
+	Locked<PerfdataWriterConnection::Ptr> m_LockedConnection;
 	WorkQueue m_WorkQueue{10000000, 1};
 	Shared<boost::asio::ssl::context>::Ptr m_SslContext;
 
@@ -49,7 +50,7 @@ private:
 
 	void AssertOnWorkQueue();
 
-	void ExceptionHandler(boost::exception_ptr exp);
+	void ExceptionHandler(std::exception_ptr exp);
 };
 
 }

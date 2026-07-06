@@ -30,7 +30,7 @@ using namespace icinga;
 CpuBoundWork::CpuBoundWork(boost::asio::yield_context yc, boost::asio::io_context::strand& strand)
 	: m_Done(false)
 {
-	VERIFY(strand.running_in_this_thread());
+	VERIFY(IoEngine::IsStrandRunningOnThisThread(strand));
 
 	auto& ie (IoEngine::Get());
 	Shared<AsioConditionVariable>::Ptr cv;
@@ -123,8 +123,8 @@ void CpuBoundWork::Done()
 			}
 
 			// Again, a delayed wake-up is fine, hence unlocked.
-			for (auto& [strand, cv] : subscribers) {
-				boost::asio::post(strand, [cv = std::move(cv)] { cv->NotifyOne(); });
+			for (auto& subscriber : subscribers) {
+				boost::asio::post(subscriber.first, [cv = std::move(subscriber.second)] { cv->NotifyOne(); });
 			}
 		}
 	}
