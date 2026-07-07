@@ -89,6 +89,7 @@ case "$DISTRO" in
 
   *rockylinux:*)
     dnf install -y 'dnf-command(config-manager)' epel-release
+    dnf update -y
 
     case "$DISTRO" in
       *:8)
