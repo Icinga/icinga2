@@ -190,10 +190,12 @@ add_compile_definitions(BOOST_ASIO_USE_TS_EXECUTOR_AS_DEFAULT)
 link_directories(${Boost_LIBRARY_DIRS})
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
+find_package(Threads REQUIRED)
+
 find_package(OpenSSL REQUIRED)
 include_directories(SYSTEM ${OPENSSL_INCLUDE_DIR})
 
-set(base_DEPS ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES})
+set(base_DEPS ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES} Threads::Threads)
 set(base_OBJS $<TARGET_OBJECTS:mmatch> $<TARGET_OBJECTS:socketpair> $<TARGET_OBJECTS:base>)
 
 # JSON
@@ -258,18 +260,6 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Qunused-arguments -fcolor-diagnostics -fno-limit-debug-info")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Qunused-arguments -fcolor-diagnostics -fno-limit-debug-info")
-
-  # Clang on Fedora requires -pthread, Apple Clang does not
-  # AppleClang is available since CMake 3.0.0
-  if (NOT CMAKE_CXX_COMPILER_ID MATCHES "AppleClang")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
-  endif()
-endif()
-
-if(CMAKE_C_COMPILER_ID STREQUAL "SunPro")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mt")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mt -library=stlport4")
 endif()
 
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
@@ -277,20 +267,6 @@ if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 
   if("${CMAKE_CXX_COMPILER_VERSION}" VERSION_GREATER_EQUAL "11.0.0")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wrange-loop-construct")
-  endif()
-
-  if(CMAKE_SYSTEM_NAME MATCHES AIX)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -lpthread")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -lpthread")
-  elseif(CMAKE_SYSTEM_NAME MATCHES "kOpenBSD.*|OpenBSD.*")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -pthread")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -pthread")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lpthread")
-    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -lpthread")
-    set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} -lpthread")
-  else()
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -pthread")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -pthread")
   endif()
 endif()
 
