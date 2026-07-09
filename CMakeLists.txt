@@ -207,9 +207,6 @@ include_directories(SYSTEM ${JSON_INCLUDE})
 find_package(UTF8CPP)
 include_directories(SYSTEM ${UTF8CPP_INCLUDE})
 
-find_package(Editline)
-set(HAVE_EDITLINE "${EDITLINE_FOUND}")
-
 find_package(Termcap)
 set(HAVE_TERMCAP "${TERMCAP_FOUND}")
 
@@ -240,6 +237,7 @@ if(USE_SYSTEMD)
   list(APPEND base_DEPS Systemd::Systemd)
 endif()
 
+find_package(Editline)
 if(EDITLINE_FOUND)
   list(APPEND base_DEPS ${EDITLINE_LIBRARIES})
   include_directories(SYSTEM ${EDITLINE_INCLUDE_DIR})
