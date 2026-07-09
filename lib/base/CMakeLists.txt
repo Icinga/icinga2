@@ -133,11 +133,7 @@ if(ICINGA2_UNITY_BUILD)
   mkunity_target(base base base_SOURCES)
 endif()
 
-if(HAVE_SYSTEMD)
-  find_path(SYSTEMD_INCLUDE_DIR
-    NAMES systemd/sd-daemon.h
-    HINTS ${SYSTEMD_ROOT_DIR})
-  include_directories(SYSTEM ${SYSTEMD_INCLUDE_DIR})
+if(USE_SYSTEMD)
   set_property(
     SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/journaldlogger.cpp
     APPEND PROPERTY COMPILE_DEFINITIONS

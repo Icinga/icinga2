@@ -42,8 +42,6 @@ option(ICINGA2_WITH_OPENTELEMETRY "Build the OpenTelemetry integration module" $
 option (USE_SYSTEMD
  "Configure icinga as native systemd service instead of a SysV initscript" OFF)
 
-set(HAVE_SYSTEMD ${USE_SYSTEMD})
-
 include(GNUInstallDirs)
 include(InstallConfig)
 include(SetFullDir)
@@ -234,8 +232,11 @@ include_directories(
   ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR}/lib
 )
 
-if(HAVE_SYSTEMD)
-  list(APPEND base_DEPS systemd)
+if(USE_SYSTEMD)
+  find_package(Systemd REQUIRED)
+  list(APPEND base_DEPS Systemd)
+  include_directories(SYSTEM ${Systemd_INCLUDE_DIRS})
+  add_compile_definitions(HAVE_SYSTEMD)
 endif()
 
 if(EDITLINE_FOUND)
