@@ -1,14 +1,12 @@
 # SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-mkclass_target(dbconnection.ti dbconnection-ti.cpp dbconnection-ti.hpp)
-
 mkembedconfig_target(db_ido-itl.conf db_ido-itl.cpp)
 
 add_library(db_ido OBJECT
   i2-db_ido.hpp db_ido-itl.cpp
   commanddbobject.cpp commanddbobject.hpp
-  dbconnection.cpp dbconnection.hpp dbconnection-ti.hpp
+  dbconnection.cpp dbconnection.hpp dbconnection.ti
   dbevents.cpp dbevents.hpp
   dbobject.cpp dbobject.hpp
   dbquery.cpp dbquery.hpp
@@ -27,13 +25,13 @@ add_library(db_ido OBJECT
   zonedbobject.cpp zonedbobject.hpp
 )
 
+target_mkclass(db_ido db_ido_generated)
+
 target_link_libraries(db_ido PUBLIC
   common
-  base
-  config
-  icinga
-  remote
 )
+
+add_dependencies(db_ido base_generated icinga_generated remote_generated)
 
 set_target_properties (
   db_ido PROPERTIES
