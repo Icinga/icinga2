@@ -109,10 +109,9 @@ case "$DISTRO" in
     )
     ;;
   debian:*|ubuntu:*)
-    CMAKE_OPTS+=(-DICINGA2_LTO_BUILD=ON)
     source <(dpkg-buildflags --export=sh)
-    export CFLAGS="${CFLAGS} ${WARN_FLAGS}"
-    export CXXFLAGS="${CXXFLAGS} ${WARN_FLAGS}"
+    export CFLAGS="${CFLAGS} ${WARN_FLAGS} -flto=auto"
+    export CXXFLAGS="${CXXFLAGS} ${WARN_FLAGS} -flto=auto"
 
     # The default Protobuf compiler is too old for OTel, so we need to turn it off on Debian 11 and Ubuntu 22.04.
     case "$DISTRO" in

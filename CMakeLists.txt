@@ -67,8 +67,6 @@ set(ICINGA2_GROUP "icinga" CACHE STRING "Icinga 2 group")
 set(ICINGA2_COMMAND_GROUP "icingacmd" CACHE STRING "Icinga 2 command group")
 set(ICINGA2_PLUGINDIR "/usr/lib/nagios/plugins" CACHE STRING "Path for the check plugins")
 set(ICINGA2_GIT_VERSION_INFO ON CACHE BOOL "Whether to use git describe")
-set(ICINGA2_UNITY_BUILD ON CACHE BOOL "Whether to perform a unity build")
-set(ICINGA2_LTO_BUILD OFF CACHE BOOL "Whether to use LTO")
 
 set(ICINGA2_CONFIGDIR "${CMAKE_INSTALL_SYSCONFDIR}/icinga2" CACHE FILEPATH "Main config directory, e.g. /etc/icinga2")
 set(ICINGA2_CACHEDIR "${CMAKE_INSTALL_LOCALSTATEDIR}/cache/icinga2" CACHE FILEPATH "Directory for cache files, e.g. /var/cache/icinga2")
@@ -160,8 +158,8 @@ if(WIN32)
   # Disable optimization for Boost::context
   # https://www.boost.org/doc/libs/1_69_0/libs/context/doc/html/context/overview.html
   # https://docs.microsoft.com/en-us/cpp/build/reference/gl-whole-program-optimization?view=vs-2017
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /bigobj /GL- /EHs")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /GL- /EHs")
+  # set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /bigobj /GL- /EHs")
+  # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /GL- /EHs")
 
   # detect if 32-bit target
   if(CMAKE_VS_PLATFORM_NAME STREQUAL "Win32")
@@ -220,19 +218,10 @@ find_package(Editline)
 
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH};${CMAKE_INSTALL_FULL_LIBDIR}/icinga2")
 
+# TODO: Move all of this into CMake Presets
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Winconsistent-missing-override -Wrange-loop-construct")
-
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Qunused-arguments -fcolor-diagnostics -fno-limit-debug-info")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Qunused-arguments -fcolor-diagnostics -fno-limit-debug-info")
-endif()
-
-if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsuggest-override")
-
-  if("${CMAKE_CXX_COMPILER_VERSION}" VERSION_GREATER_EQUAL "11.0.0")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wrange-loop-construct")
-  endif()
+  # set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Qunused-arguments -fcolor-diagnostics ")
+  # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Qunused-arguments")
 endif()
 
 include(CheckCXXCompilerFlag)
@@ -271,31 +260,6 @@ check_cxx_linker_flag("-Wl,--dynamic-list-data" LD_DYNAMIC_LIST_DATA)
 if(LD_DYNAMIC_LIST_DATA)
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--dynamic-list-data")
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--dynamic-list-data")
-endif()
-
-check_cxx_compiler_flag("-Winvalid-pch" CXX_INVALID_PCH)
-
-if(CXX_INVALID_PCH)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Winvalid-pch")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Winvalid-pch")
-endif()
-
-if(ICINGA2_LTO_BUILD)
-  check_cxx_compiler_flag("-flto" CXX_FLAG_LTO)
-
-  if(NOT CXX_FLAG_LTO)
-    message(WARNING "Compiler does not support LTO, falling back to non-LTO build")
-  else()
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -flto")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -flto")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -flto")
-    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -flto")
-
-    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND NOT (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.9.0) AND NOT OPENBSD)
-      set(CMAKE_AR "gcc-ar")
-      set(CMAKE_RANLIB "gcc-ranlib")
-    endif()
-  endif()
 endif()
 
 if(MSVC)
