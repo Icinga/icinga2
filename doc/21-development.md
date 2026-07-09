@@ -55,7 +55,8 @@ SLES/openSUSE      | `zypper install icinga2-bin-debuginfo icinga2-ido-mysql-deb
 Furthermore, you may also have to install debug symbols for Boost and your C++ library.
 
 If you're building your own binaries, you should use the `-DCMAKE_BUILD_TYPE=Debug` cmake
-build flag for debug builds.
+build flag for debug builds or select one of the debug presets (list with `cmake --list-presets`,
+select with `cmake --preset=<preset>`).
 
 
 ### GDB as Debugger <a id="development-debug-gdb"></a>

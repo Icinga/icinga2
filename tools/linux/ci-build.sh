@@ -25,13 +25,10 @@ export CCACHE_MAXSIZE=400M
 export CTEST_OUTPUT_ON_FAILURE=1
 export CCACHE_DIR
 
+CMAKE_PRESET=release-gcc-ninja-unity
 CMAKE_OPTS=()
 SCL_ENABLE_GCC=()
-# -Wstringop-overflow is notorious for false positives and has been a problem for years.
-# See: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=88443
-# -Wtemplate-id-cdtor leaks from using the generated headers. We should reenable this once
-# we're considering moving to C++20 and/or the -ti.hpp files are generated differently.
-WARN_FLAGS="-Wall -Wextra -Wno-template-id-cdtor -Wno-stringop-overflow"
+WARN_FLAGS=
 
 # -Wattributes needs to be disabled to not get warnings in old compilers about not-yet
 # understood attributes, like [[gnu::no_dangling]] on many of the "stable" distros.
@@ -129,20 +126,19 @@ esac
 
 case "$DISTRO" in
   alpine:*)
+    CMAKE_PRESET=release-gcc-ninja
     CMAKE_OPTS+=(
       -DUSE_SYSTEMD=OFF
       -DICINGA2_WITH_MYSQL=OFF
       -DICINGA2_WITH_PGSQL=OFF
-      -DCMAKE_{C,CXX}_FLAGS="${WARN_FLAGS}"
-      -DICINGA2_UNITY_BUILD=OFF
       -DCMAKE_CXX_STANDARD=20
     )
     ;;
   debian:*|ubuntu:*)
-    CMAKE_OPTS+=(-DICINGA2_LTO_BUILD=ON)
+    CMAKE_PRESET=release-gcc-ninja-unity-lto
+    export DEB_CFLAGS_MAINT_APPEND="${WARN_FLAGS}"
+    export DEB_CXXFLAGS_MAINT_APPEND="${WARN_FLAGS}"
     source <(dpkg-buildflags --export=sh)
-    export CFLAGS="${CFLAGS} ${WARN_FLAGS}"
-    export CXXFLAGS="${CXXFLAGS} ${WARN_FLAGS}"
 
     # The default Protobuf compiler is too old for OTel, so we need to turn it off on Debian 11 and Ubuntu 22.04.
     case "$DISTRO" in
@@ -152,7 +148,8 @@ case "$DISTRO" in
     esac
     ;;
   *)
-    CMAKE_OPTS+=(-DCMAKE_{C,CXX}_FLAGS="$(rpm -E '%{optflags} %{?march_flag}') ${WARN_FLAGS}")
+    export CFLAGS="$(rpm -E '%{optflags} %{?march_flag}') ${WARN_FLAGS}"
+    export CXXFLAGS="${CFLAGS}"
     export LDFLAGS="$(rpm -E '%{?build_ldflags}')"
     ;;
 esac
@@ -169,9 +166,6 @@ if command -v ccache >/dev/null; then
   ccache -z
 fi
 
-mkdir -p "$ICINGA2_BUILD_DIR"
-cd "$ICINGA2_BUILD_DIR"
-
 # Disable the addtion of debug symbols to the objects to reduce ccache size.
 # Several targets will also add '-g' to the regular compiler flags, and adding
 # -g0 to the build-type specific variable is the only way to reliably override
@@ -182,15 +176,14 @@ CMAKE_OPTS+=(
 )
 
 "${SCL_ENABLE_GCC[@]}" cmake \
-  -GNinja \
-  -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+  -S "${ICINGA2_SOURCE_DIR}" -B "${ICINGA2_BUILD_DIR}" \
+  --preset ${CMAKE_PRESET} \
   -DUSE_SYSTEMD=ON \
   -DICINGA2_USER=$(id -un) \
   -DICINGA2_GROUP=$(id -gn) \
-  "${CMAKE_OPTS[@]}" \
-  "$ICINGA2_SOURCE_DIR"
+  "${CMAKE_OPTS[@]}"
 
-NINJA_OPTS=(-v)
+BUILD_OPTS=(-v)
 
 # Allow to customize the number of parallel build jobs to scale the jobs to the available resources provided by
 # different GitLab runners. Setting `ICINGA2_CI_BUILD_JOBS_RUNNER_23=4` and `ICINGA2_CI_BUILD_JOBS_RUNNER_42=8` in the
@@ -199,11 +192,11 @@ NINJA_OPTS=(-v)
 if [[ -v CI_RUNNER_ID ]]; then
   jobs_var_name="ICINGA2_CI_BUILD_JOBS_RUNNER_${CI_RUNNER_ID}"
   if [[ -v "$jobs_var_name" ]]; then
-    NINJA_OPTS+=(-j "${!jobs_var_name}")
+    BUILD_OPTS+=(--parallel "${!jobs_var_name}")
   fi
 fi
 
-ninja "${NINJA_OPTS[@]}"
+cmake --build "${ICINGA2_BUILD_DIR}" "${BUILD_OPTS[@]}"
 
 # Print ccache stats
 if command -v ccache >/dev/null; then
@@ -216,6 +209,6 @@ if command -v ccache >/dev/null; then
     "$ccache_kib" "$((ccache_kib / 1024))" "$((ccache_kib * 100 / 1024 % 100))"
 fi
 
-ninja test
-ninja install
+ctest --output-on-failure --test-dir "${ICINGA2_BUILD_DIR}"
+cmake --install "${ICINGA2_BUILD_DIR}"
 icinga2 daemon -C
