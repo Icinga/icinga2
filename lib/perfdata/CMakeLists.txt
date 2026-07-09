@@ -1,40 +1,32 @@
 # SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-mkclass_target(gelfwriter.ti gelfwriter-ti.cpp gelfwriter-ti.hpp)
-mkclass_target(graphitewriter.ti graphitewriter-ti.cpp graphitewriter-ti.hpp)
-mkclass_target(influxdbcommonwriter.ti influxdbcommonwriter-ti.cpp influxdbcommonwriter-ti.hpp)
-mkclass_target(influxdbwriter.ti influxdbwriter-ti.cpp influxdbwriter-ti.hpp)
-mkclass_target(influxdb2writer.ti influxdb2writer-ti.cpp influxdb2writer-ti.hpp)
-mkclass_target(elasticsearchwriter.ti elasticsearchwriter-ti.cpp elasticsearchwriter-ti.hpp)
-mkclass_target(opentsdbwriter.ti opentsdbwriter-ti.cpp opentsdbwriter-ti.hpp)
-mkclass_target(perfdatawriter.ti perfdatawriter-ti.cpp perfdatawriter-ti.hpp)
-
 add_library(perfdata OBJECT
-  elasticsearchwriter.cpp elasticsearchwriter.hpp elasticsearchwriter-ti.hpp
-  gelfwriter.cpp gelfwriter.hpp gelfwriter-ti.hpp
-  graphitewriter.cpp graphitewriter.hpp graphitewriter-ti.hpp
-  influxdbcommonwriter.cpp influxdbcommonwriter.hpp influxdbcommonwriter-ti.hpp
-  influxdbwriter.cpp influxdbwriter.hpp influxdbwriter-ti.hpp
-  influxdb2writer.cpp influxdb2writer.hpp influxdb2writer-ti.hpp
-  opentsdbwriter.cpp opentsdbwriter.hpp opentsdbwriter-ti.hpp
-  perfdatawriter.cpp perfdatawriter.hpp perfdatawriter-ti.hpp
+  elasticsearchwriter.cpp elasticsearchwriter.hpp elasticsearchwriter.ti
+  gelfwriter.cpp gelfwriter.hpp gelfwriter.ti
+  graphitewriter.cpp graphitewriter.hpp graphitewriter.ti
+  influxdbcommonwriter.cpp influxdbcommonwriter.hpp influxdbcommonwriter.ti
+  influxdbwriter.cpp influxdbwriter.hpp influxdbwriter.ti
+  influxdb2writer.cpp influxdb2writer.hpp influxdb2writer.ti
+  opentsdbwriter.cpp opentsdbwriter.hpp opentsdbwriter.ti
+  perfdatawriter.cpp perfdatawriter.hpp perfdatawriter.ti
   perfdatawriterconnection.cpp perfdatawriterconnection.hpp
 )
 
 target_link_libraries(perfdata PUBLIC
   common
-  base
-  icinga
 )
 
+add_dependencies(perfdata base_generated icinga_generated)
+
 if(ICINGA2_WITH_OPENTELEMETRY)
-  mkclass_target(otlpmetricswriter.ti otlpmetricswriter-ti.cpp otlpmetricswriter-ti.hpp)
   target_sources(perfdata PRIVATE
-    otlpmetricswriter.cpp otlpmetricswriter.hpp otlpmetricswriter-ti.hpp
+    otlpmetricswriter.cpp otlpmetricswriter.hpp otlpmetricswriter.ti
   )
   target_link_libraries(perfdata PUBLIC otel)
 endif()
+
+target_mkclass(perfdata perfdata_generated)
 
 set_target_properties (
   perfdata PROPERTIES

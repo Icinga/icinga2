@@ -1,19 +1,15 @@
 # SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-mkclass_target(apilistener.ti apilistener-ti.cpp apilistener-ti.hpp)
-mkclass_target(apiuser.ti apiuser-ti.cpp apiuser-ti.hpp)
-mkclass_target(endpoint.ti endpoint-ti.cpp endpoint-ti.hpp)
-mkclass_target(zone.ti zone-ti.cpp zone-ti.hpp)
-
 add_library(remote OBJECT
   i2-remote.hpp
   actionshandler.cpp actionshandler.hpp
   apiaction.cpp apiaction.hpp
   apifunction.cpp apifunction.hpp
-  apilistener.cpp apilistener.hpp apilistener-ti.hpp apilistener-configsync.cpp apilistener-filesync.cpp
+  apilistener.cpp apilistener.hpp apilistener.ti
+  apilistener-configsync.cpp apilistener-filesync.cpp
   apilistener-authority.cpp
-  apiuser.cpp apiuser.hpp apiuser-ti.hpp
+  apiuser.cpp apiuser.hpp apiuser.ti
   configfileshandler.cpp configfileshandler.hpp
   configobjectslock.cpp configobjectslock.hpp
   configobjectutility.cpp configobjectutility.hpp
@@ -23,7 +19,7 @@ add_library(remote OBJECT
   consolehandler.cpp consolehandler.hpp
   createobjecthandler.cpp createobjecthandler.hpp
   deleteobjecthandler.cpp deleteobjecthandler.hpp
-  endpoint.cpp endpoint.hpp endpoint-ti.hpp
+  endpoint.cpp endpoint.hpp endpoint.ti
   eventqueue.cpp eventqueue.hpp
   eventshandler.cpp eventshandler.hpp
   filterutility.cpp filterutility.hpp
@@ -44,15 +40,17 @@ add_library(remote OBJECT
   typequeryhandler.cpp typequeryhandler.hpp
   url.cpp url.hpp url-characters.hpp
   variablequeryhandler.cpp variablequeryhandler.hpp
-  zone.cpp zone.hpp zone-ti.hpp
+  zone.cpp zone.hpp zone.ti
 )
+
+target_mkclass(remote remote_generated)
 
 target_link_libraries(remote PUBLIC
   common
-  base
-  config
   Boost::coroutine
 )
+
+add_dependencies(remote base_generated)
 
 set_target_properties (
   remote PROPERTIES

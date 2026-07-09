@@ -1,20 +1,18 @@
 # SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-mkclass_target(compatlogger.ti compatlogger-ti.cpp compatlogger-ti.hpp)
-mkclass_target(externalcommandlistener.ti externalcommandlistener-ti.cpp externalcommandlistener-ti.hpp)
-
 add_library(compat OBJECT
-  compatlogger.cpp compatlogger.hpp compatlogger-ti.hpp
-  externalcommandlistener.cpp externalcommandlistener.hpp externalcommandlistener-ti.hpp
+  compatlogger.cpp compatlogger.hpp compatlogger.ti
+  externalcommandlistener.cpp externalcommandlistener.hpp externalcommandlistener.ti
 )
+
+target_mkclass(compat compat_generated)
 
 target_link_libraries(compat PUBLIC
   common
-  base
-  config
-  icinga
 )
+
+add_dependencies(compat base_generated icinga_generated)
 
 set_target_properties (
   compat PROPERTIES

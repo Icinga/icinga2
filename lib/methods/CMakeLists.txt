@@ -21,10 +21,10 @@ add_library(methods OBJECT
   sleepchecktask.cpp sleepchecktask.hpp
 )
 
+add_dependencies(methods base_generated)
+
 target_link_libraries(methods PUBLIC
-  base
-  config
-  icinga
+  common
 )
 
 set_target_properties (
