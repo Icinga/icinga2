@@ -1,10 +1,8 @@
 # SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-mkclass_target(idomysqlconnection.ti idomysqlconnection-ti.cpp idomysqlconnection-ti.hpp)
-
 set(db_ido_mysql_SOURCES
-  idomysqlconnection.cpp idomysqlconnection.hpp idomysqlconnection-ti.hpp
+  idomysqlconnection.cpp idomysqlconnection.hpp idomysqlconnection.ti
 )
 
 if(ICINGA2_UNITY_BUILD)
@@ -15,7 +13,8 @@ add_library(db_ido_mysql OBJECT ${db_ido_mysql_SOURCES})
 
 include_directories(SYSTEM ${MYSQL_INCLUDE_DIR})
 
-add_dependencies(db_ido_mysql base config icinga db_ido)
+target_mkclass(db_ido_mysql db_ido_mysql_generated)
+add_dependencies(db_ido_mysql base_generated db_ido_generated)
 
 set_target_properties (
   db_ido_mysql PROPERTIES

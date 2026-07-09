@@ -1,53 +1,45 @@
 # SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-mkclass_target(application.ti application-ti.cpp application-ti.hpp)
-mkclass_target(configobject.ti configobject-ti.cpp configobject-ti.hpp)
-mkclass_target(configuration.ti configuration-ti.cpp configuration-ti.hpp)
-mkclass_target(datetime.ti datetime-ti.cpp datetime-ti.hpp)
-mkclass_target(filelogger.ti filelogger-ti.cpp filelogger-ti.hpp)
-mkclass_target(function.ti function-ti.cpp function-ti.hpp)
-mkclass_target(journaldlogger.ti journaldlogger-ti.cpp journaldlogger-ti.hpp)
-mkclass_target(logger.ti logger-ti.cpp logger-ti.hpp)
-mkclass_target(perfdatavalue.ti perfdatavalue-ti.cpp perfdatavalue-ti.hpp)
-mkclass_target(streamlogger.ti streamlogger-ti.cpp streamlogger-ti.hpp)
-mkclass_target(sysloglogger.ti sysloglogger-ti.cpp sysloglogger-ti.hpp)
-
 set(base_SOURCES
   i2-base.hpp
-  application.cpp application.hpp application-ti.hpp application-version.cpp application-environment.cpp
+  application.cpp application.hpp application.ti
+  application-version.cpp application-environment.cpp
   array.cpp array.hpp array-script.cpp
   atomic.hpp
   atomic-file.cpp atomic-file.hpp
   base64.cpp base64.hpp
   boolean.cpp boolean.hpp boolean-script.cpp
   bulker.hpp
-  configobject.cpp configobject.hpp configobject-ti.hpp configobject-script.cpp
+  configobject.cpp configobject.hpp configobject.ti
+  configobject-script.cpp
   configtype.cpp configtype.hpp
-  configuration.cpp configuration.hpp configuration-ti.hpp
+  configuration.cpp configuration.hpp configuration.ti
   configwriter.cpp configwriter.hpp
   console.cpp console.hpp
   context.cpp context.hpp
   convert.cpp convert.hpp
-  datetime.cpp datetime.hpp datetime-ti.hpp datetime-script.cpp
+  datetime.cpp datetime.hpp datetime.ti
+  datetime-script.cpp
   debug.hpp
   debuginfo.cpp debuginfo.hpp
   dependencygraph.cpp dependencygraph.hpp
   dictionary.cpp dictionary.hpp dictionary-script.cpp
   exception.cpp exception.hpp
   fifo.cpp fifo.hpp
-  filelogger.cpp filelogger.hpp filelogger-ti.hpp
-  function.cpp function.hpp function-ti.hpp function-script.cpp functionwrapper.hpp
+  filelogger.cpp filelogger.hpp filelogger.ti
+  function.cpp function.hpp function.ti
+  function-script.cpp functionwrapper.hpp
   generator.hpp
   initialize.cpp initialize.hpp
   intrusive-ptr.hpp
   io-engine.cpp io-engine.hpp
-  journaldlogger.cpp journaldlogger.hpp journaldlogger-ti.hpp
+  journaldlogger.cpp journaldlogger.hpp journaldlogger.ti
   json.cpp json.hpp json-script.cpp
   lazy-init.hpp
   library.cpp library.hpp
   loader.cpp loader.hpp
-  logger.cpp logger.hpp logger-ti.hpp
+  logger.cpp logger.hpp logger.ti
   math-script.cpp
   netstring.cpp netstring.hpp
   networkstream.cpp networkstream.hpp
@@ -57,7 +49,7 @@ set(base_SOURCES
   objectlock.cpp objectlock.hpp
   object-packer.cpp object-packer.hpp
   objecttype.cpp objecttype.hpp
-  perfdatavalue.cpp perfdatavalue.hpp perfdatavalue-ti.hpp
+  perfdatavalue.cpp perfdatavalue.hpp perfdatavalue.ti
   primitivetype.cpp primitivetype.hpp
   process.cpp process.hpp
   reference.cpp reference.hpp reference-script.cpp
@@ -77,9 +69,9 @@ set(base_SOURCES
   statsfunction.hpp
   stdiostream.cpp stdiostream.hpp
   stream.cpp stream.hpp
-  streamlogger.cpp streamlogger.hpp streamlogger-ti.hpp
+  streamlogger.cpp streamlogger.hpp streamlogger.ti
   string.cpp string.hpp string-script.cpp
-  sysloglogger.cpp sysloglogger.hpp sysloglogger-ti.hpp
+  sysloglogger.cpp sysloglogger.hpp sysloglogger.ti
   tcpsocket.cpp tcpsocket.hpp
   threadpool.cpp threadpool.hpp
   timer.cpp timer.hpp
@@ -97,8 +89,7 @@ set(base_SOURCES
 )
 
 if(WIN32)
-  mkclass_target(windowseventloglogger.ti windowseventloglogger-ti.cpp windowseventloglogger-ti.hpp)
-  list(APPEND base_SOURCES windowseventloglogger.cpp windowseventloglogger.hpp windowseventloglogger-ti.hpp)
+  list(APPEND base_SOURCES windowseventloglogger.cpp windowseventloglogger.hpp windowseventloglogger.ti)
 
   # Generate a DLL containing message definitions for the Windows Event Viewer.
   # See also: https://docs.microsoft.com/en-us/windows/win32/eventlog/reporting-an-event
@@ -145,6 +136,8 @@ if(USE_SYSTEMD)
 endif()
 
 add_library(base OBJECT ${base_SOURCES})
+
+target_mkclass(base base_generated)
 
 include_directories(SYSTEM ${icinga2_SOURCE_DIR}/third-party/mmatch)
 link_directories(${icinga2_BINARY_DIR}/third-party/mmatch)

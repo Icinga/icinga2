@@ -1,8 +1,6 @@
 # SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-mkclass_target(livestatuslistener.ti livestatuslistener-ti.cpp livestatuslistener-ti.hpp)
-
 set(livestatus_SOURCES
   i2-livestatus.hpp
   aggregator.cpp aggregator.hpp
@@ -24,7 +22,7 @@ set(livestatus_SOURCES
   hoststable.cpp hoststable.hpp
   invavgaggregator.cpp invavgaggregator.hpp
   invsumaggregator.cpp invsumaggregator.hpp
-  livestatuslistener.cpp livestatuslistener.hpp livestatuslistener-ti.hpp
+  livestatuslistener.cpp livestatuslistener.hpp livestatuslistener.ti
   livestatuslogutility.cpp livestatuslogutility.hpp
   livestatusquery.cpp livestatusquery.hpp
   logtable.cpp logtable.hpp
@@ -49,7 +47,8 @@ endif()
 
 add_library(livestatus OBJECT ${livestatus_SOURCES})
 
-add_dependencies(livestatus base config icinga remote)
+target_mkclass(livestatus livestatus_generated)
+add_dependencies(livestatus base_generated icinga_generated remote_generated)
 
 set_target_properties (
   livestatus PROPERTIES
