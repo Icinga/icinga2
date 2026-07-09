@@ -1,18 +1,17 @@
 # SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-mkclass_target(notificationcomponent.ti notificationcomponent-ti.cpp notificationcomponent-ti.hpp)
-
 add_library(notification OBJECT
-  notificationcomponent.cpp notificationcomponent.hpp notificationcomponent-ti.hpp
+  notificationcomponent.cpp notificationcomponent.hpp notificationcomponent.ti
 )
+
+target_mkclass(notification notification_generated)
 
 target_link_libraries(notification PUBLIC
   common
-  base
-  config
-  icinga
 )
+
+add_dependencies(notification base_generated icinga_generated)
 
 set_target_properties (
   notification PROPERTIES

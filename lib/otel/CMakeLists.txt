@@ -28,9 +28,10 @@ protobuf_generate(
   IMPORT_DIRS "${ICINGA2_OPENTELEMETRY_PROTOS_DIR}"
 )
 
+add_dependencies(otel base_generated)
+
 target_link_libraries(otel PUBLIC
-  base
-  config
+  common
   protobuf::libprotobuf-lite
 )
 
