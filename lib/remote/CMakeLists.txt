@@ -6,7 +6,7 @@ mkclass_target(apiuser.ti apiuser-ti.cpp apiuser-ti.hpp)
 mkclass_target(endpoint.ti endpoint-ti.cpp endpoint-ti.hpp)
 mkclass_target(zone.ti zone-ti.cpp zone-ti.hpp)
 
-set(remote_SOURCES
+add_library(remote OBJECT
   i2-remote.hpp
   actionshandler.cpp actionshandler.hpp
   apiaction.cpp apiaction.hpp
@@ -47,13 +47,12 @@ set(remote_SOURCES
   zone.cpp zone.hpp zone-ti.hpp
 )
 
-if(ICINGA2_UNITY_BUILD)
-  mkunity_target(remote remote remote_SOURCES)
-endif()
-
-add_library(remote OBJECT ${remote_SOURCES})
-
-add_dependencies(remote base config)
+target_link_libraries(remote PUBLIC
+  common
+  base
+  config
+  Boost::coroutine
+)
 
 set_target_properties (
   remote PROPERTIES

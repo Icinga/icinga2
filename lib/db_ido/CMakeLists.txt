@@ -5,7 +5,7 @@ mkclass_target(dbconnection.ti dbconnection-ti.cpp dbconnection-ti.hpp)
 
 mkembedconfig_target(db_ido-itl.conf db_ido-itl.cpp)
 
-set(db_ido_SOURCES
+add_library(db_ido OBJECT
   i2-db_ido.hpp db_ido-itl.cpp
   commanddbobject.cpp commanddbobject.hpp
   dbconnection.cpp dbconnection.hpp dbconnection-ti.hpp
@@ -27,13 +27,13 @@ set(db_ido_SOURCES
   zonedbobject.cpp zonedbobject.hpp
 )
 
-if(ICINGA2_UNITY_BUILD)
-  mkunity_target(db_ido db_ido db_ido_SOURCES)
-endif()
-
-add_library(db_ido OBJECT ${db_ido_SOURCES})
-
-add_dependencies(db_ido base config icinga remote)
+target_link_libraries(db_ido PUBLIC
+  common
+  base
+  config
+  icinga
+  remote
+)
 
 set_target_properties (
   db_ido PROPERTIES
