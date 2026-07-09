@@ -5,7 +5,9 @@ find_package(BISON 2.3.0 REQUIRED)
 find_package(FLEX 2.5.31 REQUIRED)
 
 bison_target(class_parser class_parser.yy ${CMAKE_CURRENT_BINARY_DIR}/class_parser.cc)
+set_property(SOURCE ${CMAKE_CURRENT_BINARY_DIR}/class_parser.cc PROPERTY SKIP_UNITY_BUILD_INCLUSION True)
 flex_target(class_lexer class_lexer.ll ${CMAKE_CURRENT_BINARY_DIR}/class_lexer.cc)
+set_property(SOURCE ${CMAKE_CURRENT_BINARY_DIR}/class_lexer.cc PROPERTY SKIP_UNITY_BUILD_INCLUSION True)
 add_flex_bison_dependency(class_lexer class_parser)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")

@@ -3,17 +3,20 @@
 
 include(DiscoverBoostTests)
 
-add_library(testdeps INTERFACE)
+add_library(testdeps OBJECT
+  test-runner.cpp
+  test-ctest.cpp
+)
 
 if(NOT Boost_UNIT_TEST_FRAMEWORK_LIBRARY)
   find_package(Boost QUIET COMPONENTS unit_test_framework)
 endif()
 
 if(Boost_UNIT_TEST_FRAMEWORK_LIBRARY)
-  target_link_libraries(testdeps
-    INTERFACE
-    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+  target_link_libraries(testdeps PUBLIC
+    Boost::unit_test_framework
   )
+
   if(NOT Boost_USE_STATIC_LIBS)
     set(BOOST_TEST_DYN_LINK ON)
   endif()
@@ -21,76 +24,67 @@ else()
   set(BOOST_TEST_USE_INCLUDED ON)
 endif()
 
-target_link_libraries(testdeps
-  INTERFACE
-  ${base_DEPS}
-)
-
 configure_file(BoostTestConfig.h.in BoostTestTargetConfig.h @ONLY)
 
 target_include_directories(testdeps
-  INTERFACE
+  PUBLIC
   "${CMAKE_CURRENT_BINARY_DIR}"
+  # TODO: This is ugly, but needed for "test/*.hpp" includes
+  "${CMAKE_SOURCE_DIR}"
 )
 
-target_sources(testdeps INTERFACE
-  test-runner.cpp
-  test-ctest.cpp
+set_target_properties(testdeps PROPERTIES
+  UNITY_BUILD False
 )
-
-Set(types_test_SOURCES
-  icingaapplication-fixture.cpp
-  base-type.cpp
-  ${base_OBJS}
-  $<TARGET_OBJECTS:config>
-  $<TARGET_OBJECTS:remote>
-  $<TARGET_OBJECTS:icinga>
-  $<TARGET_OBJECTS:methods>
-)
-
-if(ICINGA2_WITH_CHECKER)
-  list(APPEND types_test_SOURCES $<TARGET_OBJECTS:checker>)
-endif()
-
-if(ICINGA2_WITH_MYSQL)
-  list(APPEND types_test_SOURCES $<TARGET_OBJECTS:db_ido> $<TARGET_OBJECTS:db_ido_mysql>)
-endif()
-
-if(ICINGA2_WITH_PGSQL)
-  list(APPEND types_test_SOURCES $<TARGET_OBJECTS:db_ido> $<TARGET_OBJECTS:db_ido_pgsql>)
-endif()
-
-if(ICINGA2_WITH_ICINGADB)
-  list(APPEND types_test_SOURCES $<TARGET_OBJECTS:icingadb>)
-endif()
-
-if(ICINGA2_WITH_NOTIFICATION)
-  list(APPEND types_test_SOURCES $<TARGET_OBJECTS:notification>)
-endif()
-
-if(ICINGA2_WITH_OPENTELEMETRY)
-  list(APPEND types_test_SOURCES $<TARGET_OBJECTS:otel>)
-endif()
-
-if(ICINGA2_WITH_PERFDATA)
-  list(APPEND types_test_SOURCES $<TARGET_OBJECTS:perfdata>)
-endif()
-
-if(ICINGA2_UNITY_BUILD)
-  mkunity_target(types test types_test_SOURCES)
-endif()
 
 # In order to test the order of all Icinga 2 config type load dependencies, we need to link against all the libraries,
 # but this results in boost signals e.g. in dbevents.cpp being triggered by icinga-checkresult.cpp test cases that
 # only pass partially initialised objects. Therefore, the types test cases are decoupled from base and moved to a
 # separate executable to not crash the base test cases.
 add_executable(testtypes
-  ${types_test_SOURCES}
+  icingaapplication-fixture.cpp
+  base-type.cpp
 )
-target_link_libraries(testtypes testdeps)
+
+target_link_libraries(testtypes PUBLIC
+  testdeps
+  base
+  config
+  icinga
+  remote
+)
+
+if(ICINGA2_WITH_CHECKER)
+  target_link_libraries(testtypes PUBLIC checker)
+endif()
+
+if(ICINGA2_WITH_MYSQL)
+  target_link_libraries(testtypes PUBLIC db_ido db_ido_mysql)
+endif()
+
+if(ICINGA2_WITH_PGSQL)
+  target_link_libraries(testtypes PUBLIC db_ido db_ido_pgsql)
+endif()
+
+if(ICINGA2_WITH_ICINGADB)
+  target_link_libraries(testtypes PUBLIC icingadb)
+endif()
+
+if(ICINGA2_WITH_NOTIFICATION)
+  target_link_libraries(testtypes PUBLIC notification)
+endif()
+
+if(ICINGA2_WITH_OPENTELEMETRY)
+  target_link_libraries(testtypes PUBLIC otel)
+endif()
+
+if(ICINGA2_WITH_PERFDATA)
+  target_link_libraries(testtypes PUBLIC perfdata)
+endif()
+
 target_discover_boost_tests(testtypes)
 
-set(base_test_SOURCES
+add_executable(testbase
   icingaapplication-fixture.cpp
   utils.cpp
   base-array.cpp
@@ -130,88 +124,74 @@ set(base_test_SOURCES
   remote-httpmessage.cpp
   remote-httputility.cpp
   remote-url.cpp
-  ${base_OBJS}
-  $<TARGET_OBJECTS:config>
-  $<TARGET_OBJECTS:remote>
-  $<TARGET_OBJECTS:icinga>
-  $<TARGET_OBJECTS:methods>
+)
+
+target_link_libraries(testbase PUBLIC
+  testdeps
+  base
+  config
+  icinga
+  methods
+  remote
 )
 
 if(ICINGA2_WITH_NOTIFICATION)
-  list(APPEND base_test_SOURCES
-    notification-notificationcomponent.cpp
-    $<TARGET_OBJECTS:notification>
-  )
+  target_sources(testbase PRIVATE notification-notificationcomponent.cpp)
+  target_link_libraries(testbase PUBLIC notification)
 endif()
 
 if(ICINGA2_WITH_OPENTELEMETRY)
-  list(APPEND base_test_SOURCES $<TARGET_OBJECTS:otel>)
+  target_link_libraries(testbase PUBLIC otel)
 endif()
 
 if(ICINGA2_WITH_PERFDATA)
-  list(APPEND base_test_SOURCES
+  target_sources(testbase PRIVATE
     perfdata-elasticsearchwriter.cpp
     perfdata-gelfwriter.cpp
     perfdata-graphitewriter.cpp
     perfdata-influxdbwriter.cpp
     perfdata-opentsdbwriter.cpp
     perfdata-perfdatawriterconnection.cpp
-    $<TARGET_OBJECTS:perfdata>
   )
+  target_link_libraries(testbase PUBLIC perfdata)
 endif()
 
-if(ICINGA2_UNITY_BUILD)
-  mkunity_target(base test base_test_SOURCES)
-endif()
-
-add_executable(testbase
-  ${base_test_SOURCES}
-)
-target_link_libraries(testbase testdeps)
 target_discover_boost_tests(testbase)
 
 if(ICINGA2_WITH_LIVESTATUS)
-  set(livestatus_test_SOURCES
+  add_executable(testlivestatus
     icingaapplication-fixture.cpp
     livestatus-fixture.cpp
     livestatus.cpp
-    ${base_OBJS}
-    $<TARGET_OBJECTS:config>
-    $<TARGET_OBJECTS:remote>
-    $<TARGET_OBJECTS:icinga>
-    $<TARGET_OBJECTS:livestatus>
-    $<TARGET_OBJECTS:methods>
   )
 
-  if(ICINGA2_UNITY_BUILD)
-      mkunity_target(livestatus test livestatus_test_SOURCES)
-  endif()
-
-  add_executable(testlivestatus
-    ${livestatus_test_SOURCES}
+  target_link_libraries(testlivestatus PUBLIC
+    testdeps
+    base
+    config
+    remote
+    icinga
+    livestatus
+    methods
   )
 
-  target_link_libraries(testlivestatus testdeps)
   target_discover_boost_tests(testlivestatus)
 endif()
 
-set(icinga_checkable_test_SOURCES
+add_executable(icinga_checkable
   icingaapplication-fixture.cpp
   icinga-checkable-fixture.cpp
   icinga-checkable-flapping.cpp
-  ${base_OBJS}
-  $<TARGET_OBJECTS:config>
-  $<TARGET_OBJECTS:remote>
-  $<TARGET_OBJECTS:icinga>
-  $<TARGET_OBJECTS:cli>
 )
 
-if(ICINGA2_UNITY_BUILD)
-    mkunity_target(icinga_checkable test icinga_checkable_test_SOURCES)
-endif()
-
-add_executable(icinga_checkable
-  ${icinga_checkable_test_SOURCES}
+target_link_libraries(icinga_checkable PUBLIC
+  testdeps
+  base
+  config
+  remote
+  icinga
+  cli
+  Boost::program_options
 )
-target_link_libraries(icinga_checkable testdeps)
+
 target_discover_boost_tests(icinga_checkable)

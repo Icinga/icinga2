@@ -4,18 +4,17 @@
 mkclass_target(compatlogger.ti compatlogger-ti.cpp compatlogger-ti.hpp)
 mkclass_target(externalcommandlistener.ti externalcommandlistener-ti.cpp externalcommandlistener-ti.hpp)
 
-set(compat_SOURCES
+add_library(compat OBJECT
   compatlogger.cpp compatlogger.hpp compatlogger-ti.hpp
   externalcommandlistener.cpp externalcommandlistener.hpp externalcommandlistener-ti.hpp
 )
 
-if(ICINGA2_UNITY_BUILD)
-  mkunity_target(compat compat compat_SOURCES)
-endif()
-
-add_library(compat OBJECT ${compat_SOURCES})
-
-add_dependencies(compat base config icinga)
+target_link_libraries(compat PUBLIC
+  common
+  base
+  config
+  icinga
+)
 
 set_target_properties (
   compat PROPERTIES

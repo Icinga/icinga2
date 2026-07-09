@@ -1,79 +1,66 @@
 # SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+add_executable(icinga-app
+  icinga.cpp
+)
+
+target_link_libraries(icinga-app PUBLIC
+  base
+  config
+  cli
+  icinga
+  methods
+  remote
+  Boost::program_options
+)
+
+# TODO: MSVC same as WIN32 or is mingwc a reasonable possibility?
 if(MSVC)
-  set(WindowsSources icinga.rc)
-else()
-  set(WindowsSources "")
+  target_sources(icinga-app PRIVATE
+    icinga.rc
+  )
 endif()
 
-set(icingaloader_SOURCES
-  icinga.cpp
-  ${WindowsSources}
-)
-
-add_library(icingaloader OBJECT ${icingaloader_SOURCES})
-add_dependencies(icingaloader base config cli)
-
-set_target_properties (
-  icingaloader PROPERTIES
-  FOLDER Lib
-)
-
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-
 if(ICINGA2_WITH_CHECKER)
-  list(APPEND icinga_app_SOURCES $<TARGET_OBJECTS:checker>)
+  target_link_libraries(icinga-app PUBLIC checker)
 endif()
 
 if(ICINGA2_WITH_COMPAT)
-  list(APPEND icinga_app_SOURCES $<TARGET_OBJECTS:compat>)
+  target_link_libraries(icinga-app PUBLIC compat)
 endif()
 
 if(ICINGA2_WITH_MYSQL OR ICINGA2_WITH_PGSQL)
-  list(APPEND icinga_app_SOURCES $<TARGET_OBJECTS:db_ido>)
+  target_link_libraries(icinga-app PUBLIC db_ido)
 endif()
 
 if(ICINGA2_WITH_MYSQL)
-  list(APPEND icinga_app_SOURCES $<TARGET_OBJECTS:db_ido_mysql>)
+  target_link_libraries(icinga-app PUBLIC db_ido_mysql)
 endif()
 
 if(ICINGA2_WITH_PGSQL)
-  list(APPEND icinga_app_SOURCES $<TARGET_OBJECTS:db_ido_pgsql>)
+  target_link_libraries(icinga-app PUBLIC db_ido_pgsql)
 endif()
 
 if(ICINGA2_WITH_LIVESTATUS)
-  list(APPEND icinga_app_SOURCES $<TARGET_OBJECTS:livestatus>)
+  target_link_libraries(icinga-app PUBLIC livestatus)
 endif()
 
 if(ICINGA2_WITH_NOTIFICATION)
-  list(APPEND icinga_app_SOURCES $<TARGET_OBJECTS:notification>)
+  target_link_libraries(icinga-app PUBLIC notification)
 endif()
 
 if(ICINGA2_WITH_OPENTELEMETRY)
-  list(APPEND icinga_app_SOURCES $<TARGET_OBJECTS:otel>)
+  target_link_libraries(icinga-app PUBLIC otel)
 endif()
 
 if(ICINGA2_WITH_PERFDATA)
-  list(APPEND icinga_app_SOURCES $<TARGET_OBJECTS:perfdata>)
+  target_link_libraries(icinga-app PUBLIC perfdata)
 endif()
 
 if(ICINGA2_WITH_ICINGADB)
-  list(APPEND icinga_app_SOURCES $<TARGET_OBJECTS:icingadb>)
+  target_link_libraries(icinga-app PUBLIC icingadb)
 endif()
-
-add_executable(icinga-app
-  $<TARGET_OBJECTS:icingaloader>
-  ${base_OBJS}
-  $<TARGET_OBJECTS:config>
-  $<TARGET_OBJECTS:remote>
-  $<TARGET_OBJECTS:cli>
-  $<TARGET_OBJECTS:icinga>
-  $<TARGET_OBJECTS:methods>
-  ${icinga_app_SOURCES}
-)
-
-target_link_libraries(icinga-app ${base_DEPS})
 
 set_target_properties (
   icinga-app PROPERTIES

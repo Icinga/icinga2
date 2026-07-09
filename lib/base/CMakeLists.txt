@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+# TODO: Make mkclass_target add targets to link against
 mkclass_target(application.ti application-ti.cpp application-ti.hpp)
 mkclass_target(configobject.ti configobject-ti.cpp configobject-ti.hpp)
 mkclass_target(configuration.ti configuration-ti.cpp configuration-ti.hpp)
@@ -13,7 +14,7 @@ mkclass_target(perfdatavalue.ti perfdatavalue-ti.cpp perfdatavalue-ti.hpp)
 mkclass_target(streamlogger.ti streamlogger-ti.cpp streamlogger-ti.hpp)
 mkclass_target(sysloglogger.ti sysloglogger-ti.cpp sysloglogger-ti.hpp)
 
-set(base_SOURCES
+add_library(base OBJECT
   i2-base.hpp
   application.cpp application.hpp application-ti.hpp application-version.cpp application-environment.cpp
   array.cpp array.hpp array-script.cpp
@@ -95,9 +96,24 @@ set(base_SOURCES
   workqueue.cpp workqueue.hpp
 )
 
+set_source_files_properties(application-version.cpp PROPERTIES
+  SKIP_UNITY_BUILD_INCLUSION TRUE
+)
+
 if(WIN32)
   mkclass_target(windowseventloglogger.ti windowseventloglogger-ti.cpp windowseventloglogger-ti.hpp)
-  list(APPEND base_SOURCES windowseventloglogger.cpp windowseventloglogger.hpp windowseventloglogger-ti.hpp)
+  target_sources(base PRIVATE
+    windowseventloglogger.cpp
+    windowseventloglogger.hpp
+    windowseventloglogger-ti.hpp
+  )
+
+  target_link_libraries(base PUBLIC
+    ws2_32
+    dbghelp
+    shlwapi
+    msi
+  )
 
   # Generate a DLL containing message definitions for the Windows Event Viewer.
   # See also: https://docs.microsoft.com/en-us/windows/win32/eventlog/reporting-an-event
@@ -107,9 +123,9 @@ if(WIN32)
     DEPENDS windowseventloglogger-provider.mc
   )
 
-  list(APPEND base_SOURCES windowseventloglogger-provider.h)
-
-  add_compile_definitions(WIN32_LEAN_AND_MEAN NOMINMAX)
+  target_sources(base PRIVATE
+    windowseventloglogger-provider.h
+  )
 
   add_custom_command(
     OUTPUT windowseventloglogger-provider.res
@@ -124,30 +140,21 @@ if(WIN32)
   install(TARGETS eventprovider LIBRARY DESTINATION ${CMAKE_INSTALL_SBINDIR})
 endif()
 
-set_property(
-  SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/application-version.cpp ${CMAKE_CURRENT_SOURCE_DIR}/journaldlogger.cpp
-  PROPERTY EXCLUDE_UNITY_BUILD TRUE
+target_link_libraries(base PUBLIC
+  common
 )
 
-if(ICINGA2_UNITY_BUILD)
-  mkunity_target(base base base_SOURCES)
-endif()
-
 if(USE_SYSTEMD)
-  set_property(
-    SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/journaldlogger.cpp
-    APPEND PROPERTY COMPILE_DEFINITIONS
+  target_link_libraries(base PUBLIC
+    Systemd
+  )
+
+  # TODO: Decide if this is any better than setting it in the source file directly.
+  set_source_files_properties(journaldlogger.cpp PROPERTIES
+    COMPILE_DEFINITIONS
     SD_JOURNAL_SUPPRESS_LOCATION
   )
 endif()
-
-add_library(base OBJECT ${base_SOURCES})
-
-include_directories(SYSTEM ${icinga2_SOURCE_DIR}/third-party/mmatch)
-link_directories(${icinga2_BINARY_DIR}/third-party/mmatch)
-
-include_directories(SYSTEM ${icinga2_SOURCE_DIR}/third-party/socketpair)
-link_directories(${icinga2_BINARY_DIR}/third-party/socketpair)
 
 set_target_properties (
   base PROPERTIES

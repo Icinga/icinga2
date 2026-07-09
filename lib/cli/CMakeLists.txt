@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-set(cli_SOURCES
+add_library(cli OBJECT
   i2-cli.hpp
   apisetupcommand.cpp apisetupcommand.hpp
   apisetuputility.cpp apisetuputility.hpp
@@ -36,13 +36,17 @@ set(cli_SOURCES
   variableutility.cpp variableutility.hpp
 )
 
-if(ICINGA2_UNITY_BUILD)
-  mkunity_target(cli cli cli_SOURCES)
+target_link_libraries(cli PUBLIC
+  common
+  base
+  config
+  icinga
+  remote
+)
+
+if(Editline_FOUND)
+  target_link_libraries(cli PUBLIC Editline)
 endif()
-
-add_library(cli OBJECT ${cli_SOURCES})
-
-add_dependencies(cli base config icinga remote)
 
 set_target_properties (
   cli PROPERTIES
