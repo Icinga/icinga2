@@ -3,19 +3,16 @@
 
 mkclass_target(idopgsqlconnection.ti idopgsqlconnection-ti.cpp idopgsqlconnection-ti.hpp)
 
-set(db_ido_pgsql_SOURCES
+add_library(db_ido_pgsql OBJECT
   idopgsqlconnection.cpp idopgsqlconnection.hpp idopgsqlconnection-ti.hpp
 )
 
-if(ICINGA2_UNITY_BUILD)
-  mkunity_target(db_ido_pgsql db_ido_pgsql db_ido_pgsql_SOURCES)
-endif()
-
-add_library(db_ido_pgsql OBJECT ${db_ido_pgsql_SOURCES})
-
-include_directories(SYSTEM ${PostgreSQL_INCLUDE_DIRS})
-
-add_dependencies(db_ido_pgsql base config icinga db_ido)
+target_link_libraries(db_ido_pgsql PUBLIC
+  common
+  base
+  db_ido
+  PostgreSQL
+)
 
 set_target_properties (
   db_ido_pgsql PROPERTIES

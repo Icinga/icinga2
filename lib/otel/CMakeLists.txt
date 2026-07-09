@@ -2,7 +2,17 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 set(ICINGA2_OPENTELEMETRY_PROTOS_DIR "${icinga2_SOURCE_DIR}/third-party/opentelemetry-proto")
+
+add_library(otel OBJECT
+  otel.cpp otel.hpp
+  "${ICINGA2_OPENTELEMETRY_PROTOS_DIR}/opentelemetry/proto/collector/metrics/v1/metrics_service.proto"
+  "${ICINGA2_OPENTELEMETRY_PROTOS_DIR}/opentelemetry/proto/common/v1/common.proto"
+  "${ICINGA2_OPENTELEMETRY_PROTOS_DIR}/opentelemetry/proto/metrics/v1/metrics.proto"
+  "${ICINGA2_OPENTELEMETRY_PROTOS_DIR}/opentelemetry/proto/resource/v1/resource.proto"
+)
+
 protobuf_generate(
+  TARGET otel
   LANGUAGE cpp
   # According to the Protobuf docs[^1], the Protobuf compiler generates with the "LITE_RUNTIME" option much
   # smaller code than the default optimze_for=SPEED option, which includes code for reflection, descriptors,
@@ -15,26 +25,17 @@ protobuf_generate(
   #
   # [^1]: https://protobuf.dev/programming-guides/proto3/#options
   PLUGIN_OPTIONS lite
-  OUT_VAR otel_PROTO_SRCS
   IMPORT_DIRS "${ICINGA2_OPENTELEMETRY_PROTOS_DIR}"
-  PROTOS
-    "${ICINGA2_OPENTELEMETRY_PROTOS_DIR}/opentelemetry/proto/collector/metrics/v1/metrics_service.proto"
-    "${ICINGA2_OPENTELEMETRY_PROTOS_DIR}/opentelemetry/proto/common/v1/common.proto"
-    "${ICINGA2_OPENTELEMETRY_PROTOS_DIR}/opentelemetry/proto/metrics/v1/metrics.proto"
-    "${ICINGA2_OPENTELEMETRY_PROTOS_DIR}/opentelemetry/proto/resource/v1/resource.proto"
 )
 
-set(otel_SOURCES
-  otel.cpp otel.hpp
-  ${otel_PROTO_SRCS}
+target_link_libraries(otel PUBLIC
+  base
+  config
+  protobuf::libprotobuf-lite
 )
 
-add_library(otel OBJECT ${otel_SOURCES})
-add_dependencies(otel base remote)
-target_include_directories(otel
-  SYSTEM PUBLIC
-    $<TARGET_PROPERTY:protobuf::libprotobuf-lite,INTERFACE_INCLUDE_DIRECTORIES>
-    ${CMAKE_CURRENT_BINARY_DIR}
+target_include_directories(otel PUBLIC
+  ${CMAKE_CURRENT_BINARY_DIR}
 )
 
 set_target_properties(

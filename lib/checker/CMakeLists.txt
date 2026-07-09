@@ -3,17 +3,17 @@
 
 mkclass_target(checkercomponent.ti checkercomponent-ti.cpp checkercomponent-ti.hpp)
 
-set(checker_SOURCES
+add_library(checker OBJECT
   checkercomponent.cpp checkercomponent.hpp checkercomponent-ti.hpp
 )
 
-if(ICINGA2_UNITY_BUILD)
-  mkunity_target(checker checker checker_SOURCES)
-endif()
-
-add_library(checker OBJECT ${checker_SOURCES})
-
-add_dependencies(checker base config icinga remote)
+target_link_libraries(checker
+  common
+  base
+  config
+  icinga
+  remote
+)
 
 set_target_properties (
   checker PROPERTIES

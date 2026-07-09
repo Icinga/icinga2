@@ -3,17 +3,16 @@
 
 mkclass_target(notificationcomponent.ti notificationcomponent-ti.cpp notificationcomponent-ti.hpp)
 
-set(notification_SOURCES
+add_library(notification OBJECT
   notificationcomponent.cpp notificationcomponent.hpp notificationcomponent-ti.hpp
 )
 
-if(ICINGA2_UNITY_BUILD)
-  mkunity_target(notification notification notification_SOURCES)
-endif()
-
-add_library(notification OBJECT ${notification_SOURCES})
-
-add_dependencies(notification base config icinga)
+target_link_libraries(notification PUBLIC
+  common
+  base
+  config
+  icinga
+)
 
 set_target_properties (
   notification PROPERTIES
