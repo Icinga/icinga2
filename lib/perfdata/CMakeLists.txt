@@ -10,7 +10,7 @@ mkclass_target(elasticsearchwriter.ti elasticsearchwriter-ti.cpp elasticsearchwr
 mkclass_target(opentsdbwriter.ti opentsdbwriter-ti.cpp opentsdbwriter-ti.hpp)
 mkclass_target(perfdatawriter.ti perfdatawriter-ti.cpp perfdatawriter-ti.hpp)
 
-set(perfdata_SOURCES
+add_library(perfdata OBJECT
   elasticsearchwriter.cpp elasticsearchwriter.hpp elasticsearchwriter-ti.hpp
   gelfwriter.cpp gelfwriter.hpp gelfwriter-ti.hpp
   graphitewriter.cpp graphitewriter.hpp graphitewriter-ti.hpp
@@ -22,33 +22,18 @@ set(perfdata_SOURCES
   perfdatawriterconnection.cpp perfdatawriterconnection.hpp
 )
 
+target_link_libraries(perfdata PUBLIC
+  common
+  base
+  icinga
+)
+
 if(ICINGA2_WITH_OPENTELEMETRY)
   mkclass_target(otlpmetricswriter.ti otlpmetricswriter-ti.cpp otlpmetricswriter-ti.hpp)
-  list(APPEND perfdata_SOURCES
+  target_sources(perfdata PRIVATE
     otlpmetricswriter.cpp otlpmetricswriter.hpp otlpmetricswriter-ti.hpp
   )
-endif()
-
-if(ICINGA2_UNITY_BUILD)
-  mkunity_target(perfdata perfdata perfdata_SOURCES)
-endif()
-
-add_library(perfdata OBJECT ${perfdata_SOURCES})
-
-add_dependencies(perfdata base config icinga)
-if(ICINGA2_WITH_OPENTELEMETRY)
-  add_dependencies(perfdata otel)
-  # All the Protobuf generated files within the otel target use relative include paths that won't be
-  # resolved unless we also add the include directories of the otel target. Meaning, we include some
-  # of the header files (not the generated ones) from otel within the otlpwriter and these headers
-  # again include the generated headers and the generated headers in return include other generated
-  # headers using relative paths like this:
-  #   #include "opentelemetry/proto/metrics/v1/metrics.pb.h"
-  #
-  # This path can only be resolved if the parent directory of "opentelemetry" is added to the compiler's
-  # include search paths, which is done by the CMakefile of the otel target and we only need to propagate
-  # its include directories to the perfdata target.
-  target_include_directories(perfdata PUBLIC $<TARGET_PROPERTY:otel,INCLUDE_DIRECTORIES>)
+  target_link_libraries(perfdata PUBLIC otel)
 endif()
 
 set_target_properties (

@@ -3,15 +3,20 @@
 
 add_executable(check_nscp_api
   check_nscp_api.cpp
-  ${base_OBJS}
-  $<TARGET_OBJECTS:config>
-  $<TARGET_OBJECTS:remote>
 )
-target_link_libraries(check_nscp_api ${base_DEPS})
+
+target_link_libraries(check_nscp_api PRIVATE
+  base
+  config
+  remote
+  Boost::program_options
+)
+
 set_target_properties (
   check_nscp_api PROPERTIES
   DEFINE_SYMBOL I2_PLUGINS_BUILD
-  FOLDER Plugins)
+  FOLDER Plugins
+)
 
 # Prefer the PluginDir constant which is set to /sbin on Windows
 
@@ -22,13 +27,20 @@ else()
 endif()
 
 if (WIN32)
+  # TODO: What is this for?
   add_definitions(-DUNICODE -D_UNICODE)
 
-  set(thresholds_SOURCES
+  add_library(thresholds OBJECT
     thresholds.cpp thresholds.hpp
   )
 
-  add_library(thresholds ${thresholds_SOURCES})
+  target_link_libraries(thresholds PUBLIC
+    Boost::boost
+  )
+
+  target_include_directories(thresholds PUBLIC
+    ${CMAKE_SOURCE_DIR}
+  )
 
   set_target_properties(
     thresholds PROPERTIES
@@ -45,7 +57,7 @@ if (WIN32)
     string(REGEX REPLACE ".cpp\$" "" check_OUT "${source}")
 
     add_executable(${check_OUT} ${source})
-    target_link_libraries(${check_OUT} thresholds shlwapi.lib ${Boost_PROGRAM_OPTIONS_LIBRARY})
+    target_link_libraries(${check_OUT} thresholds shlwapi.lib Boost::program_options)
 
     set_target_properties(
       ${check_OUT} PROPERTIES
@@ -59,7 +71,7 @@ if (WIN32)
   target_link_libraries(check_perfmon pdh.lib)
   target_link_libraries(check_ping ntdll.lib iphlpapi.lib ws2_32.lib)
   target_link_libraries(check_procs pdh.lib)
-  target_link_libraries(check_uptime ${Boost_SYSTEM_LIBRARY})
+  target_link_libraries(check_uptime Boost::chrono)
   target_link_libraries(check_users wtsapi32.lib)
 
   install(

@@ -3,19 +3,18 @@
 
 mkclass_target(idomysqlconnection.ti idomysqlconnection-ti.cpp idomysqlconnection-ti.hpp)
 
-set(db_ido_mysql_SOURCES
+add_library(db_ido_mysql OBJECT
   idomysqlconnection.cpp idomysqlconnection.hpp idomysqlconnection-ti.hpp
 )
 
-if(ICINGA2_UNITY_BUILD)
-  mkunity_target(db_ido_mysql db_ido_mysql db_ido_mysql_SOURCES)
-endif()
-
-add_library(db_ido_mysql OBJECT ${db_ido_mysql_SOURCES})
-
-include_directories(SYSTEM ${MYSQL_INCLUDE_DIR})
-
-add_dependencies(db_ido_mysql base config icinga db_ido)
+target_link_libraries(db_ido_mysql PUBLIC
+  common
+  base
+  config
+  icinga
+  db_ido
+  MySQL
+)
 
 set_target_properties (
   db_ido_mysql PROPERTIES

@@ -3,7 +3,7 @@
 
 mkclass_target(livestatuslistener.ti livestatuslistener-ti.cpp livestatuslistener-ti.hpp)
 
-set(livestatus_SOURCES
+add_library(livestatus OBJECT
   i2-livestatus.hpp
   aggregator.cpp aggregator.hpp
   andfilter.cpp andfilter.hpp
@@ -43,13 +43,13 @@ set(livestatus_SOURCES
   zonestable.cpp zonestable.hpp
 )
 
-if(ICINGA2_UNITY_BUILD)
-  mkunity_target(livestatus livestatus livestatus_SOURCES)
-endif()
-
-add_library(livestatus OBJECT ${livestatus_SOURCES})
-
-add_dependencies(livestatus base config icinga remote)
+target_link_libraries(livestatus PUBLIC
+  common
+  base
+  config
+  icinga
+  remote
+)
 
 set_target_properties (
   livestatus PROPERTIES
