@@ -30,7 +30,9 @@ set(otel_SOURCES
 )
 
 add_library(otel OBJECT ${otel_SOURCES})
-add_dependencies(otel base remote)
+
+add_dependencies(otel base_generated remote_generated)
+
 target_include_directories(otel
   SYSTEM PUBLIC
     $<TARGET_PROPERTY:protobuf::libprotobuf-lite,INTERFACE_INCLUDE_DIRECTORIES>
