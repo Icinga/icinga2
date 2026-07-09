@@ -82,7 +82,7 @@ case "$DISTRO" in
 
     zypper in -y --allow-downgrade bison ccache cmake flex gcc-c++ ninja rpm-config-SUSE \
       {lib{edit,mariadb,openssl},ncurses,postgresql,systemd,protobuf}-devel \
-      libboost_{context,coroutine,filesystem,iostreams,program_options,regex,system,test,thread}-devel
+      libboost_{atomic,context,coroutine,filesystem,iostreams,program_options,regex,system,test,thread}-devel
     ;;
 
   *rockylinux:*)
