@@ -7,6 +7,27 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.16.4 (2026-07-16)
+
+This release contains a number of fixes for various smaller but annoying bugs, including one regression regarding API
+authentication with certain HTTP client libraries. It also ensures that Icinga 2 is compatible with newer OpenSSL
+versions.
+
+### Bugfixes
+
+* Track objects deleted at runtime to avoid erroneous recreation when processing the replay log (#10933)
+* Ensure that connecting to endpoints can no longer hang indefinitely, which had stopped it from
+  initiating further connection attempts until Icinga 2 was restarted (#10929)
+* Fix a regression introduced with v2.16.0, that broke API authentication for clients
+  that only send HTTP Basic Auth credentials after the server requested them (#10927)
+* Improve locking of performance data arrays to prevent possible deadlocks (#10930)
+* Fix high response latency with multiple API requests targeting non-existent hosts or services (#10928)
+
+### Enhancements and Documentation
+
+* Add support for OpenSSL 4.0 (#10934)
+* Remove Amazon Linux 2 from the documentation after it has reached its end of life (#10935)
+
 ## 2.16.3 (2026-07-01)
 
 This is a hotfix release that fixes a regression with the `Json.decode()` DSL function that was introduced in v2.16.2:
