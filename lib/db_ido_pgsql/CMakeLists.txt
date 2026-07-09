@@ -1,18 +1,18 @@
 # SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-mkclass_target(idopgsqlconnection.ti idopgsqlconnection-ti.cpp idopgsqlconnection-ti.hpp)
-
 add_library(db_ido_pgsql OBJECT
-  idopgsqlconnection.cpp idopgsqlconnection.hpp idopgsqlconnection-ti.hpp
+  idopgsqlconnection.cpp idopgsqlconnection.hpp idopgsqlconnection.ti
 )
+
+target_mkclass(db_ido_pgsql db_ido_pgsql_generated)
 
 target_link_libraries(db_ido_pgsql PUBLIC
   common
-  base
-  db_ido
   PostgreSQL
 )
+
+add_dependencies(db_ido_pgsql base_generated db_ido_generated)
 
 set_target_properties (
   db_ido_pgsql PROPERTIES

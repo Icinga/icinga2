@@ -1,19 +1,17 @@
 # SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-mkclass_target(checkercomponent.ti checkercomponent-ti.cpp checkercomponent-ti.hpp)
-
 add_library(checker OBJECT
-  checkercomponent.cpp checkercomponent.hpp checkercomponent-ti.hpp
+  checkercomponent.cpp checkercomponent.hpp checkercomponent.ti
 )
+
+target_mkclass(checker checker_generated)
 
 target_link_libraries(checker
   common
-  base
-  config
-  icinga
-  remote
 )
+
+add_dependencies(checker base_generated icinga_generated remote_generated)
 
 set_target_properties (
   checker PROPERTIES

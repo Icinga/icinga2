@@ -39,8 +39,9 @@ add_library(config OBJECT
 
 target_link_libraries(config PUBLIC
   common
-  base
 )
+
+add_dependencies(config base_generated)
 
 set_target_properties (
   config PROPERTIES

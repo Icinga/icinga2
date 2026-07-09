@@ -11,9 +11,14 @@ add_flex_bison_dependency(class_lexer class_parser)
 set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/class_parser.cc ${CMAKE_CURRENT_BINARY_DIR}/class_lexer.cc
   PROPERTIES
     SKIP_UNITY_BUILD_INCLUSION TRUE
-    COMPILE_FLAGS "-Wno-unused-but-set-variable"
 )
 
+if(NOT WIN32)
+  set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/class_parser.cc ${CMAKE_CURRENT_BINARY_DIR}/class_lexer.cc
+    PROPERTIES
+      COMPILE_FLAGS "-Wno-unused-but-set-variable"
+  )
+endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
@@ -35,12 +40,29 @@ set_target_properties (
   FOLDER Bin
 )
 
-macro(MKCLASS_TARGET ClassInput ClassImplOutput ClassHeaderOutput)
-  add_custom_command(
-    OUTPUT ${ClassImplOutput} ${ClassHeaderOutput}
-    COMMAND mkclass
-    ARGS ${ClassInput} ${CMAKE_CURRENT_BINARY_DIR}/${ClassImplOutput} ${CMAKE_CURRENT_BINARY_DIR}/${ClassHeaderOutput}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    DEPENDS mkclass ${ClassInput}
-  )
-endmacro()
+function(target_mkclass target generator_target)
+  get_target_property(sources ${target} SOURCES)
+
+  set(generated_headers)
+  set(generated_impls)
+  foreach(file ${sources})
+    if(file MATCHES "\.ti$")
+      get_filename_component(basename ${file} NAME_WE)
+      set(generated_header ${CMAKE_CURRENT_BINARY_DIR}/${basename}-ti.hpp)
+      set(generated_impl ${CMAKE_CURRENT_BINARY_DIR}/${basename}-ti.cpp)
+      add_custom_command(
+        OUTPUT ${generated_impl} ${generated_header}
+        COMMAND mkclass
+        ARGS ${file} ${generated_impl} ${generated_header}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        DEPENDS mkclass ${file}
+      )
+      list(APPEND generated_headers ${generated_header})
+      list(APPEND generated_impls ${generated_impl})
+    endif()
+  endforeach()
+
+  target_sources(${target} PRIVATE ${generated_headers})
+  add_custom_target(${generator_target} DEPENDS ${generated_headers} ${generated_impls})
+  add_dependencies(${target} ${generator_target})
+endfunction()

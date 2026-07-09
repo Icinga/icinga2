@@ -38,11 +38,9 @@ add_library(cli OBJECT
 
 target_link_libraries(cli PUBLIC
   common
-  base
-  config
-  icinga
-  remote
 )
+
+add_dependencies(cli base_generated icinga_generated remote_generated)
 
 if(Editline_FOUND)
   target_link_libraries(cli PUBLIC Editline)
