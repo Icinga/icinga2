@@ -1,20 +1,17 @@
 # SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-set(db_ido_pgsql_SOURCES
+add_library(db_ido_pgsql OBJECT
   idopgsqlconnection.cpp idopgsqlconnection.hpp idopgsqlconnection.ti
 )
 
-if(ICINGA2_UNITY_BUILD)
-  mkunity_target(db_ido_pgsql db_ido_pgsql db_ido_pgsql_SOURCES)
-endif()
-
-add_library(db_ido_pgsql OBJECT ${db_ido_pgsql_SOURCES})
-
-include_directories(SYSTEM ${PostgreSQL_INCLUDE_DIRS})
-
 target_mkclass(db_ido_pgsql db_ido_pgsql_generated)
 add_dependencies(db_ido_pgsql base_generated db_ido_generated)
+
+target_link_libraries(db_ido_pgsql PUBLIC
+  common
+  PostgreSQL
+)
 
 set_target_properties (
   db_ido_pgsql PROPERTIES

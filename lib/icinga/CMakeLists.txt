@@ -3,7 +3,7 @@
 
 mkembedconfig_target(icinga-itl.conf icinga-itl.cpp)
 
-set(icinga_SOURCES
+add_library(icinga OBJECT
   i2-icinga.hpp icinga-itl.cpp
   apiactions.cpp apiactions.hpp
   apievents.cpp apievents.hpp
@@ -42,14 +42,10 @@ set(icinga_SOURCES
   usergroup.cpp usergroup.hpp usergroup.ti
 )
 
-if(ICINGA2_UNITY_BUILD)
-  mkunity_target(icinga icinga icinga_SOURCES)
-endif()
-
-add_library(icinga OBJECT ${icinga_SOURCES})
-
 target_mkclass(icinga icinga_generated)
 add_dependencies(icinga base_generated remote_generated)
+
+target_link_libraries(icinga PUBLIC common)
 
 set_target_properties (
   icinga PROPERTIES

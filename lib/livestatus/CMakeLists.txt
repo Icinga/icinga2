@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-set(livestatus_SOURCES
+add_library(livestatus OBJECT
   i2-livestatus.hpp
   aggregator.cpp aggregator.hpp
   andfilter.cpp andfilter.hpp
@@ -41,14 +41,10 @@ set(livestatus_SOURCES
   zonestable.cpp zonestable.hpp
 )
 
-if(ICINGA2_UNITY_BUILD)
-  mkunity_target(livestatus livestatus livestatus_SOURCES)
-endif()
-
-add_library(livestatus OBJECT ${livestatus_SOURCES})
-
 target_mkclass(livestatus livestatus_generated)
 add_dependencies(livestatus base_generated icinga_generated remote_generated)
+
+target_link_libraries(livestatus PUBLIC common)
 
 set_target_properties (
   livestatus PROPERTIES
