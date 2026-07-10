@@ -22,27 +22,6 @@ case "$DISTRO" in
     ln -vs /usr/lib/ninja-build/bin/ninja /usr/local/bin/ninja
     ;;
 
-  amazonlinux:2)
-    amazon-linux-extras install -y epel
-    yum install -y bison ccache cmake3 gcc-c++ flex ninja-build system-rpm-config \
-      {libedit,mariadb,ncurses,openssl,postgresql,systemd}-devel
-
-    yum install -y bzip2 tar wget
-    wget https://archives.boost.io/release/1.69.0/source/boost_1_69_0.tar.bz2
-    tar -xjf boost_1_69_0.tar.bz2
-
-    (
-      cd boost_1_69_0
-      ./bootstrap.sh --with-libraries=context,coroutine,date_time,filesystem,iostreams,program_options,regex,system,test,thread
-      ./b2 define=BOOST_COROUTINES_NO_DEPRECATION_WARNING
-    )
-
-    ln -vs /usr/bin/cmake3 /usr/local/bin/cmake
-    ln -vs /usr/bin/ninja-build /usr/local/bin/ninja
-    CMAKE_OPTS+=(-DBOOST_{INCLUDEDIR=/boost_1_69_0,LIBRARYDIR=/boost_1_69_0/stage/lib})
-    export LD_LIBRARY_PATH=/boost_1_69_0/stage/lib
-    ;;
-
   amazonlinux:20*)
     dnf install -y amazon-rpm-config bison cmake flex gcc-c++ ninja-build \
       {boost,libedit,mariadb-connector-c,ncurses,openssl,postgresql,systemd,protobuf-lite}-devel
@@ -131,10 +110,6 @@ case "$DISTRO" in
     esac
     ;;
   *)
-    # Turn off with OTel on Amazon Linux 2 as the default Protobuf compiler is way too old.
-    if [ "$DISTRO" = "amazonlinux:2" ]; then
-      CMAKE_OPTS+=(-DICINGA2_WITH_OPENTELEMETRY=OFF)
-    fi
     CMAKE_OPTS+=(-DCMAKE_{C,CXX}_FLAGS="$(rpm -E '%{optflags} %{?march_flag}') ${WARN_FLAGS}")
     export LDFLAGS="$(rpm -E '%{?build_ldflags}')"
     ;;
