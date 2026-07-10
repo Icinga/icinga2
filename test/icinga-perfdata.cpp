@@ -38,6 +38,7 @@ BOOST_AUTO_TEST_CASE(quotes)
 BOOST_AUTO_TEST_CASE(multiple)
 {
 	Array::Ptr pd = PluginUtility::SplitPerfdata("testA=123456 testB=123456");
+	pd->Freeze();
 	BOOST_CHECK_EQUAL(pd->GetLength(), 2);
 
 	String str = PluginUtility::FormatPerfdata(pd);
@@ -47,12 +48,14 @@ BOOST_AUTO_TEST_CASE(multiple)
 BOOST_AUTO_TEST_CASE(multiline)
 {
 	Array::Ptr pd = PluginUtility::SplitPerfdata(" 'testA'=123456  'testB'=123456");
+	pd->Freeze();
 	BOOST_CHECK_EQUAL(pd->GetLength(), 2);
 
 	String str = PluginUtility::FormatPerfdata(pd);
 	BOOST_CHECK_EQUAL(str, "testA=123456 testB=123456");
 
 	pd = PluginUtility::SplitPerfdata(" 'testA'=123456  \n'testB'=123456");
+	pd->Freeze();
 	BOOST_CHECK_EQUAL(pd->GetLength(), 2);
 
 	str = PluginUtility::FormatPerfdata(pd);
@@ -62,6 +65,7 @@ BOOST_AUTO_TEST_CASE(multiline)
 BOOST_AUTO_TEST_CASE(normalize)
 {
 	Array::Ptr pd = PluginUtility::SplitPerfdata("testA=2m;3;4;1;5 testB=2foobar");
+	pd->Freeze();
 	BOOST_CHECK_EQUAL(pd->GetLength(), 2);
 
 	String str = PluginUtility::FormatPerfdata(pd, true);
@@ -333,6 +337,7 @@ BOOST_AUTO_TEST_CASE(ignore_warn_crit_ranges)
 BOOST_AUTO_TEST_CASE(empty_warn_crit_min_max)
 {
 	Array::Ptr pd = PluginUtility::SplitPerfdata("testA=5;;7;1;9 testB=5;7;;1;9 testC=5;;;1;9 testD=2m;;;1 testE=5;;7;;");
+	pd->Freeze();
 	BOOST_CHECK_EQUAL(pd->GetLength(), 5);
 
 	String str = PluginUtility::FormatPerfdata(pd, true);

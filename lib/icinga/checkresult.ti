@@ -60,7 +60,7 @@ class CheckResult
 	[state, enum] ServiceState "state";
 	[state, enum] ServiceState previous_hard_state;
 	[state] String output;
-	[state] Array::Ptr performance_data;
+	[state, set_virtual] Array::Ptr performance_data;
 
 	[state] bool active {
 		default {{{ return true; }}}
