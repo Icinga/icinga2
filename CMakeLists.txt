@@ -136,8 +136,6 @@ message(STATUS "ICINGA2_VERSION_SAFE=${ICINGA2_VERSION_SAFE} CHOCO_VERSION_SHORT
 
 if(WIN32)
   set(Boost_USE_STATIC_LIBS ON)
-  # Disabled for linking issues for newer Boost versions, they link against Windows SDKs
-  #add_definitions(-DBOOST_ALL_NO_LIB)
 
   # Disable optimization for Boost::context
   # https://www.boost.org/doc/libs/1_69_0/libs/context/doc/html/context/overview.html
@@ -183,12 +181,12 @@ add_compile_definitions(OPENSSL_SUPPRESS_DEPRECATED)
 # Boost.Coroutine2 (the successor of Boost.Coroutine)
 # (1) doesn't even exist in old Boost versions and
 # (2) isn't supported by ASIO, yet.
-add_definitions(-DBOOST_COROUTINES_NO_DEPRECATION_WARNING)
+add_compile_definitions(BOOST_COROUTINES_NO_DEPRECATION_WARNING)
 
-add_definitions(-DBOOST_FILESYSTEM_NO_DEPRECATED)
+add_compile_definitions(BOOST_FILESYSTEM_NO_DEPRECATED)
 
 # Required for Boost v1.74+
-add_definitions(-DBOOST_ASIO_USE_TS_EXECUTOR_AS_DEFAULT)
+add_compile_definitions(BOOST_ASIO_USE_TS_EXECUTOR_AS_DEFAULT)
 
 link_directories(${Boost_LIBRARY_DIRS})
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
@@ -367,7 +365,11 @@ if(ICINGA2_LTO_BUILD)
 endif()
 
 if(MSVC)
-  add_definitions(-D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE -D_SCL_SECURE_NO_WARNINGS)
+  add_compile_definitions(
+    _CRT_SECURE_NO_DEPRECATE
+    _CRT_NONSTDC_NO_DEPRECATE
+    _SCL_SECURE_NO_WARNINGS
+  )
 endif()
 
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/Bin/${CMAKE_BUILD_TYPE} CACHE PATH "Library output path")
@@ -406,7 +408,7 @@ endif()
 
 if(NOT WIN32)
   # boost::stacktrace uses _Unwind_Backtrace which is only exposed if _GNU_SOURCE is defined on most systems
-  add_definitions(-D_GNU_SOURCE)
+  add_compile_definitions(_GNU_SOURCE)
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")

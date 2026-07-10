@@ -22,7 +22,7 @@ else()
 endif()
 
 if (WIN32)
-  add_definitions(-DUNICODE -D_UNICODE)
+  add_compile_definitions(UNICODE _UNICODE)
 
   set(thresholds_SOURCES
     thresholds.cpp thresholds.hpp
