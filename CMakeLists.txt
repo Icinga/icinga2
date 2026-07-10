@@ -153,6 +153,11 @@ if(WIN32)
     # https://docs.microsoft.com/en-us/cpp/build/reference/safeseh-image-has-safe-exception-handlers?view=vs-2017
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
   endif()
+
+  add_compile_definitions(
+    NOMINMAX
+    WIN32_LEAN_AND_MEAN
+  )
 endif()
 
 if(NOT DEFINED LOGROTATE_HAS_SU)

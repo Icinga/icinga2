@@ -16,7 +16,7 @@ struct printInfoStruct
 {
 	threshold warn;
 	threshold crit;
-	DOUBLE users;
+	double users;
 };
 
 static bool l_Debug;
@@ -153,7 +153,7 @@ static int printOutput(printInfoStruct& printInfo)
 
 static int check_users(printInfoStruct& printInfo)
 {
-	DOUBLE users = 0;
+	double users                    = 0;
 	WTS_SESSION_INFOW *pSessionInfo = NULL;
 	DWORD count;
 	DWORD index;

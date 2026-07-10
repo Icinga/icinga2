@@ -1,6 +1,14 @@
 # SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+add_library(common OBJECT)
+
+target_include_directories(common PUBLIC
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_BINARY_DIR}
+  ${CMAKE_BINARY_DIR}
+)
+
 add_subdirectory(base)
 add_subdirectory(cli)
 add_subdirectory(config)
