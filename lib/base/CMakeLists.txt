@@ -109,6 +109,8 @@ if(WIN32)
 
   list(APPEND base_SOURCES windowseventloglogger-provider.h)
 
+  add_compile_definitions(WIN32_LEAN_AND_MEAN NOMINMAX)
+
   add_custom_command(
     OUTPUT windowseventloglogger-provider.res
     COMMAND rc ARGS windowseventloglogger-provider.rc
