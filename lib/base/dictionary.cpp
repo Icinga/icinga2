@@ -155,9 +155,8 @@ Dictionary::Iterator Dictionary::End()
  * Removes the item specified by the iterator from the dictionary.
  *
  * @param it The iterator.
- * @return an iterator to the element after the removed element.
  */
-Dictionary::Iterator Dictionary::Remove(Dictionary::Iterator it)
+void Dictionary::Remove(Dictionary::Iterator it)
 {
 	ASSERT(OwnsLock());
 	std::unique_lock<std::shared_timed_mutex> lock (m_DataMutex);
@@ -165,7 +164,7 @@ Dictionary::Iterator Dictionary::Remove(Dictionary::Iterator it)
 	if (m_Frozen)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Dictionary must not be modified."));
 
-	return m_Data.erase(it);
+	m_Data.erase(it);
 }
 
 /**

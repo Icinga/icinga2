@@ -580,10 +580,10 @@ void ApiListener::PruneDeletedRuntimeObjects()
 
 	for (auto it = deletedRuntimeObjects->Begin(); it != deletedRuntimeObjects->End();) {
 		if (it->second < cutoff) {
-			it = deletedRuntimeObjects->Remove(it);
+			deletedRuntimeObjects->Remove(it++);
 		} else {
-			it++;
-		};
+			++it;
+		}
 	}
 }
 
