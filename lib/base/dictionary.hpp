@@ -56,7 +56,7 @@ public:
 
 	void Remove(const String& key);
 
-	Iterator Remove(Iterator it);
+	void Remove(Iterator it);
 
 	void Clear();
 
