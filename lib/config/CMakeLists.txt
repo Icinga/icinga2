@@ -5,15 +5,12 @@ find_package(BISON 2.3.0 REQUIRED)
 find_package(FLEX 2.5.31 REQUIRED)
 
 bison_target(config_parser config_parser.yy ${CMAKE_CURRENT_BINARY_DIR}/config_parser.cc)
-set_property(SOURCE ${CMAKE_CURRENT_BINARY_DIR}/config_parser.cc PROPERTY SKIP_UNITY_BUILD_INCLUSION True)
-
 flex_target(config_lexer config_lexer.ll ${CMAKE_CURRENT_BINARY_DIR}/config_lexer.cc)
-set_property(SOURCE ${CMAKE_CURRENT_BINARY_DIR}/config_lexer.cc PROPERTY SKIP_UNITY_BUILD_INCLUSION True)
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  set_property(SOURCE ${CMAKE_CURRENT_BINARY_DIR}/config_parser.cc PROPERTY COMPILE_FLAGS "-Wno-deprecated-register -Wno-parentheses-equality -Wno-unused-function")
-  set_property(SOURCE ${CMAKE_CURRENT_BINARY_DIR}/config_lexer.cc PROPERTY COMPILE_FLAGS "-Wno-deprecated-register -Wno-null-conversion")
-endif()
+set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/config_parser.cc ${CMAKE_CURRENT_BINARY_DIR}/config_lexer.cc
+  PROPERTIES
+    SKIP_UNITY_BUILD_INCLUSION TRUE
+)
 
 add_flex_bison_dependency(config_lexer config_parser)
 
