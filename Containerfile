@@ -92,7 +92,7 @@ ARG TARGETPLATFORM
 # These arguments are used to configure the build of Icinga 2 and can be overridden
 # by the user when building the image. All of them have a default value suitable for our official image.
 ARG CMAKE_BUILD_TYPE=RelWithDebInfo
-ARG ICINGA2_UNITY_BUILD=ON
+ARG CMAKE_UNITY_BUILD=TRUE
 ARG ICINGA2_BUILD_TESTING=ON
 
 # The number of jobs to run in parallel when building Icinga 2.
@@ -116,7 +116,8 @@ RUN --mount=type=bind,source=.,target=/icinga2,readonly \
         # Podman supports forwarding notifications from containers to systemd, so build Icinga 2 with systemd support.
         -DUSE_SYSTEMD=ON \
         -DBUILD_TESTING=${ICINGA2_BUILD_TESTING} \
-        -DICINGA2_UNITY_BUILD=${ICINGA2_UNITY_BUILD} \
+        -DCMAKE_UNITY_BUILD=${CMAKE_UNITY_BUILD} \
+        -DCMAKE_UNITY_BUILD_BATCH_SIZE=0 \
         # The command group name below is required for the prepare-dirs script to work, as it expects
         # the command group name, which by default is `icingacmd` to exist on the system. Since we
         # don't create the `icingacmd` command group in this image, we need to override it with icinga.
