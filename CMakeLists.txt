@@ -158,8 +158,7 @@ if(WIN32)
   # Disable optimization for Boost::context
   # https://www.boost.org/doc/libs/1_69_0/libs/context/doc/html/context/overview.html
   # https://docs.microsoft.com/en-us/cpp/build/reference/gl-whole-program-optimization?view=vs-2017
-  # set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /bigobj /GL- /EHs")
-  # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /GL- /EHs")
+  add_compile_options(/bigobj /GL- /EHs)
 
   # detect if 32-bit target
   if(CMAKE_VS_PLATFORM_NAME STREQUAL "Win32")
@@ -167,7 +166,7 @@ if(WIN32)
     # maybe it is when Boost is compiled with it...
     # https://lists.boost.org/Archives/boost/2013/10/206720.php
     # https://docs.microsoft.com/en-us/cpp/build/reference/safeseh-image-has-safe-exception-handlers?view=vs-2017
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
+    add_link_options(/SAFESEH:NO)
   endif()
 endif()
 
@@ -218,48 +217,37 @@ find_package(Editline)
 
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH};${CMAKE_INSTALL_FULL_LIBDIR}/icinga2")
 
-# TODO: Move all of this into CMake Presets
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  # set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Qunused-arguments -fcolor-diagnostics ")
-  # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Qunused-arguments")
-endif()
-
 include(CheckCXXCompilerFlag)
 include(CheckCXXLinkerFlag)
 
 check_cxx_linker_flag("-Wl,--gc-sections" LD_GC_SECTIONS)
 
 if(LD_GC_SECTIONS)
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--gc-sections")
-  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--gc-sections")
+  add_link_option(-Wl,--gc-sections)
 endif()
 
 check_cxx_linker_flag("-Wl,--no-export-dynamic" LD_NO_EXPORT_DYNAMIC)
 
 if(LD_NO_EXPORT_DYNAMIC)
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--no-export-dynamic")
-  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-export-dynamic")
+  add_link_option(-Wl,--no-export-dynamic)
 endif()
 
 check_cxx_linker_flag("-Bsymbolic-functions" LD_SYMBOLIC_FUNCTIONS)
 
 if(LD_SYMBOLIC_FUNCTIONS)
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Bsymbolic-functions")
-  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Bsymbolic-functions")
+  add_link_option(-Bsymbolic-functions)
 endif()
 
 check_cxx_linker_flag("-Wl,--dynamic-list-cpp-typeinfo" LD_DYNAMIC_LIST_CPP_TYPEINFO)
 
 if(LD_DYNAMIC_LIST_CPP_TYPEINFO)
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--dynamic-list-cpp-typeinfo")
-  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--dynamic-list-cpp-typeinfo")
+  add_link_option(-Wl,--dynamic-list-cpp-typeinfo)
 endif()
 
 check_cxx_linker_flag("-Wl,--dynamic-list-data" LD_DYNAMIC_LIST_DATA)
 
 if(LD_DYNAMIC_LIST_DATA)
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--dynamic-list-data")
-  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--dynamic-list-data")
+  add_link_option(-Wl,--dynamic-list-data)
 endif()
 
 if(MSVC)
