@@ -296,13 +296,7 @@ if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 endif()
 
 include(CheckCXXCompilerFlag)
-
-function(check_cxx_linker_flag flag var)
-  set(CMAKE_REQUIRED_FLAGS ${flag})
-  set(result 0)
-  check_cxx_compiler_flag(${flag} result)
-  set(${var} ${result} PARENT_SCOPE)
-endfunction()
+include(CheckCXXLinkerFlag)
 
 check_cxx_linker_flag("-Wl,--gc-sections" LD_GC_SECTIONS)
 
