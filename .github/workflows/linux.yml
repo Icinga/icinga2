@@ -39,15 +39,13 @@ jobs:
           - fedora:44
           - fedora:45
 
-          - opensuse/leap:15.6
-          - opensuse/leap:16.0
-
           # We don't actually support Rocky Linux as such!
           # We just use that RHEL clone to test the original.
           - rockylinux:8
           - rockylinux:9
           - rockylinux/rockylinux:10
 
+          # openSUSE Leap is close enough to SLES to test just one of them.
           - registry.suse.com/suse/sle15:15.6
           - registry.suse.com/suse/sle15:15.7
           - registry.suse.com/bci/bci-base:16.0
