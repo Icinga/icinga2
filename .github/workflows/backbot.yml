@@ -38,7 +38,7 @@ jobs:
           permission-issues: write # Needed to add comments to the PRs created by Backbot and the original PR.
 
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           token: ${{ steps.backbot-token.outputs.token }} # To make authenticated git operations.
           sha: ${{ github.event.pull_request.head.sha }} # Checkout the latest commit of the merged PR.
