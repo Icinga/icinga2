@@ -3,6 +3,7 @@
 
 #include "cli/consolecommand.hpp"
 #include "config/configcompiler.hpp"
+#include "remote/apilistener.hpp"
 #include "remote/consolehandler.hpp"
 #include "remote/url.hpp"
 #include "base/configwriter.hpp"
@@ -45,6 +46,9 @@ static ScriptFrame *l_ScriptFrame;
 static Url::Ptr l_Url;
 static Shared<AsioTlsStream>::Ptr l_TlsStream;
 static String l_Session;
+static String l_CertPath;
+static String l_KeyPath;
+static String l_CaPath;
 
 REGISTER_CLICOMMAND("console", ConsoleCommand);
 
@@ -177,6 +181,9 @@ void ConsoleCommand::InitParameters(boost::program_options::options_description&
 {
 	visibleDesc.add_options()
 		("connect,c", po::value<std::string>(), "connect to an Icinga 2 instance")
+		("cert", po::value<std::string>(), "client certificate file path")
+		("key", po::value<std::string>(), "client private key file path")
+		("ca", po::value<std::string>(), "CA certificate file path")
 		("eval,e", po::value<std::string>(), "evaluate expression and terminate")
 		("file,r", po::value<std::string>(), "evaluate a file and terminate")
 		("syntax-only", "only validate syntax (requires --eval or --file)")
@@ -249,6 +256,9 @@ int ConsoleCommand::Run(const po::variables_map& vm, [[maybe_unused]] const std:
 	/* Initialize remote connect parameters. */
 	if (vm.count("connect")) {
 		addr = vm["connect"].as<std::string>();
+		l_CertPath = vm.count("cert") ? String(vm["cert"].as<std::string>()) : ApiListener::GetDefaultCertPath();
+		l_KeyPath = vm.count("key") ? String(vm["key"].as<std::string>()) : ApiListener::GetDefaultKeyPath();
+		l_CaPath = vm.count("ca") ? String(vm["ca"].as<std::string>()) : ApiListener::GetDefaultCaPath();
 
 		try {
 			l_Url = new Url(addr);
@@ -533,7 +543,7 @@ Shared<AsioTlsStream>::Ptr ConsoleCommand::Connect()
 	Shared<boost::asio::ssl::context>::Ptr sslContext;
 
 	try {
-		sslContext = MakeAsioSslContext(Empty, Empty, Empty); //TODO: Add support for cert, key, ca parameters
+		sslContext = MakeAsioSslContext(l_CertPath, l_KeyPath, l_CaPath);
 	} catch(const std::exception& ex) {
 		Log(LogCritical, "DebugConsole")
 			<< "Cannot make SSL context: " << ex.what();
@@ -561,6 +571,12 @@ Shared<AsioTlsStream>::Ptr ConsoleCommand::Connect()
 		Log(LogWarning, "DebugConsole")
 			<< "TLS handshake with host '" << host << "' failed: " << ex.what();
 		throw;
+	}
+
+	if (!tlsStream.IsVerifyOK()) {
+		String message = "TLS certificate verification for host '" + host + "' failed: " + tlsStream.GetVerifyError();
+		Log(LogWarning, "DebugConsole", message);
+		BOOST_THROW_EXCEPTION(std::runtime_error(message));
 	}
 
 	return stream;
