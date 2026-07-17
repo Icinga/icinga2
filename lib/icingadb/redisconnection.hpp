@@ -19,7 +19,6 @@
 #include <boost/asio/buffered_stream.hpp>
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/io_context.hpp>
-#include <boost/asio/io_context_strand.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/local/stream_protocol.hpp>
 #include <boost/asio/read.hpp>
@@ -289,7 +288,7 @@ struct RedisConnInfo final : SharedObject
 
 		RedisConnInfo::ConstPtr m_ConnInfo; // Redis connection info (immutable)
 
-		boost::asio::io_context::strand m_Strand;
+		IoStrand m_Strand;
 		Shared<TcpConn>::Ptr m_TcpConn;
 		Shared<UnixConn>::Ptr m_UnixConn;
 		Shared<AsioTlsStream>::Ptr m_TlsConn;

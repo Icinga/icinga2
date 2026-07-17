@@ -62,7 +62,7 @@ OTel::OTel(OTelConnInfo& connInfo): OTel{connInfo, IoEngine::Get().GetIoContext(
 
 OTel::OTel(OTelConnInfo& connInfo, boost::asio::io_context& io)
 	: m_ConnInfo{std::move(connInfo)},
-	  m_Strand{io},
+	  m_Strand{io.get_executor()},
 	  m_ExportAsioCV{io},
 	  m_RetryExportAndConnTimer{io},
 	  m_Exporting{false},
@@ -241,9 +241,9 @@ void OTel::Connect(boost::asio::yield_context& yc)
 		try {
 			decltype(m_Stream) stream;
 			if (m_ConnInfo.EnableTls) {
-				stream = Shared<AsioTlsStream>::Make(m_Strand.context(), *m_TlsContext, m_ConnInfo.Host);
+				stream = Shared<AsioTlsStream>::Make(m_Strand.get_inner_executor().context(), *m_TlsContext, m_ConnInfo.Host);
 			} else {
-				stream = Shared<AsioTcpStream>::Make(m_Strand.context());
+				stream = Shared<AsioTcpStream>::Make(m_Strand.get_inner_executor().context());
 			}
 
 			Timeout timeout{m_Strand, boost::posix_time::seconds(10), [this, stream] {

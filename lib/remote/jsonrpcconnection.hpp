@@ -15,7 +15,6 @@
 #include <memory>
 #include <vector>
 #include <boost/asio/io_context.hpp>
-#include <boost/asio/io_context_strand.hpp>
 #include <boost/asio/spawn.hpp>
 
 namespace icinga
@@ -76,7 +75,7 @@ private:
 	ConnectionRole m_Role;
 	double m_Timestamp;
 	double m_Seen;
-	boost::asio::io_context::strand m_IoStrand;
+	IoStrand m_IoStrand;
 	std::vector<String> m_OutgoingMessagesQueue;
 	AsioEvent m_OutgoingMessagesQueued;
 	AsioEvent m_WriterDone;

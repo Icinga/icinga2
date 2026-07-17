@@ -27,7 +27,6 @@
 #include "base/exception.hpp"
 #include "base/tcpsocket.hpp"
 #include <boost/asio/buffer.hpp>
-#include <boost/asio/io_context_strand.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/asio/ssl/context.hpp>
@@ -512,7 +511,7 @@ bool ApiListener::AddListener(const String& node, const String& service)
 	Log(LogInformation, "ApiListener")
 		<< "Started new listener on '[" << localEndpoint.address() << "]:" << localEndpoint.port() << "'";
 
-	auto strand = Shared<asio::io_context::strand>::Make(io);
+	auto strand = std::make_shared<IoStrand>(io.get_executor());
 
 	boost::signals2::scoped_connection closeSignal = m_OnListenerShutdown.connect([strand, acceptor]() {
 		boost::asio::post(*strand, [acceptor] {
@@ -588,7 +587,7 @@ void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const Sha
 			lock.unlock();
 			sslConn->lowest_layer() = std::move(socket);
 
-			auto strand (Shared<asio::io_context::strand>::Make(io));
+			auto strand = std::make_shared<IoStrand>(io.get_executor());
 
 			IoEngine::SpawnCoroutine(*strand, [this, strand, sslConn, remoteEndpoint](asio::yield_context yc) {
 				Timeout timeout (*strand, boost::posix_time::microseconds(int64_t(GetConnectTimeout() * 1e6)),
@@ -632,7 +631,7 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 	}
 
 	auto& io (IoEngine::Get().GetIoContext());
-	auto strand (Shared<asio::io_context::strand>::Make(io));
+	auto strand = std::make_shared<IoStrand>(io.get_executor());
 
 	IoEngine::SpawnCoroutine(*strand, [this, strand, endpoint, &io](asio::yield_context yc) {
 		String host = endpoint->GetHost();
@@ -675,7 +674,7 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 }
 
 void ApiListener::NewClientHandler(
-	boost::asio::yield_context yc, const Shared<boost::asio::io_context::strand>::Ptr& strand,
+	boost::asio::yield_context yc, const std::shared_ptr<IoStrand>& strand,
 	const Shared<AsioTlsStream>::Ptr& client, const String& hostname, ConnectionRole role
 )
 {
@@ -710,7 +709,7 @@ static const auto l_AppVersionInt (([]() -> unsigned long {
  * @param client The new client.
  */
 void ApiListener::NewClientHandlerInternal(
-	boost::asio::yield_context yc, const Shared<boost::asio::io_context::strand>::Ptr& strand,
+	boost::asio::yield_context yc, const std::shared_ptr<IoStrand>& strand,
 	const Shared<AsioTlsStream>::Ptr& client, const String& hostname, ConnectionRole role
 )
 {

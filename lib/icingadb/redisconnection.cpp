@@ -40,7 +40,7 @@ RedisConnection::RedisConnection(
 	bool trackOwnPendingQueries
 )
 	: m_ConnInfo{connInfo},
-	  m_Strand(io),
+	  m_Strand(io.get_executor()),
 	  m_Connecting(false),
 	  m_Connected(false),
 	  m_Started(false),
@@ -285,7 +285,7 @@ void RedisConnection::Connect(asio::yield_context& yc)
 {
 	Defer notConnecting ([this]() { m_Connecting.store(m_Connected.load()); });
 
-	boost::asio::deadline_timer timer (m_Strand.context());
+	boost::asio::deadline_timer timer (m_Strand.get_inner_executor().context());
 
 	for (;;) {
 		try {
@@ -294,7 +294,7 @@ void RedisConnection::Connect(asio::yield_context& yc)
 					Log(m_Parent ? LogNotice : LogInformation, "IcingaDB")
 						<< "Trying to connect to Redis server (async, TLS) on host '" << m_ConnInfo->Host << ":" << m_ConnInfo->Port << "'";
 
-					auto conn (Shared<AsioTlsStream>::Make(m_Strand.context(), *m_TLSContext, m_ConnInfo->Host));
+					auto conn (Shared<AsioTlsStream>::Make(m_Strand.get_inner_executor().context(), *m_TLSContext, m_ConnInfo->Host));
 					auto& tlsConn (conn->next_layer());
 					auto connectTimeout (MakeTimeout(conn));
 
@@ -324,7 +324,7 @@ void RedisConnection::Connect(asio::yield_context& yc)
 					Log(m_Parent ? LogNotice : LogInformation, "IcingaDB")
 						<< "Trying to connect to Redis server (async) on host '" << m_ConnInfo->Host << ":" << m_ConnInfo->Port << "'";
 
-					auto conn (Shared<TcpConn>::Make(m_Strand.context()));
+					auto conn (Shared<TcpConn>::Make(m_Strand.get_inner_executor().context()));
 					auto connectTimeout (MakeTimeout(conn));
 
 					icinga::Connect(conn->next_layer(), m_ConnInfo->Host, Convert::ToString(m_ConnInfo->Port), yc);
@@ -336,7 +336,7 @@ void RedisConnection::Connect(asio::yield_context& yc)
 				Log(LogInformation, "IcingaDB")
 					<< "Trying to connect to Redis server (async) on unix socket path '" << m_ConnInfo->Path << "'";
 
-				auto conn (Shared<UnixConn>::Make(m_Strand.context()));
+				auto conn (Shared<UnixConn>::Make(m_Strand.get_inner_executor().context()));
 				auto connectTimeout (MakeTimeout(conn));
 
 				conn->next_layer().async_connect(Unix::endpoint(m_ConnInfo->Path.CStr()), yc);

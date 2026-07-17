@@ -42,7 +42,7 @@ PerfdataWriterConnection::PerfdataWriterConnection(
 	  m_Host(std::move(host)),
 	  m_Port(std::move(port)),
 	  m_ReconnectTimer(IoEngine::Get().GetIoContext()),
-	  m_Strand(IoEngine::Get().GetIoContext()),
+	  m_Strand(IoEngine::Get().GetIoContext().get_executor()),
 	  m_Stream(MakeStream())
 {
 }

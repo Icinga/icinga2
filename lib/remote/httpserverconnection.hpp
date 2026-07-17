@@ -5,13 +5,13 @@
 #define HTTPSERVERCONNECTION_H
 
 #include "remote/apiuser.hpp"
+#include "base/io-engine.hpp"
 #include "base/string.hpp"
 #include "base/tlsstream.hpp"
 #include "base/wait-group.hpp"
 #include <memory>
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/io_context.hpp>
-#include <boost/asio/io_context_strand.hpp>
 #include <boost/asio/spawn.hpp>
 #include <chrono>
 
@@ -55,7 +55,7 @@ private:
 	std::chrono::steady_clock::time_point m_Seen{std::chrono::steady_clock::now()};
 	std::chrono::milliseconds m_LivenessTimeout{10s};
 	String m_PeerAddress;
-	boost::asio::io_context::strand m_IoStrand;
+	IoStrand m_IoStrand;
 	bool m_ShuttingDown;
 	bool m_ConnectionReusable;
 	boost::asio::deadline_timer m_CheckLivenessTimer;
