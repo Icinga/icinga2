@@ -1,10 +1,7 @@
 name: Linux
 
 on:
-  push:
-    branches:
-      - master
-      - 'support/*'
+  push: {}
   pull_request: {}
 
 concurrency:

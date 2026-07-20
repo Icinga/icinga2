@@ -1,9 +1,7 @@
 name: Container Image
 
 on:
-  push:
-    branches:
-      - master
+  push: {}
   pull_request: {}
   release:
     types:
