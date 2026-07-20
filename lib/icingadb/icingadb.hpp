@@ -456,7 +456,6 @@ private:
 	 */
 	RedisConnection::Ptr m_RconWorker;
 	std::unordered_map<ConfigType*, RedisConnection::Ptr> m_Rcons;
-	std::atomic_size_t m_PendingRcons;
 
 	struct {
 		DumpedGlobals CustomVar, ActionUrl, NotesUrl, IconImage, DependencyGroup;

@@ -84,6 +84,8 @@ void IcingaDB::Start(bool runtimeCreated)
 	m_RconLocked.store(m_Rcon);
 
 	m_RconWorker = new RedisConnection(connInfo, m_Rcon);
+	std::vector<RedisConnection::Ptr> allConns;
+	allConns.push_back(m_RconWorker);
 
 	for (const auto& [type, _] : GetSyncableTypes()) {
 		auto ctype (dynamic_cast<ConfigType*>(type.get()));
@@ -91,21 +93,23 @@ void IcingaDB::Start(bool runtimeCreated)
 			continue;
 
 		RedisConnection::Ptr con = new RedisConnection(connInfo, m_Rcon);
-
-		con->SetConnectedCallback([this, con](boost::asio::yield_context&) {
-			con->SetConnectedCallback(nullptr);
-
-			size_t pending = --m_PendingRcons;
-			Log(LogDebug, "IcingaDB") << pending << " pending child connections remaining";
-			if (pending == 0) {
-				m_WorkQueue.Enqueue([this]() { OnConnectedHandler(); });
-			}
-		});
+		allConns.push_back(con);
 
 		m_Rcons[ctype] = std::move(con);
 	}
 
-	m_PendingRcons = m_Rcons.size();
+	auto pendingConns = std::make_shared<std::atomic_size_t>(allConns.size());
+
+	for (auto & conn : allConns) {
+		conn->SetConnectedCallback([this, pendingConns, conn](boost::asio::yield_context&) {
+			auto pending = --*pendingConns;
+			Log(LogDebug, "IcingaDB") << pending << " pending child connections remaining";
+			if (pending == 0) {
+				m_WorkQueue.Enqueue([this]() { OnConnectedHandler(); });
+			}
+			conn->SetConnectedCallback(nullptr);
+		});
+	}
 
 	m_Rcon->SetConnectedCallback([this](boost::asio::yield_context&) {
 		m_Rcon->SetConnectedCallback(nullptr);
