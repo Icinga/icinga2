@@ -181,17 +181,18 @@ void IoEngine::RunEventLoop()
 AsioEvent::AsioEvent(boost::asio::io_context& io, bool init)
 	: m_Timer(io)
 {
-	m_Timer.expires_at(init ? boost::posix_time::neg_infin : boost::posix_time::pos_infin);
+	using boost::asio::steady_timer;
+	m_Timer.expires_at(init ? steady_timer::time_point::min() : steady_timer::time_point::max());
 }
 
 void AsioEvent::Set()
 {
-	m_Timer.expires_at(boost::posix_time::neg_infin);
+	m_Timer.expires_at(boost::asio::steady_timer::time_point::min());
 }
 
 void AsioEvent::Clear()
 {
-	m_Timer.expires_at(boost::posix_time::pos_infin);
+	m_Timer.expires_at(boost::asio::steady_timer::time_point::max());
 }
 
 void AsioEvent::Wait(boost::asio::yield_context yc)
@@ -258,6 +259,5 @@ void Timeout::Cancel()
 {
 	m_Cancelled->store(true);
 
-	boost::system::error_code ec;
-	m_Timer.cancel(ec);
+	m_Timer.cancel();
 }

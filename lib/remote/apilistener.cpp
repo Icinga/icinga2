@@ -591,7 +591,7 @@ void ApiListener::ListenerCoroutineProc(boost::asio::yield_context yc, const Sha
 			auto strand (Shared<asio::io_context::strand>::Make(io));
 
 			IoEngine::SpawnCoroutine(*strand, [this, strand, sslConn, remoteEndpoint](asio::yield_context yc) {
-				Timeout timeout (*strand, boost::posix_time::microseconds(int64_t(GetConnectTimeout() * 1e6)),
+				Timeout timeout (*strand, std::chrono::duration<double>{GetConnectTimeout()},
 					[sslConn, remoteEndpoint] {
 						Log(LogWarning, "ApiListener")
 							<< "Timeout while processing incoming connection from " << remoteEndpoint;
@@ -647,7 +647,7 @@ void ApiListener::AddConnection(const Endpoint::Ptr& endpoint)
 
 			lock.unlock();
 
-			Timeout timeout (*strand, boost::posix_time::microseconds(int64_t(GetConnectTimeout() * 1e6)),
+			Timeout timeout (*strand, std::chrono::duration<double>{GetConnectTimeout()},
 				[sslConn, endpoint, host, port] {
 					Log(LogCritical, "ApiListener")
 						<< "Timeout while reconnecting to endpoint '" << endpoint->GetName() << "' via host '" << host
@@ -742,7 +742,7 @@ void ApiListener::NewClientHandlerInternal(
 	{
 		Timeout handshakeTimeout (
 			*strand,
-			boost::posix_time::microseconds(intmax_t(Configuration::TlsHandshakeTimeout * 1000000)),
+			std::chrono::duration<double>{Configuration::TlsHandshakeTimeout},
 			[client] {
 				boost::system::error_code ec;
 				client->lowest_layer().cancel(ec);
