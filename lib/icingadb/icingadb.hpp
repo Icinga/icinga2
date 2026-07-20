@@ -456,6 +456,7 @@ private:
 	 */
 	RedisConnection::Ptr m_RconWorker;
 	std::unordered_map<ConfigType*, RedisConnection::Ptr> m_Rcons;
+	std::shared_ptr<std::atomic_uint> m_ReconnectCount = std::make_shared<std::atomic_uint>(0);
 
 	struct {
 		DumpedGlobals CustomVar, ActionUrl, NotesUrl, IconImage, DependencyGroup;

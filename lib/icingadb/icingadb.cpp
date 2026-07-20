@@ -102,12 +102,15 @@ void IcingaDB::Start(bool runtimeCreated)
 
 	for (auto & conn : childConns) {
 		conn->SetConnectedCallback([this, pendingConns, conn](boost::asio::yield_context&) {
+			conn->SetConnectedCallback([reconnectCount = m_ReconnectCount](boost::asio::yield_context&) {
+				reconnectCount->fetch_add(1, std::memory_order_release);
+			});
+
 			auto pending = --*pendingConns;
 			Log(LogDebug, "IcingaDB") << pending << " pending child connections remaining";
 			if (pending == 0) {
 				m_WorkQueue.Enqueue([this]() { OnConnectedHandler(); });
 			}
-			conn->SetConnectedCallback(nullptr);
 		});
 	}
 
@@ -152,7 +155,15 @@ void IcingaDB::OnConnectedHandler()
 	m_ConfigDumpInProgress = true;
 	PublishStats();
 
-	UpdateAllConfigObjects();
+	while (true) {
+		try {
+			UpdateAllConfigObjects();
+			break;
+		} catch (const std::exception& ex) {
+			Log(LogCritical, "IcingaDB") << "Exception during ConfigDump: " << ex.what();
+		}
+		Utility::Sleep(10);
+	}
 
 	m_ConfigDumpDone.store(true);
 	m_ConfigDumpInProgress = false;
