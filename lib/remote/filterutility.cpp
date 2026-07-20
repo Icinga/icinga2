@@ -26,110 +26,95 @@ Dictionary::Ptr FilterUtility::GetTargetForVar(const String& name, const Value& 
 	});
 }
 
-/**
- * Controls access to an object or variable based on an ApiUser's permissions.
- *
- * This is accomplished by caching the generated filter expressions so they don't have to be
- * regenerated again and again when access is repeatedly checked in script functions and when
- * evaluating expressions.
- */
-class FilterExprPermissionChecker : public ScriptPermissionChecker
+FilterExprPermissionChecker::FilterExprPermissionChecker(ApiUser::Ptr user) : m_User(std::move(user))
 {
-public:
-	DECLARE_PTR_TYPEDEFS(FilterExprPermissionChecker);
+}
 
-	explicit FilterExprPermissionChecker(ApiUser::Ptr user) : m_User(std::move(user)) {}
+/**
+ * Check if the user has the given permission and cache the result if they do.
+ *
+ * This is a wrapper around FilterUtility::CheckPermission() that caches the generated
+ * filter expression for later use when checking permissions inside sandboxed ScriptFrames.
+ *
+ * Like FilterUtility::CheckPermission() an exception is thrown if the user does not have
+ * the requested permission.
+ *
+ * If the user has permission and there is a filter for the given permission, the filter
+ * expression  is generated, cached and then a pointer to it is returned, otherwise a
+ * nullptr will be returned.
+ *
+ * Since the optionally returned pointer is a raw-pointer and this class retains ownership
+ * over the expression it is only valid for the lifetime of the @c FilterExprPermissionChecker
+ * object that returned it.
+ *
+ * @param permissionString The permission string to check against the ApiUser member of this class.
+ *
+ * @return a pointer to the generated permission expression if the permission has a filter, or nullptr if not.
+ */
+Expression* FilterExprPermissionChecker::CheckPermission(const String& permissionString)
+{
+	auto [it, inserted] = m_PermCache.try_emplace(permissionString);
+	auto& [hasPermission, permissionExpr] = it->second;
 
-	/**
-	 * Check if the user has the given permission and cache the result if they do.
-	 *
-	 * This is a wrapper around FilterUtility::CheckPermission() that caches the generated
-	 * filter expression for later use when checking permissions inside sandboxed ScriptFrames.
-	 *
-	 * Like FilterUtility::CheckPermission() an exception is thrown if the user does not have
-	 * the requested permission.
-	 *
-	 * If the user has permission and there is a filter for the given permission, the filter
-	 * expression  is generated, cached and then a pointer to it is returned, otherwise a
-	 * nullptr will be returned.
-	 *
-	 * Since the optionally returned pointer is a raw-pointer and this class retains ownership
-	 * over the expression it is only valid for the lifetime of the @c FilterExprPermissionChecker
-	 * object that returned it.
-	 *
-	 * @param permissionString The permission string to check against the ApiUser member of this class.
-	 *
-	 * @return a pointer to the generated permission expression if the permission has a filter, or nullptr if not.
-	 */
-	Expression* CheckPermission(const String& permissionString)
-	{
-		auto [it, inserted] = m_PermCache.try_emplace(permissionString);
-		auto& [hasPermission, permissionExpr] = it->second;
-
-		if (inserted) {
-			FilterUtility::CheckPermission(m_User, permissionString, &permissionExpr);
-		} else if (!hasPermission) {
-			BOOST_THROW_EXCEPTION(ScriptError("Missing permission: " + permissionString.ToLower()));
-		}
-
-		hasPermission = true;
-		return permissionExpr.get();
+	if (inserted) {
+		FilterUtility::CheckPermission(m_User, permissionString, &permissionExpr);
+	} else if (!hasPermission) {
+		BOOST_THROW_EXCEPTION(ScriptError("Missing permission: " + permissionString.ToLower()));
 	}
 
-	/**
-	 * Checks if this object's ApiUser has permissions to access variable `varName`.
-	 *
-	 * @param varName The name of the variable to check for access
-	 *
-	 * @return 'true' if the variable can be accessed, 'false' if it can't.
-	 */
-	bool CanAccessGlobalVariable(const String& varName) override
-	{
-		auto obj = FilterUtility::GetTargetForVar(varName, ScriptGlobal::Get(varName));
-		return CheckPermissionAndEvalFilter("variables", obj, "variable");
+	hasPermission = true;
+	return permissionExpr.get();
+}
+
+/**
+ * Checks if this object's ApiUser has permissions to access variable `varName`.
+ *
+ * @param varName The name of the variable to check for access
+ *
+ * @return 'true' if the variable can be accessed, 'false' if it can't.
+ */
+bool FilterExprPermissionChecker::CanAccessGlobalVariable(const String& varName)
+{
+	auto obj = FilterUtility::GetTargetForVar(varName, ScriptGlobal::Get(varName));
+	return CheckPermissionAndEvalFilter("variables", obj, "variable");
+}
+
+/**
+ * Checks if this object's ApiUser has permissions to access ConfigObject `obj`.
+ *
+ * @param obj A pointer to the ConfigObject to check for access
+ *
+ * @return 'true' if the object can be accessed, 'false' if it can't.
+ */
+bool FilterExprPermissionChecker::CanAccessConfigObject(const ConfigObject::Ptr& obj)
+{
+	ASSERT(obj);
+
+	String perm = "objects/query/" + obj->GetReflectionType()->GetName();
+	String varName = obj->GetReflectionType()->GetName().ToLower();
+
+	return CheckPermissionAndEvalFilter(perm, obj, varName);
+}
+
+bool FilterExprPermissionChecker::CheckPermissionAndEvalFilter(const String& permissionString, const Object::Ptr& obj, const String& varName)
+{
+	auto [it, inserted] = m_PermCache.try_emplace(permissionString);
+	auto& [hasPermission, permissionExpr] = it->second;
+
+	if (inserted) {
+		hasPermission = FilterUtility::HasPermission(m_User, permissionString, &permissionExpr);
 	}
 
-	/**
-	 * Checks if this object's ApiUser has permissions to access ConfigObject `obj`.
-	 *
-	 * @param obj A pointer to the ConfigObject to check for access
-	 *
-	 * @return 'true' if the object can be accessed, 'false' if it can't.
-	 */
-	bool CanAccessConfigObject(const ConfigObject::Ptr& obj) override
-	{
-		ASSERT(obj);
-
-		String perm = "objects/query/" + obj->GetReflectionType()->GetName();
-		String varName = obj->GetReflectionType()->GetName().ToLower();
-
-		return CheckPermissionAndEvalFilter(perm, obj, varName);
+	if (hasPermission && permissionExpr) {
+		ScriptFrame permissionFrame(false, new Namespace());
+		// Sandboxing is lifted because this only evaluates the function from the
+		// ApiUser->permissions->filter
+		permissionFrame.Sandboxed = false;
+		return FilterUtility::EvaluateFilter(permissionFrame, permissionExpr.get(), obj, varName);
 	}
 
-private:
-	bool CheckPermissionAndEvalFilter(const String& permissionString, const Object::Ptr& obj, const String& varName)
-	{
-		auto [it, inserted] = m_PermCache.try_emplace(permissionString);
-		auto& [hasPermission, permissionExpr] = it->second;
-
-		if (inserted) {
-			hasPermission = FilterUtility::HasPermission(m_User, permissionString, &permissionExpr);
-		}
-
-		if (hasPermission && permissionExpr) {
-			ScriptFrame permissionFrame(false, new Namespace());
-			// Sandboxing is lifted because this only evaluates the function from the
-			// ApiUser->permissions->filter
-			permissionFrame.Sandboxed = false;
-			return FilterUtility::EvaluateFilter(permissionFrame, permissionExpr.get(), obj, varName);
-		}
-
-		return hasPermission;
-	}
-
-	std::unordered_map<String, std::pair<bool, std::unique_ptr<Expression>>> m_PermCache;
-	ApiUser::Ptr m_User;
-};
+	return hasPermission;
+}
 
 Type::Ptr FilterUtility::TypeFromPluralName(const String& pluralName)
 {
