@@ -26,7 +26,7 @@ class EventQueue final : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(EventQueue);
 
-	EventQueue(String name);
+	EventQueue() = delete;
 
 	bool CanProcessEvent(const String& type) const;
 	void ProcessEvent(const Dictionary::Ptr& event);

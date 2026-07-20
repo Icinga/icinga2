@@ -16,10 +16,6 @@
 
 using namespace icinga;
 
-EventQueue::EventQueue(String name)
-	: m_Name(std::move(name))
-{ }
-
 bool EventQueue::CanProcessEvent(const String& type) const
 {
 	std::unique_lock<std::mutex> lock(m_Mutex);
