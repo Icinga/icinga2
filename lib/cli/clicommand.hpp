@@ -15,7 +15,6 @@ namespace icinga
 {
 
 std::vector<String> GetBashCompletionSuggestions(const String& type, const String& word);
-std::vector<String> GetFieldCompletionSuggestions(const Type::Ptr& type, const String& word);
 
 enum ImpersonationLevel
 {
