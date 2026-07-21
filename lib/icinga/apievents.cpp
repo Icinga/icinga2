@@ -37,10 +37,9 @@ void ApiEvents::StaticInitialize()
 
 void ApiEvents::CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const MessageOrigin::Ptr&)
 {
-	std::vector<EventQueue::Ptr> queues = EventQueue::GetQueuesForType("CheckResult");
 	auto inboxes (EventsRouter::GetInstance().GetInboxes(EventType::CheckResult));
 
-	if (queues.empty() && !inboxes)
+	if (!inboxes)
 		return;
 
 	Log(LogDebug, "ApiEvents", "Processing event type 'CheckResult'.");
@@ -62,19 +61,14 @@ void ApiEvents::CheckResultHandler(const Checkable::Ptr& checkable, const CheckR
 	result->Set("downtime_depth", checkable->GetDowntimeDepth());
 	result->Set("acknowledgement", checkable->IsAcknowledged());
 
-	for (const EventQueue::Ptr& queue : queues) {
-		queue->ProcessEvent(result);
-	}
-
 	inboxes.Push(std::move(result));
 }
 
 void ApiEvents::StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, StateType, const MessageOrigin::Ptr&)
 {
-	std::vector<EventQueue::Ptr> queues = EventQueue::GetQueuesForType("StateChange");
 	auto inboxes (EventsRouter::GetInstance().GetInboxes(EventType::StateChange));
 
-	if (queues.empty() && !inboxes)
+	if (!inboxes)
 		return;
 
 	Log(LogDebug, "ApiEvents", "Processing event type 'StateChange'.");
@@ -98,10 +92,6 @@ void ApiEvents::StateChangeHandler(const Checkable::Ptr& checkable, const CheckR
 	result->Set("downtime_depth", checkable->GetDowntimeDepth());
 	result->Set("acknowledgement", checkable->IsAcknowledged());
 
-	for (const EventQueue::Ptr& queue : queues) {
-		queue->ProcessEvent(result);
-	}
-
 	inboxes.Push(std::move(result));
 }
 
@@ -109,10 +99,9 @@ void ApiEvents::NotificationSentToAllUsersHandler(const Notification::Ptr& notif
 	const Checkable::Ptr& checkable, const std::set<User::Ptr>& users, NotificationType type,
 	const CheckResult::Ptr& cr, const String& author, const String& text, const MessageOrigin::Ptr&)
 {
-	std::vector<EventQueue::Ptr> queues = EventQueue::GetQueuesForType("Notification");
 	auto inboxes (EventsRouter::GetInstance().GetInboxes(EventType::Notification));
 
-	if (queues.empty() && !inboxes)
+	if (!inboxes)
 		return;
 
 	Log(LogDebug, "ApiEvents", "Processing event type 'Notification'.");
@@ -146,19 +135,14 @@ void ApiEvents::NotificationSentToAllUsersHandler(const Notification::Ptr& notif
 	result->Set("text", text);
 	result->Set("check_result", Serialize(cr));
 
-	for (const EventQueue::Ptr& queue : queues) {
-		queue->ProcessEvent(result);
-	}
-
 	inboxes.Push(std::move(result));
 }
 
 void ApiEvents::FlappingChangedHandler(const Checkable::Ptr& checkable, const MessageOrigin::Ptr&)
 {
-	std::vector<EventQueue::Ptr> queues = EventQueue::GetQueuesForType("Flapping");
 	auto inboxes (EventsRouter::GetInstance().GetInboxes(EventType::Flapping));
 
-	if (queues.empty() && !inboxes)
+	if (!inboxes)
 		return;
 
 	Log(LogDebug, "ApiEvents", "Processing event type 'Flapping'.");
@@ -182,10 +166,6 @@ void ApiEvents::FlappingChangedHandler(const Checkable::Ptr& checkable, const Me
 	result->Set("threshold_low", checkable->GetFlappingThresholdLow());
 	result->Set("threshold_high", checkable->GetFlappingThresholdHigh());
 
-	for (const EventQueue::Ptr& queue : queues) {
-		queue->ProcessEvent(result);
-	}
-
 	inboxes.Push(std::move(result));
 }
 
@@ -193,10 +173,9 @@ void ApiEvents::AcknowledgementSetHandler(const Checkable::Ptr& checkable,
 	const String& author, const String& comment, AcknowledgementType type,
 	bool notify, bool persistent, double, double expiry, const MessageOrigin::Ptr&)
 {
-	std::vector<EventQueue::Ptr> queues = EventQueue::GetQueuesForType("AcknowledgementSet");
 	auto inboxes (EventsRouter::GetInstance().GetInboxes(EventType::AcknowledgementSet));
 
-	if (queues.empty() && !inboxes)
+	if (!inboxes)
 		return;
 
 	Log(LogDebug, "ApiEvents", "Processing event type 'AcknowledgementSet'.");
@@ -223,19 +202,14 @@ void ApiEvents::AcknowledgementSetHandler(const Checkable::Ptr& checkable,
 	result->Set("persistent", persistent);
 	result->Set("expiry", expiry);
 
-	for (const EventQueue::Ptr& queue : queues) {
-		queue->ProcessEvent(result);
-	}
-
 	inboxes.Push(std::move(result));
 }
 
 void ApiEvents::AcknowledgementClearedHandler(const Checkable::Ptr& checkable, [[maybe_unused]] const String& removedBy, double, const MessageOrigin::Ptr&)
 {
-	std::vector<EventQueue::Ptr> queues = EventQueue::GetQueuesForType("AcknowledgementCleared");
 	auto inboxes (EventsRouter::GetInstance().GetInboxes(EventType::AcknowledgementCleared));
 
-	if (queues.empty() && !inboxes)
+	if (!inboxes)
 		return;
 
 	Log(LogDebug, "ApiEvents", "Processing event type 'AcknowledgementCleared'.");
@@ -256,19 +230,14 @@ void ApiEvents::AcknowledgementClearedHandler(const Checkable::Ptr& checkable, [
 	result->Set("state_type", checkable->GetStateType());
 	result->Set("acknowledgement_type", AcknowledgementNone);
 
-	for (const EventQueue::Ptr& queue : queues) {
-		queue->ProcessEvent(result);
-	}
-
 	inboxes.Push(std::move(result));
 }
 
 void ApiEvents::CommentAddedHandler(const Comment::Ptr& comment)
 {
-	std::vector<EventQueue::Ptr> queues = EventQueue::GetQueuesForType("CommentAdded");
 	auto inboxes (EventsRouter::GetInstance().GetInboxes(EventType::CommentAdded));
 
-	if (queues.empty() && !inboxes)
+	if (!inboxes)
 		return;
 
 	Log(LogDebug, "ApiEvents", "Processing event type 'CommentAdded'.");
@@ -279,19 +248,14 @@ void ApiEvents::CommentAddedHandler(const Comment::Ptr& comment)
 		{ "comment", Serialize(comment, FAConfig | FAState) }
 	});
 
-	for (const EventQueue::Ptr& queue : queues) {
-		queue->ProcessEvent(result);
-	}
-
 	inboxes.Push(std::move(result));
 }
 
 void ApiEvents::CommentRemovedHandler(const Comment::Ptr& comment)
 {
-	std::vector<EventQueue::Ptr> queues = EventQueue::GetQueuesForType("CommentRemoved");
 	auto inboxes (EventsRouter::GetInstance().GetInboxes(EventType::CommentRemoved));
 
-	if (queues.empty() && !inboxes)
+	if (!inboxes)
 		return;
 
 	Log(LogDebug, "ApiEvents", "Processing event type 'CommentRemoved'.");
@@ -302,19 +266,14 @@ void ApiEvents::CommentRemovedHandler(const Comment::Ptr& comment)
 		{ "comment", Serialize(comment, FAConfig | FAState) }
 	});
 
-	for (const EventQueue::Ptr& queue : queues) {
-		queue->ProcessEvent(result);
-	}
-
 	inboxes.Push(std::move(result));
 }
 
 void ApiEvents::DowntimeAddedHandler(const Downtime::Ptr& downtime)
 {
-	std::vector<EventQueue::Ptr> queues = EventQueue::GetQueuesForType("DowntimeAdded");
 	auto inboxes (EventsRouter::GetInstance().GetInboxes(EventType::DowntimeAdded));
 
-	if (queues.empty() && !inboxes)
+	if (!inboxes)
 		return;
 
 	Log(LogDebug, "ApiEvents", "Processing event type 'DowntimeAdded'.");
@@ -325,19 +284,14 @@ void ApiEvents::DowntimeAddedHandler(const Downtime::Ptr& downtime)
 		{ "downtime", Serialize(downtime, FAConfig | FAState) }
 	});
 
-	for (const EventQueue::Ptr& queue : queues) {
-		queue->ProcessEvent(result);
-	}
-
 	inboxes.Push(std::move(result));
 }
 
 void ApiEvents::DowntimeRemovedHandler(const Downtime::Ptr& downtime)
 {
-	std::vector<EventQueue::Ptr> queues = EventQueue::GetQueuesForType("DowntimeRemoved");
 	auto inboxes (EventsRouter::GetInstance().GetInboxes(EventType::DowntimeRemoved));
 
-	if (queues.empty() && !inboxes)
+	if (!inboxes)
 		return;
 
 	Log(LogDebug, "ApiEvents", "Processing event type 'DowntimeRemoved'.");
@@ -348,19 +302,14 @@ void ApiEvents::DowntimeRemovedHandler(const Downtime::Ptr& downtime)
 		{ "downtime", Serialize(downtime, FAConfig | FAState) }
 	});
 
-	for (const EventQueue::Ptr& queue : queues) {
-		queue->ProcessEvent(result);
-	}
-
 	inboxes.Push(std::move(result));
 }
 
 void ApiEvents::DowntimeStartedHandler(const Downtime::Ptr& downtime)
 {
-	std::vector<EventQueue::Ptr> queues = EventQueue::GetQueuesForType("DowntimeStarted");
 	auto inboxes (EventsRouter::GetInstance().GetInboxes(EventType::DowntimeStarted));
 
-	if (queues.empty() && !inboxes)
+	if (!inboxes)
 		return;
 
 	Log(LogDebug, "ApiEvents", "Processing event type 'DowntimeStarted'.");
@@ -371,19 +320,14 @@ void ApiEvents::DowntimeStartedHandler(const Downtime::Ptr& downtime)
 		{ "downtime", Serialize(downtime, FAConfig | FAState) }
 	});
 
-	for (const EventQueue::Ptr& queue : queues) {
-		queue->ProcessEvent(result);
-	}
-
 	inboxes.Push(std::move(result));
 }
 
 void ApiEvents::DowntimeTriggeredHandler(const Downtime::Ptr& downtime)
 {
-	std::vector<EventQueue::Ptr> queues = EventQueue::GetQueuesForType("DowntimeTriggered");
 	auto inboxes (EventsRouter::GetInstance().GetInboxes(EventType::DowntimeTriggered));
 
-	if (queues.empty() && !inboxes)
+	if (!inboxes)
 		return;
 
 	Log(LogDebug, "ApiEvents", "Processing event type 'DowntimeTriggered'.");
@@ -393,10 +337,6 @@ void ApiEvents::DowntimeTriggeredHandler(const Downtime::Ptr& downtime)
 		{ "timestamp", Utility::GetTime() },
 		{ "downtime", Serialize(downtime, FAConfig | FAState) }
 	});
-
-	for (const EventQueue::Ptr& queue : queues) {
-		queue->ProcessEvent(result);
-	}
 
 	inboxes.Push(std::move(result));
 }
@@ -416,10 +356,9 @@ void ApiEvents::OnVersionChangedHandler(const ConfigObject::Ptr& object, const V
 }
 
 void ApiEvents::SendObjectChangeEvent(const ConfigObject::Ptr& object, const EventType& eventType, const String& eventQueue) {
-	std::vector<EventQueue::Ptr> queues = EventQueue::GetQueuesForType(eventQueue);
 	auto inboxes (EventsRouter::GetInstance().GetInboxes(eventType));
 
-	if (queues.empty() && !inboxes)
+	if (!inboxes)
 		return;
 
 	Log(LogDebug, "ApiEvents") << "Processing event type '" + eventQueue + "'.";
@@ -430,10 +369,6 @@ void ApiEvents::SendObjectChangeEvent(const ConfigObject::Ptr& object, const Eve
 		{"object_type", object->GetReflectionType()->GetName()},
 		{"object_name", object->GetName()},
 	});
-
-	for (const EventQueue::Ptr& queue : queues) {
-		queue->ProcessEvent(result);
-	}
 
 	inboxes.Push(std::move(result));
 }

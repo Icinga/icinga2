@@ -6,120 +6,13 @@
 #include "remote/filterutility.hpp"
 #include "base/io-engine.hpp"
 #include "base/logger.hpp"
-#include "base/utility.hpp"
 #include <boost/asio/spawn.hpp>
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
 #include <boost/date_time/posix_time/ptime.hpp>
 #include <boost/system/error_code.hpp>
-#include <chrono>
 #include <utility>
 
 using namespace icinga;
-
-bool EventQueue::CanProcessEvent(const String& type) const
-{
-	std::unique_lock<std::mutex> lock(m_Mutex);
-
-	return m_Types.find(type) != m_Types.end();
-}
-
-void EventQueue::ProcessEvent(const Dictionary::Ptr& event)
-{
-	Namespace::Ptr frameNS = new Namespace();
-	ScriptFrame frame(true, frameNS);
-	frame.Sandboxed = true;
-
-	try {
-		if (!FilterUtility::EvaluateFilter(frame, m_Filter.get(), event, "event"))
-			return;
-	} catch (const std::exception& ex) {
-		Log(LogWarning, "EventQueue")
-			<< "Error occurred while evaluating event filter for queue '" << m_Name << "': " << DiagnosticInformation(ex);
-		return;
-	}
-
-	std::unique_lock<std::mutex> lock(m_Mutex);
-
-	for (auto& kv : m_Events) {
-		kv.second.push_back(event);
-	}
-
-	m_CV.notify_all();
-}
-
-void EventQueue::AddClient(void *client)
-{
-	std::unique_lock<std::mutex> lock(m_Mutex);
-
-	auto result = m_Events.insert(std::make_pair(client, std::deque<Dictionary::Ptr>()));
-	ASSERT(result.second);
-
-#ifndef I2_DEBUG
-	(void)result;
-#endif /* I2_DEBUG */
-}
-
-void EventQueue::RemoveClient(void *client)
-{
-	std::unique_lock<std::mutex> lock(m_Mutex);
-
-	m_Events.erase(client);
-}
-
-void EventQueue::SetTypes(const std::set<String>& types)
-{
-	std::unique_lock<std::mutex> lock(m_Mutex);
-	m_Types = types;
-}
-
-void EventQueue::SetFilter(std::unique_ptr<Expression> filter)
-{
-	std::unique_lock<std::mutex> lock(m_Mutex);
-	m_Filter.swap(filter);
-}
-
-Dictionary::Ptr EventQueue::WaitForEvent(void *client, double timeout)
-{
-	std::unique_lock<std::mutex> lock(m_Mutex);
-
-	for (;;) {
-		auto it = m_Events.find(client);
-		ASSERT(it != m_Events.end());
-
-		if (!it->second.empty()) {
-			Dictionary::Ptr result = *it->second.begin();
-			it->second.pop_front();
-			return result;
-		}
-
-		if (m_CV.wait_for(lock, std::chrono::duration<double>(timeout)) == std::cv_status::timeout)
-			return nullptr;
-	}
-}
-
-std::vector<EventQueue::Ptr> EventQueue::GetQueuesForType(const String& type)
-{
-	EventQueueRegistry::ItemMap queues = EventQueueRegistry::GetInstance()->GetItems();
-
-	std::vector<EventQueue::Ptr> availQueues;
-
-	for (auto& kv : queues) {
-		if (kv.second->CanProcessEvent(type))
-			availQueues.push_back(kv.second);
-	}
-
-	return availQueues;
-}
-
-EventQueue::Ptr EventQueue::GetByName(const String& name)
-{
-	return EventQueueRegistry::GetInstance()->GetItem(name);
-}
-
-void EventQueue::Register(const String& name, const EventQueue::Ptr& function)
-{
-	EventQueueRegistry::GetInstance()->Register(name, function);
-}
 
 std::mutex EventsInbox::m_FiltersMutex;
 std::map<String, EventsInbox::Filter> EventsInbox::m_Filters ({{"", EventsInbox::Filter{1, Expression::Ptr()}}});
