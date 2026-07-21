@@ -9,58 +9,15 @@
 #include "config/expression.hpp"
 #include <boost/asio/steady_timer.hpp>
 #include <boost/asio/spawn.hpp>
-#include <condition_variable>
 #include <cstddef>
 #include <cstdint>
 #include <mutex>
 #include <set>
 #include <map>
-#include <deque>
 #include <queue>
 
 namespace icinga
 {
-
-class EventQueue final : public Object
-{
-public:
-	DECLARE_PTR_TYPEDEFS(EventQueue);
-
-	EventQueue(String name);
-
-	bool CanProcessEvent(const String& type) const;
-	void ProcessEvent(const Dictionary::Ptr& event);
-	void AddClient(void *client);
-	void RemoveClient(void *client);
-
-	void SetTypes(const std::set<String>& types);
-	void SetFilter(std::unique_ptr<Expression> filter);
-
-	Dictionary::Ptr WaitForEvent(void *client, double timeout = 5);
-
-	static std::vector<EventQueue::Ptr> GetQueuesForType(const String& type);
-
-	static EventQueue::Ptr GetByName(const String& name);
-	static void Register(const String& name, const EventQueue::Ptr& function);
-
-private:
-	String m_Name;
-
-	mutable std::mutex m_Mutex;
-	std::condition_variable m_CV;
-
-	std::set<String> m_Types;
-	std::unique_ptr<Expression> m_Filter;
-
-	std::map<void *, std::deque<Dictionary::Ptr> > m_Events;
-};
-
-/**
- * A registry for API event queues.
- *
- * @ingroup base
- */
-using EventQueueRegistry = Registry<EventQueue::Ptr>;
 
 enum class EventType : uint_fast8_t
 {
