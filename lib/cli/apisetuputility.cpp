@@ -162,7 +162,7 @@ bool ApiSetupUtility::SetupMasterApiUser()
 
 	NodeUtility::CreateBackupFile(apiUsersPath);
 
-	AtomicFile fp (apiUsersPath, 0644);
+	AtomicFile fp (apiUsersPath, 0640);
 
 	fp << "/**\n"
 		<< " * The ApiUser objects are used for authentication against the API.\n"

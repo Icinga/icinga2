@@ -453,7 +453,7 @@ wizard_ticket:
 	String apiConfPath = FeatureUtility::GetFeaturesAvailablePath() + "/api.conf";
 	NodeUtility::CreateBackupFile(apiConfPath);
 
-	AtomicFile fp (apiConfPath, 0644);
+	AtomicFile fp (apiConfPath, 0640);
 
 	fp << "/**\n"
 		<< " * The API listener is used for distributed monitoring setups.\n"
@@ -740,7 +740,7 @@ wizard_global_zone_loop_start:
 	String apiConfPath = FeatureUtility::GetFeaturesAvailablePath() + "/api.conf";
 	NodeUtility::CreateBackupFile(apiConfPath);
 
-	AtomicFile fp (apiConfPath, 0644);
+	AtomicFile fp (apiConfPath, 0640);
 
 	fp << "/**\n"
 		<< " * The API listener is used for distributed monitoring setups.\n"
