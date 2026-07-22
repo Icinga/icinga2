@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "base/atomic.hpp"
 #include "base/console.hpp"
 #include "base/initialize.hpp"
 #include <iostream>
@@ -122,82 +123,105 @@ void Console::PrintVT100ColorCode(std::ostream& fp, int color)
 		fp << "\33[1m";
 }
 #else /* _WIN32 */
+static Atomic<WORD> l_StdoutInitTextAttrs (-1), l_StderrInitTextAttrs (-1);
+
 void Console::SetWindowsConsoleColor(std::ostream& fp, int color)
 {
 	CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
 	HANDLE hConsole;
+	Atomic<WORD>* initConsoleTextAttrs;
 
-	if (&fp == &std::cout)
+	if (&fp == &std::cout) {
 		hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-	else if (&fp == &std::cerr)
+		initConsoleTextAttrs = &l_StdoutInitTextAttrs;
+	} else if (&fp == &std::cerr) {
 		hConsole = GetStdHandle(STD_ERROR_HANDLE);
-	else
+		initConsoleTextAttrs = &l_StderrInitTextAttrs;
+	} else {
 		return;
+	}
 
 	if (!GetConsoleScreenBufferInfo(hConsole, &consoleInfo))
 		return;
 
+	// On CONSOLE_SCREEN_BUFFER_INFO#wAttributes, FOREGROUND_* and BACKGROUND_* read
+	// https://learn.microsoft.com/en-us/windows/console/console-screen-buffers#character-attributes
+
+	{
+		WORD uninitialised = -1;
+		(void)initConsoleTextAttrs->compare_exchange_strong(uninitialised, consoleInfo.wAttributes);
+	}
+
 	WORD attrs = 0;
 
-	if (color == Console_Normal)
-		attrs = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+	if (color == Console_Normal) {
+		attrs = initConsoleTextAttrs->load();
+	} else {
+		switch (color & 0xff) {
+			case Console_ForegroundBlack:
+				attrs |= 0;
+				break;
+			case Console_ForegroundRed:
+				attrs |= FOREGROUND_RED;
+				break;
+			case Console_ForegroundGreen:
+				attrs |= FOREGROUND_GREEN;
+				break;
+			case Console_ForegroundYellow:
+				attrs |= FOREGROUND_RED | FOREGROUND_GREEN;
+				break;
+			case Console_ForegroundBlue:
+				attrs |= FOREGROUND_BLUE;
+				break;
+			case Console_ForegroundMagenta:
+				attrs |= FOREGROUND_RED | FOREGROUND_BLUE;
+				break;
+			case Console_ForegroundCyan:
+				attrs |= FOREGROUND_GREEN | FOREGROUND_BLUE;
+				break;
+			case Console_ForegroundWhite:
+				attrs |= FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+				break;
+			default:
+				attrs |= consoleInfo.wAttributes & (FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+		}
 
-	switch (color & 0xff) {
-		case Console_ForegroundBlack:
-			attrs |= 0;
-			break;
-		case Console_ForegroundRed:
-			attrs |= FOREGROUND_RED;
-			break;
-		case Console_ForegroundGreen:
-			attrs |= FOREGROUND_GREEN;
-			break;
-		case Console_ForegroundYellow:
-			attrs |= FOREGROUND_RED | FOREGROUND_GREEN;
-			break;
-		case Console_ForegroundBlue:
-			attrs |= FOREGROUND_BLUE;
-			break;
-		case Console_ForegroundMagenta:
-			attrs |= FOREGROUND_RED | FOREGROUND_BLUE;
-			break;
-		case Console_ForegroundCyan:
-			attrs |= FOREGROUND_GREEN | FOREGROUND_BLUE;
-			break;
-		case Console_ForegroundWhite:
-			attrs |= FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
-			break;
+		switch (color & 0xff00) {
+			case Console_BackgroundBlack:
+				attrs |= 0;
+				break;
+			case Console_BackgroundRed:
+				attrs |= BACKGROUND_RED;
+				break;
+			case Console_BackgroundGreen:
+				attrs |= BACKGROUND_GREEN;
+				break;
+			case Console_BackgroundYellow:
+				attrs |= BACKGROUND_RED | BACKGROUND_GREEN;
+				break;
+			case Console_BackgroundBlue:
+				attrs |= BACKGROUND_BLUE;
+				break;
+			case Console_BackgroundMagenta:
+				attrs |= BACKGROUND_RED | BACKGROUND_BLUE;
+				break;
+			case Console_BackgroundCyan:
+				attrs |= BACKGROUND_GREEN | BACKGROUND_BLUE;
+				break;
+			case Console_BackgroundWhite:
+				attrs |= BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE;
+				break;
+			default:
+				attrs |= consoleInfo.wAttributes & (BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE);
+		}
+
+		if (color & Console_Bold)
+			attrs |= FOREGROUND_INTENSITY;
+		else
+			attrs |= consoleInfo.wAttributes & FOREGROUND_INTENSITY;
+
+		attrs |= consoleInfo.wAttributes & BACKGROUND_INTENSITY;
 	}
-
-	switch (color & 0xff00) {
-		case Console_BackgroundBlack:
-			attrs |= 0;
-			break;
-		case Console_BackgroundRed:
-			attrs |= BACKGROUND_RED;
-			break;
-		case Console_BackgroundGreen:
-			attrs |= BACKGROUND_GREEN;
-			break;
-		case Console_BackgroundYellow:
-			attrs |= BACKGROUND_RED | BACKGROUND_GREEN;
-			break;
-		case Console_BackgroundBlue:
-			attrs |= BACKGROUND_BLUE;
-			break;
-		case Console_BackgroundMagenta:
-			attrs |= BACKGROUND_RED | BACKGROUND_BLUE;
-			break;
-		case Console_BackgroundCyan:
-			attrs |= BACKGROUND_GREEN | BACKGROUND_BLUE;
-			break;
-		case Console_BackgroundWhite:
-			attrs |= BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE;
-			break;
-	}
-
-	if (color & Console_Bold)
-		attrs |= FOREGROUND_INTENSITY;
 
 	SetConsoleTextAttribute(hConsole, attrs);
 }
