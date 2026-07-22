@@ -480,6 +480,7 @@ Configuration Attributes:
   user\_groups              | Array of object names | **Required.** A list of user group names who should be notified. **Optional.** if the `users` attribute is set.
   times                     | Dictionary            | **Optional.** A dictionary containing `begin` and `end` attributes for the notification. If `end` is set to 0, `Notifications` are disabled permanently. Please read the [notification delay](03-monitoring-basics.md#notification-delay) chapter for details.
   command                   | Object name           | **Required.** The name of the notification command which should be executed when the notification is triggered.
+  command\_endpoint         | Object name           | **Optional.** The endpoint where commands are executed on.
   interval                  | Duration              | **Optional.** The notification interval (in seconds). This interval is used for active notifications. Defaults to 30 minutes. If set to 0, [re-notifications](03-monitoring-basics.md#disable-renotification) are disabled.
   period                    | Object name           | **Optional.** The name of a time period which determines when this notification should be triggered. Not set by default (effectively 24x7).
   zone		            | Object name           | **Optional.** The zone this object is a member of. Please read the [distributed monitoring](06-distributed-monitoring.md#distributed-monitoring) chapter for details.
