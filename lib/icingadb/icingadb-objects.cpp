@@ -210,6 +210,11 @@ void IcingaDB::ConfigStaticInitialize()
 
 void IcingaDB::UpdateAllConfigObjects()
 {
+	// Snapshot the current number of reconnections made by any of the RedisConnections.
+	// This is compared to the current value at the end of the function to verify that no
+	// reconnects occured.
+	auto snapReconnectCount = m_ReconnectCount->load(std::memory_order_acquire);
+
 	// This function performs an initial dump of all configuration objects into Redis, thus there are no
 	// previously enqueued queries on m_RconWorker that we need to wait for. So, no Sync() call is necessary here.
 	m_RconWorker->FireAndForgetQuery({"XADD", "icinga:schema", "MAXLEN", "1", "*", "version", "6"}, {}, true);
@@ -513,13 +518,8 @@ void IcingaDB::UpdateAllConfigObjects()
 
 	if (upq.HasExceptions()) {
 		for (std::exception_ptr exc : upq.GetExceptions()) {
-			try {
-				if (exc) {
-					std::rethrow_exception(exc);
-			}
-			} catch(const std::exception& e) {
-				Log(LogCritical, "IcingaDB")
-						<< "Exception during ConfigDump: " << e.what();
+			if (exc) {
+				std::rethrow_exception(exc);
 			}
 		}
 	}
@@ -530,10 +530,21 @@ void IcingaDB::UpdateAllConfigObjects()
 
 	m_RconWorker->FireAndForgetQuery({"XADD", "icinga:dump", "*", "key", "*", "state", "done"});
 
-	// enqueue a callback that will notify us once all previous queries were executed and wait for this event
-	std::promise<void> p;
-	m_RconWorker->EnqueueCallback([&p](boost::asio::yield_context&) { p.set_value(); });
-	p.get_future().wait();
+	/* The other connections already get a final sync in their workqueue above, so we sync just
+	 * the `m_RconWorker` here, to ensure that all requests have made it through the queue.
+	 * This also puts a final check to the connection, since it would throw if the connection
+	 * went down in the meantime.
+	 */
+	m_RconWorker->Sync();
+
+	/* Since now all connections were synced after all tansactions have completed, we can now compare
+	 * the current reconnect count to the snapshot we made at the start of this function. If the count
+	 * matches we know for sure that no reconnects on any of the connections lead to an inconsistent
+	 * sync. If reconnects did occur, this throws and the update is repeated again.
+	 */
+	if (m_ReconnectCount->load(std::memory_order_acquire) != snapReconnectCount) {
+		BOOST_THROW_EXCEPTION(std::runtime_error{"Reconnects during ConfigDump"});
+	}
 
 	auto endTime (Utility::GetTime());
 	auto took (endTime - startTime);
