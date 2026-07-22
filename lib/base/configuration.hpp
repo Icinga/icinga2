@@ -33,6 +33,7 @@ public:
 	void SetCacheDir(const String& value, bool suppress_events = false, const Value& cookie = Empty) override;
 
 	int GetConcurrency() const override;
+	static int GetDefaultConcurrency();
 	void SetConcurrency(int value, bool suppress_events = false, const Value& cookie = Empty) override;
 
 	String GetConfigDir() const override;
