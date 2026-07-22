@@ -48,17 +48,6 @@ private:
 	static Dictionary::Ptr m_UrlTree;
 };
 
-/**
- * Helper class for registering HTTP handlers.
- *
- * @ingroup remote
- */
-class RegisterHttpHandler
-{
-public:
-	RegisterHttpHandler(const String& url, const HttpHandler& function);
-};
-
 #define REGISTER_URLHANDLER(url, klass) \
 	INITIALIZE_ONCE([]() { \
 		Url::Ptr uurl = new Url(url); \

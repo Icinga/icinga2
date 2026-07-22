@@ -51,31 +51,6 @@ std::vector<String> icinga::GetBashCompletionSuggestions(const String& type, con
 	return result;
 }
 
-std::vector<String> icinga::GetFieldCompletionSuggestions(const Type::Ptr& type, const String& word)
-{
-	std::vector<String> result;
-
-	for (int i = 0; i < type->GetFieldCount(); i++) {
-		Field field = type->GetFieldInfo(i);
-
-		if (field.Attributes & FANoUserView)
-			continue;
-
-		if (strcmp(field.TypeName, "int") != 0 && strcmp(field.TypeName, "double") != 0
-			&& strcmp(field.TypeName, "bool") != 0 && strcmp(field.TypeName, "String") != 0)
-			continue;
-
-		String fname = field.Name;
-
-		String suggestion = fname + "=";
-
-		if (suggestion.Find(word) == 0)
-			result.push_back(suggestion);
-	}
-
-	return result;
-}
-
 int CLICommand::GetMinArguments() const
 {
 	return 0;
