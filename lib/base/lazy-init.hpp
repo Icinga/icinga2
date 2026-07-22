@@ -4,7 +4,7 @@
 #ifndef LAZY_INIT
 #define LAZY_INIT
 
-#include <atomic>
+#include "base/atomic.hpp"
 #include <functional>
 #include <mutex>
 #include <utility>
@@ -25,7 +25,6 @@ public:
 	inline
 	LazyInit(std::function<T()> initializer = []() { return T(); }) : m_Initializer(std::move(initializer))
 	{
-		m_Underlying.store(nullptr, std::memory_order_release);
 	}
 
 	LazyInit(const LazyInit&) = delete;
@@ -65,7 +64,7 @@ public:
 private:
 	std::function<T()> m_Initializer;
 	std::mutex m_Mutex;
-	std::atomic<T*> m_Underlying;
+	Atomic<T*> m_Underlying {nullptr};
 };
 
 }
