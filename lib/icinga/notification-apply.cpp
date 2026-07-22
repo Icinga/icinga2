@@ -68,63 +68,66 @@ bool Notification::EvaluateApplyRule(const Checkable::Ptr& checkable, const Appl
 
 	CONTEXT("Evaluating 'apply' rule (" << di << ")");
 
-	Host::Ptr host;
-	Service::Ptr service;
-	tie(host, service) = GetHostService(checkable);
+	ScriptFrame frame (false);
 
-	ScriptFrame frame(true);
-	if (rule.GetScope())
-		rule.GetScope()->CopyTo(frame.Locals);
-	frame.Locals->Set("host", host);
-	if (service)
-		frame.Locals->Set("service", service);
+	if (rule.GetScope() || rule.GetFTerm()) {
+		frame.Locals = new Dictionary();
 
-	Value vinstances;
+		if (rule.GetScope()) {
+			rule.GetScope()->CopyTo(frame.Locals);
+		}
+
+		checkable->GetFrozenLocalsForApply()->CopyTo(frame.Locals);
+		frame.Locals->Freeze();
+	} else {
+		frame.Locals = checkable->GetFrozenLocalsForApply();
+	}
+
+	bool match = false;
 
 	if (rule.GetFTerm()) {
+		Value vinstances;
+
 		try {
 			vinstances = rule.GetFTerm()->Evaluate(frame);
 		} catch (const std::exception&) {
 			/* Silently ignore errors here and assume there are no instances. */
 			return false;
 		}
-	} else {
-		vinstances = new Array({ "" });
-	}
 
-	bool match = false;
+		if (vinstances.IsObjectType<Array>()) {
+			if (!rule.GetFVVar().IsEmpty())
+				BOOST_THROW_EXCEPTION(ScriptError("Dictionary iterator requires value to be a dictionary.", di));
 
-	if (vinstances.IsObjectType<Array>()) {
-		if (!rule.GetFVVar().IsEmpty())
-			BOOST_THROW_EXCEPTION(ScriptError("Dictionary iterator requires value to be a dictionary.", di));
+			Array::Ptr arr = vinstances;
 
-		Array::Ptr arr = vinstances;
+			ObjectLock olock(arr);
+			for (const Value& instance : arr) {
+				String name = rule.GetName();
 
-		ObjectLock olock(arr);
-		for (const Value& instance : arr) {
-			String name = rule.GetName();
-
-			if (!rule.GetFKVar().IsEmpty()) {
-				frame.Locals->Set(rule.GetFKVar(), instance);
+				frame.Locals->Set(rule.GetFKVar(), instance, true);
 				name += instance;
+
+				if (EvaluateApplyRuleInstance(checkable, name, frame, rule, skipFilter))
+					match = true;
 			}
+		} else if (vinstances.IsObjectType<Dictionary>()) {
+			if (rule.GetFVVar().IsEmpty())
+				BOOST_THROW_EXCEPTION(ScriptError("Array iterator requires value to be an array.", di));
 
-			if (EvaluateApplyRuleInstance(checkable, name, frame, rule, skipFilter))
-				match = true;
+			Dictionary::Ptr dict = vinstances;
+			ObjectLock olock (dict);
+
+			for (auto& kv : dict) {
+				frame.Locals->Set(rule.GetFKVar(), kv.first, true);
+				frame.Locals->Set(rule.GetFVVar(), kv.second, true);
+
+				if (EvaluateApplyRuleInstance(checkable, rule.GetName() + kv.first, frame, rule, skipFilter))
+					match = true;
+			}
 		}
-	} else if (vinstances.IsObjectType<Dictionary>()) {
-		if (rule.GetFVVar().IsEmpty())
-			BOOST_THROW_EXCEPTION(ScriptError("Array iterator requires value to be an array.", di));
-
-		Dictionary::Ptr dict = vinstances;
-
-		for (const String& key : dict->GetKeys()) {
-			frame.Locals->Set(rule.GetFKVar(), key);
-			frame.Locals->Set(rule.GetFVVar(), dict->Get(key));
-
-			if (EvaluateApplyRuleInstance(checkable, rule.GetName() + key, frame, rule, skipFilter))
-				match = true;
-		}
+	} else if (EvaluateApplyRuleInstance(checkable, rule.GetName(), frame, rule, skipFilter)) {
+		match = true;
 	}
 
 	return match;

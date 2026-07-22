@@ -55,6 +55,8 @@ protected:
 
 	void CreateChildObjects(const Type::Ptr& childType) override;
 
+	Dictionary::Ptr MakeLocalsForApply() override;
+
 private:
 	mutable std::mutex m_ServicesMutex;
 	std::map<String, intrusive_ptr<Service> > m_Services;
