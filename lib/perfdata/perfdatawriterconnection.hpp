@@ -142,16 +142,16 @@ public:
 					Log(LogCritical, m_LogFacility)
 						<< "Error while " << (m_Connected ? "sending" : "connecting") << " to '" << m_Host << ":"
 						<< m_Port << "' for '" << m_ParentName << "': " << ex.what();
+				}
 
-					m_Stream = MakeStream();
-					m_Connected = false;
+				m_Stream = MakeStream();
+				m_Connected = false;
 
-					try {
-						BackoffWait(yc);
-					} catch (const std::exception&) {
-						ret.SetException(std::make_exception_ptr(Stopped{}));
-						return;
-					}
+				try {
+					BackoffWait(yc);
+				} catch (const std::exception&) {
+					ret.SetException(std::make_exception_ptr(Stopped{}));
+					return;
 				}
 			}
 		});
