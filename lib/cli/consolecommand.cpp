@@ -258,8 +258,12 @@ int ConsoleCommand::Run(const po::variables_map& vm, [[maybe_unused]] const std:
 	/* Initialize remote connect parameters. */
 	if (vm.count("connect")) {
 		addr = vm["connect"].as<std::string>();
-		l_CertPath = vm.count("cert") ? String(vm["cert"].as<std::string>()) : ApiListener::GetDefaultCertPath();
-		l_KeyPath = vm.count("key") ? String(vm["key"].as<std::string>()) : ApiListener::GetDefaultKeyPath();
+		String defaultCertPath = ApiListener::GetDefaultCertPath();
+		String defaultKeyPath = ApiListener::GetDefaultKeyPath();
+		l_CertPath = vm.count("cert") ? String(vm["cert"].as<std::string>())
+			: Utility::PathExists(defaultCertPath) ? defaultCertPath : "";
+		l_KeyPath = vm.count("key") ? String(vm["key"].as<std::string>())
+			: Utility::PathExists(defaultKeyPath) ? defaultKeyPath : "";
 		l_CaPath = vm.count("ca") ? String(vm["ca"].as<std::string>()) : ApiListener::GetDefaultCaPath();
 
 		try {
@@ -579,7 +583,7 @@ Shared<AsioTlsStream>::Ptr ConsoleCommand::Connect()
 
 	if (!tlsStream.IsVerifyOK()) {
 		String message = "TLS certificate verification for common name '" + l_CommonName + "' failed: " + tlsStream.GetVerifyError();
-		Log(LogWarning, "DebugConsole", message);
+		Log(LogCritical, "DebugConsole", message);
 		BOOST_THROW_EXCEPTION(std::runtime_error(message));
 	}
 
