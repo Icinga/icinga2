@@ -197,7 +197,6 @@ endif()
 
 set(icinga_checkable_test_SOURCES
   icingaapplication-fixture.cpp
-  cli-consolecommand.cpp
   icinga-checkable-fixture.cpp
   icinga-checkable-flapping.cpp
   ${base_OBJS}

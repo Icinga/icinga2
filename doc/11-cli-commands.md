@@ -283,6 +283,7 @@ Command options:
   --cert arg                client certificate file path
   --key arg                 client private key file path
   --ca arg                  CA certificate file path
+  --cn arg                  server certificate common name
   -e [ --eval ] arg         evaluate expression and terminate
   -r [ --file ] arg         evaluate a file and terminate
   --syntax-only             only validate syntax (requires --eval or --file)
@@ -312,7 +313,9 @@ for `console` are required for executing config expressions and auto-completion.
 > Remote connections verify the server certificate and hostname using the local
 > Icinga PKI. The client certificate, private key, and CA certificate default to
 > the standard paths below `DataDir/certs`. Use `--cert`, `--key`, and `--ca` to
-> override them.
+> override them. By default, the hostname in `--connect` is also used to verify
+> the server certificate. Use `--cn` when the connection hostname differs from
+> the Icinga PKI common name.
 >
 > Runtime modifications are not validated and might cause the Icinga 2
 > daemon to crash or behave in an unexpected way. Use these runtime changes

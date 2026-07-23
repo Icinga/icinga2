@@ -49,6 +49,7 @@ static String l_Session;
 static String l_CertPath;
 static String l_KeyPath;
 static String l_CaPath;
+static String l_CommonName;
 
 REGISTER_CLICOMMAND("console", ConsoleCommand);
 
@@ -184,6 +185,7 @@ void ConsoleCommand::InitParameters(boost::program_options::options_description&
 		("cert", po::value<std::string>(), "client certificate file path")
 		("key", po::value<std::string>(), "client private key file path")
 		("ca", po::value<std::string>(), "CA certificate file path")
+		("cn", po::value<std::string>(), "server certificate common name")
 		("eval,e", po::value<std::string>(), "evaluate expression and terminate")
 		("file,r", po::value<std::string>(), "evaluate a file and terminate")
 		("syntax-only", "only validate syntax (requires --eval or --file)")
@@ -266,6 +268,8 @@ int ConsoleCommand::Run(const po::variables_map& vm, [[maybe_unused]] const std:
 			Log(LogCritical, "ConsoleCommand", ex.what());
 			return EXIT_FAILURE;
 		}
+
+		l_CommonName = vm.count("cn") ? String(vm["cn"].as<std::string>()) : l_Url->GetHost();
 
 		String usernameEnv = Utility::GetFromEnvironment("ICINGA2_API_USERNAME");
 		String passwordEnv = Utility::GetFromEnvironment("ICINGA2_API_PASSWORD");
@@ -553,7 +557,7 @@ Shared<AsioTlsStream>::Ptr ConsoleCommand::Connect()
 	String host = l_Url->GetHost();
 	String port = l_Url->GetPort();
 
-	Shared<AsioTlsStream>::Ptr stream = Shared<AsioTlsStream>::Make(IoEngine::Get().GetIoContext(), *sslContext, host);
+	Shared<AsioTlsStream>::Ptr stream = Shared<AsioTlsStream>::Make(IoEngine::Get().GetIoContext(), *sslContext, l_CommonName);
 
 	try {
 		icinga::Connect(stream->lowest_layer(), host, port);
@@ -574,7 +578,7 @@ Shared<AsioTlsStream>::Ptr ConsoleCommand::Connect()
 	}
 
 	if (!tlsStream.IsVerifyOK()) {
-		String message = "TLS certificate verification for host '" + host + "' failed: " + tlsStream.GetVerifyError();
+		String message = "TLS certificate verification for common name '" + l_CommonName + "' failed: " + tlsStream.GetVerifyError();
 		Log(LogWarning, "DebugConsole", message);
 		BOOST_THROW_EXCEPTION(std::runtime_error(message));
 	}
