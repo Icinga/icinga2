@@ -5,7 +5,6 @@
 #cmakedefine HAVE_PIPE2
 #cmakedefine HAVE_VFORK
 #cmakedefine HAVE_DLADDR
-#cmakedefine HAVE_LIBEXECINFO
 #cmakedefine HAVE_CXXABI_H
 #cmakedefine HAVE_NICE
 #cmakedefine HAVE_MALLOC_INFO

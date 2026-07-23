@@ -139,6 +139,10 @@ target_link_libraries(base PUBLIC
   common
 )
 
+if(Execinfo_FOUND)
+  target_link_libraries(common PUBLIC Execinfo::Execinfo)
+endif()
+
 if(USE_SYSTEMD)
   target_link_libraries(base PUBLIC
     Systemd::Systemd
