@@ -99,7 +99,7 @@ include_recursive "objects.d"
 
 This approach is used by the [Icinga 2 Puppet module](https://icinga.com/products/integrations/puppet/).
 
-If you plan to setup a distributed setup with HA clusters and clients, please refer to [this chapter](#06-distributed-monitoring.md#distributed-monitoring-top-down)
+If you plan to setup a distributed setup with HA clusters and clients, please refer to [this chapter](06-distributed-monitoring.md#distributed-monitoring-top-down)
 for examples with `zones.d` as configuration directory.
 
 ## Configuration Overview <a id="configuring-icinga2-overview"></a>
