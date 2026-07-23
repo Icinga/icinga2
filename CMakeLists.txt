@@ -215,6 +215,13 @@ endif()
 
 find_package(Editline)
 
+if(NOT HAVE_BACKTRACE_SYMBOLS)
+  find_package(Execinfo)
+  if(Execinfo_FOUND)
+    set(HAVE_BACKTRACE_SYMBOLS TRUE)
+  endif()
+endif()
+
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH};${CMAKE_INSTALL_FULL_LIBDIR}/icinga2")
 
 include(CheckCXXCompilerFlag)
@@ -283,14 +290,7 @@ check_function_exists(pthread_create HAVE_PTHREAD_CREATE)
 check_function_exists(pthread_set_name_np HAVE_PTHREAD_SET_NAME_NP)
 check_function_exists(pthread_setname_np HAVE_PTHREAD_SETNAME_NP)
 check_library_exists(dl dladdr "dlfcn.h" HAVE_DLADDR)
-check_library_exists(execinfo backtrace_symbols "" HAVE_LIBEXECINFO)
 check_include_file_cxx(cxxabi.h HAVE_CXXABI_H)
-
-# TODO:
-# if(HAVE_LIBEXECINFO)
-#   set(HAVE_BACKTRACE_SYMBOLS TRUE)
-#   list(APPEND base_DEPS execinfo)
-# endif()
 
 if(NOT WIN32)
   # boost::stacktrace uses _Unwind_Backtrace which is only exposed if _GNU_SOURCE is defined on most systems
