@@ -23,6 +23,7 @@ public:
 	DECLARE_OBJECT(CustomVarObject);
 
 	void ValidateVars(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils) final;
+	void ValidateDepthLimit(const Value& value, std::vector<String>& path);
 };
 
 int FilterArrayToInt(const Array::Ptr& typeFilters, const std::map<String, int>& filterMap, int defaultValue);

@@ -13,9 +13,42 @@ using namespace icinga;
 
 REGISTER_TYPE(CustomVarObject);
 
+void CustomVarObject::ValidateDepthLimit(const Value& value, std::vector<String>& path)
+{
+	if (path.size() > VarDepthLimit) {
+		BOOST_THROW_EXCEPTION(ValidationError(this, path, "Variables nested too deep."));
+	}
+
+	if (value.IsObject()) {
+		Object::Ptr obj = value;
+
+		if (auto dict = dynamic_pointer_cast<Dictionary>(obj); dict) {
+			ObjectLock olock(dict);
+			for (const auto &[k, v] : dict) {
+				path.emplace_back(k);
+				ValidateDepthLimit(v, path);
+				path.pop_back();
+			}
+		}
+
+		if (auto array = dynamic_pointer_cast<Array>(obj); array) {
+			ObjectLock olock(array);
+			std::size_t index = 0;
+			for (const auto &v : array) {
+				path.emplace_back(std::to_string(index++));
+				ValidateDepthLimit(v, path);
+				path.pop_back();
+			}
+		}
+	}
+}
+
 void CustomVarObject::ValidateVars(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils&)
 {
 	MacroProcessor::ValidateCustomVars(this, lvalue());
+
+	std::vector<String> path {"vars"};
+	ValidateDepthLimit(lvalue(), path);
 }
 
 int icinga::FilterArrayToInt(const Array::Ptr& typeFilters, const std::map<String, int>& filterMap, int defaultValue)

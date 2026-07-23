@@ -81,7 +81,10 @@ void ConfigWriter::EmitScope(std::ostream& fp, int indentLevel, const Dictionary
 				std::vector<String> tokens = kv.first.Split(".");
 
 				// This is reachable from CreateObjectHandler. This check prevents API clients from creating deeply
-				// nested data structures that could overflow the stack later on.
+				// nested data structures that could overflow the stack later on. It is done in addition to the check in
+				// CustomVarObject::ValidateDepthLimit() which is indirectly called by the validation function below.
+				// The latter does not stop offending data structures from being created (whereas this one does), but
+				// only ensures a consistent limit overall with different ways how custom variables can be created.
 				if (tokens.size() > ConfigObject::VarDepthLimit) {
 					BOOST_THROW_EXCEPTION(std::invalid_argument("Attribute '" + kv.first +
 						"' exceeds maximum nesting level of " + std::to_string(ConfigObject::VarDepthLimit) + "."));
