@@ -1,0 +1,170 @@
+{
+    "version": 2,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 20,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "default",
+            "hidden": true,
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+
+                "CMAKE_PCH_WARN_INVALID": "TRUE",
+
+                "CMAKE_UNITY_BUILD": "TRUE",
+                "CMAKE_UNITY_BUILD_BATCH_SIZE": "0",
+
+                "CMAKE_C_FLAGS_INIT": "$env{C_FLAGS_COMMON} $env{C_FLAGS_COMPILER} $env{LTO_FLAGS} $env{CFLAGS}",
+                "CMAKE_CXX_FLAGS_INIT": "$env{CXX_FLAGS_COMMON} $env{CXX_FLAGS_COMPILER} $env{LTO_FLAGS} $env{CXXFLAGS}",
+                "CMAKE_EXE_LINKER_FLAGS_INIT": "$env{LTO_FLAGS}",
+                "CMAKE_C_FLAGS_DEBUG_INIT": "$env{FLAGS_DEBUG_COMMON} $env{FLAGS_DEBUG_COMPILER}",
+                "CMAKE_CXX_FLAGS_DEBUG_INIT": "$env{FLAGS_DEBUG_COMMON} $env{FLAGS_DEBUG_COMPILER}"
+            }
+        },
+        {
+            "name": "unix",
+            "hidden": true,
+            "binaryDir": "${sourceDir}/build",
+            "inherits": [ "default" ],
+            "environment": {
+                "C_FLAGS_COMMON" : "-Wall -Wextra -Wno-deprecated-declarations",
+                "CXX_FLAGS_COMMON" : "$env{C_FLAGS_COMMON} -Wsuggest-override -Wrange-loop-construct",
+                "FLAGS_DEBUG_COMMON" : "-Og",
+
+                "CFLAGS": "$penv{CFLAGS}",
+                "CXXFLAGS": "$penv{CXXFLAGS}"
+            }
+        },
+        {
+            "name": "gcc",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "gcc",
+                "CMAKE_CXX_COMPILER": "g++"
+            },
+            "environment": {
+                "C_FLAGS_COMPILER": "-Wno-stringop-overflow",
+                "CXX_FLAGS_COMPILER": "$env{C_FLAGS_COMPILER} -Wno-template-id-cdtor"
+            }
+        },
+        {
+            "name": "clang",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "clang",
+                "CMAKE_CXX_COMPILER": "clang++"
+            },
+            "environment": {
+                "C_FLAGS_COMPILER": "-Winconsistent-missing-override -Wno-unknown-attributes -fcolor-diagnostics",
+                "CXX_FLAGS_COMPILER": "$env{C_FLAGS_COMPILER}",
+                "FLAGS_DEBUG_COMPILER": "-fno-limit-debug-info"
+            }
+        },
+        {
+            "name": "lto",
+            "hidden": true,
+            "environment": {
+                "LTO_FLAGS": "-flto=auto"
+            }
+        },
+        {
+            "name": "ninja",
+            "hidden": true,
+            "generator": "Ninja"
+        },
+        {
+            "name": "make",
+            "hidden": true,
+            "generator": "Unix Makefiles"
+        },
+        {
+            "name": "vs",
+            "hidden": true,
+            "generator": "Visual Studio 17 2022"
+        },
+        {
+            "name": "release",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+            }
+        },
+        {
+            "name": "debug",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "release-gcc",
+            "inherits": [ "default", "gcc", "make", "release" ]
+        },
+        {
+            "name": "release-gcc-lto",
+            "inherits": [ "default", "gcc", "make", "release", "lto" ]
+        },
+        {
+            "name": "debug-gcc",
+            "inherits": [ "unix", "gcc", "make", "debug" ]
+        },
+        {
+            "name": "release-clang",
+            "inherits": [ "unix", "clang", "make", "release" ]
+        },
+        {
+            "name": "release-clang-lto",
+            "inherits": [ "unix", "clang", "make", "release", "lto" ]
+        },
+        {
+            "name": "debug-clang",
+            "inherits": [ "unix", "clang", "make", "debug" ]
+        },
+        {
+            "name": "release-gcc-ninja",
+            "inherits": [ "unix", "gcc", "ninja", "release" ]
+        },
+        {
+            "name": "release-gcc-ninja-lto",
+            "inherits": [ "unix", "gcc", "ninja", "release", "lto" ]
+        },
+        {
+            "name": "debug-gcc-ninja",
+            "inherits": [ "unix", "gcc", "ninja", "debug" ]
+        },
+        {
+            "name": "release-clang-ninja",
+            "inherits": [ "unix", "clang", "ninja", "release" ]
+        },
+        {
+            "name": "release-clang-ninja-lto",
+            "inherits": [ "unix", "clang", "ninja", "release", "lto" ]
+        },
+        {
+            "name": "debug-clang-ninja",
+            "inherits": [ "unix", "clang", "ninja", "debug" ]
+        },
+        {
+            "name": "release-windows",
+            "inherits": [ "default", "vs", "release" ]
+        },
+        {
+            "name": "debug-windows",
+            "inherits": [ "default", "vs", "debug" ]
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "release",
+            "configurePreset": "release"
+        },
+        {
+            "name": "debug",
+            "configurePreset": "debug"
+        }
+    ]
+}

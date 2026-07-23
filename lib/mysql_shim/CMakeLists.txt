@@ -1,23 +1,22 @@
 # SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-include_directories(SYSTEM ${MYSQL_INCLUDE_DIR})
-
-set(mysql_shim_SOURCES
+add_library(mysql_shim SHARED
   mysql_shim.def
   mysqlinterface.cpp mysqlinterface.hpp
 )
 
-if(ICINGA2_UNITY_BUILD)
-  mkunity_target(mysql_shim mysql_shim mysql_shim_SOURCES)
-endif()
-
-add_library(mysql_shim SHARED ${mysql_shim_SOURCES})
+target_link_libraries(mysql_shim PUBLIC
+  MySQL
+)
 
 include(GenerateExportHeader)
 generate_export_header(mysql_shim)
 
-target_link_libraries(mysql_shim ${MYSQL_LIB})
+target_include_directories(mysql_shim PRIVATE
+  ${CMAKE_SOURCE_DIR}/lib
+  ${CMAKE_BINARY_DIR}/lib
+)
 
 set_target_properties (
   mysql_shim PROPERTIES
