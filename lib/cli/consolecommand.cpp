@@ -3,6 +3,7 @@
 
 #include "cli/consolecommand.hpp"
 #include "config/configcompiler.hpp"
+#include "remote/apilistener.hpp"
 #include "remote/consolehandler.hpp"
 #include "remote/url.hpp"
 #include "base/configwriter.hpp"
@@ -45,6 +46,10 @@ static ScriptFrame *l_ScriptFrame;
 static Url::Ptr l_Url;
 static Shared<AsioTlsStream>::Ptr l_TlsStream;
 static String l_Session;
+static String l_CertPath;
+static String l_KeyPath;
+static String l_CaPath;
+static String l_CommonName;
 
 REGISTER_CLICOMMAND("console", ConsoleCommand);
 
@@ -177,6 +182,10 @@ void ConsoleCommand::InitParameters(boost::program_options::options_description&
 {
 	visibleDesc.add_options()
 		("connect,c", po::value<std::string>(), "connect to an Icinga 2 instance")
+		("cert", po::value<std::string>(), "client certificate file path")
+		("key", po::value<std::string>(), "client private key file path")
+		("ca", po::value<std::string>(), "CA certificate file path")
+		("cn", po::value<std::string>(), "server certificate common name")
 		("eval,e", po::value<std::string>(), "evaluate expression and terminate")
 		("file,r", po::value<std::string>(), "evaluate a file and terminate")
 		("syntax-only", "only validate syntax (requires --eval or --file)")
@@ -249,6 +258,13 @@ int ConsoleCommand::Run(const po::variables_map& vm, [[maybe_unused]] const std:
 	/* Initialize remote connect parameters. */
 	if (vm.count("connect")) {
 		addr = vm["connect"].as<std::string>();
+		String defaultCertPath = ApiListener::GetDefaultCertPath();
+		String defaultKeyPath = ApiListener::GetDefaultKeyPath();
+		l_CertPath = vm.count("cert") ? String(vm["cert"].as<std::string>())
+			: Utility::PathExists(defaultCertPath) ? defaultCertPath : "";
+		l_KeyPath = vm.count("key") ? String(vm["key"].as<std::string>())
+			: Utility::PathExists(defaultKeyPath) ? defaultKeyPath : "";
+		l_CaPath = vm.count("ca") ? String(vm["ca"].as<std::string>()) : ApiListener::GetDefaultCaPath();
 
 		try {
 			l_Url = new Url(addr);
@@ -256,6 +272,8 @@ int ConsoleCommand::Run(const po::variables_map& vm, [[maybe_unused]] const std:
 			Log(LogCritical, "ConsoleCommand", ex.what());
 			return EXIT_FAILURE;
 		}
+
+		l_CommonName = vm.count("cn") ? String(vm["cn"].as<std::string>()) : l_Url->GetHost();
 
 		String usernameEnv = Utility::GetFromEnvironment("ICINGA2_API_USERNAME");
 		String passwordEnv = Utility::GetFromEnvironment("ICINGA2_API_PASSWORD");
@@ -533,7 +551,7 @@ Shared<AsioTlsStream>::Ptr ConsoleCommand::Connect()
 	Shared<boost::asio::ssl::context>::Ptr sslContext;
 
 	try {
-		sslContext = MakeAsioSslContext(Empty, Empty, Empty); //TODO: Add support for cert, key, ca parameters
+		sslContext = MakeAsioSslContext(l_CertPath, l_KeyPath, l_CaPath);
 	} catch(const std::exception& ex) {
 		Log(LogCritical, "DebugConsole")
 			<< "Cannot make SSL context: " << ex.what();
@@ -543,7 +561,7 @@ Shared<AsioTlsStream>::Ptr ConsoleCommand::Connect()
 	String host = l_Url->GetHost();
 	String port = l_Url->GetPort();
 
-	Shared<AsioTlsStream>::Ptr stream = Shared<AsioTlsStream>::Make(IoEngine::Get().GetIoContext(), *sslContext, host);
+	Shared<AsioTlsStream>::Ptr stream = Shared<AsioTlsStream>::Make(IoEngine::Get().GetIoContext(), *sslContext, l_CommonName);
 
 	try {
 		icinga::Connect(stream->lowest_layer(), host, port);
@@ -561,6 +579,12 @@ Shared<AsioTlsStream>::Ptr ConsoleCommand::Connect()
 		Log(LogWarning, "DebugConsole")
 			<< "TLS handshake with host '" << host << "' failed: " << ex.what();
 		throw;
+	}
+
+	if (!tlsStream.IsVerifyOK()) {
+		String message = "TLS certificate verification for common name '" + l_CommonName + "' failed: " + tlsStream.GetVerifyError();
+		Log(LogCritical, "DebugConsole", message);
+		BOOST_THROW_EXCEPTION(std::runtime_error(message));
 	}
 
 	return stream;
