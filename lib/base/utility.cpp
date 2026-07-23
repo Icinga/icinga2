@@ -29,8 +29,7 @@
 #include <fstream>
 #include <iostream>
 #include <iterator>
-#include <stdlib.h>
-#include <future>
+#include <cstdlib>
 #include <set>
 #include <utf8.h>
 #include <vector>
@@ -63,7 +62,6 @@
 using namespace icinga;
 
 boost::thread_specific_ptr<String> Utility::m_ThreadName;
-boost::thread_specific_ptr<unsigned int> Utility::m_RandSeed;
 
 #ifdef I2_DEBUG
 double Utility::m_DebugTime = -1;
@@ -1462,20 +1460,16 @@ String Utility::GetFQDN()
 	return hostname;
 }
 
+std::mt19937& Utility::GetRandomGenerator()
+{
+	thread_local std::mt19937 gen{std::random_device{}()};
+	return gen;
+}
+	
 int Utility::Random()
 {
-#ifdef _WIN32
-	return rand();
-#else /* _WIN32 */
-	unsigned int *seed = m_RandSeed.get();
-
-	if (!seed) {
-		seed = new unsigned int(Utility::GetTime());
-		m_RandSeed.reset(seed);
-	}
-
-	return rand_r(seed);
-#endif /* _WIN32 */
+	std::uniform_int_distribution<int> dist;
+	return dist(Utility::GetRandomGenerator());
 }
 
 tm Utility::LocalTime(time_t ts)

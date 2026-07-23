@@ -4,6 +4,7 @@
 #include "utils.hpp"
 #include "base/io-engine.hpp"
 #include "base/perfdatavalue.hpp"
+#include "base/utility.hpp"
 #include <cstring>
 #include <future>
 #include <iomanip>
@@ -74,12 +75,10 @@ GlobalTimezoneFixture::~GlobalTimezoneFixture()
 
 std::string GetRandomString(std::string prefix, std::size_t length)
 {
-	std::random_device rd;
-	std::mt19937 gen(rd());
 	std::uniform_int_distribution<int> distribution('!', '~');
 
 	for (auto i = 0U; i < length; i++) {
-		prefix += static_cast<char>(distribution(gen));
+		prefix += static_cast<char>(distribution(icinga::Utility::GetRandomGenerator()));
 	}
 
 	return prefix;
