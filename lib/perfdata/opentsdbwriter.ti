@@ -31,6 +31,12 @@ class OpenTsdbWriter : ConfigObject
 	[config] bool enable_generic_metrics {
 		default {{{ return false; }}}
 	};
+	[config] int flush_interval {
+		default {{{ return 15; }}}
+	};
+	[config] std::size_t flush_threshold {
+		default {{{ return 2 * 1024 * 1024; }}}
+	};
 	[config] double disconnect_timeout {
 		default {{{ return 10; }}}
 	};
