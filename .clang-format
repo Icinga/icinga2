@@ -1,0 +1,91 @@
+---
+# As per the style-guide we base our settings on the LLVM style. This is closer
+# than any of the other options, but there are more conventions that differ from
+# it than the style-guide suggests.
+BasedOnStyle: LLVM
+
+# Default LLVM puts access modifiers (public: etc.) at an offset of -2, meaning
+# in the middle between the indentation level of the class and the class members.
+# A setting of -4 puts them at the same level as class definitions.
+AccessModifierOffset: -4
+
+# We don't want to align function parameters or arguments with the open bracket
+# but instead always just add a level of indentation.
+AlignAfterOpenBracket: BlockIndent
+
+# Mostly relevant for formatting preprocessor macros so that all backslashes align.
+AlignEscapedNewlines: LeftWithLastLine
+
+# We try to avoid having all parameters of a function declaration on a single line
+# Together with 'BinPackParameters' and 'PenaltyReturnTypeOnItsOwnLine' this leads
+# to function signatures being either all on one line, or split by argument like a
+# list.
+AllowAllParametersOfDeclarationOnNextLine: false
+
+# Put simple getters/setters in class bodies on a single line.
+AllowShortFunctionsOnASingleLine: InlineOnly
+
+# If necessary to break function calls, preferably put each argument on its own line.
+BinPackArguments: false
+
+# If necessary to break function signatures, preferably put each parameter on its own line.
+BinPackParameters: false
+
+# This Breaking style fits our convention and style-guide very closely, therefore
+# it is chosen here instead of individual 'BraceWrapping' settings.
+BreakBeforeBraces: Mozilla
+
+# Template declarations are always on their own line
+BreakTemplateDeclarations: Yes
+
+# Convention
+ColumnLimit: 120
+
+# Includes are sorted according to the style guide, with the additional requirement
+# from Boost.Test that the header including the test framework must go first.
+IncludeCategories:
+  - Regex: ^(<|=)BoostTestTargetConfig.h
+    Priority: 1
+    CaseSensitive: false
+  - Regex: ^"(base|icinga|remote|test)/
+    Priority: 2
+    CaseSensitive: false
+  - Regex: ^<boost/
+    Priority: 3
+    CaseSensitive: false
+  - Regex: ^<
+    Priority: 4
+    CaseSensitive: false
+
+# Convention
+IndentCaseLabels: true
+IndentWidth: 4
+
+# Adds braces to if/else/while blocks if they don't have one yet.
+# This is required by the current version of the style-guide.
+InsertBraces: true
+
+# We really want to avoid breaking assignments if we can avoid it.
+# This, together with 'BinPackArguments' leads to clang-format rather breaking at
+# constructor calls with each argument on its own line, like we want.
+PenaltyBreakAssignment: 200
+
+# We allow log message shift operators to start on the next line.
+PenaltyBreakFirstLessLess: 0
+
+# This is needed together with 'PenaltyBreakFirstLessLess' for our preferred formatting
+# of log messages.
+PenaltyIndentedWhitespace: 1
+
+# We absolutely never want the return type on its own line.
+# Together with 'AllowAllParametersOfDeclarationOnNextLine' and 'BinPackParameters'
+# This makes it so that function signatures are always either on one line or split
+# line by line per argument.
+PenaltyReturnTypeOnItsOwnLine: 1200
+
+# Convention
+PointerAlignment: Left
+ReferenceAlignment: Left
+SpaceAfterTemplateKeyword: false
+TabWidth: 4
+UseTab: Always
