@@ -11,6 +11,8 @@
 #include "base/timer.hpp"
 #include <boost/range/algorithm/find.hpp>
 #include <boost/thread/once.hpp>
+#include <random>
+#include <mutex>
 
 using namespace icinga;
 
@@ -128,7 +130,15 @@ void Checkable::Start(bool runtimeCreated)
 
 	if (GetNextCheck() < now + 60) {
 		double delta = std::min(GetCheckInterval(), 60.0);
-		delta *= (double)std::rand() / RAND_MAX;
+
+		static std::mutex genMutex;
+		static std::mt19937 gen{std::random_device{}()};
+		std::uniform_real_distribution<double> dist{0, 1};
+
+		{
+			std::lock_guard lock{genMutex};
+			delta *= dist(gen);
+		}
 		SetNextCheck(now + delta);
 	}
 

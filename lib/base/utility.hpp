@@ -197,7 +197,6 @@ private:
 #endif /* I2_DEBUG */
 
 	static boost::thread_specific_ptr<String> m_ThreadName;
-	static boost::thread_specific_ptr<unsigned int> m_RandSeed;
 };
 
 }
