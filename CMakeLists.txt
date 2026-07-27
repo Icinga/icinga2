@@ -413,11 +413,6 @@ if(ICINGA2_STACKTRACE_USE_BACKTRACE_SYMBOLS AND NOT HAVE_BACKTRACE_SYMBOLS)
 endif()
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-  exec_program(${CMAKE_CXX_COMPILER}
-    ARGS -dumpversion
-    OUTPUT_VARIABLE _ICINGA2_COMPILER_VERSION
-  )
-
   if("${CMAKE_CXX_COMPILER_VERSION}" VERSION_LESS "7.0.0")
     message(FATAL_ERROR "Your version of GCC (${CMAKE_CXX_COMPILER_VERSION}) is too old for building Icinga 2 (GCC >= 7.0.0 is required).")
   endif()
@@ -429,50 +424,17 @@ if(MSVC)
   endif()
 endif()
 
-# Architecture specifics
-# - Log the target architecture
-# - ARM needs to link against atomic
-if(NOT MSVC)
-  # inspired by https://github.com/civetweb/civetweb/blob/master/cmake/DetermineTargetArchitecture.cmake
-  execute_process(
-    COMMAND ${CMAKE_C_COMPILER} -dumpmachine
-    RESULT_VARIABLE RESULT
-    OUTPUT_VARIABLE ARCH
-    ERROR_QUIET
-  )
-
-  if (RESULT)
-    message(STATUS "Failed to detect target architecture with compiler ${CMAKE_C_COMPILER}: ${RESULT}")
+include(CheckWorkingCxxAtomics)
+check_working_cxx_atomics(HAVE_CXX_ATOMICS)
+if(NOT HAVE_CXX_ATOMICS)
+  link_libraries(atomic)
+  check_working_cxx_atomics(HAVE_CXX_ATOMICS)
+  if(NOT HAVE_CXX_ATOMICS)
+    message(FATAL_ERROR "Could not determine C++ atomics support")
   endif()
-
-  string(REGEX MATCH "([^-]+).*" ARCH_MATCH "${ARCH}")
-  if (NOT CMAKE_MATCH_1 OR NOT ARCH_MATCH)
-    message(STATUS "Failed to match the target architecture: ${ARCH}")
-  endif()
-
-  set(ARCH ${CMAKE_MATCH_1})
-
-  message(STATUS "Target architecture - ${ARCH}")
-
-  # ARM settings
-  if("${ARCH}" STREQUAL "arm")
-    check_cxx_source_compiles( "include <atomic>; int main(){ std::atomic<uint_fast64_t> x; x.fetch_add(1); x.sub_add(1);  }" CXX_ATOMIC)
-    link_libraries(atomic)
-  endif()
-
-else()
-  if("${MSVC_C_ARCHITECTURE_ID}" STREQUAL "X86")
-    set(ARCH "i686")
-  elseif("${MSVC_C_ARCHITECTURE_ID}" STREQUAL "x64")
-    set(ARCH "x86_64")
-  elseif("${MSVC_C_ARCHITECTURE_ID}" STREQUAL "ARM")
-    set(ARCH "arm")
-  else()
-    message(FATAL_ERROR "Failed to determine the MSVC target architecture: ${MSVC_C_ARCHITECTURE_ID}")
-  endif()
-
-  message(STATUS "Target architecture - ${ARCH}")
 endif()
+
+message(STATUS "Target architecture - ${CMAKE_HOST_SYSTEM_PROCESSOR}")
 
 configure_file(config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h ESCAPE_QUOTES)
 
