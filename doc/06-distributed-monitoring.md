@@ -3299,6 +3299,68 @@ installation should not trigger a restart, but if you want to be completely sure
 C:> msiexec /i C:\Icinga2-v2.5.0-x86.msi /qn /norestart
 ```
 
+The MSI package supports the following optional properties:
+
+  Property              | Description
+  ----------------------|--------------------
+  `INSTALL_ROOT`        | **Optional.** Installation directory. Defaults to `C:\Program Files\ICINGA2`. Also selectable in the graphical installer.
+  `ICINGA_SERVICE_NAME` | **Optional.** Instance name, used as the name of the Windows service. Defaults to `icinga2`. Also selectable in the graphical installer.
+  `ICINGA_DATA_DIR`     | **Optional.** Data directory holding `etc` and `var`. Defaults to `%PROGRAMDATA%\icinga2`. May contain environment variable references such as `%PROGRAMDATA%\icinga2-b`, which are stored unexpanded and resolved by the binaries at run time. Also selectable in the graphical installer.
+
+Example:
+
+```
+C:> msiexec /i C:\Icinga2-v2.5.0-x86.msi /qn /norestart INSTALL_ROOT="D:\Icinga2" ICINGA_SERVICE_NAME=icinga2-b ICINGA_DATA_DIR="D:\IcingaData"
+```
+
+When running the installer interactively, the installation directory is selected on the
+standard directory page, and the instance name and data directory on a dedicated page
+shown during fresh installations. All three fields are pre-filled with their defaults,
+and the data directory can be picked with a directory chooser. The additional page is
+skipped on upgrades, where previously configured values are re-used automatically.
+
+Every instance records its settings in the registry under
+`HKLM\SOFTWARE\Icinga GmbH\Icinga 2\Instances\<instance>` and in `instance.ini` next to the
+binaries. Both are re-used on upgrades and uninstalls, so the properties above only have to be
+specified for the initial installation. `instance.ini` is also what makes `icinga2.exe` use the
+right data directory when it is run from a console rather than started as a service.
+
+#### Multiple Instances <a id="distributed-monitoring-automation-windows-instances"></a>
+
+The MSI package can install several fully isolated instances side by side. Each instance is a
+separate product with its own entry in *Programs and Features*, its own installation and data
+directory, its own Windows service and its own event log source:
+
+  Instance   | Product name           | Service     | Installation directory        | Data directory
+  -----------|------------------------|-------------|-------------------------------|----------------------------
+  1          | `Icinga 2`             | `icinga2`   | `C:\Program Files\ICINGA2`    | `C:\ProgramData\icinga2`
+  2          | `Icinga 2 (Instance 2)`| `icinga2-2` | `C:\Program Files\ICINGA2-2`  | `C:\ProgramData\icinga2-2`
+  3          | `Icinga 2 (Instance 3)`| `icinga2-3` | `C:\Program Files\ICINGA2-3`  | `C:\ProgramData\icinga2-3`
+
+Instance 1 is the product as it has always been shipped, so existing installations upgrade
+normally and nothing changes for setups that only need a single agent.
+
+Silent installations select the instance with the `TRANSFORMS` property. `MSINEWINSTANCE=1` is
+required for the initial installation of an instance and must be omitted when upgrading or
+maintaining an existing one:
+
+```
+C:> msiexec /i C:\Icinga2-v2.5.0-x86.msi /qn /norestart TRANSFORMS=:Instance2 MSINEWINSTANCE=1
+C:> msiexec /i C:\Icinga2-v2.5.0-x86.msi /qn /norestart TRANSFORMS=:Instance2
+```
+
+The properties from the table above apply per instance, so the defaults can be overridden
+individually. Interactively, the installer goes straight to a fresh installation of the default
+instance as long as nothing is installed yet. Once at least one instance is installed, it opens
+with an overview page instead, which lists every installed instance: *Manage* leads to the
+maintenance of that instance (repair, upgrade or remove), and *Install new instance* starts the
+installation of the next free instance. Selecting an instance other than the default one restarts
+the installer for it, as the instance transform can only be applied on startup.
+
+The number of supported instances is a build time setting (`ICINGA2_MSI_INSTANCES`, three by
+default). Note that the instances share a machine, so their configurations must not compete for
+the same resources - most notably the API port, which defaults to `5665`.
+
 Once the setup is completed you can use the `node setup` cli command too.
 
 ### Node Setup using CLI Parameters <a id="distributed-monitoring-automation-cli-node-setup"></a>

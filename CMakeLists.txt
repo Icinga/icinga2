@@ -508,6 +508,10 @@ if(NOT WIN32)
   add_subdirectory(doc)
 endif()
 
+# Defines the side-by-side instances the MSI package supports and builds the WiX authoring for them.
+# Has to run before icinga-installer, which substitutes the result into the CPack WiX patch.
+include(Icinga2MsiInstances)
+
 if(MSVC)
   add_subdirectory(icinga-installer)
 endif()
@@ -520,13 +524,13 @@ endif()
 set(CPACK_PACKAGE_NAME "Icinga 2")
 set(CPACK_PACKAGE_VENDOR "Icinga GmbH")
 set(CPACK_PACKAGE_VERSION ${ICINGA2_VERSION_SAFE})
-set(CPACK_PACKAGE_INSTALL_DIRECTORY "ICINGA2")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "${ICINGA2_MSI_INSTALL_DIRECTORY}")
 set(CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/icinga-app\\\\icinga.ico")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_BINARY_DIR}/LICENSE.txt")
 
 set(CPACK_PACKAGE_EXECUTABLES "Icinga2SetupAgent;Icinga 2 Agent Wizard")
 set(CPACK_WIX_PRODUCT_ICON "${CMAKE_CURRENT_SOURCE_DIR}/icinga-app\\\\icinga.ico")
-set(CPACK_WIX_UPGRADE_GUID "52F2BEAA-4DF0-4C3E-ABDC-C0F61DE4DF8A")
+set(CPACK_WIX_UPGRADE_GUID "${ICINGA2_MSI_UPGRADE_GUID}")
 set(CPACK_WIX_UI_BANNER "${CMAKE_CURRENT_SOURCE_DIR}/icinga-installer/bannrbmp.bmp")
 set(CPACK_WIX_UI_DIALOG "${CMAKE_CURRENT_SOURCE_DIR}/icinga-installer/dlgbmp.bmp")
 set(CPACK_WIX_PATCH_FILE "${CMAKE_CURRENT_BINARY_DIR}/icinga-installer/icinga2.wixpatch.Debug")

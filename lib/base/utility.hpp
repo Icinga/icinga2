@@ -141,6 +141,9 @@ public:
 #ifdef _WIN32
 	static String GetIcingaInstallPath();
 	static String GetIcingaDataPath();
+	static String GetIcingaInstanceSetting(const String& name);
+	static String GetIcingaServiceName();
+	static String GetIcingaEventLogSource();
 #endif /* _WIN32 */
 
 	static String GetFromEnvironment(const String& env);

@@ -2133,6 +2133,11 @@ $env:BOOST_ROOT='C:\local\boost_1_85_0'
 $env:BOOST_LIBRARYDIR='C:\local\boost_1_85_0\lib64-msvc-14.2'
 ```
 
+Note: The build-time `ICINGA2_INSTALLPATH` variable above is unrelated to the runtime
+environment variables `ICINGA2_INSTALL_PATH` and `ICINGA2_DATA_PATH`, which override
+where `icinga2.exe` looks for its installation and data directories on Windows
+(see [silent Windows setup](06-distributed-monitoring.md#distributed-monitoring-automation-windows-silent)).
+
 #### Icinga 2 in Visual Studio
 
 This requires running the configure script once.

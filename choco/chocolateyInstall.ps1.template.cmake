@@ -8,7 +8,8 @@ $packageArgs = @{
   url64bit      = $url64
   silentArgs    = "/qn /norestart"
   validExitCodes= @(0)
-  softwareName  = 'Icinga 2*'
+  # Exact match: the same MSI can also install "Icinga 2 (Instance 2)" and so on side by side.
+  softwareName  = 'Icinga 2'
   checksum64    = '%CHOCO_64BIT_CHECKSUM%'
   checksumType64= 'sha256'
 }

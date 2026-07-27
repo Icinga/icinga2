@@ -12,7 +12,7 @@ namespace Icinga
 			InitializeComponent();
 
 			try {
-				ServiceController sc = new ServiceController("icinga2");
+				ServiceController sc = new ServiceController(Program.Icinga2ServiceName);
 
 				txtStatus.Text = sc.Status.ToString();
 			} catch (InvalidOperationException) {
