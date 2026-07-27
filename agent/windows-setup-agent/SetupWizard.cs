@@ -117,6 +117,13 @@ namespace Icinga
 			psi.RedirectStandardOutput = true;
 			psi.RedirectStandardError = true;
 
+			/* Point the child process at the instance this wizard belongs to. Without this it would
+			 * fall back to the default instance's data directory, because nothing sets these
+			 * variables for the wizard itself - neither the MSI's exit dialog nor the start menu
+			 * shortcut do. */
+			psi.EnvironmentVariables["ICINGA2_INSTALL_PATH"] = Program.Icinga2InstallDir;
+			psi.EnvironmentVariables["ICINGA2_DATA_PATH"] = Program.Icinga2DataDir;
+
 			String result = "";
 
 			using (Process proc = Process.Start(psi)) {
@@ -253,8 +260,12 @@ namespace Icinga
 
 			SetConfigureStatus(75, "Installing the Icinga 2 service...");
 
+			/* Always name the service explicitly: without it, reconfiguring an instance other than
+			 * the default one would tear down and recreate the default instance's service. */
+			string scmName = " --scm-name \"" + Program.Icinga2ServiceName + "\"";
+
 			RunProcess(Program.Icinga2InstallDir + "\\sbin\\icinga2.exe",
-				"--scm-uninstall",
+				"--scm-uninstall" + scmName,
 				out output);
 
 			if (!RunProcess(Program.Icinga2InstallDir + "\\sbin\\icinga2.exe",
@@ -265,10 +276,10 @@ namespace Icinga
 			}
 
 			if (!RunProcess(Program.Icinga2InstallDir + "\\sbin\\icinga2.exe",
-				"--scm-install --scm-user \"" + serviceUser + "\" daemon",
+				"--scm-install --scm-user \"" + serviceUser + "\"" + scmName + " daemon",
 				out output)) {
 				ShowErrorText("\nRunning command 'icinga2.exe --scm-install --scm-user \"" +
-					serviceUser + "\" daemon' produced the following output:\n" + output);
+					serviceUser + "\"" + scmName + " daemon' produced the following output:\n" + output);
 				return;
 			}
 

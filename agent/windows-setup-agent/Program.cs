@@ -22,6 +22,19 @@ namespace Icinga
 		{
 			get
 			{
+				/* This executable lives in <prefix>\sbin, so its own location identifies the instance
+				 * it belongs to. Enumerating the installed products cannot do that: every instance
+				 * beyond the first one is registered under a different product name, and matching the
+				 * name loosely would just as likely find the wrong instance. */
+				string sbinDir = Path.GetDirectoryName(Application.ExecutablePath);
+
+				if (!String.IsNullOrEmpty(sbinDir)) {
+					string prefix = Path.GetDirectoryName(sbinDir);
+
+					if (!String.IsNullOrEmpty(prefix) && Directory.Exists(prefix + "\\share\\icinga2"))
+						return prefix;
+				}
+
 				StringBuilder szProduct;
 
 				for (int index = 0; ; index++) {
@@ -48,11 +61,55 @@ namespace Icinga
 			}
 		}
 
+		/// <summary>
+		/// Reads a setting from &lt;prefix&gt;\instance.ini, which the installer writes to tell the
+		/// binaries which of the side-by-side instances they belong to.
+		/// </summary>
+		public static string Icinga2InstanceSetting(string name)
+		{
+			string path = Icinga2InstallDir + "\\instance.ini";
+
+			if (!File.Exists(path))
+				return "";
+
+			foreach (string line in File.ReadAllLines(path)) {
+				int pos = line.IndexOf('=');
+
+				if (pos < 0)
+					continue;
+
+				if (line.Substring(0, pos) == name)
+					return line.Substring(pos + 1).Trim();
+			}
+
+			return "";
+		}
+
 		public static string Icinga2DataDir
 		{
 			get
 			{
+				string dataPath = Environment.GetEnvironmentVariable("ICINGA2_DATA_PATH");
+
+				if (!String.IsNullOrEmpty(dataPath))
+					return dataPath;
+
+				dataPath = Icinga2InstanceSetting("DataDir");
+
+				if (!String.IsNullOrEmpty(dataPath))
+					return dataPath;
+
 				return Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + "\\icinga2";
+			}
+		}
+
+		public static string Icinga2ServiceName
+		{
+			get
+			{
+				string serviceName = Icinga2InstanceSetting("ServiceName");
+
+				return String.IsNullOrEmpty(serviceName) ? "icinga2" : serviceName;
 			}
 		}
 

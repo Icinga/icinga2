@@ -58,6 +58,7 @@
 #	include <io.h>
 #	include <msi.h>
 #	include <shlobj.h>
+#	include <shlwapi.h>
 #endif /*_WIN32*/
 
 using namespace icinga;
@@ -1917,8 +1918,66 @@ int Utility::MksTemp(char *tmpl)
 	return -1;
 }
 
+/**
+ * Expands %VARIABLE% references, so that a configured path may refer to the environment instead of
+ * hard-coding the result, e.g. %PROGRAMDATA%\icinga2 instead of C:\ProgramData\icinga2. Returns the
+ * input unchanged if it contains no references or the expansion fails.
+ */
+static String ExpandEnvironmentVariables(const String& text)
+{
+	if (!text.Contains("%"))
+		return text;
+
+	DWORD len = ExpandEnvironmentStrings(text.CStr(), nullptr, 0);
+	if (len == 0)
+		return text;
+
+	std::vector<char> expanded(len);
+	if (ExpandEnvironmentStrings(text.CStr(), expanded.data(), len) == 0)
+		return text;
+
+	return expanded.data();
+}
+
+/**
+ * Derives the installation prefix from the location of the running executable, which is
+ * <prefix>\sbin\<something>.exe. Returns an empty string unless the result actually looks like an
+ * Icinga 2 installation, so that a binary run from somewhere else falls through to the other
+ * resolution steps.
+ */
+static String IcingaInstallPathFromModule()
+{
+	char szFileName[MAX_PATH];
+	if (!GetModuleFileName(nullptr, szFileName, sizeof(szFileName)))
+		return "";
+
+	/* Strip the file name and the sbin directory. */
+	if (!PathRemoveFileSpec(szFileName) || !PathRemoveFileSpec(szFileName))
+		return "";
+
+	String path = szFileName;
+
+	for (const char *marker : {"\\instance.ini", "\\share\\icinga2"}) {
+		if (Utility::PathExists(path + marker))
+			return path;
+	}
+
+	return "";
+}
+
 String Utility::GetIcingaInstallPath()
 {
+	String installPath = GetFromEnvironment("ICINGA2_INSTALL_PATH");
+	if (!installPath.IsEmpty())
+		return ExpandEnvironmentVariables(installPath);
+
+	installPath = IcingaInstallPathFromModule();
+	if (!installPath.IsEmpty())
+		return installPath;
+
+	/* Last resort for installations that predate instance.ini. Only ever finds the default instance,
+	 * as the additional ones are registered under a different product name.
+	 */
 	char szProduct[39];
 
 	for (int i = 0; MsiEnumProducts(i, szProduct) == ERROR_SUCCESS; i++) {
@@ -1939,12 +1998,68 @@ String Utility::GetIcingaInstallPath()
 	return "";
 }
 
+/**
+ * Reads a setting from <prefix>\instance.ini, the file the installer writes to tell the binaries
+ * which of the side-by-side instances they belong to. Unlike the environment variables the service
+ * control manager passes to the service, this also works for invocations from a console.
+ *
+ * @param name Key to look up, e.g. "DataDir".
+ *
+ * @returns The value, or an empty string if there is no such file or key.
+ */
+String Utility::GetIcingaInstanceSetting(const String& name)
+{
+	String installPath = GetIcingaInstallPath();
+	if (installPath.IsEmpty())
+		return "";
+
+	std::ifstream fp((installPath + "\\instance.ini").CStr());
+	if (!fp.good())
+		return "";
+
+	std::string line;
+	while (std::getline(fp, line)) {
+		size_t pos = line.find('=');
+		if (pos == std::string::npos)
+			continue;
+
+		if (line.compare(0, pos, name.CStr()) == 0) {
+			String value = line.substr(pos + 1);
+			return value.Trim();
+		}
+	}
+
+	return "";
+}
+
 String Utility::GetIcingaDataPath()
 {
+	String dataPath = GetFromEnvironment("ICINGA2_DATA_PATH");
+	if (!dataPath.IsEmpty())
+		return ExpandEnvironmentVariables(dataPath);
+
+	dataPath = GetIcingaInstanceSetting("DataDir");
+	if (!dataPath.IsEmpty())
+		return ExpandEnvironmentVariables(dataPath);
+
 	char path[MAX_PATH];
 	if (!SUCCEEDED(SHGetFolderPath(nullptr, CSIDL_COMMON_APPDATA, nullptr, 0, path)))
 		return "";
 	return String(path) + "\\icinga2";
+}
+
+String Utility::GetIcingaServiceName()
+{
+	String serviceName = GetIcingaInstanceSetting("ServiceName");
+
+	return serviceName.IsEmpty() ? "icinga2" : serviceName;
+}
+
+String Utility::GetIcingaEventLogSource()
+{
+	String source = GetIcingaInstanceSetting("EventLogSource");
+
+	return source.IsEmpty() ? "Icinga 2" : source;
 }
 
 #endif /* _WIN32 */

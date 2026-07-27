@@ -38,10 +38,18 @@ install(CODE "
   endif()"
 )
 
+# Two stages: configure_file expands the per-instance authoring built by cmake/Icinga2MsiInstances.cmake
+# (@ONLY, so that the generator expressions survive), file(GENERATE) then resolves those.
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/icinga2.wixpatch.cmake.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/icinga2.wixpatch.configured"
+  @ONLY
+)
+
 file(
   GENERATE
   OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/icinga2.wixpatch.$<CONFIG>"
-  INPUT "${CMAKE_CURRENT_SOURCE_DIR}/icinga2.wixpatch.cmake"
+  INPUT "${CMAKE_CURRENT_BINARY_DIR}/icinga2.wixpatch.configured"
 )
 
 set(InstallPath "${CMAKE_INSTALL_SBINDIR}")

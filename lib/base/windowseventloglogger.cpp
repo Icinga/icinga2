@@ -7,6 +7,7 @@
 #include "base/windowseventloglogger-provider.h"
 #include "base/configtype.hpp"
 #include "base/statsfunction.hpp"
+#include "base/utility.hpp"
 #include <windows.h>
 
 using namespace icinga;
@@ -21,7 +22,10 @@ static HANDLE l_EventLog = nullptr;
 
 void WindowsEventLogLogger::StaticInitialize()
 {
-	l_EventLog = RegisterEventSourceA(nullptr, "Icinga 2");
+	/* Each instance registers its own event source, and the installer created the matching registry
+	 * key pointing at that instance's eventprovider.dll.
+	 */
+	l_EventLog = RegisterEventSourceA(nullptr, Utility::GetIcingaEventLogSource().CStr());
 }
 
 void WindowsEventLogLogger::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
