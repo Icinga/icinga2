@@ -311,11 +311,11 @@ for `console` are required for executing config expressions and auto-completion.
 > **Note**
 >
 > Remote connections verify the server certificate and hostname using the local
-> Icinga PKI. The client certificate, private key, and CA certificate default to
-> the standard paths below `DataDir/certs`. Use `--cert`, `--key`, and `--ca` to
-> override them. By default, the hostname in `--connect` is also used to verify
-> the server certificate. Use `--cn` when the connection hostname differs from
-> the Icinga PKI common name.
+> Icinga PKI CA certificate by default. Use `--ca` to override the CA path. A
+> client certificate is optional; pass `--cert` and `--key` when the remote API
+> requires one. By default, the hostname in `--connect` is also used to verify the
+> server certificate. Use `--cn` when the connection hostname differs from the
+> Icinga PKI common name.
 >
 > Runtime modifications are not validated and might cause the Icinga 2
 > daemon to crash or behave in an unexpected way. Use these runtime changes

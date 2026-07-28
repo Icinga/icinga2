@@ -258,12 +258,8 @@ int ConsoleCommand::Run(const po::variables_map& vm, [[maybe_unused]] const std:
 	/* Initialize remote connect parameters. */
 	if (vm.count("connect")) {
 		addr = vm["connect"].as<std::string>();
-		String defaultCertPath = ApiListener::GetDefaultCertPath();
-		String defaultKeyPath = ApiListener::GetDefaultKeyPath();
-		l_CertPath = vm.count("cert") ? String(vm["cert"].as<std::string>())
-			: Utility::PathExists(defaultCertPath) ? defaultCertPath : "";
-		l_KeyPath = vm.count("key") ? String(vm["key"].as<std::string>())
-			: Utility::PathExists(defaultKeyPath) ? defaultKeyPath : "";
+		l_CertPath = vm.count("cert") ? String(vm["cert"].as<std::string>()) : "";
+		l_KeyPath = vm.count("key") ? String(vm["key"].as<std::string>()) : "";
 		l_CaPath = vm.count("ca") ? String(vm["ca"].as<std::string>()) : ApiListener::GetDefaultCaPath();
 
 		try {
