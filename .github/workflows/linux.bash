@@ -37,8 +37,9 @@ case "$DISTRO" in
     ;;
 
   amazonlinux:20*)
-    dnf install -y amazon-rpm-config bison cmake flex gcc-c++ ninja-build \
+    dnf install -y amazon-rpm-config spal-release bison cmake flex gcc-c++ ninja-build \
       {boost,libedit,mariadb-connector-c,ncurses,openssl,postgresql,systemd,protobuf-lite}-devel
+    dnf install -y ccache
     ;;
 
   debian:*|ubuntu:*)
