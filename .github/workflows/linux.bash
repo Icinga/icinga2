@@ -144,6 +144,15 @@ fi
 mkdir /icinga2/build
 cd /icinga2/build
 
+# Disable the addtion of debug symbols to the objects to reduce ccache size.
+# Several targets will also add '-g' to the regular compiler flags, and adding
+# -g0 to the build-type specific variable is the only way to reliably override
+# it.
+CMAKE_OPTS+=(
+  -DCMAKE_C_FLAGS_RELWITHDEBINFO="-O2 -DNDEBUG -g0"
+  -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="-O2 -DNDEBUG -g0"
+)
+
 "${SCL_ENABLE_GCC[@]}" cmake \
   -GNinja \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo \
