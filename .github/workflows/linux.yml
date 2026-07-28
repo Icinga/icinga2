@@ -71,11 +71,15 @@ jobs:
       - name: Turn on Problem Matcher
         run: echo "::add-matcher::.github/problem-matchers/gcc.json"
 
-      - name: Restore/backup ccache
-        uses: actions/cache@v6
+      - name: Restore ccache
+        uses: actions/cache/restore@v6
         with:
           path: ccache
-          key: ccache/${{ matrix.distro }}
+          # The exact key is only ever written by the Save step below, so on any
+          # run it won't pre-exist and restore falls through restore-keys to the
+          # newest saved snapshot — i.e. the latest push to a base branch.
+          key: ccache/${{ matrix.distro }}-${{ matrix.platform }}-${{ github.run_id }}
+          restore-keys: ccache/${{ matrix.distro }}-${{ matrix.platform }}-
 
       - name: Build Alpine Docker Image
         if: "matrix.distro == 'alpine:bash'"
@@ -87,3 +91,12 @@ jobs:
         run: >-
           docker run --rm -v "$(pwd):/icinga2" -e DISTRO=${{ matrix.distro }}
           --platform ${{ matrix.platform }} ${{ matrix.distro }} /icinga2/.github/workflows/linux.bash
+
+      - name: Save ccache
+        # Only update ccache on a push to master to preserve as much useful
+        # artefacts as possible while staying under GitHub's 10GB size limit.
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: actions/cache/save@v6
+        with:
+          path: ccache
+          key: ccache/${{ matrix.distro }}-${{ matrix.platform }}-${{ github.run_id }}
