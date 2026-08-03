@@ -2815,7 +2815,19 @@ Dictionary::Ptr IcingaDB::SerializeState(const Checkable::Ptr& checkable)
 	 */
 	attrs->Set("id", id);
 	attrs->Set("environment_id", m_EnvironmentId);
-	attrs->Set("state_type", Checkable::StateTypeToString(checkable->HasBeenChecked() ? checkable->GetStateType() : StateTypeHard).ToLower());
+	StateType stateType;
+
+	if (checkable->HasBeenChecked()) {
+		if (checkable->GetVolatile() && !checkable->IsStateOK(checkable->GetStateRaw())) {
+			stateType = StateTypeHard;
+		} else {
+			stateType = checkable->GetStateType();
+		}
+	} else {
+		stateType = StateTypeHard;
+	}
+
+	attrs->Set("state_type", Checkable::StateTypeToString(stateType).ToLower());
 
 	// TODO: last_hard/soft_state should be "previous".
 	if (service) {
