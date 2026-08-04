@@ -185,7 +185,7 @@ bool NodeUtility::WriteNodeConfigObjects(const String& filename, const Array::Pt
 /*
  * We generally don't overwrite files without backup before
  */
-bool NodeUtility::CreateBackupFile(const String& target, bool isPrivate)
+bool NodeUtility::CreateBackupFile(const String& target)
 {
 	if (!Utility::PathExists(target))
 		return false;
@@ -199,11 +199,6 @@ bool NodeUtility::CreateBackupFile(const String& target, bool isPrivate)
 	}
 
 	Utility::CopyFile(target, backup);
-
-#ifndef _WIN32
-	if (isPrivate)
-		chmod(backup.CStr(), 0600);
-#endif /* _WIN32 */
 
 	Log(LogInformation, "cli")
 		<< "Created backup file '" << backup << "'.";
