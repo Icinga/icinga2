@@ -349,7 +349,7 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm)
 	String ca = certsDir + "/ca.crt";
 
 	if (Utility::PathExists(key))
-		NodeUtility::CreateBackupFile(key, true);
+		NodeUtility::CreateBackupFile(key);
 	if (Utility::PathExists(cert))
 		NodeUtility::CreateBackupFile(cert);
 

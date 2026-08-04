@@ -87,7 +87,7 @@ bool ApiSetupUtility::SetupMasterCertificates(const String& cn)
 		<< "Generating new CSR in '" << csr << "'.";
 
 	if (Utility::PathExists(key))
-		NodeUtility::CreateBackupFile(key, true);
+		NodeUtility::CreateBackupFile(key);
 	if (Utility::PathExists(csr))
 		NodeUtility::CreateBackupFile(csr);
 

@@ -271,7 +271,7 @@ wizard_endpoint_loop_start:
 	String nodeKey = certsDir + "/" + cn + ".key";
 
 	if (Utility::PathExists(nodeKey))
-		NodeUtility::CreateBackupFile(nodeKey, true);
+		NodeUtility::CreateBackupFile(nodeKey);
 	if (Utility::PathExists(nodeCert))
 		NodeUtility::CreateBackupFile(nodeCert);
 
