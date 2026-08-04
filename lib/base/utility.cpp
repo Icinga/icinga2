@@ -731,11 +731,18 @@ void Utility::CopyFile(const String& source, const String& target)
 {
 	namespace fs = boost::filesystem;
 
-#if BOOST_VERSION >= 107400
-	fs::copy_file(fs::path(source.Begin(), source.End()), fs::path(target.Begin(), target.End()), fs::copy_options::overwrite_existing);
-#else /* BOOST_VERSION */
-	fs::copy_file(fs::path(source.Begin(), source.End()), fs::path(target.Begin(), target.End()), fs::copy_option::overwrite_if_exists);
-#endif /* BOOST_VERSION */
+	fs::path sourcePath (source.Begin(), source.End());
+
+	std::ifstream fp;
+	fp.exceptions(fp.failbit | fp.badbit);
+	fp.open(source.CStr(), std::ios::binary);
+
+	// Stream into a temporary file with the source's permissions already applied before it's
+	// populated and renamed into place, so the target never becomes briefly visible with the
+	// wrong (e.g. world-readable) permissions.
+	AtomicFile af (target, fs::status(sourcePath).permissions());
+	af << fp.rdbuf();
+	af.Commit();
 }
 
 /*
