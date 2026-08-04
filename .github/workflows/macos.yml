@@ -1,0 +1,43 @@
+name: macOS
+
+on:
+  push:
+    branches:
+      - master
+      - 'support/*'
+  pull_request: {}
+
+concurrency:
+  group: macos-${{ github.event_name == 'push' && github.sha || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  macos:
+    name: macOS
+    runs-on: macos-26
+
+    steps:
+      - name: Checkout HEAD
+        uses: actions/checkout@v7
+
+      - name: Turn on Problem Matcher
+        run: echo "::add-matcher::.github/problem-matchers/gcc.json"
+
+      - name: Build Icinga
+        run: |
+          brew install boost mysql protobuf
+  
+          cmake -B build \
+            -GNinja \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DCMAKE_INSTALL_PREFIX="$(pwd)/install" \
+            -DICINGA2_PLUGINDIR="$(pwd)/install/plugins" \
+            -DICINGA2_USER=$(id -un) \
+            -DICINGA2_GROUP=$(id -gn) \
+            -DMYSQL_INCLUDE_DIR="$(brew --prefix mysql)/include/mysql" \
+            -DPostgreSQL_ROOT="$(brew --prefix libpq)"
+
+          cmake --build build --verbose
+          ctest --output-on-failure --test-dir build
+          cmake --install build
+          install/sbin/icinga2 daemon -C
