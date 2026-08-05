@@ -5,9 +5,9 @@
 #define SCHEDULEDDOWNTIME_H
 
 #include "icinga/i2-icinga.hpp"
+#include "base/atomic.hpp"
 #include "icinga/scheduleddowntime-ti.hpp"
 #include "icinga/checkable.hpp"
-#include <atomic>
 
 namespace icinga
 {
@@ -50,7 +50,7 @@ private:
 	void CreateNextDowntime();
 	void RemoveObsoleteDowntimes();
 
-	static std::atomic<bool> m_AllConfigLoaded;
+	static Atomic<bool> m_AllConfigLoaded;
 
 	static bool EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, const String& name, ScriptFrame& frame, const ApplyRule& rule, bool skipFilter);
 	static bool EvaluateApplyRule(const Checkable::Ptr& checkable, const ApplyRule& rule, bool skipFilter = false);

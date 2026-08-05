@@ -19,8 +19,8 @@
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/sequenced_index.hpp>
-#include <atomic>
 #include <chrono>
+#include <cstddef>
 #include <future>
 #include <memory>
 #include <mutex>
@@ -456,7 +456,7 @@ private:
 	 */
 	RedisConnection::Ptr m_RconWorker;
 	std::unordered_map<ConfigType*, RedisConnection::Ptr> m_Rcons;
-	std::atomic_size_t m_PendingRcons;
+	Atomic<size_t> m_PendingRcons {0};
 
 	struct {
 		DumpedGlobals CustomVar, ActionUrl, NotesUrl, IconImage, DependencyGroup;
