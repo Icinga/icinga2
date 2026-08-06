@@ -43,7 +43,7 @@ class EventsInbox : public Object
 public:
 	DECLARE_PTR_TYPEDEFS(EventsInbox);
 
-	EventsInbox(String filter, const String& filterSource);
+	EventsInbox(String filter, const String& filterSource, ApiUser::Ptr user);
 	EventsInbox(const EventsInbox&) = delete;
 	EventsInbox(EventsInbox&&) = delete;
 	EventsInbox& operator=(const EventsInbox&) = delete;
@@ -51,6 +51,7 @@ public:
 	~EventsInbox();
 
 	const Expression::Ptr& GetFilter();
+	const ApiUser::Ptr& GetUser() const noexcept;
 
 	void Push(Dictionary::Ptr event);
 	Dictionary::Ptr Shift(boost::asio::yield_context yc, std::chrono::milliseconds timeout = 5s);
@@ -67,6 +68,7 @@ private:
 
 	std::mutex m_Mutex;
 	decltype(m_Filters.begin()) m_Filter;
+	ApiUser::Ptr m_User;
 	std::queue<Dictionary::Ptr> m_Queue;
 	boost::asio::steady_timer m_Timer;
 };
@@ -74,7 +76,7 @@ private:
 class EventsSubscriber
 {
 public:
-	EventsSubscriber(std::set<EventType> types, String filter, const String& filterSource);
+	EventsSubscriber(std::set<EventType> types, String filter, const String& filterSource, ApiUser::Ptr user);
 	EventsSubscriber(const EventsSubscriber&) = delete;
 	EventsSubscriber(EventsSubscriber&&) = delete;
 	EventsSubscriber& operator=(const EventsSubscriber&) = delete;
