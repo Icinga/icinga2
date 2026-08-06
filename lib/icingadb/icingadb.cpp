@@ -84,6 +84,8 @@ void IcingaDB::Start(bool runtimeCreated)
 	m_RconLocked.store(m_Rcon);
 
 	m_RconWorker = new RedisConnection(connInfo, m_Rcon);
+	std::vector<RedisConnection::Ptr> childConns;
+	childConns.push_back(m_RconWorker);
 
 	for (const auto& [type, _] : GetSyncableTypes()) {
 		auto ctype (dynamic_cast<ConfigType*>(type.get()));
@@ -91,28 +93,32 @@ void IcingaDB::Start(bool runtimeCreated)
 			continue;
 
 		RedisConnection::Ptr con = new RedisConnection(connInfo, m_Rcon);
+		childConns.push_back(con);
 
-		con->SetConnectedCallback([this, con](boost::asio::yield_context&) {
-			con->SetConnectedCallback(nullptr);
+		m_Rcons[ctype] = std::move(con);
+	}
 
-			size_t pending = --m_PendingRcons;
+	auto pendingConns = std::make_shared<std::atomic_size_t>(childConns.size());
+
+	for (auto & conn : childConns) {
+		conn->SetConnectedCallback([this, pendingConns, conn](boost::asio::yield_context&) {
+			conn->SetConnectedCallback([reconnectCount = m_ReconnectCount](boost::asio::yield_context&) {
+				reconnectCount->fetch_add(1, std::memory_order_release);
+			});
+
+			auto pending = --*pendingConns;
 			Log(LogDebug, "IcingaDB") << pending << " pending child connections remaining";
 			if (pending == 0) {
 				m_WorkQueue.Enqueue([this]() { OnConnectedHandler(); });
 			}
 		});
-
-		m_Rcons[ctype] = std::move(con);
 	}
 
-	m_PendingRcons = m_Rcons.size();
-
-	m_Rcon->SetConnectedCallback([this](boost::asio::yield_context&) {
+	m_Rcon->SetConnectedCallback([this, childConns = std::move(childConns)](boost::asio::yield_context&) {
 		m_Rcon->SetConnectedCallback(nullptr);
 
-		m_RconWorker->Start();
-		for (auto& kv : m_Rcons) {
-			kv.second->Start();
+		for (const auto& conn : childConns) {
+			conn->Start();
 		}
 	});
 	m_Rcon->Start();
@@ -149,7 +155,15 @@ void IcingaDB::OnConnectedHandler()
 	m_ConfigDumpInProgress = true;
 	PublishStats();
 
-	UpdateAllConfigObjects();
+	while (true) {
+		try {
+			UpdateAllConfigObjects();
+			break;
+		} catch (const std::exception& ex) {
+			Log(LogCritical, "IcingaDB") << "Exception during ConfigDump: " << ex.what();
+		}
+		Utility::Sleep(10);
+	}
 
 	m_ConfigDumpDone.store(true);
 	m_ConfigDumpInProgress = false;
