@@ -3,7 +3,6 @@
 
 #include "base/array.hpp"
 #include "base/function.hpp"
-#include "base/functionwrapper.hpp"
 #include "base/scriptframe.hpp"
 #include "base/objectlock.hpp"
 #include "base/exception.hpp"
