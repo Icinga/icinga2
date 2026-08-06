@@ -188,9 +188,8 @@ static Array::Ptr ArraySort(const std::vector<Value>& args)
 		if (vframe->Sandboxed && !function->IsSideEffectFree())
 			BOOST_THROW_EXCEPTION(ScriptError("Sort function must be side-effect free."));
 
-		return SafeSort(self, [&args](const Value& a, const Value& b) -> bool {
-			Function::Ptr cmp = args[0];
-			return cmp->Invoke({ a, b });
+		return SafeSort(self, [function](const Value& a, const Value& b) -> bool {
+			return function->Invoke({ a, b });
 		});
 	}
 }
