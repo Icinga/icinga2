@@ -92,8 +92,8 @@ ARG TARGETPLATFORM
 # These arguments are used to configure the build of Icinga 2 and can be overridden
 # by the user when building the image. All of them have a default value suitable for our official image.
 ARG CMAKE_BUILD_TYPE=RelWithDebInfo
-ARG CMAKE_UNITY_BUILD=TRUE
 ARG ICINGA2_BUILD_TESTING=ON
+ARG CMAKE_PRESET=release-gcc
 
 # The number of jobs to run in parallel when building Icinga 2.
 # By default, it is set to the number of available CPU cores on the build machine.
@@ -110,18 +110,17 @@ RUN mkdir /icinga2-install
 RUN --mount=type=bind,source=.,target=/icinga2,readonly \
     --mount=type=cache,id=ccache-${TARGETPLATFORM},target=/root/.ccache \
     --mount=type=cache,id=icinga2-build-${TARGETPLATFORM},target=/icinga2-build \
-    PATH="/usr/lib/ccache:$PATH" \
-    cmake -S /icinga2 -B /icinga2-build \
-        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} \
+    cmake --preset ${CMAKE_PRESET} \
+        -S /icinga2 -B /icinga2-build \
         # Podman supports forwarding notifications from containers to systemd, so build Icinga 2 with systemd support.
         -DUSE_SYSTEMD=ON \
         -DBUILD_TESTING=${ICINGA2_BUILD_TESTING} \
-        -DCMAKE_UNITY_BUILD=${CMAKE_UNITY_BUILD} \
-        -DCMAKE_UNITY_BUILD_BATCH_SIZE=0 \
         # The command group name below is required for the prepare-dirs script to work, as it expects
         # the command group name, which by default is `icingacmd` to exist on the system. Since we
         # don't create the `icingacmd` command group in this image, we need to override it with icinga.
         -DICINGA2_COMMAND_GROUP=icinga \
+		-DCMAKE_C_COMPILER_LAUNCHER=ccache \
+		-DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
         -DCMAKE_INSTALL_PREFIX=/usr \
         -DCMAKE_INSTALL_SYSCONFDIR=/data/etc \
         -DCMAKE_INSTALL_LOCALSTATEDIR=/data/var \
