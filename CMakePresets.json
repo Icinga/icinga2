@@ -88,14 +88,14 @@
             "generator": "Visual Studio 17 2022"
         },
         {
-            "name": "release",
+            "name": "type:release",
             "hidden": true,
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "RelWithDebInfo"
             }
         },
         {
-            "name": "debug",
+            "name": "type:debug",
             "hidden": true,
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug"
@@ -103,59 +103,59 @@
         },
         {
             "name": "release-gcc",
-            "inherits": [ "unix", "gcc", "make", "release" ]
+            "inherits": [ "unix", "gcc", "make", "type:release" ]
         },
         {
             "name": "release-gcc-lto",
-            "inherits": [ "unix", "gcc", "make", "release", "lto" ]
+            "inherits": [ "unix", "gcc", "make", "type:release", "lto" ]
         },
         {
             "name": "debug-gcc",
-            "inherits": [ "unix", "gcc", "make", "debug" ]
+            "inherits": [ "unix", "gcc", "make", "type:debug" ]
         },
         {
             "name": "release-clang",
-            "inherits": [ "unix", "clang", "make", "release" ]
+            "inherits": [ "unix", "clang", "make", "type:release" ]
         },
         {
             "name": "release-clang-lto",
-            "inherits": [ "unix", "clang", "make", "release", "lto" ]
+            "inherits": [ "unix", "clang", "make", "type:release", "lto" ]
         },
         {
             "name": "debug-clang",
-            "inherits": [ "unix", "clang", "make", "debug" ]
+            "inherits": [ "unix", "clang", "make", "type:debug" ]
         },
         {
             "name": "release-gcc-ninja",
-            "inherits": [ "unix", "gcc", "ninja", "release" ]
+            "inherits": [ "unix", "gcc", "ninja", "type:release" ]
         },
         {
             "name": "release-gcc-ninja-lto",
-            "inherits": [ "unix", "gcc", "ninja", "release", "lto" ]
+            "inherits": [ "unix", "gcc", "ninja", "type:release", "lto" ]
         },
         {
             "name": "debug-gcc-ninja",
-            "inherits": [ "unix", "gcc", "ninja", "debug" ]
+            "inherits": [ "unix", "gcc", "ninja", "type:debug" ]
         },
         {
             "name": "release-clang-ninja",
-            "inherits": [ "unix", "clang", "ninja", "release" ]
+            "inherits": [ "unix", "clang", "ninja", "type:release" ]
         },
         {
             "name": "release-clang-ninja-lto",
-            "inherits": [ "unix", "clang", "ninja", "release", "lto" ]
+            "inherits": [ "unix", "clang", "ninja", "type:release", "lto" ]
         },
         {
             "name": "debug-clang-ninja",
-            "inherits": [ "unix", "clang", "ninja", "debug" ]
+            "inherits": [ "unix", "clang", "ninja", "type:debug" ]
         },
         {
             "name": "release-windows",
-            "inherits": [ "default", "vs", "release" ]
+            "inherits": [ "default", "vs", "type:release" ]
         },
         {
             "name": "debug-windows",
-            "inherits": [ "default", "vs", "debug" ]
+            "inherits": [ "default", "vs", "type:debug" ]
         }
     ]
 }
