@@ -73,7 +73,10 @@ void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 		String jsonString;
 
 		try {
-			jsonString = JsonRpc::ReadMessage(m_Stream, yc, m_Endpoint ? -1 : 1024 * 1024);
+			// Unauthenticated connections are limited to 1MB messages
+			jsonString = JsonRpc::ReadMessage(
+				m_Stream, yc, m_Endpoint ? m_Endpoint->GetMessageReceiveSizeLimit() : 1024L * 1024
+			);
 		} catch (const std::exception& ex) {
 			Log(m_ShuttingDown ? LogDebug : LogNotice, "JsonRpcConnection")
 				<< "Error while reading JSON-RPC message for identity '" << m_Identity
