@@ -110,7 +110,7 @@ bool EventsHandler::HandleRequest(
 		filter = HttpUtility::GetLastParameter(params, "filter");
 	}
 
-	EventsSubscriber subscriber (std::move(eventTypes), std::move(filter), l_ApiQuery);
+	EventsSubscriber subscriber (std::move(eventTypes), std::move(filter), l_ApiQuery, user);
 
 	server.StartStreaming();
 
