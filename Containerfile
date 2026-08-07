@@ -148,6 +148,7 @@ RUN apt-get update && \
     apt-get upgrade -y && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends --no-install-suggests \
         bc \
+        bind9-dnsutils \
         ca-certificates \
         curl \
         dumb-init \
