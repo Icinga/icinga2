@@ -122,8 +122,8 @@ case "$DISTRO" in
     esac
     ;;
   *)
-    CMAKE_OPTS+=(-DCMAKE_{C,CXX}_FLAGS="$(rpm -E '%{optflags} %{?march_flag}') ${WARN_FLAGS}")
-    export LDFLAGS="$(rpm -E '%{?build_ldflags}')"
+    CMAKE_OPTS+=(-DCMAKE_{C,CXX}_FLAGS="$(rpm -E '%{optflags} %{?march_flag}') -fno-fat-lto-objects ${WARN_FLAGS}")
+    export LDFLAGS="$(rpm -E '%{?build_ldflags}') -fno-fat-lto-objects"
     ;;
 esac
 
