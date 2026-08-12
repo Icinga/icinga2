@@ -60,7 +60,7 @@ bool ModifyObjectHandler::HandleRequest(
 		HttpUtility::SendJsonError(response, params, 403, ex.what());
 		return true;
 	} catch (const std::exception&) {
-		HttpUtility::SendJsonError(response, params, 404, "No objects found.", std::current_exception());
+		HttpUtility::SendJsonError(response, params, 404, "No objects found.", std::current_exception(), user);
 		return true;
 	}
 
@@ -149,7 +149,7 @@ bool ModifyObjectHandler::HandleRequest(
 			result1->Set("code", 500);
 			result1->Set("status", "Attribute '" + key + "' could not be restored: " + DiagnosticInformation(ex, false));
 
-			if (verbose)
+			if (verbose && FilterUtility::HasPermission(user, ApiUser::DiagnosticInformationPerm))
 				result1->Set("diagnostic_information", DiagnosticInformation(ex));
 
 			results.push_back(std::move(result1));
@@ -168,7 +168,7 @@ bool ModifyObjectHandler::HandleRequest(
 			result1->Set("code", 500);
 			result1->Set("status", "Attribute '" + key + "' could not be set: " + DiagnosticInformation(ex, false));
 
-			if (verbose)
+			if (verbose && FilterUtility::HasPermission(user, ApiUser::DiagnosticInformationPerm))
 				result1->Set("diagnostic_information", DiagnosticInformation(ex));
 
 			results.push_back(std::move(result1));

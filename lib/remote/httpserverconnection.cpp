@@ -439,7 +439,7 @@ void ProcessRequest(
 			throw;
 		}
 
-		HttpUtility::SendJsonError(response, request.Params(), 500, "Unhandled exception", std::current_exception());
+		HttpUtility::SendJsonError(response, request.Params(), 500, "Unhandled exception", std::current_exception(), request.User());
 	}
 
 	response.Flush(yc);
