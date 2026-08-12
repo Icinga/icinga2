@@ -41,9 +41,6 @@ void ApiListener::ConfigUpdateObjectHandler(const ConfigObject::Ptr& object, con
 
 Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
-	Log(LogNotice, "ApiListener")
-		<< "Received config update for object: " << JsonEncode(params);
-
 	/* check permissions */
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
@@ -96,6 +93,10 @@ Value ApiListener::ConfigUpdateObjectAPIHandler(const MessageOrigin::Ptr& origin
 
 	/* update the object */
 	double objVersion = params->Get("version");
+
+	Log(LogNotice, "ApiListener")
+		<< "Received config update for object '" << objName << "' of type " << objType
+		<< ", version: " << std::fixed << objVersion;
 
 	Type::Ptr ptype = Type::GetByName(objType);
 	auto *ctype = dynamic_cast<ConfigType *>(ptype.get());
