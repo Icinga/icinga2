@@ -32,7 +32,7 @@ static String StringSubstr(const std::vector<Value>& args)
 	if (args.empty())
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Too few arguments"));
 
-	if (static_cast<double>(args[0]) < 0 || static_cast<double>(args[0]) >= self.GetLength())
+	if (static_cast<double>(args[0]) < 0 || static_cast<double>(args[0]) > self.GetLength())
 		BOOST_THROW_EXCEPTION(std::invalid_argument("String index is out of range"));
 
 	if (args.size() > 1)
