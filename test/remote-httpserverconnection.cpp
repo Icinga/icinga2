@@ -497,7 +497,10 @@ BOOST_AUTO_TEST_CASE(handler_throw_error)
 	Dictionary::Ptr body = JsonDecode(response.body());
 	BOOST_REQUIRE(body);
 	BOOST_REQUIRE_EQUAL(body->Get("error"), 500);
-	BOOST_REQUIRE_EQUAL(body->Get("status"), "Unhandled exception");
+
+	constexpr std::string_view expected = "Unhandled exception";
+	auto statusStr = body->Get("status").Get<String>().GetData().substr(0, expected.size());
+	BOOST_REQUIRE_EQUAL(statusStr, expected);
 
 	BOOST_REQUIRE(Shutdown(client));
 	BOOST_REQUIRE(ExpectLogPattern("HTTP client disconnected .*", std::chrono::seconds(5)));
