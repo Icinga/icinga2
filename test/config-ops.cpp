@@ -289,4 +289,26 @@ BOOST_AUTO_TEST_CASE(sandboxed_ticket_salt)
 	BOOST_CHECK_THROW(expr->Evaluate(frame), ScriptError);
 }
 
+BOOST_AUTO_TEST_CASE(substr_bounds)
+{
+	ScriptFrame frame(true);
+	std::unique_ptr<Expression> expr;
+
+	// Normal substring.
+	expr = ConfigCompiler::CompileText("<test>", "\"hamburger\".substr(0, 7)");
+	BOOST_CHECK(expr->Evaluate(frame).GetValue() == "hamburg");
+
+	// Start at the end of the string with zero length.
+	expr = ConfigCompiler::CompileText("<test>", "\"something\".substr(9, 0)");
+	BOOST_CHECK(expr->Evaluate(frame).GetValue() == "");
+
+	// Empty string.
+	expr = ConfigCompiler::CompileText("<test>", "\"\".substr(0, 0)");
+	BOOST_CHECK(expr->Evaluate(frame).GetValue() == "");
+
+	// Out of bounds must still throw.
+	expr = ConfigCompiler::CompileText("<test>", "\"something\".substr(10, 0)");
+	BOOST_CHECK_THROW(expr->Evaluate(frame).GetValue(), ScriptError);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
