@@ -173,7 +173,7 @@ void ConfigStagesHandler::HandlePost(const HttpApiRequest& request, HttpApiRespo
 		/* validate the config. on success, activate stage and reload */
 		ConfigPackageUtility::AsyncTryActivateStage(packageName, stageName, activate, reload, resetPackageUpdates);
 	} catch (const std::exception&) {
-		HttpUtility::SendJsonError(response, params, 500, "Stage creation failed.", std::current_exception());
+		HttpUtility::SendJsonError(response, params, 500, "Stage creation failed.", std::current_exception(), user);
 		return;
 	}
 
@@ -236,7 +236,7 @@ void ConfigStagesHandler::HandleDelete(const HttpApiRequest& request, HttpApiRes
 	} catch (const std::exception&) {
 		HttpUtility::SendJsonError(response, params, 500,
 			"Failed to delete stage '" + stageName + "' in package '" + packageName + "'.",
-			std::current_exception());
+			std::current_exception(), user);
 		return;
 	}
 
