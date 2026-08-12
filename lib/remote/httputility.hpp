@@ -3,6 +3,7 @@
 #ifndef HTTPUTILITY_H
 #define HTTPUTILITY_H
 
+#include "remote/apiuser.hpp"
 #include "remote/url.hpp"
 #include "base/dictionary.hpp"
 #include <boost/beast/http.hpp>
@@ -25,7 +26,7 @@ public:
 
 	static void SendJsonBody(boost::beast::http::response<boost::beast::http::string_body>& response, const Dictionary::Ptr& params, const Value& val);
 	static void SendJsonError(boost::beast::http::response<boost::beast::http::string_body>& response, const Dictionary::Ptr& params, const int code,
-		const String& info = String(), const std::exception_ptr& ex = nullptr);
+		const String& info = String(), const std::exception_ptr& ex = nullptr, const ApiUser::Ptr& user = nullptr);
 };
 
 }
