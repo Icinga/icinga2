@@ -17,7 +17,7 @@ $VsVersion = 2022
 
 $MsvcVersion = '14.3'
 
-$BoostVersion = @(1, 91, 0)
+$BoostVersion = @(1, 92, 0)
 
 $OpensslVersion = '3_5_7'
 
