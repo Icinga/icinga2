@@ -182,3 +182,14 @@ double Endpoint::GetSecondsProcessingMessages() const
 {
 	return m_InputProcessingTime;
 }
+
+ssize_t Endpoint::GetMessageReceiveSizeLimit() const
+{
+	// Parent and sibling nodes are trusted
+	// to send messages of unbounded size, e.g. config syncs
+	if (Zone::GetLocalZone()->IsChildOf(m_Zone)) {
+		return -1;
+	}
+
+	return 16L * 1024 * 1024;
+}
