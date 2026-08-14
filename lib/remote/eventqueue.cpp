@@ -130,8 +130,8 @@ std::map<String, EventsInbox::Filter> EventsInbox::m_Filters ({{"", EventsInbox:
 
 EventsRouter EventsRouter::m_Instance;
 
-EventsInbox::EventsInbox(String filter, const String& filterSource)
-	: m_Timer(IoEngine::Get().GetIoContext())
+EventsInbox::EventsInbox(String filter, const String& filterSource, ApiUser::Ptr user)
+	: m_User(std::move(user)), m_Timer(IoEngine::Get().GetIoContext())
 {
 	std::unique_lock<std::mutex> lock (m_FiltersMutex);
 	m_Filter = m_Filters.find(filter);
@@ -167,6 +167,11 @@ EventsInbox::~EventsInbox()
 const Expression::Ptr& EventsInbox::GetFilter()
 {
 	return m_Filter->second.Expr;
+}
+
+const ApiUser::Ptr& EventsInbox::GetUser() const noexcept
+{
+	return m_User;
 }
 
 void EventsInbox::Push(Dictionary::Ptr event)
@@ -214,8 +219,8 @@ Dictionary::Ptr EventsInbox::Shift(boost::asio::yield_context yc, double timeout
 	return event;
 }
 
-EventsSubscriber::EventsSubscriber(std::set<EventType> types, String filter, const String& filterSource)
-	: m_Types(std::move(types)), m_Inbox(new EventsInbox(std::move(filter), filterSource))
+EventsSubscriber::EventsSubscriber(std::set<EventType> types, String filter, const String& filterSource, ApiUser::Ptr user)
+	: m_Types(std::move(types)), m_Inbox(new EventsInbox(std::move(filter), filterSource, std::move(user)))
 {
 	EventsRouter::GetInstance().Subscribe(m_Types, m_Inbox);
 }
@@ -244,22 +249,32 @@ void EventsFilter::Push(Dictionary::Ptr event)
 {
 	for (auto& perFilter : m_Inboxes) {
 		if (perFilter.first) {
-			ScriptFrame frame(true, new Namespace());
-			frame.Sandboxed = true;
+			/* Each subscriber may hold different permissions, so the filter has to be evaluated
+			 * separately per inbox using a checker bound to that inbox's own user, even though
+			 * several inboxes here share the same compiled filter expression. A fresh checker is
+			 * created per evaluation since inboxes are shared across concurrently dispatching
+			 * threads and the checker's internal permission cache is not thread-safe.
+			 */
+			for (auto& inbox : perFilter.second) {
+				ScriptFrame frame(true, new Namespace());
 
-			try {
-				if (!FilterUtility::EvaluateFilter(frame, perFilter.first.get(), event, "event")) {
-					continue;
+				frame.Sandboxed = true;
+				frame.PermChecker = new FilterExprPermissionChecker(inbox->GetUser());
+
+				try {
+					if (FilterUtility::EvaluateFilter(frame, perFilter.first.get(), event, "event")) {
+						inbox->Push(event);
+					}
+				} catch (const std::exception& ex) {
+					Log(LogWarning, "EventQueue")
+						<< "Error occurred while evaluating event filter for queue of user '"
+						<< inbox->GetUser()->GetName() << "': " << DiagnosticInformation(ex);
 				}
-			} catch (const std::exception& ex) {
-				Log(LogWarning, "EventQueue")
-					<< "Error occurred while evaluating event filter for queue: " << DiagnosticInformation(ex);
-				continue;
 			}
-		}
-
-		for (auto& inbox : perFilter.second) {
-			inbox->Push(event);
+		} else {
+			for (auto& inbox : perFilter.second) {
+				inbox->Push(event);
+			}
 		}
 	}
 }
