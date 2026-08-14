@@ -24,9 +24,9 @@ lower in the hierarchy.
 ### Security Enhancements
 
 * Apply user permissions to filter expressions for `/v1/events` similarly to `/v1/objects`
-([GHSA-v265-w3gm-99vg](https://github.com/Icinga/icinga2/security/advisories/GHSA-v265-w3gm-99vg))
+  ([GHSA-v265-w3gm-99vg](https://github.com/Icinga/icinga2/security/advisories/GHSA-v265-w3gm-99vg))
 * Introduce an additional 16 MiB message size limit on all child-zone connections
-([GHSA-wm63-p2jg-5665](https://github.com/Icinga/icinga2/security/advisories/GHSA-wm63-p2jg-5665))
+  ([GHSA-wm63-p2jg-5665](https://github.com/Icinga/icinga2/security/advisories/GHSA-wm63-p2jg-5665))
 * Don't include sensitive certificate request tickets in log messages (#10960)
 * Don't log full object config containing potentially sensitive information (#10988)
 
