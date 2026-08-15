@@ -1644,9 +1644,9 @@ tcp_address     | **Optional.** The host's address. Defaults to "$address$" if t
 tcp_port        | **Required.** The port that should be checked.
 tcp_expect      | **Optional.** String to expect in server response. Multiple strings must be defined as array.
 tcp_all         | **Optional.** All expect strings need to occur in server response. Defaults to false.
-tcp_escape_send | **Optional.** Enable usage of \\n, \\r, \\t or \\\\ in send string.
+tcp_escape_send | **Optional.** Enable usage of \\n, \\r, \\t or \\\\ in send string. Default is nothing.
 tcp_send        | **Optional.** String to send to the server.
-tcp_escape_quit | **Optional.** Enable usage of \\n, \\r, \\t or \\\\ in quit string.
+tcp_escape_quit | **Optional.** Enable usage of \\n, \\r, \\t or \\\\ in quit string. Default is \\r\\n added to end of quit.
 tcp_quit        | **Optional.** String to send server to initiate a clean close of the connection.
 tcp_refuse      | **Optional.** Accept TCP refusals with states ok, warn, crit. Defaults to crit.
 tcp_mismatch    | **Optional.** Accept expected string mismatches with states ok, warn, crit. Defaults to warn.
