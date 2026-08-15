@@ -274,6 +274,71 @@ bool HandleAccessControl(
 	return true;
 }
 
+/**
+ * Rejects state-changing requests (POST/PUT/DELETE) that a browser has flagged as cross-site.
+ *
+ * Browsers set the "Sec-Fetch-Site" request header to "cross-site" for requests originating from
+ * a different site, including ones carrying credentials the browser attaches automatically (such as
+ * cached HTTP Basic Auth credentials). Non-browser clients (icinga2 CLI, cluster nodes, Icinga Web's
+ * backend, curl, ...) never send Sec-Fetch-* headers, so they are unaffected by this check. Read-only
+ * GET requests are also left alone here, as forging them can't change state on the receiving end.
+ *
+ * Origins explicitly allow-listed via the "access_control_allow_origin" attribute are exempt, as the
+ * administrator has already declared them trusted for cross-origin browser access.
+ */
+static inline
+bool EnsureNotForgedCrossSiteRequest(
+	const HttpApiRequest& request,
+	HttpApiResponse& response,
+	boost::asio::yield_context& yc
+)
+{
+	namespace http = boost::beast::http;
+
+	auto method (request.method());
+
+	if (method != http::verb::post && method != http::verb::put && method != http::verb::delete_) {
+		return true;
+	}
+
+	if (request["Sec-Fetch-Site"] != "cross-site") {
+		return true;
+	}
+
+	auto listener (ApiListener::GetInstance());
+
+	if (listener) {
+		auto headerAllowOrigin (listener->GetAccessControlAllowOrigin());
+
+		if (headerAllowOrigin) {
+			auto allowedOrigins (headerAllowOrigin->ToSet<String>());
+			auto& origin (request[http::field::origin]);
+
+			if (allowedOrigins.find(std::string(origin)) != allowedOrigins.end()) {
+				return true;
+			}
+		}
+	}
+
+	Log(LogWarning, "HttpServerConnection")
+		<< "Rejecting likely forged cross-site request: " << request.method_string() << ' ' << request.target();
+
+	if (request[http::field::accept] == "application/json") {
+		HttpUtility::SendJsonError(response, nullptr, 403, "Forbidden: Cross-site request rejected. "
+			"Set the Origin to an address listed in 'access_control_allow_origin' if this request is legitimate.");
+	} else {
+		response.result(http::status::forbidden);
+		response.set(http::field::content_type, "text/html");
+		response.body() << "<h1>Forbidden: Cross-site request rejected.</h1>";
+	}
+
+	response.set(http::field::connection, "close");
+
+	response.Flush(yc);
+
+	return false;
+}
+
 static inline
 bool EnsureAcceptHeader(
 	const HttpApiRequest& request,
@@ -521,6 +586,10 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 			});
 
 			if (!HandleAccessControl(request, response, yc)) {
+				break;
+			}
+
+			if (!EnsureNotForgedCrossSiteRequest(request, response, yc)) {
 				break;
 			}
 

@@ -1115,6 +1115,11 @@ Configuration Attributes:
 The attributes `access_control_allow_credentials`, `access_control_allow_headers` and `access_control_allow_methods`
 are controlled by Icinga 2 and are not changeable by config any more.
 
+Icinga 2 rejects state-changing API requests (`POST`, `PUT`, `DELETE`) that a browser marks as cross-site via the
+`Sec-Fetch-Site` request header, unless their `Origin` is listed in `access_control_allow_origin`. This protects
+against cross-site request forgery using credentials a browser attaches automatically (e.g. cached HTTP Basic Auth).
+Non-browser clients, which never send `Sec-Fetch-*` headers, are unaffected.
+
 
 The ApiListener type expects its certificate files to be in the following locations:
 
