@@ -687,6 +687,12 @@ ConfigObject::Ptr ConfigObject::GetObject(const String& type, const String& name
 	return ctype->GetObject(name);
 }
 
+ConfigObject::Ptr ConfigObject::GetZone(const String& name)
+{
+	static ConfigType *ctype = dynamic_cast<ConfigType *>(Type::GetByName("Zone").get());
+	return ctype->GetObject(name);
+}
+
 ConfigObject::Ptr ConfigObject::GetZone() const
 {
 	return m_Zone;
