@@ -722,15 +722,15 @@ String IdoMysqlConnection::Escape(const String& s)
 	String utf8s = Utility::ValidateUTF8(s);
 
 	size_t length = utf8s.GetLength();
-	auto *to = new char[utf8s.GetLength() * 2 + 1];
 
-	m_Mysql->real_escape_string(&m_Connection, to, utf8s.CStr(), length);
+	String to;
+	to.GetData().resize(length * 2 + 1);
 
-	String result = String(to);
+	size_t escapedLength = m_Mysql->real_escape_string(&m_Connection, to.GetData().data(), utf8s.CStr(), length);
 
-	delete [] to;
+	to.GetData().resize(escapedLength);
 
-	return result;
+	return to;
 }
 
 Dictionary::Ptr IdoMysqlConnection::FetchRow(const IdoMysqlResult& result)
