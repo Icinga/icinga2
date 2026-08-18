@@ -75,6 +75,31 @@ class MissingPermissionError : public ScriptError
 	using ScriptError::ScriptError;
 };
 
+/**
+ * Controls access to an object or variable based on an ApiUser's permissions.
+ *
+ * This is accomplished by caching the generated filter expressions so they don't have to be
+ * regenerated again and again when access is repeatedly checked in script functions and when
+ * evaluating expressions.
+ */
+class FilterExprPermissionChecker : public ScriptPermissionChecker
+{
+public:
+	DECLARE_PTR_TYPEDEFS(FilterExprPermissionChecker);
+
+	explicit FilterExprPermissionChecker(ApiUser::Ptr user);
+
+	Expression* CheckPermission(const String& permissionString);
+	bool CanAccessGlobalVariable(const String& varName) override;
+	bool CanAccessConfigObject(const ConfigObject::Ptr& obj) override;
+
+private:
+	bool CheckPermissionAndEvalFilter(const String& permissionString, const Object::Ptr& obj, const String& varName);
+
+	std::unordered_map<String, std::pair<bool, std::unique_ptr<Expression>>> m_PermCache;
+	ApiUser::Ptr m_User;
+};
+
 }
 
 #endif /* FILTERUTILITY_H */
