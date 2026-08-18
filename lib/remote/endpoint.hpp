@@ -62,6 +62,8 @@ public:
 
 	double GetSecondsProcessingMessages() const override;
 
+	ssize_t GetMessageReceiveSizeLimit() const;
+
 protected:
 	void OnAllConfigLoaded() override;
 

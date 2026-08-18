@@ -215,7 +215,8 @@ int PkiUtility::RequestCertificate(const String& host, const String& port, const
 		stream->flush();
 
 		for (;;) {
-			response = JsonRpc::DecodeMessage(JsonRpc::ReadMessage(stream));
+			// Parent nodes are trusted to send messages of unbounded size
+			response = JsonRpc::DecodeMessage(JsonRpc::ReadMessage(stream, -1));
 
 			if (response && response->Contains("error")) {
 				Log(LogCritical, "cli", "Could not fetch valid response. Please check the master log (notice or debug).");
