@@ -1,5 +1,5 @@
 #include <windows.h>
-#include "icinga-version.h"
+#include "config.h"
 
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 
@@ -18,12 +18,12 @@ BEGIN
 		BEGIN
 			VALUE "CompanyName", "Icinga GmbH"
 			VALUE "FileDescription", "Icinga 2"
-			VALUE "FileVersion", ICINGA2_VERSION
+			VALUE "FileVersion", ICINGA_RC_VERSION
 			VALUE "InternalName", "icinga2.exe"
 			VALUE "LegalCopyright", "© Icinga GmbH"
 			VALUE "OriginalFilename", "icinga2.exe"
 			VALUE "ProductName", "Icinga 2"
-			VALUE "ProductVersion", ICINGA2_VERSION
+			VALUE "ProductVersion", ICINGA_RC_VERSION
 		END
 	END
 
