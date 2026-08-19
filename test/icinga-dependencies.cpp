@@ -170,7 +170,7 @@ BOOST_AUTO_TEST_CASE(push_dependency_groups_to_registry)
 	Checkable::Ptr childHostD(CreateHost("D", false));
 	std::set<Dependency::Ptr> dependencies; // Keep track of all dependencies to avoid unexpected deletions.
 	for (auto& parent : {String("A"), String("B"), String("E")}) {
-		Dependency::Ptr depC(CreateDependency(CreateHost(parent), childHostC, "depC" + parent));
+		Dependency::Ptr depC(CreateDependency(CreateHost(*parent), childHostC, "depC" + parent));
 		Dependency::Ptr depD(CreateDependency(depC->GetParent(), childHostD, "depD" + parent));
 		if (parent == "A") {
 			Dependency::Ptr depCA2(CreateDependency(depC->GetParent(), childHostC, "depCA2"));

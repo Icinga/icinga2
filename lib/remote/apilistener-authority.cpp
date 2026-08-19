@@ -81,7 +81,7 @@ void ApiListener::UpdateObjectAuthority()
 					// Pin child objects of hosts (HOST!...) to the same endpoint as the host.
 					// This reduces cross-object action latency withing the same host.
 					if (exclamation != String::NPos) {
-						name.erase(name.Begin() + exclamation, name.End());
+						name.erase(name.begin() + exclamation, name.end());
 					}
 				}
 
