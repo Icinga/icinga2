@@ -209,6 +209,28 @@ We will also no longer provide 32bit Windows MSIs via Chocolatey (#10757).
 * OpenSSL shipped on Windows updated to 3.5.6: #10786
 * Boost version shipped on Windows updated to 1.90: #10669
 
+## 2.15.6 (2026-08-18)
+
+This release contains some security enhancements that fix a couple of minor vulnerabilities.
+
+One vulnerability allowed an authenticated `ApiUser` with the `events/*` permission to obtain information about
+objects through crafted filter expressions, without holding the relevant `objects/query/*` permission. The fix is to
+correctly apply permissions to filter expressions on `/v1/events`.
+
+The other vulnerability allowed an authenticated Icinga 2 node to use the ~1 GB message limit to possibly crash another
+node through memory exhaustion. Depending on available memory, multiple compromised nodes may be required for
+a successful attack since a node can only make one connection. The fix applies a 16 MiB limit to messages from nodes
+lower in the hierarchy.
+
+### Security Enhancements
+
+* Apply user permissions to filter expressions for `/v1/events` similarly to `/v1/objects`
+  ([GHSA-v265-w3gm-99vg](https://github.com/Icinga/icinga2/security/advisories/GHSA-v265-w3gm-99vg))
+* Introduce an additional 16 MiB message size limit on all child-zone connections
+  ([GHSA-wm63-p2jg-5665](https://github.com/Icinga/icinga2/security/advisories/GHSA-wm63-p2jg-5665))
+* Don't include sensitive certificate request tickets in log messages (#10987)
+* Don't log full object config containing potentially sensitive information (#10989)
+
 ## 2.15.5 (2026-07-01)
 
 This is a hotfix release that fixes a regression with the `Json.decode()` DSL function that was introduced in v2.15.4:
