@@ -442,6 +442,9 @@ void ApiListener::UpdateConfigObject(const ConfigObject::Ptr& object, const Mess
 void ApiListener::UpdateConfigObjectWithParents(const ConfigObject::Ptr& object, const Zone::Ptr& azone,
 	const JsonRpcConnection::Ptr& client, std::unordered_set<ConfigObject*>& syncedObjects)
 {
+	if (object->GetPackage() != "_api" && object->GetVersion() == 0)
+		return;
+
 	if (syncedObjects.find(object.get()) != syncedObjects.end()) {
 		return;
 	}
