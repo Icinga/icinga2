@@ -339,13 +339,13 @@ Value ApiListener::ConfigDeleteObjectAPIHandler(const MessageOrigin::Ptr& origin
 }
 
 void ApiListener::UpdateConfigObject(const ConfigObject::Ptr& object, const MessageOrigin::Ptr& origin,
-	const JsonRpcConnection::Ptr& client)
+	const JsonRpcConnection::Ptr& client, bool skipZoneCheck)
 {
 	/* only send objects to zones which have access to the object */
 	if (client) {
 		Zone::Ptr target_zone = client->GetEndpoint()->GetZone();
 
-		if (target_zone && !target_zone->CanAccessObject(object)) {
+		if (!skipZoneCheck && target_zone && !target_zone->CanAccessObject(object)) {
 			Log(LogDebug, "ApiListener")
 				<< "Not sending 'update config' message to unauthorized zone '" << target_zone->GetName() << "'"
 				<< " for object: '" << object->GetName() << "'.";
@@ -460,7 +460,7 @@ void ApiListener::UpdateConfigObjectWithParents(const ConfigObject::Ptr& object,
 	}
 
 	/* send the config object to the connected client */
-	UpdateConfigObject(object, nullptr, client);
+	UpdateConfigObject(object, nullptr, client, true);
 }
 
 void ApiListener::DeleteConfigObject(const ConfigObject::Ptr& object, const MessageOrigin::Ptr& origin,
