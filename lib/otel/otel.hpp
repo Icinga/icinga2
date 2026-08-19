@@ -111,7 +111,7 @@ private:
 	const OTelConnInfo m_ConnInfo;
 	std::optional<AsioTlsOrTcpStream> m_Stream;
 	Shared<boost::asio::ssl::context>::Ptr m_TlsContext;
-	boost::asio::io_context::strand m_Strand;
+	IoStrand m_Strand;
 
 	AsioConditionVariable m_ExportAsioCV; // Event to signal when a new export request is available.
 	// Timer for scheduling retries of failed exports and reconnection attempts.
