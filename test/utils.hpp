@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "icinga/host.hpp"
 #include <ctime>
 #include <functional>
 #include <future>
@@ -29,3 +30,12 @@ struct GlobalTimezoneFixture
 };
 
 std::future<void> SpawnSynchronizedCoroutine(std::function<void(boost::asio::yield_context)> fn);
+
+std::string GetRandomString(std::string prefix, std::size_t length);
+
+void ReceiveCheckResults(
+	const icinga::Checkable::Ptr& host,
+	std::size_t num,
+	icinga::ServiceState state,
+	const std::function<void(const icinga::CheckResult::Ptr&)>& fn = {}
+);
