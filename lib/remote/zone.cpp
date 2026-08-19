@@ -108,13 +108,14 @@ bool Zone::CanAccessObject(const ConfigObject::Ptr& object)
 
 bool Zone::IsChildOf(const Zone::Ptr& zone)
 {
-	Zone::Ptr azone = this;
+	if (this == zone.get()) {
+		return true;
+	}
 
-	while (azone) {
-		if (azone == zone)
+	for (const Zone::Ptr& parent : m_AllParents) {
+		if (parent == zone) {
 			return true;
-
-		azone = azone->GetParent();
+		}
 	}
 
 	return false;
