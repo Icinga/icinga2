@@ -4,3 +4,5 @@
 add_subdirectory(mmatch)
 
 add_subdirectory(socketpair)
+
+add_subdirectory(SQLiteCpp)
