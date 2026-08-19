@@ -538,6 +538,8 @@ void ApiListener::SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient
 	Log(LogInformation, "ApiListener")
 		<< "Syncing runtime objects to endpoint '" << endpoint->GetName() << "'.";
 
+	auto start = std::chrono::steady_clock::now();
+
 	std::unordered_set<ConfigObject*> syncedObjects;
 	for (const Type::Ptr& type : Type::GetAllTypes()) {
 		if (auto *ctype = dynamic_cast<ConfigType *>(type.get())) {
@@ -552,8 +554,9 @@ void ApiListener::SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient
 		}
 	}
 
+	auto took = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
 	Log(LogInformation, "ApiListener")
-		<< "Finished syncing runtime objects to endpoint '" << endpoint->GetName() << "'.";
+		<< "Finished syncing runtime objects to endpoint '" << endpoint->GetName() << "' in " << took.count() << "ms.";
 }
 
 /**
