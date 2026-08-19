@@ -89,6 +89,14 @@ void ScheduledDowntime::Start(bool runtimeCreated)
 		Utility::QueueAsyncCallback([this]() { CreateNextDowntime(); });
 }
 
+void ScheduledDowntime::ValidateDuration(const Lazy<Timestamp>& lvalue, const ValidationUtils& utils)
+{
+	ObjectImpl<ScheduledDowntime>::ValidateDuration(lvalue, utils);
+
+	if (lvalue() < 0)
+		BOOST_THROW_EXCEPTION(ValidationError(this, { "duration" }, "Duration must be positive."));
+}
+
 void ScheduledDowntime::TimerProc()
 {
 	for (const ScheduledDowntime::Ptr& sd : ConfigType::GetObjectsByType<ScheduledDowntime>()) {
