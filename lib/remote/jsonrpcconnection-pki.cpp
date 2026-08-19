@@ -391,7 +391,7 @@ Value UpdateCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionar
 
 			Dictionary::Ptr request = Utility::LoadJsonFile(requestPath);
 			request->Set("cert_response", cert);
-			Utility::SaveJsonFile(requestPath, 0644, request);
+			Utility::SaveJsonFile(requestPath, 0640, request);
 		}
 
 		return Empty;
@@ -403,7 +403,7 @@ Value UpdateCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionar
 	Log(LogInformation, "JsonRpcConnection")
 		<< "Updating CA certificate in '" << caPath << "'.";
 
-	AtomicFile::Write(caPath, 0644, ca);
+	AtomicFile::Write(caPath, 0640, ca);
 
 	/* Update signed certificate. */
 	String certPath = listener->GetDefaultCertPath();
@@ -411,7 +411,7 @@ Value UpdateCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionar
 	Log(LogInformation, "JsonRpcConnection")
 		<< "Updating client certificate for CN '" << cn << "' in '" << certPath << "'.";
 
-	AtomicFile::Write(certPath, 0644, cert);
+	AtomicFile::Write(certPath, 0640, cert);
 
 	/* Remove ticket for successful signing request. */
 	String ticketPath = ApiListener::GetCertsDir() + "/ticket";

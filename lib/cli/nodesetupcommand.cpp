@@ -178,7 +178,7 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 	String apipath = FeatureUtility::GetFeaturesAvailablePath() + "/api.conf";
 	NodeUtility::CreateBackupFile(apipath);
 
-	AtomicFile fp (apipath, 0644);
+	AtomicFile fp (apipath, 0640);
 
 	fp << "/**\n"
 		<< " * The API listener is used for distributed monitoring setups.\n"
@@ -349,7 +349,7 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm)
 	String ca = certsDir + "/ca.crt";
 
 	if (Utility::PathExists(key))
-		NodeUtility::CreateBackupFile(key, true);
+		NodeUtility::CreateBackupFile(key);
 	if (Utility::PathExists(cert))
 		NodeUtility::CreateBackupFile(cert);
 
@@ -450,7 +450,7 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm)
 	String apipath = FeatureUtility::GetFeaturesAvailablePath() + "/api.conf";
 	NodeUtility::CreateBackupFile(apipath);
 
-	AtomicFile fp (apipath, 0644);
+	AtomicFile fp (apipath, 0640);
 
 	fp << "/**\n"
 		<< " * The API listener is used for distributed monitoring setups.\n"
