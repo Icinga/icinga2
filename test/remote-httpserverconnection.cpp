@@ -196,6 +196,113 @@ BOOST_AUTO_TEST_CASE(error_access_control)
 	BOOST_REQUIRE(Shutdown(client));
 }
 
+BOOST_AUTO_TEST_CASE(error_cross_site_state_change)
+{
+	CreateTestUsers();
+	SetupHttpServerConnection(true);
+
+	http::request<boost::beast::http::string_body> request;
+	request.method(http::verb::post);
+	request.target("/v1/test");
+	request.set(http::field::host, "localhost:5665");
+	request.set(http::field::accept, "application/json");
+	request.set("Sec-Fetch-Site", "cross-site");
+	request.set(http::field::connection, "close");
+	request.content_length(0);
+	http::write(*client, request);
+	client->flush();
+
+	flat_buffer buf;
+	http::response<http::string_body> response;
+	BOOST_REQUIRE_NO_THROW(http::read(*client, buf, response));
+
+	BOOST_REQUIRE_EQUAL(response.result(), http::status::forbidden);
+	Dictionary::Ptr body = JsonDecode(response.body());
+	BOOST_REQUIRE(body);
+	BOOST_REQUIRE_EQUAL(body->Get("error"), 403);
+
+	BOOST_REQUIRE(Shutdown(client));
+}
+
+BOOST_AUTO_TEST_CASE(cross_site_state_change_allowed_for_configured_origin)
+{
+	CreateTestUsers();
+	CreateApiListener("example.org");
+	SetupHttpServerConnection(true);
+
+	http::request<boost::beast::http::string_body> request;
+	request.method(http::verb::post);
+	request.target("/v1/test");
+	request.set(http::field::origin, "example.org");
+	request.set(http::field::host, "localhost:5665");
+	request.set(http::field::accept, "application/json");
+	request.set("Sec-Fetch-Site", "cross-site");
+	request.set(http::field::connection, "close");
+	request.content_length(0);
+	http::write(*client, request);
+	client->flush();
+
+	flat_buffer buf;
+	http::response<http::string_body> response;
+	BOOST_REQUIRE_NO_THROW(http::read(*client, buf, response));
+
+	BOOST_REQUIRE_EQUAL(response.result(), http::status::ok);
+	BOOST_REQUIRE_EQUAL(response.body(), "test");
+
+	BOOST_REQUIRE(Shutdown(client));
+}
+
+BOOST_AUTO_TEST_CASE(cross_site_get_not_rejected)
+{
+	CreateTestUsers();
+	SetupHttpServerConnection(true);
+
+	http::request<boost::beast::http::string_body> request;
+	request.method(http::verb::get);
+	request.target("/v1/test");
+	request.set(http::field::host, "localhost:5665");
+	request.set(http::field::accept, "application/json");
+	request.set("Sec-Fetch-Site", "cross-site");
+	request.set(http::field::connection, "close");
+	request.content_length(0);
+	http::write(*client, request);
+	client->flush();
+
+	flat_buffer buf;
+	http::response<http::string_body> response;
+	BOOST_REQUIRE_NO_THROW(http::read(*client, buf, response));
+
+	BOOST_REQUIRE_EQUAL(response.result(), http::status::ok);
+	BOOST_REQUIRE_EQUAL(response.body(), "test");
+
+	BOOST_REQUIRE(Shutdown(client));
+}
+
+BOOST_AUTO_TEST_CASE(cross_site_header_absent_state_change_allowed)
+{
+	CreateTestUsers();
+	SetupHttpServerConnection(true);
+
+	http::request<boost::beast::http::string_body> request;
+	request.method(http::verb::post);
+	request.target("/v1/test");
+	request.set(http::field::host, "localhost:5665");
+	request.set(http::field::accept, "application/json");
+	request.set(http::field::connection, "close");
+	request.content_length(0);
+	http::write(*client, request);
+	client->flush();
+
+	flat_buffer buf;
+	http::response<http::string_body> response;
+	BOOST_REQUIRE_NO_THROW(http::read(*client, buf, response));
+
+	BOOST_REQUIRE_EQUAL(response.result(), http::status::ok);
+	BOOST_REQUIRE_EQUAL(response.body(), "test");
+
+	BOOST_REQUIRE(Shutdown(client));
+}
+
 BOOST_AUTO_TEST_CASE(error_accept_header)
 {
 	CreateTestUsers();
