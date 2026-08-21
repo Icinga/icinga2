@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "base/defer.hpp"
 #include "base/io-engine.hpp"
 #include "base/tlsstream.hpp"
 #include <boost/asio/buffer.hpp>
@@ -69,6 +70,9 @@ public:
 		std::promise<RetType> promise;
 
 		IoEngine::SpawnCoroutine(m_Strand, [&](boost::asio::yield_context yc) {
+			m_SendActive = true;
+			Defer resetSendActive{[this] { m_SendActive = false; }};
+
 			while (true) {
 				try {
 					EnsureConnected(yc);
@@ -139,6 +143,8 @@ private:
 
 	std::atomic_bool m_Stopped{false};
 	std::atomic_bool m_Connected{false};
+
+	bool m_SendActive{};
 
 	bool m_VerifyPeerCertificate;
 	Shared<boost::asio::ssl::context>::Ptr m_SslContext;

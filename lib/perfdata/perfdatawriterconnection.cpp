@@ -71,19 +71,19 @@ void PerfdataWriterConnection::Disconnect()
 
 	IoEngine::SpawnCoroutine(m_Strand, [&](boost::asio::yield_context yc) {
 		try {
-			/* Cancel any outstanding operations of the other coroutine.
-			 * Since we're on the same strand we're hopefully guaranteed that all cancellations
-			 * result in exceptions thrown by the yield_context, even if its already queued for
-			 * completion.
-			 */
-			Visit(m_Stream, [](const auto& stream) {
-				if (stream->lowest_layer().is_open()) {
-					stream->lowest_layer().cancel();
-				}
-			});
-			m_ReconnectTimer.cancel();
+			if (m_SendActive) {
+				Visit(m_Stream, [](const auto& stream) {
+					if (stream->lowest_layer().is_open()) {
+						boost::system::error_code ec;
+						stream->lowest_layer().close(ec);
+					}
+				});
+				m_ReconnectTimer.cancel();
+				m_Connected = false;
+			} else {
+				Disconnect(std::move(yc));
+			}
 
-			Disconnect(std::move(yc));
 			promise.set_value();
 		} catch (const std::exception& ex) {
 			promise.set_exception(std::current_exception());
