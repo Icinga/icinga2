@@ -71,17 +71,24 @@ void PerfdataWriterConnection::Disconnect()
 
 	IoEngine::SpawnCoroutine(m_Strand, [&](boost::asio::yield_context yc) {
 		try {
-			/* Cancel any outstanding operations of the other coroutine.
-			 * Since we're on the same strand we're hopefully guaranteed that all cancellations
-			 * result in exceptions thrown by the yield_context, even if its already queued for
-			 * completion.
+			/* Canceling and expecting an error to be surfaced by Asio immedietly doesn't work.
+			 * Some operations have sub-states that will not only need yields but also some time
+			 * for Asio to queue the handler and return the error code.
+			 * By repeating the cancellation with a timer we reliably ensure that the Send()
+			 * coroutine has completed before we go into the actual Disconnect routine.
 			 */
-			Visit(m_Stream, [](const auto& stream) {
-				if (stream->lowest_layer().is_open()) {
-					stream->lowest_layer().cancel();
-				}
-			});
-			m_ReconnectTimer.cancel();
+			while (m_SendActive) {
+				Visit(m_Stream, [](const auto& stream) {
+					if (stream->lowest_layer().is_open()) {
+						stream->lowest_layer().cancel();
+					}
+				});
+				m_ReconnectTimer.cancel();
+
+				boost::asio::steady_timer sendPollTimer{IoEngine::Get().GetIoContext(), 1ms};
+				boost::system::error_code ec;
+				sendPollTimer.async_wait(yc[ec]);
+			}
 
 			Disconnect(std::move(yc));
 			promise.set_value();
