@@ -50,8 +50,8 @@ BOOST_AUTO_TEST_CASE(pause_with_pending_work)
 	// Now try to pause.
 	PauseWriter();
 
-	REQUIRE_LOG_MESSAGE("Connection stopped\\.", 10s);
-	REQUIRE_LOG_MESSAGE("'ElasticsearchWriter' paused\\.", 10s);
+	REQUIRE_LOG_MESSAGE("Connection stopped.", 10s);
+	REQUIRE_LOG_MESSAGE("'ElasticsearchWriter' paused.", 10s);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

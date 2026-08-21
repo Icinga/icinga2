@@ -43,8 +43,8 @@ BOOST_AUTO_TEST_CASE(pause_with_pending_work)
 	// Now try to pause.
 	PauseWriter();
 
-	REQUIRE_LOG_MESSAGE("Connection stopped\\.", 10s);
-	REQUIRE_LOG_MESSAGE("'Influxdb2Writer' paused\\.", 1s);
+	REQUIRE_LOG_MESSAGE("Connection stopped.", 10s);
+	REQUIRE_LOG_MESSAGE("'Influxdb2Writer' paused.", 1s);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

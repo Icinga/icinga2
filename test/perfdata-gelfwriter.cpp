@@ -41,8 +41,8 @@ BOOST_AUTO_TEST_CASE(pause_with_pending_work)
 	// Now stop reading and try to pause OpenTsdbWriter.
 	PauseWriter();
 
-	REQUIRE_LOG_MESSAGE("Connection stopped\\.", 1s);
-	REQUIRE_LOG_MESSAGE("'GelfWriter' paused\\.", 1s);
+	REQUIRE_LOG_MESSAGE("Connection stopped.", 1s);
+	REQUIRE_LOG_MESSAGE("'GelfWriter' paused.", 1s);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
