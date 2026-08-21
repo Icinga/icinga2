@@ -12,6 +12,7 @@
 #include "base/dictionary.hpp"
 #include <boost/signals2.hpp>
 #include <set>
+#include <utility>
 
 namespace icinga
 {
@@ -65,7 +66,7 @@ public:
 	virtual void OnStateLoaded();
 
 	Dictionary::Ptr GetSourceLocation() const override;
-	const std::set<ConfigObject*>& GetAllParentsAffectingLogging() const;
+	const std::set<std::pair<Type::Ptr, String>>& GetAllParentsAffectingLogging() const;
 
 	template<typename T>
 	static intrusive_ptr<T> GetObject(const String& name)
@@ -89,7 +90,7 @@ private:
 	ConfigObject::Ptr m_Zone;
 
 	struct {
-		std::set<ConfigObject*> Data;
+		std::set<std::pair<Type::Ptr, String>> Data;
 		Atomic<bool> Frozen {false};
 	} m_AllParentsAffectingLogging;
 

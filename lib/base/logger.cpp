@@ -315,7 +315,7 @@ void Logger::UpdateCheckObjectFilterCache()
 		return;
 	}
 
-	std::vector<ConfigObject*> allObjects;
+	std::vector<std::pair<Type::Ptr, String>> allObjects;
 
 	{
 		ObjectLock lock (filter);
@@ -329,11 +329,9 @@ void Logger::UpdateCheckObjectFilterCache()
 				ObjectLock lock (objects);
 
 				for (String name : objects) {
-					auto object (ctype->GetObject(name));
+					allObjects.emplace_back(type, name);
 
-					if (object) {
-						allObjects.emplace_back(object.get());
-					} else {
+					if (!ctype->GetObject(name)) {
 						Log(LogWarning, GetReflectionType()->GetName(), this)
 							<< "Missing " << kv.first << " '" << name << "' in name filter of '" << GetName() << "'.";
 					}
@@ -411,7 +409,7 @@ Log::~Log()
 
 			auto& allowed (logger->GetObjectFilterCache());
 			auto& indirect (m_Involved->GetAllParentsAffectingLogging());
-			std::vector<ConfigObject*> intersection;
+			std::vector<std::pair<Type::Ptr, String>> intersection;
 
 			std::set_intersection(allowed.begin(), allowed.end(), indirect.begin(), indirect.end(), std::back_inserter(intersection));
 
