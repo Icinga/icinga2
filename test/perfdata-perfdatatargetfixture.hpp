@@ -75,23 +75,16 @@ public:
 	{
 		BOOST_REQUIRE(std::holds_alternative<Shared<AsioTlsStream>::Ptr>(m_Stream));
 		auto& stream = std::get<Shared<AsioTlsStream>::Ptr>(m_Stream);
-		try {
-			if (wait) {
-				std::array<std::byte, 128> buf{};
-				boost::asio::mutable_buffer readBuf (buf.data(), buf.size());
-				boost::system::error_code ec;
+		boost::system::error_code ec;
+		if (wait) {
+			std::array<std::byte, 128> buf{};
+			boost::asio::mutable_buffer readBuf (buf.data(), buf.size());
 
-				do {
-					stream->read_some(readBuf, ec);
-				} while (!ec);
-			}
-			stream->next_layer().shutdown();
-		} catch (const std::exception& ex) {
-			if (const auto* se = dynamic_cast<const boost::system::system_error*>(&ex);
-				!se || se->code() != boost::asio::error::eof) {
-				BOOST_FAIL("Exception in shutdown(): " << ex.what());
-			}
+			do {
+				stream->read_some(readBuf, ec);
+			} while (!ec);
 		}
+		stream->next_layer().shutdown(ec);
 
 		ResetStream();
 	}
