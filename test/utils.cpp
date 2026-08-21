@@ -74,10 +74,11 @@ GlobalTimezoneFixture::~GlobalTimezoneFixture()
 
 std::string GetRandomString(std::string prefix, std::size_t length)
 {
-	std::random_device rd;
-	std::mt19937 gen(rd());
+	static std::mutex genMutex;
+	static std::mt19937 gen(std::random_device{}());
 	std::uniform_int_distribution<int> distribution('!', '~');
 
+	std::lock_guard lock{genMutex};
 	for (auto i = 0U; i < length; i++) {
 		prefix += static_cast<char>(distribution(gen));
 	}
