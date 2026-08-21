@@ -63,7 +63,7 @@ bool PerfdataWriterConnection::IsStopped() const
 
 void PerfdataWriterConnection::Disconnect()
 {
-	if (m_Stopped.exchange(true, std::memory_order_relaxed)) {
+	if (m_Stopped.exchange(true)) {
 		return;
 	}
 
@@ -153,7 +153,7 @@ void PerfdataWriterConnection::EnsureConnected(const boost::asio::yield_context&
 
 void PerfdataWriterConnection::Disconnect(boost::asio::yield_context yc)
 {
-	if (!m_Connected.exchange(false, std::memory_order_relaxed)) {
+	if (!m_Connected.exchange(false)) {
 		return;
 	}
 
