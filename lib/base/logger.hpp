@@ -8,9 +8,11 @@
 #include "base/i2-base.hpp"
 #include "base/configobject.hpp"
 #include "base/logger-ti.hpp"
+#include "base/type.hpp"
 #include <optional>
 #include <set>
 #include <sstream>
+#include <utility>
 #include <vector>
 
 namespace icinga
@@ -95,7 +97,7 @@ public:
 	void SetObjectFilter(const Dictionary::Ptr& value, bool suppress_events = false, const Value& cookie = Empty) override;
 	void OnAllConfigLoaded() override;
 
-	inline const std::vector<ConfigObject*>& GetObjectFilterCache() const
+	const std::vector<std::pair<Type::Ptr, String>>& GetObjectFilterCache() const
 	{
 		return m_ObjectFilterCache;
 	}
@@ -120,7 +122,7 @@ private:
 	static Atomic<LogSeverity> m_MinLogSeverity;
 
 	Atomic<bool> m_CalledOnAllConfigLoaded {false};
-	std::vector<ConfigObject*> m_ObjectFilterCache;
+	std::vector<std::pair<Type::Ptr, String>> m_ObjectFilterCache;
 };
 
 class Log

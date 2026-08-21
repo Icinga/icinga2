@@ -435,7 +435,7 @@ void ConfigObject::OnAllConfigLoaded()
 
 		toDo.pop_back();
 
-		if (m_AllParentsAffectingLogging.Data.emplace(current.get()).second) {
+		if (m_AllParentsAffectingLogging.Data.emplace(current->GetReflectionType(), current->GetName()).second) {
 			current->GetParentsAffectingLogging(toDo);
 		}
 	} while (!toDo.empty());
@@ -443,13 +443,13 @@ void ConfigObject::OnAllConfigLoaded()
 	m_AllParentsAffectingLogging.Frozen.store(true);
 }
 
-const std::set<ConfigObject*>& ConfigObject::GetAllParentsAffectingLogging() const
+const std::set<std::pair<Type::Ptr, String>>& ConfigObject::GetAllParentsAffectingLogging() const
 {
 	if (m_AllParentsAffectingLogging.Frozen.load(std::memory_order_relaxed)) {
 		return m_AllParentsAffectingLogging.Data;
 	}
 
-	static const std::set<ConfigObject*> fallback;
+	static const std::set<std::pair<Type::Ptr, String>> fallback;
 	return fallback;
 }
 
