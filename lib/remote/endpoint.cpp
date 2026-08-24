@@ -31,7 +31,7 @@ void Endpoint::OnAllConfigLoaded()
 		std::ostringstream oss;
 		ShowCodeLocation(oss, GetDebugInfo(), false);
 
-		Log(LogWarning, "Endpoint")
+		Log(LogWarning, "Endpoint", this)
 			<< "Endpoint name is too long (length: " << GetName().GetLength()
 			<< ", max: 64) to be used as CN in TLS certificates. Consider using a shorter name.\n" << oss.str();
 	}
@@ -84,7 +84,7 @@ void Endpoint::RemoveClient(const JsonRpcConnection::Ptr& client)
 		std::unique_lock<std::mutex> lock(m_ClientsLock);
 		m_Clients.erase(client);
 
-		Log(LogInformation, "ApiListener")
+		Log(LogInformation, "ApiListener", this)
 			<< "Removing API client for endpoint '" << GetName() << "'. " << m_Clients.size() << " API clients left.";
 
 		SetConnecting(false);

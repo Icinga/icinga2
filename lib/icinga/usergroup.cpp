@@ -34,7 +34,7 @@ bool UserGroup::EvaluateObjectRule(const User::Ptr& user, const ConfigItem::Ptr&
 	if (!group->GetFilter()->Evaluate(frame).GetValue().ToBool())
 		return false;
 
-	Log(LogDebug, "UserGroup")
+	Log(LogDebug, "UserGroup", user)
 		<< "Assigning membership for group '" << groupName << "' to user '" << user->GetName() << "'";
 
 	Array::Ptr groups = user->GetGroups();
@@ -99,7 +99,7 @@ void UserGroup::RemoveNotification(const Notification::Ptr& notification)
 bool UserGroup::ResolveGroupMembership(const User::Ptr& user, bool add, int rstack) {
 
 	if (add && rstack > 20) {
-		Log(LogWarning, "UserGroup")
+		Log(LogWarning, "UserGroup", user)
 			<< "Too many nested groups for group '" << GetName() << "': User '"
 			<< user->GetName() << "' membership assignment failed.";
 

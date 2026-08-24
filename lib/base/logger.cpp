@@ -332,7 +332,7 @@ void Logger::UpdateCheckObjectFilterCache()
 					if (object) {
 						allObjects.emplace_back(object.get());
 					} else {
-						Log(LogWarning, GetReflectionType()->GetName())
+						Log(LogWarning, GetReflectionType()->GetName(), this)
 							<< "Missing " << kv.first << " '" << name << "' in name filter of '" << GetName() << "'.";
 					}
 				}
@@ -347,12 +347,13 @@ void Logger::UpdateCheckObjectFilterCache()
 	m_ObjectFilterCache.swap(allObjects);
 }
 
-Log::Log(LogSeverity severity, String facility, const String& message)
+Log::Log(LogSeverity severity, String facility, const ConfigObject::ConstPtr& involved, const String& message)
 {
 	// Only fully initialize the object if it's actually going to be logged.
 	if (severity >= Logger::GetMinLogSeverity()) {
 		m_Severity = severity;
 		m_Facility = std::move(facility);
+		m_Involved = involved;
 		m_Buffer.emplace();
 
 		*this << message;

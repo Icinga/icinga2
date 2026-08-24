@@ -74,7 +74,7 @@ bool ActionsHandler::HandleRequest(
 
 	ArrayData results;
 
-	Log(LogNotice, "ApiActionHandler")
+	Log(LogNotice, "ApiActionHandler", nullptr)
 		<< "Running action " << actionName;
 
 	bool verbose = false;

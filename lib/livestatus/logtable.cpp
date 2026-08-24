@@ -82,7 +82,7 @@ String LogTable::GetPrefix() const
 
 void LogTable::FetchRows(const AddRowFunction& addRowFn)
 {
-	Log(LogDebug, "LogTable")
+	Log(LogDebug, "LogTable", nullptr)
 		<< "Pre-selecting log file from " << m_TimeFrom << " until " << m_TimeUntil;
 
 	/* create log file index */

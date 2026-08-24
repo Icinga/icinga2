@@ -133,7 +133,7 @@ void OTel::Stop()
 			}
 		}
 
-		Log(LogInformation, "OTelExporter")
+		Log(LogInformation, "OTelExporter", nullptr)
 			<< "Disconnected from OpenTelemetry backend.";
 
 		m_Stream.reset();
@@ -155,7 +155,7 @@ void OTel::Export(std::unique_ptr<MetricsRequest>&& request)
 {
 	std::unique_lock lock(m_Mutex);
 	if (m_Exporting) {
-		Log(LogWarning, "OTelExporter")
+		Log(LogWarning, "OTelExporter", nullptr)
 			<< "Received export request while previous export is still in progress. Waiting for it to complete.";
 
 		m_ExportCV.wait(lock, [this] { return m_Stopped || !m_Exporting; });
@@ -234,7 +234,7 @@ void OTel::PopulateResourceAttrs(const std::unique_ptr<v1_metrics::ResourceMetri
  */
 void OTel::Connect(boost::asio::yield_context& yc)
 {
-	Log(LogInformation, "OTelExporter")
+	Log(LogInformation, "OTelExporter", nullptr)
 		<< "Connecting to OpenTelemetry backend on host '" << m_ConnInfo.Host << ":" << m_ConnInfo.Port << "'.";
 
 	for (uint64_t attempt = 1; !m_Stopped; ++attempt) {
@@ -247,7 +247,7 @@ void OTel::Connect(boost::asio::yield_context& yc)
 			}
 
 			Timeout timeout{m_Strand, 10s, [this, stream] {
-				Log(LogCritical, "OTelExporter")
+				Log(LogCritical, "OTelExporter", nullptr)
 					<< "Timeout while connecting to OpenTelemetry backend '" << m_ConnInfo.Host << ":" << m_ConnInfo.Port << "', cancelling attempt.";
 
 				boost::system::error_code ec;
@@ -270,11 +270,11 @@ void OTel::Connect(boost::asio::yield_context& yc)
 
 			m_Stream = std::move(stream);
 
-			Log(LogInformation, "OTelExporter")
+			Log(LogInformation, "OTelExporter", nullptr)
 				<< "Successfully connected to OpenTelemetry backend.";
 			return;
 		} catch (const std::exception& ex) {
-			Log(m_Stopped ? LogDebug : LogCritical, "OTelExporter")
+			Log(m_Stopped ? LogDebug : LogCritical, "OTelExporter", nullptr)
 				<< "Cannot connect to OpenTelemetry backend '" << m_ConnInfo.Host << ":" << m_ConnInfo.Port
 				<< "' (attempt #" << attempt << "): " << ex.what();
 
@@ -339,7 +339,7 @@ void OTel::ExportLoop(boost::asio::yield_context& yc)
 					retryAfter = Backoff(attempt);
 				}
 
-				Log(LogWarning, "OTelExporter")
+				Log(LogWarning, "OTelExporter", nullptr)
 					<< "Failed to export metrics to OpenTelemetry backend (attempt #" << attempt << "). Retrying in "
 					<< retryAfter.count() << "ms.";
 
@@ -356,7 +356,7 @@ void OTel::ExportLoop(boost::asio::yield_context& yc)
 				if (m_Stopped || (ser && (ser->code() == http::error::end_of_stream || ser->code() == boost::asio::error::broken_pipe))) {
 					severity = LogDebug;
 				}
-				Log{severity, "OTelExporter", DiagnosticInformation(ex, false)};
+				Log{severity, "OTelExporter", nullptr, DiagnosticInformation(ex, false)};
 				m_Stream.reset(); // Force reconnect on next export attempt.
 			}
 		}
@@ -382,7 +382,7 @@ void OTel::ExportImpl(boost::asio::yield_context& yc) const
 			// but without the expected Protobuf content type. So, don't do anything here since the request succeeded.
 			return;
 		}
-		Log(LogWarning, "OTelExporter")
+		Log(LogWarning, "OTelExporter", nullptr)
 			<< "Unexpected Content-Type from OpenTelemetry backend '" << ct << "' (" << responseMsg.reason() << "):\n"
 			<< responseMsg.body();
 	} else if (responseMsg.result_int() >= 200 && responseMsg.result_int() <= 299) {
@@ -397,7 +397,7 @@ void OTel::ExportImpl(boost::asio::yield_context& yc) const
 			const auto& ps = response->partial_success();
 			const auto& msg = ps.error_message();
 			if (ps.rejected_data_points() > 0 || !msg.empty()) {
-				Log(LogWarning, "OTelExporter")
+				Log(LogWarning, "OTelExporter", nullptr)
 					<< "OpenTelemetry backend reported partial success: " << (msg.empty() ? "<none>" : msg)
 					<< " (" << ps.rejected_data_points() << " metric data points rejected).";
 			}
@@ -408,13 +408,13 @@ void OTel::ExportImpl(boost::asio::yield_context& yc) const
 			try {
 				throttleSeconds = boost::lexical_cast<uint64_t>(throttle);
 			} catch (const std::exception& ex) {
-				Log(LogWarning, "OTelExporter")
+				Log(LogWarning, "OTelExporter", nullptr)
 					<< "Failed to parse 'Retry-After' header from OpenTelemetry backend response: " << ex.what();
 			}
 		}
 		BOOST_THROW_EXCEPTION(RetryableExportError{throttleSeconds});
 	} else {
-		Log(LogWarning, "OTelExporter")
+		Log(LogWarning, "OTelExporter", nullptr)
 			<< "OpenTelemetry backend responded with non-success and non-retryable status code "
 			<< responseMsg.result_int() << " (" << responseMsg.reason() << ").\n" << responseMsg.body();
 	}

@@ -172,8 +172,8 @@ void IoEngine::RunEventLoop()
 		} catch (const TerminateIoThread&) {
 			break;
 		} catch (const std::exception& e) {
-			Log(LogCritical, "IoEngine", "Exception during I/O operation!");
-			Log(LogDebug, "IoEngine") << "Exception during I/O operation: " << DiagnosticInformation(e);
+			Log(LogCritical, "IoEngine", nullptr, "Exception during I/O operation!");
+			Log(LogDebug, "IoEngine", nullptr) << "Exception during I/O operation: " << DiagnosticInformation(e);
 		}
 	}
 }

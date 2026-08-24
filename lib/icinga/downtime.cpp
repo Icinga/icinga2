@@ -131,7 +131,7 @@ void Downtime::Start(bool runtimeCreated)
 	 * for DB IDO, etc.)
 	 */
 	if (!GetFixed() && !checkable->IsStateOK(checkable->GetStateRaw())) {
-		Log(LogNotice, "Downtime")
+		Log(LogNotice, "Downtime", this)
 			<< "Checkable '" << checkable->GetName() << "' already in a NOT-OK state."
 			<< " Triggering downtime now.";
 
@@ -343,7 +343,7 @@ Downtime::Ptr Downtime::AddDowntime(const Checkable::Ptr& checkable, const Strin
 	if (!ConfigObjectUtility::CreateObject(Downtime::TypeInstance, fullName, config, errors, nullptr)) {
 		ObjectLock olock(errors);
 		for (String error : errors) {
-			Log(LogCritical, "Downtime", error);
+			Log(LogCritical, "Downtime", checkable, error);
 		}
 
 		BOOST_THROW_EXCEPTION(std::runtime_error("Could not create downtime."));
@@ -362,7 +362,7 @@ Downtime::Ptr Downtime::AddDowntime(const Checkable::Ptr& checkable, const Strin
 	if (!downtime)
 		BOOST_THROW_EXCEPTION(std::runtime_error("Could not create downtime object."));
 
-	Log(LogInformation, "Downtime")
+	Log(LogInformation, "Downtime", downtime)
 		<< "Added downtime '" << downtime->GetName()
 		<< "' between '" << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", startTime)
 		<< "' and '" << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S", endTime) << "', author: '"
@@ -401,7 +401,7 @@ void Downtime::RemoveDowntime(const String& id, bool includeChildren, DowntimeRe
 	if (!ConfigObjectUtility::DeleteObject(downtime, false, errors, nullptr)) {
 		ObjectLock olock(errors);
 		for (String error : errors) {
-			Log(LogCritical, "Downtime", error);
+			Log(LogCritical, "Downtime", downtime, error);
 		}
 
 		BOOST_THROW_EXCEPTION(std::runtime_error("Could not remove downtime."));
@@ -423,7 +423,7 @@ void Downtime::RemoveDowntime(const String& id, bool includeChildren, DowntimeRe
 			break;
 	}
 
-	Log msg (LogInformation, "Downtime");
+	Log msg (LogInformation, "Downtime", downtime);
 
 	msg << "Removed downtime '" << downtime->GetName() << "' from checkable";
 
@@ -501,7 +501,7 @@ void Downtime::TriggerDowntime(double triggerTime)
 
 	Checkable::Ptr checkable = GetCheckable();
 
-	Log(LogInformation, "Downtime")
+	Log(LogInformation, "Downtime", this)
 		<< "Triggering downtime '" << GetName() << "' for checkable '" << checkable->GetName() << "'.";
 
 	if (GetTriggerTime() == 0) {

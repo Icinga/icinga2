@@ -65,11 +65,11 @@ public:
 				try {
 					callback();
 				} catch (const std::exception& ex) {
-					Log(LogCritical, "ThreadPool")
+					Log(LogCritical, "ThreadPool", nullptr)
 						<< "Exception thrown in event handler:\n"
 						<< DiagnosticInformation(ex);
 				} catch (...) {
-					Log(LogCritical, "ThreadPool", "Exception of unknown type thrown in event handler.");
+					Log(LogCritical, "ThreadPool", nullptr, "Exception of unknown type thrown in event handler.");
 				}
 			});
 

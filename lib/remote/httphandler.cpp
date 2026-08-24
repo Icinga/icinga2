@@ -124,7 +124,7 @@ void HttpHandler::ProcessRequest(
 			throw;
 		}
 
-		Log(LogWarning, "HttpServerConnection")
+		Log(LogWarning, "HttpServerConnection", request.User())
 			<< "Error while processing HTTP request: " << ex.what();
 
 		processed = false;

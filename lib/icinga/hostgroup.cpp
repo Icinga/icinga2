@@ -33,7 +33,7 @@ bool HostGroup::EvaluateObjectRule(const Host::Ptr& host, const ConfigItem::Ptr&
 	if (!group->GetFilter()->Evaluate(frame).GetValue().ToBool())
 		return false;
 
-	Log(LogDebug, "HostGroup")
+	Log(LogDebug, "HostGroup", host)
 		<< "Assigning membership for group '" << groupName << "' to host '" << host->GetName() << "'";
 
 	Array::Ptr groups = host->GetGroups();
@@ -80,7 +80,7 @@ void HostGroup::RemoveMember(const Host::Ptr& host)
 bool HostGroup::ResolveGroupMembership(const Host::Ptr& host, bool add, int rstack) {
 
 	if (add && rstack > 20) {
-		Log(LogWarning, "HostGroup")
+		Log(LogWarning, "HostGroup", host)
 			<< "Too many nested groups for group '" << GetName() << "': Host '"
 			<< host->GetName() << "' membership assignment failed.";
 

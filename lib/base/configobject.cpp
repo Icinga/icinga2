@@ -480,13 +480,13 @@ void ConfigObject::SetAuthority(bool authority)
 
 void ConfigObject::DumpObjects(const String& filename, int attributeTypes)
 {
-	Log(LogInformation, "ConfigObject")
+	Log(LogInformation, "ConfigObject", nullptr)
 		<< "Dumping program state to file '" << filename << "'";
 
 	try {
 		Utility::Glob(filename + ".tmp.*", &Utility::Remove, GlobFile);
 	} catch (const std::exception& ex) {
-		Log(LogWarning, "ConfigObject") << DiagnosticInformation(ex);
+		Log(LogWarning, "ConfigObject", nullptr) << DiagnosticInformation(ex);
 	}
 
 	AtomicFile fp (filename, 0600);
@@ -533,7 +533,7 @@ void ConfigObject::RestoreObject(const String& message, int attributeTypes)
 		return;
 
 #ifdef I2_DEBUG
-	Log(LogDebug, "ConfigObject")
+	Log(LogDebug, "ConfigObject", object)
 		<< "Restoring object '" << name << "' of type '" << type << "'.";
 #endif /* I2_DEBUG */
 	Dictionary::Ptr update = persistentObject->Get("update");
@@ -547,7 +547,7 @@ void ConfigObject::RestoreObjects(const String& filename, int attributeTypes)
 	if (!Utility::PathExists(filename))
 		return;
 
-	Log(LogInformation, "ConfigObject")
+	Log(LogInformation, "ConfigObject", nullptr)
 		<< "Restoring program state from file '" << filename << "'";
 
 	std::fstream fp;
@@ -597,7 +597,7 @@ void ConfigObject::RestoreObjects(const String& filename, int attributeTypes)
 		}
 	}
 
-	Log(LogInformation, "ConfigObject")
+	Log(LogInformation, "ConfigObject", nullptr)
 		<< "Restored " << restored << " objects. Loaded " << no_state << " new objects without state.";
 }
 
@@ -619,7 +619,7 @@ void ConfigObject::StopObjects()
 
 		for (const ConfigObject::Ptr& object : dtype->GetObjects()) {
 #ifdef I2_DEBUG
-			Log(LogDebug, "ConfigObject")
+			Log(LogDebug, "ConfigObject", object)
 				<< "Deactivate() called for config object '" << object->GetName() << "' with type '" << type->GetName() << "'.";
 #endif /* I2_DEBUG */
 			object->Deactivate();

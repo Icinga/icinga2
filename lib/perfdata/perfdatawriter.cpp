@@ -27,7 +27,7 @@ void PerfdataWriter::OnConfigLoaded()
 	ObjectImpl<PerfdataWriter>::OnConfigLoaded();
 
 	if (!GetEnableHa()) {
-		Log(LogDebug, "PerfdataWriter")
+		Log(LogDebug, "PerfdataWriter", this)
 			<< "HA functionality disabled. Won't pause connection: " << GetName();
 
 		SetHAMode(HARunEverywhere);
@@ -51,7 +51,7 @@ void PerfdataWriter::Resume()
 {
 	ObjectImpl<PerfdataWriter>::Resume();
 
-	Log(LogInformation, "PerfdataWriter")
+	Log(LogInformation, "PerfdataWriter", this)
 		<< "'" << GetName() << "' resumed.";
 
 	m_HandleCheckResults = Checkable::OnNewCheckResult.connect([this](const Checkable::Ptr& checkable,
@@ -81,7 +81,7 @@ void PerfdataWriter::Pause()
 	/* Force a rotation closing the file stream. */
 	RotateAllFiles();
 
-	Log(LogInformation, "PerfdataWriter")
+	Log(LogInformation, "PerfdataWriter", this)
 		<< "'" << GetName() << "' paused.";
 
 	ObjectImpl<PerfdataWriter>::Pause();
@@ -145,7 +145,7 @@ void PerfdataWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 
 void PerfdataWriter::RotateFile(std::ofstream& output, const String& temp_path, const String& perfdata_path)
 {
-	Log(LogDebug, "PerfdataWriter")
+	Log(LogDebug, "PerfdataWriter", this)
 		<< "Rotating perfdata files.";
 
 	std::unique_lock<std::mutex> lock(m_StreamMutex);
@@ -156,7 +156,7 @@ void PerfdataWriter::RotateFile(std::ofstream& output, const String& temp_path, 
 		if (Utility::PathExists(temp_path)) {
 			String finalFile = perfdata_path + "." + Convert::ToString((long)Utility::GetTime());
 
-			Log(LogDebug, "PerfdataWriter")
+			Log(LogDebug, "PerfdataWriter", this)
 				<< "Closed output file and renaming into '" << finalFile << "'.";
 
 			Utility::RenameFile(temp_path, finalFile);
@@ -166,7 +166,7 @@ void PerfdataWriter::RotateFile(std::ofstream& output, const String& temp_path, 
 	output.open(temp_path.CStr());
 
 	if (!output.good()) {
-		Log(LogWarning, "PerfdataWriter")
+		Log(LogWarning, "PerfdataWriter", this)
 			<< "Could not open perfdata file '" << temp_path << "' for writing. Perfdata will be lost.";
 	}
 }

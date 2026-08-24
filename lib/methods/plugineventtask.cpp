@@ -54,7 +54,7 @@ void PluginEventTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, co
 {
 	if (pr.ExitStatus != 0) {
 		Process::Arguments parguments = Process::PrepareCommand(commandLine);
-		Log(LogWarning, "PluginEventTask")
+		Log(LogWarning, "PluginEventTask", checkable)
 			<< "Event command for object '" << checkable->GetName() << "' (PID: " << pr.PID
 			<< ", arguments: " << Process::PrettyPrintArguments(parguments) << ") terminated with exit code "
 			<< pr.ExitStatus << ", output: " << pr.Output;

@@ -57,7 +57,7 @@ std::unique_lock<std::mutex> WorkQueue::AcquireLock()
 void WorkQueue::EnqueueUnlocked(std::unique_lock<std::mutex>& lock, std::function<void ()>&& function, WorkQueuePriority priority)
 {
 	if (!m_Spawned) {
-		Log(LogNotice, "WorkQueue")
+		Log(LogNotice, "WorkQueue", nullptr)
 			<< "Spawning WorkQueue threads for '" << m_Name << "'";
 
 		for (int i = 0; i < m_ThreadCount; i++) {
@@ -121,7 +121,7 @@ void WorkQueue::Join(bool stop)
 		m_Threads.join_all();
 		m_Spawned = false;
 
-		Log(LogNotice, "WorkQueue")
+		Log(LogNotice, "WorkQueue", nullptr)
 			<< "Stopped WorkQueue threads for '" << m_Name << "'";
 	}
 }
@@ -175,11 +175,11 @@ void WorkQueue::ReportExceptions(const String& facility, bool verbose) const
 	std::vector<std::exception_ptr> exceptions = GetExceptions();
 
 	for (const auto& eptr : exceptions) {
-		Log(LogCritical, facility)
+		Log(LogCritical, facility, nullptr)
 			<< DiagnosticInformation(eptr, verbose);
 	}
 
-	Log(LogCritical, facility)
+	Log(LogCritical, facility, nullptr)
 		<< exceptions.size() << " error" << (exceptions.size() != 1 ? "s" : "");
 }
 
@@ -217,7 +217,7 @@ void WorkQueue::StatusTimerHandler()
 
 	/* Log if there are pending items, or 5 minute timeout is reached. */
 	if (pending > 0 || m_StatusTimerTimeout < now) {
-		Log(m_StatsLogLevel, "WorkQueue")
+		Log(m_StatsLogLevel, "WorkQueue", nullptr)
 			<< "#" << m_ID << " (" << m_Name << ") "
 			<< "items: " << pending << ", "
 			<< "rate: " << std::setw(2) << GetTaskCount(60) / 60.0 << "/s "

@@ -182,7 +182,7 @@ static Shared<AsioTlsStream>::Ptr Connect(const String& host, const String& port
 	try {
 		sslContext = MakeAsioSslContext(Empty, Empty, Empty); //TODO: Add support for cert, key, ca parameters
 	} catch(const std::exception& ex) {
-		Log(LogCritical, "DebugConsole")
+		Log(LogCritical, "DebugConsole", nullptr)
 			<< "Cannot make SSL context: " << ex.what();
 		throw;
 	}
@@ -192,7 +192,7 @@ static Shared<AsioTlsStream>::Ptr Connect(const String& host, const String& port
 	try {
 		icinga::Connect(stream->lowest_layer(), host, port);
 	} catch (const std::exception& ex) {
-		Log(LogWarning, "DebugConsole")
+		Log(LogWarning, "DebugConsole", nullptr)
 			<< "Cannot connect to REST API on host '" << host << "' port '" << port << "': " << ex.what();
 		throw;
 	}
@@ -202,7 +202,7 @@ static Shared<AsioTlsStream>::Ptr Connect(const String& host, const String& port
 	try {
 		tlsStream.handshake(tlsStream.client);
 	} catch (const std::exception& ex) {
-		Log(LogWarning, "DebugConsole")
+		Log(LogWarning, "DebugConsole", nullptr)
 			<< "TLS handshake with host '" << host << "' failed: " << ex.what();
 		throw;
 	}

@@ -55,27 +55,27 @@ std::vector<String> PKIRequestCommand::GetArgumentSuggestions(const String& argu
 int PKIRequestCommand::Run(const boost::program_options::variables_map& vm, [[maybe_unused]] const std::vector<std::string>& ap) const
 {
 	if (!vm.count("host")) {
-		Log(LogCritical, "cli", "Icinga 2 host (--host) must be specified.");
+		Log(LogCritical, "cli", nullptr, "Icinga 2 host (--host) must be specified.");
 		return 1;
 	}
 
 	if (!vm.count("key")) {
-		Log(LogCritical, "cli", "Key input file path (--key) must be specified.");
+		Log(LogCritical, "cli", nullptr, "Key input file path (--key) must be specified.");
 		return 1;
 	}
 
 	if (!vm.count("cert")) {
-		Log(LogCritical, "cli", "Certificate output file path (--cert) must be specified.");
+		Log(LogCritical, "cli", nullptr, "Certificate output file path (--cert) must be specified.");
 		return 1;
 	}
 
 	if (!vm.count("ca")) {
-		Log(LogCritical, "cli", "CA certificate output file path (--ca) must be specified.");
+		Log(LogCritical, "cli", nullptr, "CA certificate output file path (--ca) must be specified.");
 		return 1;
 	}
 
 	if (!vm.count("trustedcert")) {
-		Log(LogCritical, "cli", "Trusted certificate input file path (--trustedcert) must be specified.");
+		Log(LogCritical, "cli", nullptr, "Trusted certificate input file path (--trustedcert) must be specified.");
 		return 1;
 	}
 

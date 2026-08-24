@@ -58,10 +58,10 @@ bool ApiSetupUtility::SetupMaster(const String& cn, bool prompt_restart)
 
 bool ApiSetupUtility::SetupMasterCertificates(const String& cn)
 {
-	Log(LogInformation, "cli", "Generating new CA.");
+	Log(LogInformation, "cli", nullptr, "Generating new CA.");
 
 	if (PkiUtility::NewCa() > 0)
-		Log(LogWarning, "cli", "Found CA, skipping and using the existing one.");
+		Log(LogWarning, "cli", nullptr, "Found CA, skipping and using the existing one.");
 
 	String pki_path = ApiListener::GetCertsDir();
 	Utility::MkDirP(pki_path, 0700);
@@ -70,7 +70,7 @@ bool ApiSetupUtility::SetupMasterCertificates(const String& cn)
 	String group = Configuration::RunAsGroup;
 
 	if (!Utility::SetFileOwnership(pki_path, user, group)) {
-		Log(LogWarning, "cli")
+		Log(LogWarning, "cli", nullptr)
 			<< "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << pki_path << "'.";
 	}
 
@@ -78,12 +78,12 @@ bool ApiSetupUtility::SetupMasterCertificates(const String& cn)
 	String csr = pki_path + "/" + cn + ".csr";
 
 	if (Utility::PathExists(key)) {
-		Log(LogInformation, "cli")
+		Log(LogInformation, "cli", nullptr)
 			<< "Private key file '" << key << "' already exists, not generating new certificate.";
 		return true;
 	}
 
-	Log(LogInformation, "cli")
+	Log(LogInformation, "cli", nullptr)
 		<< "Generating new CSR in '" << csr << "'.";
 
 	if (Utility::PathExists(key))
@@ -92,21 +92,21 @@ bool ApiSetupUtility::SetupMasterCertificates(const String& cn)
 		NodeUtility::CreateBackupFile(csr);
 
 	if (PkiUtility::NewCert(cn, key, csr, "") > 0) {
-		Log(LogCritical, "cli", "Failed to create certificate signing request.");
+		Log(LogCritical, "cli", nullptr, "Failed to create certificate signing request.");
 		return false;
 	}
 
 	/* Sign the CSR with the CA key */
 	String cert = pki_path + "/" + cn + ".crt";
 
-	Log(LogInformation, "cli")
+	Log(LogInformation, "cli", nullptr)
 		<< "Signing CSR with CA and writing certificate to '" << cert << "'.";
 
 	if (Utility::PathExists(cert))
 		NodeUtility::CreateBackupFile(cert);
 
 	if (PkiUtility::SignCsr(csr, cert) != 0) {
-		Log(LogCritical, "cli", "Could not sign CSR.");
+		Log(LogCritical, "cli", nullptr, "Could not sign CSR.");
 		return false;
 	}
 
@@ -116,7 +116,7 @@ bool ApiSetupUtility::SetupMasterCertificates(const String& cn)
 	String ca_key = ca_path + "/ca.key";
 	String target_ca = pki_path + "/ca.crt";
 
-	Log(LogInformation, "cli")
+	Log(LogInformation, "cli", nullptr)
 		<< "Copying CA certificate to '" << target_ca << "'.";
 
 	if (Utility::PathExists(target_ca))
@@ -128,7 +128,7 @@ bool ApiSetupUtility::SetupMasterCertificates(const String& cn)
 	/* fix permissions: root -> icinga daemon user */
 	for (const String& file : { ca_path, ca, ca_key, target_ca, key, csr, cert }) {
 		if (!Utility::SetFileOwnership(file, user, group)) {
-			Log(LogWarning, "cli")
+			Log(LogWarning, "cli", nullptr)
 				<< "Cannot set ownership for user '" << user << "' group '" << group << "' on file '" << file << "'.";
 		}
 	}
@@ -139,9 +139,9 @@ bool ApiSetupUtility::SetupMasterCertificates(const String& cn)
 bool ApiSetupUtility::SetupMasterApiUser()
 {
 	if (!Utility::PathExists(GetConfdPath())) {
-		Log(LogWarning, "cli")
+		Log(LogWarning, "cli", nullptr)
 			<< "Path '" << GetConfdPath() << "' do not exist.";
-		Log(LogInformation, "cli")
+		Log(LogInformation, "cli", nullptr)
 			<< "Creating path '" << GetConfdPath() << "'.";
 
 		Utility::MkDirP(GetConfdPath(), 0755);
@@ -152,12 +152,12 @@ bool ApiSetupUtility::SetupMasterApiUser()
 	String apiUsersPath = GetConfdPath() + "/api-users.conf";
 
 	if (Utility::PathExists(apiUsersPath)) {
-		Log(LogInformation, "cli")
+		Log(LogInformation, "cli", nullptr)
 			<< "API user config file '" << apiUsersPath << "' already exists, not creating config file.";
 		return true;
 	}
 
-	Log(LogInformation, "cli")
+	Log(LogInformation, "cli", nullptr)
 		<< "Adding new ApiUser '" << api_username << "' in '" << apiUsersPath << "'.";
 
 	NodeUtility::CreateBackupFile(apiUsersPath);
@@ -190,7 +190,7 @@ bool ApiSetupUtility::SetupMasterEnableApi()
 	/*
 	* Enable the API feature
 	*/
-	Log(LogInformation, "cli", "Enabling the 'api' feature.");
+	Log(LogInformation, "cli", nullptr, "Enabling the 'api' feature.");
 
 	FeatureUtility::EnableFeatures({ "api" });
 

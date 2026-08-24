@@ -84,7 +84,7 @@ void HttpServerConnection::Disconnect(boost::asio::yield_context yc)
 
 	m_ShuttingDown = true;
 
-	Log(LogInformation, "HttpServerConnection")
+	Log(LogInformation, "HttpServerConnection", m_ApiUser)
 		<< "HTTP client disconnected (from " << m_PeerAddress << ")";
 
 	m_CheckLivenessTimer.cancel();
@@ -307,7 +307,7 @@ bool EnsureAuthenticatedUser(
 	namespace http = boost::beast::http;
 
 	if (!request.User()) {
-		Log(LogWarning, "HttpServerConnection")
+		Log(LogWarning, "HttpServerConnection", nullptr)
 			<< "Unauthorized request: " << request.method_string() << ' ' << request.target();
 
 		if (request[http::field::accept] == "application/json") {
@@ -503,7 +503,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 				request.User(ApiUser::GetByAuthHeader(std::string(request[http::field::authorization])));
 			}
 
-			Log logMsg (LogInformation, "HttpServerConnection");
+			Log logMsg (LogInformation, "HttpServerConnection", request.User());
 
 			logMsg << "Request " << request.method_string() << ' ' << request.target()
 				<< " (from " << m_PeerAddress
@@ -546,7 +546,7 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 		}
 	} catch (const std::exception& ex) {
 		if (!m_ShuttingDown) {
-			Log(LogWarning, "HttpServerConnection")
+			Log(LogWarning, "HttpServerConnection", m_ApiUser)
 				<< "Exception while processing HTTP request from " << m_PeerAddress << ": " << ex.what();
 		}
 	}
@@ -570,7 +570,7 @@ void HttpServerConnection::CheckLiveness(boost::asio::yield_context yc)
 		}
 
 		if (m_LivenessTimeout < std::chrono::steady_clock::now() - m_Seen) {
-			Log(LogInformation, "HttpServerConnection")
+			Log(LogInformation, "HttpServerConnection", m_ApiUser)
 				<<  "No messages for HTTP connection have been received in the last "
 				<< std::chrono::duration_cast<std::chrono::seconds>(m_LivenessTimeout).count()
 				<< " seconds, disconnecting (from " << m_PeerAddress << ").";

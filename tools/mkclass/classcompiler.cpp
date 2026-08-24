@@ -506,7 +506,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			else
 				m_Impl << "\t" << "if (" << argName << "() != GetDefault" << field.GetFriendlyName() << "())" << std::endl;
 
-			m_Impl << "\t\t" << "Log(LogWarning, \"" << klass.Name << "\") << \"Attribute '" << field.Name << R"(' for object '" << dynamic_cast<ConfigObject *>(this)->GetName() << "' of type '" << dynamic_cast<ConfigObject *>(this)->GetReflectionType()->GetName() << "' is deprecated and should not be used.";)" << std::endl;
+			m_Impl << "\t\t" << "Log(LogWarning, \"" << klass.Name << "\", dynamic_cast<ConfigObject *>(this)) << \"Attribute '" << field.Name << R"(' for object '" << dynamic_cast<ConfigObject *>(this)->GetName() << "' of type '" << dynamic_cast<ConfigObject *>(this)->GetReflectionType()->GetName() << "' is deprecated and should not be used.";)" << std::endl;
 		}
 
 		if (field.Type.ArrayRank > 0) {
@@ -521,7 +521,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 			m_Impl << "\t" << "if (" << valName << ".IsObjectType<Function>()) {" << std::endl
 				<< "\t\t" << "Function::Ptr func = " << valName << ";" << std::endl
 				<< "\t\t" << "if (func->IsDeprecated())" << std::endl
-				<< "\t\t\t" << "Log(LogWarning, \"" << klass.Name << "\") << \"Attribute '" << field.Name << R"(' for object '" << dynamic_cast<ConfigObject *>(this)->GetName() << "' of type '" << dynamic_cast<ConfigObject *>(this)->GetReflectionType()->GetName() << "' is set to a deprecated function: " << func->GetName();)" << std::endl
+				<< "\t\t\t" << "Log(LogWarning, \"" << klass.Name << "\", dynamic_cast<ConfigObject *>(this)) << \"Attribute '" << field.Name << R"(' for object '" << dynamic_cast<ConfigObject *>(this)->GetName() << "' of type '" << dynamic_cast<ConfigObject *>(this)->GetReflectionType()->GetName() << "' is set to a deprecated function: " << func->GetName();)" << std::endl
 				<< "\t" << "}" << std::endl << std::endl;
 		}
 

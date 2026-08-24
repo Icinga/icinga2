@@ -199,12 +199,12 @@ void ServiceDbObject::OnConfigUpdateHeavy()
 		Checkable::Ptr parent = dep->GetParent();
 
 		if (!parent) {
-			Log(LogDebug, "ServiceDbObject")
+			Log(LogDebug, "ServiceDbObject", dep)
 				<< "Missing parent for dependency '" << dep->GetName() << "'.";
 			continue;
 		}
 
-		Log(LogDebug, "ServiceDbObject")
+		Log(LogDebug, "ServiceDbObject", parent)
 			<< "service parents: " << parent->GetName();
 
 		int stateFilter = dep->GetStateFilter();

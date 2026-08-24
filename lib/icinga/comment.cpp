@@ -171,7 +171,7 @@ Comment::Ptr Comment::AddComment(const Checkable::Ptr& checkable, CommentType en
 	if (!ConfigObjectUtility::CreateObject(Comment::TypeInstance, fullName, config, errors, nullptr)) {
 		ObjectLock olock(errors);
 		for (String error : errors) {
-			Log(LogCritical, "Comment", error);
+			Log(LogCritical, "Comment", checkable, error);
 		}
 
 		BOOST_THROW_EXCEPTION(std::runtime_error("Could not create comment."));
@@ -182,7 +182,7 @@ Comment::Ptr Comment::AddComment(const Checkable::Ptr& checkable, CommentType en
 	if (!comment)
 		BOOST_THROW_EXCEPTION(std::runtime_error("Could not create comment."));
 
-	Log(LogNotice, "Comment")
+	Log(LogNotice, "Comment", comment)
 		<< "Added comment '" << comment->GetName() << "'.";
 
 	return comment;
@@ -195,7 +195,7 @@ void Comment::RemoveComment(const String& id, bool removedManually, const String
 	if (!comment || comment->GetPackage() != "_api")
 		return;
 
-	Log(LogNotice, "Comment")
+	Log(LogNotice, "Comment", comment)
 		<< "Removed comment '" << comment->GetName() << "' from object '" << comment->GetCheckable()->GetName() << "'.";
 
 	if (removedManually) {
@@ -207,7 +207,7 @@ void Comment::RemoveComment(const String& id, bool removedManually, const String
 	if (!ConfigObjectUtility::DeleteObject(comment, false, errors, nullptr)) {
 		ObjectLock olock(errors);
 		for (String error : errors) {
-			Log(LogCritical, "Comment", error);
+			Log(LogCritical, "Comment", comment, error);
 		}
 
 		BOOST_THROW_EXCEPTION(std::runtime_error("Could not remove comment."));
