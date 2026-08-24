@@ -1,9 +1,27 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+# Helper script for quickly building Icinga 2 in a container.
+#
+# CAUTION: This modifies the system by automatically installing required dependencies and should
+# only be used on test systems that will be thrown away afterwards, like in a CI environment.
+#
+# The behavior can be tweaked by setting the following environment variables:
+#
+#  - ICINGA2_SOURCE_DIR: Path where to find the Icinga 2 source tree.
+#  - ICINGA2_BUILD_DIR: Path where to place the CMake build directory.
+#  - CCACHE_DIR: Path where to keep a ccache cache directory.
+#  - DISTRO: Container image name, this is used to automatically detect build dependencies and compile flags.
+
 set -exo pipefail
 
+: "${ICINGA2_SOURCE_DIR:=/icinga2}"
+: "${ICINGA2_BUILD_DIR:=${ICINGA2_SOURCE_DIR}/build}"
+: "${CCACHE_DIR:=${ICINGA2_SOURCE_DIR}/ccache}"
+
 export PATH="/usr/lib/ccache/bin:/usr/lib/ccache:/usr/lib64/ccache:$PATH"
-export CCACHE_DIR=/icinga2/ccache
 export CTEST_OUTPUT_ON_FAILURE=1
+export CCACHE_DIR
+
 CMAKE_OPTS=()
 
 case "$DISTRO" in
@@ -91,8 +109,8 @@ case "$DISTRO" in
     ;;
 esac
 
-mkdir /icinga2/build
-cd /icinga2/build
+mkdir -p "$ICINGA2_BUILD_DIR"
+cd "$ICINGA2_BUILD_DIR"
 
 cmake \
   -GNinja \
@@ -101,7 +119,8 @@ cmake \
   -DUSE_SYSTEMD=ON \
   -DICINGA2_USER=$(id -un) \
   -DICINGA2_GROUP=$(id -gn) \
-  "${CMAKE_OPTS[@]}" ..
+  "${CMAKE_OPTS[@]}" \
+  "$ICINGA2_SOURCE_DIR"
 
 ninja -v
 
