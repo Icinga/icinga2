@@ -6,16 +6,21 @@
 
 #include "base/atomic.hpp"
 #include "base/debug.hpp"
+#include "base/defer.hpp"
 #include "base/exception.hpp"
 #include "base/lazy-init.hpp"
 #include "base/logger.hpp"
 #include "base/shared.hpp"
 #include <atomic>
+#include <chrono>
+#include <condition_variable>
 #include <exception>
 #include <memory>
 #include <mutex>
 #include <thread>
+#include <type_traits>
 #include <utility>
+#include <variant>
 #include <vector>
 #include <stdexcept>
 #include <boost/context/protected_fixedsize_stack.hpp>
@@ -26,7 +31,7 @@
 #include <boost/asio/steady_timer.hpp>
 
 #if BOOST_VERSION >= 108700
-#	include <boost/asio/detached.hpp>
+#      include <boost/asio/detached.hpp>
 #endif // BOOST_VERSION >= 108700
 
 namespace icinga
@@ -75,6 +80,123 @@ public:
 
 private:
 	boost::asio::steady_timer m_Timer;
+};
+
+class IoEngine;
+
+/**
+ * The result (or exception) of a coroutine, handed over to a thread waiting for it.
+ *
+ * This is used instead of a `std::promise`/`std::future` because those use thread local storage and if enough of the
+ * coroutine function can be inlined further optimizations may lead to crashes when the TLS is initialized by one thread
+ * before coroutine suspension and the next thread tries to use it, which can lead to very hard to diagnose issues.
+ */
+template<class T>
+class SyncResult {
+	friend IoEngine;
+
+	using ValueType = std::variant<std::monostate, std::conditional_t<std::is_void_v<T>, bool, T>, std::exception_ptr>;
+
+public:
+	/**
+	 * Thrown by `Get()` if the coroutine was destroyed before producing anything.
+	 *
+	 * This is the equivalent of `std::future_error(std::future_errc::broken_promise)` and is thrown when the io_context
+	 * is destroyed while the coroutine is still suspended or has never been started.
+	 */
+	struct CoroutineAbandoned : std::exception {
+		[[nodiscard]] const char* what() const noexcept override
+		{
+			return "Coroutine was destroyed before producing a result";
+		}
+	};
+
+	/**
+	 * Blocks until the coroutine finished, then returns its result or re-throws its exception.
+	 *
+	 * Never call this from an I/O thread, and especially not from the very strand the coroutine runs in -- that blocks
+	 * the thread which is supposed to complete the coroutine. The result is moved out, so call this at most once.
+	 */
+	T Get()
+	{
+		std::unique_lock lock{m_Mutex};
+		m_Cv.wait(lock, [this] { return !std::holds_alternative<std::monostate>(m_Value); });
+
+		if (std::holds_alternative<std::exception_ptr>(m_Value)) {
+			std::rethrow_exception(std::get<std::exception_ptr>(m_Value));
+		}
+
+		if constexpr (std::is_void_v<T>) {
+			return;
+		} else {
+			return std::move(std::get<T>(m_Value));
+		}
+	}
+
+	/**
+	 * Waits up to timeout for the coroutine to finish, without consuming the result.
+	 *
+	 * @return Whether the result is ready, i.e. whether Get() would return without blocking.
+	 */
+	template<class Rep, class Period>
+	bool WaitFor(const std::chrono::duration<Rep, Period>& timeout)
+	{
+		std::unique_lock lock(m_Mutex);
+		return m_Cv.wait_for(lock, timeout, [this] { return !std::holds_alternative<std::monostate>(m_Value); });
+	}
+
+private:
+	/**
+	 * Stores the coroutine's return value and wakes up a waiting Get().
+	 */
+	template<class U, class V = T, class = std::enable_if_t<!std::is_void_v<V>>>
+	void SetValue(U&& v)
+	{
+		std::scoped_lock lock(m_Mutex);
+		m_Value = std::forward<U>(v);
+		m_Cv.notify_all();
+	}
+
+	/**
+	 * Signals completion of a void returning coroutine and wakes up a waiting Get().
+	 */
+	template<class V = T, class = std::enable_if_t<std::is_void_v<V>>>
+	void SetValue()
+	{
+		std::scoped_lock lock(m_Mutex);
+		m_Value = true;
+		m_Cv.notify_all();
+	}
+
+	/**
+	 * Stores an exception to be re-thrown by Get() and wakes it up.
+	 */
+	void SetException(std::exception_ptr ep)
+	{
+		std::scoped_lock lock(m_Mutex);
+		m_Value = ValueType{ep};
+		m_Cv.notify_all();
+	}
+
+	/**
+	 * Reports that the coroutine will never produce a result, unless it already did.
+	 *
+	 * Called by SpawnSyncCoroutine() once the coroutine body is destroyed, so that a Get() waiting for a coroutine
+	 * which never ran to completion fails instead of blocking forever.
+	 */
+	void SetAbandoned()
+	{
+		std::scoped_lock lock(m_Mutex);
+
+		if (std::holds_alternative<std::monostate>(m_Value)) {
+			m_Value = ValueType{std::make_exception_ptr(CoroutineAbandoned{})};
+			m_Cv.notify_all();
+		}
+	}
+
+	std::mutex m_Mutex;
+	std::condition_variable m_Cv;
+	ValueType m_Value;
 };
 
 /**
@@ -131,9 +253,23 @@ public:
 #endif /* _WIN32 */
 	}
 
-	template <typename Handler, typename Function>
-	static void SpawnCoroutine(Handler& h, Function f) {
-		auto wrapper = [f = std::move(f)](boost::asio::yield_context yc) {
+	/**
+	 * Spawns a stackful coroutine running f, without caring about its outcome.
+	 *
+	 * Exceptions escaping f are logged and swallowed. To get f's result or exception instead,
+	 * use SpawnSyncCoroutine().
+	 *
+	 * @param h The execution context, executor or strand to run the coroutine in.
+	 * @param f The coroutine body, taking a boost::asio::yield_context.
+	 */
+	template<class Handler, class Function>
+	static void SpawnCoroutine(Handler& h, Function f)
+	{
+		static_assert(std::is_void_v<CoroutineResultType<Function>>,
+			"A detached coroutine's return value would be silently discarded. "
+			"Either make f return void or use SpawnSyncCoroutine().");
+
+		SpawnCoroutineImpl(h, [f = std::move(f)](boost::asio::yield_context yc) mutable {
 			try {
 				f(yc);
 			} catch (const std::exception& ex) {
@@ -148,12 +284,70 @@ public:
 				// https://github.com/boostorg/coroutine/issues/39
 				throw;
 			}
-		};
+		});
+	}
 
+	/**
+	 * Spawns a stackful coroutine running f and returns a handle to its eventual result.
+	 *
+	 * Exceptions escaping f are stored in the returned handle and rethrown on `handle->Get()`.
+	 *
+	 * @param h The execution context, executor or strand to run the coroutine in.
+	 * @param f The coroutine body, taking a boost::asio::yield_context.
+	 *
+	 * @return Shared handle to f's result, which stays valid regardless of who drops it first.
+	 */
+	template<class Handler, class Function>
+	static auto SpawnSyncCoroutine(Handler& h, Function&& f)
+	{
+		using RetType = CoroutineResultType<Function>;
+
+		auto result = std::make_shared<SyncResult<RetType>>();
+
+		SpawnCoroutineImpl(
+			h,
+			[result,
+			 f = std::forward<Function>(f),
+			 _ = Defer{[result] { result->SetAbandoned(); }}](boost::asio::yield_context yc) mutable {
+				try {
+					if constexpr (std::is_void_v<RetType>) {
+						f(yc);
+						result->SetValue();
+					} else {
+						result->SetValue(f(yc));
+					}
+				} catch (const std::exception&) {
+					result->SetException(std::current_exception());
+				} catch (...) {
+					try {
+						Log(LogCritical, "IoEngine", "Exception in coroutine!");
+					} catch (...) {
+					}
+
+					// Required for proper stack unwinding when coroutines are destroyed.
+					// https://github.com/boostorg/coroutine/issues/39
+					throw;
+				}
+			}
+		);
+
+		return result;
+	}
+
+private:
+	template<class Function>
+	using CoroutineResultType = std::invoke_result_t<Function&, boost::asio::yield_context&>;
+
+	/**
+	 * Hands the fully wrapped coroutine body to whichever boost::asio::spawn() overload we have.
+	 */
+	template<class Handler, class Body>
+	static void SpawnCoroutineImpl(Handler& h, Body&& wrapper)
+	{
 #if BOOST_VERSION >= 108700
 		boost::asio::spawn(h,
 			std::allocator_arg, boost::context::protected_fixedsize_stack(GetCoroutineStackSize()),
-			std::move(wrapper),
+			std::forward<Body>(wrapper),
 			boost::asio::detached
 		);
 #else // BOOST_VERSION >= 108700
@@ -161,7 +355,6 @@ public:
 #endif // BOOST_VERSION >= 108700
 	}
 
-private:
 	IoEngine();
 
 	void RunEventLoop();
