@@ -80,8 +80,8 @@ public:
 
 	std::set<Checkable::Ptr> GetParents() const;
 	std::set<Checkable::Ptr> GetChildren() const;
-	std::set<Checkable::Ptr> GetAllChildren() const;
-	size_t GetAllChildrenCount() const;
+	std::set<Checkable::Ptr> GetAllChildren();
+	size_t GetAllChildrenCount();
 
 	void AddGroup(const String& name);
 
@@ -268,7 +268,7 @@ private:
 	std::unique_ptr<std::map<std::variant<Checkable*, String>, std::set<intrusive_ptr<Dependency>>>>
 		m_PendingDependencies {std::make_unique<decltype(m_PendingDependencies)::element_type>()};
 
-	void GetAllChildrenInternal(std::set<Checkable::Ptr>& seenChildren, int level = 0) const;
+	void GetAllChildrenInternal(std::set<Checkable::Ptr>& seenChildren, int level = 0);
 
 	/* Flapping */
 	static const std::map<String, int> m_FlappingStateFilterMap;

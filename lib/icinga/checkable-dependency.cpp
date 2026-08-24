@@ -251,7 +251,7 @@ std::set<Checkable::Ptr> Checkable::GetChildren() const
  *
  * @return int - Returns the total number of all the children of the current Checkable.
  */
-size_t Checkable::GetAllChildrenCount() const
+size_t Checkable::GetAllChildrenCount()
 {
 	// Are you thinking in making this more efficient? Please, don't.
 	// In order not to count the same child multiple times, we need to maintain a separate set of visited children,
@@ -259,7 +259,7 @@ size_t Checkable::GetAllChildrenCount() const
 	return GetAllChildren().size();
 }
 
-std::set<Checkable::Ptr> Checkable::GetAllChildren() const
+std::set<Checkable::Ptr> Checkable::GetAllChildren()
 {
 	std::set<Checkable::Ptr> children;
 
@@ -277,7 +277,7 @@ std::set<Checkable::Ptr> Checkable::GetAllChildren() const
  * @param seenChildren - A container to store all the traversed children into.
  * @param level - The current level of recursion.
  */
-void Checkable::GetAllChildrenInternal(std::set<Checkable::Ptr>& seenChildren, int level) const
+void Checkable::GetAllChildrenInternal(std::set<Checkable::Ptr>& seenChildren, int level)
 {
 	if (level > Dependency::MaxDependencyRecursionLevel) {
 		Log(LogWarning, "Checkable")
