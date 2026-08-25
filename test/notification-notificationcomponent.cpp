@@ -25,14 +25,14 @@ namespace {
  * This isn't actually an issue here because the name is very specific to the single use-case of
  * obtaining access to NotificationTimerHandler().
  */
-template<auto privateMemberFnPtr>
-struct InvokeTimerHandlerImpl
+template<auto privateMemberPtr>
+struct GetNotificationTimerImpl
 {
-	friend void InvokeTimerHandler(const NotificationComponent::Ptr& nc) { (*nc.*privateMemberFnPtr)(); }
+	friend Timer::Ptr GetNotificationTimer(const NotificationComponent::Ptr& nc) { return *nc.*privateMemberPtr; }
 };
-void InvokeTimerHandler(const NotificationComponent::Ptr& nc);
+Timer::Ptr GetNotificationTimer(const NotificationComponent::Ptr& nc);
 
-template struct InvokeTimerHandlerImpl<&NotificationComponent::NotificationTimerHandler>;
+template struct GetNotificationTimerImpl<&NotificationComponent::m_NotificationTimer>;
 
 } // namespace
 
@@ -86,6 +86,8 @@ object NotificationComponent "nc" {}
 
 		auto ret = ConfigItem::RunWithActivationContext(new Function("CreateTestObjects", createObjects));
 		BOOST_REQUIRE(ret);
+
+		GetNotificationTimer(NotificationComponent::GetByName("nc"))->Stop(true);
 
 		m_Host = Host::GetByName("h1");
 		BOOST_REQUIRE(m_Host);
@@ -190,7 +192,8 @@ object NotificationComponent "nc" {}
 	static void NotificationTimerHandler()
 	{
 		auto nc = NotificationComponent::GetByName("nc");
-		InvokeTimerHandler(nc);
+		auto timer = GetNotificationTimer(nc);
+		timer->OnTimerExpired(&*timer);
 	}
 
 	void ReceiveCheckResults(std::size_t num, ServiceState state)
