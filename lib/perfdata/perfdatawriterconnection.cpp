@@ -67,37 +67,28 @@ void PerfdataWriterConnection::Disconnect()
 		return;
 	}
 
-	std::promise<void> promise;
+	IoEngine::SpawnSyncCoroutine(m_Strand, [&](boost::asio::yield_context yc) {
+		/* Canceling and expecting an error to be surfaced by Asio immedietly doesn't work.
+		 * Some operations have sub-states that will not only need yields but also some time
+		 * for Asio to queue the handler and return the error code.
+		 * By repeating the cancellation with a timer we reliably ensure that the Send()
+		 * coroutine has completed before we go into the actual Disconnect routine.
+		 */
+		while (m_SendActive) {
+			Visit(m_Stream, [](const auto& stream) {
+				if (stream->lowest_layer().is_open()) {
+					stream->lowest_layer().cancel();
+				}
+			});
+			m_ReconnectTimer.cancel();
 
-	IoEngine::SpawnCoroutine(m_Strand, [&](boost::asio::yield_context yc) {
-		try {
-			/* Canceling and expecting an error to be surfaced by Asio immedietly doesn't work.
-			 * Some operations have sub-states that will not only need yields but also some time
-			 * for Asio to queue the handler and return the error code.
-			 * By repeating the cancellation with a timer we reliably ensure that the Send()
-			 * coroutine has completed before we go into the actual Disconnect routine.
-			 */
-			while (m_SendActive) {
-				Visit(m_Stream, [](const auto& stream) {
-					if (stream->lowest_layer().is_open()) {
-						stream->lowest_layer().cancel();
-					}
-				});
-				m_ReconnectTimer.cancel();
-
-				boost::asio::steady_timer sendPollTimer{IoEngine::Get().GetIoContext(), 1ms};
-				boost::system::error_code ec;
-				sendPollTimer.async_wait(yc[ec]);
-			}
-
-			Disconnect(std::move(yc));
-			promise.set_value();
-		} catch (const std::exception& ex) {
-			promise.set_exception(std::current_exception());
+			boost::asio::steady_timer sendPollTimer{IoEngine::Get().GetIoContext(), 1ms};
+			boost::system::error_code ec;
+			sendPollTimer.async_wait(yc[ec]);
 		}
-	});
 
-	promise.get_future().get();
+		Disconnect(std::move(yc));
+	})->Get();
 }
 
 AsioTlsOrTcpStream PerfdataWriterConnection::MakeStream() const
