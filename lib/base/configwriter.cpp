@@ -72,8 +72,7 @@ void ConfigWriter::EmitScope(std::ostream& fp, int indentLevel, const Dictionary
 	}
 
 	if (val) {
-		ObjectLock olock(val);
-		for (const Dictionary::Pair& kv : val) {
+		for (auto& kv : val->GetItems()) {
 			fp << "\n";
 			EmitIndent(fp, indentLevel);
 
