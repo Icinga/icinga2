@@ -65,6 +65,8 @@ public:
 
 	std::vector<String> GetKeys() const;
 
+	DictionaryData GetItems() const;
+
 	static Object::Ptr GetPrototype();
 
 	Object::Ptr Clone() const override;
