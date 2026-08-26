@@ -14,6 +14,7 @@
 #include "test/utils.hpp"
 #include <boost/algorithm/string/replace.hpp>
 #include <BoostTestTargetConfig.h>
+#include <json.hpp>
 #include <limits>
 #include <cmath>
 
@@ -56,7 +57,9 @@ BOOST_AUTO_TEST_CASE(encode)
 		},
 	}));
 
-	String output (R"EOF({
+	// Dictionary iteration order is not guaranteed, so the top-level object's keys may be
+	// serialized in any order. Compare the parsed JSON structure instead of the exact text.
+	nlohmann::json expected = nlohmann::json::parse(R"EOF({
     "array": [
         {}
     ],
@@ -81,21 +84,20 @@ BOOST_AUTO_TEST_CASE(encode)
 )EOF");
 
 	auto got(JsonEncode(input, true));
-	BOOST_CHECK_EQUAL(output, got);
+	BOOST_CHECK(nlohmann::json::parse(got.GetData()) == expected);
+	BOOST_CHECK(got.Contains("\n    \"")); // pretty-printed output must actually be indented
 	BOOST_CHECK_EQUAL(emptyGenCounter, 0); // Ensure the transformation function was never invoked.
 	input->Set("generator", new ValueGenerator{vec, generate});
 
 	std::ostringstream oss;
 	JsonEncode(input, oss, true);
 	BOOST_CHECK_EQUAL(emptyGenCounter, 0); // Ensure the transformation function was never invoked.
-	BOOST_CHECK_EQUAL(output, oss.str());
-
-	boost::algorithm::replace_all(output, " ", "");
-	boost::algorithm::replace_all(output, "Objectoftype'Function'", "Object of type 'Function'");
-	boost::algorithm::replace_all(output, "\n", "");
+	BOOST_CHECK(nlohmann::json::parse(oss.str()) == expected);
 
 	input->Set("generator", new ValueGenerator{vec, generate});
-	BOOST_CHECK(JsonEncode(input, false) == output);
+	String compact (JsonEncode(input, false));
+	BOOST_CHECK(!compact.Contains("\n")); // compact output must not be indented
+	BOOST_CHECK(nlohmann::json::parse(compact.GetData()) == expected);
 	BOOST_CHECK_EQUAL(emptyGenCounter, 0); // Ensure the transformation function was never invoked.
 }
 
