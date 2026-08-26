@@ -10,7 +10,7 @@
 
 using namespace icinga;
 
-template class std::map<String, Value>;
+template class std::unordered_map<String, Value>;
 
 REGISTER_PRIMITIVE_TYPE(Dictionary, Object, Dictionary::GetPrototype());
 

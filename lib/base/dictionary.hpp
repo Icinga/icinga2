@@ -10,8 +10,8 @@
 #include "base/objectlock.hpp"
 #include "base/value.hpp"
 #include <boost/range/iterator.hpp>
-#include <map>
 #include <shared_mutex>
+#include <unordered_map>
 #include <vector>
 
 namespace icinga
@@ -32,11 +32,11 @@ public:
 	/**
 	 * An iterator that can be used to iterate over dictionary elements.
 	 */
-	typedef std::map<String, Value>::iterator Iterator;
+	typedef std::unordered_map<String, Value>::iterator Iterator;
 
-	typedef std::map<String, Value>::size_type SizeType;
+	typedef std::unordered_map<String, Value>::size_type SizeType;
 
-	typedef std::map<String, Value>::value_type Pair;
+	typedef std::unordered_map<String, Value>::value_type Pair;
 
 	Dictionary() = default;
 	Dictionary(const DictionaryData& other);
@@ -83,7 +83,7 @@ public:
 	bool GetOwnField(const String& field, Value *result) const override;
 
 private:
-	std::map<String, Value> m_Data; /**< The data for the dictionary. */
+	std::unordered_map<String, Value> m_Data; /**< The data for the dictionary. */
 	mutable std::shared_timed_mutex m_DataMutex;
 	Atomic<bool> m_Frozen{false};
 };
@@ -93,6 +93,6 @@ Dictionary::Iterator end(const Dictionary::Ptr& x);
 
 }
 
-extern template class std::map<icinga::String, icinga::Value>;
+extern template class std::unordered_map<icinga::String, icinga::Value>;
 
 #endif /* DICTIONARY_H */
