@@ -1,24 +1,20 @@
 # SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-mkclass_target(icingadb.ti icingadb-ti.cpp icingadb-ti.hpp)
-
 mkembedconfig_target(icingadb-itl.conf icingadb-itl.cpp)
 
-set(icingadb_SOURCES
-  icingadb.cpp icingadb-objects.cpp icingadb-stats.cpp icingadb-utility.cpp icingadb-worker.cpp redisconnection.cpp icingadb-ti.hpp
+add_library(icingadb OBJECT
+  icingadb.cpp icingadb-objects.cpp icingadb-stats.cpp icingadb-utility.cpp icingadb-worker.cpp redisconnection.cpp icingadb.ti
   icingadbchecktask.cpp icingadb-itl.cpp
 )
 
-if(ICINGA2_UNITY_BUILD)
-    mkunity_target(icingadb icingadb icingadb_SOURCES)
-endif()
+target_mkclass(icingadb icingadb_generated)
 
-add_library(icingadb OBJECT ${icingadb_SOURCES})
+target_link_libraries(icingadb PUBLIC
+  common
+)
 
-include_directories(SYSTEM ${icinga2_SOURCE_DIR}/third-party)
-
-add_dependencies(icingadb base config icinga remote)
+add_dependencies(icingadb base_generated icinga_generated remote_generated)
 
 set_target_properties (
   icingadb PROPERTIES
