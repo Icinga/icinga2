@@ -264,6 +264,8 @@ std::vector<String> Dictionary::GetKeys() const
 		keys.push_back(kv.first);
 	}
 
+	std::sort(keys.begin(), keys.end());
+
 	return keys;
 }
 
