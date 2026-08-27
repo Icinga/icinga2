@@ -20,6 +20,7 @@
 #include <cstdint>
 #include <functional>
 #include <limits>
+#include <unordered_map>
 #include <variant>
 
 namespace icinga
@@ -271,7 +272,7 @@ private:
 	void GetAllChildrenInternal(std::set<Checkable::Ptr>& seenChildren, int level = 0) const;
 
 	/* Flapping */
-	static const std::map<String, int> m_FlappingStateFilterMap;
+	static const std::unordered_map<String, int> m_FlappingStateFilterMap;
 
 	void UpdateFlappingStatus(ServiceState newState);
 	static int ServiceStateToFlappingFilter(ServiceState state);
