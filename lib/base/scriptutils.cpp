@@ -451,7 +451,7 @@ Array::Ptr ScriptUtils::GetTemplates(const Type::Ptr& type)
 
 	ArrayData result;
 
-	for (const ConfigItem::Ptr& item : ConfigItem::GetItems(type)) {
+	for (auto& item : ConfigItem::GetItems(type, true)) {
 		if (item->IsAbstract())
 			result.push_back(GetTargetForTemplate(item));
 	}
