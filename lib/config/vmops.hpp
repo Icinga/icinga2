@@ -19,7 +19,7 @@
 #include "base/convert.hpp"
 #include "base/objectlock.hpp"
 #include <algorithm>
-#include <map>
+#include <unordered_map>
 #include <vector>
 
 namespace icinga
@@ -93,7 +93,7 @@ public:
 	}
 
 	static inline Value NewFunction(ScriptFrame& frame, const String& name, const std::vector<String>& argNames,
-		const std::map<String, std::unique_ptr<Expression> >& closedVars, const Expression::Ptr& expression)
+		const std::unordered_map<String, std::unique_ptr<Expression>>& closedVars, const Expression::Ptr& expression)
 	{
 		auto evaluatedClosedVars = EvaluateClosedVars(frame, closedVars);
 
@@ -118,7 +118,7 @@ public:
 	}
 
 	static inline Value NewApply(ScriptFrame& frame, const String& type, const String& target, const String& name, const Expression::Ptr& filter,
-		const String& package, const String& fkvar, const String& fvvar, const Expression::Ptr& fterm, const std::map<String, std::unique_ptr<Expression> >& closedVars,
+		const String& package, const String& fkvar, const String& fvvar, const Expression::Ptr& fterm, const std::unordered_map<String, std::unique_ptr<Expression>>& closedVars,
 		bool ignoreOnError, const Expression::Ptr& expression, const DebugInfo& debugInfo = DebugInfo())
 	{
 		ApplyRule::AddRule(type, target, name, expression, filter, package, fkvar,
@@ -128,7 +128,7 @@ public:
 	}
 
 	static inline Value NewObject(ScriptFrame& frame, bool abstract, const Type::Ptr& type, const String& name, const Expression::Ptr& filter,
-		const String& zone, const String& package, bool defaultTmpl, bool ignoreOnError, const std::map<String, std::unique_ptr<Expression> >& closedVars, const Expression::Ptr& expression, const DebugInfo& debugInfo = DebugInfo())
+		const String& zone, const String& package, bool defaultTmpl, bool ignoreOnError, const std::unordered_map<String, std::unique_ptr<Expression>>& closedVars, const Expression::Ptr& expression, const DebugInfo& debugInfo = DebugInfo())
 	{
 		ConfigItemBuilder item{debugInfo};
 
@@ -251,7 +251,7 @@ public:
 	}
 
 private:
-	static inline Dictionary::Ptr EvaluateClosedVars(ScriptFrame& frame, const std::map<String, std::unique_ptr<Expression> >& closedVars)
+	static inline Dictionary::Ptr EvaluateClosedVars(ScriptFrame& frame, const std::unordered_map<String, std::unique_ptr<Expression>>& closedVars)
 	{
 		if (closedVars.empty())
 			return nullptr;
