@@ -15,6 +15,7 @@
 #include <set>
 #include <map>
 #include <queue>
+#include <unordered_map>
 
 namespace icinga
 {
@@ -93,14 +94,14 @@ private:
 class EventsFilter
 {
 public:
-	EventsFilter(std::map<Expression::Ptr, std::set<EventsInbox::Ptr>> inboxes);
+	EventsFilter(std::unordered_map<Expression::Ptr, std::set<EventsInbox::Ptr>> inboxes);
 
 	operator bool();
 
 	void Push(Dictionary::Ptr event);
 
 private:
-	std::map<Expression::Ptr, std::set<EventsInbox::Ptr>> m_Inboxes;
+	std::unordered_map<Expression::Ptr, std::set<EventsInbox::Ptr>> m_Inboxes;
 };
 
 class EventsRouter
@@ -123,7 +124,7 @@ private:
 	~EventsRouter() = default;
 
 	std::mutex m_Mutex;
-	std::map<EventType, std::map<Expression::Ptr, std::set<EventsInbox::Ptr>>> m_Subscribers;
+	std::unordered_map<EventType, std::unordered_map<Expression::Ptr, std::set<EventsInbox::Ptr>>> m_Subscribers;
 };
 
 }

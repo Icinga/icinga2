@@ -124,7 +124,7 @@ const EventsInbox::Ptr& EventsSubscriber::GetInbox()
 	return m_Inbox;
 }
 
-EventsFilter::EventsFilter(std::map<Expression::Ptr, std::set<EventsInbox::Ptr>> inboxes)
+EventsFilter::EventsFilter(std::unordered_map<Expression::Ptr, std::set<EventsInbox::Ptr>> inboxes)
 	: m_Inboxes(std::move(inboxes))
 {
 }
