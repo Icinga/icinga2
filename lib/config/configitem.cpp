@@ -754,7 +754,7 @@ bool ConfigItem::RunWithActivationContext(const Function::Ptr& function)
 	return true;
 }
 
-std::vector<ConfigItem::Ptr> ConfigItem::GetItems(const Type::Ptr& type)
+std::vector<ConfigItem::Ptr> ConfigItem::GetItems(const Type::Ptr& type, bool sorted)
 {
 	std::vector<ConfigItem::Ptr> items;
 
@@ -769,6 +769,12 @@ std::vector<ConfigItem::Ptr> ConfigItem::GetItems(const Type::Ptr& type)
 
 	for (const ItemMap::value_type& kv : it->second) {
 		items.push_back(kv.second);
+	}
+
+	if (sorted) {
+		std::sort(items.begin(), items.end(), [](const ConfigItem::Ptr& a, const ConfigItem::Ptr& b) {
+			return a->GetName() < b->GetName();
+		});
 	}
 
 	return items;
@@ -790,6 +796,12 @@ std::vector<ConfigItem::Ptr> ConfigItem::GetDefaultTemplates(const Type::Ptr& ty
 	for (const ItemMap::value_type& kv : it->second) {
 		items.push_back(kv.second);
 	}
+
+	/* Default templates are applied to a new object in this order, so it must be deterministic:
+	 * otherwise, conflicting attributes set by two default templates would be resolved arbitrarily. */
+	std::sort(items.begin(), items.end(), [](const ConfigItem::Ptr& a, const ConfigItem::Ptr& b) {
+		return a->GetName() < b->GetName();
+	});
 
 	return items;
 }
