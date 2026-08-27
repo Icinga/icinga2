@@ -249,12 +249,12 @@ Object::Ptr Dictionary::Clone() const
 }
 
 /**
- * Returns an ordered vector containing all keys
- * which are currently set in this directory.
+ * Returns a vector containing all keys which are currently set in this dictionary.
  *
- * @returns an ordered vector of key names
+ * @param sorted Whether the returned vector should be sorted by key.
+ * @returns a vector of key names
  */
-std::vector<String> Dictionary::GetKeys() const
+std::vector<String> Dictionary::GetKeys(bool sorted) const
 {
 	std::shared_lock<std::shared_timed_mutex> lock (m_DataMutex);
 
@@ -264,7 +264,9 @@ std::vector<String> Dictionary::GetKeys() const
 		keys.push_back(kv.first);
 	}
 
-	std::sort(keys.begin(), keys.end());
+	if (sorted) {
+		std::sort(keys.begin(), keys.end());
+	}
 
 	return keys;
 }

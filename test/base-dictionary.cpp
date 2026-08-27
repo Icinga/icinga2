@@ -194,7 +194,7 @@ BOOST_AUTO_TEST_CASE(keys_ordered)
 		dictionary->Set(std::to_string(Utility::Random()), Utility::Random());
 	}
 
-	std::vector<String> keys = dictionary->GetKeys();
+	auto keys (dictionary->GetKeys(true));
 	BOOST_CHECK(std::is_sorted(keys.begin(), keys.end()));
 }
 

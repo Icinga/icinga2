@@ -391,7 +391,7 @@ Array::Ptr ScriptUtils::Keys(const Object::Ptr& obj)
 	Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(obj);
 
 	if (dict) {
-		for (auto& key : dict->GetKeys()) {
+		for (auto& key : dict->GetKeys(true)) {
 			result.push_back(std::move(key));
 		}
 	}

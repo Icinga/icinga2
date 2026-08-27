@@ -63,7 +63,7 @@ public:
 	void CopyTo(const Dictionary::Ptr& dest) const;
 	Dictionary::Ptr ShallowClone() const;
 
-	std::vector<String> GetKeys() const;
+	std::vector<String> GetKeys(bool sorted = false) const;
 
 	DictionaryData GetItems() const;
 

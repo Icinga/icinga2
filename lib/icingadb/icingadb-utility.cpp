@@ -492,13 +492,13 @@ std::vector<String> IcingaDB::GetDictionaryDeletedKeys(const Dictionary::Ptr& di
 		return deletedKeys;
 	}
 
-	std::vector<String> oldKeys = dictOld->GetKeys();
+	auto oldKeys (dictOld->GetKeys(true));
 
 	if (!dictNew) {
 		return oldKeys;
 	}
 
-	std::vector<String> newKeys = dictNew->GetKeys();
+	auto newKeys (dictNew->GetKeys(true));
 
 	std::set_difference(oldKeys.begin(), oldKeys.end(), newKeys.begin(), newKeys.end(), std::back_inserter(deletedKeys));
 
