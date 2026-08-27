@@ -194,7 +194,7 @@ public:
 
 			Dictionary::Ptr dict = value;
 
-			for (auto& key : dict->GetKeys()) {
+			for (auto& key : dict->GetKeys(true)) {
 				frame.Locals->Set(fkvar, key);
 				frame.Locals->Set(fvvar, dict->Get(key));
 				ExpressionResult res = expression->Evaluate(frame);

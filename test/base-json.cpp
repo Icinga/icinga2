@@ -121,7 +121,7 @@ BOOST_AUTO_TEST_CASE(decode)
 	boost::algorithm::replace_all(input, "Ill", "Ill\xC3");
 
 	auto output ((Dictionary::Ptr)JsonDecode(input));
-	BOOST_CHECK(output->GetKeys() == std::vector<String>({"array", "false", "float", "int", "null", "string", "true", "uint"}));
+	BOOST_CHECK(output->GetKeys(true) == std::vector<String>({"array", "false", "float", "int", "null", "string", "true", "uint"}));
 
 	auto array ((Array::Ptr)output->Get("array"));
 	BOOST_CHECK(array->GetLength() == 1u);

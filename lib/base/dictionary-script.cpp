@@ -72,7 +72,7 @@ static Array::Ptr DictionaryKeys()
 	Dictionary::Ptr self = static_cast<Dictionary::Ptr>(vframe->Self);
 	REQUIRE_NOT_NULL(self);
 
-	auto keys (self->GetKeys());
+	auto keys (self->GetKeys(true));
 	return new Array(ArrayData(std::make_move_iterator(keys.begin()), std::make_move_iterator(keys.end())));
 }
 
