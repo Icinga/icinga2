@@ -20,8 +20,8 @@ using namespace icinga;
 REGISTER_TYPE(Notification);
 INITIALIZE_ONCE(&Notification::StaticInitialize);
 
-std::map<String, int> Notification::m_StateFilterMap;
-std::map<String, int> Notification::m_TypeFilterMap;
+std::unordered_map<String, int> Notification::m_StateFilterMap;
+std::unordered_map<String, int> Notification::m_TypeFilterMap;
 
 boost::signals2::signal<void (const Notification::Ptr&, const MessageOrigin::Ptr&)> Notification::OnNextNotificationChanged;
 boost::signals2::signal<void (const Notification::Ptr&, const String&, uint_fast8_t, const MessageOrigin::Ptr&)> Notification::OnLastNotifiedStatePerUserUpdated;
@@ -665,7 +665,7 @@ int icinga::HostStateToFilter(HostState state)
 	}
 }
 
-String Notification::NotificationFilterToString(int filter, const std::map<String, int>& filterMap)
+String Notification::NotificationFilterToString(int filter, const std::unordered_map<String, int>& filterMap)
 {
 	std::vector<String> sFilters;
 
@@ -673,6 +673,8 @@ String Notification::NotificationFilterToString(int filter, const std::map<Strin
 		if (filter & kv.second)
 			sFilters.push_back(kv.first);
 	}
+
+	std::sort(sFilters.begin(), sFilters.end());
 
 	return Utility::NaturalJoin(sFilters);
 }
@@ -856,12 +858,12 @@ Endpoint::Ptr Notification::GetCommandEndpoint() const
 	return Endpoint::GetByName(GetCommandEndpointRaw());
 }
 
-const std::map<String, int>& Notification::GetStateFilterMap()
+const std::unordered_map<String, int>& Notification::GetStateFilterMap()
 {
 	return m_StateFilterMap;
 }
 
-const std::map<String, int>& Notification::GetTypeFilterMap()
+const std::unordered_map<String, int>& Notification::GetTypeFilterMap()
 {
 	return m_TypeFilterMap;
 }
