@@ -14,6 +14,7 @@
 #include <future>
 #include <iostream>
 #include <stack>
+#include <unordered_map>
 
 typedef union YYSTYPE YYSTYPE;
 typedef void *yyscan_t;
@@ -128,7 +129,7 @@ private:
 
 	static std::vector<String> m_IncludeSearchDirs;
 	static std::mutex m_ZoneDirsMutex;
-	static std::map<String, std::vector<ZoneFragment> > m_ZoneDirs;
+	static std::unordered_map<String, std::vector<ZoneFragment>> m_ZoneDirs;
 
 	void InitializeScanner();
 	void DestroyScanner();
