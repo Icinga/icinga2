@@ -6,6 +6,7 @@
 #include "base/scriptframe.hpp"
 #include "base/objectlock.hpp"
 #include "base/exception.hpp"
+#include <limits>
 
 using namespace icinga;
 
@@ -70,6 +71,20 @@ static Array::Ptr ArraySort(const std::vector<Value>& args)
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
 	REQUIRE_NOT_NULL(self);
+
+	// Using the signed type to have a more conservative max than with Array::SizeType
+	constexpr auto max = std::numeric_limits<decltype(self->End() - self->Begin())>::max();
+
+	// Dividing by 4, so that the sort algorithm may still multiply every index with 2
+	constexpr auto limit = max / 4;
+
+	// Keep sorting duration below 1 second
+	constexpr decltype(limit) sandboxLimit = 1L << 17;
+	static_assert(sandboxLimit <= limit);
+
+	if (self->GetLength() > static_cast<Array::SizeType>(vframe->Sandboxed ? sandboxLimit : limit)) {
+		BOOST_THROW_EXCEPTION(ScriptError("Array is too large."));
+	}
 
 	Array::Ptr arr = self->ShallowClone();
 
