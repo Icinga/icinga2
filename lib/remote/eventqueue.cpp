@@ -108,7 +108,7 @@ Dictionary::Ptr EventsInbox::Shift(boost::asio::yield_context yc, std::chrono::m
 	return event;
 }
 
-EventsSubscriber::EventsSubscriber(std::set<EventType> types, String filter, const String& filterSource, ApiUser::Ptr user)
+EventsSubscriber::EventsSubscriber(std::unordered_set<EventType> types, String filter, const String& filterSource, ApiUser::Ptr user)
 	: m_Types(std::move(types)), m_Inbox(new EventsInbox(std::move(filter), filterSource, std::move(user)))
 {
 	EventsRouter::GetInstance().Subscribe(m_Types, m_Inbox);
@@ -173,7 +173,7 @@ EventsRouter& EventsRouter::GetInstance()
 	return m_Instance;
 }
 
-void EventsRouter::Subscribe(const std::set<EventType>& types, const EventsInbox::Ptr& inbox)
+void EventsRouter::Subscribe(const std::unordered_set<EventType>& types, const EventsInbox::Ptr& inbox)
 {
 	const auto& filter (inbox->GetFilter());
 	std::unique_lock<std::mutex> lock (m_Mutex);
@@ -195,7 +195,7 @@ void EventsRouter::Subscribe(const std::set<EventType>& types, const EventsInbox
 	}
 }
 
-void EventsRouter::Unsubscribe(const std::set<EventType>& types, const EventsInbox::Ptr& inbox)
+void EventsRouter::Unsubscribe(const std::unordered_set<EventType>& types, const EventsInbox::Ptr& inbox)
 {
 	const auto& filter (inbox->GetFilter());
 	std::unique_lock<std::mutex> lock (m_Mutex);

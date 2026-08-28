@@ -77,7 +77,7 @@ private:
 class EventsSubscriber
 {
 public:
-	EventsSubscriber(std::set<EventType> types, String filter, const String& filterSource, ApiUser::Ptr user);
+	EventsSubscriber(std::unordered_set<EventType> types, String filter, const String& filterSource, ApiUser::Ptr user);
 	EventsSubscriber(const EventsSubscriber&) = delete;
 	EventsSubscriber(EventsSubscriber&&) = delete;
 	EventsSubscriber& operator=(const EventsSubscriber&) = delete;
@@ -87,7 +87,7 @@ public:
 	const EventsInbox::Ptr& GetInbox();
 
 private:
-	std::set<EventType> m_Types;
+	std::unordered_set<EventType> m_Types;
 	EventsInbox::Ptr m_Inbox;
 };
 
@@ -109,8 +109,8 @@ class EventsRouter
 public:
 	static EventsRouter& GetInstance();
 
-	void Subscribe(const std::set<EventType>& types, const EventsInbox::Ptr& inbox);
-	void Unsubscribe(const std::set<EventType>& types, const EventsInbox::Ptr& inbox);
+	void Subscribe(const std::unordered_set<EventType>& types, const EventsInbox::Ptr& inbox);
+	void Unsubscribe(const std::unordered_set<EventType>& types, const EventsInbox::Ptr& inbox);
 	EventsFilter GetInboxes(EventType type);
 
 private:
