@@ -137,8 +137,19 @@ struct PendingDependencyEdgeItem
 struct RelationsDeletionItem
 {
 	std::string ID;
+
+	struct KeyHash
+	{
+		std::size_t operator()(const std::pair<RedisConnection::QueryArg, RedisConnection::QueryArg>& key) const noexcept
+		{
+			std::size_t seed = std::hash<RedisConnection::QueryArg>{}(key.first);
+			boost::hash_combine(seed, std::hash<RedisConnection::QueryArg>{}(key.second));
+			return seed;
+		}
+	};
+
 	// Set of Redis keys from which to delete a relation, along with their checksums (if any).
-	using RelationsKeySet = std::set<std::pair<RedisConnection::QueryArg, RedisConnection::QueryArg>>;
+	using RelationsKeySet = std::unordered_set<std::pair<RedisConnection::QueryArg, RedisConnection::QueryArg>, KeyHash>;
 	RelationsKeySet Relations;
 
 	RelationsDeletionItem(const String& id, const RelationsKeySet& relations);
