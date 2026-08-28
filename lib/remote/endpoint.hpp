@@ -37,7 +37,7 @@ public:
 
 	void AddClient(const intrusive_ptr<JsonRpcConnection>& client);
 	void RemoveClient(const intrusive_ptr<JsonRpcConnection>& client);
-	std::set<intrusive_ptr<JsonRpcConnection> > GetClients() const;
+	std::unordered_set<intrusive_ptr<JsonRpcConnection>> GetClients() const;
 
 	intrusive_ptr<Zone> GetZone() const;
 
@@ -69,7 +69,7 @@ protected:
 
 private:
 	mutable std::mutex m_ClientsLock;
-	std::set<intrusive_ptr<JsonRpcConnection> > m_Clients;
+	std::unordered_set<intrusive_ptr<JsonRpcConnection>> m_Clients;
 	intrusive_ptr<Zone> m_Zone;
 	std::unordered_map<intrusive_ptr<ApiFunction>, Atomic<uint_fast64_t>> m_MessageCounters;
 

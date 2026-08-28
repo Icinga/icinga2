@@ -166,9 +166,9 @@ NotificationCommand::Ptr Notification::GetCommand() const
 	return NotificationCommand::GetByName(GetCommandRaw());
 }
 
-std::set<User::Ptr> Notification::GetUsers() const
+std::unordered_set<User::Ptr> Notification::GetUsers() const
 {
-	std::set<User::Ptr> result;
+	std::unordered_set<User::Ptr> result;
 
 	Array::Ptr users = GetUsersRaw();
 
@@ -188,9 +188,9 @@ std::set<User::Ptr> Notification::GetUsers() const
 	return result;
 }
 
-std::set<UserGroup::Ptr> Notification::GetUserGroups() const
+std::unordered_set<UserGroup::Ptr> Notification::GetUserGroups() const
 {
-	std::set<UserGroup::Ptr> result;
+	std::unordered_set<UserGroup::Ptr> result;
 
 	Array::Ptr groups = GetUserGroupsRaw();
 
@@ -428,17 +428,17 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 			SetLastProblemNotification(now);
 	}
 
-	std::set<User::Ptr> allUsers;
+	std::unordered_set<User::Ptr> allUsers;
 
-	std::set<User::Ptr> users = GetUsers();
+	auto users (GetUsers());
 	std::copy(users.begin(), users.end(), std::inserter(allUsers, allUsers.begin()));
 
 	for (const UserGroup::Ptr& ug : GetUserGroups()) {
-		std::set<User::Ptr> members = ug->GetMembers();
+		auto members (ug->GetMembers());
 		std::copy(members.begin(), members.end(), std::inserter(allUsers, allUsers.begin()));
 	}
 
-	std::set<User::Ptr> allNotifiedUsers;
+	std::unordered_set<User::Ptr> allNotifiedUsers;
 	Array::Ptr notifiedProblemUsers = GetNotifiedProblemUsers();
 
 	for (const User::Ptr& user : allUsers) {

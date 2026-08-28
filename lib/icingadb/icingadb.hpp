@@ -316,7 +316,7 @@ private:
 	void DeleteState(const String& id, RedisConnection::QueryArg redisObjKey, RedisConnection::QueryArg redisChecksumKey = "") const;
 
 	void SendSentNotification(
-		const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::set<User::Ptr>& users,
+		const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::unordered_set<User::Ptr>& users,
 		NotificationType type, const CheckResult::Ptr& cr, const String& author, const String& text, double sendTime
 	);
 
@@ -376,14 +376,14 @@ private:
 	static String GetLowerCaseTypeNameDB(const ConfigObject::Ptr& obj);
 	static bool PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& attributes);
 
-	static void ReachabilityChangeHandler(const std::set<Checkable::Ptr>& children);
+	static void ReachabilityChangeHandler(const std::unordered_set<Checkable::Ptr>& children);
 	static void StateChangeHandler(const ConfigObject::Ptr& object, const CheckResult::Ptr& cr, StateType type);
 	static void VersionChangedHandler(const ConfigObject::Ptr& object);
 	static void DowntimeStartedHandler(const Downtime::Ptr& downtime);
 	static void DowntimeRemovedHandler(const Downtime::Ptr& downtime);
 
 	static void NotificationSentToAllUsersHandler(
-		const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::set<User::Ptr>& users,
+		const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::unordered_set<User::Ptr>& users,
 		NotificationType type, const CheckResult::Ptr& cr, const String& author, const String& text
 	);
 

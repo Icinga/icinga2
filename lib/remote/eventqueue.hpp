@@ -12,7 +12,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <mutex>
-#include <set>
+#include <unordered_set>
 #include <map>
 #include <queue>
 #include <unordered_map>
@@ -94,14 +94,14 @@ private:
 class EventsFilter
 {
 public:
-	EventsFilter(std::unordered_map<Expression::Ptr, std::set<EventsInbox::Ptr>> inboxes);
+	EventsFilter(std::unordered_map<Expression::Ptr, std::unordered_set<EventsInbox::Ptr>> inboxes);
 
 	operator bool();
 
 	void Push(Dictionary::Ptr event);
 
 private:
-	std::unordered_map<Expression::Ptr, std::set<EventsInbox::Ptr>> m_Inboxes;
+	std::unordered_map<Expression::Ptr, std::unordered_set<EventsInbox::Ptr>> m_Inboxes;
 };
 
 class EventsRouter
@@ -124,7 +124,7 @@ private:
 	~EventsRouter() = default;
 
 	std::mutex m_Mutex;
-	std::unordered_map<EventType, std::unordered_map<Expression::Ptr, std::set<EventsInbox::Ptr>>> m_Subscribers;
+	std::unordered_map<EventType, std::unordered_map<Expression::Ptr, std::unordered_set<EventsInbox::Ptr>>> m_Subscribers;
 };
 
 }

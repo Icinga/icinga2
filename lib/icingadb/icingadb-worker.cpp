@@ -368,7 +368,7 @@ void IcingaDB::EnqueueDependencyChildRemoved(
 		}
 	}
 
-	std::set<Checkable*> detachedParents;
+	std::unordered_set<Checkable*> detachedParents;
 	for (const auto& dependency : dependencies) {
 		const auto& parent(dependency->GetParent());
 		if (auto [_, inserted] = detachedParents.insert(dependency->GetParent().get()); inserted) {
