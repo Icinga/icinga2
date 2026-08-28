@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+mkclass_target(accesslogger.ti accesslogger-ti.cpp accesslogger-ti.hpp)
 mkclass_target(application.ti application-ti.cpp application-ti.hpp)
 mkclass_target(configobject.ti configobject-ti.cpp configobject-ti.hpp)
 mkclass_target(configuration.ti configuration-ti.cpp configuration-ti.hpp)
@@ -15,6 +16,7 @@ mkclass_target(sysloglogger.ti sysloglogger-ti.cpp sysloglogger-ti.hpp)
 
 set(base_SOURCES
   i2-base.hpp
+  accesslogger.cpp accesslogger.hpp accesslogger-ti.hpp
   application.cpp application.hpp application-ti.hpp application-version.cpp application-environment.cpp
   array.cpp array.hpp array-script.cpp
   atomic.hpp
