@@ -7,7 +7,7 @@
 #include "base/string.hpp"
 #include <condition_variable>
 #include <mutex>
-#include <set>
+#include <unordered_set>
 #include <unordered_map>
 
 #ifndef _WIN32
@@ -106,7 +106,7 @@ private:
 
 	static std::mutex m_Mutex;
 	static std::condition_variable m_CV;
-	static std::unordered_map<Type*, std::set<String>> m_LockedObjectNames;
+	static std::unordered_map<Type*, std::unordered_set<String>> m_LockedObjectNames;
 };
 
 }
