@@ -34,6 +34,7 @@ using namespace icinga;
 std::mutex ConfigItem::m_Mutex;
 ConfigItem::TypeMap ConfigItem::m_Items;
 ConfigItem::TypeMap ConfigItem::m_DefaultTemplates;
+std::unordered_map<Type::Ptr, std::vector<ConfigItem::Ptr>> ConfigItem::m_SortedDefaultTemplatesCache;
 ConfigItem::ItemList ConfigItem::m_UnnamedItems;
 ConfigItem::IgnoredItemList ConfigItem::m_IgnoredItems;
 
@@ -346,8 +347,10 @@ void ConfigItem::Register()
 
 		m_Items[m_Type][m_Name] = this;
 
-		if (m_DefaultTmpl)
+		if (m_DefaultTmpl) {
 			m_DefaultTemplates[m_Type][m_Name] = this;
+			m_SortedDefaultTemplatesCache.erase(m_Type);
+		}
 	}
 }
 
@@ -365,6 +368,7 @@ void ConfigItem::Unregister()
 	m_UnnamedItems.erase(std::remove(m_UnnamedItems.begin(), m_UnnamedItems.end(), this), m_UnnamedItems.end());
 	m_Items[m_Type].erase(m_Name);
 	m_DefaultTemplates[m_Type].erase(m_Name);
+	m_SortedDefaultTemplatesCache.erase(m_Type);
 }
 
 /**
@@ -782,26 +786,34 @@ std::vector<ConfigItem::Ptr> ConfigItem::GetItems(const Type::Ptr& type, bool so
 
 std::vector<ConfigItem::Ptr> ConfigItem::GetDefaultTemplates(const Type::Ptr& type)
 {
-	std::vector<ConfigItem::Ptr> items;
-
 	std::unique_lock<std::mutex> lock(m_Mutex);
+
+	/* Cached because this is called once per object activated, for the same, unchanged
+	 * per-type template list; Register()/Unregister() invalidate the entry they affect. */
+	auto cached (m_SortedDefaultTemplatesCache.find(type));
+
+	if (cached != m_SortedDefaultTemplatesCache.end())
+		return cached->second;
+
+	std::vector<ConfigItem::Ptr> items;
 
 	auto it = m_DefaultTemplates.find(type);
 
-	if (it == m_DefaultTemplates.end())
-		return items;
+	if (it != m_DefaultTemplates.end()) {
+		items.reserve(it->second.size());
 
-	items.reserve(it->second.size());
+		for (const ItemMap::value_type& kv : it->second) {
+			items.push_back(kv.second);
+		}
 
-	for (const ItemMap::value_type& kv : it->second) {
-		items.push_back(kv.second);
+		/* Default templates are applied to a new object in this order, so it must be deterministic:
+		 * otherwise, conflicting attributes set by two default templates would be resolved arbitrarily. */
+		std::sort(items.begin(), items.end(), [](const ConfigItem::Ptr& a, const ConfigItem::Ptr& b) {
+			return a->GetName() < b->GetName();
+		});
 	}
 
-	/* Default templates are applied to a new object in this order, so it must be deterministic:
-	 * otherwise, conflicting attributes set by two default templates would be resolved arbitrarily. */
-	std::sort(items.begin(), items.end(), [](const ConfigItem::Ptr& a, const ConfigItem::Ptr& b) {
-		return a->GetName() < b->GetName();
-	});
+	m_SortedDefaultTemplatesCache[type] = items;
 
 	return items;
 }

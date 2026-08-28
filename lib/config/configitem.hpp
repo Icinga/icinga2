@@ -88,6 +88,7 @@ private:
 	typedef std::unordered_map<Type::Ptr, ItemMap> TypeMap;
 	static TypeMap m_Items; /**< All registered configuration items. */
 	static TypeMap m_DefaultTemplates;
+	static std::unordered_map<Type::Ptr, std::vector<ConfigItem::Ptr>> m_SortedDefaultTemplatesCache;
 
 	typedef std::vector<ConfigItem::Ptr> ItemList;
 	static ItemList m_UnnamedItems;
