@@ -229,6 +229,47 @@ BOOST_AUTO_TEST_CASE(sort_script)
 	}
 }
 
+BOOST_AUTO_TEST_CASE(sort_size_limit)
+{
+	/* Keep in sync with the sandboxLimit used by ArraySort() in lib/base/array-script.cpp. */
+	constexpr size_t sandboxLimit = 1L << 17;
+
+	ScriptFrame frame (true);
+
+	auto MakeArray = [](size_t length) {
+		Array::Ptr array = new Array();
+
+		array->Reserve(length);
+
+		for (size_t i = 0; i < length; i++) {
+			array->Add(i);
+		}
+
+		return array;
+	};
+
+	/* Sandboxed frame: an array at the size limit may still be sorted. */
+	{
+		frame.Sandboxed = true;
+		frame.Locals->Set("arr", MakeArray(sandboxLimit));
+		BOOST_CHECK_NO_THROW(ConfigCompiler::CompileText("<test>", "arr.sort()")->Evaluate(frame));
+	}
+
+	/* Sandboxed frame: an array exceeding the size limit is rejected. */
+	{
+		frame.Sandboxed = true;
+		frame.Locals->Set("arr", MakeArray(sandboxLimit + 1));
+		BOOST_CHECK_THROW(ConfigCompiler::CompileText("<test>", "arr.sort()")->Evaluate(frame), ScriptError);
+	}
+
+	/* Unsandboxed frame: the sandbox limit doesn't apply. */
+	{
+		frame.Sandboxed = false;
+		frame.Locals->Set("arr", MakeArray(sandboxLimit + 1));
+		BOOST_CHECK_NO_THROW(ConfigCompiler::CompileText("<test>", "arr.sort()")->Evaluate(frame));
+	}
+}
+
 BOOST_AUTO_TEST_CASE(foreach)
 {
 	Array::Ptr array = new Array();
