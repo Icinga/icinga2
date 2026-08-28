@@ -83,8 +83,8 @@ public:
 	intrusive_ptr<Checkable> GetCheckable() const;
 	intrusive_ptr<NotificationCommand> GetCommand() const;
 	TimePeriod::Ptr GetPeriod() const;
-	std::set<User::Ptr> GetUsers() const;
-	std::set<intrusive_ptr<UserGroup>> GetUserGroups() const;
+	std::unordered_set<User::Ptr> GetUsers() const;
+	std::unordered_set<intrusive_ptr<UserGroup>> GetUserGroups() const;
 
 	void UpdateNotificationNumber();
 	void ResetNotificationNumber();

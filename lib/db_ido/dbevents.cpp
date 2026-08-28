@@ -44,7 +44,7 @@ void DbEvents::StaticInitialize()
 	Checkable::OnNextCheckUpdated.connect([](const Checkable::Ptr& checkable) { NextCheckUpdatedHandler(checkable); });
 	Checkable::OnFlappingChanged.connect([](const Checkable::Ptr& checkable, const Value&) { FlappingChangedHandler(checkable); });
 	Checkable::OnNotificationSentToAllUsers.connect([](const Notification::Ptr& notification, const Checkable::Ptr& checkable,
-		const std::set<User::Ptr>&, const NotificationType&, const CheckResult::Ptr&, const String&, const String&,
+		const std::unordered_set<User::Ptr>&, const NotificationType&, const CheckResult::Ptr&, const String&, const String&,
 		const MessageOrigin::Ptr&) {
 		DbEvents::LastNotificationChangedHandler(notification, checkable);
 	});
@@ -66,7 +66,7 @@ void DbEvents::StaticInitialize()
 	});
 
 	Checkable::OnReachabilityChanged.connect([](const Checkable::Ptr&, const CheckResult::Ptr& cr,
-			std::set<Checkable::Ptr> children, const MessageOrigin::Ptr&) {
+			std::unordered_set<Checkable::Ptr> children, const MessageOrigin::Ptr&) {
 		DbEvents::ReachabilityChangedHandler(cr, std::move(children));
 	});
 
@@ -79,7 +79,7 @@ void DbEvents::StaticInitialize()
 	});
 
 	Checkable::OnNotificationSentToAllUsers.connect([](const Notification::Ptr&, const Checkable::Ptr& checkable,
-		const std::set<User::Ptr>& users, const NotificationType& type, const CheckResult::Ptr& cr, const String&,
+		const std::unordered_set<User::Ptr>& users, const NotificationType& type, const CheckResult::Ptr& cr, const String&,
 		const String&, const MessageOrigin::Ptr&) {
 		DbEvents::AddNotificationHistory(checkable, users, type, cr);
 	});
@@ -220,7 +220,7 @@ void DbEvents::LastNotificationChangedHandler(const Notification::Ptr& notificat
 	DbObject::OnQuery(query1);
 }
 
-void DbEvents::ReachabilityChangedHandler(const CheckResult::Ptr& cr, std::set<Checkable::Ptr> children)
+void DbEvents::ReachabilityChangedHandler(const CheckResult::Ptr& cr, std::unordered_set<Checkable::Ptr> children)
 {
 	int is_reachable = 0;
 
@@ -319,7 +319,7 @@ void DbEvents::EnableChangedHandlerInternal(const Checkable::Ptr& checkable, con
 /* comments */
 void DbEvents::AddComments(const Checkable::Ptr& checkable)
 {
-	std::set<Comment::Ptr> comments = checkable->GetComments();
+	auto comments (checkable->GetComments());
 
 	std::vector<DbQuery> queries;
 
@@ -458,7 +458,7 @@ void DbEvents::RemoveCommentInternal(std::vector<DbQuery>& queries, const Commen
 /* downtimes */
 void DbEvents::AddDowntimes(const Checkable::Ptr& checkable)
 {
-	std::set<Downtime::Ptr> downtimes = checkable->GetDowntimes();
+	auto downtimes (checkable->GetDowntimes());
 
 	std::vector<DbQuery> queries;
 
@@ -835,7 +835,7 @@ void DbEvents::AddAcknowledgementInternal(const Checkable::Ptr& checkable, Ackno
 }
 
 /* notifications */
-void DbEvents::AddNotificationHistory(const Checkable::Ptr& checkable, const std::set<User::Ptr>& users, NotificationType type,
+void DbEvents::AddNotificationHistory(const Checkable::Ptr& checkable, const std::unordered_set<User::Ptr>& users, NotificationType type,
 	const CheckResult::Ptr& cr)
 {
 	/* NotificationInsertID has to be tracked per IDO instance, therefore the OnQuery and OnMultipleQueries signals

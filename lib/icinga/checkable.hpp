@@ -21,6 +21,7 @@
 #include <functional>
 #include <limits>
 #include <unordered_map>
+#include <unordered_set>
 #include <variant>
 
 namespace icinga
@@ -79,9 +80,9 @@ public:
 
 	Checkable();
 
-	std::set<Checkable::Ptr> GetParents() const;
-	std::set<Checkable::Ptr> GetChildren() const;
-	std::set<Checkable::Ptr> GetAllChildren() const;
+	std::unordered_set<Checkable::Ptr> GetParents() const;
+	std::unordered_set<Checkable::Ptr> GetChildren() const;
+	std::unordered_set<Checkable::Ptr> GetAllChildren() const;
 	size_t GetAllChildrenCount() const;
 
 	void AddGroup(const String& name);
@@ -135,13 +136,13 @@ public:
 
 	static boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, const MessageOrigin::Ptr&)> OnNewCheckResult;
 	static boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, StateType, const MessageOrigin::Ptr&)> OnStateChange;
-	static boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, std::set<Checkable::Ptr>, const MessageOrigin::Ptr&)> OnReachabilityChanged;
+	static boost::signals2::signal<void (const Checkable::Ptr&, const CheckResult::Ptr&, std::unordered_set<Checkable::Ptr>, const MessageOrigin::Ptr&)> OnReachabilityChanged;
 	static boost::signals2::signal<void (const Checkable::Ptr&, NotificationType, const CheckResult::Ptr&,
 		const String&, const String&, const MessageOrigin::Ptr&)> OnNotificationsRequested;
 	static boost::signals2::signal<void (const Notification::Ptr&, const Checkable::Ptr&, const User::Ptr&,
 		const NotificationType&, const CheckResult::Ptr&, const String&, const String&, const String&,
 		const MessageOrigin::Ptr&)> OnNotificationSentToUser;
-	static boost::signals2::signal<void (const Notification::Ptr&, const Checkable::Ptr&, const std::set<User::Ptr>&,
+	static boost::signals2::signal<void (const Notification::Ptr&, const Checkable::Ptr&, const std::unordered_set<User::Ptr>&,
 		const NotificationType&, const CheckResult::Ptr&, const String&,
 		const String&, const MessageOrigin::Ptr&)> OnNotificationSentToAllUsers;
 	static boost::signals2::signal<void (const Checkable::Ptr&, const String&, const String&, AcknowledgementType,
@@ -160,7 +161,7 @@ public:
 	bool IsInDowntime() const;
 	bool IsAcknowledged() const;
 
-	std::set<Downtime::Ptr> GetDowntimes() const;
+	std::unordered_set<Downtime::Ptr> GetDowntimes() const;
 	void RegisterDowntime(const Downtime::Ptr& downtime);
 	void UnregisterDowntime(const Downtime::Ptr& downtime);
 
@@ -168,7 +169,7 @@ public:
 	void RemoveAllComments();
 	void RemoveAckComments(const String& removedBy = String(), double createdBefore = std::numeric_limits<double>::max());
 
-	std::set<Comment::Ptr> GetComments() const;
+	std::unordered_set<Comment::Ptr> GetComments() const;
 	Comment::Ptr GetLastComment() const;
 	void RegisterComment(const Comment::Ptr& comment);
 	void UnregisterComment(const Comment::Ptr& comment);
@@ -176,7 +177,7 @@ public:
 	/* Notifications */
 	void SendNotifications(NotificationType type, const CheckResult::Ptr& cr, const String& author = "", const String& text = "");
 
-	std::set<Notification::Ptr> GetNotifications() const;
+	std::unordered_set<Notification::Ptr> GetNotifications() const;
 	void RegisterNotification(const Notification::Ptr& notification);
 	void UnregisterNotification(const Notification::Ptr& notification);
 
@@ -233,7 +234,7 @@ private:
 	static std::condition_variable m_PendingChecksCV;
 
 	/* Downtimes */
-	std::set<Downtime::Ptr> m_Downtimes;
+	std::unordered_set<Downtime::Ptr> m_Downtimes;
 	mutable std::mutex m_DowntimeMutex;
 
 	static void NotifyFixedDowntimeStart(const Downtime::Ptr& downtime);
@@ -246,17 +247,17 @@ private:
 	static void CleanDeadlinedExecutions(const Timer * const&);
 
 	/* Comments */
-	std::set<Comment::Ptr> m_Comments;
+	std::unordered_set<Comment::Ptr> m_Comments;
 	mutable std::mutex m_CommentMutex;
 
 	/* Notifications */
-	std::set<Notification::Ptr> m_Notifications;
+	std::unordered_set<Notification::Ptr> m_Notifications;
 	mutable std::mutex m_NotificationMutex;
 
 	/* Dependencies */
 	mutable std::mutex m_DependencyMutex;
 	std::unordered_map<std::variant<Checkable*, String>, intrusive_ptr<DependencyGroup>> m_DependencyGroups;
-	std::set<intrusive_ptr<Dependency> > m_ReverseDependencies;
+	std::unordered_set<intrusive_ptr<Dependency>> m_ReverseDependencies;
 	/**
 	 * Registering a checkable to its parent DependencyGroups is delayed during config loading until all dependencies
 	 * were registered on the checkable. m_PendingDependencies is used to temporarily store the dependencies until then.
@@ -266,10 +267,10 @@ private:
 	 * 2. It allows the field to also be used as a flag: the delayed group registration is only done until it is reset
 	 *    to nullptr.
 	 */
-	std::unique_ptr<std::unordered_map<std::variant<Checkable*, String>, std::set<intrusive_ptr<Dependency>>>>
+	std::unique_ptr<std::unordered_map<std::variant<Checkable*, String>, std::unordered_set<intrusive_ptr<Dependency>>>>
 		m_PendingDependencies {std::make_unique<decltype(m_PendingDependencies)::element_type>()};
 
-	void GetAllChildrenInternal(std::set<Checkable::Ptr>& seenChildren, int level = 0) const;
+	void GetAllChildrenInternal(std::unordered_set<Checkable::Ptr>& seenChildren, int level = 0) const;
 
 	/* Flapping */
 	static const std::unordered_map<String, int> m_FlappingStateFilterMap;

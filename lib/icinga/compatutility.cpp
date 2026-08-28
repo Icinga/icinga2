@@ -212,11 +212,11 @@ int CompatUtility::GetCheckableNotificationStateFilter(const Checkable::Ptr& che
 }
 
 /* Used in DB IDO and Livestatus. */
-std::set<User::Ptr> CompatUtility::GetCheckableNotificationUsers(const Checkable::Ptr& checkable)
+std::unordered_set<User::Ptr> CompatUtility::GetCheckableNotificationUsers(const Checkable::Ptr& checkable)
 {
 	/* Service -> Notifications -> (Users + UserGroups -> Users) */
-	std::set<User::Ptr> allUsers;
-	std::set<User::Ptr> users;
+	std::unordered_set<User::Ptr> allUsers;
+	std::unordered_set<User::Ptr> users;
 
 	for (const Notification::Ptr& notification : checkable->GetNotifications()) {
 		ObjectLock olock(notification);
@@ -226,7 +226,7 @@ std::set<User::Ptr> CompatUtility::GetCheckableNotificationUsers(const Checkable
 		std::copy(users.begin(), users.end(), std::inserter(allUsers, allUsers.begin()));
 
 		for (const UserGroup::Ptr& ug : notification->GetUserGroups()) {
-			std::set<User::Ptr> members = ug->GetMembers();
+			auto members (ug->GetMembers());
 			std::copy(members.begin(), members.end(), std::inserter(allUsers, allUsers.begin()));
 		}
 	}
@@ -235,9 +235,9 @@ std::set<User::Ptr> CompatUtility::GetCheckableNotificationUsers(const Checkable
 }
 
 /* Used in DB IDO and Livestatus. */
-std::set<UserGroup::Ptr> CompatUtility::GetCheckableNotificationUserGroups(const Checkable::Ptr& checkable)
+std::unordered_set<UserGroup::Ptr> CompatUtility::GetCheckableNotificationUserGroups(const Checkable::Ptr& checkable)
 {
-	std::set<UserGroup::Ptr> usergroups;
+	std::unordered_set<UserGroup::Ptr> usergroups;
 	/* Service -> Notifications -> UserGroups */
 	for (const Notification::Ptr& notification : checkable->GetNotifications()) {
 		ObjectLock olock(notification);
