@@ -9,6 +9,7 @@
 #include "base/exception.hpp"
 #include "base/logger.hpp"
 #include <set>
+#include <unordered_set>
 
 using namespace icinga;
 
@@ -126,7 +127,7 @@ bool ActionsHandler::HandleRequest(
 	}
 
 	int statusCode = 500;
-	std::set<int> okStatusCodes, nonOkStatusCodes;
+	std::unordered_set<int> okStatusCodes, nonOkStatusCodes;
 
 	for (Dictionary::Ptr res : results) {
 		if (!res->Contains("code")) {

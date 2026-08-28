@@ -107,7 +107,7 @@ String IcingaDB::CalcEventID(const char* eventType, const ConfigObject::Ptr& obj
 	return HashValue(std::move(rawId));
 }
 
-static const std::set<String> metadataWhitelist ({"package", "source_location", "templates"});
+static const std::unordered_set<String> metadataWhitelist ({"package", "source_location", "templates"});
 
 /**
  * Prepare custom vars for being written to Redis
@@ -316,14 +316,14 @@ String IcingaDB::CommentTypeToString(CommentType type)
 	}
 }
 
-static const std::set<String> propertiesBlacklistEmpty;
+static const std::unordered_set<String> propertiesBlacklistEmpty;
 
 String IcingaDB::HashValue(const Value& value)
 {
 	return HashValue(value, propertiesBlacklistEmpty);
 }
 
-String IcingaDB::HashValue(const Value& value, const std::set<String>& propertiesBlacklist, bool propertiesWhitelist)
+String IcingaDB::HashValue(const Value& value, const std::unordered_set<String>& propertiesBlacklist, bool propertiesWhitelist)
 {
 	Value temp;
 	bool mutabl;

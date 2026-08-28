@@ -29,7 +29,7 @@ ConfigObjectsSharedLock::ConfigObjectsSharedLock(std::try_to_lock_t)
 
 std::mutex ObjectNameLock::m_Mutex;
 std::condition_variable ObjectNameLock::m_CV;
-std::unordered_map<Type*, std::set<String>> ObjectNameLock::m_LockedObjectNames;
+std::unordered_map<Type*, std::unordered_set<String>> ObjectNameLock::m_LockedObjectNames;
 
 /**
  * Locks the specified object name of the given type and unlocks it upon destruction of the instance of this class.

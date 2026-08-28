@@ -288,7 +288,7 @@ private:
 		bool IsNew(const String& id);
 
 	private:
-		std::set<String> m_Ids;
+		std::unordered_set<String> m_Ids;
 		std::mutex m_Mutex;
 	};
 
@@ -371,7 +371,7 @@ private:
 	static String GetDependencyEdgeStateId(const DependencyGroup::Ptr& dependencyGroup, const Dependency::Ptr& dep);
 
 	static String HashValue(const Value& value);
-	static String HashValue(const Value& value, const std::set<String>& propertiesBlacklist, bool propertiesWhitelist = false);
+	static String HashValue(const Value& value, const std::unordered_set<String>& propertiesBlacklist, bool propertiesWhitelist = false);
 
 	static String GetLowerCaseTypeNameDB(const ConfigObject::Ptr& obj);
 	static bool PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& attributes);
