@@ -189,6 +189,13 @@ object NotificationComponent "nc" {}
 		BOOST_REQUIRE_LE(m_Notification->GetNextNotification(), Utility::GetTime());
 	}
 
+	void ElapseNotificationDelay(double timesBegin)
+	{
+		auto now = Utility::GetTime();
+		m_Host->SetLastHardStateChange(now - timesBegin - 1);
+		m_Notification->SetNextNotification(now - 1);
+	}
+
 	static void NotificationTimerHandler()
 	{
 		auto nc = NotificationComponent::GetByName("nc");
@@ -204,7 +211,6 @@ object NotificationComponent "nc" {}
 	double GetLastNotificationTimestamp() { return m_Notification->GetLastNotification(); }
 
 	double GetNextNotificationTimestamp() { return m_Notification->GetNextNotification(); }
-	void SetNextNotificationTimestamp(double val) { m_Notification->SetNextNotification(val); }
 
 	std::uint8_t GetSuppressedNotifications() { return m_Notification->GetSuppressedNotifications(); }
 
@@ -278,7 +284,13 @@ BOOST_AUTO_TEST_CASE(notify_send_reminders)
  */
 BOOST_AUTO_TEST_CASE(notify_delayed)
 {
-	constexpr double timesBegin = 0.01;
+	/* The times.begin delay window.
+	 * It has to be comfortably larger than the time it can take to get from recording the hard state change to
+	 * evaluating the delay condition in BeginExecuteNotification() during ReceiveCheckResults() below. Otherwise, on a
+	 * slow machine, the notification would be sent out immediately instead of being delayed, and the assertions on the
+	 * scheduled next notification would fail sporadically.
+	 */
+	constexpr double timesBegin = 10.0;
 
 	/* We're always inside a time-period for this test-case.
 	 */
@@ -312,11 +324,10 @@ BOOST_AUTO_TEST_CASE(notify_delayed)
 	BOOST_REQUIRE_EQUAL(GetLastNotification(), 0);
 	BOOST_REQUIRE_EQUAL(GetNotificationCount(), 0);
 
-	/* Now we reset the next scheduled timer run to the past. Since we have verified above
-	 * that it was in fact set correctly, this is fine to do here so we don't have to wait.
+	/* Now we simulate that the delay has elapsed. Since we have verified above that the next
+	 * notification was scheduled correctly, this is fine to do here so we don't have to wait.
 	 */
-	SetNextNotificationTimestamp(Utility::GetTime() + timesBegin);
-	WaitUntilNextReminderScheduled();
+	ElapseNotificationDelay(timesBegin);
 	NotificationTimerHandler();
 	BOOST_REQUIRE(WaitForExpectedNotificationCount(1));
 	BOOST_REQUIRE_EQUAL(GetLastNotification(), NotificationProblem);
@@ -341,8 +352,7 @@ BOOST_AUTO_TEST_CASE(notify_delayed)
 
 	/* Again, after the delay has "elapsed", the "reminder" should be sent out.
 	 */
-	SetNextNotificationTimestamp(Utility::GetTime() + timesBegin);
-	WaitUntilNextReminderScheduled();
+	ElapseNotificationDelay(timesBegin);
 	NotificationTimerHandler();
 	BOOST_REQUIRE(WaitForExpectedNotificationCount(3));
 	BOOST_REQUIRE_EQUAL(GetLastNotification(), NotificationProblem);
