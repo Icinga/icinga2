@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "base/array.hpp"
 #include "base/dictionary.hpp"
 #include "base/string.hpp"
 #include "base/timer.hpp"
@@ -23,6 +24,7 @@ class StatsReporter
 {
 public:
 	static Value ClusterStatsAPIHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params);
+	static void StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata);
 
 private:
 	StatsReporter();
