@@ -11,6 +11,7 @@
 #  - ICINGA2_BUILD_DIR: Path where to place the CMake build directory.
 #  - CCACHE_DIR: Path where to keep a ccache cache directory.
 #  - DISTRO: Container image name, this is used to automatically detect build dependencies and compile flags.
+#  - ICINGA2_CI_BUILD_JOBS_RUNNER_${CI_RUNNER_ID} (dynamic name): number of parallel build jobs, see below for details.
 
 set -exo pipefail
 
@@ -158,7 +159,20 @@ cd "$ICINGA2_BUILD_DIR"
   "${CMAKE_OPTS[@]}" \
   "$ICINGA2_SOURCE_DIR"
 
-ninja -v
+NINJA_OPTS=(-v)
+
+# Allow to customize the number of parallel build jobs to scale the jobs to the available resources provided by
+# different GitLab runners. Setting `ICINGA2_CI_BUILD_JOBS_RUNNER_23=4` and `ICINGA2_CI_BUILD_JOBS_RUNNER_42=8` in the
+# CI variables of the project causes the runners with ID 23 and 42 to use `-j 4` and `-j 8` respectively.
+# If not set, ninja uses its default.
+if [[ -v CI_RUNNER_ID ]]; then
+  jobs_var_name="ICINGA2_CI_BUILD_JOBS_RUNNER_${CI_RUNNER_ID}"
+  if [[ -v "$jobs_var_name" ]]; then
+    NINJA_OPTS+=(-j "${!jobs_var_name}")
+  fi
+fi
+
+ninja "${NINJA_OPTS[@]}"
 
 ninja test
 ninja install
