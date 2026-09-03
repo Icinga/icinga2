@@ -20,6 +20,7 @@ set(base_SOURCES
   atomic.hpp
   atomic-file.cpp atomic-file.hpp
   base64.cpp base64.hpp
+  benchmark.hpp
   boolean.cpp boolean.hpp boolean-script.cpp
   bulker.hpp
   configobject.cpp configobject.hpp configobject-ti.hpp configobject-script.cpp
