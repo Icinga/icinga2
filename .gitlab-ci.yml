@@ -1,0 +1,60 @@
+linux-build:
+  stage: build
+  script:
+    - case "$IMAGE_NAME" in alpine:*) apk add bash ;; esac
+    - DISTRO="$IMAGE_NAME" ICINGA2_SOURCE_DIR="$CI_PROJECT_DIR" tools/linux/ci-build.sh
+  image:
+    name: "$IMAGE_NAME"
+    docker:
+      platform: "$DOCKER_PLATFORM"
+  tags:
+    - "$OS_ARCH"
+  parallel:
+    # NOTE: Keep the build jobs in sync with `.github/workflows/linux.yml`.
+    matrix:
+      # x86_64 / amd64
+      - IMAGE_NAME:
+          - debian:11
+          - debian:12
+          - debian:13
+          - ubuntu:22.04
+          - ubuntu:24.04
+          - ubuntu:25.04
+          - ubuntu:25.10
+          - ubuntu:26.04
+        OS_ARCH: amd64
+        DOCKER_PLATFORM: linux/amd64
+      - IMAGE_NAME:
+          - alpine:latest
+          - amazonlinux:2023
+          - fedora:42
+          - fedora:43
+          - fedora:44
+          - fedora:45
+          - rockylinux:8
+          - rockylinux:9
+          - rockylinux/rockylinux:10
+          - registry.suse.com/suse/sle15:15.6
+          - registry.suse.com/suse/sle15:15.7
+          - registry.suse.com/bci/bci-base:16.0
+        OS_ARCH: x86_64
+        DOCKER_PLATFORM: linux/amd64
+
+      # x86 / i386
+      - IMAGE_NAME:
+          - debian:11
+          - debian:12
+        OS_ARCH: i386
+        DOCKER_PLATFORM: linux/386
+
+      # aarch64 / arm64
+      # These are in addition to the Linux build jobs on GitHub Actions.
+      # This covers the ARM architecture, which is done by the container image builds on GitHub.
+      - IMAGE_NAME:
+          - debian:13
+        OS_ARCH: arm64
+        DOCKER_PLATFORM: linux/arm64
+      - IMAGE_NAME:
+          - rockylinux:8
+        OS_ARCH: aarch64
+        DOCKER_PLATFORM: linux/arm64
