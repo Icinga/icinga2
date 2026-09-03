@@ -126,22 +126,3 @@ void ReceiveCheckResults(
 		BOOST_REQUIRE(host->ProcessCheckResult(cr, wg) == Checkable::ProcessingResult::Ok);
 	}
 }
-
-std::future<void> SpawnSynchronizedCoroutine(std::function<void(boost::asio::yield_context)> fn)
-{
-	using namespace icinga;
-
-	auto promise = std::make_unique<std::promise<void>>();
-	auto future = promise->get_future();
-	auto& io = IoEngine::Get().GetIoContext();
-	IoEngine::SpawnCoroutine(io, [promise = std::move(promise), fn = std::move(fn)](boost::asio::yield_context yc) {
-		try {
-			fn(std::move(yc));
-		} catch (const std::exception&) {
-			promise->set_exception(std::current_exception());
-			return;
-		}
-		promise->set_value();
-	});
-	return future;
-}
