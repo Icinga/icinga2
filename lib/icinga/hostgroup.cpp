@@ -57,7 +57,7 @@ void HostGroup::EvaluateObjectRules(const Host::Ptr& host)
 	}
 }
 
-std::set<Host::Ptr> HostGroup::GetMembers() const
+std::unordered_set<Host::Ptr> HostGroup::GetMembers() const
 {
 	std::unique_lock<std::mutex> lock(m_HostGroupMutex);
 	return m_Members;

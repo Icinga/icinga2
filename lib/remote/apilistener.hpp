@@ -115,12 +115,12 @@ public:
 
 	bool AddAnonymousClient(const JsonRpcConnection::Ptr& aclient);
 	void RemoveAnonymousClient(const JsonRpcConnection::Ptr& aclient);
-	std::set<JsonRpcConnection::Ptr> GetAnonymousClients() const;
+	std::unordered_set<JsonRpcConnection::Ptr> GetAnonymousClients() const;
 	void DisconnectJsonRpcConnections();
 
 	void AddHttpClient(const HttpServerConnection::Ptr& aclient);
 	void RemoveHttpClient(const HttpServerConnection::Ptr& aclient);
-	std::set<HttpServerConnection::Ptr> GetHttpClients() const;
+	std::unordered_set<HttpServerConnection::Ptr> GetHttpClients() const;
 
 	static double CalculateZoneLag(const Endpoint::Ptr& endpoint);
 
@@ -179,8 +179,8 @@ private:
 
 	mutable std::mutex m_AnonymousClientsLock;
 	mutable std::mutex m_HttpClientsLock;
-	std::set<JsonRpcConnection::Ptr> m_AnonymousClients;
-	std::set<HttpServerConnection::Ptr> m_HttpClients;
+	std::unordered_set<JsonRpcConnection::Ptr> m_AnonymousClients;
+	std::unordered_set<HttpServerConnection::Ptr> m_HttpClients;
 
 	Timer::Ptr m_Timer;
 	Timer::Ptr m_DeletedRuntimeObjectsTimer;

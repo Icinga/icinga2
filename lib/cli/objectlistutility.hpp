@@ -10,6 +10,7 @@
 #include "base/array.hpp"
 #include "base/value.hpp"
 #include "base/string.hpp"
+#include <map>
 
 namespace icinga
 {

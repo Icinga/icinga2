@@ -12,9 +12,10 @@
 #include <cstddef>
 #include <cstdint>
 #include <mutex>
-#include <set>
+#include <unordered_set>
 #include <map>
 #include <queue>
+#include <unordered_map>
 
 namespace icinga
 {
@@ -76,7 +77,7 @@ private:
 class EventsSubscriber
 {
 public:
-	EventsSubscriber(std::set<EventType> types, String filter, const String& filterSource, ApiUser::Ptr user);
+	EventsSubscriber(std::unordered_set<EventType> types, String filter, const String& filterSource, ApiUser::Ptr user);
 	EventsSubscriber(const EventsSubscriber&) = delete;
 	EventsSubscriber(EventsSubscriber&&) = delete;
 	EventsSubscriber& operator=(const EventsSubscriber&) = delete;
@@ -86,21 +87,21 @@ public:
 	const EventsInbox::Ptr& GetInbox();
 
 private:
-	std::set<EventType> m_Types;
+	std::unordered_set<EventType> m_Types;
 	EventsInbox::Ptr m_Inbox;
 };
 
 class EventsFilter
 {
 public:
-	EventsFilter(std::map<Expression::Ptr, std::set<EventsInbox::Ptr>> inboxes);
+	EventsFilter(std::unordered_map<Expression::Ptr, std::unordered_set<EventsInbox::Ptr>> inboxes);
 
 	operator bool();
 
 	void Push(Dictionary::Ptr event);
 
 private:
-	std::map<Expression::Ptr, std::set<EventsInbox::Ptr>> m_Inboxes;
+	std::unordered_map<Expression::Ptr, std::unordered_set<EventsInbox::Ptr>> m_Inboxes;
 };
 
 class EventsRouter
@@ -108,8 +109,8 @@ class EventsRouter
 public:
 	static EventsRouter& GetInstance();
 
-	void Subscribe(const std::set<EventType>& types, const EventsInbox::Ptr& inbox);
-	void Unsubscribe(const std::set<EventType>& types, const EventsInbox::Ptr& inbox);
+	void Subscribe(const std::unordered_set<EventType>& types, const EventsInbox::Ptr& inbox);
+	void Unsubscribe(const std::unordered_set<EventType>& types, const EventsInbox::Ptr& inbox);
 	EventsFilter GetInboxes(EventType type);
 
 private:
@@ -123,7 +124,7 @@ private:
 	~EventsRouter() = default;
 
 	std::mutex m_Mutex;
-	std::map<EventType, std::map<Expression::Ptr, std::set<EventsInbox::Ptr>>> m_Subscribers;
+	std::unordered_map<EventType, std::unordered_map<Expression::Ptr, std::unordered_set<EventsInbox::Ptr>>> m_Subscribers;
 };
 
 }

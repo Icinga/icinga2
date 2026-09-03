@@ -6,6 +6,7 @@
 #include "base/functionwrapper.hpp"
 #include "base/scriptframe.hpp"
 #include "base/array.hpp"
+#include <algorithm>
 
 using namespace icinga;
 
@@ -52,6 +53,7 @@ static Array::Ptr NamespaceKeys()
 	for (const Namespace::Pair& kv : self) {
 		keys.push_back(kv.first);
 	}
+	std::sort(keys.begin(), keys.end());
 	return new Array(std::move(keys));
 }
 
@@ -61,10 +63,17 @@ static Array::Ptr NamespaceValues()
 	Namespace::Ptr self = static_cast<Namespace::Ptr>(vframe->Self);
 	REQUIRE_NOT_NULL(self);
 
-	ArrayData values;
+	std::vector<std::pair<String, Value>> items;
 	ObjectLock olock(self);
 	for (const Namespace::Pair& kv : self) {
-		values.push_back(kv.second.Val);
+		items.emplace_back(kv.first, kv.second.Val);
+	}
+	std::sort(items.begin(), items.end());
+
+	ArrayData values;
+	values.reserve(items.size());
+	for (auto& item : items) {
+		values.push_back(std::move(item.second));
 	}
 	return new Array(std::move(values));
 }
