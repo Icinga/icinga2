@@ -207,7 +207,7 @@ BOOST_AUTO_TEST_CASE(stuck_reading_response)
 		requestReadPromise.set_value();
 		// Do not send a response but react to the shutdown to be polite.
 		shutdownPromise.get_future().get();
-		Shutdown();
+		Shutdown(true);
 	}};
 
 	TestThread timeoutThread{[&]() {
@@ -315,7 +315,7 @@ BOOST_AUTO_TEST_CASE(http_send_retry)
 
 		SendResponse();
 
-		Shutdown();
+		Shutdown(true);
 	}};
 
 	boost::beast::http::request<boost::beast::http::string_body> request{boost::beast::http::verb::post, "foo", 10};
