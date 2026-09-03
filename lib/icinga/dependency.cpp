@@ -302,14 +302,14 @@ bool Dependency::IsAvailable(DependencyType dt) const
 
 	/* ignore if it's the same checkable object */
 	if (parent == GetChild()) {
-		Log(LogNotice, "Dependency")
+		Log(LogNotice, "Dependency", this)
 			<< "Dependency '" << GetName() << "' passed: Parent and child " << (parentService ? "service" : "host") << " are identical.";
 		return true;
 	}
 
 	/* ignore pending  */
 	if (!parent->GetLastCheckResult()) {
-		Log(LogNotice, "Dependency")
+		Log(LogNotice, "Dependency", this)
 			<< "Dependency '" << GetName() << "' passed: Parent " << (parentService ? "service" : "host") << " '" << parent->GetName() << "' hasn't been checked yet.";
 		return true;
 	}
@@ -317,12 +317,12 @@ bool Dependency::IsAvailable(DependencyType dt) const
 	if (GetIgnoreSoftStates()) {
 		/* ignore soft states */
 		if (parent->GetStateType() == StateTypeSoft) {
-			Log(LogNotice, "Dependency")
+			Log(LogNotice, "Dependency", this)
 				<< "Dependency '" << GetName() << "' passed: Parent " << (parentService ? "service" : "host") << " '" << parent->GetName() << "' is in a soft state.";
 			return true;
 		}
 	} else {
-		Log(LogNotice, "Dependency")
+		Log(LogNotice, "Dependency", this)
 			<< "Dependency '" << GetName() << "' failed: Parent " << (parentService ? "service" : "host") << " '" << parent->GetName() << "' is in a soft state.";
 	}
 
@@ -335,7 +335,7 @@ bool Dependency::IsAvailable(DependencyType dt) const
 
 	/* check state */
 	if (state & GetStateFilter()) {
-		Log(LogNotice, "Dependency")
+		Log(LogNotice, "Dependency", this)
 			<< "Dependency '" << GetName() << "' passed: Parent " << (parentService ? "service" : "host") << " '" << parent->GetName() << "' matches state filter.";
 		return true;
 	}
@@ -343,22 +343,22 @@ bool Dependency::IsAvailable(DependencyType dt) const
 	/* ignore if not in time period */
 	TimePeriod::Ptr tp = GetPeriod();
 	if (tp && !tp->IsInside(Utility::GetTime())) {
-		Log(LogNotice, "Dependency")
+		Log(LogNotice, "Dependency", this)
 			<< "Dependency '" << GetName() << "' passed: Outside time period.";
 		return true;
 	}
 
 	if (dt == DependencyCheckExecution && !GetDisableChecks()) {
-		Log(LogNotice, "Dependency")
+		Log(LogNotice, "Dependency", this)
 			<< "Dependency '" << GetName() << "' passed: Checks are not disabled.";
 		return true;
 	} else if (dt == DependencyNotification && !GetDisableNotifications()) {
-		Log(LogNotice, "Dependency")
+		Log(LogNotice, "Dependency", this)
 			<< "Dependency '" << GetName() << "' passed: Notifications are not disabled";
 		return true;
 	}
 
-	Log(LogNotice, "Dependency")
+	Log(LogNotice, "Dependency", this)
 		<< "Dependency '" << GetName() << "' failed. Parent "
 		<< (parentService ? "service" : "host") << " '" << parent->GetName() << "' is "
 		<< (parentService ? Service::StateToString(parentService->GetState()) : Host::StateToString(parentHost->GetState()));

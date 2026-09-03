@@ -6,10 +6,14 @@
 
 #include "base/atomic.hpp"
 #include "base/i2-base.hpp"
+#include "base/configobject.hpp"
 #include "base/logger-ti.hpp"
+#include "base/type.hpp"
 #include <optional>
 #include <set>
 #include <sstream>
+#include <utility>
+#include <vector>
 
 namespace icinga
 {
@@ -90,13 +94,23 @@ public:
 
 	void SetSeverity(const String& value, bool suppress_events = false, const Value& cookie = Empty) override;
 	void ValidateSeverity(const Lazy<String>& lvalue, const ValidationUtils& utils) override final;
+	void SetObjectFilter(const Dictionary::Ptr& value, bool suppress_events = false, const Value& cookie = Empty) override;
+	void OnAllConfigLoaded() override;
+
+	const std::vector<std::pair<Type::Ptr, String>>& GetObjectFilterCache() const
+	{
+		return m_ObjectFilterCache;
+	}
 
 protected:
 	void Start(bool runtimeCreated) override;
 	void Stop(bool runtimeRemoved) override;
+	void ValidateObjectFilter(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils) override;
 
 private:
 	static void UpdateMinLogSeverity();
+
+	void UpdateCheckObjectFilterCache();
 
 	static std::mutex m_Mutex;
 	static std::set<Logger::Ptr> m_Loggers;
@@ -106,6 +120,9 @@ private:
 	static LogSeverity m_ConsoleLogSeverity;
 	static std::mutex m_UpdateMinLogSeverityMutex;
 	static Atomic<LogSeverity> m_MinLogSeverity;
+
+	Atomic<bool> m_CalledOnAllConfigLoaded {false};
+	std::vector<std::pair<Type::Ptr, String>> m_ObjectFilterCache;
 };
 
 class Log
@@ -115,9 +132,7 @@ public:
 	Log(const Log& other) = delete;
 	Log& operator=(const Log& rhs) = delete;
 
-	Log(LogSeverity severity, String facility, const String& message);
-	Log(LogSeverity severity, String facility);
-
+	Log(LogSeverity severity, String facility, const ConfigObject::ConstPtr& involved, const String& message = String());
 	~Log();
 
 	template<typename T>
@@ -133,6 +148,8 @@ public:
 private:
 	LogSeverity m_Severity;
 	String m_Facility;
+	ConfigObject::ConstPtr m_Involved;
+
 	/**
 	 * Stream for incrementally generating the log message. If the message will be discarded as it's level currently
 	 * isn't logged, it will be empty as the stream doesn't need to be initialized in this case.

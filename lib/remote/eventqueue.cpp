@@ -155,7 +155,7 @@ void EventsFilter::Push(Dictionary::Ptr event)
 						inbox->Push(event);
 					}
 				} catch (const std::exception& ex) {
-					Log(LogWarning, "EventQueue")
+					Log(LogWarning, "EventQueue", inbox->GetUser())
 						<< "Error occurred while evaluating event filter for queue of user '"
 						<< inbox->GetUser()->GetName() << "': " << DiagnosticInformation(ex);
 				}

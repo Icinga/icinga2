@@ -30,7 +30,7 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj,
 	} catch (const std::exception& ex) {
 		String message = DiagnosticInformation(ex);
 
-		Log(LogWarning, "PluginUtility", message);
+		Log(LogWarning, "PluginUtility", commandObj, message);
 
 		if (callback) {
 			ProcessResult pr;
@@ -61,7 +61,7 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj,
 
 #ifdef I2_DEBUG
 			if (!missingMacro.IsEmpty())
-				Log(LogDebug, "PluginUtility")
+				Log(LogDebug, "PluginUtility", commandObj)
 					<< "Macro '" << name << "' is not defined.";
 #endif /* I2_DEBUG */
 
@@ -200,7 +200,7 @@ String PluginUtility::FormatPerfdata(const Array::Ptr& perfdata, bool normalize)
 			try {
 				normalized = PerfdataValue::Parse(pdv);
 			} catch (const std::invalid_argument& ex) {
-				Log(LogDebug, "PerfdataValue") << ex.what();
+				Log(LogDebug, "PerfdataValue", nullptr) << ex.what();
 			}
 
 			if (normalized) {

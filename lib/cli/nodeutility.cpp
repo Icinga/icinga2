@@ -145,7 +145,7 @@ int NodeUtility::GenerateNodeMasterIcingaConfig(const String& endpointName, cons
 
 bool NodeUtility::WriteNodeConfigObjects(const String& filename, const Array::Ptr& objects)
 {
-	Log(LogInformation, "cli")
+	Log(LogInformation, "cli", nullptr)
 		<< "Dumping config items to file '" << filename << "'.";
 
 	/* create a backup first */
@@ -159,7 +159,7 @@ bool NodeUtility::WriteNodeConfigObjects(const String& filename, const Array::Pt
 	String group = Configuration::RunAsGroup;
 
 	if (!Utility::SetFileOwnership(path, user, group)) {
-		Log(LogWarning, "cli")
+		Log(LogWarning, "cli", nullptr)
 			<< "Cannot set ownership for user '" << user << "' group '" << group << "' on path '" << path << "'. Verify it yourself!";
 	}
 
@@ -193,7 +193,7 @@ bool NodeUtility::CreateBackupFile(const String& target, bool isPrivate)
 	String backup = target + ".orig";
 
 	if (Utility::PathExists(backup)) {
-		Log(LogInformation, "cli")
+		Log(LogInformation, "cli", nullptr)
 			<< "Backup file '" << backup << "' already exists. Skipping backup.";
 		return false;
 	}
@@ -205,7 +205,7 @@ bool NodeUtility::CreateBackupFile(const String& target, bool isPrivate)
 		chmod(backup.CStr(), 0600);
 #endif /* _WIN32 */
 
-	Log(LogInformation, "cli")
+	Log(LogInformation, "cli", nullptr)
 		<< "Created backup file '" << backup << "'.";
 
 	return true;
@@ -240,7 +240,7 @@ void NodeUtility::SerializeObject(std::ostream& fp, const Dictionary::Ptr& objec
 bool NodeUtility::GetConfigurationIncludeState(const String& value, bool recursive) {
 	String configurationFile = Configuration::ConfigDir + "/icinga2.conf";
 
-	Log(LogInformation, "cli")
+	Log(LogInformation, "cli", nullptr)
 		<< "Reading '" << configurationFile << "'.";
 
 	std::ifstream ifp(configurationFile.CStr());
@@ -288,7 +288,7 @@ bool NodeUtility::UpdateConfiguration(const String& value, bool include, bool re
 {
 	String configurationFile = Configuration::ConfigDir + "/icinga2.conf";
 
-	Log(LogInformation, "cli")
+	Log(LogInformation, "cli", nullptr)
 		<< "Updating '" << value << "' include in '" << configurationFile << "'.";
 
 	NodeUtility::CreateBackupFile(configurationFile);
@@ -317,7 +317,7 @@ bool NodeUtility::UpdateConfiguration(const String& value, bool include, bool re
 			} else if (line.find(affectedInclude) != std::string::npos) {
 				found = true;
 
-				Log(LogInformation, "cli")
+				Log(LogInformation, "cli", nullptr)
 					<< "Include statement '" + affectedInclude + "' already set.";
 
 				ofp << line << "\n";
@@ -352,7 +352,7 @@ void NodeUtility::UpdateConstant(const String& name, const String& value)
 {
 	String constantsConfPath = NodeUtility::GetConstantsConfPath();
 
-	Log(LogInformation, "cli")
+	Log(LogInformation, "cli", nullptr)
 		<< "Updating '" << name << "' constant in '" << constantsConfPath << "'.";
 
 	NodeUtility::CreateBackupFile(constantsConfPath);

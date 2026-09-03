@@ -92,7 +92,7 @@ ConfigItem::Ptr ConfigItemBuilder::Compile()
 		std::ostringstream oss;
 		ShowCodeLocation(oss, m_DebugInfo, false);
 
-		Log(LogWarning, "config")
+		Log(LogWarning, "config", nullptr)
 			<< "Object name of type '" << m_Type->GetName() << "' contains leading/trailing whitespace.\n" << oss.str();
 	}
 
@@ -100,7 +100,7 @@ ConfigItem::Ptr ConfigItemBuilder::Compile()
 		std::ostringstream oss;
 		ShowCodeLocation(oss, m_DebugInfo, false);
 
-		Log(LogWarning, "config")
+		Log(LogWarning, "config", nullptr)
 			<< "Object name of type '" << m_Type->GetName() << "' is too long (length: " << m_Name.GetLength()
 			<< ", max: 255).\n" << oss.str();
 	}
@@ -109,7 +109,7 @@ ConfigItem::Ptr ConfigItemBuilder::Compile()
 		std::ostringstream oss;
 		ShowCodeLocation(oss, m_DebugInfo, false);
 
-		Log(LogWarning, "config")
+		Log(LogWarning, "config", nullptr)
 			<< "Object name of type '" << m_Type->GetName()
 			<< "' contains ctrl or newline characters, which may cause problems in some contexts.\n" << oss.str();
 	}

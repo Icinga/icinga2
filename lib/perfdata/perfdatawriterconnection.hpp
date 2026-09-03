@@ -88,7 +88,7 @@ public:
 						return;
 					}
 
-					Log(LogCritical, m_LogFacility)
+					Log(LogCritical, m_LogFacility, nullptr)
 						<< "Error while " << (m_Connected ? "sending" : "connecting") << " to '" << m_Host << ":"
 						<< m_Port << "' for '" << m_ParentName << "': " << ex.what();
 

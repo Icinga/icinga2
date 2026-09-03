@@ -457,7 +457,7 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 		[strand, checkable, cr, psCommand, psHost, expectedSan, psPort, conn, req, checkTimeout, reportResult = std::move(reportResult)](asio::yield_context yc) {
 			Timeout timeout (*strand, checkTimeout,
 				[&conn, &checkable] {
-					Log(LogNotice, "IfwApiCheckTask")
+					Log(LogNotice, "IfwApiCheckTask", checkable)
 						<< "Timeout while checking " << checkable->GetReflectionType()->GetName()
 						<< " '" << checkable->GetName() << "', cancelling attempt";
 

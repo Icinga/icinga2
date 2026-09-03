@@ -128,14 +128,14 @@ void ServicesTable::AddColumns(Table *table, const String& prefix,
 	/* add additional group by values received through the object accessor */
 	if (table->GetGroupByType() == LivestatusGroupByServiceGroup) {
 		/* _1 = row, _2 = groupByType, _3 = groupByObject */
-		Log(LogDebug, "Livestatus")
+		Log(LogDebug, "Livestatus", nullptr)
 			<< "Processing services group by servicegroup table.";
 		ServiceGroupsTable::AddColumns(table, "servicegroup_", [](const Value&, LivestatusGroupByType groupByType, const Object::Ptr& groupByObject) -> Value {
 			return ServiceGroupAccessor(groupByType, groupByObject);
 		});
 	} else if (table->GetGroupByType() == LivestatusGroupByHostGroup) {
 		/* _1 = row, _2 = groupByType, _3 = groupByObject */
-		Log(LogDebug, "Livestatus")
+		Log(LogDebug, "Livestatus", nullptr)
 			<< "Processing services group by hostgroup table.";
 		HostGroupsTable::AddColumns(table, "hostgroup_", [](const Value&, LivestatusGroupByType groupByType, const Object::Ptr& groupByObject) -> Value {
 			return HostGroupAccessor(groupByType, groupByObject);

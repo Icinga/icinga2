@@ -43,7 +43,7 @@ void TimePeriod::AddSegment(double begin, double end)
 {
 	ASSERT(OwnsLock());
 
-	Log(LogDebug, "TimePeriod")
+	Log(LogDebug, "TimePeriod", this)
 		<< "Adding segment '" << Utility::FormatDateTime("%c", begin) << "' <-> '"
 		<< Utility::FormatDateTime("%c", end) << "' to TimePeriod '" << GetName() << "'";
 
@@ -104,7 +104,7 @@ void TimePeriod::RemoveSegment(double begin, double end)
 {
 	ASSERT(OwnsLock());
 
-	Log(LogDebug, "TimePeriod")
+	Log(LogDebug, "TimePeriod", this)
 		<< "Removing segment '" << Utility::FormatDateTime("%c", begin) << "' <-> '"
 		<< Utility::FormatDateTime("%c", end) << "' from TimePeriod '" << GetName() << "'";
 
@@ -176,7 +176,7 @@ void TimePeriod::PurgeSegments(double end)
 {
 	ASSERT(OwnsLock());
 
-	Log(LogDebug, "TimePeriod")
+	Log(LogDebug, "TimePeriod", this)
 		<< "Purging segments older than '" << Utility::FormatDateTime("%c", end)
 		<< "' from TimePeriod '" << GetName() << "'";
 
@@ -204,7 +204,7 @@ void TimePeriod::PurgeSegments(double end)
 
 void TimePeriod::Merge(const TimePeriod::Ptr& timeperiod, bool include)
 {
-	Log(LogDebug, "TimePeriod")
+	Log(LogDebug, "TimePeriod", this)
 		<< "Merge TimePeriod '" << GetName() << "' with '" << timeperiod->GetName() << "' "
 		<< "Method: " << (include ? "include" : "exclude");
 
@@ -352,23 +352,23 @@ void TimePeriod::Dump()
 
 	Array::Ptr segments = GetSegments();
 
-	Log(LogDebug, "TimePeriod")
+	Log(LogDebug, "TimePeriod", this)
 		<< "Dumping TimePeriod '" << GetName() << "'";
 
-	Log(LogDebug, "TimePeriod")
+	Log(LogDebug, "TimePeriod", this)
 		<< "Valid from '" << Utility::FormatDateTime("%c", GetValidBegin())
 		<< "' until '" << Utility::FormatDateTime("%c", GetValidEnd());
 
 	if (segments) {
 		ObjectLock dlock(segments);
 		for (Dictionary::Ptr segment : segments) {
-			Log(LogDebug, "TimePeriod")
+			Log(LogDebug, "TimePeriod", this)
 				<< "Segment: " << Utility::FormatDateTime("%c", segment->Get("begin")) << " <-> "
 				<< Utility::FormatDateTime("%c", segment->Get("end"));
 		}
 	}
 
-	Log(LogDebug, "TimePeriod", "---");
+	Log(LogDebug, "TimePeriod", this, "---");
 }
 
 void TimePeriod::ValidateRanges(const Lazy<Dictionary::Ptr>& lvalue, const ValidationUtils& utils)

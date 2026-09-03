@@ -294,7 +294,7 @@ bool FilterUtility::HasPermission(const ApiUser::Ptr& user, const String& permis
 	if (!foundPermission && permission == ApiUser::FilterExpressionPerm) {
 		ApiListener::Ptr listener = ApiListener::GetInstance();
 		if (listener && !listener->GetEnforceFilterExpressionPermission()) {
-			Log(LogWarning, "FilterUtility") << "ApiUser '" << user->GetName()
+			Log(LogWarning, "FilterUtility", user) << "ApiUser '" << user->GetName()
 				<< "' was allowed to use a filter expression despite missing the '" << ApiUser::FilterExpressionPerm
 				<< "' permission due to ApiListener.enforce_filter_expression_permission = false.";
 
@@ -303,7 +303,7 @@ bool FilterUtility::HasPermission(const ApiUser::Ptr& user, const String& permis
 	}
 
 	if (!foundPermission) {
-		Log(LogWarning, "FilterUtility")
+		Log(LogWarning, "FilterUtility", user)
 			<< "Missing permission: " << requiredPermission;
 	}
 

@@ -1014,7 +1014,7 @@ void DbEvents::AddCheckResultLogHistory(const Checkable::Ptr& checkable, const C
 				type = LogEntryTypeServiceCritical;
 				break;
 			default:
-				Log(LogCritical, "DbEvents")
+				Log(LogCritical, "DbEvents", service)
 					<< "Unknown service state: " << service->GetState();
 				return;
 		}
@@ -1035,7 +1035,7 @@ void DbEvents::AddCheckResultLogHistory(const Checkable::Ptr& checkable, const C
 				type = LogEntryTypeHostDown;
 				break;
 			default:
-				Log(LogCritical, "DbEvents")
+				Log(LogCritical, "DbEvents", host)
 					<< "Unknown host state: " << host->GetState();
 				return;
 		}

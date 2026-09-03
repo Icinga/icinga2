@@ -30,7 +30,7 @@ void DbConnection::OnConfigLoaded()
 	SetCategoryFilter(FilterArrayToInt(categories, DbQuery::GetCategoryFilterMap(), DbCatEverything));
 
 	if (!GetEnableHa()) {
-		Log(LogDebug, "DbConnection")
+		Log(LogDebug, "DbConnection", this)
 			<< "HA functionality disabled. Won't pause IDO connection: " << GetName();
 
 		SetHAMode(HARunEverywhere);
@@ -43,7 +43,7 @@ void DbConnection::Start(bool runtimeCreated)
 {
 	ObjectImpl<DbConnection>::Start(runtimeCreated);
 
-	Log(LogInformation, "DbConnection")
+	Log(LogInformation, "DbConnection", this)
 		<< "'" << GetName() << "' started.";
 
 	auto onQuery = [this](const DbQuery& query) { ExecuteQuery(query); };
@@ -63,7 +63,7 @@ void DbConnection::Start(bool runtimeCreated)
 
 void DbConnection::Stop(bool runtimeRemoved)
 {
-	Log(LogInformation, "DbConnection")
+	Log(LogInformation, "DbConnection", this)
 		<< "'" << GetName() << "' stopped.";
 
 	ObjectImpl<DbConnection>::Stop(runtimeRemoved);
@@ -81,7 +81,7 @@ void DbConnection::Resume()
 {
 	ConfigObject::Resume();
 
-	Log(LogInformation, "DbConnection")
+	Log(LogInformation, "DbConnection", this)
 		<< "Resuming IDO connection: " << GetName();
 
 	m_CleanUpTimer = Timer::Create();
@@ -99,7 +99,7 @@ void DbConnection::Resume()
 
 void DbConnection::Pause()
 {
-	Log(LogInformation, "DbConnection")
+	Log(LogInformation, "DbConnection", this)
 		<< "Pausing IDO connection: " << GetName();
 
 	m_LogStatsTimer->Stop(true);
@@ -164,7 +164,7 @@ void DbConnection::UpdateProgramStatus()
 	if (!icingaApplication)
 		return;
 
-	Log(LogNotice, "DbConnection")
+	Log(LogNotice, "DbConnection", nullptr)
 		<< "Updating programstatus table.";
 
 	std::vector<DbQuery> queries;
@@ -259,7 +259,7 @@ void DbConnection::CleanUpHandler()
 			continue;
 
 		CleanUpExecuteQuery(table.name, table.time_column, now - max_age);
-		Log(LogNotice, "DbConnection")
+		Log(LogNotice, "DbConnection", this)
 			<< "Cleanup (" << table.name << "): " << max_age
 			<< " now: " << now
 			<< " old: " << now - max_age;
@@ -289,7 +289,7 @@ void DbConnection::LogStatsHandler()
 
 	auto input = round(m_InputQueries.CalculateRate(now, 10));
 
-	Log(LogInformation, GetReflectionType()->GetName())
+	Log(LogInformation, GetReflectionType()->GetName(), this)
 		<< "Pending queries: " << pending << " (Input: " << input
 		<< "/s; Output: " << output << "/s)";
 

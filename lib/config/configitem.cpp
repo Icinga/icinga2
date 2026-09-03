@@ -167,7 +167,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 	Type::Ptr type = GetType();
 
 #ifdef I2_DEBUG
-	Log(LogDebug, "ConfigItem")
+	Log(LogDebug, "ConfigItem", nullptr)
 		<< "Commit called for ConfigItem Type=" << type->GetName() << ", Name=" << GetName();
 #endif /* I2_DEBUG */
 
@@ -194,7 +194,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 		m_Expression->Evaluate(frame, &debugHints);
 	} catch (const std::exception& ex) {
 		if (m_IgnoreOnError) {
-			Log(LogNotice, "ConfigObject")
+			Log(LogNotice, "ConfigObject", dobj)
 				<< "Ignoring config object '" << m_Name << "' of type '" << type->GetName() << "' due to errors: " << DiagnosticInformation(ex);
 
 			{
@@ -246,7 +246,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 		dobj->Validate(FAConfig, utils);
 	} catch (ValidationError& ex) {
 		if (m_IgnoreOnError) {
-			Log(LogNotice, "ConfigObject")
+			Log(LogNotice, "ConfigObject", dobj)
 				<< "Ignoring config object '" << m_Name << "' of type '" << type->GetName() << "' due to errors: " << DiagnosticInformation(ex);
 
 			{
@@ -265,7 +265,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 		dobj->OnConfigLoaded();
 	} catch (const std::exception& ex) {
 		if (m_IgnoreOnError) {
-			Log(LogNotice, "ConfigObject")
+			Log(LogNotice, "ConfigObject", dobj)
 				<< "Ignoring config object '" << m_Name << "' of type '" << m_Type->GetName() << "' due to errors: " << DiagnosticInformation(ex);
 
 			{
@@ -441,7 +441,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 		return true;
 
 #ifdef I2_DEBUG
-	Log(LogDebug, "configitem")
+	Log(LogDebug, "configitem", nullptr)
 		<< "Committing " << total << " new items.";
 #endif /* I2_DEBUG */
 
@@ -482,7 +482,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 		itemsCount += committed_items;
 
 		if (committed_items > 0)
-			Log(LogDebug, "configitem")
+			Log(LogDebug, "configitem", nullptr)
 				<< "Committed " << committed_items << " items of type '" << type->GetName() << "'.";
 #endif /* I2_DEBUG */
 
@@ -491,7 +491,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 	}
 
 #ifdef I2_DEBUG
-	Log(LogDebug, "configitem")
+	Log(LogDebug, "configitem", nullptr)
 		<< "Committed " << itemsCount << " items.";
 #endif /* I2_DEBUG */
 
@@ -532,7 +532,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 						if (!item->m_IgnoreOnError)
 							throw;
 
-						Log(LogNotice, "ConfigObject")
+						Log(LogNotice, "ConfigObject", item->m_Object)
 							<< "Ignoring config object '" << item->m_Name << "' of type '" << item->m_Type->GetName() << "' due to errors: " << DiagnosticInformation(ex);
 
 						item->Unregister();
@@ -554,7 +554,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 
 #ifdef I2_DEBUG
 		if (notified_items > 0)
-			Log(LogDebug, "configitem")
+			Log(LogDebug, "configitem", nullptr)
 				<< "Sent OnAllConfigLoaded to " << notified_items << " items of type '" << type->GetName() << "'.";
 #endif /* I2_DEBUG */
 
@@ -580,7 +580,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 
 #ifdef I2_DEBUG
 		if (notified_items > 0)
-			Log(LogDebug, "configitem")
+			Log(LogDebug, "configitem", nullptr)
 				<< "Sent CreateChildObjects to " << notified_items << " items of type '" << type->GetName() << "'.";
 #endif /* I2_DEBUG */
 
@@ -598,7 +598,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 bool ConfigItem::CommitItems(const ActivationContext::Ptr& context, WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems, bool silent)
 {
 	if (!silent)
-		Log(LogInformation, "ConfigItem", "Committing config item(s).");
+		Log(LogInformation, "ConfigItem", nullptr, "Committing config item(s).");
 
 	if (!CommitNewItems(context, upq, newItems)) {
 		upq.ReportExceptions("config");
@@ -624,7 +624,7 @@ bool ConfigItem::CommitItems(const ActivationContext::Ptr& context, WorkQueue& u
 		}
 
 		for (const ItemCountMap::value_type& kv : itemCounts) {
-			Log(LogInformation, "ConfigItem")
+			Log(LogInformation, "ConfigItem", nullptr)
 				<< "Instantiated " << kv.second << " " << (kv.second != 1 ? kv.first->GetPluralName() : kv.first->GetName()) << ".";
 		}
 	}
@@ -655,7 +655,7 @@ bool ConfigItem::ActivateItems(const std::vector<ConfigItem::Ptr>& newItems, boo
 					ScriptFrame frame(true);
 					expression->Evaluate(frame);
 				} catch (const std::exception& ex) {
-					Log(LogCritical, "config", DiagnosticInformation(ex));
+					Log(LogCritical, "config", nullptr, DiagnosticInformation(ex));
 				}
 			}
 		}
@@ -671,7 +671,7 @@ bool ConfigItem::ActivateItems(const std::vector<ConfigItem::Ptr>& newItems, boo
 			continue;
 
 #ifdef I2_DEBUG
-		Log(LogDebug, "ConfigItem")
+		Log(LogDebug, "ConfigItem", object)
 			<< "Setting 'active' to true for object '" << object->GetName() << "' of type '" << object->GetReflectionType()->GetName() << "'";
 #endif /* I2_DEBUG */
 
@@ -679,7 +679,7 @@ bool ConfigItem::ActivateItems(const std::vector<ConfigItem::Ptr>& newItems, boo
 	}
 
 	if (mainConfigActivation)
-		Log(LogInformation, "ConfigItem", "Triggering Start signal for config items");
+		Log(LogInformation, "ConfigItem", nullptr, "Triggering Start signal for config items");
 
 	/* Activate objects in priority order. */
 	std::vector<Type::Ptr> types = Type::GetAllTypes();
@@ -710,7 +710,7 @@ bool ConfigItem::ActivateItems(const std::vector<ConfigItem::Ptr>& newItems, boo
 				continue;
 
 #ifdef I2_DEBUG
-			Log(LogDebug, "ConfigItem")
+			Log(LogDebug, "ConfigItem", object)
 				<< "Activating object '" << object->GetName() << "' of type '"
 				<< objectType->GetName() << "' with priority "
 				<< objectType->GetActivationPriority();
@@ -726,7 +726,7 @@ bool ConfigItem::ActivateItems(const std::vector<ConfigItem::Ptr>& newItems, boo
 	}
 
 	if (mainConfigActivation)
-		Log(LogInformation, "ConfigItem", "Activated all objects.");
+		Log(LogInformation, "ConfigItem", nullptr, "Activated all objects.");
 
 	return true;
 }
@@ -802,7 +802,7 @@ void ConfigItem::RemoveIgnoredItems(const String& allowedConfigPath)
 		if (path.Find(allowedConfigPath) == String::NPos)
 			continue;
 
-		Log(LogNotice, "ConfigItem")
+		Log(LogNotice, "ConfigItem", nullptr)
 			<< "Removing ignored item path '" << path << "'.";
 
 		(void) unlink(path.CStr());

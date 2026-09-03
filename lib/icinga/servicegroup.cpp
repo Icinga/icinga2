@@ -36,7 +36,7 @@ bool ServiceGroup::EvaluateObjectRule(const Service::Ptr& service, const ConfigI
 	if (!group->GetFilter()->Evaluate(frame).GetValue().ToBool())
 		return false;
 
-	Log(LogDebug, "ServiceGroup")
+	Log(LogDebug, "ServiceGroup", service)
 		<< "Assigning membership for group '" << groupName << "' to service '" << service->GetName() << "'";
 
 	Array::Ptr groups = service->GetGroups();
@@ -83,7 +83,7 @@ void ServiceGroup::RemoveMember(const Service::Ptr& service)
 bool ServiceGroup::ResolveGroupMembership(const Service::Ptr& service, bool add, int rstack) {
 
 	if (add && rstack > 20) {
-		Log(LogWarning, "ServiceGroup")
+		Log(LogWarning, "ServiceGroup", service)
 			<< "Too many nested groups for group '" << GetName() << "': Service '"
 			<< service->GetName() << "' membership assignment failed.";
 

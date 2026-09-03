@@ -43,7 +43,7 @@ ExpressionResult Expression::Evaluate(ScriptFrame& frame, DebugHint *dhint) cons
 #ifdef I2_DEBUG
 /*		std::ostringstream msgbuf;
 		ShowCodeLocation(msgbuf, GetDebugInfo(), false);
-		Log(LogDebug, "Expression")
+		Log(LogDebug, "Expression", nullptr)
 			<< "Executing:\n" << msgbuf.str();*/
 #endif /* I2_DEBUG */
 
@@ -603,7 +603,7 @@ void WarnOnImplicitlySetGlobalVar(const std::unique_ptr<Expression>& setLhs, con
 
 			auto varName (var->GetVariable());
 
-			Log(LogWarning, "config")
+			Log(LogWarning, "config", nullptr)
 				<< "Global variable '" << varName << "' has been set implicitly via '" << varName << ' ' << opStr << " ...' " << debug << "."
 				" Please set it explicitly via 'globals." << varName << ' ' << opStr << " ...' instead.";
 		}
@@ -925,7 +925,7 @@ ExpressionResult NamespaceExpression::DoEvaluate(ScriptFrame&, DebugHint*) const
 	std::ostringstream oss;
 	ShowCodeLocation(oss, adjustedDI, false);
 
-	Log(LogWarning, "config")
+	Log(LogWarning, "config", nullptr)
 		<< "User-defined namespaces are deprecated and will be removed in v2.18:\n"
 		<< oss.str();
 
@@ -979,7 +979,7 @@ ExpressionResult LibraryExpression::DoEvaluate(ScriptFrame& frame, DebugHint *dh
 	ExpressionResult libres = m_Operand->Evaluate(frame, dhint);
 	CHECK_RESULT(libres);
 
-	Log(LogNotice, "config")
+	Log(LogNotice, "config", nullptr)
 		<< "Ignoring explicit load request for library \"" << libres << "\".";
 
 	return Empty;

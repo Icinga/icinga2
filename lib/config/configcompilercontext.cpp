@@ -21,7 +21,7 @@ void ConfigCompilerContext::OpenObjectsFile(const String& filename)
 	try {
 		m_ObjectsFP = std::make_unique<AtomicFile>(filename, 0600);
 	} catch (const std::exception& ex) {
-		Log(LogCritical, "cli", "Could not create temporary objects file: " + DiagnosticInformation(ex, false));
+		Log(LogCritical, "cli", nullptr, "Could not create temporary objects file: " + DiagnosticInformation(ex, false));
 		Application::Exit(1);
 	}
 }

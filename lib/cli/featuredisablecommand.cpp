@@ -48,7 +48,7 @@ ImpersonationLevel FeatureDisableCommand::GetImpersonationLevel() const
 int FeatureDisableCommand::Run(const boost::program_options::variables_map&, const std::vector<std::string>& ap) const
 {
 	if (ap.empty()) {
-		Log(LogCritical, "cli", "Cannot disable feature(s). Name(s) are missing!");
+		Log(LogCritical, "cli", nullptr, "Cannot disable feature(s). Name(s) are missing!");
 		return 0;
 	}
 

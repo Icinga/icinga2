@@ -286,7 +286,7 @@ PerfdataValue::Ptr PerfdataValue::Parse(const String& perfdata)
 			auto uom (l_CiUoMs.find(ciUnit.GetData()));
 
 			if (uom == l_CiUoMs.end()) {
-				Log(LogDebug, "PerfdataValue")
+				Log(LogDebug, "PerfdataValue", nullptr)
 					<< "Invalid performance data unit: " << unit;
 
 				unit = "";
@@ -401,7 +401,7 @@ Value PerfdataValue::ParseWarnCritMinMaxToken(const std::vector<String>& tokens,
 		return Convert::ToDouble(tokens[index]);
 	else {
 		if (tokens.size() > index && tokens[index] != "")
-			Log(LogDebug, "PerfdataValue")
+			Log(LogDebug, "PerfdataValue", nullptr)
 				<< "Ignoring unsupported perfdata " << description << " range, value: '" << tokens[index] << "'.";
 		return Empty;
 	}

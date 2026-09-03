@@ -203,7 +203,7 @@ void HostDbObject::OnConfigUpdateHeavy()
 		if (!parent)
 			continue;
 
-		Log(LogDebug, "HostDbObject")
+		Log(LogDebug, "HostDbObject", parent)
 			<< "host parents: " << parent->GetName();
 
 		/* parents: host_id, parent_host_object_id */
@@ -222,7 +222,7 @@ void HostDbObject::OnConfigUpdateHeavy()
 	DbObject::OnMultipleQueries(queries);
 
 	/* host dependencies */
-	Log(LogDebug, "HostDbObject")
+	Log(LogDebug, "HostDbObject", host)
 		<< "host dependencies for '" << host->GetName() << "'";
 
 	queries.clear();
@@ -240,14 +240,14 @@ void HostDbObject::OnConfigUpdateHeavy()
 		Checkable::Ptr parent = dep->GetParent();
 
 		if (!parent) {
-			Log(LogDebug, "HostDbObject")
+			Log(LogDebug, "HostDbObject", dep)
 				<< "Missing parent for dependency '" << dep->GetName() << "'.";
 			continue;
 		}
 
 		int stateFilter = dep->GetStateFilter();
 
-		Log(LogDebug, "HostDbObject")
+		Log(LogDebug, "HostDbObject", parent)
 			<< "parent host: " << parent->GetName();
 
 		DbQuery query2;
@@ -268,7 +268,7 @@ void HostDbObject::OnConfigUpdateHeavy()
 
 	DbObject::OnMultipleQueries(queries);
 
-	Log(LogDebug, "HostDbObject")
+	Log(LogDebug, "HostDbObject", host)
 		<< "host contacts: " << host->GetName();
 
 	queries.clear();
@@ -283,7 +283,7 @@ void HostDbObject::OnConfigUpdateHeavy()
 	queries.emplace_back(std::move(query4));
 
 	for (const User::Ptr& user : CompatUtility::GetCheckableNotificationUsers(host)) {
-		Log(LogDebug, "HostDbObject")
+		Log(LogDebug, "HostDbObject", user)
 			<< "host contacts: " << user->GetName();
 
 		DbQuery query_contact;
@@ -300,7 +300,7 @@ void HostDbObject::OnConfigUpdateHeavy()
 
 	DbObject::OnMultipleQueries(queries);
 
-	Log(LogDebug, "HostDbObject")
+	Log(LogDebug, "HostDbObject", host)
 		<< "host contactgroups: " << host->GetName();
 
 	queries.clear();
@@ -315,7 +315,7 @@ void HostDbObject::OnConfigUpdateHeavy()
 	queries.emplace_back(std::move(query5));
 
 	for (const UserGroup::Ptr& usergroup : CompatUtility::GetCheckableNotificationUserGroups(host)) {
-		Log(LogDebug, "HostDbObject")
+		Log(LogDebug, "HostDbObject", usergroup)
 			<< "host contactgroups: " << usergroup->GetName();
 
 		DbQuery query_contact;

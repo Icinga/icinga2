@@ -25,7 +25,7 @@ static bool ExecuteExpression(Expression *expression)
 		ScriptFrame frame(true);
 		expression->Evaluate(frame);
 	} catch (const std::exception& ex) {
-		Log(LogCritical, "config", DiagnosticInformation(ex));
+		Log(LogCritical, "config", nullptr, DiagnosticInformation(ex));
 		return false;
 	}
 
@@ -76,7 +76,7 @@ static bool IncludeNonLocalZone(const String& zonePath, const String& package, b
 	 * from zones.d in etc or api package directory, or a local marker file)
 	 */
 	if (ConfigCompiler::HasZoneConfigAuthority(zoneName) || Utility::PathExists(zonePath + "/.authoritative")) {
-		Log(LogNotice, "config")
+		Log(LogNotice, "config", nullptr)
 			<< "Ignoring non local config include for zone '" << zoneName << "': We already have an authoritative copy included.";
 		return true;
 	}
@@ -129,7 +129,7 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 				if (!success)
 					return false;
 			} catch (const std::exception& ex) {
-				Log(LogCritical, "cli", "Could not compile config files: " + DiagnosticInformation(ex, false));
+				Log(LogCritical, "cli", nullptr, "Could not compile config files: " + DiagnosticInformation(ex, false));
 				Application::Exit(1);
 			}
 		}
@@ -162,7 +162,7 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 			}
 
 			for (auto& zoneEtcDir : zoneEtcDirs) {
-				Log(LogWarning, "config")
+				Log(LogWarning, "config", nullptr)
 					<< "Ignoring directory '" << zoneEtcDir << "' for unknown zone '" << Utility::BaseName(zoneEtcDir) << "'.";
 			}
 		}
@@ -187,7 +187,7 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 	if (internalNS->Contains("ZonesStageVarDir")) {
 		zonesVarDir = internalNS->Get("ZonesStageVarDir");
 
-		Log(LogNotice, "DaemonUtility")
+		Log(LogNotice, "DaemonUtility", nullptr)
 			<< "Overriding zones var directory with '" << zonesVarDir << "' for cluster config sync staging.";
 	}
 
@@ -211,7 +211,7 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 		}
 
 		for (auto& zoneEtcDir : zoneVarDirs) {
-			Log(LogWarning, "config")
+			Log(LogWarning, "config", nullptr)
 				<< "Ignoring directory '" << zoneEtcDir << "' for unknown zone '" << Utility::BaseName(zoneEtcDir) << "'.";
 		}
 	}
@@ -265,7 +265,7 @@ bool DaemonUtility::LoadConfigFiles(const std::vector<std::string>& configs,
 	try {
 		ScriptGlobal::WriteToFile(varsfile);
 	} catch (const std::exception& ex) {
-		Log(LogCritical, "cli", "Could not write vars file: " + DiagnosticInformation(ex, false));
+		Log(LogCritical, "cli", nullptr, "Could not write vars file: " + DiagnosticInformation(ex, false));
 		Application::Exit(1);
 	}
 

@@ -33,7 +33,7 @@ void GelfWriter::OnConfigLoaded()
 	m_WorkQueue.SetName("GelfWriter, " + GetName());
 
 	if (!GetEnableHa()) {
-		Log(LogDebug, "GelfWriter")
+		Log(LogDebug, "GelfWriter", this)
 			<< "HA functionality disabled. Won't pause connection: " << GetName();
 
 		SetHAMode(HARunEverywhere);
@@ -74,7 +74,7 @@ void GelfWriter::Start(bool runtimeCreated)
 		try {
 			m_SslContext = MakeAsioSslContext(GetCertPath(), GetKeyPath(), GetCaPath());
 		} catch (const std::exception& ex) {
-			Log(LogWarning, "GelfWriter")
+			Log(LogWarning, "GelfWriter", this)
 				<< "Unable to create SSL context.";
 			throw;
 		}
@@ -85,7 +85,7 @@ void GelfWriter::Resume()
 {
 	ObjectImpl<GelfWriter>::Resume();
 
-	Log(LogInformation, "GelfWriter")
+	Log(LogInformation, "GelfWriter", this)
 		<< "'" << GetName() << "' resumed.";
 
 	/* Register exception handler for WQ tasks. */
@@ -128,7 +128,7 @@ void GelfWriter::Pause()
 
 	m_WorkQueue.Join();
 
-	Log(LogInformation, "GelfWriter")
+	Log(LogInformation, "GelfWriter", this)
 		<< "'" << GetName() << "' paused.";
 
 	ObjectImpl<GelfWriter>::Pause();
@@ -141,8 +141,8 @@ void GelfWriter::AssertOnWorkQueue()
 
 void GelfWriter::ExceptionHandler(std::exception_ptr exp)
 {
-	Log(LogCritical, "GelfWriter") << "Exception during Graylog Gelf operation: " << DiagnosticInformation(exp, false);
-	Log(LogDebug, "GelfWriter") << "Exception during Graylog Gelf operation: " << DiagnosticInformation(exp, true);
+	Log(LogCritical, "GelfWriter", this) << "Exception during Graylog Gelf operation: " << DiagnosticInformation(exp, false);
+	Log(LogDebug, "GelfWriter", this) << "Exception during Graylog Gelf operation: " << DiagnosticInformation(exp, true);
 }
 
 void GelfWriter::CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr)
@@ -185,7 +185,7 @@ void GelfWriter::CheckResultHandler(const Checkable::Ptr& checkable, const Check
 
 		CONTEXT("GELF Processing check result for '" << checkable->GetName() << "'");
 
-		Log(LogDebug, "GelfWriter")
+		Log(LogDebug, "GelfWriter", checkable)
 			<< "Processing check result for '" << checkable->GetName() << "'";
 
 		fields->Set("_latency", cr->CalculateLatency());
@@ -207,7 +207,7 @@ void GelfWriter::CheckResultHandler(const Checkable::Ptr& checkable, const Check
 						try {
 							pdv = PerfdataValue::Parse(val);
 						} catch (const std::exception&) {
-							Log(LogWarning, "GelfWriter")
+							Log(LogWarning, "GelfWriter", checkable)
 								<< "Ignoring invalid perfdata for checkable '"
 								<< checkable->GetName() << "' and command '"
 								<< checkable->GetCheckCommand()->GetName() << "' with value: " << val;
@@ -295,7 +295,7 @@ void GelfWriter::NotificationToUserHandler(const Checkable::Ptr& checkable, Noti
 
 		CONTEXT("GELF Processing notification to all users '" << checkable->GetName() << "'");
 
-		Log(LogDebug, "GelfWriter")
+		Log(LogDebug, "GelfWriter", checkable)
 			<< "Processing notification for '" << checkable->GetName() << "'";
 
 		SendLogMessage(checkable, ComposeGelfMessage(fields, GetSource(), ts));
@@ -341,7 +341,7 @@ void GelfWriter::StateChangeHandler(const Checkable::Ptr& checkable, const Check
 
 		CONTEXT("GELF Processing state change '" << checkable->GetName() << "'");
 
-		Log(LogDebug, "GelfWriter")
+		Log(LogDebug, "GelfWriter", checkable)
 			<< "Processing state change for '" << checkable->GetName() << "'";
 
 		SendLogMessage(checkable, ComposeGelfMessage(fields, GetSource(), ts));
@@ -368,12 +368,12 @@ void GelfWriter::SendLogMessage(const Checkable::Ptr& checkable, const String& g
 	auto log = msgbuf.str();
 
 	try {
-		Log(LogDebug, "GelfWriter")
+		Log(LogDebug, "GelfWriter", checkable)
 			<< "Checkable '" << checkable->GetName() << "' sending message '" << log << "'.";
 
 		m_Connection->Send(boost::asio::const_buffer{log.data(), log.length()});
 	} catch (const PerfdataWriterConnection::Stopped& ex) {
-		Log(LogDebug, "GelfWriter") << ex.what();
+		Log(LogDebug, "GelfWriter", checkable) << ex.what();
 		return;
 	}
 }

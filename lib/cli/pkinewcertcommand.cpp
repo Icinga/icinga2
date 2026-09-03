@@ -46,12 +46,12 @@ std::vector<String> PKINewCertCommand::GetArgumentSuggestions(const String& argu
 int PKINewCertCommand::Run(const boost::program_options::variables_map& vm, [[maybe_unused]] const std::vector<std::string>& ap) const
 {
 	if (!vm.count("cn")) {
-		Log(LogCritical, "cli", "Common name (--cn) must be specified.");
+		Log(LogCritical, "cli", nullptr, "Common name (--cn) must be specified.");
 		return 1;
 	}
 
 	if (!vm.count("key")) {
-		Log(LogCritical, "cli", "Key file path (--key) must be specified.");
+		Log(LogCritical, "cli", nullptr, "Key file path (--key) must be specified.");
 		return 1;
 	}
 
