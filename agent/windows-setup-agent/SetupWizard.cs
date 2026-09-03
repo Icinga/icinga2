@@ -219,6 +219,7 @@ namespace Icinga
 			args += " --trustedcert \"" + _TrustedFile + "\"";
 			args += " --cn \"" + txtInstanceName.Text.Trim() + "\"";
 			args += " --zone \"" + txtInstanceName.Text.Trim() + "\"";
+			args += " --parent_zone \"" + txtParentZone.Text.Trim() + "\"";
 
 			foreach (ListViewItem lvi in lvwGlobalZones.Items) {
 				args += " --global_zones " + lvi.SubItems[0].Text.Trim();
@@ -315,6 +316,12 @@ namespace Icinga
 			if (tbcPages.SelectedTab == tabParameters) {
 				if (txtInstanceName.Text.Length == 0) {
 					Warning("Please enter an instance name.");
+					return;
+				}
+
+				if (txtParentZone.Text.Length == 0)
+				{
+					Warning("Please specify the parent zone.");
 					return;
 				}
 
