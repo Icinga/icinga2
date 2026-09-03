@@ -87,7 +87,7 @@ bool ApiSetupUtility::SetupMasterCertificates(const String& cn)
 		<< "Generating new CSR in '" << csr << "'.";
 
 	if (Utility::PathExists(key))
-		NodeUtility::CreateBackupFile(key, true);
+		NodeUtility::CreateBackupFile(key);
 	if (Utility::PathExists(csr))
 		NodeUtility::CreateBackupFile(csr);
 
@@ -162,7 +162,7 @@ bool ApiSetupUtility::SetupMasterApiUser()
 
 	NodeUtility::CreateBackupFile(apiUsersPath);
 
-	AtomicFile fp (apiUsersPath, 0644);
+	AtomicFile fp (apiUsersPath, 0640);
 
 	fp << "/**\n"
 		<< " * The ApiUser objects are used for authentication against the API.\n"
