@@ -1,0 +1,2 @@
+# Becomes like v2.13.0-555-g11e37a0bd if git-archived, is kept as-is otherwise
+$Format:%(describe)$
