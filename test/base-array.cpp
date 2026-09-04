@@ -12,9 +12,47 @@
 
 using namespace icinga;
 
-static bool SideEffectFreeLess(const Value& lhs, const Value& rhs)
+static void TestSortUnsafeComparator(size_t elements)
 {
-	return lhs < rhs;
+	ScriptFrame frame (true);
+
+	auto Eval = [&frame](const String& text) {
+		return ConfigCompiler::CompileText("<test>", text)->Evaluate(frame).GetValue();
+	};
+
+	Array::Ptr original = new Array();
+
+	for (size_t i = elements; i > 0;) {
+		original->Add(--i);
+	}
+
+	frame.Locals->Set("original", original);
+
+	/* Always claiming "less" violates irreflexivity and isn't a strict weak ordering at all. */
+	{
+		Array::Ptr arr = Eval("original.sort(function(a, b) { return true })");
+		BOOST_CHECK(arr->GetLength() == elements);
+
+		/* No element was dropped or duplicated, regardless of how badly it's ordered. */
+		arr->Sort();
+
+		for (size_t i = 0; i < elements; ++i) {
+			BOOST_CHECK(arr->Get(i) == double(i));
+		}
+	}
+
+	/* A non-deterministic comparator can return different answers for the same pair on
+	 * different invocations, which is just as unsafe for std::sort as an inconsistent one. */
+	{
+		Array::Ptr arr = Eval("original.sort(function(a, b) { return Math.random() < 0.5 })");
+		BOOST_CHECK(arr->GetLength() == elements);
+
+		arr->Sort();
+
+		for (size_t i = 0; i < elements; ++i) {
+			BOOST_CHECK(arr->Get(i) == double(i));
+		}
+	}
 }
 
 BOOST_AUTO_TEST_SUITE(base_array)
@@ -127,7 +165,7 @@ BOOST_AUTO_TEST_CASE(sort_script)
 
 	/* The default comparator and an explicit comparator that replicates it must behave
 	 * identically, so run these checks against both instead of duplicating them. */
-	for (const char* fnStr : {"", "function(a, b) { return a < b }"}) {
+	for (const char* fnStr : {"/* default comparator */", "function(a, b) { return a < b }"}) {
 		BOOST_TEST_CONTEXT("With function param: " << fnStr) {
 			/* Empty and single-element arrays. */
 			{
@@ -147,7 +185,7 @@ BOOST_AUTO_TEST_CASE(sort_script)
 			/* Ascending sort. */
 			{
 				Array::Ptr arr = Eval(String("[2, 1].sort(") + fnStr + ")");
-				std::vector<Value> expected{ 1, 2};
+				std::vector<Value> expected{1, 2};
 				ObjectLock olock (arr);
 				BOOST_CHECK_EQUAL_COLLECTIONS(begin(arr), end(arr), expected.begin(), expected.end());
 			}
@@ -220,7 +258,8 @@ BOOST_AUTO_TEST_CASE(sort_script)
 
 	/* Sandboxed frame: a side-effect-free comparator is allowed. */
 	{
-		frame.Locals->Set("cmp", new Function("less", SideEffectFreeLess, { "a", "b" }, true));
+		frame.Sandboxed = true;
+		frame.Locals->Set("cmp", new Function("less", std::less<Value>{}, { "a", "b" }, true));
 		Array::Ptr arr = Eval("[3, 1, 2].sort(cmp)");
 
 		std::vector<Value> expected {1, 2, 3};
@@ -268,6 +307,22 @@ BOOST_AUTO_TEST_CASE(sort_size_limit)
 		frame.Locals->Set("arr", MakeArray(sandboxLimit + 1));
 		BOOST_CHECK_NO_THROW(ConfigCompiler::CompileText("<test>", "arr.sort()")->Evaluate(frame));
 	}
+}
+
+/* A script-provided comparator is arbitrary script code and isn't guaranteed to implement a
+ * strict weak ordering, so Array#sort uses SafeSort (a bounds-checked heapsort) instead of
+ * std::sort whenever a comparator is given. Unlike std::sort, SafeSort must never crash or
+ * lose/duplicate elements even if the comparator is broken -- it may only sort incorrectly.
+ * These tests exercise exactly the two examples called out in SafeSort's own doc comment.
+ */
+BOOST_AUTO_TEST_CASE(sort_script_unsafe_comparator)
+{
+	TestSortUnsafeComparator(10);
+}
+
+BOOST_AUTO_TEST_CASE(sort_script_unsafe_comparator_1024)
+{
+	TestSortUnsafeComparator(1024);
 }
 
 BOOST_AUTO_TEST_CASE(foreach)
