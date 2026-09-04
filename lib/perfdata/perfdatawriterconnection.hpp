@@ -69,7 +69,7 @@ public:
 		using RetType = decltype(WriteMessage(std::declval<Buffer>(), std::declval<boost::asio::yield_context>()));
 		std::promise<RetType> promise;
 
-		IoEngine::SpawnCoroutine(m_Strand, [&](boost::asio::yield_context yc) {
+		return IoEngine::SpawnSyncCoroutine(m_Strand, [&](boost::asio::yield_context yc) {
 			m_SendActive = true;
 			Defer resetSendActive ([this] { m_SendActive = false; });
 
@@ -77,19 +77,12 @@ public:
 				try {
 					EnsureConnected(yc);
 
-					if constexpr (std::is_void_v<RetType>) {
-						WriteMessage(std::forward<Buffer>(buf), yc);
-						promise.set_value();
-					} else {
-						promise.set_value(WriteMessage(std::forward<Buffer>(buf), yc));
-					}
+					Defer resetRetryTimeout{[this] { m_RetryTimeout = InitialRetryWait; }};
 
-					m_RetryTimeout = InitialRetryWait;
-					return;
+					return WriteMessage(std::forward<Buffer>(buf), yc);
 				} catch (const std::exception& ex) {
 					if (m_Stopped) {
-						promise.set_exception(std::make_exception_ptr(Stopped{}));
-						return;
+						BOOST_THROW_EXCEPTION(Stopped{});
 					}
 
 					Log(LogCritical, m_LogFacility)
@@ -103,13 +96,10 @@ public:
 				try {
 					BackoffWait(yc);
 				} catch (const std::exception&) {
-					promise.set_exception(std::make_exception_ptr(Stopped{}));
-					return;
+					BOOST_THROW_EXCEPTION(Stopped{});
 				}
 			}
-		});
-
-		return promise.get_future().get();
+		})->Get();
 	}
 
 	void Disconnect();

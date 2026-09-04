@@ -161,7 +161,7 @@ void ConfigStagesHandler::HandlePost(const HttpApiRequest& request, HttpApiRespo
 			l_LastReloadFailedTime = currentReloadFailedTime;
 		}
 
-		auto resetPackageUpdates (Shared<Defer>::Make([]() {
+		auto resetPackageUpdates (Shared<Defer<void(*)()>>::Make([]() {
 			std::lock_guard lock(l_RunningPackageUpdatesMutex);
 			l_RunningPackageUpdates = false;
 		}));
