@@ -19,6 +19,13 @@ struct is_deferrable<std::optional<T>, std::enable_if_t<std::is_invocable_r_v<vo
 template<typename T>
 struct is_deferrable<T, std::enable_if_t<std::is_invocable_r_v<void, T>>> : std::true_type {};
 
+struct Armed {
+    bool value = true;
+    Armed() = default;
+    explicit Armed(bool enabled) : value{enabled} {};
+    Armed(Armed&& o) noexcept : value(o.value) { o.value = false; }
+    Armed& operator=(Armed&&) = delete;
+};
 /**
  * An action to be executed at end of scope.
  *
@@ -34,7 +41,7 @@ public:
 	 * for this constructor.
 	 */
 	template<typename Fn, std::enable_if_t<std::is_constructible_v<DeferredFn, Fn> && std::is_invocable_r_v<void, Fn>, int> = 0>
-	explicit Defer(Fn&& func) : m_Func(std::forward<Fn>(func))
+	explicit Defer(Fn&& func) : enabled{true}, m_Func(std::forward<Fn>(func))
 	{
 	}
 
@@ -47,7 +54,7 @@ public:
 	 * For lambdas specifically this is guaranteed by the move constructor getting deleted if any of the captured types
 	 * move constructors aren't noexcept.
 	 */
-	Defer(Defer&& other) noexcept : m_Func(std::move(other.m_Func)) { other.Cancel(); }
+    Defer(Defer&& other) = default;
 
 	Defer(const Defer&) = delete;
 	Defer& operator=(const Defer&) = delete;
@@ -55,13 +62,9 @@ public:
 
 	~Defer()
 	{
-		if (m_Func) {
+		if (enabled.value) {
 			try {
-				if constexpr (std::is_convertible_v<std::nullopt_t, DeferredFn>) {
-					(*m_Func)();
-				} else {
-					m_Func();
-				}
+				m_Func();
 			} catch (...) {
 				// https://stackoverflow.com/questions/130117/throwing-exceptions-out-of-a-destructor
 			}
@@ -83,18 +86,18 @@ public:
 
 	void Cancel() noexcept
 	{
-		if constexpr (std::is_convertible_v<std::nullopt_t, DeferredFn>) {
-			m_Func.reset();
-		} else {
-			m_Func = nullptr;
-		}
+		enabled.value = false;
+		// if constexpr (std::is_convertible_v<std::nullptr_t, DeferredFn>) {
+		// 	m_Func = nullptr;
+		// }
 	}
 
 private:
+	Armed enabled;
 	DeferredFn m_Func{};
 };
 
 template<typename Fn, std::enable_if_t<std::is_invocable_r_v<void, Fn>, int> = 0>
-Defer(Fn&&) -> Defer<std::optional<std::decay_t<Fn>>>;
+Defer(Fn&&) -> Defer<std::decay_t<Fn>>;
 
 } // namespace icinga

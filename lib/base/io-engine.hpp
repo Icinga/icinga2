@@ -304,11 +304,23 @@ public:
 
 		auto result = std::make_shared<SyncResult<RetType>>();
 
+		struct AbandonOnDrop {
+			std::shared_ptr<SyncResult<RetType>> r;
+			~AbandonOnDrop()
+			{
+				if (r) {
+					r->SetAbandoned();
+				}
+			}
+			explicit AbandonOnDrop(std::shared_ptr<SyncResult<RetType>> r) : r{std::move(r)} {};
+			AbandonOnDrop(AbandonOnDrop&&) = default;
+			AbandonOnDrop(const AbandonOnDrop&) = delete;
+		};
 		SpawnCoroutineImpl(
 			h,
 			[result,
 			 f = std::forward<Function>(f),
-			 _ = Defer{[result] { result->SetAbandoned(); }}](boost::asio::yield_context yc) mutable {
+			 capture = AbandonOnDrop{result}](boost::asio::yield_context yc) mutable {
 				try {
 					if constexpr (std::is_void_v<RetType>) {
 						f(yc);
