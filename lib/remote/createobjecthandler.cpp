@@ -121,7 +121,7 @@ bool CreateObjectHandler::HandleRequest(
 	try {
 		config = ConfigObjectUtility::CreateObjectConfig(type, name, ignoreOnError, templates, attrs);
 	} catch (const std::exception& ex) {
-		errors->Add(DiagnosticInformation(ex, false));
+		errors->Add(ex.what());
 
 		if (diagnosticInformation) {
 			diagnosticInformation->Add(DiagnosticInformation(ex));
