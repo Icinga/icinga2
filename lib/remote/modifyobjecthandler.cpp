@@ -147,7 +147,7 @@ bool ModifyObjectHandler::HandleRequest(
 			}
 		} catch (const std::exception& ex) {
 			result1->Set("code", 500);
-			result1->Set("status", "Attribute '" + key + "' could not be restored: " + DiagnosticInformation(ex, false));
+			result1->Set("status", "Attribute '" + key + "' could not be restored: " + ex.what());
 
 			if (verbose && FilterUtility::HasPermission(user, ApiUser::DiagnosticInformationPerm))
 				result1->Set("diagnostic_information", DiagnosticInformation(ex));
@@ -166,7 +166,7 @@ bool ModifyObjectHandler::HandleRequest(
 			}
 		} catch (const std::exception& ex) {
 			result1->Set("code", 500);
-			result1->Set("status", "Attribute '" + key + "' could not be set: " + DiagnosticInformation(ex, false));
+			result1->Set("status", "Attribute '" + key + "' could not be set: " + ex.what());
 
 			if (verbose && FilterUtility::HasPermission(user, ApiUser::DiagnosticInformationPerm))
 				result1->Set("diagnostic_information", DiagnosticInformation(ex));

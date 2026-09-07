@@ -109,7 +109,7 @@ bool ActionsHandler::HandleRequest(
 		} catch (const std::exception& ex) {
 			Dictionary::Ptr fail = new Dictionary({
 				{ "code", 500 },
-				{ "status", "Action execution failed: '" + DiagnosticInformation(ex, false) + "'." }
+				{ "status", String{"Action execution failed: '"} + ex.what() + "'." }
 			});
 
 			/* Exception for actions. Normally we would handle this inside SendJsonError(). */
