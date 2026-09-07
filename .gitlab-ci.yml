@@ -27,7 +27,6 @@ linux-build:
       - IMAGE_NAME:
           - alpine:latest
           - amazonlinux:2023
-          - fedora:42
           - fedora:43
           - fedora:44
           - fedora:45
