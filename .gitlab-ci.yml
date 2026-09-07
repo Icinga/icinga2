@@ -14,7 +14,6 @@ linux-build:
     matrix:
       # x86_64 / amd64
       - IMAGE_NAME:
-          - debian:11
           - debian:12
           - debian:13
           - ubuntu:22.04
@@ -41,7 +40,6 @@ linux-build:
 
       # x86 / i386
       - IMAGE_NAME:
-          - debian:11
           - debian:12
         OS_ARCH: i386
         DOCKER_PLATFORM: linux/386
