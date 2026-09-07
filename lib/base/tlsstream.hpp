@@ -79,6 +79,7 @@ public:
 	bool IsVerifyOK();
 	String GetVerifyError();
 	std::shared_ptr<X509> GetPeerCertificate();
+	STACK_OF(X509) *GetPeerCertificateChain();
 
 	template<class... Args>
 	inline
