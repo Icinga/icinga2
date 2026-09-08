@@ -188,10 +188,11 @@ public:
 
 	ParserType& Parser() { return m_Parser; }
 
+protected:
+	StreamVariant m_Stream;
+
 private:
 	ParserType m_Parser;
-
-	StreamVariant m_Stream;
 };
 
 using IncomingHttpRequest = IncomingHttpMessage<true, boost::beast::http::string_body, AsioTlsOrTcpStream>;
@@ -296,12 +297,13 @@ public:
 		m_CpuBoundWork.emplace(yc, strand);
 	}
 
+protected:
+	StreamVariant m_Stream;
+
 private:
 	Serializer m_Serializer{*this};
 	bool m_SerializationStarted = false;
 	std::optional<CpuBoundWork> m_CpuBoundWork;
-
-	StreamVariant m_Stream;
 };
 
 using OutgoingHttpRequest = OutgoingHttpMessage<true, SerializableFlatBufferBody, AsioTlsOrTcpStream>;
@@ -312,6 +314,8 @@ class HttpApiRequest
 {
 public:
 	explicit HttpApiRequest(Shared<AsioTlsStream>::Ptr stream);
+
+	[[nodiscard]] const AsioTlsStream& Stream() const;
 
 	[[nodiscard]] ApiUser::Ptr User() const;
 	void User(const ApiUser::Ptr& user);
@@ -338,6 +342,8 @@ class HttpApiResponse
 {
 public:
 	explicit HttpApiResponse(Shared<AsioTlsStream>::Ptr stream, HttpServerConnection::Ptr server = nullptr);
+
+	[[nodiscard]] const AsioTlsStream& Stream() const;
 
 	/**
 	 * Enables chunked encoding.
