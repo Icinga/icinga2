@@ -192,6 +192,20 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 		m_Scope->CopyTo(frame.Locals);
 	try {
 		m_Expression->Evaluate(frame, &debugHints);
+
+		Dictionary::Ptr allMods (Namespace::Ptr(ScriptGlobal::Get("Internal"))->Get("modified_attributes"));
+		Dictionary::Ptr typeMods (allMods->Get(type->GetName()));
+
+		if (typeMods) {
+			Function::Ptr objMods (typeMods->Get(m_Name));
+
+			if (objMods) {
+				objMods->Invoke({dobj});
+
+				ObjectLock oLock(typeMods);
+				typeMods->Remove(m_Name);
+			}
+		}
 	} catch (const std::exception& ex) {
 		if (m_IgnoreOnError) {
 			Log(LogNotice, "ConfigObject")
@@ -595,10 +609,27 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 	return true;
 }
 
-bool ConfigItem::CommitItems(const ActivationContext::Ptr& context, WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems, bool silent)
+bool ConfigItem::CommitItems(const ActivationContext::Ptr& context, WorkQueue& upq, std::vector<ConfigItem::Ptr>& newItems,
+	bool silent, bool withModAttrs)
 {
 	if (!silent)
 		Log(LogInformation, "ConfigItem", "Committing config item(s).");
+
+	if (withModAttrs) {
+		/* restore modified attributes */
+		if (Utility::PathExists(Configuration::ModAttrPath)) {
+			std::unique_ptr<Expression> expression = ConfigCompiler::CompileFile(Configuration::ModAttrPath);
+
+			if (expression) {
+				try {
+					ScriptFrame frame(true);
+					expression->Evaluate(frame);
+				} catch (const std::exception& ex) {
+					Log(LogCritical, "config", DiagnosticInformation(ex));
+				}
+			}
+		}
+	}
 
 	if (!CommitNewItems(context, upq, newItems)) {
 		upq.ReportExceptions("config");
@@ -647,7 +678,9 @@ bool ConfigItem::ActivateItems(const std::vector<ConfigItem::Ptr>& newItems, boo
 {
 	if (withModAttrs) {
 		/* restore modified attributes */
-		if (Utility::PathExists(Configuration::ModAttrPath)) {
+		if (Utility::PathExists(Configuration::ModAttrPath) &&
+			!Dictionary::Ptr(Namespace::Ptr(ScriptGlobal::Get("Internal"))->Get("modified_attributes"))->GetLength()
+		) {
 			std::unique_ptr<Expression> expression = ConfigCompiler::CompileFile(Configuration::ModAttrPath);
 
 			if (expression) {
