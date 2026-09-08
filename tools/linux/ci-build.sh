@@ -62,7 +62,7 @@ case "$DISTRO" in
     apt-get update
     DEBIAN_FRONTEND=noninteractive apt-get install --no-install-{recommends,suggests} -y \
       bison ccache cmake dpkg-dev flex g++ ninja-build tzdata protobuf-compiler \
-      lib{boost-all,edit,mariadb,ncurses,pq,ssl,systemd,protobuf}-dev
+      lib{boost-all,crypt,edit,mariadb,ncurses,pq,ssl,systemd,protobuf}-dev
     ;;
 
   fedora:*)
