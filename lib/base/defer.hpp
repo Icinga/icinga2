@@ -1,62 +1,103 @@
 // SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#ifndef DEFER
-#define DEFER
+#pragma once
 
-#include <functional>
+#include <optional>
+#include <type_traits>
 #include <utility>
 
 namespace icinga
 {
+
+template<typename T, typename Enable = void>
+struct is_deferrable : std::false_type {};
+
+template<typename T>
+struct is_deferrable<std::optional<T>, std::enable_if_t<std::is_invocable_r_v<void, T>>> : std::true_type {};
+
+template<typename T>
+struct is_deferrable<T, std::enable_if_t<std::is_invocable_r_v<void, T>>> : std::true_type {};
 
 /**
  * An action to be executed at end of scope.
  *
  * @ingroup base
  */
-class Defer
-{
+template<typename DeferredFn, typename = std::enable_if_t<is_deferrable<DeferredFn>::value, int>>
+class Defer {
 public:
-	inline
-	Defer(std::function<void()> func) : m_Func(std::move(func))
+	/**
+	 * Construct from either a lambda, a `void(*)()` function pointer or a `std::function<void()>`.
+	 *
+	 * The type the function gets stored as depends on whether it is explicitly specified or deduced by the CTAD guide
+	 * for this constructor.
+	 */
+	template<typename Fn, std::enable_if_t<std::is_constructible_v<DeferredFn, Fn> && std::is_invocable_r_v<void, Fn>, int> = 0>
+	explicit Defer(Fn&& func) : m_Func(std::forward<Fn>(func))
 	{
 	}
 
 	Defer() = default;
 
+	/**
+	 * Move constructor.
+	 *
+	 * The exception guarantee is due to move construction of all three supported types also giving the same guarantee.
+	 * For lambdas specifically this is guaranteed by the move constructor getting deleted if any of the captured types
+	 * move constructors aren't noexcept.
+	 */
+	Defer(Defer&& other, std::enable_if_t<std::is_nothrow_move_constructible_v<DeferredFn>, int> = 0) noexcept
+		: m_Func(std::move(other.m_Func))
+	{
+		other.Cancel();
+	}
+
 	Defer(const Defer&) = delete;
-	Defer(Defer&&) = delete;
 	Defer& operator=(const Defer&) = delete;
 	Defer& operator=(Defer&&) = delete;
 
-	inline
 	~Defer()
 	{
 		if (m_Func) {
 			try {
-				m_Func();
+				if constexpr (std::is_convertible_v<std::nullopt_t, DeferredFn>) {
+					(*m_Func)();
+				} else {
+					m_Func();
+				}
 			} catch (...) {
 				// https://stackoverflow.com/questions/130117/throwing-exceptions-out-of-a-destructor
 			}
 		}
 	}
 
-	inline void SetFunc(std::function<void()> func)
+	/**
+	 * Replace the function executed at the end of the scope with a different one.
+	 *
+	 * This requires `Defer` to be explicitly templated with a type-erased function type, like `std::function<void()>`
+	 * or a `void(*)()` function pointers and won't work with deduced lambda types.
+	 */
+	template<typename Fn, std::enable_if_t<std::is_constructible_v<DeferredFn, Fn> && std::is_invocable_r_v<void, Fn>, int> = 0>
+	void SetFunc(Fn&& fn)
 	{
-		m_Func = std::move(func);
+		m_Func = std::forward<Fn>(fn);
 	}
 
-	inline
-	void Cancel()
+	void Cancel() noexcept
 	{
-		m_Func = nullptr;
+		if constexpr (std::is_convertible_v<std::nullopt_t, DeferredFn>) {
+			m_Func.reset();
+		} else {
+			m_Func = nullptr;
+		}
 	}
 
 private:
-	std::function<void()> m_Func;
+	DeferredFn m_Func;
 };
 
-}
+template<typename Fn, std::enable_if_t<std::is_invocable_r_v<void, Fn>, int> = 0>
+Defer(Fn&&) -> Defer<std::optional<std::decay_t<Fn>>>;
 
-#endif /* DEFER */
+} // namespace icinga

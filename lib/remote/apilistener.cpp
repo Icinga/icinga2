@@ -1540,7 +1540,7 @@ void ApiListener::ReplayLog(const JsonRpcConnection::Ptr& client)
 		std::unique_lock<std::mutex> lock(m_LogLock);
 
 		CloseLogFile();
-		Defer reopenLog;
+		Defer<std::function<void()>> reopenLog;
 
 		if (count == -1 || count > 50000) {
 			OpenLogFile();
