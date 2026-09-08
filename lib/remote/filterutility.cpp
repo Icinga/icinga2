@@ -110,6 +110,7 @@ bool FilterExprPermissionChecker::CheckPermissionAndEvalFilter(const String& per
 		// Sandboxing is lifted because this only evaluates the function from the
 		// ApiUser->permissions->filter
 		permissionFrame.Sandboxed = false;
+		permissionFrame.PermChecker = ScriptPermissionChecker::GetNoopChecker();
 		return FilterUtility::EvaluateFilter(permissionFrame, permissionExpr.get(), obj, varName);
 	}
 
