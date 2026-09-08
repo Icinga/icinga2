@@ -237,7 +237,7 @@ BOOST_FIXTURE_TEST_SUITE(notificationcomponent, NotificationComponentFixture,
 BOOST_AUTO_TEST_CASE(notify_send_reminders)
 {
 	SetNotificationInverval(0.15);
-	ReceiveCheckResults(2, ServiceCritical);
+	ReceiveCheckResults(3, ServiceCritical);
 
 	// The first run of the timer sets up the next reminder notification.
 	NotificationTimerHandler();
@@ -291,7 +291,7 @@ BOOST_AUTO_TEST_CASE(notify_delayed)
 	/* The notifications need to wait for a delay until they're sent out, so check if
 	 * they haven't been processed in SendNotificationsHandler() but instead delayed.
 	 */
-	ReceiveCheckResults(2, ServiceCritical);
+	ReceiveCheckResults(3, ServiceCritical);
 	BOOST_REQUIRE_EQUAL(GetLastNotification(), 0);
 	BOOST_REQUIRE_EQUAL(GetNotificationCount(), 0);
 
@@ -351,7 +351,7 @@ BOOST_AUTO_TEST_CASE(notify_simple)
 {
 	BeginTimePeriod();
 
-	ReceiveCheckResults(2, ServiceCritical);
+	ReceiveCheckResults(3, ServiceCritical);
 	NotificationTimerHandler();
 	BOOST_REQUIRE(WaitForExpectedNotificationCount(1));
 	BOOST_REQUIRE_EQUAL(GetLastNotification(), NotificationProblem);
@@ -414,7 +414,7 @@ BOOST_AUTO_TEST_CASE(notify_multiple_state_changes_outside_timeperiod)
 	BOOST_REQUIRE_EQUAL(GetLastNotificationTimestamp(), 0.0);
 
 	BeginTimePeriod();
-	ReceiveCheckResults(2, ServiceCritical);
+	ReceiveCheckResults(3, ServiceCritical);
 
 	BOOST_REQUIRE(WaitForExpectedNotificationCount(1));
 	BOOST_REQUIRE_EQUAL(GetLastNotification(), NotificationProblem);
