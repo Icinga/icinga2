@@ -11,30 +11,6 @@
 namespace icinga
 {
 
-enum LogEntryType
-{
-	LogEntryTypeRuntimeError = 1,
-	LogEntryTypeRuntimeWarning = 2,
-	LogEntryTypeVerificationError = 4,
-	LogEntryTypeVerificationWarning = 8,
-	LogEntryTypeConfigError = 16,
-	LogEntryTypeConfigWarning = 32,
-	LogEntryTypeProcessInfo = 64,
-	LogEntryTypeEventHandler = 128,
-	LogEntryTypeExternalCommand = 512,
-	LogEntryTypeHostUp = 1024,
-	LogEntryTypeHostDown = 2048,
-	LogEntryTypeHostUnreachable = 4096,
-	LogEntryTypeServiceOk = 8192,
-	LogEntryTypeServiceUnknown = 16384,
-	LogEntryTypeServiceWarning = 32768,
-	LogEntryTypeServiceCritical = 65536,
-	LogEntryTypePassiveCheck = 1231072,
-	LogEntryTypeInfoMessage = 262144,
-	LogEntryTypeHostNotification = 524288,
-	LogEntryTypeServiceNotification = 1048576
-};
-
 /**
  * IDO events
  *
@@ -43,6 +19,30 @@ enum LogEntryType
 class DbEvents
 {
 public:
+	enum LogEntryType
+	{
+		LogEntryTypeRuntimeError = 1,
+		LogEntryTypeRuntimeWarning = 2,
+		LogEntryTypeVerificationError = 4,
+		LogEntryTypeVerificationWarning = 8,
+		LogEntryTypeConfigError = 16,
+		LogEntryTypeConfigWarning = 32,
+		LogEntryTypeProcessInfo = 64,
+		LogEntryTypeEventHandler = 128,
+		LogEntryTypeExternalCommand = 512,
+		LogEntryTypeHostUp = 1024,
+		LogEntryTypeHostDown = 2048,
+		LogEntryTypeHostUnreachable = 4096,
+		LogEntryTypeServiceOk = 8192,
+		LogEntryTypeServiceUnknown = 16384,
+		LogEntryTypeServiceWarning = 32768,
+		LogEntryTypeServiceCritical = 65536,
+		LogEntryTypePassiveCheck = 1231072,
+		LogEntryTypeInfoMessage = 262144,
+		LogEntryTypeHostNotification = 524288,
+		LogEntryTypeServiceNotification = 1048576
+	};
+
 	static void StaticInitialize();
 
 	static void AddComments(const Checkable::Ptr& checkable);
