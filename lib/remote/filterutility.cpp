@@ -216,16 +216,6 @@ bool FilterUtility::EvaluateFilter(ScriptFrame& frame, Expression *filter,
 	return Convert::ToBool(filter->Evaluate(frame));
 }
 
-static void FilteredAddTarget(ScriptFrame& permissionFrame, Expression *permissionFilter,
-	ScriptFrame& frame, Expression *ufilter, std::vector<Value>& result, const String& variableName, const Object::Ptr& target)
-{
-	if (FilterUtility::EvaluateFilter(permissionFrame, permissionFilter, target, variableName)) {
-		if (FilterUtility::EvaluateFilter(frame, ufilter, target, variableName)) {
-			result.emplace_back(std::move(target));
-		}
-	}
-}
-
 /**
  * Checks whether the given API user is granted the given permission
  *
@@ -381,15 +371,13 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 		if (qd.Types.find(type) == qd.Types.end())
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid type specified for this query."));
 
-		Namespace::Ptr frameNS = new Namespace();
-		ScriptFrame frame(false, frameNS);
-		frame.Sandboxed = true;
-		frame.PermChecker = permissionChecker;
+		Namespace::Ptr userFilterVarsNS = new Namespace();
+		std::unique_ptr<Expression> ufilter;
 
 		if (query->Contains("filter")) {
 			CheckPermission(user, ApiUser::FilterExpressionPerm, nullptr);
 			String filter = HttpUtility::GetLastParameter(query, "filter");
-			std::unique_ptr<Expression> ufilter = ConfigCompiler::CompileText("<API query>", filter);
+			ufilter = ConfigCompiler::CompileText("<API query>", filter);
 			Dictionary::Ptr filter_vars = query->Get("filter_vars");
 			bool targeted = false;
 			std::vector<ConfigObject::Ptr> targets;
@@ -444,27 +432,28 @@ std::vector<Value> FilterUtility::GetFilterTargets(const QueryDescription& qd, c
 						result.emplace_back(std::move(target));
 					}
 				}
-			} else {
-				if (filter_vars) {
-					ObjectLock olock (filter_vars);
-
-					for (auto& kv : filter_vars) {
-						frameNS->Set(kv.first, kv.second);
-					}
-				}
-
-				provider->FindTargets(type, [&permissionFrame, permissionFilter, &frame, &ufilter, &result, variableName](const Object::Ptr& target) {
-					FilteredAddTarget(permissionFrame, permissionFilter, frame, &*ufilter, result, variableName, target);
-				});
+				return result;
 			}
-		} else {
-			/* Ensure to pass a nullptr as filter expression.
-			 * GCC 8.1.1 on F28 causes problems, see GH #6533.
-			 */
-			provider->FindTargets(type, [&permissionFrame, permissionFilter, &frame, &result, variableName](const Object::Ptr& target) {
-				FilteredAddTarget(permissionFrame, permissionFilter, frame, nullptr, result, variableName, target);
-			});
+
+			if (filter_vars) {
+				ObjectLock olock (filter_vars);
+
+				for (auto& kv : filter_vars) {
+					userFilterVarsNS->Set(kv.first, kv.second);
+				}
+			}
 		}
+
+		provider->FindTargets(type, [&](const Object::Ptr& target) {
+			if (FilterUtility::EvaluateFilter(permissionFrame, permissionFilter, target, variableName)) {
+				ScriptFrame userFrame{false, userFilterVarsNS};
+				userFrame.Sandboxed = true;
+				userFrame.PermChecker = permissionChecker;
+				if (FilterUtility::EvaluateFilter(userFrame, ufilter.get(), target, variableName)) {
+					result.emplace_back(std::move(target));
+				}
+			}
+		});
 	}
 
 	return result;
