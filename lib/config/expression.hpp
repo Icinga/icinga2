@@ -824,11 +824,11 @@ class ApplyExpression final : public DebuggableExpression
 {
 public:
 	ApplyExpression(String type, String target, std::unique_ptr<Expression> name,
-		std::unique_ptr<Expression> filter, String package, String fkvar, String fvvar,
+		std::unique_ptr<Expression> filter, String zone, String package, String fkvar, String fvvar,
 		std::unique_ptr<Expression> fterm, std::map<String, std::unique_ptr<Expression> >&& closedVars, bool ignoreOnError,
 		std::unique_ptr<Expression> expression, const DebugInfo& debugInfo = DebugInfo())
 		: DebuggableExpression(debugInfo), m_Type(std::move(type)), m_Target(std::move(target)),
-			m_Name(std::move(name)), m_Filter(filter.release()), m_Package(std::move(package)), m_FKVar(std::move(fkvar)), m_FVVar(std::move(fvvar)),
+			m_Name(std::move(name)), m_Filter(filter.release()), m_Zone(std::move(zone)), m_Package(std::move(package)), m_FKVar(std::move(fkvar)), m_FVVar(std::move(fvvar)),
 			m_FTerm(fterm.release()), m_IgnoreOnError(ignoreOnError), m_ClosedVars(std::move(closedVars)),
 			m_Expression(expression.release())
 	{ }
@@ -841,6 +841,7 @@ private:
 	String m_Target;
 	std::unique_ptr<Expression> m_Name;
 	Expression::Ptr m_Filter;
+	String m_Zone;
 	String m_Package;
 	String m_FKVar;
 	String m_FVVar;
