@@ -6,9 +6,9 @@
 #include "base/type.hpp"
 #include "base/string.hpp"
 #include <condition_variable>
-#include <map>
 #include <mutex>
-#include <set>
+#include <unordered_set>
+#include <unordered_map>
 
 #ifndef _WIN32
 #include <boost/interprocess/sync/interprocess_sharable_mutex.hpp>
@@ -106,7 +106,7 @@ private:
 
 	static std::mutex m_Mutex;
 	static std::condition_variable m_CV;
-	static std::map<Type*, std::set<String>> m_LockedObjectNames;
+	static std::unordered_map<Type*, std::unordered_set<String>> m_LockedObjectNames;
 };
 
 }

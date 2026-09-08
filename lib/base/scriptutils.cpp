@@ -391,9 +391,8 @@ Array::Ptr ScriptUtils::Keys(const Object::Ptr& obj)
 	Dictionary::Ptr dict = dynamic_pointer_cast<Dictionary>(obj);
 
 	if (dict) {
-		ObjectLock olock(dict);
-		for (const Dictionary::Pair& kv : dict) {
-			result.push_back(kv.first);
+		for (auto& key : dict->GetKeys(true)) {
+			result.push_back(std::move(key));
 		}
 	}
 
@@ -452,7 +451,7 @@ Array::Ptr ScriptUtils::GetTemplates(const Type::Ptr& type)
 
 	ArrayData result;
 
-	for (const ConfigItem::Ptr& item : ConfigItem::GetItems(type)) {
+	for (auto& item : ConfigItem::GetItems(type, true)) {
 		if (item->IsAbstract())
 			result.push_back(GetTargetForTemplate(item));
 	}

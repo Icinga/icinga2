@@ -31,7 +31,7 @@
 #include <iterator>
 #include <stdlib.h>
 #include <future>
-#include <set>
+#include <unordered_set>
 #include <utf8.h>
 #include <vector>
 
@@ -921,7 +921,7 @@ void Utility::CloseAllFDs(const std::vector<int>& except, std::function<void(int
 #if defined(__linux__) || defined(__APPLE__)
 	namespace fs = boost::filesystem;
 
-	std::set<int> fds;
+	std::unordered_set<int> fds;
 
 #ifdef __linux__
 	const char *dir = "/proc/self/fd";

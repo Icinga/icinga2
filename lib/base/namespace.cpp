@@ -10,8 +10,6 @@
 
 using namespace icinga;
 
-template class std::map<icinga::String, std::shared_ptr<icinga::NamespaceValue> >;
-
 REGISTER_PRIMITIVE_TYPE(Namespace, Object, Namespace::GetPrototype());
 
 /**

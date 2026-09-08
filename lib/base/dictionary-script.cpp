@@ -6,6 +6,7 @@
 #include "base/functionwrapper.hpp"
 #include "base/scriptframe.hpp"
 #include "base/array.hpp"
+#include <iterator>
 
 using namespace icinga;
 
@@ -71,12 +72,8 @@ static Array::Ptr DictionaryKeys()
 	Dictionary::Ptr self = static_cast<Dictionary::Ptr>(vframe->Self);
 	REQUIRE_NOT_NULL(self);
 
-	ArrayData keys;
-	ObjectLock olock(self);
-	for (const Dictionary::Pair& kv : self) {
-		keys.push_back(kv.first);
-	}
-	return new Array(std::move(keys));
+	auto keys (self->GetKeys(true));
+	return new Array(ArrayData(std::make_move_iterator(keys.begin()), std::make_move_iterator(keys.end())));
 }
 
 static Array::Ptr DictionaryValues()
@@ -86,10 +83,14 @@ static Array::Ptr DictionaryValues()
 	REQUIRE_NOT_NULL(self);
 
 	ArrayData values;
-	ObjectLock olock(self);
-	for (const Dictionary::Pair& kv : self) {
-		values.push_back(kv.second);
+	auto items (self->GetItems());
+
+	values.reserve(items.size());
+
+	for (auto& item : items) {
+		values.push_back(std::move(item.second));
 	}
+
 	return new Array(std::move(values));
 }
 

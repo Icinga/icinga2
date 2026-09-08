@@ -19,7 +19,7 @@ public:
 	void FindTargets([[maybe_unused]] const String& type,
 		const std::function<void (const Value&)>& addTarget) const override
 	{
-		for (const Type::Ptr& target : Type::GetAllTypes()) {
+		for (const Type::Ptr& target : Type::GetAllTypes(true)) {
 			addTarget(target);
 		}
 	}

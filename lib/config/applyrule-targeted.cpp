@@ -12,7 +12,7 @@ using namespace icinga;
 /**
  * @returns All ApplyRules targeting only specific parent objects including the given host. (See AddTargetedRule().)
  */
-const std::set<ApplyRule::Ptr>& ApplyRule::GetTargetedHostRules(const Type::Ptr& sourceType, const String& host)
+const std::unordered_set<ApplyRule::Ptr>& ApplyRule::GetTargetedHostRules(const Type::Ptr& sourceType, const String& host)
 {
 	auto perSourceType (m_Rules.find(sourceType.get()));
 
@@ -24,14 +24,14 @@ const std::set<ApplyRule::Ptr>& ApplyRule::GetTargetedHostRules(const Type::Ptr&
 		}
 	}
 
-	static const std::set<ApplyRule::Ptr> noRules;
+	static const std::unordered_set<ApplyRule::Ptr> noRules;
 	return noRules;
 }
 
 /**
  * @returns All ApplyRules targeting only specific parent objects including the given service. (See AddTargetedRule().)
  */
-const std::set<ApplyRule::Ptr>& ApplyRule::GetTargetedServiceRules(const Type::Ptr& sourceType, const String& host, const String& service)
+const std::unordered_set<ApplyRule::Ptr>& ApplyRule::GetTargetedServiceRules(const Type::Ptr& sourceType, const String& host, const String& service)
 {
 	auto perSourceType (m_Rules.find(sourceType.get()));
 
@@ -47,7 +47,7 @@ const std::set<ApplyRule::Ptr>& ApplyRule::GetTargetedServiceRules(const Type::P
 		}
 	}
 
-	static const std::set<ApplyRule::Ptr> noRules;
+	static const std::unordered_set<ApplyRule::Ptr> noRules;
 	return noRules;
 }
 

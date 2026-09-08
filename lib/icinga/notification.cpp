@@ -20,8 +20,8 @@ using namespace icinga;
 REGISTER_TYPE(Notification);
 INITIALIZE_ONCE(&Notification::StaticInitialize);
 
-std::map<String, int> Notification::m_StateFilterMap;
-std::map<String, int> Notification::m_TypeFilterMap;
+std::unordered_map<String, int> Notification::m_StateFilterMap;
+std::unordered_map<String, int> Notification::m_TypeFilterMap;
 
 boost::signals2::signal<void (const Notification::Ptr&, const MessageOrigin::Ptr&)> Notification::OnNextNotificationChanged;
 boost::signals2::signal<void (const Notification::Ptr&, const String&, uint_fast8_t, const MessageOrigin::Ptr&)> Notification::OnLastNotifiedStatePerUserUpdated;
@@ -166,9 +166,9 @@ NotificationCommand::Ptr Notification::GetCommand() const
 	return NotificationCommand::GetByName(GetCommandRaw());
 }
 
-std::set<User::Ptr> Notification::GetUsers() const
+std::unordered_set<User::Ptr> Notification::GetUsers() const
 {
-	std::set<User::Ptr> result;
+	std::unordered_set<User::Ptr> result;
 
 	Array::Ptr users = GetUsersRaw();
 
@@ -188,9 +188,9 @@ std::set<User::Ptr> Notification::GetUsers() const
 	return result;
 }
 
-std::set<UserGroup::Ptr> Notification::GetUserGroups() const
+std::unordered_set<UserGroup::Ptr> Notification::GetUserGroups() const
 {
-	std::set<UserGroup::Ptr> result;
+	std::unordered_set<UserGroup::Ptr> result;
 
 	Array::Ptr groups = GetUserGroupsRaw();
 
@@ -428,17 +428,17 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 			SetLastProblemNotification(now);
 	}
 
-	std::set<User::Ptr> allUsers;
+	std::unordered_set<User::Ptr> allUsers;
 
-	std::set<User::Ptr> users = GetUsers();
+	auto users (GetUsers());
 	std::copy(users.begin(), users.end(), std::inserter(allUsers, allUsers.begin()));
 
 	for (const UserGroup::Ptr& ug : GetUserGroups()) {
-		std::set<User::Ptr> members = ug->GetMembers();
+		auto members (ug->GetMembers());
 		std::copy(members.begin(), members.end(), std::inserter(allUsers, allUsers.begin()));
 	}
 
-	std::set<User::Ptr> allNotifiedUsers;
+	std::unordered_set<User::Ptr> allNotifiedUsers;
 	Array::Ptr notifiedProblemUsers = GetNotifiedProblemUsers();
 
 	for (const User::Ptr& user : allUsers) {
@@ -665,7 +665,7 @@ int icinga::HostStateToFilter(HostState state)
 	}
 }
 
-String Notification::NotificationFilterToString(int filter, const std::map<String, int>& filterMap)
+String Notification::NotificationFilterToString(int filter, const std::unordered_map<String, int>& filterMap)
 {
 	std::vector<String> sFilters;
 
@@ -673,6 +673,8 @@ String Notification::NotificationFilterToString(int filter, const std::map<Strin
 		if (filter & kv.second)
 			sFilters.push_back(kv.first);
 	}
+
+	std::sort(sFilters.begin(), sFilters.end());
 
 	return Utility::NaturalJoin(sFilters);
 }
@@ -856,12 +858,12 @@ Endpoint::Ptr Notification::GetCommandEndpoint() const
 	return Endpoint::GetByName(GetCommandEndpointRaw());
 }
 
-const std::map<String, int>& Notification::GetStateFilterMap()
+const std::unordered_map<String, int>& Notification::GetStateFilterMap()
 {
 	return m_StateFilterMap;
 }
 
-const std::map<String, int>& Notification::GetTypeFilterMap()
+const std::unordered_map<String, int>& Notification::GetTypeFilterMap()
 {
 	return m_TypeFilterMap;
 }

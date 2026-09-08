@@ -52,5 +52,5 @@ Array::Ptr ObjectUtils::GetServices(const Value& host)
 	if (!hostObj)
 		return nullptr;
 
-	return Array::FromVector(hostObj->GetServices());
+	return Array::FromVector(hostObj->GetServices(true));
 }

@@ -14,7 +14,7 @@ using namespace icinga;
 
 std::vector<String> ConfigCompiler::m_IncludeSearchDirs;
 std::mutex ConfigCompiler::m_ZoneDirsMutex;
-std::map<String, std::vector<ZoneFragment> > ConfigCompiler::m_ZoneDirs;
+std::unordered_map<String, std::vector<ZoneFragment>> ConfigCompiler::m_ZoneDirs;
 
 /**
  * Constructor for the ConfigCompiler class.

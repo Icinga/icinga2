@@ -60,7 +60,7 @@ void ServiceGroup::EvaluateObjectRules(const Service::Ptr& service)
 	}
 }
 
-std::set<Service::Ptr> ServiceGroup::GetMembers() const
+std::unordered_set<Service::Ptr> ServiceGroup::GetMembers() const
 {
 	std::unique_lock<std::mutex> lock(m_ServiceGroupMutex);
 	return m_Members;

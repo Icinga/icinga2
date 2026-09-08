@@ -43,7 +43,7 @@ void Checkable::RemoveAckComments(const String& removedBy, double createdBefore)
 	}
 }
 
-std::set<Comment::Ptr> Checkable::GetComments() const
+std::unordered_set<Comment::Ptr> Checkable::GetComments() const
 {
 	std::unique_lock<std::mutex> lock(m_CommentMutex);
 	return m_Comments;

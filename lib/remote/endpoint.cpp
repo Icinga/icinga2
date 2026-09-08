@@ -92,7 +92,7 @@ void Endpoint::RemoveClient(const JsonRpcConnection::Ptr& client)
 	OnDisconnected(this, client);
 }
 
-std::set<JsonRpcConnection::Ptr> Endpoint::GetClients() const
+std::unordered_set<JsonRpcConnection::Ptr> Endpoint::GetClients() const
 {
 	std::unique_lock<std::mutex> lock(m_ClientsLock);
 	return m_Clients;

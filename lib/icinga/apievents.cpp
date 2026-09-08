@@ -96,7 +96,7 @@ void ApiEvents::StateChangeHandler(const Checkable::Ptr& checkable, const CheckR
 }
 
 void ApiEvents::NotificationSentToAllUsersHandler(const Notification::Ptr& notification,
-	const Checkable::Ptr& checkable, const std::set<User::Ptr>& users, NotificationType type,
+	const Checkable::Ptr& checkable, const std::unordered_set<User::Ptr>& users, NotificationType type,
 	const CheckResult::Ptr& cr, const String& author, const String& text, const MessageOrigin::Ptr&)
 {
 	auto inboxes (EventsRouter::GetInstance().GetInboxes(EventType::Notification));
