@@ -131,6 +131,25 @@ public:
 #endif /* _WIN32 */
 	}
 
+	/**
+	 * Returns a Boost.Asio spawn() completion token/attributes object that selects a detached
+	 * (fire-and-forget) coroutine with the default stack size.
+	 *
+	 * Boost.Asio versions that offer both the completion-token-based spawn() overloads and the
+	 * legacy boost::coroutines::attributes-based overload make a plain 2-argument
+	 * spawn(executor, function) call ambiguous, as both overloads have a defaulted 3rd parameter.
+	 * Passing this token as an explicit 3rd argument disambiguates such calls. Callers that need a
+	 * custom coroutine stack size should follow the pattern used by SpawnCoroutine() instead.
+	 */
+	static inline auto GetDetachedSpawnToken()
+	{
+#if BOOST_VERSION >= 108700
+		return boost::asio::detached;
+#else // BOOST_VERSION >= 108700
+		return boost::coroutines::attributes();
+#endif // BOOST_VERSION >= 108700
+	}
+
 	template <typename Handler, typename Function>
 	static void SpawnCoroutine(Handler& h, Function f) {
 		auto wrapper = [f = std::move(f)](boost::asio::yield_context yc) {
@@ -154,7 +173,7 @@ public:
 		boost::asio::spawn(h,
 			std::allocator_arg, boost::context::protected_fixedsize_stack(GetCoroutineStackSize()),
 			std::move(wrapper),
-			boost::asio::detached
+			GetDetachedSpawnToken()
 		);
 #else // BOOST_VERSION >= 108700
 		boost::asio::spawn(h, std::move(wrapper), boost::coroutines::attributes(GetCoroutineStackSize()));
