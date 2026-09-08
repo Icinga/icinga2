@@ -134,6 +134,7 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 
 	double lastMessageSent = 0;
 	double lastMessageReceived = 0;
+	uint_fast64_t pendingOutgoingMessages = 0;
 	double messagesSentPerSecond = 0;
 	double messagesReceivedPerSecond = 0;
 	double bytesSentPerSecond = 0;
@@ -157,6 +158,7 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 			if (endpoint->GetLastMessageReceived() > lastMessageReceived)
 				lastMessageReceived = endpoint->GetLastMessageReceived();
 
+			pendingOutgoingMessages += endpoint->GetPendingOutgoingMessages();
 			messagesSentPerSecond += endpoint->GetMessagesSentPerSecond();
 			messagesReceivedPerSecond += endpoint->GetMessagesReceivedPerSecond();
 			bytesSentPerSecond += endpoint->GetBytesSentPerSecond();
@@ -208,6 +210,7 @@ void ClusterZoneCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const Che
 			new PerfdataValue("slave_lag", zoneLag, false, "s", lagWarning, lagCritical),
 			new PerfdataValue("last_messages_sent", lastMessageSent),
 			new PerfdataValue("last_messages_received", lastMessageReceived),
+			new PerfdataValue("sum_pending_outgoing_messages", pendingOutgoingMessages),
 			new PerfdataValue("sum_messages_sent_per_second", messagesSentPerSecond),
 			new PerfdataValue("sum_messages_received_per_second", messagesReceivedPerSecond),
 			new PerfdataValue("sum_bytes_sent_per_second", bytesSentPerSecond),
