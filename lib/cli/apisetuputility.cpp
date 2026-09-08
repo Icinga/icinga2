@@ -50,7 +50,7 @@ bool ApiSetupUtility::SetupMaster(const String& cn, bool prompt_restart)
 
 	if (prompt_restart) {
 		std::cout << "Done.\n\n";
-		std::cout << "Now restart your Icinga 2 daemon to finish the installation!\n\n";
+		std::cout << "Now reload your Icinga 2 daemon to finish the installation!\n\n";
 	}
 
 	return true;
