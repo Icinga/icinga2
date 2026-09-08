@@ -7,6 +7,7 @@
 #include "config/objectrule.hpp"
 #include "config/configcompiler.hpp"
 #include "base/application.hpp"
+#include "base/benchmark.hpp"
 #include "base/configtype.hpp"
 #include "base/objectlock.hpp"
 #include "base/convert.hpp"
@@ -451,6 +452,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 
 	for (auto& type : Type::GetConfigTypesSortedByLoadDependencies()) {
 		std::atomic<int> committed_items(0);
+		BenchmarkSummary sum;
 
 		{
 			auto items (itemsByType.find(type.get()));
@@ -459,6 +461,10 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 				for (const ItemPair& pair: items->second) {
 					newItems.emplace_back(pair.first);
 				}
+
+				BenchmarkStopWatch sw;
+
+				sw.Start();
 
 				upq.ParallelFor(items->second, [&committed_items](const ItemPair& ip) {
 					const ConfigItem::Ptr& item = ip.first;
@@ -475,16 +481,18 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 				});
 
 				upq.Join();
+				sw.Stop(sum);
 			}
 		}
 
 #ifdef I2_DEBUG
 		itemsCount += committed_items;
+#endif /* I2_DEBUG */
 
 		if (committed_items > 0)
-			Log(LogDebug, "configitem")
-				<< "Committed " << committed_items << " items of type '" << type->GetName() << "'.";
-#endif /* I2_DEBUG */
+			Log(LogNotice, "configitem")
+				<< "Committed " << committed_items << " items of type "
+				<< type->GetName() << " in " << sum.GetSeconds() << "s.";
 
 		if (upq.HasExceptions())
 			return false;
@@ -497,6 +505,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 
 	for (auto& type : Type::GetConfigTypesSortedByLoadDependencies()) {
 		std::atomic<int> notified_items(0);
+		BenchmarkSummary sum;
 
 		{
 			auto items (itemsByType.find(type.get()));
@@ -518,6 +527,10 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 						return false;
 					}
 				}
+
+				BenchmarkStopWatch sw;
+
+				sw.Start();
 
 				upq.ParallelFor(items->second, [&notified_items](const ItemPair& ip) {
 					const ConfigItem::Ptr& item = ip.first;
@@ -545,6 +558,7 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 				});
 
 				upq.Join();
+				sw.Stop(sum);
 
 				if (upq.HasExceptions()) {
 					return false;
@@ -552,13 +566,18 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 			}
 		}
 
-#ifdef I2_DEBUG
 		if (notified_items > 0)
-			Log(LogDebug, "configitem")
-				<< "Sent OnAllConfigLoaded to " << notified_items << " items of type '" << type->GetName() << "'.";
-#endif /* I2_DEBUG */
+			Log(LogNotice, "configitem")
+				<< "Sent OnAllConfigLoaded to " << notified_items << " items of type "
+				<< type->GetName() << " in " << sum.GetSeconds() << "s.";
 
 		notified_items = 0;
+
+		BenchmarkSummary sum2;
+		BenchmarkStopWatch sw;
+
+		sw.Start();
+
 		for (auto loadDep : type->GetLoadDependencies()) {
 			auto items (itemsByType.find(loadDep));
 
@@ -577,12 +596,12 @@ bool ConfigItem::CommitNewItems(const ActivationContext::Ptr& context, WorkQueue
 		}
 
 		upq.Join();
+		sw.Stop(sum2);
 
-#ifdef I2_DEBUG
 		if (notified_items > 0)
-			Log(LogDebug, "configitem")
-				<< "Sent CreateChildObjects to " << notified_items << " items of type '" << type->GetName() << "'.";
-#endif /* I2_DEBUG */
+			Log(LogNotice, "configitem")
+				<< "Sent CreateChildObjects to " << notified_items << " items of type "
+				<< type->GetName() << " in " << sum2.GetSeconds() << "s.";
 
 		if (upq.HasExceptions())
 			return false;
