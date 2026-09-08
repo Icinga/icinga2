@@ -49,7 +49,9 @@ void UserGroup::EvaluateObjectRules(const User::Ptr& user)
 {
 	CONTEXT("Evaluating group membership for user '" << user->GetName() << "'");
 
-	for (const ConfigItem::Ptr& group : ConfigItem::GetItems(UserGroup::TypeInstance))
+	auto items (ConfigItem::GetItems(UserGroup::TypeInstance));
+
+	for (auto& group : *items)
 	{
 		if (!group->GetFilter())
 			continue;
