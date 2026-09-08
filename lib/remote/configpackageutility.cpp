@@ -99,7 +99,7 @@ String ConfigPackageUtility::CreateStage(const String& packageName, const Dictio
 
 			String filePath = path + "/" + kv.first;
 
-			Log(LogInformation, "ConfigPackageUtility")
+			Log(LogInformation, "ConfigPackageUtility", nullptr)
 				<< "Updating configuration file: " << filePath;
 
 			// Pass the directory and generate a dir tree, if it does not already exist
@@ -198,7 +198,7 @@ void ConfigPackageUtility::TryActivateStageCallback(const ProcessResult& pr, con
 			}
 		}
 	} else {
-		Log(LogCritical, "ConfigPackageUtility")
+		Log(LogCritical, "ConfigPackageUtility", nullptr)
 			<< "Config validation failed for package '"
 			<< packageName << "' and stage '" << stageName << "'.";
 	}

@@ -298,7 +298,7 @@ void Timer::TimerThreadProc()
 {
 	namespace ch = std::chrono;
 
-	Log(LogDebug, "Timer", "TimerThreadProc started.");
+	Log(LogDebug, "Timer", nullptr, "TimerThreadProc started.");
 
 	Utility::SetThreadName("Timer Thread");
 

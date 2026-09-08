@@ -34,7 +34,7 @@ void OpenTsdbWriter::OnConfigLoaded()
 	m_WorkQueue.SetName("OpenTsdbWriter, " + GetName());
 
 	if (!GetEnableHa()) {
-		Log(LogDebug, "OpenTsdbWriter")
+		Log(LogDebug, "OpenTsdbWriter", this)
 			<< "HA functionality disabled. Won't pause connection: " << GetName();
 
 		SetHAMode(HARunEverywhere);
@@ -81,11 +81,11 @@ void OpenTsdbWriter::Resume()
 {
 	ObjectImpl<OpenTsdbWriter>::Resume();
 
-	Log(LogInformation, "OpentsdbWriter")
+	Log(LogInformation, "OpentsdbWriter", this)
 		<< "'" << GetName() << "' resumed.";
 
-	m_WorkQueue.SetExceptionCallback([](const std::exception_ptr& exp) {
-		Log(LogDebug, "OpenTsdbWriter")
+	m_WorkQueue.SetExceptionCallback([this](const std::exception_ptr& exp) {
+		Log(LogDebug, "OpenTsdbWriter", this)
 			<< "Exception during OpenTsdb operation: " << DiagnosticInformation(exp);
 	});
 
@@ -117,7 +117,7 @@ void OpenTsdbWriter::Pause()
 
 	m_WorkQueue.Join();
 
-	Log(LogInformation, "OpentsdbWriter")
+	Log(LogInformation, "OpentsdbWriter", this)
 		<< "'" << GetName() << "' paused.";
 
 	ObjectImpl<OpenTsdbWriter>::Pause();
@@ -183,7 +183,7 @@ void OpenTsdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 				Value value = MacroProcessor::ResolveMacros(pair.second, resolvers, cr, &missing_macro);
 				
 				if (!missing_macro.IsEmpty()) {
-					Log(LogDebug, "OpenTsdbWriter")
+					Log(LogDebug, "OpenTsdbWriter", checkable)
 						<< "Unable to resolve macro '" << missing_macro 
 						<< "' for checkable '" << checkable->GetName() << "'.";
 					
@@ -191,7 +191,7 @@ void OpenTsdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 				}
 
 				if (value.IsEmpty()) {
-					Log(LogDebug, "OpenTsdbWriter")
+					Log(LogDebug, "OpenTsdbWriter", checkable)
 						<< "Resolved macro '" << pair.second
 						<< "' for checkable '" << checkable->GetName() << "' to '', skipping.";
 
@@ -211,7 +211,7 @@ void OpenTsdbWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 			Value value = MacroProcessor::ResolveMacros(config_tmpl_metric, resolvers, cr, &missing_macro);
 			
 			if (!missing_macro.IsEmpty()) {
-				Log(LogDebug, "OpenTsdbWriter")
+				Log(LogDebug, "OpenTsdbWriter", checkable)
 					<< "Unable to resolve macro '" << missing_macro 
 					<< "' for checkable '" << checkable->GetName() << "'.";
 				
@@ -319,7 +319,7 @@ void OpenTsdbWriter::AddPerfdata(const Checkable::Ptr& checkable, const String& 
 			try {
 				pdv = PerfdataValue::Parse(val);
 			} catch (const std::exception&) {
-				Log(LogWarning, "OpenTsdbWriter")
+				Log(LogWarning, "OpenTsdbWriter", checkable)
 					<< "Ignoring invalid perfdata for checkable '"
 					<< checkable->GetName() << "' and command '"
 					<< checkCommand->GetName() << "' with value: " << val;
@@ -383,7 +383,7 @@ void OpenTsdbWriter::AddMetric(const Checkable::Ptr& checkable, const String& me
 	 */
 	msgbuf << "put " << metric << " " << static_cast<long>(ts) << " " << Convert::ToString(value) << tags_string;
 
-	Log(LogDebug, "OpenTsdbWriter")
+	Log(LogDebug, "OpenTsdbWriter", checkable)
 		<< "Checkable '" << checkable->GetName() << "' adds to metric list: '" << msgbuf.str() << "'.";
 
 	/* do not send \n to debug log */
@@ -395,13 +395,13 @@ void OpenTsdbWriter::SendMsgBuffer()
 {
 	ASSERT(m_WorkQueue.IsWorkerThread());
 
-	Log(LogDebug, "OpenTsdbWriter")
+	Log(LogDebug, "OpenTsdbWriter", this)
 		<< "Flushing data buffer to OpenTsdb.";
 
 	try {
 		m_Connection->Send(boost::asio::buffer(std::exchange(m_MsgBuf, std::string{})));
 	} catch (const PerfdataWriterConnection::Stopped& ex) {
-		Log(LogDebug, "OpenTsdbWriter") << ex.what();
+		Log(LogDebug, "OpenTsdbWriter", this) << ex.what();
 		return;
 	}
 }
@@ -455,20 +455,20 @@ void OpenTsdbWriter::ReadConfigTemplate()
 	m_ServiceConfigTemplate = GetServiceTemplate();
 
 	if (!m_ServiceConfigTemplate) {
-		Log(LogDebug, "OpenTsdbWriter")
+		Log(LogDebug, "OpenTsdbWriter", this)
 			<< "Unable to locate service template configuration.";
 	} else if (m_ServiceConfigTemplate->GetLength() == 0) {
-		Log(LogDebug, "OpenTsdbWriter")
+		Log(LogDebug, "OpenTsdbWriter", this)
 			<< "The service template configuration is empty.";
 	}
 
 	m_HostConfigTemplate = GetHostTemplate();
 
 	if (!m_HostConfigTemplate) {
-		Log(LogDebug, "OpenTsdbWriter")
+		Log(LogDebug, "OpenTsdbWriter", this)
 			<< "Unable to locate host template configuration.";
 	} else if (m_HostConfigTemplate->GetLength() == 0) {
-		Log(LogDebug, "OpenTsdbWriter")
+		Log(LogDebug, "OpenTsdbWriter", this)
 			<< "The host template configuration is empty.";
 	}
 

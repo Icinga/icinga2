@@ -35,7 +35,7 @@ bool DependencyStateChecker::IsReachable(Checkable::ConstPtr checkable, int rsta
 	}
 
 	if (rstack > Dependency::MaxDependencyRecursionLevel) {
-		Log(LogWarning, "Checkable")
+		Log(LogWarning, "Checkable", checkable)
 			<< "Too many nested dependencies (>" << Dependency::MaxDependencyRecursionLevel << ") for checkable '"
 			<< checkable->GetName() << "': Dependency failed.";
 
@@ -54,7 +54,7 @@ bool DependencyStateChecker::IsReachable(Checkable::ConstPtr checkable, int rsta
 
 	for (auto& dependencyGroup : checkable->GetDependencyGroups()) {
 		if (auto state(GetState(dependencyGroup, checkable.get(), rstack + 1)); state != DependencyGroup::State::Ok) {
-			Log(LogDebug, "Checkable")
+			Log(LogDebug, "Checkable", checkable)
 				<< "Dependency group '" << dependencyGroup->GetRedundancyGroupName() << "' have failed for checkable '"
 				<< checkable->GetName() << "': Marking as unreachable.";
 

@@ -120,14 +120,14 @@ std::pair<String, String> Socket::GetDetailsFromSockaddr(sockaddr *address, sock
 	if (getnameinfo(address, len, host, sizeof(host), service,
 		sizeof(service), NI_NUMERICHOST | NI_NUMERICSERV) < 0) {
 #ifndef _WIN32
-		Log(LogCritical, "Socket")
+		Log(LogCritical, "Socket", nullptr)
 			<< "getnameinfo() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 
 		BOOST_THROW_EXCEPTION(socket_error()
 			<< boost::errinfo_api_function("getnameinfo")
 			<< boost::errinfo_errno(errno));
 #else /* _WIN32 */
-		Log(LogCritical, "Socket")
+		Log(LogCritical, "Socket", nullptr)
 			<< "getnameinfo() failed with error code " << WSAGetLastError() << ", \"" << Utility::FormatErrorNumber(WSAGetLastError()) << "\"";
 
 		BOOST_THROW_EXCEPTION(socket_error()
@@ -153,14 +153,14 @@ std::pair<String, String> Socket::GetClientAddressDetails()
 
 	if (getsockname(GetFD(), (sockaddr *)&sin, &len) < 0) {
 #ifndef _WIN32
-		Log(LogCritical, "Socket")
+		Log(LogCritical, "Socket", nullptr)
 			<< "getsockname() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 
 		BOOST_THROW_EXCEPTION(socket_error()
 			<< boost::errinfo_api_function("getsockname")
 			<< boost::errinfo_errno(errno));
 #else /* _WIN32 */
-		Log(LogCritical, "Socket")
+		Log(LogCritical, "Socket", nullptr)
 			<< "getsockname() failed with error code " << WSAGetLastError() << ", \"" << Utility::FormatErrorNumber(WSAGetLastError()) << "\"";
 
 		BOOST_THROW_EXCEPTION(socket_error()
@@ -203,14 +203,14 @@ std::pair<String, String> Socket::GetPeerAddressDetails()
 
 	if (getpeername(GetFD(), (sockaddr *)&sin, &len) < 0) {
 #ifndef _WIN32
-		Log(LogCritical, "Socket")
+		Log(LogCritical, "Socket", nullptr)
 			<< "getpeername() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 
 		BOOST_THROW_EXCEPTION(socket_error()
 			<< boost::errinfo_api_function("getpeername")
 			<< boost::errinfo_errno(errno));
 #else /* _WIN32 */
-		Log(LogCritical, "Socket")
+		Log(LogCritical, "Socket", nullptr)
 			<< "getpeername() failed with error code " << WSAGetLastError() << ", \"" << Utility::FormatErrorNumber(WSAGetLastError()) << "\"";
 
 		BOOST_THROW_EXCEPTION(socket_error()
@@ -246,14 +246,14 @@ void Socket::Listen()
 {
 	if (listen(GetFD(), SOMAXCONN) < 0) {
 #ifndef _WIN32
-		Log(LogCritical, "Socket")
+		Log(LogCritical, "Socket", nullptr)
 			<< "listen() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 
 		BOOST_THROW_EXCEPTION(socket_error()
 			<< boost::errinfo_api_function("listen")
 			<< boost::errinfo_errno(errno));
 #else /* _WIN32 */
-		Log(LogCritical, "Socket")
+		Log(LogCritical, "Socket", nullptr)
 			<< "listen() failed with error code " << WSAGetLastError() << ", \"" << Utility::FormatErrorNumber(WSAGetLastError()) << "\"";
 
 		BOOST_THROW_EXCEPTION(socket_error()
@@ -278,14 +278,14 @@ size_t Socket::Write(const void *buffer, size_t count)
 
 	if (rc < 0) {
 #ifndef _WIN32
-		Log(LogCritical, "Socket")
+		Log(LogCritical, "Socket", nullptr)
 			<< "send() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 
 		BOOST_THROW_EXCEPTION(socket_error()
 			<< boost::errinfo_api_function("send")
 			<< boost::errinfo_errno(errno));
 #else /* _WIN32 */
-		Log(LogCritical, "Socket")
+		Log(LogCritical, "Socket", nullptr)
 			<< "send() failed with error code " << WSAGetLastError() << ", \"" << Utility::FormatErrorNumber(WSAGetLastError()) << "\"";
 
 		BOOST_THROW_EXCEPTION(socket_error()
@@ -312,14 +312,14 @@ size_t Socket::Read(void *buffer, size_t count)
 
 	if (rc < 0) {
 #ifndef _WIN32
-		Log(LogCritical, "Socket")
+		Log(LogCritical, "Socket", nullptr)
 			<< "recv() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 
 		BOOST_THROW_EXCEPTION(socket_error()
 			<< boost::errinfo_api_function("recv")
 			<< boost::errinfo_errno(errno));
 #else /* _WIN32 */
-		Log(LogCritical, "Socket")
+		Log(LogCritical, "Socket", nullptr)
 			<< "recv() failed with error code " << WSAGetLastError() << ", \"" << Utility::FormatErrorNumber(WSAGetLastError()) << "\"";
 
 		BOOST_THROW_EXCEPTION(socket_error()
@@ -343,7 +343,7 @@ Socket::Ptr Socket::Accept()
 
 #ifndef _WIN32
 	if (fd < 0) {
-		Log(LogCritical, "Socket")
+		Log(LogCritical, "Socket", nullptr)
 			<< "accept() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 
 		BOOST_THROW_EXCEPTION(socket_error()
@@ -352,7 +352,7 @@ Socket::Ptr Socket::Accept()
 	}
 #else /* _WIN32 */
 	if (fd == INVALID_SOCKET) {
-		Log(LogCritical, "Socket")
+		Log(LogCritical, "Socket", nullptr)
 			<< "accept() failed with error code " << WSAGetLastError() << ", \"" << Utility::FormatErrorNumber(WSAGetLastError()) << "\"";
 
 		BOOST_THROW_EXCEPTION(socket_error()
@@ -385,7 +385,7 @@ bool Socket::Poll(bool read, bool write, struct timeval *timeout)
 	rc = select(GetFD() + 1, &readfds, &writefds, &exceptfds, timeout);
 
 	if (rc < 0) {
-		Log(LogCritical, "Socket")
+		Log(LogCritical, "Socket", nullptr)
 			<< "select() failed with error code " << WSAGetLastError() << ", \"" << Utility::FormatErrorNumber(WSAGetLastError()) << "\"";
 
 		BOOST_THROW_EXCEPTION(socket_error()
@@ -401,7 +401,7 @@ bool Socket::Poll(bool read, bool write, struct timeval *timeout)
 	rc = poll(&pfd, 1, timeout ? (timeout->tv_sec + 1000 + timeout->tv_usec / 1000) : -1);
 
 	if (rc < 0) {
-		Log(LogCritical, "Socket")
+		Log(LogCritical, "Socket", nullptr)
 			<< "poll() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 
 		BOOST_THROW_EXCEPTION(socket_error()

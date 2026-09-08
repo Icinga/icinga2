@@ -137,10 +137,10 @@ public:
 			try {
 				f(yc);
 			} catch (const std::exception& ex) {
-				Log(LogCritical, "IoEngine") << "Exception in coroutine: " << DiagnosticInformation(ex);
+				Log(LogCritical, "IoEngine", nullptr) << "Exception in coroutine: " << DiagnosticInformation(ex);
 			} catch (...) {
 				try {
-					Log(LogCritical, "IoEngine", "Exception in coroutine!");
+					Log(LogCritical, "IoEngine", nullptr, "Exception in coroutine!");
 				} catch (...) {
 				}
 

@@ -472,7 +472,7 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(
 		ArrayData serviceDowntimes;
 
 		for (const Service::Ptr& hostService : host->GetServices()) {
-			Log(LogNotice, "ApiActions")
+			Log(LogNotice, "ApiActions", hostService)
 				<< "Creating downtime for service " << hostService->GetName() << " on host " << host->GetName();
 
 			Downtime::Ptr serviceDowntime = Downtime::AddDowntime(hostService, author, comment, startTime, endTime,
@@ -497,7 +497,7 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(
 			trigger = downtime;
 		}
 
-		Log(LogNotice, "ApiActions")
+		Log(LogNotice, "ApiActions", downtime)
 			<< "Processing child options " << childOptions << " for downtime " << downtimeName;
 
 		ArrayData childDowntimes;
@@ -517,14 +517,14 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(
 				continue;
 			}
 
-			Log(LogNotice, "ApiActions")
+			Log(LogNotice, "ApiActions", child)
 				<< "Scheduling downtime for child object " << child->GetName();
 
 			Downtime::Ptr childDowntime = Downtime::AddDowntime(child, author, comment, startTime, endTime,
 				fixed, trigger, duration, String(), String(), downtimeName);
 			String childDowntimeName = childDowntime->GetName();
 
-			Log(LogNotice, "ApiActions")
+			Log(LogNotice, "ApiActions", childDowntime)
 				<< "Add child downtime '" << childDowntimeName << "'.";
 
 			Dictionary::Ptr childAdditional = new Dictionary({
@@ -537,7 +537,7 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(
 				ArrayData childServiceDowntimes;
 
 				for (const Service::Ptr& childService : childHost->GetServices()) {
-					Log(LogNotice, "ApiActions")
+					Log(LogNotice, "ApiActions", childService)
 						<< "Creating downtime for service " << childService->GetName() << " on child host " << childHost->GetName();
 
 					Downtime::Ptr serviceDowntime = Downtime::AddDowntime(childService, author, comment, startTime, endTime,
@@ -589,7 +589,7 @@ Dictionary::Ptr ApiActions::RemoveDowntime(
 			try {
 				Downtime::RemoveDowntime(downtime->GetName(), true, DowntimeRemovedByUser, author);
 			} catch (const invalid_downtime_removal_error& error) {
-				Log(LogWarning, "ApiActions") << error.what();
+				Log(LogWarning, "ApiActions", downtime) << error.what();
 
 				return ApiActions::CreateResult(400, error.what());
 			}
@@ -613,7 +613,7 @@ Dictionary::Ptr ApiActions::RemoveDowntime(
 		return ApiActions::CreateResult(200, "Successfully removed downtime '" + downtimeName +
 			"' and " + std::to_string(childCount) + " child downtimes.");
 	} catch (const invalid_downtime_removal_error& error) {
-		Log(LogWarning, "ApiActions") << error.what();
+		Log(LogWarning, "ApiActions", downtime) << error.what();
 
 		return ApiActions::CreateResult(400, error.what());
 	}
@@ -679,7 +679,7 @@ Value ApiActions::GetSingleObjectByNameUsingPermissions(const String& type, cons
 	try {
 		objs = FilterUtility::GetFilterTargets(qd, queryParams, user);
 	} catch (const std::exception& ex) {
-		Log(LogWarning, "ApiActions") << DiagnosticInformation(ex);
+		Log(LogWarning, "ApiActions", nullptr) << DiagnosticInformation(ex);
 		return nullptr;
 	}
 

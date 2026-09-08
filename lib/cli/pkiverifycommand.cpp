@@ -68,13 +68,13 @@ int PKIVerifyCommand::Run(const boost::program_options::variables_map& vm, [[may
 		try {
 			cert = GetX509Certificate(certFile);
 		} catch (const std::exception& ex) {
-			Log(LogCritical, "cli")
+			Log(LogCritical, "cli", nullptr)
 				<< "Cannot read certificate file '" << certFile << "'. Please ensure that it exists and is readable.";
 
 			return ServiceCritical;
 		}
 
-		Log(LogInformation, "cli")
+		Log(LogInformation, "cli", nullptr)
 			<< "Verifying common name (CN) '" << cn << " in certificate '" << certFile << "'.";
 
 		std::cout << PkiUtility::GetCertificateInformation(cert) << "\n";
@@ -82,12 +82,12 @@ int PKIVerifyCommand::Run(const boost::program_options::variables_map& vm, [[may
 		String certCN = GetCertificateCN(cert);
 
 		if (cn == certCN) {
-			Log(LogInformation, "cli")
+			Log(LogInformation, "cli", nullptr)
 				<< "OK: CN '" << cn << "' matches certificate CN '" << certCN << "'.";
 
 			return ServiceOK;
 		} else {
-			Log(LogCritical, "cli")
+			Log(LogCritical, "cli", nullptr)
 				<< "CRITICAL: CN '" << cn << "' does NOT match certificate CN '" << certCN << "'.";
 
 			return ServiceCritical;
@@ -100,7 +100,7 @@ int PKIVerifyCommand::Run(const boost::program_options::variables_map& vm, [[may
 		try {
 			cert = GetX509Certificate(certFile);
 		} catch (const std::exception& ex) {
-			Log(LogCritical, "cli")
+			Log(LogCritical, "cli", nullptr)
 				<< "Cannot read certificate file '" << certFile << "'. Please ensure that it exists and is readable.";
 
 			return ServiceCritical;
@@ -110,18 +110,18 @@ int PKIVerifyCommand::Run(const boost::program_options::variables_map& vm, [[may
 		try {
 			cacert = GetX509Certificate(caCertFile);
 		} catch (const std::exception& ex) {
-			Log(LogCritical, "cli")
+			Log(LogCritical, "cli", nullptr)
 				<< "Cannot read CA certificate file '" << caCertFile << "'. Please ensure that it exists and is readable.";
 
 			return ServiceCritical;
 		}
 
-		Log(LogInformation, "cli")
+		Log(LogInformation, "cli", nullptr)
 			<< "Verifying certificate '" << certFile << "'";
 
 		std::cout << PkiUtility::GetCertificateInformation(cert) << "\n";
 
-		Log(LogInformation, "cli")
+		Log(LogInformation, "cli", nullptr)
 			<< " with CA certificate '" << caCertFile << "'.";
 
 		std::cout << PkiUtility::GetCertificateInformation(cacert) << "\n";
@@ -133,7 +133,7 @@ int PKIVerifyCommand::Run(const boost::program_options::variables_map& vm, [[may
 		try {
 			signedByCA = VerifyCertificate(cacert, cert, crlFile);
 		} catch (const std::exception& ex) {
-			Log logmsg (LogCritical, "cli");
+			Log logmsg (LogCritical, "cli", nullptr);
 			logmsg << "CRITICAL: Certificate with CN '" << certCN << "' is NOT signed by CA: ";
 			if (const unsigned long *openssl_code = boost::get_error_info<errinfo_openssl_error>(ex)) {
 				logmsg << X509_verify_cert_error_string(*openssl_code) << " (code " << *openssl_code << ")";
@@ -145,12 +145,12 @@ int PKIVerifyCommand::Run(const boost::program_options::variables_map& vm, [[may
 		}
 
 		if (signedByCA) {
-			Log(LogInformation, "cli")
+			Log(LogInformation, "cli", nullptr)
 				<< "OK: Certificate with CN '" << certCN << "' is signed by CA.";
 
 			return ServiceOK;
 		} else {
-			Log(LogCritical, "cli")
+			Log(LogCritical, "cli", nullptr)
 				<< "CRITICAL: Certificate with CN '" << certCN << "' is NOT signed by CA.";
 
 			return ServiceCritical;
@@ -164,24 +164,24 @@ int PKIVerifyCommand::Run(const boost::program_options::variables_map& vm, [[may
 		try {
 			cacert = GetX509Certificate(caCertFile);
 		} catch (const std::exception& ex) {
-			Log(LogCritical, "cli")
+			Log(LogCritical, "cli", nullptr)
 				<< "Cannot read CA certificate file '" << caCertFile << "'. Please ensure that it exists and is readable.";
 
 			return ServiceCritical;
 		}
 
-		Log(LogInformation, "cli")
+		Log(LogInformation, "cli", nullptr)
 			<< "Checking whether certificate '" << caCertFile << "' is a valid CA certificate.";
 
 		std::cout << PkiUtility::GetCertificateInformation(cacert) << "\n";
 
 		if (IsCa(cacert)) {
-			Log(LogInformation, "cli")
+			Log(LogInformation, "cli", nullptr)
 				<< "OK: CA certificate file '" << caCertFile << "' was verified successfully.\n";
 
 			return ServiceOK;
 		} else {
-			Log(LogCritical, "cli")
+			Log(LogCritical, "cli", nullptr)
 				<< "CRITICAL: The file '" << caCertFile << "' does not seem to be a CA certificate file.\n";
 
 			return ServiceCritical;
@@ -194,13 +194,13 @@ int PKIVerifyCommand::Run(const boost::program_options::variables_map& vm, [[may
 		try {
 			cert = GetX509Certificate(certFile);
 		} catch (const std::exception& ex) {
-			Log(LogCritical, "cli")
+			Log(LogCritical, "cli", nullptr)
 				<< "Cannot read certificate file '" << certFile << "'. Please ensure that it exists and is readable.";
 
 			return ServiceCritical;
 		}
 
-		Log(LogInformation, "cli")
+		Log(LogInformation, "cli", nullptr)
 			<< "Printing certificate '" << certFile << "'";
 
 		std::cout << PkiUtility::GetCertificateInformation(cert) << "\n";
@@ -210,14 +210,14 @@ int PKIVerifyCommand::Run(const boost::program_options::variables_map& vm, [[may
 
 	/* Error handling. */
 	if (!cn.IsEmpty() && certFile.IsEmpty()) {
-		Log(LogCritical, "cli")
+		Log(LogCritical, "cli", nullptr)
 			<< "The '--cn' parameter requires the '--cert' parameter.";
 
 		return ServiceCritical;
 	}
 
 	if (cn.IsEmpty() && certFile.IsEmpty() && caCertFile.IsEmpty()) {
-		Log(LogInformation, "cli")
+		Log(LogInformation, "cli", nullptr)
 			<< "Please add the '--help' parameter to see all available options.";
 
 		return ServiceOK;

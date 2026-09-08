@@ -773,7 +773,7 @@ void Utility::RenameFile(const String& source, const String& target)
 			fs::rename(sourcePath, targetPath);
 
 			if (retries > 0) {
-				Log(LogWarning, "Utility") << "Renaming '" << source << "' to '" << target
+				Log(LogWarning, "Utility", nullptr) << "Renaming '" << source << "' to '" << target
 					<< "' succeeded after " << retries << " retries";
 			}
 
@@ -789,7 +789,7 @@ void Utility::RenameFile(const String& source, const String& target)
 			}
 
 			if (error != last_error) {
-				Log(LogWarning, "Utility") << "Renaming '" << source << "' to '" << target << "' failed: "
+				Log(LogWarning, "Utility", nullptr) << "Renaming '" << source << "' to '" << target << "' failed: "
 					<< ex.code().message() << " (trying up to " << remaining << " more times)";
 				last_error = error;
 			}
@@ -827,10 +827,10 @@ bool Utility::SetFileOwnership(const String& file, const String& user, const Str
 
 		if (!pw) {
 			if (errno == 0) {
-				Log(LogCritical, "cli")
+				Log(LogCritical, "cli", nullptr)
 					<< "Invalid user specified: " << user;
 			} else {
-				Log(LogCritical, "cli") << "getpwnam() failed with error code " << errno << ", \""
+				Log(LogCritical, "cli", nullptr) << "getpwnam() failed with error code " << errno << ", \""
 					<< Utility::FormatErrorNumber(errno) << "\"";
 			}
 			return false;
@@ -849,10 +849,10 @@ bool Utility::SetFileOwnership(const String& file, const String& user, const Str
 
 		if (!gr) {
 			if (errno == 0) {
-				Log(LogCritical, "cli")
+				Log(LogCritical, "cli", nullptr)
 					<< "Invalid group specified: " << group;
 			} else {
-				Log(LogCritical, "cli") << "getgrnam() failed with error code " << errno << ", \""
+				Log(LogCritical, "cli", nullptr) << "getgrnam() failed with error code " << errno << ", \""
 					<< Utility::FormatErrorNumber(errno) << "\"";
 			}
 			return false;
@@ -862,7 +862,7 @@ bool Utility::SetFileOwnership(const String& file, const String& user, const Str
 	}
 
 	if (chown(file.CStr(), uid, gid) < 0) {
-		Log(LogCritical, "cli")
+		Log(LogCritical, "cli", nullptr)
 			<< "chown() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 		return false;
 	}

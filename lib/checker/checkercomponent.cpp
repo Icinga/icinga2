@@ -62,7 +62,7 @@ void CheckerComponent::Start(bool runtimeCreated)
 {
 	ObjectImpl<CheckerComponent>::Start(runtimeCreated);
 
-	Log(LogInformation, "CheckerComponent")
+	Log(LogInformation, "CheckerComponent", this)
 		<< "'" << GetName() << "' started.";
 
 
@@ -86,7 +86,7 @@ void CheckerComponent::Stop(bool runtimeRemoved)
 	m_ResultTimer->Stop(true);
 	m_Thread.join();
 
-	Log(LogInformation, "CheckerComponent")
+	Log(LogInformation, "CheckerComponent", this)
 		<< "'" << GetName() << "' stopped.";
 
 	ObjectImpl<CheckerComponent>::Stop(runtimeRemoved);
@@ -140,7 +140,7 @@ void CheckerComponent::CheckThreadProc()
 
 		if (!forced) {
 			if (!checkable->IsReachable(DependencyCheckExecution)) {
-				Log(LogNotice, "CheckerComponent")
+				Log(LogNotice, "CheckerComponent", checkable)
 					<< "Skipping check for object '" << checkable->GetName() << "': Dependency failed.";
 				check = false;
 			}
@@ -150,12 +150,12 @@ void CheckerComponent::CheckThreadProc()
 			tie(host, service) = GetHostService(checkable);
 
 			if (host && !service && (!checkable->GetEnableActiveChecks() || !icingaApp->GetEnableHostChecks())) {
-				Log(LogNotice, "CheckerComponent")
+				Log(LogNotice, "CheckerComponent", host)
 					<< "Skipping check for host '" << host->GetName() << "': active host checks are disabled";
 				check = false;
 			}
 			if (host && service && (!checkable->GetEnableActiveChecks() || !icingaApp->GetEnableServiceChecks())) {
-				Log(LogNotice, "CheckerComponent")
+				Log(LogNotice, "CheckerComponent", service)
 					<< "Skipping check for service '" << service->GetName() << "': active service checks are disabled";
 				check = false;
 			}
@@ -173,7 +173,7 @@ void CheckerComponent::CheckThreadProc()
 						nextCheck = tp->GetValidEnd();
 					}
 
-					Log(LogNotice, "CheckerComponent")
+					Log(LogNotice, "CheckerComponent", checkable)
 						<< "Skipping check for object '" << checkable->GetName()
 						<< "', as not in check period '" << tp->GetName() << "', until "
 						<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", nextCheck);
@@ -191,7 +191,7 @@ void CheckerComponent::CheckThreadProc()
 			if (nextCheck > 0) {
 				checkable->SetNextCheck(nextCheck);
 			} else {
-				Log(LogDebug, "CheckerComponent")
+				Log(LogDebug, "CheckerComponent", checkable)
 					<< "Checks for checkable '" << checkable->GetName() << "' are disabled. Rescheduling check.";
 
 				checkable->UpdateNextCheck();
@@ -205,7 +205,7 @@ void CheckerComponent::CheckThreadProc()
 
 		csi = GetCheckableScheduleInfo(checkable);
 
-		Log(LogDebug, "CheckerComponent")
+		Log(LogDebug, "CheckerComponent", checkable)
 			<< "Scheduling info for checkable '" << checkable->GetName() << "' ("
 			<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", checkable->GetNextCheck()) << "): Object '"
 			<< csi.Object->GetName() << "', Next Check: "
@@ -221,7 +221,7 @@ void CheckerComponent::CheckThreadProc()
 			checkable->SetForceNextCheck(false);
 		}
 
-		Log(LogDebug, "CheckerComponent")
+		Log(LogDebug, "CheckerComponent", checkable)
 			<< "Executing check for '" << checkable->GetName() << "'";
 
 		Checkable::IncreasePendingChecks();
@@ -257,7 +257,7 @@ void CheckerComponent::ExecuteCheckHelper(const Checkable::Ptr& checkable)
 
 		checkable->ProcessCheckResult(cr, m_WaitGroup);
 
-		Log(LogCritical, "checker", output);
+		Log(LogCritical, "checker", checkable, output);
 	}
 
 	Checkable::DecreasePendingChecks();
@@ -280,7 +280,7 @@ void CheckerComponent::ExecuteCheckHelper(const Checkable::Ptr& checkable)
 		}
 	}
 
-	Log(LogDebug, "CheckerComponent")
+	Log(LogDebug, "CheckerComponent", checkable)
 		<< "Check finished for object '" << checkable->GetName() << "'";
 }
 
@@ -295,7 +295,7 @@ void CheckerComponent::ResultTimerHandler()
 			<< (CIB::GetActiveHostChecksStatistics(60) + CIB::GetActiveServiceChecksStatistics(60)) / 60.0;
 	}
 
-	Log(LogNotice, "CheckerComponent", msgbuf.str());
+	Log(LogNotice, "CheckerComponent", this, msgbuf.str());
 }
 
 void CheckerComponent::ObjectHandler(const ConfigObject::Ptr& object)

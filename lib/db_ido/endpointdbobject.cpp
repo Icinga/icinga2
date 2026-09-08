@@ -44,7 +44,7 @@ Dictionary::Ptr EndpointDbObject::GetStatusFields() const
 	Endpoint::Ptr endpoint = static_pointer_cast<Endpoint>(GetObject());
 
 
-	Log(LogDebug, "EndpointDbObject")
+	Log(LogDebug, "EndpointDbObject", endpoint)
 		<< "update status for endpoint '" << endpoint->GetName() << "'";
 
 	return new Dictionary({
@@ -59,7 +59,7 @@ void EndpointDbObject::UpdateConnectedStatus(const Endpoint::Ptr& endpoint)
 {
 	bool connected = EndpointIsConnected(endpoint);
 
-	Log(LogDebug, "EndpointDbObject")
+	Log(LogDebug, "EndpointDbObject", endpoint)
 		<< "update is_connected=" << connected << " for endpoint '" << endpoint->GetName() << "'";
 
 	DbQuery query1;

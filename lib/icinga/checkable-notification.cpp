@@ -43,7 +43,7 @@ void Checkable::SendNotifications(NotificationType type, const CheckResult::Ptr&
 
 	if (!IcingaApplication::GetInstance()->GetEnableNotifications() || !GetEnableNotifications()) {
 		if (!force) {
-			Log(LogInformation, "Checkable")
+			Log(LogInformation, "Checkable", this)
 				<< "Notifications are disabled for checkable '" << checkableName << "'.";
 			return;
 		}
@@ -55,12 +55,12 @@ void Checkable::SendNotifications(NotificationType type, const CheckResult::Ptr&
 
 	// Bail early if there are no notifications.
 	if (notifications.empty()) {
-		Log(LogNotice, "Checkable")
+		Log(LogNotice, "Checkable", this)
 			<< "Skipping checkable '" << checkableName << "' which doesn't have any notification objects configured.";
 		return;
 	}
 
-	Log(LogInformation, "Checkable")
+	Log(LogInformation, "Checkable", this)
 		<< "Checkable '" << checkableName << "' has " << notifications.size()
 		<< " notification(s). Checking filters for type '" << notificationTypeName << "', sends will be logged.";
 
@@ -72,7 +72,7 @@ void Checkable::SendNotifications(NotificationType type, const CheckResult::Ptr&
 					auto stashedNotifications (notification->GetStashedNotifications());
 
 					if (stashedNotifications->GetLength()) {
-						Log(LogNotice, "Notification")
+						Log(LogNotice, "Notification", notification)
 							<< "Notification '" << notification->GetName() << "': there are some stashed notifications. Stashing notification to preserve order.";
 
 						stashedNotifications->Add(new Dictionary({
@@ -87,17 +87,17 @@ void Checkable::SendNotifications(NotificationType type, const CheckResult::Ptr&
 						notification->BeginExecuteNotification(type, cr, force, false, author, text);
 					}
 				} else {
-					Log(LogNotice, "Notification")
+					Log(LogNotice, "Notification", notification)
 						<< "Notification '" << notification->GetName() << "': HA cluster active, this endpoint does not have the authority (paused=true). Skipping.";
 				}
 			} catch (const std::exception& ex) {
-				Log(LogWarning, "Checkable")
+				Log(LogWarning, "Checkable", notification)
 					<< "Exception occurred during notification '" << notification->GetName() << "' for checkable '"
 					<< GetName() << "': " << DiagnosticInformation(ex, false);
 			}
 		} else {
 			// Cold startup phase. Stash notification for later.
-			Log(LogNotice, "Notification")
+			Log(LogNotice, "Notification", notification)
 				<< "Notification '" << notification->GetName() << "': object authority hasn't been updated, yet. Stashing notification.";
 
 			notification->GetStashedNotifications()->Add(new Dictionary({

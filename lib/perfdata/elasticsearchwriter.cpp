@@ -34,7 +34,7 @@ void ElasticsearchWriter::OnConfigLoaded()
 	m_WorkQueue.SetName("ElasticsearchWriter, " + GetName());
 
 	if (!GetEnableHa()) {
-		Log(LogDebug, "ElasticsearchWriter")
+		Log(LogDebug, "ElasticsearchWriter", this)
 			<< "HA functionality disabled. Won't pause connection: " << GetName();
 
 		SetHAMode(HARunEverywhere);
@@ -47,7 +47,7 @@ void ElasticsearchWriter::OnAllConfigLoaded()
 {
 	ObjectImpl<ElasticsearchWriter>::OnAllConfigLoaded();
 
-	Log(LogWarning, "ElasticsearchWriter")
+	Log(LogWarning, "ElasticsearchWriter", this)
 		<< "This feature is DEPRECATED and will be removed in v2.18.";
 }
 
@@ -79,7 +79,7 @@ void ElasticsearchWriter::Start(bool runtimeCreated)
 		try {
 			m_SslContext = MakeAsioSslContext(GetCertPath(), GetKeyPath(), GetCaPath());
 		} catch (const std::exception& ex) {
-			Log(LogCritical, "ElasticsearchWriter")
+			Log(LogCritical, "ElasticsearchWriter", this)
 				<< "Unable to create SSL context: " << ex.what();
 			throw;
 		}
@@ -90,7 +90,7 @@ void ElasticsearchWriter::Resume()
 {
 	ObjectImpl<ElasticsearchWriter>::Resume();
 
-	Log(LogInformation, "ElasticsearchWriter")
+	Log(LogInformation, "ElasticsearchWriter", this)
 		<< "'" << GetName() << "' resumed.";
 
 	m_WorkQueue.SetExceptionCallback([this](std::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
@@ -140,7 +140,7 @@ void ElasticsearchWriter::Pause()
 
 	m_WorkQueue.Join();
 
-	Log(LogInformation, "ElasticsearchWriter")
+	Log(LogInformation, "ElasticsearchWriter", this)
 		<< "'" << GetName() << "' paused.";
 
 	ObjectImpl<ElasticsearchWriter>::Pause();
@@ -211,7 +211,7 @@ void ElasticsearchWriter::AddCheckResult(const Dictionary::Ptr& fields, const Ch
 				try {
 					pdv = PerfdataValue::Parse(val);
 				} catch (const std::exception&) {
-					Log(LogWarning, "ElasticsearchWriter")
+					Log(LogWarning, "ElasticsearchWriter", checkable)
 						<< "Ignoring invalid perfdata for checkable '"
 						<< checkable->GetName() << "' and command '"
 						<< checkCommand->GetName() << "' with value: " << val;
@@ -384,7 +384,7 @@ void ElasticsearchWriter::NotificationSentToAllUsersHandler(const Checkable::Ptr
 
 		CONTEXT("Elasticwriter processing notification to all users '" << checkable->GetName() << "'");
 
-		Log(LogDebug, "ElasticsearchWriter")
+		Log(LogDebug, "ElasticsearchWriter", checkable)
 			<< "Processing notification for '" << checkable->GetName() << "'";
 
 		double ts = Utility::GetTime();
@@ -414,14 +414,14 @@ void ElasticsearchWriter::Enqueue(const Checkable::Ptr& checkable, const String&
 	String indexBody = "{\"index\": {} }\n";
 	String fieldsBody = JsonEncode(fields);
 
-	Log(LogDebug, "ElasticsearchWriter")
+	Log(LogDebug, "ElasticsearchWriter", checkable)
 		<< "Checkable '" << checkable->GetName() << "' adds to metric list: '" << fieldsBody << "'.";
 
 	m_DataBuffer.emplace_back(indexBody + fieldsBody);
 
 	/* Flush if we've buffered too much to prevent excessive memory use. */
 	if (static_cast<int>(m_DataBuffer.size()) >= GetFlushThreshold()) {
-		Log(LogDebug, "ElasticsearchWriter")
+		Log(LogDebug, "ElasticsearchWriter", this)
 			<< "Data buffer overflow writing " << m_DataBuffer.size() << " data points";
 		Flush();
 	}
@@ -512,7 +512,7 @@ void ElasticsearchWriter::SendRequest(const String& body)
 	request.content_length(request.body().size());
 
 	/* Don't log the request body to debug log, this is already done above. */
-	Log(LogDebug, "ElasticsearchWriter")
+	Log(LogDebug, "ElasticsearchWriter", this)
 		<< "Sending " << request.method_string() << " request" << ((!username.IsEmpty() && !password.IsEmpty()) ? " with basic auth" : "" )
 		<< " to '" << url->Format() << "'.";
 
@@ -520,7 +520,7 @@ void ElasticsearchWriter::SendRequest(const String& body)
 	try {
 		response = m_Connection->Send(request);
 	} catch (const PerfdataWriterConnection::Stopped& ex) {
-		Log(LogDebug, "ElasticsearchWriter") << ex.what();
+		Log(LogDebug, "ElasticsearchWriter", this) << ex.what();
 		return;
 	}
 
@@ -528,11 +528,11 @@ void ElasticsearchWriter::SendRequest(const String& body)
 		if (response.result() == http::status::unauthorized) {
 			/* More verbose error logging with Elasticsearch is hidden behind a proxy. */
 			if (!username.IsEmpty() && !password.IsEmpty()) {
-				Log(LogCritical, "ElasticsearchWriter")
+				Log(LogCritical, "ElasticsearchWriter", this)
 					<< "401 Unauthorized. Please ensure that the user '" << username
 					<< "' is able to authenticate against the HTTP API/Proxy.";
 			} else {
-				Log(LogCritical, "ElasticsearchWriter")
+				Log(LogCritical, "ElasticsearchWriter", this)
 					<< "401 Unauthorized. The HTTP API requires authentication but no username/password has been configured.";
 			}
 
@@ -559,14 +559,14 @@ void ElasticsearchWriter::SendRequest(const String& body)
 		try {
 			jsonResponse = JsonDecode(body);
 		} catch (...) {
-			Log(LogWarning, "ElasticsearchWriter")
+			Log(LogWarning, "ElasticsearchWriter", this)
 				<< "Unable to parse JSON response:\n" << body;
 			return;
 		}
 
 		String error = jsonResponse->Get("error");
 
-		Log(LogCritical, "ElasticsearchWriter")
+		Log(LogCritical, "ElasticsearchWriter", this)
 			<< "Error: '" << error << "'. " << msgbuf.str();
 	}
 }
@@ -578,9 +578,9 @@ void ElasticsearchWriter::AssertOnWorkQueue()
 
 void ElasticsearchWriter::ExceptionHandler(std::exception_ptr exp)
 {
-	Log(LogCritical, "ElasticsearchWriter", "Exception during Elastic operation: Verify that your backend is operational!");
+	Log(LogCritical, "ElasticsearchWriter", this, "Exception during Elastic operation: Verify that your backend is operational!");
 
-	Log(LogDebug, "ElasticsearchWriter")
+	Log(LogDebug, "ElasticsearchWriter", this)
 		<< "Exception during Elasticsearch operation: " << DiagnosticInformation(std::move(exp));
 }
 

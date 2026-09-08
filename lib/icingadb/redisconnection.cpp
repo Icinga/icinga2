@@ -132,7 +132,7 @@ void LogQuery(RedisConnection::Query& query, Log& msg)
 void RedisConnection::FireAndForgetQuery(Query query, QueryAffects affects, bool highPriority)
 {
 	if (LogDebug >= Logger::GetMinLogSeverity()) {
-		Log msg (LogDebug, "IcingaDB", "Firing and forgetting query:");
+		Log msg (LogDebug, "IcingaDB", nullptr, "Firing and forgetting query:");
 		LogQuery(query, msg);
 	}
 
@@ -154,7 +154,7 @@ void RedisConnection::FireAndForgetQueries(RedisConnection::Queries queries, Que
 {
 	if (LogDebug >= Logger::GetMinLogSeverity()) {
 		for (auto& query : queries) {
-			Log msg(LogDebug, "IcingaDB", "Firing and forgetting query:");
+			Log msg (LogDebug, "IcingaDB", nullptr, "Firing and forgetting query:");
 			LogQuery(query, msg);
 		}
 	}
@@ -178,7 +178,7 @@ void RedisConnection::FireAndForgetQueries(RedisConnection::Queries queries, Que
 RedisConnection::Reply RedisConnection::GetResultOfQuery(RedisConnection::Query query, QueryAffects affects)
 {
 	if (LogDebug >= Logger::GetMinLogSeverity()) {
-		Log msg (LogDebug, "IcingaDB", "Executing query:");
+		Log msg (LogDebug, "IcingaDB", nullptr, "Executing query:");
 		LogQuery(query, msg);
 	}
 
@@ -208,7 +208,7 @@ RedisConnection::Replies RedisConnection::GetResultsOfQueries(Queries queries, Q
 {
 	if (LogDebug >= Logger::GetMinLogSeverity()) {
 		for (auto& query : queries) {
-			Log msg(LogDebug, "IcingaDB", "Executing query:");
+			Log msg (LogDebug, "IcingaDB", nullptr, "Executing query:");
 			LogQuery(query, msg);
 		}
 	}
@@ -291,7 +291,7 @@ void RedisConnection::Connect(asio::yield_context& yc)
 		try {
 			if (m_ConnInfo->Path.IsEmpty()) {
 				if (m_TLSContext) {
-					Log(m_Parent ? LogNotice : LogInformation, "IcingaDB")
+					Log(m_Parent ? LogNotice : LogInformation, "IcingaDB", nullptr)
 						<< "Trying to connect to Redis server (async, TLS) on host '" << m_ConnInfo->Host << ":" << m_ConnInfo->Port << "'";
 
 					auto conn (Shared<AsioTlsStream>::Make(m_Strand.context(), *m_TLSContext, m_ConnInfo->Host));
@@ -321,7 +321,7 @@ void RedisConnection::Connect(asio::yield_context& yc)
 					m_QueuedReads.WaitForClear(yc);
 					m_TlsConn = std::move(conn);
 				} else {
-					Log(m_Parent ? LogNotice : LogInformation, "IcingaDB")
+					Log(m_Parent ? LogNotice : LogInformation, "IcingaDB", nullptr)
 						<< "Trying to connect to Redis server (async) on host '" << m_ConnInfo->Host << ":" << m_ConnInfo->Port << "'";
 
 					auto conn (Shared<TcpConn>::Make(m_Strand.context()));
@@ -333,7 +333,7 @@ void RedisConnection::Connect(asio::yield_context& yc)
 					m_TcpConn = std::move(conn);
 				}
 			} else {
-				Log(LogInformation, "IcingaDB")
+				Log(LogInformation, "IcingaDB", nullptr)
 					<< "Trying to connect to Redis server (async) on unix socket path '" << m_ConnInfo->Path << "'";
 
 				auto conn (Shared<UnixConn>::Make(m_Strand.context()));
@@ -347,7 +347,7 @@ void RedisConnection::Connect(asio::yield_context& yc)
 
 			m_Connected.store(true);
 
-			Log(m_Parent ? LogNotice : LogInformation, "IcingaDB", "Connected to Redis server");
+			Log(m_Parent ? LogNotice : LogInformation, "IcingaDB", nullptr, "Connected to Redis server");
 
 			// Operate on a copy so that the callback can set a new callback without destroying itself while running.
 			auto callback (m_ConnectedCallback);
@@ -357,7 +357,7 @@ void RedisConnection::Connect(asio::yield_context& yc)
 
 			break;
 		} catch (const std::exception& ex) {
-			Log(LogCritical, "IcingaDB")
+			Log(LogCritical, "IcingaDB", nullptr)
 				<< "Cannot connect to Redis server ('"
 				<< (m_ConnInfo->Path.IsEmpty() ? m_ConnInfo->Host+":"+Convert::ToString(m_ConnInfo->Port) : m_ConnInfo->Path)
 				<< "'): " << ex.what();
@@ -388,7 +388,7 @@ void RedisConnection::ReadLoop(asio::yield_context& yc)
 							ReadOne(yc);
 						}
 					} catch (const std::exception& ex) {
-						Log(LogCritical, "IcingaDB")
+						Log(LogCritical, "IcingaDB", nullptr)
 							<< "Error during receiving the response to a query which has been fired and forgotten: " << ex.what();
 
 						continue;
@@ -496,7 +496,7 @@ void RedisConnection::LogStats(asio::yield_context& yc)
 		if (m_PendingQueries < output * 5 && !timeoutReached)
 			continue;
 
-		Log(LogInformation, "IcingaDB")
+		Log(LogInformation, "IcingaDB", nullptr)
 			<< "Pending queries: " << m_PendingQueries << " (Input: "
 			<< round(m_InputQueries.CalculateRate(now, 10)) << "/s; Output: " << output << "/s)";
 
@@ -518,7 +518,7 @@ bool RedisConnection::WriteItem(const FireAndForgetQ& item, boost::asio::yield_c
 	try {
 		WriteOne(*item, yc);
 	} catch (const std::exception& ex) {
-		Log msg (LogCritical, "IcingaDB", "Error during sending query");
+		Log msg (LogCritical, "IcingaDB", nullptr, "Error during sending query");
 		LogQuery(*item, msg);
 		msg << " which has been fired and forgotten: " << ex.what();
 
@@ -554,7 +554,7 @@ bool RedisConnection::WriteItem(const FireAndForgetQs& item, boost::asio::yield_
 			++i;
 		}
 	} catch (const std::exception& ex) {
-		Log msg (LogCritical, "IcingaDB", "Error during sending query");
+		Log msg (LogCritical, "IcingaDB", nullptr, "Error during sending query");
 		LogQuery((*item)[i], msg);
 		msg << " which has been fired and forgotten: " << ex.what();
 

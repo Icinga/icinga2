@@ -176,7 +176,7 @@ void Application::SetResourceLimits()
 
 	if (fileLimit != 0) {
 		if (fileLimit < (rlim_t)GetDefaultRLimitFiles()) {
-			Log(LogWarning, "Application")
+			Log(LogWarning, "Application", m_Instance)
 				<< "The user-specified value for RLimitFiles cannot be smaller than the default value (" << GetDefaultRLimitFiles() << "). Using the default value instead.";
 			fileLimit = GetDefaultRLimitFiles();
 		}
@@ -185,10 +185,10 @@ void Application::SetResourceLimits()
 		rl.rlim_max = rl.rlim_cur;
 
 		if (setrlimit(RLIMIT_NOFILE, &rl) < 0)
-			Log(LogWarning, "Application")
+			Log(LogWarning, "Application", m_Instance)
 			    << "Failed to adjust resource limit for open file handles (RLIMIT_NOFILE) with error \"" << strerror(errno) << "\"";
 #	else /* RLIMIT_NOFILE */
-		Log(LogNotice, "Application", "System does not support adjusting the resource limit for open file handles (RLIMIT_NOFILE)");
+		Log(LogNotice, "Application", m_Instance, "System does not support adjusting the resource limit for open file handles (RLIMIT_NOFILE)");
 #	endif /* RLIMIT_NOFILE */
 	}
 
@@ -197,7 +197,7 @@ void Application::SetResourceLimits()
 
 	if (processLimit != 0) {
 		if (processLimit < (rlim_t)GetDefaultRLimitProcesses()) {
-			Log(LogWarning, "Application")
+			Log(LogWarning, "Application", m_Instance)
 				<< "The user-specified value for RLimitProcesses cannot be smaller than the default value (" << GetDefaultRLimitProcesses() << "). Using the default value instead.";
 			processLimit = GetDefaultRLimitProcesses();
 		}
@@ -206,10 +206,10 @@ void Application::SetResourceLimits()
 		rl.rlim_max = rl.rlim_cur;
 
 		if (setrlimit(RLIMIT_NPROC, &rl) < 0)
-			Log(LogWarning, "Application")
+			Log(LogWarning, "Application", m_Instance)
 			    << "Failed adjust resource limit for number of processes (RLIMIT_NPROC) with error \"" << strerror(errno) << "\"";
 #	else /* RLIMIT_NPROC */
-		Log(LogNotice, "Application", "System does not support adjusting the resource limit for number of processes (RLIMIT_NPROC)");
+		Log(LogNotice, "Application", m_Instance, "System does not support adjusting the resource limit for number of processes (RLIMIT_NPROC)");
 #	endif /* RLIMIT_NPROC */
 	}
 
@@ -226,7 +226,7 @@ void Application::SetResourceLimits()
 	}
 
 	if (getrlimit(RLIMIT_STACK, &rl) < 0) {
-		Log(LogWarning, "Application", "Could not determine resource limit for stack size (RLIMIT_STACK)");
+		Log(LogWarning, "Application", m_Instance, "Could not determine resource limit for stack size (RLIMIT_STACK)");
 		rl.rlim_max = RLIM_INFINITY;
 	}
 
@@ -236,7 +236,7 @@ void Application::SetResourceLimits()
 
 	if (stackLimit != 0) {
 		if (stackLimit < (rlim_t)GetDefaultRLimitStack()) {
-			Log(LogWarning, "Application")
+			Log(LogWarning, "Application", m_Instance)
 				<< "The user-specified value for RLimitStack cannot be smaller than the default value (" << GetDefaultRLimitStack() << "). Using the default value instead.";
 			stackLimit = GetDefaultRLimitStack();
 		}
@@ -247,7 +247,7 @@ void Application::SetResourceLimits()
 			rl.rlim_cur = rl.rlim_max;
 
 		if (setrlimit(RLIMIT_STACK, &rl) < 0)
-			Log(LogWarning, "Application")
+			Log(LogWarning, "Application", m_Instance)
 			    << "Failed adjust resource limit for stack size (RLIMIT_STACK) with error \"" << strerror(errno) << "\"";
 		else if (set_stack_rlimit) {
 			char **new_argv = static_cast<char **>(malloc(sizeof(char *) * (argc + 2)));
@@ -275,7 +275,7 @@ void Application::SetResourceLimits()
 			_exit(EXIT_FAILURE);
 		}
 #	else /* RLIMIT_STACK */
-		Log(LogNotice, "Application", "System does not support adjusting the resource limit for stack size (RLIMIT_STACK)");
+		Log(LogNotice, "Application", m_Instance, "System does not support adjusting the resource limit for stack size (RLIMIT_STACK)");
 #	endif /* RLIMIT_STACK */
 	}
 #endif /* __linux__ */
@@ -320,7 +320,7 @@ void Application::RunEventLoop()
 				m_ReloadProcess = StartReloadProcess();
 			}
 #else /* _WIN32 */
-			Log(LogNotice, "Application")
+			Log(LogNotice, "Application", this)
 				<< "Got reload command, forwarding to umbrella process (PID " << m_UmbrellaProcess << ")";
 
 			(void)kill(m_UmbrellaProcess, SIGHUP);
@@ -330,7 +330,7 @@ void Application::RunEventLoop()
 			Utility::Sleep(2.5);
 
 			if (m_RequestReopenLogs) {
-				Log(LogNotice, "Application", "Reopening log files");
+				Log(LogNotice, "Application", this, "Reopening log files");
 				m_RequestReopenLogs = false;
 				OnReopenLogs();
 			}
@@ -340,7 +340,7 @@ void Application::RunEventLoop()
 
 			if (std::fabs(timeDiff) > 15) {
 				/* We made a significant jump in time. */
-				Log(LogInformation, "Application")
+				Log(LogInformation, "Application", this)
 					<< "We jumped "
 					<< (timeDiff < 0 ? "forward" : "backward")
 					<< " in time: " << std::fabs(timeDiff) << " seconds";
@@ -352,7 +352,7 @@ void Application::RunEventLoop()
 		}
 	}
 
-	Log(LogInformation, "Application", "Shutting down...");
+	Log(LogInformation, "Application", this, "Shutting down...");
 
 	ConfigObject::StopObjects();
 	Application::GetInstance()->OnShutdown();
@@ -381,7 +381,7 @@ static void ReloadProcessCallbackInternal(const ProcessResult& pr)
 {
 	if (pr.ExitStatus != 0) {
 		Application::SetLastReloadFailed(Utility::GetTime());
-		Log(LogCritical, "Application", "Found error in config: reloading aborted");
+		Log(LogCritical, "Application", nullptr, "Found error in config: reloading aborted");
 	}
 #ifdef _WIN32
 	else
@@ -423,7 +423,7 @@ pid_t Application::StartReloadProcess()
 	process->SetTimeout(reloadTimeout);
 	process->Run(&ReloadProcessCallback);
 
-	Log(LogInformation, "Application")
+	Log(LogInformation, "Application", this)
 		<< "Got reload command: Started new instance with PID '"
 		<< (unsigned long)(process->GetPID()) << "' (timeout is "
 		<< reloadTimeout << "s).";
@@ -437,7 +437,7 @@ pid_t Application::StartReloadProcess()
  */
 void Application::RequestShutdown()
 {
-	Log(LogInformation, "Application", "Received request to shut down.");
+	Log(LogInformation, "Application", m_Instance, "Received request to shut down.");
 
 	m_ShuttingDown = true;
 }
@@ -715,7 +715,7 @@ void Application::AttachDebugger(const String& filename, bool interactive)
  */
 void Application::SigUsr1Handler(int)
 {
-	Log(LogInformation, "Application")
+	Log(LogInformation, "Application", m_Instance)
 		<< "Received USR1 signal, reopening application logs.";
 
 	RequestReopenLogs();
@@ -758,7 +758,7 @@ void Application::SigAbrtHandler(int)
 		std::ofstream ofs;
 		ofs.open(fname.CStr());
 
-		Log(LogCritical, "Application")
+		Log(LogCritical, "Application", m_Instance)
 			<< "Icinga 2 has terminated unexpectedly. Additional information can be found in '" << fname << "'" << "\n";
 
 		ofs << "Caught SIGABRT.\n"
@@ -773,7 +773,7 @@ void Application::SigAbrtHandler(int)
 		ofs << "\n";
 		ofs.close();
 	} else {
-		Log(LogCritical, "Application", "Icinga 2 has terminated unexpectedly. Attaching debugger...");
+		Log(LogCritical, "Application", m_Instance, "Icinga 2 has terminated unexpectedly. Attaching debugger...");
 	}
 
 	AttachDebugger(fname, interactive_debugger);
@@ -883,7 +883,7 @@ void Application::ExceptionHandler()
 		try {
 			RethrowUncaughtException();
 		} catch (const std::exception& ex) {
-			Log(LogCritical, "Application")
+			Log(LogCritical, "Application", m_Instance)
 				<< DiagnosticInformation(ex, false) << "\n"
 				<< "\n"
 				<< "Additional information is available in '" << fname << "'" << "\n";
@@ -947,7 +947,7 @@ LONG CALLBACK Application::SEHUnhandledExceptionFilter(PEXCEPTION_POINTERS exi)
 	std::ofstream ofs;
 	ofs.open(fname.CStr());
 
-	Log(LogCritical, "Application")
+	Log(LogCritical, "Application", m_Instance)
 		<< "Icinga 2 has terminated unexpectedly. Additional information can be found in '" << fname << "'";
 
 	ofs << "Caught unhandled SEH exception.\n"
@@ -1010,7 +1010,7 @@ int Application::Run()
 	try {
 		UpdatePidFile(Configuration::PidPath);
 	} catch (const std::exception&) {
-		Log(LogCritical, "Application")
+		Log(LogCritical, "Application", this)
 			<< "Cannot update PID file '" << Configuration::PidPath << "'. Aborting.";
 		return EXIT_FAILURE;
 	}
@@ -1048,7 +1048,7 @@ void Application::UpdatePidFile(const String& filename, pid_t pid)
 		m_PidFile = fopen(filename.CStr(), "w");
 
 	if (!m_PidFile) {
-		Log(LogCritical, "Application")
+		Log(LogCritical, "Application", this)
 			<< "Could not open PID file '" << filename << "'.";
 		BOOST_THROW_EXCEPTION(std::runtime_error("Could not open PID file '" + filename + "'"));
 	}
@@ -1066,13 +1066,13 @@ void Application::UpdatePidFile(const String& filename, pid_t pid)
 	lock.l_whence = SEEK_SET;
 
 	if (fcntl(fd, F_SETLK, &lock) < 0) {
-		Log(LogCritical, "Application", "Could not lock PID file. Make sure that only one instance of the application is running.");
+		Log(LogCritical, "Application", this, "Could not lock PID file. Make sure that only one instance of the application is running.");
 
 		Application::Exit(EXIT_FAILURE);
 	}
 
 	if (ftruncate(fd, 0) < 0) {
-		Log(LogCritical, "Application")
+		Log(LogCritical, "Application", this)
 			<< "ftruncate() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 
 		BOOST_THROW_EXCEPTION(posix_error()

@@ -68,9 +68,9 @@ int ObjectListCommand::Run(const boost::program_options::variables_map& vm, [[ma
 	String objectfile = Configuration::ObjectsPath;
 
 	if (!Utility::PathExists(objectfile)) {
-		Log(LogCritical, "cli")
+		Log(LogCritical, "cli", nullptr)
 			<< "Cannot open objects file '" << Configuration::ObjectsPath << "'.";
-		Log(LogCritical, "cli", "Run 'icinga2 daemon -C --dump-objects' to validate config and generate the cache file.");
+		Log(LogCritical, "cli", nullptr, "Run 'icinga2 daemon -C --dump-objects' to validate config and generate the cache file.");
 		return 1;
 	}
 
@@ -116,14 +116,14 @@ int ObjectListCommand::Run(const boost::program_options::variables_map& vm, [[ma
 		std::cout << "\n";
 	}
 
-	Log(LogNotice, "cli")
+	Log(LogNotice, "cli", nullptr)
 		<< "Parsed " << objects_count << " objects.";
 
 	auto objectsPathCtime (GetCtime(Configuration::ObjectsPath));
 	auto varsPathCtime (GetCtime(Configuration::VarsPath));
 
 	if (objectsPathCtime < varsPathCtime) {
-		Log(LogWarning, "cli")
+		Log(LogWarning, "cli", nullptr)
 			<< "This data is " << Utility::FormatDuration(varsPathCtime - objectsPathCtime)
 			<< " older than the last Icinga config (re)load. It may be outdated. Consider running 'icinga2 daemon -C --dump-objects' first.";
 	}

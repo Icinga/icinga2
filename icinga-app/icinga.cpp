@@ -89,7 +89,7 @@ static void HandleLegacyDefines()
 	Value localStateDir = Configuration::LocalStateDir;
 
 	if (!localStateDir.IsEmpty()) {
-		Log(LogWarning, "icinga-app")
+		Log(LogWarning, "icinga-app", nullptr)
 			<< "Please do not set the deprecated 'LocalStateDir' constant,"
 			<< " use the 'DataDir', 'LogDir', 'CacheDir' and 'SpoolDir' constants instead!"
 			<< " For compatibility reasons, these are now set based on the 'LocalStateDir' constant.";
@@ -113,7 +113,7 @@ static void HandleLegacyDefines()
 
 	Value sysconfDir = Configuration::SysconfDir;
 	if (!sysconfDir.IsEmpty()) {
-		Log(LogWarning, "icinga-app")
+		Log(LogWarning, "icinga-app", nullptr)
 			<< "Please do not set the deprecated 'Sysconfdir' constant, use the 'ConfigDir' constant instead! For compatibility reasons, their value is set based on the 'SysconfDir' constant.";
 
 #ifdef _WIN32
@@ -129,7 +129,7 @@ static void HandleLegacyDefines()
 
 	Value runDir = Configuration::RunDir;
 	if (!runDir.IsEmpty()) {
-		Log(LogWarning, "icinga-app")
+		Log(LogWarning, "icinga-app", nullptr)
 			<< "Please do not set the deprecated 'RunDir' constant, use the 'InitRunDir' constant instead! For compatibility reasons, their value is set based on the 'RunDir' constant.";
 
 #ifdef _WIN32
@@ -158,7 +158,7 @@ static int Main()
 		try {
 			autoindex = Convert::ToLong(argv[2]);
 		} catch (const std::invalid_argument&) {
-			Log(LogCritical, "icinga-app")
+			Log(LogCritical, "icinga-app", nullptr)
 				<< "Invalid index for --autocomplete: " << argv[2];
 			return EXIT_FAILURE;
 		}
@@ -199,7 +199,7 @@ static int Main()
 
 		Configuration::InitRunDir = dataPrefix + "\\var\\run\\icinga2";
 	} else {
-		Log(LogWarning, "icinga-app", "Registry key could not be read. Falling back to built-in paths.");
+		Log(LogWarning, "icinga-app", nullptr, "Registry key could not be read. Falling back to built-in paths.");
 
 #endif /* _WIN32 */
 		Configuration::ConfigDir = ICINGA_CONFIGDIR;
@@ -315,7 +315,7 @@ static int Main()
 		CLICommand::ParseCommand(argc, argv, visibleDesc, hiddenDesc, positionalDesc,
 			vm, cmdname, command, autocomplete);
 	} catch (const std::exception& ex) {
-		Log(LogCritical, "icinga-app")
+		Log(LogCritical, "icinga-app", nullptr)
 			<< "Error while parsing command-line options: " << ex.what();
 		return EXIT_FAILURE;
 	}
@@ -427,7 +427,7 @@ static int Main()
 				ScriptFrame frame(true);
 				setExpr->Evaluate(frame);
 			} catch (const ScriptError& e) {
-				Log(LogCritical, "icinga-app") << "cannot set '" << key << "': " << e.what();
+				Log(LogCritical, "icinga-app", nullptr) << "cannot set '" << key << "': " << e.what();
 				return EXIT_FAILURE;
 			}
 		}
@@ -476,7 +476,7 @@ static int Main()
 				logLevel = Logger::StringToSeverity(severity);
 			} catch (std::exception&) {
 				/* Inform user and exit */
-				Log(LogCritical, "icinga-app", "Invalid log level set. Default is 'information'.");
+				Log(LogCritical, "icinga-app", nullptr, "Invalid log level set. Default is 'information'.");
 				return EXIT_FAILURE;
 			}
 
@@ -489,7 +489,7 @@ static int Main()
 			try {
 				appName = Utility::BaseName(Application::GetArgV()[0]);
 			} catch (const std::bad_alloc&) {
-				Log(LogCritical, "icinga-app", "Allocation failed.");
+				Log(LogCritical, "icinga-app", nullptr, "Allocation failed.");
 				return EXIT_FAILURE;
 			}
 
@@ -565,7 +565,7 @@ static int Main()
 #ifndef _WIN32
 		if (command->GetImpersonationLevel() == ImpersonateRoot) {
 			if (getuid() != 0) {
-				Log(LogCritical, "cli", "This command must be run as root.");
+				Log(LogCritical, "cli", nullptr, "This command must be run as root.");
 				return 0;
 			}
 		} else if (command && command->GetImpersonationLevel() == ImpersonateIcinga) {
@@ -580,10 +580,10 @@ static int Main()
 				struct group* gr = getgrnam(group.CStr());
 				if (!gr) {
 					if (errno == 0) {
-						Log(LogCritical, "cli")
+						Log(LogCritical, "cli", nullptr)
 							<< "Invalid group specified: " << group;
 					} else {
-						Log(LogCritical, "cli")
+						Log(LogCritical, "cli", nullptr)
 							<< "getgrnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 					}
 					return EXIT_FAILURE;
@@ -594,17 +594,17 @@ static int Main()
 
 			if (getgid() != gid) {
 				if (!vm.count("reload-internal") && setgroups(0, nullptr) < 0) {
-					Log(LogCritical, "cli")
+					Log(LogCritical, "cli", nullptr)
 						<< "setgroups() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-					Log(LogCritical, "cli")
+					Log(LogCritical, "cli", nullptr)
 						<< "Please rerun this command as a privileged user or using the \"" << user << "\" account.";
 					return EXIT_FAILURE;
 				}
 
 				if (setgid(gid) < 0) {
-					Log(LogCritical, "cli")
+					Log(LogCritical, "cli", nullptr)
 						<< "setgid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-					Log(LogCritical, "cli")
+					Log(LogCritical, "cli", nullptr)
 						<< "Please rerun this command as a privileged user or using the \"" << user << "\" account.";
 					return EXIT_FAILURE;
 				}
@@ -626,11 +626,11 @@ static int Main()
 
 			if (!uid) {
 				if (errno == 0) {
-					Log(LogCritical, "cli")
+					Log(LogCritical, "cli", nullptr)
 						<< "Invalid user specified: " << user;
 					return EXIT_FAILURE;
 				} else {
-					Log(LogCritical, "cli")
+					Log(LogCritical, "cli", nullptr)
 						<< "getpwnam() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 					return EXIT_FAILURE;
 				}
@@ -641,17 +641,17 @@ static int Main()
 				// initgroups() is only called when either getpwuid() or getpwnam() returned a valid user entry.
 				// Otherwise it makes no sense to set any additional groups.
 				if (!vm.count("reload-internal") && pw && initgroups(user.CStr(), pw->pw_gid) < 0) {
-					Log(LogCritical, "cli")
+					Log(LogCritical, "cli", nullptr)
 						<< "initgroups() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-					Log(LogCritical, "cli")
+					Log(LogCritical, "cli", nullptr)
 						<< "Please rerun this command as a privileged user or using the \"" << user << "\" account.";
 					return EXIT_FAILURE;
 				}
 
 				if (setuid(*uid) < 0) {
-					Log(LogCritical, "cli")
+					Log(LogCritical, "cli", nullptr)
 						<< "setuid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
-					Log(LogCritical, "cli")
+					Log(LogCritical, "cli", nullptr)
 						<< "Please rerun this command as a privileged user or using the \"" << user << "\" account.";
 					return EXIT_FAILURE;
 				}
@@ -664,14 +664,14 @@ static int Main()
 			args = vm["arg"].as<std::vector<std::string> >();
 
 		if (static_cast<int>(args.size()) < command->GetMinArguments()) {
-			Log(LogCritical, "cli")
+			Log(LogCritical, "cli", nullptr)
 				<< "Too few arguments. Command needs at least " << command->GetMinArguments()
 				<< " argument" << (command->GetMinArguments() != 1 ? "s" : "") << ".";
 			return EXIT_FAILURE;
 		}
 
 		if (command->GetMaxArguments() >= 0 && static_cast<int>(args.size()) > command->GetMaxArguments()) {
-			Log(LogCritical, "cli")
+			Log(LogCritical, "cli", nullptr)
 				<< "Too many arguments. At most " << command->GetMaxArguments()
 				<< " argument" << (command->GetMaxArguments() != 1 ? "s" : "") << " may be specified.";
 			return EXIT_FAILURE;

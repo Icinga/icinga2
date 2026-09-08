@@ -62,7 +62,7 @@ int CARestoreCommand::Run(const boost::program_options::variables_map&, const st
 	String removedRequestFile = ApiListener::GetCertificateRequestsDir() + "/" + fingerPrint + ".removed";
 
 	if (!Utility::PathExists(removedRequestFile)) {
-		Log(LogCritical, "cli")
+		Log(LogCritical, "cli", nullptr)
 			<< "Cannot find removed fingerprint '" << fingerPrint << "', bailing out.";
 		return 1;
 	}
@@ -71,7 +71,7 @@ int CARestoreCommand::Run(const boost::program_options::variables_map&, const st
 	std::shared_ptr<X509> certRequest = StringToCertificate(request->Get("cert_request"));
 
 	if (!certRequest) {
-		Log(LogCritical, "cli", "Certificate request is invalid. Could not parse X.509 certificate for the 'cert_request' attribute.");
+		Log(LogCritical, "cli", nullptr, "Certificate request is invalid. Could not parse X.509 certificate for the 'cert_request' attribute.");
 		/* Purge the file when we know that it is broken. */
 		Utility::Remove(removedRequestFile);
 		return 1;
@@ -81,7 +81,7 @@ int CARestoreCommand::Run(const boost::program_options::variables_map&, const st
 
 	Utility::Remove(removedRequestFile);
 
-	Log(LogInformation, "cli")
+	Log(LogInformation, "cli", nullptr)
 		<< "Restored certificate request for CN '" << GetCertificateCN(certRequest) << "', sign it with:\n"
 	       	<< "\"icinga2 ca sign " << fingerPrint << "\"";
 

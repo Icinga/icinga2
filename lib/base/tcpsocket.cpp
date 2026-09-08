@@ -46,7 +46,7 @@ void TcpSocket::Bind(const String& node, const String& service, int family)
 		service.CStr(), &hints, &result);
 
 	if (rc != 0) {
-		Log(LogCritical, "TcpSocket")
+		Log(LogCritical, "TcpSocket", nullptr)
 			<< "getaddrinfo() failed with error code " << rc << ", \"" << gai_strerror(rc) << "\"";
 
 		BOOST_THROW_EXCEPTION(socket_error()
@@ -102,7 +102,7 @@ void TcpSocket::Bind(const String& node, const String& service, int family)
 	freeaddrinfo(result);
 
 	if (GetFD() == INVALID_SOCKET) {
-		Log(LogCritical, "TcpSocket")
+		Log(LogCritical, "TcpSocket", nullptr)
 			<< "Invalid socket: " << Utility::FormatErrorNumber(error);
 
 #ifndef _WIN32
@@ -138,7 +138,7 @@ void TcpSocket::Connect(const String& node, const String& service)
 	int rc = getaddrinfo(node.CStr(), service.CStr(), &hints, &result);
 
 	if (rc != 0) {
-		Log(LogCritical, "TcpSocket")
+		Log(LogCritical, "TcpSocket", nullptr)
 			<< "getaddrinfo() failed with error code " << rc << ", \"" << gai_strerror(rc) << "\"";
 
 		BOOST_THROW_EXCEPTION(socket_error()
@@ -169,7 +169,7 @@ void TcpSocket::Connect(const String& node, const String& service)
 #else /* _WIN32 */
 			error = errno;
 #endif /* _WIN32 */
-			Log(LogWarning, "TcpSocket")
+			Log(LogWarning, "TcpSocket", nullptr)
 				<< "setsockopt() unable to enable TCP keep-alives with error code " << rc;
 		}
 
@@ -196,7 +196,7 @@ void TcpSocket::Connect(const String& node, const String& service)
 	freeaddrinfo(result);
 
 	if (GetFD() == INVALID_SOCKET) {
-		Log(LogCritical, "TcpSocket")
+		Log(LogCritical, "TcpSocket", nullptr)
 			<< "Invalid socket: " << Utility::FormatErrorNumber(error);
 
 #ifndef _WIN32

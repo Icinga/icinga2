@@ -265,7 +265,7 @@ int ConsoleCommand::Run(const po::variables_map& vm, [[maybe_unused]] const std:
 		try {
 			l_Url = new Url(addr);
 		} catch (const std::exception& ex) {
-			Log(LogCritical, "ConsoleCommand", ex.what());
+			Log(LogCritical, "ConsoleCommand", nullptr, ex.what());
 			return EXIT_FAILURE;
 		}
 
@@ -459,7 +459,7 @@ incomplete:
 					/* Re-throw the exception for the outside try-catch block. */
 					throw;
 				} catch (const std::exception& ex) {
-					Log(LogCritical, "ConsoleCommand")
+					Log(LogCritical, "ConsoleCommand", nullptr)
 						<< "HTTP query failed: " << ex.what();
 
 #ifdef HAVE_EDITLINE
@@ -549,7 +549,7 @@ Shared<AsioTlsStream>::Ptr ConsoleCommand::Connect()
 	try {
 		sslContext = MakeAsioSslContext(l_CertPath, l_KeyPath, l_CaPath);
 	} catch(const std::exception& ex) {
-		Log(LogCritical, "DebugConsole")
+		Log(LogCritical, "DebugConsole", nullptr)
 			<< "Cannot make SSL context: " << ex.what();
 		throw;
 	}
@@ -562,7 +562,7 @@ Shared<AsioTlsStream>::Ptr ConsoleCommand::Connect()
 	try {
 		icinga::Connect(stream->lowest_layer(), host, port);
 	} catch (const std::exception& ex) {
-		Log(LogWarning, "DebugConsole")
+		Log(LogWarning, "DebugConsole", nullptr)
 			<< "Cannot connect to REST API on host '" << host << "' port '" << port << "': " << ex.what();
 		throw;
 	}
@@ -572,14 +572,14 @@ Shared<AsioTlsStream>::Ptr ConsoleCommand::Connect()
 	try {
 		tlsStream.handshake(tlsStream.client);
 	} catch (const std::exception& ex) {
-		Log(LogWarning, "DebugConsole")
+		Log(LogWarning, "DebugConsole", nullptr)
 			<< "TLS handshake with host '" << host << "' failed: " << ex.what();
 		throw;
 	}
 
 	if (!tlsStream.IsVerifyOK()) {
 		String message = "TLS certificate verification for common name '" + l_CommonName + "' failed: " + tlsStream.GetVerifyError();
-		Log(LogCritical, "DebugConsole", message);
+		Log(LogCritical, "DebugConsole", nullptr, message);
 		BOOST_THROW_EXCEPTION(std::runtime_error(message));
 	}
 
@@ -616,7 +616,7 @@ Dictionary::Ptr ConsoleCommand::SendRequest()
 		http::write(*l_TlsStream, request);
 		l_TlsStream->flush();
 	} catch (const std::exception &ex) {
-		Log(LogWarning, "DebugConsole")
+		Log(LogWarning, "DebugConsole", nullptr)
 			<< "Cannot write HTTP request to REST API at URL '" << l_Url->Format(true) << "': " << ex.what();
 		throw;
 	}
@@ -627,7 +627,7 @@ Dictionary::Ptr ConsoleCommand::SendRequest()
 	try {
 		http::read(*l_TlsStream, buf, parser);
 	} catch (const std::exception &ex) {
-		Log(LogWarning, "DebugConsole")
+		Log(LogWarning, "DebugConsole", nullptr)
 			<< "Failed to parse HTTP response from REST API at URL '" << l_Url->Format(true) << "': " << ex.what();
 		throw;
 	}

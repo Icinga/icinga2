@@ -27,7 +27,7 @@ Library::Library(const String& name)
 	path = "lib" + name + ".so." + Application::GetAppSpecVersion();
 #endif /* _WIN32 */
 
-	Log(LogNotice, "Library")
+	Log(LogNotice, "Library", nullptr)
 		<< "Loading library '" << path << "'";
 
 #ifdef _WIN32

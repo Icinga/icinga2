@@ -72,14 +72,14 @@ static void Daemonize() noexcept
 	try {
 		Application::UninitializeBase();
 	} catch (const std::exception& ex) {
-		Log(LogCritical, "cli")
+		Log(LogCritical, "cli", nullptr)
 			<< "Failed to stop thread pool before daemonizing, unexpected error: " << DiagnosticInformation(ex);
 		exit(EXIT_FAILURE);
 	}
 
 	pid_t pid = fork();
 	if (pid == -1) {
-		Log(LogCritical, "cli")
+		Log(LogCritical, "cli", nullptr)
 			<< "fork() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 		exit(EXIT_FAILURE);
 	}
@@ -99,10 +99,10 @@ static void Daemonize() noexcept
 		} while (readpid != pid && ret == 0);
 
 		if (ret == pid) {
-			Log(LogCritical, "cli", "The daemon could not be started. See log output for details.");
+			Log(LogCritical, "cli", nullptr, "The daemon could not be started. See log output for details.");
 			_exit(EXIT_FAILURE);
 		} else if (ret == -1) {
-			Log(LogCritical, "cli")
+			Log(LogCritical, "cli", nullptr)
 				<< "waitpid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 			_exit(EXIT_FAILURE);
 		}
@@ -110,13 +110,13 @@ static void Daemonize() noexcept
 		_exit(EXIT_SUCCESS);
 	}
 
-	Log(LogDebug, "Daemonize()")
+	Log(LogDebug, "Daemonize()", nullptr)
 		<< "Child process with PID " << Utility::GetPid() << " continues; re-initializing base.";
 
 	// Detach from controlling terminal
 	pid_t sid = setsid();
 	if (sid == -1) {
-		Log(LogCritical, "cli")
+		Log(LogCritical, "cli", nullptr)
 			<< "setsid() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 		exit(EXIT_FAILURE);
 	}
@@ -124,7 +124,7 @@ static void Daemonize() noexcept
 	try {
 		Application::InitializeBase();
 	} catch (const std::exception& ex) {
-		Log(LogCritical, "cli")
+		Log(LogCritical, "cli", nullptr)
 			<< "Failed to re-initialize thread pool after daemonizing: " << DiagnosticInformation(ex);
 		exit(EXIT_FAILURE);
 	}
@@ -250,32 +250,32 @@ int RunWorker(const std::vector<std::string>& configs, bool closeConsoleLog = fa
 	double delay = GetDebugWorkerDelay();
 
 	if (delay > 0.0) {
-		Log(LogInformation, "RunWorker")
+		Log(LogInformation, "RunWorker", nullptr)
 			<< "DEBUG: Current PID: " << Utility::GetPid() << ". Sleeping for " << delay << " seconds to allow lldb/gdb -p <PID> attachment.";
 
 		Utility::Sleep(delay);
 	}
 #endif /* I2_DEBUG */
 
-	Log(LogInformation, "cli", "Loading configuration file(s).");
+	Log(LogInformation, "cli", nullptr, "Loading configuration file(s).");
 	NotifyStatus("Loading configuration file(s)...");
 
 	{
 		std::vector<ConfigItem::Ptr> newItems;
 
 		if (!DaemonUtility::LoadConfigFiles(configs, newItems, l_ObjectsPath, Configuration::VarsPath)) {
-			Log(LogCritical, "cli", "Config validation failed. Re-run with 'icinga2 daemon -C' after fixing the config.");
+			Log(LogCritical, "cli", nullptr, "Config validation failed. Re-run with 'icinga2 daemon -C' after fixing the config.");
 			NotifyStatus("Config validation failed.");
 			return EXIT_FAILURE;
 		}
 
 #ifndef _WIN32
-		Log(LogNotice, "cli")
+		Log(LogNotice, "cli", nullptr)
 			<< "Notifying umbrella process (PID " << l_UmbrellaPid << ") about the config loading success";
 
 		(void)kill(l_UmbrellaPid, SIGUSR2);
 
-		Log(LogNotice, "cli")
+		Log(LogNotice, "cli", nullptr)
 			<< "Waiting for the umbrella process to let us doing the actual work";
 
 		NotifyStatus("Waiting for the umbrella process to let us doing the actual work...");
@@ -289,7 +289,7 @@ int RunWorker(const std::vector<std::string>& configs, bool closeConsoleLog = fa
 			Utility::Sleep(0.2);
 		}
 
-		Log(LogNotice, "cli")
+		Log(LogNotice, "cli", nullptr)
 			<< "The umbrella process let us continuing";
 #endif /* _WIN32 */
 
@@ -299,7 +299,7 @@ int RunWorker(const std::vector<std::string>& configs, bool closeConsoleLog = fa
 		try {
 			ConfigObject::RestoreObjects(Configuration::StatePath);
 		} catch (const std::exception& ex) {
-			Log(LogCritical, "cli")
+			Log(LogCritical, "cli", nullptr)
 				<< "Failed to restore state file: " << DiagnosticInformation(ex);
 
 			NotifyStatus("Failed to restore state file.");
@@ -311,7 +311,7 @@ int RunWorker(const std::vector<std::string>& configs, bool closeConsoleLog = fa
 
 		// activate config only after daemonization: it starts threads and that is not compatible with fork()
 		if (!ConfigItem::ActivateItems(newItems, false, true, true)) {
-			Log(LogCritical, "cli", "Error activating configuration.");
+			Log(LogCritical, "cli", nullptr, "Error activating configuration.");
 
 			NotifyStatus("Error activating configuration.");
 
@@ -327,7 +327,7 @@ int RunWorker(const std::vector<std::string>& configs, bool closeConsoleLog = fa
 		String configDir = ConfigObjectUtility::GetConfigDir();
 		ConfigItem::RemoveIgnoredItems(configDir);
 	} catch (const std::exception& ex) {
-		Log(LogNotice, "cli")
+		Log(LogNotice, "cli", nullptr)
 			<< "Cannot clean ignored downtimes/comments: " << ex.what();
 	}
 
@@ -468,13 +468,13 @@ static void NotifyWatchdog()
  */
 static pid_t StartUnixWorker(const std::vector<std::string>& configs, bool closeConsoleLog = false, const String& stderrFile = String())
 {
-	Log(LogNotice, "cli")
+	Log(LogNotice, "cli", nullptr)
 		<< "Spawning seamless worker process doing the actual work";
 
 	try {
 		Application::UninitializeBase();
 	} catch (const std::exception& ex) {
-		Log(LogCritical, "cli")
+		Log(LogCritical, "cli", nullptr)
 			<< "Failed to stop thread pool before forking, unexpected error: " << DiagnosticInformation(ex);
 		exit(EXIT_FAILURE);
 	}
@@ -488,13 +488,13 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs, bool close
 
 	switch (pid) {
 		case -1:
-			Log(LogCritical, "cli")
+			Log(LogCritical, "cli", nullptr)
 				<< "fork() failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 
 			try {
 				Application::InitializeBase();
 			} catch (const std::exception& ex) {
-				Log(LogCritical, "cli")
+				Log(LogCritical, "cli", nullptr)
 					<< "Failed to re-initialize thread pool after forking (parent): " << DiagnosticInformation(ex);
 				exit(EXIT_FAILURE);
 			}
@@ -540,7 +540,7 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs, bool close
 				try {
 					Application::InitializeBase();
 				} catch (const std::exception& ex) {
-					Log(LogCritical, "cli")
+					Log(LogCritical, "cli", nullptr)
 						<< "Failed to re-initialize thread pool after forking (child): " << DiagnosticInformation(ex);
 					_exit(EXIT_FAILURE);
 				}
@@ -548,14 +548,14 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs, bool close
 				try {
 					Process::InitializeSpawnHelper();
 				} catch (const std::exception& ex) {
-					Log(LogCritical, "cli")
+					Log(LogCritical, "cli", nullptr)
 						<< "Failed to initialize process spawn helper after forking (child): " << DiagnosticInformation(ex);
 					_exit(EXIT_FAILURE);
 				}
 
 				_exit(RunWorker(configs, closeConsoleLog, stderrFile));
 			} catch (const std::exception& ex) {
-				Log(LogCritical, "cli") << "Exception in main process: " << DiagnosticInformation(ex);
+				Log(LogCritical, "cli", nullptr) << "Exception in main process: " << DiagnosticInformation(ex);
 				_exit(EXIT_FAILURE);
 			} catch (...) {
 				_exit(EXIT_FAILURE);
@@ -565,7 +565,7 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs, bool close
 			l_CurrentlyStartingUnixWorkerPid.store(pid);
 			(void)sigprocmask(SIG_UNBLOCK, &l_UnixWorkerSignals, nullptr);
 
-			Log(LogNotice, "cli")
+			Log(LogNotice, "cli", nullptr)
 				<< "Spawned worker process (PID " << pid << "), waiting for it to load its config";
 
 			// Wait for the newly spawned process to either load its config or fail.
@@ -575,7 +575,7 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs, bool close
 #endif /* HAVE_SYSTEMD */
 
 				if (waitpid(pid, nullptr, WNOHANG) > 0) {
-					Log(LogNotice, "cli")
+					Log(LogNotice, "cli", nullptr)
 						<< "Worker process couldn't load its config";
 
 					pid = -2;
@@ -583,7 +583,7 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs, bool close
 				}
 
 				if (l_CurrentlyStartingUnixWorkerReady.load()) {
-					Log(LogNotice, "cli")
+					Log(LogNotice, "cli", nullptr)
 						<< "Worker process successfully loaded its config";
 					break;
 				}
@@ -598,7 +598,7 @@ static pid_t StartUnixWorker(const std::vector<std::string>& configs, bool close
 			try {
 				Application::InitializeBase();
 			} catch (const std::exception& ex) {
-				Log(LogCritical, "cli")
+				Log(LogCritical, "cli", nullptr)
 					<< "Failed to re-initialize thread pool after forking (parent): " << DiagnosticInformation(ex);
 				exit(EXIT_FAILURE);
 			}
@@ -633,7 +633,7 @@ int DaemonCommand::Run(const po::variables_map& vm, [[maybe_unused]] const std::
 
 	Logger::EnableTimestamp();
 
-	Log(LogInformation, "cli")
+	Log(LogInformation, "cli", nullptr)
 		<< "Icinga application loader (version: " << Application::GetAppVersion()
 #ifdef I2_DEBUG
 		<< "; debug"
@@ -651,7 +651,7 @@ int DaemonCommand::Run(const po::variables_map& vm, [[maybe_unused]] const std::
 
 	if (vm.count("dump-objects")) {
 		if (!vm.count("validate")) {
-			Log(LogCritical, "cli", "--dump-objects is not allowed without -C");
+			Log(LogCritical, "cli", nullptr, "--dump-objects is not allowed without -C");
 			return EXIT_FAILURE;
 		}
 
@@ -659,23 +659,23 @@ int DaemonCommand::Run(const po::variables_map& vm, [[maybe_unused]] const std::
 	}
 
 	if (vm.count("validate")) {
-		Log(LogInformation, "cli", "Loading configuration file(s).");
+		Log(LogInformation, "cli", nullptr, "Loading configuration file(s).");
 
 		std::vector<ConfigItem::Ptr> newItems;
 
 		if (!DaemonUtility::LoadConfigFiles(configs, newItems, l_ObjectsPath, Configuration::VarsPath)) {
-			Log(LogCritical, "cli", "Config validation failed. Re-run with 'icinga2 daemon -C' after fixing the config.");
+			Log(LogCritical, "cli", nullptr, "Config validation failed. Re-run with 'icinga2 daemon -C' after fixing the config.");
 			return EXIT_FAILURE;
 		}
 
-		Log(LogInformation, "cli", "Finished validating the configuration file(s).");
+		Log(LogInformation, "cli", nullptr, "Finished validating the configuration file(s).");
 		return EXIT_SUCCESS;
 	}
 
 	{
 		pid_t runningpid = Application::ReadPidFile(Configuration::PidPath);
 		if (runningpid > 0) {
-			Log(LogCritical, "cli")
+			Log(LogCritical, "cli", nullptr)
 				<< "Another instance of Icinga already running with PID " << runningpid;
 			return EXIT_FAILURE;
 		}
@@ -697,7 +697,7 @@ int DaemonCommand::Run(const po::variables_map& vm, [[maybe_unused]] const std::
 	try {
 		app.UpdatePidFile(Configuration::PidPath);
 	} catch (const std::exception&) {
-		Log(LogCritical, "Application")
+		Log(LogCritical, "Application", nullptr)
 			<< "Cannot update PID file '" << Configuration::PidPath << "'. Aborting.";
 		return EXIT_FAILURE;
 	}
@@ -710,7 +710,7 @@ int DaemonCommand::Run(const po::variables_map& vm, [[maybe_unused]] const std::
 	if (vm.count("daemonize")) {
 		// After disabling the console log, any further errors will go to the configured log only.
 		// Let's try to make this clear and say good bye.
-		Log(LogInformation, "cli", "Closing console log.");
+		Log(LogInformation, "cli", nullptr, "Closing console log.");
 
 		String errorLog;
 		if (vm.count("errorlog"))
@@ -724,7 +724,7 @@ int DaemonCommand::Run(const po::variables_map& vm, [[maybe_unused]] const std::
 	try {
 		return RunWorker(configs);
 	} catch (const std::exception& ex) {
-		Log(LogCritical, "cli")	<< "Exception in main process: " << DiagnosticInformation(ex);
+		Log(LogCritical, "cli", nullptr) << "Exception in main process: " << DiagnosticInformation(ex);
 		return EXIT_FAILURE;
 	} catch (...) {
 		return EXIT_FAILURE;
@@ -763,7 +763,7 @@ int DaemonCommand::Run(const po::variables_map& vm, [[maybe_unused]] const std::
 	if (closeConsoleLog) {
 		// After disabling the console log, any further errors will go to the configured log only.
 		// Let's try to make this clear and say good bye.
-		Log(LogInformation, "cli", "Closing console log.");
+		Log(LogInformation, "cli", nullptr, "Closing console log.");
 
 		CloseStdIO(errorLog);
 		Logger::DisableConsoleLog();
@@ -792,7 +792,7 @@ int DaemonCommand::Run(const po::variables_map& vm, [[maybe_unused]] const std::
 		if (!requestedTermination) {
 			int termSig = l_TermSignal.load();
 			if (termSig != -1) {
-				Log(LogNotice, "cli")
+				Log(LogNotice, "cli", nullptr)
 					<< "Got signal " << termSig << ", forwarding to seamless worker (PID " << currentWorker << ")";
 
 				(void)kill(currentWorker, termSig);
@@ -808,7 +808,7 @@ int DaemonCommand::Run(const po::variables_map& vm, [[maybe_unused]] const std::
 		}
 
 		if (l_RequestedReload.exchange(false)) {
-			Log(LogInformation, "Application")
+			Log(LogInformation, "Application", nullptr)
 				<< "Got reload command: Starting new instance.";
 
 #ifdef HAVE_SYSTEMD
@@ -825,11 +825,11 @@ int DaemonCommand::Run(const po::variables_map& vm, [[maybe_unused]] const std::
 				case -1:
 					break;
 				case -2:
-					Log(LogCritical, "Application", "Found error in config: reloading aborted");
+					Log(LogCritical, "Application", nullptr, "Found error in config: reloading aborted");
 					Application::SetLastReloadFailed(Utility::GetTime());
 					break;
 				default:
-					Log(LogInformation, "Application")
+					Log(LogInformation, "Application", nullptr)
 						<< "Reload done, old process shutting down. Child process with PID '" << nextWorker << "' is taking over.";
 
 					NotifyStatus("Shutting down old instance...");
@@ -846,7 +846,7 @@ int DaemonCommand::Run(const po::variables_map& vm, [[maybe_unused]] const std::
 	#endif /* HAVE_SYSTEMD */
 						}
 
-						Log(LogNotice, "cli")
+						Log(LogNotice, "cli", nullptr)
 							<< "Waited for " << Utility::FormatDuration(Utility::GetTime() - start) << " on old process to exit.";
 					}
 
@@ -865,7 +865,7 @@ int DaemonCommand::Run(const po::variables_map& vm, [[maybe_unused]] const std::
 		}
 
 		if (l_RequestedReopenLogs.exchange(false)) {
-			Log(LogNotice, "cli")
+			Log(LogNotice, "cli", nullptr)
 				<< "Got signal " << SIGUSR1 << ", forwarding to seamless worker (PID " << currentWorker << ")";
 
 			(void)kill(currentWorker, SIGUSR1);
@@ -874,7 +874,7 @@ int DaemonCommand::Run(const po::variables_map& vm, [[maybe_unused]] const std::
 		{
 			int status;
 			if (waitpid(currentWorker, &status, WNOHANG) > 0) {
-				Log(LogNotice, "cli")
+				Log(LogNotice, "cli", nullptr)
 					<< "Seamless worker (PID " << currentWorker << ") stopped, stopping as well";
 
 #ifdef HAVE_SYSTEMD

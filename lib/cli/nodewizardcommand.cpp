@@ -169,7 +169,7 @@ wizard_endpoint_loop_start:
 	std::getline(std::cin, answer);
 
 	if (answer.empty()) {
-		Log(LogWarning, "cli", "Master/Satellite CN is required! Please retry.");
+		Log(LogWarning, "cli", nullptr, "Master/Satellite CN is required! Please retry.");
 		goto wizard_endpoint_loop_start;
 	}
 
@@ -189,7 +189,7 @@ wizard_endpoint_loop_start:
 	if (choice.Contains("n")) {
 		connectToParent = false;
 
-		Log(LogWarning, "cli", "Node to master/satellite connection setup skipped");
+		Log(LogWarning, "cli", nullptr, "Node to master/satellite connection setup skipped");
 		std::cout << "Connection setup skipped. Please configure your parent node to\n"
 			<< "connect to this node by setting the 'host' attribute for the node Endpoint object.\n";
 
@@ -205,7 +205,7 @@ wizard_endpoint_loop_start:
 		std::getline(std::cin, answer);
 
 		if (answer.empty()) {
-			Log(LogWarning, "cli", "Please enter the parent endpoint (master/satellite) connection information.");
+			Log(LogWarning, "cli", nullptr, "Please enter the parent endpoint (master/satellite) connection information.");
 			goto wizard_endpoint_loop_start;
 		}
 
@@ -261,7 +261,7 @@ wizard_endpoint_loop_start:
 	String group = Configuration::RunAsGroup;
 
 	if (!Utility::SetFileOwnership(certsDir, user, group)) {
-		Log(LogWarning, "cli")
+		Log(LogWarning, "cli", nullptr)
 			<< "Cannot set ownership for user '" << user
 			<< "' group '" << group
 			<< "' on file '" << certsDir << "'. Verify it yourself!";
@@ -276,7 +276,7 @@ wizard_endpoint_loop_start:
 		NodeUtility::CreateBackupFile(nodeCert);
 
 	if (PkiUtility::NewCert(cn, nodeKey, Empty, nodeCert) > 0) {
-		Log(LogCritical, "cli")
+		Log(LogCritical, "cli", nullptr)
 			<< "Failed to create new self-signed certificate for CN '"
 			<< cn << "'. Please try again.";
 		return 1;
@@ -284,7 +284,7 @@ wizard_endpoint_loop_start:
 
 	/* fix permissions: root -> icinga daemon user */
 	if (!Utility::SetFileOwnership(nodeKey, user, group)) {
-		Log(LogWarning, "cli")
+		Log(LogWarning, "cli", nullptr)
 			<< "Cannot set ownership for user '" << user
 			<< "' group '" << group
 			<< "' on file '" << nodeKey << "'. Verify it yourself!";
@@ -295,13 +295,13 @@ wizard_endpoint_loop_start:
 	/* Check whether we should connect to the parent node and present its trusted certificate. */
 	if (connectToParent) {
 		//save-cert and store the master certificate somewhere
-		Log(LogInformation, "cli")
+		Log(LogInformation, "cli", nullptr)
 			<< "Fetching public certificate from master ("
 			<< parentHost << ", " << parentPort << "):\n";
 
 		trustedParentCert = PkiUtility::FetchCert(parentHost, parentPort);
 		if (!trustedParentCert) {
-			Log(LogCritical, "cli", "Peer did not present a valid certificate.");
+			Log(LogCritical, "cli", nullptr, "Peer did not present a valid certificate.");
 			return 1;
 		}
 
@@ -313,11 +313,11 @@ wizard_endpoint_loop_start:
 		std::getline (std::cin, answer);
 		boost::algorithm::to_lower(answer);
 		if (answer != "y") {
-			Log(LogWarning, "cli", "Process aborted.");
+			Log(LogWarning, "cli", nullptr, "Process aborted.");
 			return 1;
 		}
 
-		Log(LogInformation, "cli", "Received trusted parent certificate.\n");
+		Log(LogInformation, "cli", nullptr, "Received trusted parent certificate.\n");
 	}
 
 wizard_ticket:
@@ -346,10 +346,10 @@ wizard_ticket:
 		ticket = ticket.Trim();
 
 		if (ticket.IsEmpty()) {
-			Log(LogInformation, "cli")
+			Log(LogInformation, "cli", nullptr)
 				<< "Requesting certificate without a ticket.";
 		} else {
-			Log(LogInformation, "cli")
+			Log(LogInformation, "cli", nullptr)
 				<< "Requesting certificate with ticket '" << ticket << "'.";
 		}
 
@@ -360,7 +360,7 @@ wizard_ticket:
 
 		if (PkiUtility::RequestCertificate(parentHost, parentPort, nodeKey,
 			nodeCert, nodeCA, trustedParentCert, ticket) > 0) {
-			Log(LogCritical, "cli")
+			Log(LogCritical, "cli", nullptr)
 				<< "Failed to fetch signed certificate from master '"
 				<< parentHost << ", "
 				<< parentPort << "'. Please try again.";
@@ -369,7 +369,7 @@ wizard_ticket:
 
 		/* fix permissions (again) when updating the signed certificate */
 		if (!Utility::SetFileOwnership(nodeCert, user, group)) {
-			Log(LogWarning, "cli")
+			Log(LogWarning, "cli", nullptr)
 				<< "Cannot set ownership for user '" << user
 				<< "' group '" << group << "' on file '"
 				<< nodeCert << "'. Verify it yourself!";
@@ -442,11 +442,11 @@ wizard_ticket:
 		<< ConsoleColorTag(Console_Normal);
 
 	/* disable the notifications feature on agent/satellite nodes */
-	Log(LogInformation, "cli", "Disabling the Notification feature.");
+	Log(LogInformation, "cli", nullptr, "Disabling the Notification feature.");
 
 	FeatureUtility::DisableFeatures({ "notification" });
 
-	Log(LogInformation, "cli", "Enabling the ApiListener feature.");
+	Log(LogInformation, "cli", nullptr, "Enabling the ApiListener feature.");
 
 	FeatureUtility::EnableFeatures({ "api" });
 
@@ -472,7 +472,7 @@ wizard_ticket:
 	fp.Commit();
 
 	/* Zones configuration. */
-	Log(LogInformation, "cli", "Generating local zones.conf.");
+	Log(LogInformation, "cli", nullptr, "Generating local zones.conf.");
 
 	/* Setup command hardcodes this as FQDN */
 	String endpointName = cn;
@@ -538,13 +538,13 @@ wizard_global_zone_loop_start:
 		if (choice.Contains("y"))
 			goto wizard_global_zone_loop_start;
 	} else
-		Log(LogInformation, "cli", "No additional global Zones have been specified");
+		Log(LogInformation, "cli", nullptr, "No additional global Zones have been specified");
 
 	/* Generate node configuration. */
 	NodeUtility::GenerateNodeIcingaConfig(endpointName, zoneName, parentZoneName, endpoints, globalZones);
 
 	if (endpointName != Utility::GetFQDN()) {
-		Log(LogWarning, "cli")
+		Log(LogWarning, "cli", nullptr)
 			<< "CN/Endpoint name '" << endpointName << "' does not match the default FQDN '"
 			<< Utility::GetFQDN() << "'. Requires update for NodeName constant in constants.conf!";
 	}
@@ -557,7 +557,7 @@ wizard_global_zone_loop_start:
 		AtomicFile af (ticketPath, 0600);
 
 		if (!Utility::SetFileOwnership(af.GetTempFilename(), user, group)) {
-			Log(LogWarning, "cli")
+			Log(LogWarning, "cli", nullptr)
 				<< "Cannot set ownership for user '" << user
 				<< "' group '" << group
 				<< "' on file '" << ticketPath << "'. Verify it yourself!";
@@ -569,12 +569,12 @@ wizard_global_zone_loop_start:
 
 	/* If no parent connection was made, the user must supply the ca.crt before restarting Icinga 2.*/
 	if (!connectToParent) {
-		Log(LogWarning, "cli")
+		Log(LogWarning, "cli", nullptr)
 			<< "No connection to the parent node was specified.\n\n"
 			<< "Please copy the public CA certificate from your master/satellite\n"
 			<< "into '" << nodeCA << "' before starting Icinga 2.\n";
 	} else {
-		Log(LogInformation, "cli", "Make sure to restart Icinga 2.");
+		Log(LogInformation, "cli", nullptr, "Make sure to restart Icinga 2.");
 	}
 
 	/* Disable conf.d inclusion */
@@ -585,7 +585,7 @@ wizard_global_zone_loop_start:
 	choice = answer;
 
 	if (choice.Contains("n"))
-		Log(LogInformation, "cli")
+		Log(LogInformation, "cli", nullptr)
 			<< "conf.d directory has not been disabled.";
 	else {
 		std::cout << ConsoleColorTag(Console_Bold | Console_ForegroundGreen)
@@ -709,7 +709,7 @@ wizard_global_zone_loop_start:
 		if (choice.Contains("y"))
 			goto wizard_global_zone_loop_start;
 	} else
-		Log(LogInformation, "cli", "No additional global Zones have been specified");
+		Log(LogInformation, "cli", nullptr, "No additional global Zones have been specified");
 
 	/* Generate master configuration. */
 	NodeUtility::GenerateNodeMasterIcingaConfig(endpointName, zoneName, globalZones);
@@ -760,12 +760,12 @@ wizard_global_zone_loop_start:
 
 	/* update constants.conf with NodeName = CN + TicketSalt = random value */
 	if (cn != Utility::GetFQDN()) {
-		Log(LogWarning, "cli")
+		Log(LogWarning, "cli", nullptr)
 			<< "CN '" << cn << "' does not match the default FQDN '"
 			<< Utility::GetFQDN() << "'. Requires an update for the NodeName constant in constants.conf!";
 	}
 
-	Log(LogInformation, "cli", "Updating constants.conf.");
+	Log(LogInformation, "cli", nullptr, "Updating constants.conf.");
 
 	NodeUtility::CreateBackupFile(NodeUtility::GetConstantsConfPath());
 
@@ -784,7 +784,7 @@ wizard_global_zone_loop_start:
 	choice = answer;
 
 	if (choice.Contains("n"))
-		Log(LogInformation, "cli")
+		Log(LogInformation, "cli", nullptr)
 			<< "conf.d directory has not been disabled.";
 	else {
 		std::cout << ConsoleColorTag(Console_Bold | Console_ForegroundGreen)
@@ -807,7 +807,7 @@ wizard_global_zone_loop_start:
 		if (Utility::PathExists(apiUsersFilePath)) {
 			NodeUtility::UpdateConfiguration("\"conf.d/api-users.conf\"", true, false);
 		} else {
-			Log(LogWarning, "cli")
+			Log(LogWarning, "cli", nullptr)
 				<< "Included file '" << apiUsersFilePath << "' does not exist.";
 		}
 	}

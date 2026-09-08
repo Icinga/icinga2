@@ -48,7 +48,7 @@ void LivestatusLogUtility::CreateLogIndexFileHandler(const String& path, std::ma
 
 	stream.close();
 
-	Log(LogDebug, "LivestatusLogUtility")
+	Log(LogDebug, "LivestatusLogUtility", nullptr)
 		<< "Indexing log file: '" << path << "' with timestamp start: '" << ts_start << "'.";
 
 	index[ts_start] = path;
@@ -85,7 +85,7 @@ void LivestatusLogUtility::CreateLogCache(std::map<time_t, String> index, Histor
 
 			/* no attributes available - invalid log line */
 			if (!log_entry_attrs) {
-				Log(LogDebug, "LivestatusLogUtility")
+				Log(LogDebug, "LivestatusLogUtility", nullptr)
 					<< "Skipping invalid log line: '" << line << "'.";
 				continue;
 			}
@@ -108,7 +108,7 @@ Dictionary::Ptr LivestatusLogUtility::GetAttributes(const String& text)
 	 */
 	unsigned long time = atoi(text.SubStr(1, 11).CStr());
 
-	Log(LogDebug, "LivestatusLogUtility")
+	Log(LogDebug, "LivestatusLogUtility", nullptr)
 		<< "Processing log line: '" << text << "'.";
 	bag->Set("time", time);
 

@@ -27,7 +27,7 @@ void Checkable::ExecuteEventHandler(const Dictionary::Ptr& resolvedMacros, bool 
 
 	/* HA enabled zones. */
 	if (IsActive() && IsPaused()) {
-		Log(LogNotice, "Checkable")
+		Log(LogNotice, "Checkable", this)
 			<< "Skipping event handler for HA-paused checkable '" << GetName() << "'";
 		return;
 	}
@@ -37,7 +37,7 @@ void Checkable::ExecuteEventHandler(const Dictionary::Ptr& resolvedMacros, bool 
 	if (!ec)
 		return;
 
-	Log(LogNotice, "Checkable")
+	Log(LogNotice, "Checkable", this)
 		<< "Executing event handler '" << ec->GetName() << "' for checkable '" << GetName() << "'";
 
 	Dictionary::Ptr macros;

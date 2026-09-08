@@ -280,7 +280,7 @@ std::set<Checkable::Ptr> Checkable::GetAllChildren() const
 void Checkable::GetAllChildrenInternal(std::set<Checkable::Ptr>& seenChildren, int level) const
 {
 	if (level > Dependency::MaxDependencyRecursionLevel) {
-		Log(LogWarning, "Checkable")
+		Log(LogWarning, "Checkable", this)
 			<< "Too many nested dependencies (>" << Dependency::MaxDependencyRecursionLevel << ") for checkable '"
 			<< GetName() << "': aborting traversal.";
 		return;

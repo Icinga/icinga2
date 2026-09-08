@@ -87,7 +87,7 @@ void Checkable::OnAllConfigLoaded()
 		auto [_, inserted] = alreadyWarned.emplace(*it);
 		lock.unlock();
 		if (inserted) {
-			Log(LogWarning, "Checkable")
+			Log(LogWarning, "Checkable", this)
 				<< "CheckCommand '" << GetCheckCommandRaw() << "' used by '" << GetName() << "' (" << GetDebugInfo()
 				<< ") is DEPRECATED and will be removed in v2.18. Further uses of this check command won't be logged.";
 		}
@@ -199,7 +199,7 @@ void Checkable::AcknowledgeProblem(const String& author, const String& comment, 
 	if (notify && !IsPaused())
 		OnNotificationsRequested(this, NotificationAcknowledgement, GetLastCheckResult(), author, comment, nullptr);
 
-	Log(LogInformation, "Checkable")
+	Log(LogInformation, "Checkable", this)
 		<< "Acknowledgement set for checkable '" << GetName() << "'.";
 
 	OnAcknowledgementSet(this, author, comment, type, notify, persistent, changeTime, expiry, origin);
@@ -216,7 +216,7 @@ void Checkable::ClearAcknowledgement(const String& removedBy, double changeTime,
 	SetAcknowledgementRaw(AcknowledgementNone);
 	SetAcknowledgementExpiry(0);
 
-	Log(LogInformation, "Checkable")
+	Log(LogInformation, "Checkable", this)
 		<< "Acknowledgement cleared for checkable '" << GetName() << "'.";
 
 	if (wasAcked) {

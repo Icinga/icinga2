@@ -46,7 +46,7 @@ void LivestatusListener::OnAllConfigLoaded()
 {
 	ObjectImpl<LivestatusListener>::OnAllConfigLoaded();
 
-	Log(LogWarning, "LivestatusListener")
+	Log(LogWarning, "LivestatusListener", this)
 		<< "This feature is DEPRECATED and will be removed in v2.18.";
 }
 
@@ -57,7 +57,7 @@ void LivestatusListener::Start(bool runtimeCreated)
 {
 	ObjectImpl<LivestatusListener>::Start(runtimeCreated);
 
-	Log(LogInformation, "LivestatusListener")
+	Log(LogInformation, "LivestatusListener", this)
 		<< "'" << GetName() << "' started.";
 
 	if (GetSocketType() == "tcp") {
@@ -66,7 +66,7 @@ void LivestatusListener::Start(bool runtimeCreated)
 		try {
 			socket->Bind(GetBindHost(), GetBindPort(), AF_UNSPEC);
 		} catch (std::exception&) {
-			Log(LogCritical, "LivestatusListener")
+			Log(LogCritical, "LivestatusListener", this)
 				<< "Cannot bind TCP socket on host '" << GetBindHost() << "' port '" << GetBindPort() << "'.";
 			return;
 		}
@@ -75,7 +75,7 @@ void LivestatusListener::Start(bool runtimeCreated)
 
 		m_Thread = std::thread([this]() { ServerThreadProc(); });
 
-		Log(LogInformation, "LivestatusListener")
+		Log(LogInformation, "LivestatusListener", this)
 			<< "Created TCP socket listening on host '" << GetBindHost() << "' port '" << GetBindPort() << "'.";
 	}
 	else if (GetSocketType() == "unix") {
@@ -85,7 +85,7 @@ void LivestatusListener::Start(bool runtimeCreated)
 		try {
 			socket->Bind(GetSocketPath());
 		} catch (std::exception&) {
-			Log(LogCritical, "LivestatusListener")
+			Log(LogCritical, "LivestatusListener", this)
 				<< "Cannot bind UNIX socket to '" << GetSocketPath() << "'.";
 			return;
 		}
@@ -94,7 +94,7 @@ void LivestatusListener::Start(bool runtimeCreated)
 		mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP;
 
 		if (chmod(GetSocketPath().CStr(), mode) < 0) {
-			Log(LogCritical, "LivestatusListener")
+			Log(LogCritical, "LivestatusListener", this)
 				<< "chmod() on unix socket '" << GetSocketPath() << "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\"";
 			return;
 		}
@@ -103,11 +103,11 @@ void LivestatusListener::Start(bool runtimeCreated)
 
 		m_Thread = std::thread([this]() { ServerThreadProc(); });
 
-		Log(LogInformation, "LivestatusListener")
+		Log(LogInformation, "LivestatusListener", this)
 			<< "Created UNIX socket in '" << GetSocketPath() << "'.";
 #else
 		/* no UNIX sockets on windows */
-		Log(LogCritical, "LivestatusListener", "Unix sockets are not supported on Windows.");
+		Log(LogCritical, "LivestatusListener", this, "Unix sockets are not supported on Windows.");
 		return;
 #endif
 	}
@@ -117,7 +117,7 @@ void LivestatusListener::Stop(bool runtimeRemoved)
 {
 	ObjectImpl<LivestatusListener>::Stop(runtimeRemoved);
 
-	Log(LogInformation, "LivestatusListener")
+	Log(LogInformation, "LivestatusListener", this)
 		<< "'" << GetName() << "' stopped.";
 
 	m_Listener->Close();
@@ -151,7 +151,7 @@ void LivestatusListener::ServerThreadProc()
 
 			if (m_Listener->Poll(true, false, &tv)) {
 				Socket::Ptr client = m_Listener->Accept();
-				Log(LogNotice, "LivestatusListener", "Client connected");
+				Log(LogNotice, "LivestatusListener", this, "Client connected");
 				Utility::QueueAsyncCallback([this, client]() { ClientHandler(client); }, LowLatencyScheduler);
 			}
 
@@ -159,7 +159,7 @@ void LivestatusListener::ServerThreadProc()
 				break;
 		}
 	} catch (std::exception&) {
-		Log(LogCritical, "LivestatusListener", "Cannot accept new connection.");
+		Log(LogCritical, "LivestatusListener", this, "Cannot accept new connection.");
 	}
 
 	m_Listener->Close();

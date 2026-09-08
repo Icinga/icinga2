@@ -146,7 +146,7 @@ void Zone::ValidateEndpointsRaw(const Lazy<Array::Ptr>& lvalue, const Validation
 	ObjectImpl<Zone>::ValidateEndpointsRaw(lvalue, utils);
 
 	if (lvalue() && lvalue()->GetLength() > 2) {
-		Log(LogWarning, "Zone")
+		Log(LogWarning, "Zone", this)
 			<< "The Zone object '" << GetName() << "' has more than two endpoints."
 			<< " Due to a known issue this type of configuration is strongly"
 			<< " discouraged and may cause Icinga to use excessive amounts of CPU time.";

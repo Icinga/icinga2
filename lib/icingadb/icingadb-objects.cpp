@@ -219,7 +219,7 @@ void IcingaDB::UpdateAllConfigObjects()
 	// previously enqueued queries on m_RconWorker that we need to wait for. So, no Sync() call is necessary here.
 	m_RconWorker->FireAndForgetQuery({"XADD", "icinga:schema", "MAXLEN", "1", "*", "version", "6"}, {}, true);
 
-	Log(LogInformation, "IcingaDB") << "Starting initial config/status dump";
+	Log(LogInformation, "IcingaDB", this) << "Starting initial config/status dump";
 	double startTime = Utility::GetTime();
 
 	SetOngoingDumpStart(startTime);
@@ -367,7 +367,7 @@ void IcingaDB::UpdateAllConfigObjects()
 
 			ExecuteRedisTransaction(rcon, hMSets, {});
 
-			Log(LogNotice, "IcingaDB")
+			Log(LogNotice, "IcingaDB", this)
 				<< "Dumped " << bulkCounter << " objects of " << type->ToString();
 		});
 
@@ -552,7 +552,7 @@ void IcingaDB::UpdateAllConfigObjects()
 	SetLastdumpTook(took);
 	SetLastdumpEnd(endTime);
 
-	Log(LogInformation, "IcingaDB")
+	Log(LogInformation, "IcingaDB", this)
 		<< "Initial config/status dump finished in " << took << " seconds.";
 }
 
@@ -2583,7 +2583,7 @@ void IcingaDB::ForwardHistoryEntries()
 
 			auto size (m_HistoryBulker.Size());
 
-			Log(size > m_HistoryBulker.GetBulkSize() ? LogInformation : LogNotice, "IcingaDB")
+			Log(size > m_HistoryBulker.GetBulkSize() ? LogInformation : LogNotice, "IcingaDB", this)
 				<< "Pending history queries: " << size;
 		}
 	});
@@ -2603,8 +2603,8 @@ void IcingaDB::ForwardHistoryEntries()
 
 		uintmax_t attempts = 0;
 
-		auto logFailure ([&haystack, &attempts](const char* err = nullptr) {
-			Log msg (LogNotice, "IcingaDB");
+		auto logFailure ([this, &haystack, &attempts](const char* err = nullptr) {
+			Log msg (LogNotice, "IcingaDB", this);
 
 			msg << "history: " << haystack.size() << " queries failed temporarily (attempt #" << ++attempts << ")";
 
@@ -2630,7 +2630,7 @@ void IcingaDB::ForwardHistoryEntries()
 			}
 
 			if (!GetActive()) {
-				Log(LogCritical, "IcingaDB") << "history: " << haystack.size() << " queries failed (attempt #" << attempts
+				Log(LogCritical, "IcingaDB", this) << "history: " << haystack.size() << " queries failed (attempt #" << attempts
 					<< ") while we're about to shut down. Giving up and discarding additional "
 					<< m_HistoryBulker.Size() << " queued history queries.";
 
@@ -3168,7 +3168,7 @@ void IcingaDB::CustomVarsChangedHandler(const ConfigObject::Ptr& object, const D
 }
 
 void IcingaDB::DeleteRelationship(const String& id, RedisConnection::QueryArg redisObjKey, RedisConnection::QueryArg redisChecksumKey) {
-	Log(LogNotice, "IcingaDB")
+	Log(LogNotice, "IcingaDB", this)
 		<< "Deleting relationship '" << static_cast<std::string_view>(redisObjKey) << " -> '" << id << "'";
 
 	RedisConnection::Queries queries;
@@ -3188,7 +3188,7 @@ void IcingaDB::DeleteRelationship(const String& id, RedisConnection::QueryArg re
 
 void IcingaDB::DeleteState(const String& id, RedisConnection::QueryArg redisObjKey, RedisConnection::QueryArg redisChecksumKey) const
 {
-	Log(LogNotice, "IcingaDB")
+	Log(LogNotice, "IcingaDB", this)
 		<< "Deleting state '" << static_cast<std::string_view>(redisObjKey) << "' -> " << std::quoted(id.CStr());
 
 	RedisConnection::Queries hdels = {{"HDEL", std::move(redisObjKey), id}};

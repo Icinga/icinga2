@@ -44,12 +44,12 @@ std::vector<String> PKISignCSRCommand::GetArgumentSuggestions(const String& argu
 int PKISignCSRCommand::Run(const boost::program_options::variables_map& vm, [[maybe_unused]] const std::vector<std::string>& ap) const
 {
 	if (!vm.count("csr")) {
-		Log(LogCritical, "cli", "Certificate signing request file path (--csr) must be specified.");
+		Log(LogCritical, "cli", nullptr, "Certificate signing request file path (--csr) must be specified.");
 		return 1;
 	}
 
 	if (!vm.count("cert")) {
-		Log(LogCritical, "cli", "Certificate file path (--cert) must be specified.");
+		Log(LogCritical, "cli", nullptr, "Certificate file path (--cert) must be specified.");
 		return 1;
 	}
 
