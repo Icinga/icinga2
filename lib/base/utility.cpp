@@ -1632,21 +1632,39 @@ static bool ReleaseHelper(String *platformName, String *platformVersion)
 		*platformName = "Windows";
 
 	if (platformVersion) {
-		*platformVersion = "Vista";
-		if (IsWindowsVistaSP1OrGreater())
-			*platformVersion = "Vista SP1";
-		if (IsWindowsVistaSP2OrGreater())
-			*platformVersion = "Vista SP2";
-		if (IsWindows7OrGreater())
-			*platformVersion = "7";
-		if (IsWindows7SP1OrGreater())
-			*platformVersion = "7 SP1";
-		if (IsWindows8OrGreater())
-			*platformVersion = "8";
-		if (IsWindows8Point1OrGreater())
-			*platformVersion = "8.1 or greater";
-		if (IsWindowsServer())
-			*platformVersion += " (Server)";
+		// https://stackoverflow.com/questions/53393150/c-how-to-detect-windows-server-2019
+		// https://techthoughts.info/windows-version-numbers/
+		if (IsWindowsServer()) {
+			// 2019 Server +
+			if (IsWindowsVersionOrGreater(10, 0, 1803)) {
+				*platformVersion = "Server 2019 or greater";
+			// 2016 Server
+			} else if (IsWindowsVersionOrGreater(10, 0, 1607)) {
+				*platformVersion = "Server 2016";
+			// 2012 R2
+			} else if (IsWindowsVersionOrGreater(6, 3, 0)) {
+				*platformVersion = "Server 2012 R2";
+			// 2012
+			} else if (IsWindowsVersionOrGreater(6, 2, 0)) {
+				*platformVersion = "Server 2012";
+			} else {
+				*platformVersion = "Server 2008";
+			}
+
+		} else {
+			if (IsWindows10OrGreater())
+				*platformVersion = "10 or greater";
+			else if (IsWindows8Point1OrGreater())
+				*platformVersion = "8.1";
+			else if (IsWindows8OrGreater())
+				*platformVersion = "8";
+			else if (IsWindows7SP1OrGreater())
+				*platformVersion = "7 SP1";
+			else if (IsWindows7OrGreater())
+				*platformVersion = "7";
+			else
+				*platformVersion = "Vista";
+		}
 	}
 
 	return true;
