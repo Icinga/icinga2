@@ -1,1 +1,0 @@
-#define SPEC_VERSION "${SPEC_VERSION}"

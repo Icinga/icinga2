@@ -20,11 +20,11 @@ Library::Library(const String& name)
 #if defined(_WIN32)
 	path = name + ".dll";
 #elif defined(__APPLE__) /* _WIN32 */
-	path = "lib" + name + "." + Application::GetAppSpecVersion() + ".dylib";
+	path = "lib" + name + "." + Application::GetAppPackageVersion() + ".dylib";
 #elif defined(__OpenBSD__) /* __APPLE__ */
 	path = "lib" + name + ".so";
 #else /* __OpenBSD__ */
-	path = "lib" + name + ".so." + Application::GetAppSpecVersion();
+	path = "lib" + name + ".so." + Application::GetAppPackageVersion();
 #endif /* _WIN32 */
 
 	Log(LogNotice, "Library")
