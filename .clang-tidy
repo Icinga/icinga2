@@ -1,0 +1,46 @@
+Checks: >
+  *,
+  -fuchsia-*,
+  -llvmlibc-*,
+  -altera-unroll-loops,
+  -altera-struct-pack-align,
+  -bugprone-narrowing-conversions,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-empty-catch,
+  -bugprone-suspicious-include,
+  -cert-err58-cpp,
+  -cppcoreguidelines-avoid-const-or-ref-data-members,
+  -cppcoreguidelines-avoid-do-while,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -cppcoreguidelines-avoid-non-const-global-variables,
+  -cppcoreguidelines-owning-memory,
+  -cppcoreguidelines-narrowing-conversions,
+  -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+  -cppcoreguidelines-pro-bounds-pointer-arithmetic,
+  -google-build-using-namespace,
+  -google-default-arguments,
+  -google-readability-braces-around-statements,
+  -google-readability-todo,
+  -google-runtime-int,
+  -hicpp-braces-around-statements,
+  -hicpp-named-parameter,
+  -hicpp-no-array-decay,
+  -hicpp-uppercase-literal-suffix,
+  -llvm-include-order,
+  -misc-non-private-member-variables-in-classes,
+  -misc-use-anonymous-namespace,
+  -modernize-use-trailing-return-type,
+  -readability-function-cognitive-complexity,
+  -readability-identifier-length,
+  -readability-implicit-bool-conversion,
+  -readability-magic-numbers,
+  -readability-named-parameter,
+  -readability-uppercase-literal-suffix
+
+CheckOptions:
+  - key:   modernize-use-override.AllowOverrideAndFinal
+    value: 'true'
+  - key:   readability-braces-around-statements.ShortStatementLines
+    value: '2'
+  - key: hicpp-signed-bitwise.IgnorePositiveIntegerLiterals
+    value: 'true'
