@@ -1,0 +1,36 @@
+name: clang-format
+
+on:
+  pull_request: {}
+
+jobs:
+  clang-format:
+    name: clang-format
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout HEAD
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Install clang-format
+        run: pip install 'clang-format==21.1.8'
+
+      - name: Check formatting of added and changed lines
+        run: |
+          if ! git-clang-format --quiet --diff --extensions c,h,cpp,hpp \
+            "$(git merge-base HEAD^1 HEAD^2)" HEAD^2 > clang-format.diff
+          then
+            cat <<'EOF' >&2
+          The lines added or changed by this pull request don't follow the Icinga 2
+          style guide. To fix this, install clang-format 21 and run the following on
+          your branch, then review and commit the result:
+
+            git clang-format --extensions c,h,cpp,hpp "$(git merge-base HEAD master)"
+
+          Don't hesitate to ask us for help if necessary.
+          EOF
+            cat clang-format.diff >&2
+            exit 1
+          fi
