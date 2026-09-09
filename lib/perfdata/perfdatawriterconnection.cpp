@@ -63,7 +63,7 @@ bool PerfdataWriterConnection::IsStopped() const
 
 void PerfdataWriterConnection::Disconnect()
 {
-	if (m_Stopped.exchange(true, std::memory_order_relaxed)) {
+	if (m_Stopped.exchange(true)) {
 		return;
 	}
 
@@ -71,19 +71,19 @@ void PerfdataWriterConnection::Disconnect()
 
 	IoEngine::SpawnCoroutine(m_Strand, [&](boost::asio::yield_context yc) {
 		try {
-			/* Cancel any outstanding operations of the other coroutine.
-			 * Since we're on the same strand we're hopefully guaranteed that all cancellations
-			 * result in exceptions thrown by the yield_context, even if its already queued for
-			 * completion.
-			 */
-			Visit(m_Stream, [](const auto& stream) {
-				if (stream->lowest_layer().is_open()) {
-					stream->lowest_layer().cancel();
-				}
-			});
-			m_ReconnectTimer.cancel();
+			if (m_SendActive) {
+				Visit(m_Stream, [](const auto& stream) {
+					if (stream->lowest_layer().is_open()) {
+						boost::system::error_code ec;
+						stream->lowest_layer().close(ec);
+					}
+				});
+				m_ReconnectTimer.cancel();
+				m_Connected = false;
+			} else {
+				Disconnect(std::move(yc));
+			}
 
-			Disconnect(std::move(yc));
 			promise.set_value();
 		} catch (const std::exception& ex) {
 			promise.set_exception(std::current_exception());
@@ -153,7 +153,7 @@ void PerfdataWriterConnection::EnsureConnected(const boost::asio::yield_context&
 
 void PerfdataWriterConnection::Disconnect(boost::asio::yield_context yc)
 {
-	if (!m_Connected.exchange(false, std::memory_order_relaxed)) {
+	if (!m_Connected.exchange(false)) {
 		return;
 	}
 
@@ -161,8 +161,9 @@ void PerfdataWriterConnection::Disconnect(boost::asio::yield_context yc)
 		m_Stream,
 		[&](Shared<AsioTlsStream>::Ptr& stream) { stream->GracefulDisconnect(m_Strand, yc); },
 		[&](Shared<AsioTcpStream>::Ptr& stream) {
-			stream->lowest_layer().shutdown(boost::asio::socket_base::shutdown_both);
-			stream->lowest_layer().close();
+			boost::system::error_code ec;
+			stream->lowest_layer().shutdown(boost::asio::socket_base::shutdown_both, ec);
+			stream->lowest_layer().close(ec);
 		}
 	);
 
