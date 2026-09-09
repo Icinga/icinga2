@@ -3,6 +3,8 @@
 
 # Except those related to git and vagrant
 !.git*
+!.clang-format
+!.clang-tidy
 !.puppet*
 !.travis.yml
 !.mailmap
