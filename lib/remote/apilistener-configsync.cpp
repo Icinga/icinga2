@@ -339,13 +339,13 @@ Value ApiListener::ConfigDeleteObjectAPIHandler(const MessageOrigin::Ptr& origin
 }
 
 void ApiListener::UpdateConfigObject(const ConfigObject::Ptr& object, const MessageOrigin::Ptr& origin,
-	const JsonRpcConnection::Ptr& client)
+	const JsonRpcConnection::Ptr& client, bool skipZoneCheck)
 {
 	/* only send objects to zones which have access to the object */
 	if (client) {
 		Zone::Ptr target_zone = client->GetEndpoint()->GetZone();
 
-		if (target_zone && !target_zone->CanAccessObject(object)) {
+		if (!skipZoneCheck && target_zone && !target_zone->CanAccessObject(object)) {
 			Log(LogDebug, "ApiListener")
 				<< "Not sending 'update config' message to unauthorized zone '" << target_zone->GetName() << "'"
 				<< " for object: '" << object->GetName() << "'.";
@@ -442,6 +442,9 @@ void ApiListener::UpdateConfigObject(const ConfigObject::Ptr& object, const Mess
 void ApiListener::UpdateConfigObjectWithParents(const ConfigObject::Ptr& object, const Zone::Ptr& azone,
 	const JsonRpcConnection::Ptr& client, std::unordered_set<ConfigObject*>& syncedObjects)
 {
+	if (object->GetPackage() != "_api" && object->GetVersion() == 0)
+		return;
+
 	if (syncedObjects.find(object.get()) != syncedObjects.end()) {
 		return;
 	}
@@ -457,7 +460,7 @@ void ApiListener::UpdateConfigObjectWithParents(const ConfigObject::Ptr& object,
 	}
 
 	/* send the config object to the connected client */
-	UpdateConfigObject(object, nullptr, client);
+	UpdateConfigObject(object, nullptr, client, true);
 }
 
 void ApiListener::DeleteConfigObject(const ConfigObject::Ptr& object, const MessageOrigin::Ptr& origin,
@@ -538,6 +541,8 @@ void ApiListener::SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient
 	Log(LogInformation, "ApiListener")
 		<< "Syncing runtime objects to endpoint '" << endpoint->GetName() << "'.";
 
+	auto start = std::chrono::steady_clock::now();
+
 	std::unordered_set<ConfigObject*> syncedObjects;
 	for (const Type::Ptr& type : Type::GetAllTypes()) {
 		if (auto *ctype = dynamic_cast<ConfigType *>(type.get())) {
@@ -552,8 +557,9 @@ void ApiListener::SendRuntimeConfigObjects(const JsonRpcConnection::Ptr& aclient
 		}
 	}
 
+	auto took = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
 	Log(LogInformation, "ApiListener")
-		<< "Finished syncing runtime objects to endpoint '" << endpoint->GetName() << "'.";
+		<< "Finished syncing runtime objects to endpoint '" << endpoint->GetName() << "' in " << took.count() << "ms.";
 }
 
 /**
