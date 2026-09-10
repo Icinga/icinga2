@@ -31,11 +31,9 @@ jobs:
 
           # Raspberry Pi OS is close enough to Debian to test just one of them.
           # Its architecture is different, though, and covered by the Docker job.
-          - debian:11
           - debian:12
           - debian:13
 
-          - fedora:42
           - fedora:43
           - fedora:44
 
@@ -52,16 +50,12 @@ jobs:
 
           - ubuntu:22.04
           - ubuntu:24.04
-          - ubuntu:25.04
-          - ubuntu:25.10
           - ubuntu:26.04
 
         platform:
           - linux/amd64
 
         include:
-          - distro: debian:11
-            platform: linux/386
           - distro: debian:12
             platform: linux/386
 

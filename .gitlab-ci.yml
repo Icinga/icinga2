@@ -14,20 +14,16 @@ linux-build:
     matrix:
       # x86_64 / amd64
       - IMAGE_NAME:
-          - debian:11
           - debian:12
           - debian:13
           - ubuntu:22.04
           - ubuntu:24.04
-          - ubuntu:25.04
-          - ubuntu:25.10
           - ubuntu:26.04
         OS_ARCH: amd64
         DOCKER_PLATFORM: linux/amd64
       - IMAGE_NAME:
           - alpine:latest
           - amazonlinux:2023
-          - fedora:42
           - fedora:43
           - fedora:44
           - fedora:45
@@ -42,7 +38,6 @@ linux-build:
 
       # x86 / i386
       - IMAGE_NAME:
-          - debian:11
           - debian:12
         OS_ARCH: i386
         DOCKER_PLATFORM: linux/386
