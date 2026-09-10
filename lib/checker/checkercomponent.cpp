@@ -182,7 +182,7 @@ void CheckerComponent::CheckThreadProc()
 //#endif /* I2_DEBUG */
 
 		if (Checkable::GetPendingChecks() >= icingaApp->GetMaxConcurrentChecks())
-			wait = 0.5;
+			wait = 0.1;
 
 		if (wait > 0) {
 			/* Wait for the next check. */
