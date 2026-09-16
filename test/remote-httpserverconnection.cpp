@@ -557,8 +557,8 @@ BOOST_AUTO_TEST_CASE(liveness_disconnect)
 	SetupHttpServerConnection(false, std::chrono::milliseconds(300)); // 300ms liveness timeout is more than enough!
 
 	BOOST_REQUIRE(AssertServerDisconnected(std::chrono::milliseconds(450))); // Give some leeway to Asio's timers
-	BOOST_REQUIRE(ExpectLogPattern("HTTP client disconnected .*"));
-	BOOST_REQUIRE(ExpectLogPattern("No messages for HTTP connection have been received in the last \\d+ seconds, disconnecting .*"));
+	REQUIRE_LOG_MESSAGE("HTTP client disconnected .*", 1s);
+	REQUIRE_LOG_MESSAGE("No messages for HTTP connection have been received in the last \\d+ seconds, disconnecting .*", 1s);
 	BOOST_REQUIRE(Shutdown(client));
 }
 
