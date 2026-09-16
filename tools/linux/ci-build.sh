@@ -19,7 +19,9 @@ set -exo pipefail
 : "${ICINGA2_BUILD_DIR:=${ICINGA2_SOURCE_DIR}/build}"
 : "${CCACHE_DIR:=${ICINGA2_SOURCE_DIR}/ccache}"
 
-export PATH="/usr/lib/ccache/bin:/usr/lib/ccache:/usr/lib64/ccache:$PATH"
+# Limit ccache so all targets together don't ever get over the 10 GiB limit
+# that would cause the cache of the first action to be evicted.
+export CCACHE_MAXSIZE=400M
 export CTEST_OUTPUT_ON_FAILURE=1
 export CCACHE_DIR
 
@@ -54,8 +56,9 @@ case "$DISTRO" in
     ;;
 
   amazonlinux:20*)
-    dnf install -y amazon-rpm-config bison cmake flex gcc-c++ ninja-build \
+    dnf install -y amazon-rpm-config spal-release bison cmake flex gcc-c++ ninja-build \
       {boost,libedit,mariadb-connector-c,ncurses,openssl,postgresql,systemd,protobuf-lite}-devel
+    dnf install -y ccache
     ;;
 
   debian:*|ubuntu:*)
@@ -146,8 +149,29 @@ case "$DISTRO" in
     ;;
 esac
 
+# ccache isn't packaged for every distro (currently only amazonlinux).
+# We add it at the CMake layer because that's more compatible with distros
+# that use their own compiler wrappers.
+if command -v ccache >/dev/null; then
+  CMAKE_OPTS+=(
+    -DCMAKE_C_COMPILER_LAUNCHER=ccache
+    -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+  )
+  # Zero the stats so the summary below reflects only this run.
+  ccache -z
+fi
+
 mkdir -p "$ICINGA2_BUILD_DIR"
 cd "$ICINGA2_BUILD_DIR"
+
+# Disable the addtion of debug symbols to the objects to reduce ccache size.
+# Several targets will also add '-g' to the regular compiler flags, and adding
+# -g0 to the build-type specific variable is the only way to reliably override
+# it.
+CMAKE_OPTS+=(
+  -DCMAKE_C_FLAGS_RELWITHDEBINFO="-O2 -DNDEBUG -g0"
+  -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="-O2 -DNDEBUG -g0"
+)
 
 "${SCL_ENABLE_GCC[@]}" cmake \
   -GNinja \
@@ -173,6 +197,17 @@ if [[ -v CI_RUNNER_ID ]]; then
 fi
 
 ninja "${NINJA_OPTS[@]}"
+
+# Print ccache stats
+if command -v ccache >/dev/null; then
+  ccache -s
+  # Not all distros have a ccache version that prints precise cache size values.
+  # Some have ccache --print-stats but others don't. This just prints the size
+  # of the cache directory in MiB.
+  ccache_kib=$(du -sk "$CCACHE_DIR" | cut -f1)
+  printf 'exact ccache size (du): %s KiB (%d.%02d MiB)\n' \
+    "$ccache_kib" "$((ccache_kib / 1024))" "$((ccache_kib * 100 / 1024 % 100))"
+fi
 
 ninja test
 ninja install
