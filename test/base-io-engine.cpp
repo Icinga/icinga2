@@ -15,7 +15,7 @@ BOOST_AUTO_TEST_SUITE(base_io_engine)
 BOOST_AUTO_TEST_CASE(timeout_run)
 {
 	boost::asio::io_context io;
-	boost::asio::io_context::strand strand (io);
+	IoStrand strand (io.get_executor());
 	int called = 0;
 
 	IoEngine::SpawnCoroutine(strand, [&](boost::asio::yield_context yc) {
@@ -42,7 +42,7 @@ BOOST_AUTO_TEST_CASE(timeout_run)
 BOOST_AUTO_TEST_CASE(timeout_cancelled)
 {
 	boost::asio::io_context io;
-	boost::asio::io_context::strand strand (io);
+	IoStrand strand (io.get_executor());
 	int called = 0;
 
 	IoEngine::SpawnCoroutine(strand, [&](boost::asio::yield_context yc) {
@@ -69,7 +69,7 @@ BOOST_AUTO_TEST_CASE(timeout_cancelled)
 BOOST_AUTO_TEST_CASE(timeout_scope)
 {
 	boost::asio::io_context io;
-	boost::asio::io_context::strand strand (io);
+	IoStrand strand (io.get_executor());
 	int called = 0;
 
 	IoEngine::SpawnCoroutine(strand, [&](boost::asio::yield_context yc) {
@@ -98,7 +98,7 @@ BOOST_AUTO_TEST_CASE(timeout_scope)
 BOOST_AUTO_TEST_CASE(timeout_due_cancelled)
 {
 	boost::asio::io_context io;
-	boost::asio::io_context::strand strand (io);
+	IoStrand strand (io.get_executor());
 	int called = 0;
 
 	IoEngine::SpawnCoroutine(strand, [&](boost::asio::yield_context yc) {
@@ -129,7 +129,7 @@ BOOST_AUTO_TEST_CASE(timeout_due_cancelled)
 BOOST_AUTO_TEST_CASE(timeout_due_scope)
 {
 	boost::asio::io_context io;
-	boost::asio::io_context::strand strand (io);
+	IoStrand strand (io.get_executor());
 	int called = 0;
 
 	IoEngine::SpawnCoroutine(strand, [&](boost::asio::yield_context yc) {

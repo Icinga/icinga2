@@ -150,7 +150,7 @@ private:
 
 	std::chrono::milliseconds m_RetryTimeout{InitialRetryWait};
 	boost::asio::steady_timer m_ReconnectTimer;
-	boost::asio::io_context::strand m_Strand;
+	IoStrand m_Strand;
 	AsioTlsOrTcpStream m_Stream;
 };
 

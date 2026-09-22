@@ -434,7 +434,7 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	}
 
 	auto& io (IoEngine::Get().GetIoContext());
-	auto strand (Shared<asio::io_context::strand>::Make(io));
+	auto strand (std::make_shared<IoStrand>(io.get_executor()));
 	Shared<asio::ssl::context>::Ptr ctx;
 
 	cr->SetExecutionStart(Utility::GetTime());
