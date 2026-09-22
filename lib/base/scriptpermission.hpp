@@ -24,6 +24,8 @@ public:
 
 	virtual bool CanAccessGlobalVariable(const String& varName);
 	virtual bool CanAccessConfigObject(const ConfigObject::Ptr& obj);
+
+	static ScriptPermissionChecker::Ptr GetNoopChecker();	
 };
 
 } // namespace icinga
