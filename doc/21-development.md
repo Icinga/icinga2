@@ -120,14 +120,16 @@ Continue after breakpoint.
 
 #### GDB Core Dump <a id="development-debug-gdb-coredump"></a>
 
-Either attach to the running process using `gdb -p PID` or start
-a new gdb run.
+Attach to the running process using `gdb -p PID` and run the following command to produce a core file.
 
 ```
-(gdb) r
 (gdb) generate-core-file
 ```
-
+Alternatively a core dump can be created with the following command directly from the CLI without entering the GDB debugger:
+```
+gcore <PID>
+```
+Hint: The current Icinga 2 PID can be obtained with `systemctl show -p MainPID --value icinga2`
 #### GDB Backtrace <a id="development-debug-gdb-backtrace"></a>
 
 If Icinga 2 aborted its operation abnormally, generate a backtrace.
