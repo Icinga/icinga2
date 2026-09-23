@@ -154,6 +154,11 @@ abstract class Checkable : CustomVarObject
 	};
 	[state] Timestamp acknowledgement_expiry;
 	[state] Timestamp acknowledgement_last_change;
+	// This is the same as the above one, except that it only tracks the last time the acknowledgement was set,
+	// not when it was cleared. I'm not sure why the above one designed the way it is, but since it was mainly
+	// introduced for Icinga DB, tracking the clear time wasn't even necessary. So, changing that attribute would
+	// break the cluster communication, hence adding a new attr that only tracks the last time the ACK was set.
+	[state] Timestamp last_acknowledgement_set_time;
 	[state] bool force_next_notification;
 	[no_storage] Timestamp last_check {
 		get;
@@ -188,6 +193,10 @@ abstract class Checkable : CustomVarObject
 
 	[state, no_user_modify] Dictionary::Ptr executions;
 	[state, no_user_view, no_user_modify] Dictionary::Ptr pending_executions;
+
+	// These are special state attributes intended to be used exclusively by Icinga DB to track its internal state.
+	[state, no_user_view, no_user_modify] String last_triggered_downtime;
+	[state, no_user_view, no_user_modify] String last_removed_downtime;
 };
 
 }
