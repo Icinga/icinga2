@@ -8,8 +8,16 @@
 
 using namespace icinga;
 
-icingadb::task_queue::PendingConfigItem::PendingConfigItem(const ConfigObject::Ptr& obj, uint32_t bits)
-	: Object{obj}, DirtyBits{bits & DirtyBitsAll}
+icingadb::task_queue::PendingConfigItem::PendingConfigItem(
+	const ConfigObject::Ptr& obj,
+	uint32_t bits,
+	String lastTriggeredOrRemovedDowntimeName,
+	double ackSetTime
+)
+	: Object{obj},
+	  DirtyBits{bits & DirtyBitsAll},
+	  LastTriggeredOrRemovedDowntimeName{std::move(lastTriggeredOrRemovedDowntimeName)},
+	  AckSetTime{ackSetTime}
 {
 }
 
@@ -160,7 +168,7 @@ void IcingaDB::ProcessQueueItem(const icingadb::task_queue::PendingConfigItem& i
 
 	if (auto checkable = dynamic_pointer_cast<Checkable>(item.Object); checkable) {
 		if (item.DirtyBits & queue::FullState) {
-			UpdateState(checkable, item.DirtyBits);
+			UpdateState(item);
 		}
 		if (item.DirtyBits & queue::NextUpdate) {
 			std::string_view redisKey;
@@ -241,8 +249,16 @@ void IcingaDB::ProcessQueueItem(const icingadb::task_queue::RelationsDeletionIte
  *
  * @param object The configuration object to be enqueued for processing.
  * @param bits The dirty bits indicating the type of changes to be processed for the object.
+ * @param lastTriggeredOrRemovedDowntimeName The name of the last triggered or removed downtime, if bits indicate a
+ *        downtime change.
+ * @param ackSetTime The time when the acknowledgment was set, if bits indicate an acknowledgment change.
  */
-void IcingaDB::EnqueueConfigObject(const ConfigObject::Ptr& object, uint32_t bits)
+void IcingaDB::EnqueueConfigObject(
+	const ConfigObject::Ptr& object,
+	uint32_t bits,
+	const String& lastTriggeredOrRemovedDowntimeName,
+	double ackSetTime
+)
 {
 	namespace queue = icingadb::task_queue;
 
@@ -250,15 +266,41 @@ void IcingaDB::EnqueueConfigObject(const ConfigObject::Ptr& object, uint32_t bit
 		return; // No need to enqueue anything if we're not connected.
 	}
 
+	// If either AckSet or AckClear is set, ackSetTime must be provided or if neither is set,
+	// ackSetTime must not be provided as well as it won't be used for anything in that case.
+	ASSERT(bits & (queue::AckSet | queue::AckClear) || !ackSetTime);
+	ASSERT(!(bits & (queue::AckSet | queue::AckClear)) || ackSetTime);
+
+	// Same for downtime bits and lastTriggeredOrRemovedDowntimeName.
+	ASSERT(bits & (queue::DowntimeStart | queue::DowntimeEnd) || lastTriggeredOrRemovedDowntimeName.IsEmpty());
+	ASSERT(!(bits & (queue::DowntimeStart | queue::DowntimeEnd)) || !lastTriggeredOrRemovedDowntimeName.IsEmpty());
+
 	{
 		std::lock_guard lock(m_PendingItemsMutex);
-		if (auto [it, inserted] = m_PendingItems.emplace(queue::PendingConfigItem{object, bits}); !inserted) {
-			m_PendingItems.modify(it, [bits](queue::PendingQueueItem& item) {
+		auto [it, inserted] = m_PendingItems.emplace(
+			queue::PendingConfigItem{object, bits, lastTriggeredOrRemovedDowntimeName, ackSetTime}
+		);
+		if (!inserted) {
+			m_PendingItems.modify(it, [&](queue::PendingQueueItem& item) {
 				auto& configItem = std::get<queue::PendingConfigItem>(item.Item);
 				if (bits & queue::ConfigDelete) {
 					configItem.DirtyBits &= ~(queue::ConfigUpdate | queue::FullState);
 				} else if (bits & queue::ConfigUpdate) {
 					configItem.DirtyBits &= ~queue::ConfigDelete;
+				}
+				if (bits & queue::DowntimeStart) {
+					configItem.DirtyBits &= ~queue::DowntimeEnd;
+					configItem.LastTriggeredOrRemovedDowntimeName = lastTriggeredOrRemovedDowntimeName;
+				} else if (bits & queue::DowntimeEnd) {
+					configItem.DirtyBits &= ~queue::DowntimeStart;
+					configItem.LastTriggeredOrRemovedDowntimeName = lastTriggeredOrRemovedDowntimeName;
+				}
+				if (bits & queue::AckSet) {
+					configItem.DirtyBits &= ~queue::AckClear;
+					configItem.AckSetTime = ackSetTime;
+				} else if (bits & queue::AckClear) {
+					configItem.DirtyBits &= ~queue::AckSet;
+					configItem.AckSetTime = ackSetTime;
 				}
 				configItem.DirtyBits |= bits & queue::DirtyBitsAll;
 			});

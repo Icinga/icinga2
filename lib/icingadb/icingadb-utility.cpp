@@ -74,6 +74,45 @@ String IcingaDB::FormatCommandLine(const Value& commandLine)
 	return result;
 }
 
+/**
+ * Get state metadata for a checkable object based on the pending config item.
+ *
+ * @param checkable The checkable to get the metadata from.
+ * @param item The pending config item that triggered the state update.
+ *
+ * @return A dictionary containing the state metadata.
+ */
+Dictionary::Ptr IcingaDB::GetStateMetadata(
+	const Checkable::Ptr& checkable,
+	const icingadb::task_queue::PendingConfigItem& item
+)
+{
+	namespace queue = icingadb::task_queue;
+
+	// The "is_state_change" metadata attribute must always be present, and not added conditionally
+	// as Icinga DB (Go) relies on it.
+	Dictionary::Ptr metadata{new Dictionary{{"is_state_change", static_cast<bool>(item.DirtyBits & queue::StateChange)}}};
+	if (auto cr = checkable->GetLastCheckResult(); cr) {
+		metadata->Set("execution_end", TimestampToMilliseconds(cr->GetExecutionEnd()));
+	}
+	if (item.DirtyBits & queue::DowntimeStart) {
+		metadata->Set("downtime_transition_type", "downtime_start");
+		metadata->Set("last_triggered_downtime_name", item.LastTriggeredOrRemovedDowntimeName);
+	} else if (item.DirtyBits & queue::DowntimeEnd) {
+		metadata->Set("downtime_transition_type", "downtime_end");
+		metadata->Set("last_removed_downtime_name", item.LastTriggeredOrRemovedDowntimeName);
+	}
+	if (item.DirtyBits & queue::AckSet) {
+		metadata->Set("ack_transition_type", "ack_set");
+		metadata->Set("ack_set_time", TimestampToMilliseconds(item.AckSetTime));
+	} else if (item.DirtyBits & queue::AckClear) {
+		metadata->Set("ack_transition_type", "ack_clear");
+		metadata->Set("ack_set_time", TimestampToMilliseconds(item.AckSetTime));
+	}
+
+	return metadata;
+}
+
 String IcingaDB::GetObjectIdentifier(const ConfigObject::Ptr& object)
 {
 	String identifier = object->GetIcingadbIdentifier();
