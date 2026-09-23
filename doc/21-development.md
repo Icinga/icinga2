@@ -125,11 +125,15 @@ Attach to the running process using `gdb -p PID` and run the following command t
 ```
 (gdb) generate-core-file
 ```
+
 Alternatively a core dump can be created with the following command directly from the CLI without entering the GDB debugger:
+
 ```
 gcore <PID>
 ```
-Hint: The current Icinga 2 PID can be obtained with `systemctl show -p MainPID --value icinga2`
+
+Hint: The current PID of Icinga 2 main worker process can be obtained with `ps -o pid=,comm= --ppid "$(systemctl show -p MainPID --value icinga2)" | awk '$2=="icinga2"{print $1}'`
+
 #### GDB Backtrace <a id="development-debug-gdb-backtrace"></a>
 
 If Icinga 2 aborted its operation abnormally, generate a backtrace.
