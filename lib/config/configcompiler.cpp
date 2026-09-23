@@ -246,7 +246,7 @@ std::unique_ptr<Expression> ConfigCompiler::CompileStream(const String& path,
 	} catch (const ScriptError& ex) {
 		return std::unique_ptr<Expression>(new ThrowExpression(MakeLiteral(ex.what()), ex.IsIncompleteExpression(), ex.GetDebugInfo()));
 	} catch (const std::exception& ex) {
-		return std::unique_ptr<Expression>(new ThrowExpression(MakeLiteral(DiagnosticInformation(ex)), false));
+		return std::unique_ptr<Expression>(new ThrowExpression(MakeLiteral(ex.what()), false));
 	}
 }
 
