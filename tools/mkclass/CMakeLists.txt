@@ -57,6 +57,7 @@ function(target_mkclass target generator_target)
         ARGS ${file} ${generated_impl} ${generated_header}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         DEPENDS mkclass ${file}
+        ${ICINGA2_CODEGEN}
       )
       list(APPEND generated_headers ${generated_header})
       list(APPEND generated_impls ${generated_impl})

@@ -4,15 +4,40 @@
 find_package(BISON 2.3.0 REQUIRED)
 find_package(FLEX 2.5.31 REQUIRED)
 
-bison_target(config_parser config_parser.yy ${CMAKE_CURRENT_BINARY_DIR}/config_parser.cc)
-flex_target(config_lexer config_lexer.ll ${CMAKE_CURRENT_BINARY_DIR}/config_lexer.cc)
+set(CONFIG_PARSER_CC ${CMAKE_CURRENT_BINARY_DIR}/config_parser.cc)
+set(CONFIG_PARSER_HH ${CMAKE_CURRENT_BINARY_DIR}/config_parser.hh)
+set(CONFIG_LEXER_CC ${CMAKE_CURRENT_BINARY_DIR}/config_lexer.cc)
 
-set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/config_parser.cc ${CMAKE_CURRENT_BINARY_DIR}/config_lexer.cc
+add_custom_command(
+  OUTPUT ${CONFIG_PARSER_CC} ${CONFIG_PARSER_HH}
+  COMMAND ${BISON_EXECUTABLE} --defines=${CONFIG_PARSER_HH} -o ${CONFIG_PARSER_CC}
+          ${CMAKE_CURRENT_SOURCE_DIR}/config_parser.yy
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS config_parser.yy
+  COMMENT "[BISON][config_parser] Building parser with bison ${BISON_VERSION}"
+  VERBATIM
+  ${ICINGA2_CODEGEN}
+)
+
+add_custom_command(
+  OUTPUT ${CONFIG_LEXER_CC}
+  COMMAND ${FLEX_EXECUTABLE} -o${CONFIG_LEXER_CC}
+          ${CMAKE_CURRENT_SOURCE_DIR}/config_lexer.ll
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS config_lexer.ll ${CONFIG_PARSER_HH}
+  COMMENT "[FLEX][config_lexer] Building scanner with flex ${FLEX_VERSION}"
+  VERBATIM
+  ${ICINGA2_CODEGEN}
+)
+
+set_source_files_properties(${CONFIG_PARSER_CC} ${CONFIG_LEXER_CC}
   PROPERTIES
     SKIP_UNITY_BUILD_INCLUSION TRUE
 )
 
-add_flex_bison_dependency(config_lexer config_parser)
+add_custom_target(config_parser
+  DEPENDS ${CONFIG_PARSER_CC} ${CONFIG_PARSER_HH} ${CONFIG_LEXER_CC}
+)
 
 add_library(config OBJECT
   i2-config.hpp
@@ -26,7 +51,7 @@ add_library(config OBJECT
   expression.cpp expression.hpp
   objectrule.cpp objectrule.hpp
   vmops.hpp
-  ${FLEX_config_lexer_OUTPUTS} ${BISON_config_parser_OUTPUTS}
+  ${CONFIG_PARSER_CC} ${CONFIG_LEXER_CC}
 )
 
 target_link_libraries(config PUBLIC

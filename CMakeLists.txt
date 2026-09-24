@@ -23,6 +23,16 @@ endif()
 set(CMAKE_ENABLE_EXPORTS ON) # Added in CMake 3.4
 set(CMAKE_EXECUTABLE_ENABLE_EXPORTS ON) # Added in CMake 3.27 and supersedes the above one.
 
+# Enable the use of the CODEGEN keyword in add_custom_command().
+# This is supported with CMake 3.31 onwards, but isn't needed for packaging, but useful for running
+# all the codegen steps without building the source, for example to enable clang-tidy linting in the
+# GitHub CI.
+set(ICINGA2_CODEGEN "")
+if(POLICY CMP0171)
+  cmake_policy(SET CMP0171 NEW)
+  set(ICINGA2_CODEGEN CODEGEN)
+endif()
+
 if(WIN32)
   set(ICINGA2_MASTER OFF)
 else()
