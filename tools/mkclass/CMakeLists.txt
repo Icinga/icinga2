@@ -48,6 +48,11 @@ function(target_mkclass target)
 
   get_target_property(sources ${target} SOURCES)
 
+  set(_codegen)
+  if(POLICY CMP0171)
+    set(_codegen CODEGEN)
+  endif()
+
   set(generated_headers)
   set(generated_impls)
   foreach(file ${sources})
@@ -61,6 +66,7 @@ function(target_mkclass target)
         ARGS ${file} ${generated_impl} ${generated_header}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         DEPENDS mkclass ${file}
+        ${_codegen}
       )
       list(APPEND generated_headers ${generated_header})
       list(APPEND generated_impls ${generated_impl})
@@ -73,5 +79,9 @@ function(target_mkclass target)
     add_dependencies(${target_mkclass_INTERFACE_TARGET} ${target}_generated)
   else ()
     add_dependencies(${target} ${target}_generated)
+  endif()
+
+  if(NOT _codegen AND TARGET codegen)
+    add_dependencies(codegen ${target}_generated)
   endif()
 endfunction()

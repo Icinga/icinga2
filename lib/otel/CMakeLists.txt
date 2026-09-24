@@ -28,6 +28,11 @@ protobuf_generate(
   # [^1]: https://protobuf.dev/programming-guides/proto3/#options
   PLUGIN_OPTIONS lite
   IMPORT_DIRS "${ICINGA2_OPENTELEMETRY_PROTOS_DIR}"
+  OUT_VAR ICINGA2_OTEL_PROTO_SRCS
+)
+
+add_codegen_dependency(otel_interface
+  ${ICINGA2_OTEL_PROTO_SRCS}
 )
 
 target_link_libraries(otel_interface INTERFACE
