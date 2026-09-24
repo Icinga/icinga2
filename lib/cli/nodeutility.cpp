@@ -376,4 +376,56 @@ void NodeUtility::UpdateConstant(const String& name, const String& value)
 
 	ifp.close();
 	ofp.Commit();
+
+	// Also store the constant in the vars file, not to require "daemon -C" before e.g. "pki ticket"
+	String& varsPath = Configuration::VarsPath;
+	std::vector<String> vars;
+
+	if (Utility::PathExists(varsPath)) {
+		std::fstream fstream;
+		fstream.open(varsPath.CStr(), std::ios_base::in);
+
+		if (!fstream) {
+			BOOST_THROW_EXCEPTION(posix_error()
+				<< boost::errinfo_api_function("open")
+				<< boost::errinfo_errno(errno)
+				<< boost::errinfo_file_name(varsPath));
+		}
+
+		StdioStream::Ptr stdioStream = new StdioStream(&fstream, false);
+		String message;
+		StreamReadContext context;
+
+		for (;;) {
+			StreamReadStatus status = NetString::ReadStringFromStream(stdioStream, &message, context);
+
+			if (status == StatusEof) {
+				break;
+			}
+
+			if (status != StatusNewItem) {
+				continue;
+			}
+
+			Dictionary::Ptr var = JsonDecode(message);
+
+			//* The last one, i.e. ours, wins
+			if (var->Get("name") != name) {
+				vars.emplace_back(std::move(message));
+			}
+		}
+	}
+
+	vars.emplace_back(JsonEncode(new Dictionary({
+		{ "name", name },
+		{ "value", value }
+	})));
+
+	AtomicFile varsFile (varsPath, 0600);
+
+	for (auto& var : vars) {
+		NetString::WriteStringToStream(varsFile, var);
+	}
+
+	varsFile.Commit();
 }

@@ -225,9 +225,6 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 
 	NodeUtility::UpdateConstant("TicketSalt", salt);
 
-	Log(LogInformation, "cli")
-		<< "Edit the api feature config file '" << apipath << "' and set a secure 'ticket_salt' attribute.";
-
 	if (vm.count("disable-confd")) {
 		/* Disable conf.d inclusion */
 		if (NodeUtility::UpdateConfiguration("\"conf.d\"", false, true)) {
