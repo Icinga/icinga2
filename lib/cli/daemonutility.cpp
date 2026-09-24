@@ -12,7 +12,7 @@
 #include "config/configcompilercontext.hpp"
 #include "config/configitembuilder.hpp"
 #include "icinga/dependency.hpp"
-#include <set>
+#include <unordered_set>
 
 using namespace icinga;
 
@@ -144,7 +144,7 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 	if (!internalNS->Contains("ZonesStageVarDir")) {
 		String zonesEtcDir = Configuration::ZonesDir;
 		if (!zonesEtcDir.IsEmpty() && Utility::PathExists(zonesEtcDir)) {
-			std::set<String> zoneEtcDirs;
+			std::unordered_set<String> zoneEtcDirs;
 			Utility::Glob(zonesEtcDir + "/*", [&zoneEtcDirs](const String& zoneEtcDir) { zoneEtcDirs.emplace(zoneEtcDir); }, GlobDirectory);
 
 			bool hasSuccess = true;
@@ -193,7 +193,7 @@ bool DaemonUtility::ValidateConfigFiles(const std::vector<std::string>& configs,
 
 
 	if (Utility::PathExists(zonesVarDir)) {
-		std::set<String> zoneVarDirs;
+		std::unordered_set<String> zoneVarDirs;
 		Utility::Glob(zonesVarDir + "/*", [&zoneVarDirs](const String& zoneVarDir) { zoneVarDirs.emplace(zoneVarDir); }, GlobDirectory);
 
 		bool hasSuccess = true;

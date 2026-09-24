@@ -5,11 +5,12 @@
 #include "base/debug.hpp"
 #include "base/primitivetype.hpp"
 #include "base/configwriter.hpp"
+#include <algorithm>
 #include <sstream>
 
 using namespace icinga;
 
-template class std::map<String, Value>;
+template class std::unordered_map<String, Value>;
 
 REGISTER_PRIMITIVE_TYPE(Dictionary, Object, Dictionary::GetPrototype());
 
@@ -248,12 +249,12 @@ Object::Ptr Dictionary::Clone() const
 }
 
 /**
- * Returns an ordered vector containing all keys
- * which are currently set in this directory.
+ * Returns a vector containing all keys which are currently set in this dictionary.
  *
- * @returns an ordered vector of key names
+ * @param sorted Whether the returned vector should be sorted by key.
+ * @returns a vector of key names
  */
-std::vector<String> Dictionary::GetKeys() const
+std::vector<String> Dictionary::GetKeys(bool sorted) const
 {
 	std::shared_lock<std::shared_timed_mutex> lock (m_DataMutex);
 
@@ -263,7 +264,33 @@ std::vector<String> Dictionary::GetKeys() const
 		keys.push_back(kv.first);
 	}
 
+	if (sorted) {
+		std::sort(keys.begin(), keys.end());
+	}
+
 	return keys;
+}
+
+/**
+ * Returns an ordered vector containing all key-value pairs
+ * which are currently set in this dictionary.
+ *
+ * @returns an ordered vector of key-value pairs
+ */
+DictionaryData Dictionary::GetItems() const
+{
+	DictionaryData items;
+	std::shared_lock lock (m_DataMutex);
+
+	items.reserve(m_Data.size());
+
+	for (auto& kv : m_Data) {
+		items.emplace_back(kv.first, kv.second);
+	}
+
+	std::sort(items.begin(), items.end());
+
+	return items;
 }
 
 String Dictionary::ToString() const

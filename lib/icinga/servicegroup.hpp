@@ -24,7 +24,7 @@ public:
 	DECLARE_OBJECT(ServiceGroup);
 	DECLARE_OBJECTNAME(ServiceGroup);
 
-	std::set<Service::Ptr> GetMembers() const;
+	std::unordered_set<Service::Ptr> GetMembers() const;
 	void AddMember(const Service::Ptr& service);
 	void RemoveMember(const Service::Ptr& service);
 
@@ -34,7 +34,7 @@ public:
 
 private:
 	mutable std::mutex m_ServiceGroupMutex;
-	std::set<Service::Ptr> m_Members;
+	std::unordered_set<Service::Ptr> m_Members;
 
 	static bool EvaluateObjectRule(const Service::Ptr& service, const intrusive_ptr<ConfigItem>& group);
 };

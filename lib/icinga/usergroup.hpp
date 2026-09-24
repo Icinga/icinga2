@@ -26,11 +26,11 @@ public:
 	DECLARE_OBJECT(UserGroup);
 	DECLARE_OBJECTNAME(UserGroup);
 
-	std::set<User::Ptr> GetMembers() const;
+	std::unordered_set<User::Ptr> GetMembers() const;
 	void AddMember(const User::Ptr& user);
 	void RemoveMember(const User::Ptr& user);
 
-	std::set<intrusive_ptr<Notification>> GetNotifications() const;
+	std::unordered_set<intrusive_ptr<Notification>> GetNotifications() const;
 	void AddNotification(const intrusive_ptr<Notification>& notification);
 	void RemoveNotification(const intrusive_ptr<Notification>& notification);
 
@@ -40,8 +40,8 @@ public:
 
 private:
 	mutable std::mutex m_UserGroupMutex;
-	std::set<User::Ptr> m_Members;
-	std::set<intrusive_ptr<Notification>> m_Notifications;
+	std::unordered_set<User::Ptr> m_Members;
+	std::unordered_set<intrusive_ptr<Notification>> m_Notifications;
 
 	static bool EvaluateObjectRule(const User::Ptr& user, const intrusive_ptr<ConfigItem>& group);
 };

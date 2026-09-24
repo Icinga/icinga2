@@ -17,7 +17,7 @@
 #include "base/logger.hpp"
 #include "base/exception.hpp"
 #include <boost/thread/once.hpp>
-#include <set>
+#include <unordered_set>
 
 using namespace icinga;
 
@@ -370,7 +370,7 @@ void ScheduledDowntime::ValidateChildOptions(const Lazy<Value>& lvalue, const Va
 	}
 }
 
-static const std::set<String> l_SDDowntimeOptions ({
+static const std::unordered_set<String> l_SDDowntimeOptions ({
 	"author", "child_options", "comment", "duration", "fixed", "ranges", "vars"
 });
 

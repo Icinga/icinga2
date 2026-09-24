@@ -58,7 +58,7 @@ void UserGroup::EvaluateObjectRules(const User::Ptr& user)
 	}
 }
 
-std::set<User::Ptr> UserGroup::GetMembers() const
+std::unordered_set<User::Ptr> UserGroup::GetMembers() const
 {
 	std::unique_lock<std::mutex> lock(m_UserGroupMutex);
 	return m_Members;
@@ -78,7 +78,7 @@ void UserGroup::RemoveMember(const User::Ptr& user)
 	m_Members.erase(user);
 }
 
-std::set<Notification::Ptr> UserGroup::GetNotifications() const
+std::unordered_set<Notification::Ptr> UserGroup::GetNotifications() const
 {
 	std::unique_lock<std::mutex> lock(m_UserGroupMutex);
 	return m_Notifications;

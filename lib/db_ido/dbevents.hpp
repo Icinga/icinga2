@@ -74,7 +74,7 @@ public:
 	static void RemoveAcknowledgement(const Checkable::Ptr& checkable);
 	static void AddAcknowledgementInternal(const Checkable::Ptr& checkable, AcknowledgementType type, bool add);
 
-	static void ReachabilityChangedHandler(const CheckResult::Ptr& cr, std::set<Checkable::Ptr> children);
+	static void ReachabilityChangedHandler(const CheckResult::Ptr& cr, std::unordered_set<Checkable::Ptr> children);
 
 	/* comment, downtime, acknowledgement history */
 	static void AddCommentHistory(const Comment::Ptr& comment);
@@ -84,7 +84,7 @@ public:
 
 	/* notification & contactnotification history */
 	static void AddNotificationHistory(const Checkable::Ptr& checkable,
-		const std::set<User::Ptr>& users, NotificationType type, const CheckResult::Ptr& cr);
+		const std::unordered_set<User::Ptr>& users, NotificationType type, const CheckResult::Ptr& cr);
 
 	/* statehistory */
 	static void AddStateChangeHistory(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
