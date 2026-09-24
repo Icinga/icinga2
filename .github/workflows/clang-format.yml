@@ -19,10 +19,60 @@ jobs:
 
       - name: Check formatting of added and changed lines
         run: |
-          if ! git-clang-format --quiet --diff --extensions c,h,cpp,hpp \
+          if git-clang-format --quiet --diff --extensions c,h,cpp,hpp \
             "$(git merge-base HEAD^1 HEAD^2)" HEAD^2 > clang-format.diff
           then
-            cat <<'EOF' >&2
+            exit 0
+          fi
+
+          # Turn each diff hunk into a GitHub annotation on the offending
+          # lines, with the hunk itself as the annotation message.
+          awk '
+            function esc(s) {
+              gsub(/%/, "%25", s)
+              gsub(/\r/, "%0D", s)
+              gsub(/\n/, "%0A", s)
+              return s
+            }
+            function esc_prop(s) {
+              s = esc(s)
+              gsub(/:/, "%3A", s)
+              gsub(/,/, "%2C", s)
+              return s
+            }
+            function flush() {
+              if (hunk == "") return
+              end = start + (count > 0 ? count : 1) - 1
+              printf "::error file=%s,line=%d,endLine=%d,title=clang-format::%s\n", \
+                esc_prop(path), start, end, esc(hunk)
+              hunk = ""
+            }
+            /^diff --git / { next }
+            /^index / { next }
+            /^\+\+\+ / {
+              flush()
+              path = $0
+              sub(/^\+\+\+ /, "", path)
+              sub(/\t.*$/, "", path)
+              sub(/^b\//, "", path)
+              next
+            }
+            /^--- / { next }
+            /^@@ / {
+              flush()
+              split($0, parts, " ")
+              newspec = parts[3]
+              sub(/^\+/, "", newspec)
+              split(newspec, nc, ",")
+              start = nc[1] + 0
+              count = (nc[2] == "" ? 1 : nc[2] + 0)
+              next
+            }
+            { hunk = (hunk == "" ? $0 : hunk "\n" $0) }
+            END { flush() }
+          ' clang-format.diff
+
+          cat <<'EOF' >&2
           The lines added or changed by this pull request don't follow the Icinga 2
           style guide. To fix this, install clang-format 21 and run the following on
           your branch, then review and commit the result:
@@ -31,6 +81,5 @@ jobs:
 
           Don't hesitate to ask us for help if necessary.
           EOF
-            cat clang-format.diff >&2
-            exit 1
-          fi
+          cat clang-format.diff >&2
+          exit 1
