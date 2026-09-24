@@ -6,6 +6,7 @@
 #include "remote/filterutility.hpp"
 #include "config/configcompiler.hpp"
 #include "config/expression.hpp"
+#include "base/accesslogger.hpp"
 #include "base/defer.hpp"
 #include "base/io-engine.hpp"
 #include "base/objectlock.hpp"
@@ -107,6 +108,9 @@ bool EventsHandler::HandleRequest(
 
 	response.result(http::status::ok);
 	response.set(http::field::content_type, "application/json");
+
+	LogAccess(request.Stream(), request, user ? user->GetName() : "", response);
+
 	response.StartStreaming(true);
 	// Send response headers before waiting for the first event.
 	response.Flush(yc);
