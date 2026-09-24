@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "icinga/apply-utility.hpp"
 #include "icinga/dependency.hpp"
 #include "icinga/service.hpp"
 #include "config/configitembuilder.hpp"
@@ -48,10 +49,13 @@ bool Dependency::EvaluateApplyRuleInstance(const Checkable::Ptr& checkable, cons
 	if (service)
 		builder.AddExpression(new SetExpression(MakeIndexer(ScopeThis, "child_service_name"), OpSetLiteral, MakeLiteral(service->GetShortName()), di));
 
-	String zone = checkable->GetZoneName();
+	{
+		auto expr (ApplyUtility::MakeCommonZone(checkable->GetZoneName(), rule.GetZone(), di));
 
-	if (!zone.IsEmpty())
-		builder.AddExpression(new SetExpression(MakeIndexer(ScopeThis, "zone"), OpSetLiteral, MakeLiteral(zone), di));
+		if (expr) {
+			builder.AddExpression(expr.release());
+		}
+	}
 
 	builder.AddExpression(new SetExpression(MakeIndexer(ScopeThis, "package"), OpSetLiteral, MakeLiteral(rule.GetPackage()), di));
 
