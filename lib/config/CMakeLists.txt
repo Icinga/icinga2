@@ -34,6 +34,10 @@ add_library(config OBJECT
 
 add_library(config_interface INTERFACE)
 
+add_codegen_dependency(config_interface
+  ${BISON_config_parser_OUTPUTS} ${FLEX_config_lexer_OUTPUTS}
+)
+
 target_link_libraries(config_interface INTERFACE
   lib_includes
   base_interface
