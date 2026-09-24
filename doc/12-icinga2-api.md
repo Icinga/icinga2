@@ -119,8 +119,6 @@ curl ... | jq
 curl ... | python -m json.tool
 ```
 
-jq also has additional filter capabilities, as shown in [this blogpost](https://www.netways.de/blog/2018/08/24/json-in-bequem/).
-
 ```bash
 curl ... |jq '{name: .results[].name}'
 ```
