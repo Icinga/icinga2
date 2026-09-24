@@ -44,6 +44,11 @@ set_target_properties (
 function(target_mkclass target generator_target)
   get_target_property(sources ${target} SOURCES)
 
+  set(_codegen)
+  if(POLICY CMP0171)
+    set(_codegen CODEGEN)
+  endif()
+
   set(generated_headers)
   set(generated_impls)
   foreach(file ${sources})
@@ -57,6 +62,7 @@ function(target_mkclass target generator_target)
         ARGS ${file} ${generated_impl} ${generated_header}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         DEPENDS mkclass ${file}
+        ${_codegen}
       )
       list(APPEND generated_headers ${generated_header})
       list(APPEND generated_impls ${generated_impl})
@@ -66,4 +72,8 @@ function(target_mkclass target generator_target)
   target_sources(${target} PRIVATE ${generated_headers})
   add_custom_target(${generator_target} DEPENDS ${generated_headers} ${generated_impls})
   add_dependencies(${target} ${generator_target})
+
+  if(NOT _codegen AND TARGET codegen)
+    add_dependencies(codegen ${generator_target})
+  endif()
 endfunction()

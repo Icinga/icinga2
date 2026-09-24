@@ -23,6 +23,8 @@ endif()
 set(CMAKE_ENABLE_EXPORTS ON) # Added in CMake 3.4
 set(CMAKE_EXECUTABLE_ENABLE_EXPORTS ON) # Added in CMake 3.27 and supersedes the above one.
 
+include(AddCodegenDependency NO_POLICY_SCOPE)
+
 if(WIN32)
   set(ICINGA2_MASTER OFF)
 else()
