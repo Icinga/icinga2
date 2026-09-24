@@ -56,9 +56,9 @@ case "$DISTRO" in
     ;;
 
   amazonlinux:20*)
-    dnf install -y amazon-rpm-config spal-release bison cmake flex gcc-c++ ninja-build \
+    dnf install --nobest -y amazon-rpm-config spal-release bison cmake flex gcc-c++ ninja-build \
       {boost,libedit,mariadb-connector-c,ncurses,openssl,postgresql,systemd,protobuf-lite}-devel
-    dnf install -y ccache
+    dnf install --nobest -y ccache
     ;;
 
   debian:*|ubuntu:*)
@@ -69,7 +69,7 @@ case "$DISTRO" in
     ;;
 
   fedora:*)
-    dnf install -y bison ccache cmake flex gcc-c++ ninja-build redhat-rpm-config \
+    dnf install --nobest -y bison ccache cmake flex gcc-c++ ninja-build redhat-rpm-config \
       {boost,libedit,mariadb,ncurses,openssl,postgresql,systemd,protobuf-lite}-devel
     ;;
 
@@ -80,7 +80,7 @@ case "$DISTRO" in
     ;;
 
   *rockylinux:*)
-    dnf install -y 'dnf-command(config-manager)' epel-release
+    dnf install --nobest -y 'dnf-command(config-manager)' epel-release
 
     case "$DISTRO" in
       *:8)
@@ -88,14 +88,14 @@ case "$DISTRO" in
         # Our Protobuf package on RHEL 8 is built with GCC 13, and since the ABI is not compatible with GCC 8,
         # we need to enable the SCL repository and install the GCC 13 packages to be able to link against it.
         SCL_ENABLE_GCC=(scl enable gcc-toolset-13 --)
-        dnf install -y gcc-toolset-13-gcc-c++ gcc-toolset-13-annobin-plugin-gcc
+        dnf install --nobest -y gcc-toolset-13-gcc-c++ gcc-toolset-13-annobin-plugin-gcc
         ;;
       *)
         dnf config-manager --enable crb
         ;;
     esac
 
-    dnf install -y bison ccache cmake gcc-c++ flex ninja-build redhat-rpm-config \
+    dnf install --nobest -y bison ccache cmake gcc-c++ flex ninja-build redhat-rpm-config \
       {boost,bzip2,libedit,mariadb,ncurses,openssl,postgresql,systemd,xz,libzstd}-devel
 
     # Rocky Linux 8 and 9 don't have a recent enough Protobuf compiler for OTel, so we need to add
@@ -111,12 +111,12 @@ enabled=1
 gpgcheck=1
 gpgkey=https://packages.icinga.com/icinga.key
 EOF
-        dnf install -y icinga-protobuf
+        dnf install --nobest -y icinga-protobuf
         # Tell CMake where to find our own Protobuf CMake config files.
         CMAKE_OPTS+=(-DCMAKE_PREFIX_PATH="$(rpm -E '%{_libdir}')/icinga-protobuf/cmake")
         ;;
       *)
-        dnf install -y protobuf-lite-devel
+        dnf install --nobest -y protobuf-lite-devel
     esac
     ;;
 esac
