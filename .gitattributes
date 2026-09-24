@@ -1,2 +1,3 @@
 debian/ export-ignore
 .gitattributes export-ignore
+icinga-archive-version.cmake export-subst
