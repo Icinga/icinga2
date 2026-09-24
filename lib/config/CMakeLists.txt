@@ -29,6 +29,8 @@ add_library(config OBJECT
   ${FLEX_config_lexer_OUTPUTS} ${BISON_config_parser_OUTPUTS}
 )
 
+add_codegen_dependency(config ${BISON_config_parser_OUTPUTS} ${FLEX_config_lexer_OUTPUTS})
+
 add_dependencies(config base_generated)
 
 target_link_libraries(config PUBLIC common)

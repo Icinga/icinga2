@@ -26,7 +26,10 @@ protobuf_generate(
   # [^1]: https://protobuf.dev/programming-guides/proto3/#options
   PLUGIN_OPTIONS lite
   IMPORT_DIRS "${ICINGA2_OPENTELEMETRY_PROTOS_DIR}"
+  OUT_VAR ICINGA2_OTEL_PROTO_SRCS
 )
+
+add_codegen_dependency(otel ${ICINGA2_OTEL_PROTO_SRCS})
 
 add_dependencies(otel base_generated remote_generated)
 
