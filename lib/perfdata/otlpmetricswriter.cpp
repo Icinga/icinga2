@@ -63,7 +63,7 @@ void OTLPMetricsWriter::OnConfigLoaded()
 	m_WorkQueue.SetName("OTLPMetricsWriter, " + GetName());
 
 	if (!GetEnableHa()) {
-		Log(LogDebug, "OTLPMetricsWriter")
+		Log(LogDebug, "OTLPMetricsWriter", this)
 			<< "HA functionality disabled. Won't pause connection: " << GetName();
 
 		SetHAMode(HARunEverywhere);
@@ -96,11 +96,11 @@ void OTLPMetricsWriter::Resume()
 {
 	ObjectImpl::Resume();
 
-	Log(LogInformation, "OTLPMetricsWriter")
+	Log(LogInformation, "OTLPMetricsWriter", this)
 		<< "'" << GetName() << "' resumed.";
 
-	m_WorkQueue.SetExceptionCallback([](std::exception_ptr exp) {
-		Log(LogCritical, "OTLPMetricsWriter")
+	m_WorkQueue.SetExceptionCallback([this](std::exception_ptr exp) {
+		Log(LogCritical, "OTLPMetricsWriter", this)
 			<< "Exception while producing OTel metric: " << DiagnosticInformation(exp);
 	});
 
@@ -150,7 +150,7 @@ void OTLPMetricsWriter::Pause()
 	}, PriorityLow);
 
 	if (auto status = future.wait_for(std::chrono::seconds(GetDisconnectTimeout())); status != std::future_status::ready) {
-		Log(LogWarning, "OTLPMetricsWriter")
+		Log(LogWarning, "OTLPMetricsWriter", this)
 			<< "Disconnect timeout reached while flushing OTel metrics, discarding '" << m_DataPointsCount
 			<< "' data points ('" << m_RecordedBytes << "' bytes).";
 	}
@@ -159,7 +159,7 @@ void OTLPMetricsWriter::Pause()
 
 	m_Metrics.clear();
 
-	Log(LogInformation, "OTLPMetricsWriter")
+	Log(LogInformation, "OTLPMetricsWriter", this)
 		<< "'" << GetName() << "' paused.";
 
 	ObjectImpl::Pause();
@@ -189,7 +189,7 @@ void OTLPMetricsWriter::CheckResultHandler(const Checkable::Ptr& checkable, cons
 				try {
 					pdv = PerfdataValue::Parse(val);
 				} catch (const std::exception&) {
-					Log(LogWarning, "OTLPMetricsWriter")
+					Log(LogWarning, "OTLPMetricsWriter", checkable)
 						<< "Ignoring invalid perfdata for checkable '" << checkable->GetName() << "' and command '"
 						<< checkable->GetCheckCommand()->GetName() << "' with value: " << val;
 					continue;
@@ -242,7 +242,7 @@ void OTLPMetricsWriter::Flush(bool fromTimer)
 		return;
 	}
 
-	Log(LogDebug, "OTLPMetricsWriter")
+	Log(LogDebug, "OTLPMetricsWriter", this)
 		<< "Flushing OTel metrics to OpenTelemetry backend" << (fromTimer ? " (timer expired)." : ".");
 
 	auto request = std::make_unique<OTel::MetricsRequest>();
@@ -252,7 +252,7 @@ void OTLPMetricsWriter::Flush(bool fromTimer)
 		}
 	}
 	if (request->resource_metrics_size() == 0) {
-		Log(LogDebug, "OTLPMetricsWriter")
+		Log(LogDebug, "OTLPMetricsWriter", this)
 			<< "Not flushing OTel metrics: No data points recorded.";
 		return;
 	}
@@ -265,7 +265,7 @@ void OTLPMetricsWriter::AddBytesAndFlushIfNeeded(std::size_t newBytes)
 {
 	auto existingBytes = m_RecordedBytes.fetch_add(newBytes, std::memory_order_relaxed);
 	if (auto bytes{existingBytes + newBytes}; bytes >= static_cast<uint64_t>(GetFlushThreshold())) {
-		Log(LogDebug, "OTLPMetricsWriter")
+		Log(LogDebug, "OTLPMetricsWriter", this)
 			<< "Flush threshold reached, flushing '" << bytes << "' bytes of OTel metrics.";
 		Flush();
 	}
@@ -346,7 +346,7 @@ std::size_t OTLPMetricsWriter::Record(
 					try {
 						OTel::SetAttribute(*attr, "icinga2.custom." + pair.first, resolvedVal);
 					} catch (const std::exception& ex) {
-						Log(LogWarning, "OTLPMetricsWriter")
+						Log(LogWarning, "OTLPMetricsWriter", checkable)
 							<< "Ignoring invalid resource attribute '" << pair.first << "' for checkable '"
 							<< checkable->GetName() << "': " << ex.what();
 						 // Remove the last attribute from the list which is the one we just attempted to set.

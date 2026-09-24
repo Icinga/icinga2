@@ -96,7 +96,7 @@ void ApiListener::SyncLocalZoneDir(const Zone::Ptr& zone) const
 
 	String productionZonesDir = GetApiZonesDir() + zoneName;
 
-	Log(LogInformation, "ApiListener")
+	Log(LogInformation, "ApiListener", zone)
 		<< "Copying " << sumUpdates << " zone configuration files for zone '" << zoneName << "' to '" << productionZonesDir << "'.";
 
 	// Purge files to allow deletion via zones.d.
@@ -120,7 +120,7 @@ void ApiListener::SyncLocalZoneDir(const Zone::Ptr& zone) const
 
 			Utility::MkDirP(Utility::DirName(dst), 0755);
 
-			Log(LogInformation, "ApiListener")
+			Log(LogInformation, "ApiListener", zone)
 				<< "Updating configuration file: " << dst;
 
 			String content = kv.second;
@@ -160,7 +160,7 @@ void ApiListener::SyncLocalZoneDir(const Zone::Ptr& zone) const
 	fp << std::fixed << JsonEncode(newConfigInfo.Checksums);
 	fp.close();
 
-	Log(LogNotice, "ApiListener")
+	Log(LogNotice, "ApiListener", zone)
 		<< "Updated meta data for cluster config sync. Checksum: '" << checksumsPath
 		<< "', timestamp: '" << tsPath << "', auth: '" << authPath << "'.";
 }
@@ -203,7 +203,7 @@ void ApiListener::SendConfigUpdate(const JsonRpcConnection::Ptr& aclient)
 		if (!Utility::PathExists(zoneDir))
 			continue;
 
-		Log(LogInformation, "ApiListener")
+		Log(LogInformation, "ApiListener", zone)
 			<< "Syncing configuration files for " << (zone->IsGlobal() ? "global " : "")
 			<< "zone '" << zoneName << "' to endpoint '" << endpoint->GetName() << "'.";
 
@@ -250,7 +250,7 @@ static bool CompareTimestampsConfigChange(const Dictionary::Ptr& productionConfi
 	// Skip update if our configuration files are more recent.
 	if (productionTimestamp >= receivedTimestamp) {
 
-		Log(LogInformation, "ApiListener")
+		Log(LogInformation, "ApiListener", nullptr)
 			<< "Our production configuration is more recent than the received configuration update."
 			<< " Ignoring configuration file update for path '" << stageConfigZoneDir << "'. Current timestamp '"
 			<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", productionTimestamp) << "' ("
@@ -291,30 +291,32 @@ static bool CompareTimestampsConfigChange(const Dictionary::Ptr& productionConfi
  */
 Value ApiListener::ConfigUpdateHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
+	Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
+
 	// Verify permissions and trust relationship.
-	if (!origin->FromClient->GetEndpoint() || (origin->FromZone && !Zone::GetLocalZone()->IsChildOf(origin->FromZone)))
+	if (!endpoint || (origin->FromZone && !Zone::GetLocalZone()->IsChildOf(origin->FromZone)))
 		return Empty;
 
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
 	if (!listener) {
-		Log(LogCritical, "ApiListener", "No instance available.");
+		Log(LogCritical, "ApiListener", nullptr, "No instance available.");
 		return Empty;
 	}
 
 	if (!listener->GetAcceptConfig()) {
-		Log(LogWarning, "ApiListener")
+		Log(LogWarning, "ApiListener", endpoint)
 			<< "Ignoring config update. '" << listener->GetName() << "' does not accept config.";
 		return Empty;
 	}
 
-	std::thread([origin, params, listener]() {
+	std::thread([origin, params, listener, endpoint]() {
 		try {
 			listener->HandleConfigUpdate(origin, params);
 		} catch (const std::exception& ex) {
 			auto msg ("Exception during config sync: " + DiagnosticInformation(ex));
 
-			Log(LogCritical, "ApiListener") << msg;
+			Log(LogCritical, "ApiListener", endpoint) << msg;
 			listener->UpdateLastFailedZonesStageValidation(msg);
 		}
 	}).detach();
@@ -332,7 +334,7 @@ void ApiListener::HandleConfigUpdate(const MessageOrigin::Ptr& origin, const Dic
 	String fromEndpointName = origin->FromClient->GetEndpoint()->GetName();
 	String fromZoneName = GetFromZoneName(origin->FromZone);
 
-	Log(LogInformation, "ApiListener")
+	Log(LogInformation, "ApiListener", this)
 		<< "Applying config update from endpoint '" << fromEndpointName
 		<< "' of zone '" << fromZoneName << "'.";
 
@@ -375,7 +377,7 @@ void ApiListener::HandleConfigUpdate(const MessageOrigin::Ptr& origin, const Dic
 		Zone::Ptr zone = Zone::GetByName(zoneName);
 
 		if (!zone) {
-			Log(LogWarning, "ApiListener")
+			Log(LogWarning, "ApiListener", this)
 				<< "Ignoring config update from endpoint '" << fromEndpointName
 				<< "' for unknown zone '" << zoneName << "'.";
 
@@ -384,7 +386,7 @@ void ApiListener::HandleConfigUpdate(const MessageOrigin::Ptr& origin, const Dic
 
 		// Ignore updates where we have an authoritive copy in etc/zones.d, packages, etc.
 		if (ConfigCompiler::HasZoneConfigAuthority(zoneName)) {
-			Log(LogInformation, "ApiListener")
+			Log(LogInformation, "ApiListener", zone)
 				<< "Ignoring config update from endpoint '" << fromEndpointName
 				<< "' for zone '" << zoneName << "' because we have an authoritative version of the zone's config.";
 
@@ -427,7 +429,7 @@ void ApiListener::HandleConfigUpdate(const MessageOrigin::Ptr& origin, const Dic
 		 * Otherwise do the old timestamp dance for versions < 2.11.
 		 */
 		if (checksums) {
-			Log(LogInformation, "ApiListener")
+			Log(LogInformation, "ApiListener", zone)
 				<< "Received configuration for zone '" << zoneName << "' from endpoint '"
 				<< fromEndpointName << "'. Comparing the timestamp and checksums.";
 
@@ -444,7 +446,7 @@ void ApiListener::HandleConfigUpdate(const MessageOrigin::Ptr& origin, const Dic
 			 * TODO: Deprecate and remove this behaviour in 2.13+.
 			 */
 
-			Log(LogWarning, "ApiListener")
+			Log(LogWarning, "ApiListener", zone)
 				<< "Received configuration update without checksums from parent endpoint "
 				<< fromEndpointName << ". This behaviour is deprecated. Please upgrade the parent endpoint to 2.11+";
 
@@ -483,7 +485,7 @@ void ApiListener::HandleConfigUpdate(const MessageOrigin::Ptr& origin, const Dic
 				String path = stageConfigZoneDir + "/" + kv.first;
 
 				if (Utility::Match("*.conf", path)) {
-					Log(LogInformation, "ApiListener")
+					Log(LogInformation, "ApiListener", zone)
 						<< "Stage: Updating received configuration file '" << path << "' for zone '" << zoneName << "'.";
 				}
 
@@ -506,7 +508,7 @@ void ApiListener::HandleConfigUpdate(const MessageOrigin::Ptr& origin, const Dic
 			}
 		}
 
-		Log(LogInformation, "ApiListener")
+		Log(LogInformation, "ApiListener", zone)
 			<< "Applying configuration file update for path '" << stageConfigZoneDir << "' ("
 			<< numBytes << " Bytes).";
 
@@ -537,12 +539,12 @@ void ApiListener::HandleConfigUpdate(const MessageOrigin::Ptr& origin, const Dic
 	 * A successful validation also triggers the final restart.
 	 */
 	if (configChange) {
-		Log(LogInformation, "ApiListener")
+		Log(LogInformation, "ApiListener", this)
 			<< "Received configuration updates (" << count << ") from endpoint '" << fromEndpointName
 			<< "' are different to production, triggering validation and reload.";
 		TryActivateZonesStage(relativePaths);
 	} else {
-		Log(LogInformation, "ApiListener")
+		Log(LogInformation, "ApiListener", this)
 			<< "Received configuration updates (" << count << ") from endpoint '" << fromEndpointName
 			<< "' are equal to production, skipping validation and reload.";
 		ClearLastFailedZonesStageValidation();
@@ -604,7 +606,7 @@ void ApiListener::TryActivateZonesStage(const std::vector<String>& relativePaths
 
 	// Validation went fine, copy stage and reload.
 	if (pr.ExitStatus == 0) {
-		Log(LogInformation, "ApiListener")
+		Log(LogInformation, "ApiListener", m_Instance)
 			<< "Config validation for stage '" << apiZonesStageDir << "' was OK, replacing into '" << apiZonesDir << "' and triggering reload.";
 
 		// Purge production before copying stage.
@@ -618,7 +620,7 @@ void ApiListener::TryActivateZonesStage(const std::vector<String>& relativePaths
 			if (!Utility::PathExists(apiZonesStageDir + path))
 				continue;
 
-			Log(LogInformation, "ApiListener")
+			Log(LogInformation, "ApiListener", m_Instance)
 				<< "Copying file '" << path << "' from config sync staging to production zones directory.";
 
 			String stagePath = apiZonesStageDir + path;
@@ -647,7 +649,7 @@ void ApiListener::TryActivateZonesStage(const std::vector<String>& relativePaths
 	fpFailedLog.close();
 
 	// Error case.
-	Log(LogCritical, "ApiListener")
+	Log(LogCritical, "ApiListener", m_Instance)
 		<< "Config validation failed for staged cluster config sync in '" << apiZonesStageDir
 		<< "'. Aborting. Logs: '" << failedLogFile << "'";
 
@@ -699,7 +701,7 @@ bool ApiListener::CheckConfigChange(const ConfigDirInformation& oldConfig, const
 	Dictionary::Ptr newChecksums = newConfig.Checksums;
 
 	// TODO: Figure out whether normal users need this for debugging.
-	Log(LogDebug, "ApiListener")
+	Log(LogDebug, "ApiListener", m_Instance)
 		<< "Checking for config change between stage and production. Old (" << oldChecksums->GetLength() << "): '"
 		<< JsonEncode(oldChecksums)
 		<< "' vs. new (" << newChecksums->GetLength() << "): '"
@@ -719,19 +721,19 @@ bool ApiListener::CheckConfigChange(const ConfigDirInformation& oldConfig, const
 			 * If we don't, this results in "always change" restart loops.
 			 */
 			if (Utility::Match("/.*", path)) {
-				Log(LogDebug, "ApiListener")
+				Log(LogDebug, "ApiListener", m_Instance)
 					<< "Ignoring old internal file '" << path << "'.";
 
 				continue;
 			}
 
-			Log(LogDebug, "ApiListener")
+			Log(LogDebug, "ApiListener", m_Instance)
 				<< "Checking " << path << " for old checksum: " << oldChecksum << ".";
 
 			// Check if key exists first for more verbose logging.
 			// Note: Don't do this later on.
 			if (!newChecksums->Contains(path)) {
-				Log(LogDebug, "ApiListener")
+				Log(LogDebug, "ApiListener", m_Instance)
 					<< "File '" << path << "' was deleted by remote.";
 
 				return true;
@@ -740,7 +742,7 @@ bool ApiListener::CheckConfigChange(const ConfigDirInformation& oldConfig, const
 			String newChecksum = newChecksums->Get(path);
 
 			if (newChecksum != kv.second) {
-				Log(LogDebug, "ApiListener")
+				Log(LogDebug, "ApiListener", m_Instance)
 					<< "Path '" << path << "' doesn't match old checksum '"
 					<< oldChecksum << "' with new checksum '" << newChecksum << "'.";
 
@@ -760,18 +762,18 @@ bool ApiListener::CheckConfigChange(const ConfigDirInformation& oldConfig, const
 			 * If we don't, this results in "always change" restart loops.
 			 */
 			if (Utility::Match("/.*", path)) {
-				Log(LogDebug, "ApiListener")
+				Log(LogDebug, "ApiListener", m_Instance)
 					<< "Ignoring new internal file '" << path << "'.";
 
 				continue;
 			}
 
-			Log(LogDebug, "ApiListener")
+			Log(LogDebug, "ApiListener", m_Instance)
 				<< "Checking " << path << " for new checksum: " << newChecksum << ".";
 
 			// Check if the checksum exists, checksums in both sets have already been compared
 			if (!oldChecksums->Contains(path)) {
-				Log(LogDebug, "ApiListener")
+				Log(LogDebug, "ApiListener", m_Instance)
 					<< "File '" << path << "' was added by remote.";
 
 				return true;
@@ -815,7 +817,7 @@ void ApiListener::ConfigGlobHandler(ConfigDirInformation& config, const String& 
 
 	CONTEXT("Creating config update for file '" << file << "'");
 
-	Log(LogNotice, "ApiListener")
+	Log(LogNotice, "ApiListener", m_Instance)
 		<< "Creating config update for file '" << file << "'.";
 
 	std::ifstream fp(file.CStr(), std::ifstream::binary);
@@ -848,7 +850,7 @@ void ApiListener::ConfigGlobHandler(ConfigDirInformation& config, const String& 
 		 * Rationale: https://github.com/Icinga/icinga2/issues/7382
 		 */
 		if (content != sanitizedContent) {
-			Log(LogCritical, "ApiListener")
+			Log(LogCritical, "ApiListener", m_Instance)
 				<< "Ignoring file '" << file << "' for cluster config sync: Does not contain valid UTF8. Binary files are not supported.";
 			return;
 		}

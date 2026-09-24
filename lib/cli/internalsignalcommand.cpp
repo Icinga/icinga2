@@ -61,9 +61,9 @@ int InternalSignalCommand::Run(const boost::program_options::variables_map& vm, 
 	if (signal == "SIGUSR1")
 		return kill(vm["pid"].as<int>(), SIGUSR1);
 
-	Log(LogCritical, "cli") << "Unsupported signal \"" << signal << "\"";
+	Log(LogCritical, "cli", nullptr) << "Unsupported signal \"" << signal << "\"";
 #else
-	Log(LogCritical, "cli", "Unsupported action on Windows.");
+	Log(LogCritical, "cli", nullptr, "Unsupported action on Windows.");
 #endif /* _Win32 */
 	return 1;
 }

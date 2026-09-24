@@ -46,13 +46,13 @@ int FeatureUtility::EnableFeatures(const std::vector<std::string>& features)
 	String features_enabled_dir = GetFeaturesEnabledPath();
 
 	if (!Utility::PathExists(features_available_dir) ) {
-		Log(LogCritical, "cli")
+		Log(LogCritical, "cli", nullptr)
 			<< "Cannot parse available features. Path '" << features_available_dir << "' does not exist.";
 		return 1;
 	}
 
 	if (!Utility::PathExists(features_enabled_dir) ) {
-		Log(LogCritical, "cli")
+		Log(LogCritical, "cli", nullptr)
 			<< "Cannot enable features. Path '" << features_enabled_dir << "' does not exist.";
 		return 1;
 	}
@@ -63,7 +63,7 @@ int FeatureUtility::EnableFeatures(const std::vector<std::string>& features)
 		String source = features_available_dir + "/" + feature + ".conf";
 
 		if (!Utility::PathExists(source) ) {
-			Log(LogCritical, "cli")
+			Log(LogCritical, "cli", nullptr)
 				<< "Cannot enable feature '" << feature << "'. Source file '" << source + "' does not exist.";
 			errors.push_back(feature);
 			continue;
@@ -72,7 +72,7 @@ int FeatureUtility::EnableFeatures(const std::vector<std::string>& features)
 		String target = features_enabled_dir + "/" + feature + ".conf";
 
 		if (Utility::PathExists(target) ) {
-			Log(LogWarning, "cli")
+			Log(LogWarning, "cli", nullptr)
 				<< "Feature '" << feature << "' already enabled.";
 			continue;
 		}
@@ -84,7 +84,7 @@ int FeatureUtility::EnableFeatures(const std::vector<std::string>& features)
 		String relativeSource = "../features-available/" + feature + ".conf";
 
 		if (symlink(relativeSource.CStr(), target.CStr()) < 0) {
-			Log(LogCritical, "cli")
+			Log(LogCritical, "cli", nullptr)
 				<< "Cannot enable feature '" << feature << "'. Linking source '" << relativeSource << "' to target file '" << target
 				<< "' failed with error code " << errno << ", \"" << Utility::FormatErrorNumber(errno) << "\".";
 			errors.push_back(feature);
@@ -97,7 +97,7 @@ int FeatureUtility::EnableFeatures(const std::vector<std::string>& features)
 		fp.close();
 
 		if (fp.fail()) {
-			Log(LogCritical, "cli")
+			Log(LogCritical, "cli", nullptr)
 				<< "Cannot enable feature '" << feature << "'. Failed to open file '" << target << "'.";
 			errors.push_back(feature);
 			continue;
@@ -106,7 +106,7 @@ int FeatureUtility::EnableFeatures(const std::vector<std::string>& features)
 	}
 
 	if (!errors.empty()) {
-		Log(LogCritical, "cli")
+		Log(LogCritical, "cli", nullptr)
 			<< "Cannot enable feature(s): " << boost::algorithm::join(errors, " ");
 		errors.clear();
 		return 1;
@@ -120,7 +120,7 @@ int FeatureUtility::DisableFeatures(const std::vector<std::string>& features)
 	String features_enabled_dir = GetFeaturesEnabledPath();
 
 	if (!Utility::PathExists(features_enabled_dir) ) {
-		Log(LogCritical, "cli")
+		Log(LogCritical, "cli", nullptr)
 			<< "Cannot disable features. Path '" << features_enabled_dir << "' does not exist.";
 		return 0;
 	}
@@ -131,13 +131,13 @@ int FeatureUtility::DisableFeatures(const std::vector<std::string>& features)
 		String target = features_enabled_dir + "/" + feature + ".conf";
 
 		if (!Utility::PathExists(target) ) {
-			Log(LogWarning, "cli")
+			Log(LogWarning, "cli", nullptr)
 				<< "Feature '" << feature << "' already disabled.";
 			continue;
 		}
 
 		if (unlink(target.CStr()) < 0) {
-			Log(LogCritical, "cli")
+			Log(LogCritical, "cli", nullptr)
 				<< "Cannot disable feature '" << feature << "'. Unlinking target file '" << target
 				<< "' failed with error code " << errno << ", \"" + Utility::FormatErrorNumber(errno) << "\".";
 			errors.push_back(feature);
@@ -149,7 +149,7 @@ int FeatureUtility::DisableFeatures(const std::vector<std::string>& features)
 	}
 
 	if (!errors.empty()) {
-		Log(LogCritical, "cli")
+		Log(LogCritical, "cli", nullptr)
 			<< "Cannot disable feature(s): " << boost::algorithm::join(errors, " ");
 		errors.clear();
 		return 1;
@@ -238,7 +238,7 @@ void FeatureUtility::CollectFeatures(const String& feature_file, std::vector<Str
 	String feature = Utility::BaseName(feature_file);
 	boost::algorithm::replace_all(feature, ".conf", "");
 
-	Log(LogDebug, "cli")
+	Log(LogDebug, "cli", nullptr)
 		<< "Adding feature: " << feature;
 	features.push_back(feature);
 }

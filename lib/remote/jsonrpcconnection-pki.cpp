@@ -43,7 +43,8 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 	}
 
 	if (!cert) {
-		Log(LogWarning, "JsonRpcConnection") << "No certificate or CSR received";
+		Log(LogWarning, "JsonRpcConnection", origin->FromClient->GetEndpoint())
+			<< "No certificate or CSR received";
 
 		result->Set("status_code", 1);
 		result->Set("error", "No certificate or CSR received.");
@@ -59,7 +60,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 	bool signedByCA = false;
 
 	{
-		Log logmsg(LogInformation, "JsonRpcConnection");
+		Log logmsg (LogInformation, "JsonRpcConnection", origin->FromClient->GetEndpoint());
 		logmsg << "Received certificate request for CN '" << cn << "'";
 
 		try {
@@ -123,7 +124,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 		}
 
 		if (uptodate) {
-			Log(LogInformation, "JsonRpcConnection")
+			Log(LogInformation, "JsonRpcConnection", origin->FromClient->GetEndpoint())
 				<< "The certificates for CN '" << cn << "' and its root CA are valid and uptodate. Skipping automated renewal.";
 			result->Set("status_code", 1);
 			result->Set("error", "The certificates for CN '" + cn + "' and its root CA are valid and uptodate. Skipping automated renewal.");
@@ -138,7 +139,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 		result->Set("status_code", 1);
 		result->Set("error", "Could not calculate fingerprint for the X509 certificate for CN '" + cn + "'.");
 
-		Log(LogWarning, "JsonRpcConnection")
+		Log(LogWarning, "JsonRpcConnection", origin->FromClient->GetEndpoint())
 			<< "Could not calculate fingerprint for the X509 certificate requested for CN '"
 			<< cn << "'.";
 
@@ -165,7 +166,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 		String certResponse = request->Get("cert_response");
 
 		if (!certResponse.IsEmpty()) {
-			Log(LogInformation, "JsonRpcConnection")
+			Log(LogInformation, "JsonRpcConnection", client->GetEndpoint())
 				<< "Sending certificate response for CN '" << cn
 				<< "' to endpoint '" << client->GetIdentity() << "'.";
 
@@ -182,7 +183,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 			return result;
 		}
 	} else if (Utility::PathExists(requestDir + "/" + certFingerprint + ".removed")) {
-		Log(LogInformation, "JsonRpcConnection")
+		Log(LogInformation, "JsonRpcConnection", client->GetEndpoint())
 			<< "Certificate for CN " << cn << " has been removed. Ignoring signing request.";
 		result->Set("status_code", 1);
 		result->Set("error", "Ticket for CN " + cn + " declined by administrator.");
@@ -206,7 +207,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 
 		// Auto-signing is disabled: Client did not include a ticket in its request.
 		if (ticket.IsEmpty()) {
-			Log(LogNotice, "JsonRpcConnection")
+			Log(LogNotice, "JsonRpcConnection", client->GetEndpoint())
 				<< "Certificate request for CN '" << cn
 				<< "': No ticket included, skipping auto-signing and waiting for on-demand signing approval.";
 
@@ -215,7 +216,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 
 		// Auto-signing is disabled: no TicketSalt
 		if (salt.IsEmpty()) {
-			Log(LogNotice, "JsonRpcConnection")
+			Log(LogNotice, "JsonRpcConnection", client->GetEndpoint())
 				<< "Certificate request for CN '" << cn
 				<< "': This instance is the signing master for the Icinga CA."
 				<< " The 'ticket_salt' attribute in the 'api' feature is not set."
@@ -227,7 +228,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 		String realTicket = PBKDF2_SHA1(cn, salt, 50000);
 
 		if (!Utility::ComparePasswords(ticket, realTicket)) {
-			Log(LogWarning, "JsonRpcConnection")
+			Log(LogWarning, "JsonRpcConnection", client->GetEndpoint())
 				<< "Received ticket for CN '" << cn << "' is invalid.";
 
 			result->Set("status_code", 1);
@@ -243,7 +244,7 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 	}
 
 	/* Send the signed certificate update. */
-	Log(LogInformation, "JsonRpcConnection")
+	Log(LogInformation, "JsonRpcConnection", client->GetEndpoint())
 		<< "Sending certificate response for CN '" << cn << "' to endpoint '"
 		<< client->GetIdentity() << "'" << (!ticket.IsEmpty() ? " (auto-signing ticket)" : "" ) << ".";
 
@@ -280,7 +281,7 @@ delayed_request:
 	result->Set("status_code", 2);
 	result->Set("error", "Certificate request for CN '" + cn + "' is pending. Waiting for approval from the parent Icinga instance.");
 
-	Log(LogInformation, "JsonRpcConnection")
+	Log(LogInformation, "JsonRpcConnection", client->GetEndpoint())
 		<< "Certificate request for CN '" << cn << "' is pending. Waiting for approval.";
 
 	return result;
@@ -303,7 +304,8 @@ void JsonRpcConnection::SendCertificateRequest(const JsonRpcConnection::Ptr& acl
 	/* Path is empty if this is our own request. */
 	if (path.IsEmpty()) {
 		{
-			Log msg (LogInformation, "JsonRpcConnection");
+			Endpoint::Ptr requestor = aclient ? aclient->GetEndpoint() : (origin ? origin->FromClient->GetEndpoint() : nullptr);
+			Log msg (LogInformation, "JsonRpcConnection", requestor);
 			msg << "Requesting new certificate for this Icinga instance";
 
 			if (aclient) {
@@ -341,7 +343,7 @@ void JsonRpcConnection::SendCertificateRequest(const JsonRpcConnection::Ptr& acl
 Value UpdateCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionary::Ptr& params)
 {
 	if (!origin->FromClient->GetEndpoint() || (origin->FromZone && !Zone::GetLocalZone()->IsChildOf(origin->FromZone))) {
-		Log(LogWarning, "ClusterEvents")
+		Log(LogWarning, "ClusterEvents", origin->FromClient->GetEndpoint())
 			<< "Discarding 'update certificate' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 
 		return Empty;
@@ -360,7 +362,7 @@ Value UpdateCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionar
 
 	String cn = GetCertificateCN(newCert);
 
-	Log(LogInformation, "JsonRpcConnection")
+	Log(LogInformation, "JsonRpcConnection", origin->FromClient->GetEndpoint())
 		<< "Received certificate update message for CN '" << cn << "'";
 
 	/* Check if this is a certificate update for a subordinate instance. */
@@ -375,7 +377,7 @@ Value UpdateCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionar
 		boost::regex expr("^[0-9a-f]+$");
 
 		if (!boost::regex_match(certFingerprint.GetData(), expr)) {
-			Log(LogWarning, "JsonRpcConnection")
+			Log(LogWarning, "JsonRpcConnection", origin->FromClient->GetEndpoint())
 				<< "Endpoint '" << origin->FromClient->GetIdentity() << "' sent an invalid certificate fingerprint: '"
 				<< certFingerprint << "' for CN '" << cn << "'.";
 			return Empty;
@@ -386,7 +388,7 @@ Value UpdateCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionar
 
 		/* Save the received signed certificate request to disk. */
 		if (Utility::PathExists(requestPath)) {
-			Log(LogInformation, "JsonRpcConnection")
+			Log(LogInformation, "JsonRpcConnection", origin->FromClient->GetEndpoint())
 				<< "Saved certificate update for CN '" << cn << "'";
 
 			Dictionary::Ptr request = Utility::LoadJsonFile(requestPath);
@@ -400,7 +402,7 @@ Value UpdateCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionar
 	/* Update CA certificate. */
 	String caPath = listener->GetDefaultCaPath();
 
-	Log(LogInformation, "JsonRpcConnection")
+	Log(LogInformation, "JsonRpcConnection", origin->FromClient->GetEndpoint())
 		<< "Updating CA certificate in '" << caPath << "'.";
 
 	AtomicFile::Write(caPath, 0644, ca);
@@ -408,7 +410,7 @@ Value UpdateCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionar
 	/* Update signed certificate. */
 	String certPath = listener->GetDefaultCertPath();
 
-	Log(LogInformation, "JsonRpcConnection")
+	Log(LogInformation, "JsonRpcConnection", origin->FromClient->GetEndpoint())
 		<< "Updating client certificate for CN '" << cn << "' in '" << certPath << "'.";
 
 	AtomicFile::Write(certPath, 0644, cert);
@@ -419,7 +421,7 @@ Value UpdateCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionar
 	Utility::Remove(ticketPath);
 
 	/* Update the certificates at runtime and reconnect all endpoints. */
-	Log(LogInformation, "JsonRpcConnection")
+	Log(LogInformation, "JsonRpcConnection", origin->FromClient->GetEndpoint())
 		<< "Updating the client certificate for CN '" << cn << "' at runtime and reconnecting the endpoints.";
 
 	listener->UpdateSSLContext();

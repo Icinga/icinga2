@@ -111,7 +111,7 @@ Value ClusterEvents::CheckResultAPIHandler(const MessageOrigin::Ptr& origin, con
 	Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
 
 	if (!endpoint) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", nullptr)
 			<< "Discarding 'check result' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
 	}
@@ -170,7 +170,7 @@ Value ClusterEvents::CheckResultAPIHandler(const MessageOrigin::Ptr& origin, con
 		return Empty;
 
 	if (origin->FromZone && !origin->FromZone->CanAccessObject(checkable) && endpoint != checkable->GetCommandEndpoint()) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", checkable)
 			<< "Discarding 'check result' message for checkable '" << checkable->GetName()
 			<< "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
@@ -214,7 +214,7 @@ Value ClusterEvents::NextCheckChangedAPIHandler(const MessageOrigin::Ptr& origin
 	Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
 
 	if (!endpoint) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", nullptr)
 			<< "Discarding 'next check changed' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
 	}
@@ -235,7 +235,7 @@ Value ClusterEvents::NextCheckChangedAPIHandler(const MessageOrigin::Ptr& origin
 		return Empty;
 
 	if (origin->FromZone && !origin->FromZone->CanAccessObject(checkable)) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", checkable)
 			<< "Discarding 'next check changed' message for checkable '" << checkable->GetName()
 			<< "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
@@ -281,7 +281,7 @@ Value ClusterEvents::LastCheckStartedChangedAPIHandler(const MessageOrigin::Ptr&
 	Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
 
 	if (!endpoint) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", nullptr)
 			<< "Discarding 'last_check_started changed' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
 	}
@@ -302,7 +302,7 @@ Value ClusterEvents::LastCheckStartedChangedAPIHandler(const MessageOrigin::Ptr&
 		return Empty;
 
 	if (origin->FromZone && !origin->FromZone->CanAccessObject(checkable)) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", checkable)
 			<< "Discarding 'last_check_started changed' message for checkable '" << checkable->GetName()
 			<< "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
@@ -343,7 +343,7 @@ Value ClusterEvents::StateBeforeSuppressionChangedAPIHandler(const MessageOrigin
 	Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
 
 	if (!endpoint) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", nullptr)
 			<< "Discarding 'state before suppression changed' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
 	}
@@ -364,7 +364,7 @@ Value ClusterEvents::StateBeforeSuppressionChangedAPIHandler(const MessageOrigin
 		return Empty;
 
 	if (origin->FromZone && origin->FromZone != Zone::GetLocalZone()) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", checkable)
 			<< "Discarding 'state before suppression changed' message for checkable '" << checkable->GetName()
 			<< "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
@@ -405,7 +405,7 @@ Value ClusterEvents::SuppressedNotificationsChangedAPIHandler(const MessageOrigi
 	Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
 
 	if (!endpoint) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", nullptr)
 			<< "Discarding 'suppressed notifications changed' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
 	}
@@ -426,7 +426,7 @@ Value ClusterEvents::SuppressedNotificationsChangedAPIHandler(const MessageOrigi
 		return Empty;
 
 	if (origin->FromZone && origin->FromZone != Zone::GetLocalZone()) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", checkable)
 			<< "Discarding 'suppressed notifications changed' message for checkable '" << checkable->GetName()
 			<< "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
@@ -461,7 +461,7 @@ Value ClusterEvents::SuppressedNotificationTypesChangedAPIHandler(const MessageO
 	Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
 
 	if (!endpoint) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", nullptr)
 			<< "Discarding 'suppressed notifications changed' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
 	}
@@ -472,7 +472,7 @@ Value ClusterEvents::SuppressedNotificationTypesChangedAPIHandler(const MessageO
 		return Empty;
 
 	if (origin->FromZone && origin->FromZone != Zone::GetLocalZone()) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", notification)
 			<< "Discarding 'suppressed notification types changed' message for notification '" << notification->GetName()
 			<< "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
@@ -507,7 +507,7 @@ Value ClusterEvents::NextNotificationChangedAPIHandler(const MessageOrigin::Ptr&
 	Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
 
 	if (!endpoint) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", nullptr)
 			<< "Discarding 'next notification changed' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
 	}
@@ -518,7 +518,7 @@ Value ClusterEvents::NextNotificationChangedAPIHandler(const MessageOrigin::Ptr&
 		return Empty;
 
 	if (origin->FromZone && !origin->FromZone->CanAccessObject(notification)) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", notification)
 			<< "Discarding 'next notification changed' message for notification '" << notification->GetName()
 			<< "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
@@ -560,14 +560,14 @@ Value ClusterEvents::LastNotifiedStatePerUserUpdatedAPIHandler(const MessageOrig
 	auto endpoint (origin->FromClient->GetEndpoint());
 
 	if (!endpoint) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", nullptr)
 			<< "Discarding 'last notified state of user updated' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 
 		return Empty;
 	}
 
 	if (origin->FromZone && origin->FromZone != Zone::GetLocalZone()) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", endpoint)
 			<< "Discarding 'last notified state of user updated' message from '"
 			<< origin->FromClient->GetIdentity() << "': Unauthorized access.";
 
@@ -616,7 +616,7 @@ Value ClusterEvents::LastNotifiedStatePerUserClearedAPIHandler(const MessageOrig
 	auto endpoint (origin->FromClient->GetEndpoint());
 
 	if (!endpoint) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", nullptr)
 			<< "Discarding 'last notified state of user cleared' message from '"
 			<< origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 
@@ -624,7 +624,7 @@ Value ClusterEvents::LastNotifiedStatePerUserClearedAPIHandler(const MessageOrig
 	}
 
 	if (origin->FromZone && origin->FromZone != Zone::GetLocalZone()) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", endpoint)
 			<< "Discarding 'last notified state of user cleared' message from '"
 			<< origin->FromClient->GetIdentity() << "': Unauthorized access.";
 
@@ -673,7 +673,7 @@ Value ClusterEvents::ForceNextCheckChangedAPIHandler(const MessageOrigin::Ptr& o
 	Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
 
 	if (!endpoint) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", nullptr)
 			<< "Discarding 'force next check changed' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
 	}
@@ -694,7 +694,7 @@ Value ClusterEvents::ForceNextCheckChangedAPIHandler(const MessageOrigin::Ptr& o
 		return Empty;
 
 	if (origin->FromZone && !origin->FromZone->CanAccessObject(checkable)) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", checkable)
 			<< "Discarding 'force next check' message for checkable '" << checkable->GetName()
 			<< "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
@@ -735,7 +735,7 @@ Value ClusterEvents::ForceNextNotificationChangedAPIHandler(const MessageOrigin:
 	Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
 
 	if (!endpoint) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", nullptr)
 			<< "Discarding 'force next notification changed' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
 	}
@@ -756,7 +756,7 @@ Value ClusterEvents::ForceNextNotificationChangedAPIHandler(const MessageOrigin:
 		return Empty;
 
 	if (origin->FromZone && !origin->FromZone->CanAccessObject(checkable)) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", checkable)
 			<< "Discarding 'force next notification' message for checkable '" << checkable->GetName()
 			<< "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
@@ -805,7 +805,7 @@ Value ClusterEvents::AcknowledgementSetAPIHandler(const MessageOrigin::Ptr& orig
 	Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
 
 	if (!endpoint) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", nullptr)
 			<< "Discarding 'acknowledgement set' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
 	}
@@ -826,7 +826,7 @@ Value ClusterEvents::AcknowledgementSetAPIHandler(const MessageOrigin::Ptr& orig
 		return Empty;
 
 	if (origin->FromZone && !origin->FromZone->CanAccessObject(checkable)) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", checkable)
 			<< "Discarding 'acknowledgement set' message for checkable '" << checkable->GetName()
 			<< "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
@@ -835,7 +835,7 @@ Value ClusterEvents::AcknowledgementSetAPIHandler(const MessageOrigin::Ptr& orig
 	ObjectLock oLock (checkable);
 
 	if (checkable->IsAcknowledged()) {
-		Log(LogWarning, "ClusterEvents")
+		Log(LogWarning, "ClusterEvents", checkable)
 			<< "Discarding 'acknowledgement set' message for checkable '" << checkable->GetName()
 			<< "' from '" << origin->FromClient->GetIdentity() << "': Checkable is already acknowledged.";
 		return Empty;
@@ -879,7 +879,7 @@ Value ClusterEvents::AcknowledgementClearedAPIHandler(const MessageOrigin::Ptr& 
 	Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
 
 	if (!endpoint) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", nullptr)
 			<< "Discarding 'acknowledgement cleared' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
 	}
@@ -900,7 +900,7 @@ Value ClusterEvents::AcknowledgementClearedAPIHandler(const MessageOrigin::Ptr& 
 		return Empty;
 
 	if (origin->FromZone && !origin->FromZone->CanAccessObject(checkable)) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", checkable)
 			<< "Discarding 'acknowledgement cleared' message for checkable '" << checkable->GetName()
 			<< "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
@@ -923,7 +923,7 @@ Value ClusterEvents::ExecuteCommandAPIHandler(const MessageOrigin::Ptr& origin, 
 
 		/* Discard messages from anonymous clients */
 		if (!endpoint) {
-			Log(LogNotice, "ClusterEvents") << "Discarding 'execute command' message from '"
+			Log(LogNotice, "ClusterEvents", nullptr) << "Discarding 'execute command' message from '"
 				<< origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 			return Empty;
 		}
@@ -937,7 +937,7 @@ Value ClusterEvents::ExecuteCommandAPIHandler(const MessageOrigin::Ptr& origin, 
 		bool fromParentZone = parentZone && originZone == parentZone;
 
 		if (!fromLocalZone && !fromParentZone) {
-			Log(LogNotice, "ClusterEvents") << "Discarding 'execute command' message from '"
+			Log(LogNotice, "ClusterEvents", endpoint) << "Discarding 'execute command' message from '"
 				<< origin->FromClient->GetIdentity() << "': Unauthorized access.";
 			return Empty;
 		}
@@ -949,7 +949,7 @@ Value ClusterEvents::ExecuteCommandAPIHandler(const MessageOrigin::Ptr& origin, 
 		Endpoint::Ptr execEndpoint = Endpoint::GetByName(params->Get("endpoint"));
 
 		if (!execEndpoint) {
-			Log(LogWarning, "ClusterEvents")
+			Log(LogWarning, "ClusterEvents", nullptr)
 				<< "Discarding 'execute command' message " << executionUuid
 				<< ": Endpoint " << params->Get("endpoint") << " does not exist";
 			return Empty;
@@ -998,7 +998,7 @@ Value ClusterEvents::ExecuteCommandAPIHandler(const MessageOrigin::Ptr& origin, 
 					Checkable::Ptr checkable;
 					Host::Ptr host = Host::GetByName(params->Get("host"));
 					if (!host) {
-						Log(LogWarning, "ClusterEvents")
+						Log(LogWarning, "ClusterEvents", nullptr)
 							<< "Discarding 'execute command' message " << executionUuid
 							<< ": host " << params->Get("host") << " does not exist";
 						return Empty;
@@ -1014,7 +1014,7 @@ Value ClusterEvents::ExecuteCommandAPIHandler(const MessageOrigin::Ptr& origin, 
 						if (params->Contains("service"))
 							checkableName += "!" + params->Get("service");
 
-						Log(LogWarning, "ClusterEvents")
+						Log(LogWarning, "ClusterEvents", nullptr)
 							<< "Discarding 'execute command' message " << executionUuid
 							<< ": " << checkableName << " does not exist";
 						return Empty;
@@ -1092,7 +1092,7 @@ Value ClusterEvents::SendNotificationsAPIHandler(const MessageOrigin::Ptr& origi
 	Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
 
 	if (!endpoint) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", nullptr)
 			<< "Discarding 'send notification' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
 	}
@@ -1113,7 +1113,7 @@ Value ClusterEvents::SendNotificationsAPIHandler(const MessageOrigin::Ptr& origi
 		return Empty;
 
 	if (origin->FromZone && origin->FromZone != Zone::GetLocalZone()) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", checkable)
 			<< "Discarding 'send custom notification' message for checkable '" << checkable->GetName()
 			<< "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
@@ -1183,7 +1183,7 @@ Value ClusterEvents::NotificationSentUserAPIHandler(const MessageOrigin::Ptr& or
 	Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
 
 	if (!endpoint) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", nullptr)
 			<< "Discarding 'sent notification to user' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
 	}
@@ -1204,7 +1204,7 @@ Value ClusterEvents::NotificationSentUserAPIHandler(const MessageOrigin::Ptr& or
 		return Empty;
 
 	if (origin->FromZone && origin->FromZone != Zone::GetLocalZone()) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", checkable)
 			<< "Discarding 'send notification to user' message for checkable '" << checkable->GetName()
 			<< "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
@@ -1297,7 +1297,7 @@ Value ClusterEvents::NotificationSentToAllUsersAPIHandler(const MessageOrigin::P
 	Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
 
 	if (!endpoint) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", nullptr)
 			<< "Discarding 'sent notification to all users' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return Empty;
 	}
@@ -1318,7 +1318,7 @@ Value ClusterEvents::NotificationSentToAllUsersAPIHandler(const MessageOrigin::P
 		return Empty;
 
 	if (origin->FromZone && origin->FromZone != Zone::GetLocalZone()) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", checkable)
 			<< "Discarding 'sent notification to all users' message for checkable '" << checkable->GetName()
 			<< "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
@@ -1407,7 +1407,7 @@ Value ClusterEvents::ExecutedCommandAPIHandler(const MessageOrigin::Ptr& origin,
 	}
 
 	if (!endpoint) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", nullptr)
 			<< "Discarding 'update executions API handler' message from '" << origin->FromClient->GetIdentity()
 			<< "': Invalid endpoint origin (client not allowed).";
 
@@ -1432,7 +1432,7 @@ Value ClusterEvents::ExecutedCommandAPIHandler(const MessageOrigin::Ptr& origin,
 	ObjectLock oLock (checkable);
 
 	if (!params->Contains("execution")) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", checkable)
 			<< "Discarding 'update executions API handler' message for checkable '" << checkable->GetName()
 			<< "' from '" << origin->FromClient->GetIdentity() << "': Execution UUID missing.";
 		return Empty;
@@ -1443,7 +1443,7 @@ Value ClusterEvents::ExecutedCommandAPIHandler(const MessageOrigin::Ptr& origin,
 	Dictionary::Ptr executions = checkable->GetExecutions();
 
 	if (!executions) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", checkable)
 			<< "Discarding 'update executions API handler' message for checkable '" << checkable->GetName()
 			<< "' from '" << origin->FromClient->GetIdentity() << "': Execution '" << uuid << "' missing.";
 		return Empty;
@@ -1452,7 +1452,7 @@ Value ClusterEvents::ExecutedCommandAPIHandler(const MessageOrigin::Ptr& origin,
 	Dictionary::Ptr execution = executions->Get(uuid);
 
 	if (!execution) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", checkable)
 			<< "Discarding 'update executions API handler' message for checkable '" << checkable->GetName()
 			<< "' from '" << origin->FromClient->GetIdentity() << "': Execution '" << uuid << "' missing.";
 		return Empty;
@@ -1460,7 +1460,7 @@ Value ClusterEvents::ExecutedCommandAPIHandler(const MessageOrigin::Ptr& origin,
 
 	Endpoint::Ptr command_endpoint = Endpoint::GetByName(execution->Get("endpoint"));
 	if (!command_endpoint) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", checkable)
 			<< "Discarding 'update executions API handler' message from '" << origin->FromClient->GetIdentity()
 			<< "': Command endpoint does not exists.";
 
@@ -1468,7 +1468,7 @@ Value ClusterEvents::ExecutedCommandAPIHandler(const MessageOrigin::Ptr& origin,
 	}
 
 	if (origin->FromZone && !command_endpoint->GetZone()->IsChildOf(origin->FromZone)) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", checkable)
 			<< "Discarding 'update executions API handler' message for checkable '" << checkable->GetName()
 			<< "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
@@ -1514,7 +1514,7 @@ Value ClusterEvents::UpdateExecutionsAPIHandler(const MessageOrigin::Ptr& origin
 	Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
 
 	if (!endpoint) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", nullptr)
 			<< "Discarding 'update executions API handler' message from '" << origin->FromClient->GetIdentity()
 			<< "': Invalid endpoint origin (client not allowed).";
 
@@ -1539,7 +1539,7 @@ Value ClusterEvents::UpdateExecutionsAPIHandler(const MessageOrigin::Ptr& origin
 	ObjectLock oLock (checkable);
 
 	if (origin->FromZone && !origin->FromZone->CanAccessObject(checkable)) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", checkable)
 			<< "Discarding 'update executions API handler' message for checkable '" << checkable->GetName()
 			<< "' from '" << origin->FromClient->GetIdentity() << "': Unauthorized access.";
 		return Empty;
@@ -1596,7 +1596,7 @@ Value ClusterEvents::SetRemovalInfoAPIHandler(const MessageOrigin::Ptr& origin, 
 	Endpoint::Ptr endpoint = origin->FromClient->GetEndpoint();
 
 	if (!endpoint || (origin->FromZone && !Zone::GetLocalZone()->IsChildOf(origin->FromZone))) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", endpoint)
 			<< "Discarding 'set removal info' message from '" << origin->FromClient->GetIdentity()
 			<< "': Invalid endpoint origin (client not allowed).";
 		return Empty;
@@ -1620,7 +1620,7 @@ Value ClusterEvents::SetRemovalInfoAPIHandler(const MessageOrigin::Ptr& origin, 
 			downtime->SetRemovalInfo(removedBy, removeTime, origin);
 		}
 	} else {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", endpoint)
 			<< "Discarding 'set removal info' message from '" << origin->FromClient->GetIdentity()
 			<< "': Unknown object type.";
 	}

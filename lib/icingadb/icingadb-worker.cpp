@@ -69,7 +69,7 @@ void IcingaDB::PendingItemsThreadProc()
 		// make the user aware of the situation as that's usually an indication of something being wrong.
 		if (elapsed >= logInterval || (laggingBehind && elapsed >= heavyLoadLogInterval)) {
 			lastLogTime = now;
-			Log log(laggingBehind ? LogWarning : LogInformation, "IcingaDB");
+			Log log (laggingBehind ? LogWarning : LogInformation, "IcingaDB", this);
 			log << "Pending config and state updates: " << seqView.size() << " (Redis queries: "
 				<< (m_RconWorker ? m_RconWorker->GetPendingQueryCount() : 0);
 			if (!seqView.empty()) {
@@ -96,7 +96,7 @@ void IcingaDB::PendingItemsThreadProc()
 					try {
 						ProcessQueueItem(item);
 					} catch (const std::exception& ex) {
-						Log(LogCritical, "IcingaDB")
+						Log(LogCritical, "IcingaDB", this)
 							<< "Exception while processing pending item of type '" << typeid(decltype(item)).name()
 							<< "': " << DiagnosticInformation(ex, GetActive());
 					}

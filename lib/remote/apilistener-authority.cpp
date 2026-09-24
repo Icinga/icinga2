@@ -15,10 +15,10 @@ void ApiListener::UpdateObjectAuthority()
 {
 	/* Always run this, even if there is no 'api' feature enabled. */
 	if (auto listener = ApiListener::GetInstance()) {
-		Log(LogNotice, "ApiListener")
+		Log(LogNotice, "ApiListener", listener)
 			<< "Updating object authority for objects at endpoint '" << listener->GetIdentity() << "'.";
 	} else {
-		Log(LogNotice, "ApiListener")
+		Log(LogNotice, "ApiListener", nullptr)
 			<< "Updating object authority for local objects.";
 	}
 

@@ -30,7 +30,7 @@ Dictionary::Ptr ZoneDbObject::GetStatusFields() const
 {
 	Zone::Ptr zone = static_pointer_cast<Zone>(GetObject());
 
-	Log(LogDebug, "ZoneDbObject")
+	Log(LogDebug, "ZoneDbObject", zone)
 		<< "update status for zone '" << zone->GetName() << "'";
 
 	return new Dictionary({

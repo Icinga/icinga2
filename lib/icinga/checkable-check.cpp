@@ -72,7 +72,7 @@ void Checkable::UpdateNextCheck(const MessageOrigin::Ptr& origin)
 	double nextCheck = now - adj + interval;
 	double lastCheck = GetLastCheck();
 
-	Log(LogDebug, "Checkable")
+	Log(LogDebug, "Checkable", this)
 		<< std::fixed << std::setprecision(0)
 		<< "Update checkable '" << GetName() << "' with check interval '" << GetCheckInterval()
 		<< "' from last check time at " << Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", (lastCheck < 0 ? 0 : lastCheck))
@@ -185,7 +185,7 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 		/* Our current timestamp may be from the future (wrong server time adjusted again). Allow overrides here. */
 		if (currentCRTimestamp > now) {
 			/* our current CR is from the future, let the new CR override it. */
-			Log(LogDebug, "Checkable")
+			Log(LogDebug, "Checkable", this)
 				<< std::fixed << std::setprecision(6) << "Processing check result for checkable '" << GetName() << "' from "
 				<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", newCRTimestamp) << " (" << newCRTimestamp
 				<< "). Overriding since ours is from the future at "
@@ -193,7 +193,7 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 		} else {
 			/* Current timestamp is from the past, but the new timestamp is even more in the past. Skip it. */
 			if (newCRTimestamp < currentCRTimestamp) {
-				Log(LogDebug, "Checkable")
+				Log(LogDebug, "Checkable", this)
 					<< std::fixed << std::setprecision(6) << "Skipping check result for checkable '" << GetName() << "' from "
 					<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", newCRTimestamp) << " (" << newCRTimestamp
 					<< "). It is in the past compared to ours at "
@@ -391,7 +391,7 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 	}
 
 #ifdef I2_DEBUG /* I2_DEBUG */
-	Log(LogDebug, "Checkable")
+	Log(LogDebug, "Checkable", this)
 		<< "Flapping: Checkable " << GetName()
 		<< " was: " << was_flapping
 		<< " is: " << is_flapping
@@ -411,13 +411,13 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 	/* Whether a hard state change or a volatile state change except OK -> OK happened. */
 	if (hardChange || (is_volatile && !(IsStateOK(old_state) && IsStateOK(new_state)))) {
 		OnStateChange(this, cr, StateTypeHard, origin);
-		Log(LogNotice, "Checkable")
+		Log(LogNotice, "Checkable", this)
 			<< "State Change: Checkable '" << GetName() << "' hard state change from " << old_state_str << " to " << new_state_str << " detected." << (is_volatile ? " Checkable is volatile." : "");
 	}
 	/* Whether a state change happened or the state type is SOFT (must be logged too). */
 	else if (stateChange || GetStateType() == StateTypeSoft) {
 		OnStateChange(this, cr, StateTypeSoft, origin);
-		Log(LogNotice, "Checkable")
+		Log(LogNotice, "Checkable", this)
 			<< "State Change: Checkable '" << GetName() << "' soft state change from " << old_state_str << " to " << new_state_str << " detected.";
 	}
 
@@ -438,7 +438,7 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 			}
 		}
 
-		Log(LogNotice, "Checkable")
+		Log(LogNotice, "Checkable", this)
 			<< "Flapping Start: Checkable '" << GetName() << "' started flapping (Current flapping value "
 			<< GetFlappingCurrent() << "% > high threshold " << GetFlappingThresholdHigh() << "%).";
 
@@ -453,7 +453,7 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 			}
 		}
 
-		Log(LogNotice, "Checkable")
+		Log(LogNotice, "Checkable", this)
 			<< "Flapping Stop: Checkable '" << GetName() << "' stopped flapping (Current flapping value "
 			<< GetFlappingCurrent() << "% < low threshold " << GetFlappingThresholdLow() << "%).";
 
@@ -692,7 +692,7 @@ void Checkable::UpdateStatistics(const CheckResult::Ptr& cr, CheckableType type)
 		else
 			CIB::UpdatePassiveServiceChecksStatistics(ts, 1);
 	} else {
-		Log(LogWarning, "Checkable", "Unknown checkable type for statistic update.");
+		Log(LogWarning, "Checkable", nullptr, "Unknown checkable type for statistic update.");
 	}
 }
 

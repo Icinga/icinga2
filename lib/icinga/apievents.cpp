@@ -42,7 +42,7 @@ void ApiEvents::CheckResultHandler(const Checkable::Ptr& checkable, const CheckR
 	if (!inboxes)
 		return;
 
-	Log(LogDebug, "ApiEvents", "Processing event type 'CheckResult'.");
+	Log(LogDebug, "ApiEvents", checkable, "Processing event type 'CheckResult'.");
 
 	Dictionary::Ptr result = new Dictionary();
 	result->Set("type", "CheckResult");
@@ -71,7 +71,7 @@ void ApiEvents::StateChangeHandler(const Checkable::Ptr& checkable, const CheckR
 	if (!inboxes)
 		return;
 
-	Log(LogDebug, "ApiEvents", "Processing event type 'StateChange'.");
+	Log(LogDebug, "ApiEvents", checkable, "Processing event type 'StateChange'.");
 
 	Dictionary::Ptr result = new Dictionary();
 	result->Set("type", "StateChange");
@@ -104,7 +104,7 @@ void ApiEvents::NotificationSentToAllUsersHandler(const Notification::Ptr& notif
 	if (!inboxes)
 		return;
 
-	Log(LogDebug, "ApiEvents", "Processing event type 'Notification'.");
+	Log(LogDebug, "ApiEvents", notification, "Processing event type 'Notification'.");
 
 	Dictionary::Ptr result = new Dictionary();
 	result->Set("type", "Notification");
@@ -145,7 +145,7 @@ void ApiEvents::FlappingChangedHandler(const Checkable::Ptr& checkable, const Me
 	if (!inboxes)
 		return;
 
-	Log(LogDebug, "ApiEvents", "Processing event type 'Flapping'.");
+	Log(LogDebug, "ApiEvents", checkable, "Processing event type 'Flapping'.");
 
 	Dictionary::Ptr result = new Dictionary();
 	result->Set("type", "Flapping");
@@ -178,7 +178,7 @@ void ApiEvents::AcknowledgementSetHandler(const Checkable::Ptr& checkable,
 	if (!inboxes)
 		return;
 
-	Log(LogDebug, "ApiEvents", "Processing event type 'AcknowledgementSet'.");
+	Log(LogDebug, "ApiEvents", checkable, "Processing event type 'AcknowledgementSet'.");
 
 	Dictionary::Ptr result = new Dictionary();
 	result->Set("type", "AcknowledgementSet");
@@ -212,7 +212,7 @@ void ApiEvents::AcknowledgementClearedHandler(const Checkable::Ptr& checkable, [
 	if (!inboxes)
 		return;
 
-	Log(LogDebug, "ApiEvents", "Processing event type 'AcknowledgementCleared'.");
+	Log(LogDebug, "ApiEvents", checkable, "Processing event type 'AcknowledgementCleared'.");
 
 	Dictionary::Ptr result = new Dictionary();
 	result->Set("type", "AcknowledgementCleared");
@@ -240,7 +240,7 @@ void ApiEvents::CommentAddedHandler(const Comment::Ptr& comment)
 	if (!inboxes)
 		return;
 
-	Log(LogDebug, "ApiEvents", "Processing event type 'CommentAdded'.");
+	Log(LogDebug, "ApiEvents", comment, "Processing event type 'CommentAdded'.");
 
 	Dictionary::Ptr result = new Dictionary({
 		{ "type", "CommentAdded" },
@@ -258,7 +258,7 @@ void ApiEvents::CommentRemovedHandler(const Comment::Ptr& comment)
 	if (!inboxes)
 		return;
 
-	Log(LogDebug, "ApiEvents", "Processing event type 'CommentRemoved'.");
+	Log(LogDebug, "ApiEvents", comment, "Processing event type 'CommentRemoved'.");
 
 	Dictionary::Ptr result = new Dictionary({
 		{ "type", "CommentRemoved" },
@@ -276,7 +276,7 @@ void ApiEvents::DowntimeAddedHandler(const Downtime::Ptr& downtime)
 	if (!inboxes)
 		return;
 
-	Log(LogDebug, "ApiEvents", "Processing event type 'DowntimeAdded'.");
+	Log(LogDebug, "ApiEvents", downtime, "Processing event type 'DowntimeAdded'.");
 
 	Dictionary::Ptr result = new Dictionary({
 		{ "type", "DowntimeAdded" },
@@ -294,7 +294,7 @@ void ApiEvents::DowntimeRemovedHandler(const Downtime::Ptr& downtime)
 	if (!inboxes)
 		return;
 
-	Log(LogDebug, "ApiEvents", "Processing event type 'DowntimeRemoved'.");
+	Log(LogDebug, "ApiEvents", downtime, "Processing event type 'DowntimeRemoved'.");
 
 	Dictionary::Ptr result = new Dictionary({
 		{ "type", "DowntimeRemoved" },
@@ -312,7 +312,7 @@ void ApiEvents::DowntimeStartedHandler(const Downtime::Ptr& downtime)
 	if (!inboxes)
 		return;
 
-	Log(LogDebug, "ApiEvents", "Processing event type 'DowntimeStarted'.");
+	Log(LogDebug, "ApiEvents", downtime, "Processing event type 'DowntimeStarted'.");
 
 	Dictionary::Ptr result = new Dictionary({
 		{ "type", "DowntimeStarted" },
@@ -330,7 +330,7 @@ void ApiEvents::DowntimeTriggeredHandler(const Downtime::Ptr& downtime)
 	if (!inboxes)
 		return;
 
-	Log(LogDebug, "ApiEvents", "Processing event type 'DowntimeTriggered'.");
+	Log(LogDebug, "ApiEvents", downtime, "Processing event type 'DowntimeTriggered'.");
 
 	Dictionary::Ptr result = new Dictionary({
 		{ "type", "DowntimeTriggered" },
@@ -361,7 +361,7 @@ void ApiEvents::SendObjectChangeEvent(const ConfigObject::Ptr& object, const Eve
 	if (!inboxes)
 		return;
 
-	Log(LogDebug, "ApiEvents") << "Processing event type '" + eventQueue + "'.";
+	Log(LogDebug, "ApiEvents", object) << "Processing event type '" + eventQueue + "'.";
 
 	Dictionary::Ptr result = new Dictionary ({
 		{"type", eventQueue},

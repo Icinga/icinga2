@@ -96,7 +96,7 @@ void ScheduledDowntime::TimerProc()
 			try {
 				sd->CreateNextDowntime();
 			} catch (const std::exception& ex) {
-				Log(LogCritical, "ScheduledDowntime")
+				Log(LogCritical, "ScheduledDowntime", sd)
 					<< "Exception occurred during creation of next downtime for scheduled downtime '"
 					<< sd->GetName() << "': " << DiagnosticInformation(ex, false);
 				continue;
@@ -105,7 +105,7 @@ void ScheduledDowntime::TimerProc()
 			try {
 				sd->RemoveObsoleteDowntimes();
 			} catch (const std::exception& ex) {
-				Log(LogCritical, "ScheduledDowntime")
+				Log(LogCritical, "ScheduledDowntime", sd)
 					<< "Exception occurred during removal of obsolete downtime for scheduled downtime '"
 					<< sd->GetName() << "': " << DiagnosticInformation(ex, false);
 			}
@@ -128,7 +128,7 @@ std::pair<double, double> ScheduledDowntime::FindRunningSegment(double minEnd)
 	time_t refts = Utility::GetTime();
 	tm reference = Utility::LocalTime(refts);
 
-	Log(LogDebug, "ScheduledDowntime")
+	Log(LogDebug, "ScheduledDowntime", this)
 	    << "Finding running scheduled downtime segment for time " << refts
 	    << " (minEnd " << (minEnd > 0 ? Utility::FormatDateTime("%c", minEnd) : "-") << ")";
 
@@ -147,7 +147,7 @@ std::pair<double, double> ScheduledDowntime::FindRunningSegment(double minEnd)
 
 	/* Find the longest lasting (and longer than minEnd, if given) segment that's already running */  
 	for (const Dictionary::Pair& kv : ranges) {
-		Log(LogDebug, "ScheduledDowntime")
+		Log(LogDebug, "ScheduledDowntime", this)
 		    << "Evaluating (running?) segment: " << kv.first << ": " << kv.second;
 
 		Dictionary::Ptr segment = LegacyTimePeriod::FindRunningSegment(kv.first, kv.second, &reference);
@@ -158,20 +158,20 @@ std::pair<double, double> ScheduledDowntime::FindRunningSegment(double minEnd)
 		double begin = segment->Get("begin");
 		double end = segment->Get("end");
 
-		Log(LogDebug, "ScheduledDowntime")
+		Log(LogDebug, "ScheduledDowntime", this)
 		    << "Considering (running?) segment: " << Utility::FormatDateTime("%c", begin) << " -> " << Utility::FormatDateTime("%c", end);
 
 		if (begin >= now || end < now) {
-			Log(LogDebug, "ScheduledDowntime") << "not running.";
+			Log(LogDebug, "ScheduledDowntime", this) << "not running.";
 			continue;
 		}
 		if (minEnd && end <= minEnd) {
-			Log(LogDebug, "ScheduledDowntime") << "ending too early.";
+			Log(LogDebug, "ScheduledDowntime", this) << "ending too early.";
 			continue;
 		}
 
 		if (!bestSegment || end > bestEnd) {
-			Log(LogDebug, "ScheduledDowntime") << "(best match yet)";
+			Log(LogDebug, "ScheduledDowntime", this) << "(best match yet)";
 			bestSegment = segment;
 			bestBegin = begin;
 			bestEnd = end;
@@ -189,7 +189,7 @@ std::pair<double, double> ScheduledDowntime::FindNextSegment()
 	time_t refts = Utility::GetTime();
 	tm reference = Utility::LocalTime(refts);
 
-	Log(LogDebug, "ScheduledDowntime")
+	Log(LogDebug, "ScheduledDowntime", this)
 		<< "Finding next scheduled downtime segment for time " << refts;
 
 	Dictionary::Ptr ranges = GetRanges();
@@ -207,7 +207,7 @@ std::pair<double, double> ScheduledDowntime::FindNextSegment()
 
 	/* Find the segment starting earliest */
 	for (const Dictionary::Pair& kv : ranges) {
-		Log(LogDebug, "ScheduledDowntime")
+		Log(LogDebug, "ScheduledDowntime", this)
 			<< "Evaluating segment: " << kv.first << ": " << kv.second;
 
 		Dictionary::Ptr segment = LegacyTimePeriod::FindNextSegment(kv.first, kv.second, &reference);
@@ -218,16 +218,16 @@ std::pair<double, double> ScheduledDowntime::FindNextSegment()
 		double begin = segment->Get("begin");
 		double end = segment->Get("end");
 
-		Log(LogDebug, "ScheduledDowntime")
+		Log(LogDebug, "ScheduledDowntime", this)
 			<< "Considering segment: " << Utility::FormatDateTime("%c", begin) << " -> " << Utility::FormatDateTime("%c", end);
 
 		if (begin < now) {
-			Log(LogDebug, "ScheduledDowntime") << "already running.";
+			Log(LogDebug, "ScheduledDowntime", this) << "already running.";
 			continue;
 		}
 
 		if (!bestSegment || begin < bestBegin) {
-			Log(LogDebug, "ScheduledDowntime") << "(best match yet)";
+			Log(LogDebug, "ScheduledDowntime", this) << "(best match yet)";
 			bestSegment = segment;
 			bestBegin = begin;
 			bestEnd = end;
@@ -244,7 +244,7 @@ void ScheduledDowntime::CreateNextDowntime()
 {
 	/* HA enabled zones. */
 	if (IsActive() && IsPaused()) {
-		Log(LogNotice, "Checkable")
+		Log(LogNotice, "Checkable", this)
 			<< "Skipping downtime creation for HA-paused Scheduled Downtime object '" << GetName() << "'";
 		return;
 	}
@@ -271,7 +271,7 @@ void ScheduledDowntime::CreateNextDowntime()
 		return;
 	}
 
-	Log(LogDebug, "ScheduledDowntime")
+	Log(LogDebug, "ScheduledDowntime", this)
 		<< "Creating new Downtime for ScheduledDowntime \"" << GetName() << "\"";
 
 	std::pair<double, double> segment = FindRunningSegment(minEnd);
@@ -295,17 +295,17 @@ void ScheduledDowntime::CreateNextDowntime()
 		if (childOptions == 1)
 			trigger = downtime;
 
-		Log(LogNotice, "ScheduledDowntime")
+		Log(LogNotice, "ScheduledDowntime", downtime)
 				<< "Processing child options " << childOptions << " for downtime " << downtimeName;
 
 		for (const Checkable::Ptr& child : GetCheckable()->GetAllChildren()) {
-			Log(LogNotice, "ScheduledDowntime")
+			Log(LogNotice, "ScheduledDowntime", child)
 				<< "Scheduling downtime for child object " << child->GetName();
 
 			Downtime::Ptr childDowntime = Downtime::AddDowntime(child, GetAuthor(), GetComment(),
 				segment.first, segment.second, GetFixed(), trigger, GetDuration(), GetName(), GetName());
 
-			Log(LogNotice, "ScheduledDowntime")
+			Log(LogNotice, "ScheduledDowntime", childDowntime)
 				<< "Add child downtime '" << childDowntime->GetName() << "'.";
 		}
 	}

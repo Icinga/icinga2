@@ -37,7 +37,7 @@ void NotificationComponent::Start(bool runtimeCreated)
 {
 	ObjectImpl<NotificationComponent>::Start(runtimeCreated);
 
-	Log(LogInformation, "NotificationComponent")
+	Log(LogInformation, "NotificationComponent", this)
 		<< "'" << GetName() << "' started.";
 
 	Checkable::OnNotificationsRequested.connect([this](const Checkable::Ptr& checkable, NotificationType type, const CheckResult::Ptr& cr,
@@ -55,7 +55,7 @@ void NotificationComponent::Stop(bool runtimeRemoved)
 {
 	m_NotificationTimer->Stop(true);
 
-	Log(LogInformation, "NotificationComponent")
+	Log(LogInformation, "NotificationComponent", this)
 		<< "'" << GetName() << "' stopped.";
 
 	ObjectImpl<NotificationComponent>::Stop(runtimeRemoved);
@@ -99,7 +99,7 @@ void FireSuppressedNotifications(const Notification::Ptr& notification)
 
 			auto notificationName (notification->GetName());
 
-			Log(LogNotice, "NotificationComponent")
+			Log(LogNotice, "NotificationComponent", notification)
 				<< "Attempting to re-send previously suppressed notification '" << notificationName << "'.";
 
 			subtract |= type;
@@ -109,7 +109,7 @@ void FireSuppressedNotifications(const Notification::Ptr& notification)
 			try {
 				notification->BeginExecuteNotification(type, checkable->GetLastCheckResult(), false, false);
 			} catch (const std::exception& ex) {
-				Log(LogWarning, "NotificationComponent")
+				Log(LogWarning, "NotificationComponent", notification)
 					<< "Exception occurred during notification for object '"
 					<< notificationName << "': " << DiagnosticInformation(ex, false);
 			}
@@ -147,7 +147,7 @@ void NotificationComponent::NotificationTimerHandler()
 				ObjectLock olock(stashedNotifications);
 
 				if (stashedNotifications->GetLength()) {
-					Log(LogNotice, "NotificationComponent")
+					Log(LogNotice, "NotificationComponent", notification)
 						<< "Notification '" << notificationName << "': HA cluster active, this endpoint does not have the authority. Dropping all stashed notifications.";
 
 					stashedNotifications->Clear();
@@ -155,7 +155,7 @@ void NotificationComponent::NotificationTimerHandler()
 			}
 
 			if (myEndpoint && GetEnableHA()) {
-				Log(LogNotice, "NotificationComponent")
+				Log(LogNotice, "NotificationComponent", notification)
 					<< "Reminder notification '" << notificationName << "': HA cluster active, this endpoint does not have the authority (paused=true). Skipping.";
 				continue;
 			}
@@ -188,7 +188,7 @@ void NotificationComponent::NotificationTimerHandler()
 						continue;
 
 					try {
-						Log(LogNotice, "NotificationComponent")
+						Log(LogNotice, "NotificationComponent", notification)
 							<< "Attempting to send stashed notification '" << notificationName << "'.";
 
 						notification->BeginExecuteNotification(
@@ -200,7 +200,7 @@ void NotificationComponent::NotificationTimerHandler()
 							(String)unstashedNotification->Get("text")
 						);
 					} catch (const std::exception& ex) {
-						Log(LogWarning, "NotificationComponent")
+						Log(LogWarning, "NotificationComponent", notification)
 							<< "Exception occurred during notification for object '"
 							<< notificationName << "': " << DiagnosticInformation(ex, false);
 					}
@@ -211,7 +211,7 @@ void NotificationComponent::NotificationTimerHandler()
 		}
 
 		if (notification->GetInterval() <= 0 && notification->GetNoMoreNotifications()) {
-			Log(LogNotice, "NotificationComponent")
+			Log(LogNotice, "NotificationComponent", notification)
 				<< "Reminder notification '" << notificationName << "': Notification was sent out once and interval=0 disables reminder notifications.";
 			continue;
 		}
@@ -246,12 +246,12 @@ void NotificationComponent::NotificationTimerHandler()
 		}
 
 		try {
-			Log(LogNotice, "NotificationComponent")
+			Log(LogNotice, "NotificationComponent", notification)
 				<< "Attempting to send reminder notification '" << notificationName << "'.";
 
 			notification->BeginExecuteNotification(NotificationProblem, checkable->GetLastCheckResult(), false, true);
 		} catch (const std::exception& ex) {
-			Log(LogWarning, "NotificationComponent")
+			Log(LogWarning, "NotificationComponent", notification)
 				<< "Exception occurred during notification for object '"
 				<< notificationName << "': " << DiagnosticInformation(ex, false);
 		}

@@ -277,7 +277,7 @@ void ExternalCommandProcessor::ExecuteFromFile(const WaitGroup::Ptr& producer, c
 	std::vector<String> argvExtra(argv.begin() + 1, argv.end());
 
 	if (argv[0] == "PROCESS_FILE") {
-		Log(LogDebug, "ExternalCommandProcessor")
+		Log(LogDebug, "ExternalCommandProcessor", nullptr)
 			<< "Enqueing external command file " << argvExtra[0];
 		file_queue.push_back(argvExtra);
 	} else {
@@ -296,7 +296,7 @@ void ExternalCommandProcessor::ProcessHostCheckResult(const WaitGroup::Ptr& prod
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Got passive check result for host '" + arguments[0] + "' which has passive checks disabled."));
 
 	if (!host->IsReachable(DependencyCheckExecution)) {
-		Log(LogNotice, "ExternalCommandProcessor")
+		Log(LogNotice, "ExternalCommandProcessor", host)
 			<< "Ignoring passive check result for unreachable host '" << arguments[0] << "'";
 		return;
 	}
@@ -326,7 +326,7 @@ void ExternalCommandProcessor::ProcessHostCheckResult(const WaitGroup::Ptr& prod
 	/* Mark this check result as passive. */
 	result->SetActive(false);
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", host)
 		<< "Processing passive check result for host '" << arguments[0] << "'";
 
 	host->ProcessCheckResult(result, producer);
@@ -343,7 +343,7 @@ void ExternalCommandProcessor::ProcessServiceCheckResult(const WaitGroup::Ptr& p
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Got passive check result for service '" + arguments[1] + "' which has passive checks disabled."));
 
 	if (!service->IsReachable(DependencyCheckExecution)) {
-		Log(LogNotice, "ExternalCommandProcessor")
+		Log(LogNotice, "ExternalCommandProcessor", service)
 			<< "Ignoring passive check result for unreachable service '" << arguments[1] << "'";
 		return;
 	}
@@ -364,7 +364,7 @@ void ExternalCommandProcessor::ProcessServiceCheckResult(const WaitGroup::Ptr& p
 	/* Mark this check result as passive. */
 	result->SetActive(false);
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", service)
 		<< "Processing passive check result for service '" << arguments[1] << "'";
 
 	service->ProcessCheckResult(result, producer);
@@ -380,13 +380,13 @@ void ExternalCommandProcessor::ScheduleHostCheck(double, const std::vector<Strin
 	double planned_check = Convert::ToDouble(arguments[1]);
 
 	if (planned_check > host->GetNextCheck()) {
-		Log(LogNotice, "ExternalCommandProcessor")
+		Log(LogNotice, "ExternalCommandProcessor", host)
 			<< "Ignoring reschedule request for host '"
 			<< arguments[0] << "' (next check is already sooner than requested check time)";
 		return;
 	}
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", host)
 		<< "Rescheduling next check for host '" << arguments[0] << "'";
 
 	if (planned_check < Utility::GetTime())
@@ -405,7 +405,7 @@ void ExternalCommandProcessor::ScheduleForcedHostCheck(double, const std::vector
 	if (!host)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot reschedule forced host check for non-existent host '" + arguments[0] + "'"));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", host)
 		<< "Rescheduling next check for host '" << arguments[0] << "'";
 
 	host->SetForceNextCheck(true);
@@ -425,13 +425,13 @@ void ExternalCommandProcessor::ScheduleSvcCheck(double, const std::vector<String
 	double planned_check = Convert::ToDouble(arguments[2]);
 
 	if (planned_check > service->GetNextCheck()) {
-		Log(LogNotice, "ExternalCommandProcessor")
+		Log(LogNotice, "ExternalCommandProcessor", service)
 			<< "Ignoring reschedule request for service '"
 			<< arguments[1] << "' (next check is already sooner than requested check time)";
 		return;
 	}
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", service)
 		<< "Rescheduling next check for service '" << arguments[1] << "'";
 
 	if (planned_check < Utility::GetTime())
@@ -450,7 +450,7 @@ void ExternalCommandProcessor::ScheduleForcedSvcCheck(double, const std::vector<
 	if (!service)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot reschedule forced service check for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", service)
 		<< "Rescheduling next check for service '" << arguments[1] << "'";
 
 	service->SetForceNextCheck(true);
@@ -467,7 +467,7 @@ void ExternalCommandProcessor::EnableHostCheck(double, const std::vector<String>
 	if (!host)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot enable host checks for non-existent host '" + arguments[0] + "'"));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", host)
 		<< "Enabling active checks for host '" << arguments[0] << "'";
 
 	host->ModifyAttribute("enable_active_checks", true);
@@ -480,7 +480,7 @@ void ExternalCommandProcessor::DisableHostCheck(double, const std::vector<String
 	if (!host)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot disable host check non-existent host '" + arguments[0] + "'"));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", host)
 		<< "Disabling active checks for host '" << arguments[0] << "'";
 
 	host->ModifyAttribute("enable_active_checks", false);
@@ -493,7 +493,7 @@ void ExternalCommandProcessor::EnableSvcCheck(double, const std::vector<String>&
 	if (!service)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot enable service check for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", service)
 		<< "Enabling active checks for service '" << arguments[1] << "'";
 
 	service->ModifyAttribute("enable_active_checks", true);
@@ -506,7 +506,7 @@ void ExternalCommandProcessor::DisableSvcCheck(double, const std::vector<String>
 	if (!service)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot disable service check for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", service)
 		<< "Disabling active checks for service '" << arguments[1] << "'";
 
 	service->ModifyAttribute("enable_active_checks", false);
@@ -514,13 +514,13 @@ void ExternalCommandProcessor::DisableSvcCheck(double, const std::vector<String>
 
 void ExternalCommandProcessor::ShutdownProcess(double, const std::vector<String>&)
 {
-	Log(LogNotice, "ExternalCommandProcessor", "Shutting down Icinga via external command.");
+	Log(LogNotice, "ExternalCommandProcessor", nullptr, "Shutting down Icinga via external command.");
 	Application::RequestShutdown();
 }
 
 void ExternalCommandProcessor::RestartProcess(double, const std::vector<String>&)
 {
-	Log(LogNotice, "ExternalCommandProcessor", "Restarting Icinga via external command.");
+	Log(LogNotice, "ExternalCommandProcessor", nullptr, "Restarting Icinga via external command.");
 	Application::RequestRestart();
 }
 
@@ -534,7 +534,7 @@ void ExternalCommandProcessor::ScheduleForcedHostSvcChecks(double, const std::ve
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot reschedule forced host service checks for non-existent host '" + arguments[0] + "'"));
 
 	for (const Service::Ptr& service : host->GetServices()) {
-		Log(LogNotice, "ExternalCommandProcessor")
+		Log(LogNotice, "ExternalCommandProcessor", service)
 			<< "Rescheduling next check for service '" << service->GetName() << "'";
 
 		service->SetNextCheck(planned_check);
@@ -559,13 +559,13 @@ void ExternalCommandProcessor::ScheduleHostSvcChecks(double, const std::vector<S
 
 	for (const Service::Ptr& service : host->GetServices()) {
 		if (planned_check > service->GetNextCheck()) {
-			Log(LogNotice, "ExternalCommandProcessor")
+			Log(LogNotice, "ExternalCommandProcessor", service)
 				<< "Ignoring reschedule request for service '"
 				<< service->GetName() << "' (next check is already sooner than requested check time)";
 			continue;
 		}
 
-		Log(LogNotice, "ExternalCommandProcessor")
+		Log(LogNotice, "ExternalCommandProcessor", service)
 			<< "Rescheduling next check for service '" << service->GetName() << "'";
 
 		service->SetNextCheck(planned_check);
@@ -583,7 +583,7 @@ void ExternalCommandProcessor::EnableHostSvcChecks(double, const std::vector<Str
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot enable host service checks for non-existent host '" + arguments[0] + "'"));
 
 	for (const Service::Ptr& service : host->GetServices()) {
-		Log(LogNotice, "ExternalCommandProcessor")
+		Log(LogNotice, "ExternalCommandProcessor", service)
 			<< "Enabling active checks for service '" << service->GetName() << "'";
 
 		service->ModifyAttribute("enable_active_checks", true);
@@ -598,7 +598,7 @@ void ExternalCommandProcessor::DisableHostSvcChecks(double, const std::vector<St
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot disable host service checks for non-existent host '" + arguments[0] + "'"));
 
 	for (const Service::Ptr& service : host->GetServices()) {
-		Log(LogNotice, "ExternalCommandProcessor")
+		Log(LogNotice, "ExternalCommandProcessor", service)
 			<< "Disabling active checks for service '" << service->GetName() << "'";
 
 		service->ModifyAttribute("enable_active_checks", false);
@@ -624,7 +624,7 @@ void ExternalCommandProcessor::AcknowledgeSvcProblem(double, const std::vector<S
 		BOOST_THROW_EXCEPTION(std::invalid_argument("The service '" + arguments[1] + "' is already acknowledged."));
 	}
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", service)
 		<< "Setting acknowledgement for service '" << service->GetName() << "'" << (notify ? "" : ". Disabled notification");
 
 	Comment::AddComment(service, CommentAcknowledgement, arguments[5], arguments[6], persistent, 0, sticky);
@@ -654,7 +654,7 @@ void ExternalCommandProcessor::AcknowledgeSvcProblemExpire(double, const std::ve
 		BOOST_THROW_EXCEPTION(std::invalid_argument("The service '" + arguments[1] + "' is already acknowledged."));
 	}
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", service)
 		<< "Setting timed acknowledgement for service '" << service->GetName() << "'" << (notify ? "" : ". Disabled notification");
 
 	Comment::AddComment(service, CommentAcknowledgement, arguments[6], arguments[7], persistent, timestamp, sticky);
@@ -668,7 +668,7 @@ void ExternalCommandProcessor::RemoveSvcAcknowledgement(double, const std::vecto
 	if (!service)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot remove service acknowledgement for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", service)
 		<< "Removing acknowledgement for service '" << service->GetName() << "'";
 
 	{
@@ -691,7 +691,7 @@ void ExternalCommandProcessor::AcknowledgeHostProblem(double, const std::vector<
 	if (!host)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot acknowledge host problem for non-existent host '" + arguments[0] + "'"));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", host)
 		<< "Setting acknowledgement for host '" << host->GetName() << "'" << (notify ? "" : ". Disabled notification");
 
 	if (host->GetState() == HostUp)
@@ -718,7 +718,7 @@ void ExternalCommandProcessor::AcknowledgeHostProblemExpire(double, const std::v
 	if (!host)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot acknowledge host problem with expire time for non-existent host '" + arguments[0] + "'"));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", host)
 		<< "Setting timed acknowledgement for host '" << host->GetName() << "'" << (notify ? "" : ". Disabled notification");
 
 	if (host->GetState() == HostUp)
@@ -742,7 +742,7 @@ void ExternalCommandProcessor::RemoveHostAcknowledgement(double, const std::vect
 	if (!host)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot remove acknowledgement for non-existent host '" + arguments[0] + "'"));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", host)
 		<< "Removing acknowledgement for host '" << host->GetName() << "'";
 
 	{
@@ -761,7 +761,7 @@ void ExternalCommandProcessor::EnableHostgroupSvcChecks(double, const std::vecto
 
 	for (const Host::Ptr& host : hg->GetMembers()) {
 		for (const Service::Ptr& service : host->GetServices()) {
-			Log(LogNotice, "ExternalCommandProcessor")
+			Log(LogNotice, "ExternalCommandProcessor", service)
 				<< "Enabling active checks for service '" << service->GetName() << "'";
 
 			service->ModifyAttribute("enable_active_checks", true);
@@ -778,7 +778,7 @@ void ExternalCommandProcessor::DisableHostgroupSvcChecks(double, const std::vect
 
 	for (const Host::Ptr& host : hg->GetMembers()) {
 		for (const Service::Ptr& service : host->GetServices()) {
-			Log(LogNotice, "ExternalCommandProcessor")
+			Log(LogNotice, "ExternalCommandProcessor", service)
 				<< "Disabling active checks for service '" << service->GetName() << "'";
 
 			service->ModifyAttribute("enable_active_checks", false);
@@ -794,7 +794,7 @@ void ExternalCommandProcessor::EnableServicegroupSvcChecks(double, const std::ve
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot enable servicegroup service checks for non-existent servicegroup '" + arguments[0] + "'"));
 
 	for (const Service::Ptr& service : sg->GetMembers()) {
-		Log(LogNotice, "ExternalCommandProcessor")
+		Log(LogNotice, "ExternalCommandProcessor", service)
 			<< "Enabling active checks for service '" << service->GetName() << "'";
 
 		service->ModifyAttribute("enable_active_checks", true);
@@ -809,7 +809,7 @@ void ExternalCommandProcessor::DisableServicegroupSvcChecks(double, const std::v
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot disable servicegroup service checks for non-existent servicegroup '" + arguments[0] + "'"));
 
 	for (const Service::Ptr& service : sg->GetMembers()) {
-		Log(LogNotice, "ExternalCommandProcessor")
+		Log(LogNotice, "ExternalCommandProcessor", service)
 			<< "Disabling active checks for service '" << service->GetName() << "'";
 
 		service->ModifyAttribute("enable_active_checks", false);
@@ -823,7 +823,7 @@ void ExternalCommandProcessor::EnablePassiveHostChecks(double, const std::vector
 	if (!host)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot enable passive host checks for non-existent host '" + arguments[0] + "'"));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", host)
 		<< "Enabling passive checks for host '" << arguments[0] << "'";
 
 	host->ModifyAttribute("enable_passive_checks", true);
@@ -836,7 +836,7 @@ void ExternalCommandProcessor::DisablePassiveHostChecks(double, const std::vecto
 	if (!host)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot disable passive host checks for non-existent host '" + arguments[0] + "'"));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", host)
 		<< "Disabling passive checks for host '" << arguments[0] << "'";
 
 	host->ModifyAttribute("enable_passive_checks", false);
@@ -849,7 +849,7 @@ void ExternalCommandProcessor::EnablePassiveSvcChecks(double, const std::vector<
 	if (!service)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot enable service checks for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", service)
 		<< "Enabling passive checks for service '" << arguments[1] << "'";
 
 	service->ModifyAttribute("enable_passive_checks", true);
@@ -862,7 +862,7 @@ void ExternalCommandProcessor::DisablePassiveSvcChecks(double, const std::vector
 	if (!service)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot disable service checks for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", service)
 		<< "Disabling passive checks for service '" << arguments[1] << "'";
 
 	service->ModifyAttribute("enable_passive_checks", false);
@@ -876,7 +876,7 @@ void ExternalCommandProcessor::EnableServicegroupPassiveSvcChecks(double, const 
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot enable servicegroup passive service checks for non-existent servicegroup '" + arguments[0] + "'"));
 
 	for (const Service::Ptr& service : sg->GetMembers()) {
-		Log(LogNotice, "ExternalCommandProcessor")
+		Log(LogNotice, "ExternalCommandProcessor", service)
 			<< "Enabling passive checks for service '" << service->GetName() << "'";
 
 		service->ModifyAttribute("enable_passive_checks", true);
@@ -891,7 +891,7 @@ void ExternalCommandProcessor::DisableServicegroupPassiveSvcChecks(double, const
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot disable servicegroup passive service checks for non-existent servicegroup '" + arguments[0] + "'"));
 
 	for (const Service::Ptr& service : sg->GetMembers()) {
-		Log(LogNotice, "ExternalCommandProcessor")
+		Log(LogNotice, "ExternalCommandProcessor", service)
 			<< "Disabling passive checks for service '" << service->GetName() << "'";
 
 		service->ModifyAttribute("enable_passive_checks", false);
@@ -907,7 +907,7 @@ void ExternalCommandProcessor::EnableHostgroupPassiveSvcChecks(double, const std
 
 	for (const Host::Ptr& host : hg->GetMembers()) {
 		for (const Service::Ptr& service : host->GetServices()) {
-			Log(LogNotice, "ExternalCommandProcessor")
+			Log(LogNotice, "ExternalCommandProcessor", service)
 				<< "Enabling passive checks for service '" << service->GetName() << "'";
 
 			service->ModifyAttribute("enable_passive_checks", true);
@@ -924,7 +924,7 @@ void ExternalCommandProcessor::DisableHostgroupPassiveSvcChecks(double, const st
 
 	for (const Host::Ptr& host : hg->GetMembers()) {
 		for (const Service::Ptr& service : host->GetServices()) {
-			Log(LogNotice, "ExternalCommandProcessor")
+			Log(LogNotice, "ExternalCommandProcessor", service)
 				<< "Disabling passive checks for service '" << service->GetName() << "'";
 
 			service->ModifyAttribute("enable_passive_checks", false);
@@ -954,12 +954,12 @@ void ExternalCommandProcessor::ProcessFile(const WaitGroup::Ptr& producer, doubl
 			std::getline(ifp, line);
 
 			try {
-				Log(LogNotice, "compat")
+				Log(LogNotice, "compat", nullptr)
 					<< "Executing external command: " << line;
 
 				ExecuteFromFile(producer, line, file_queue);
 			} catch (const std::exception& ex) {
-				Log(LogWarning, "ExternalCommandProcessor")
+				Log(LogWarning, "ExternalCommandProcessor", nullptr)
 					<< "External command failed: " << DiagnosticInformation(ex);
 			}
 		}
@@ -986,7 +986,7 @@ void ExternalCommandProcessor::ScheduleSvcDowntime(double, const std::vector<Str
 		triggeredBy = Downtime::GetDowntimeFromLegacyID(triggeredByLegacy);
 	}
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", service)
 		<< "Creating downtime for service " << service->GetName();
 	(void) Downtime::AddDowntime(service, arguments[7], arguments[8],
 		Convert::ToDouble(arguments[2]), Convert::ToDouble(arguments[3]),
@@ -1006,10 +1006,10 @@ void ExternalCommandProcessor::DelSvcDowntime(double, const std::vector<String>&
 	try {
 		Downtime::RemoveDowntime(rid, false, DowntimeRemovedByUser);
 
-		Log(LogNotice, "ExternalCommandProcessor")
+		Log(LogNotice, "ExternalCommandProcessor", dt)
 			<< "Removed downtime ID " << arguments[0];
 	} catch (const invalid_downtime_removal_error& error) {
-		Log(LogWarning, "ExternalCommandProcessor") << error.what();
+		Log(LogWarning, "ExternalCommandProcessor", dt) << error.what();
 	}
 }
 
@@ -1028,7 +1028,7 @@ void ExternalCommandProcessor::ScheduleHostDowntime(double, const std::vector<St
 		triggeredBy = Downtime::GetDowntimeFromLegacyID(triggeredByLegacy);
 	}
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", host)
 		<< "Creating downtime for host " << host->GetName();
 
 	(void) Downtime::AddDowntime(host, arguments[6], arguments[7],
@@ -1051,7 +1051,7 @@ void ExternalCommandProcessor::ScheduleAndPropagateHostDowntime(double, const st
 		triggeredBy = Downtime::GetDowntimeFromLegacyID(triggeredByLegacy);
 	}
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", host)
 		<< "Creating downtime for host " << host->GetName();
 
 	(void) Downtime::AddDowntime(host, arguments[6], arguments[7],
@@ -1089,7 +1089,7 @@ void ExternalCommandProcessor::ScheduleAndPropagateTriggeredHostDowntime(double,
 		triggeredBy = Downtime::GetDowntimeFromLegacyID(triggeredByLegacy);
 	}
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", host)
 		<< "Creating downtime for host " << host->GetName();
 
 	Downtime::Ptr parentDowntime = Downtime::AddDowntime(host, arguments[6], arguments[7],
@@ -1125,10 +1125,10 @@ void ExternalCommandProcessor::DelHostDowntime(double, const std::vector<String>
 	try {
 		Downtime::RemoveDowntime(rid, false, DowntimeRemovedByUser);
 
-		Log(LogNotice, "ExternalCommandProcessor")
+		Log(LogNotice, "ExternalCommandProcessor", dt)
 			<< "Removed downtime ID " << arguments[0];
 	} catch (const invalid_downtime_removal_error& error) {
-		Log(LogWarning, "ExternalCommandProcessor") << error.what();
+		Log(LogWarning, "ExternalCommandProcessor", dt) << error.what();
 	}
 }
 
@@ -1152,7 +1152,7 @@ void ExternalCommandProcessor::DelDowntimeByHostName(double, const std::vector<S
 		commentString = arguments[3];
 
 	if (arguments.size() > 5)
-		Log(LogWarning, "ExternalCommandProcessor")
+		Log(LogWarning, "ExternalCommandProcessor", host)
 			<< ("Ignoring additional parameters for host '" + arguments[0] + "' downtime deletion.");
 
 	for (const Downtime::Ptr& downtime : host->GetDowntimes()) {
@@ -1160,10 +1160,10 @@ void ExternalCommandProcessor::DelDowntimeByHostName(double, const std::vector<S
 			String downtimeName = downtime->GetName();
 			Downtime::RemoveDowntime(downtimeName, false, DowntimeRemovedByUser);
 
-			Log(LogNotice, "ExternalCommandProcessor")
+			Log(LogNotice, "ExternalCommandProcessor", downtime)
 				<< "Removed downtime '" << downtimeName << "'.";
 		} catch (const invalid_downtime_removal_error& error) {
-			Log(LogWarning, "ExternalCommandProcessor") << error.what();
+			Log(LogWarning, "ExternalCommandProcessor", downtime) << error.what();
 		}
 	}
 
@@ -1182,10 +1182,10 @@ void ExternalCommandProcessor::DelDowntimeByHostName(double, const std::vector<S
 				String downtimeName = downtime->GetName();
 				Downtime::RemoveDowntime(downtimeName, false, DowntimeRemovedByUser);
 
-				Log(LogNotice, "ExternalCommandProcessor")
+				Log(LogNotice, "ExternalCommandProcessor", downtime)
 					<< "Removed downtime '" << downtimeName << "'.";
 			} catch (const invalid_downtime_removal_error& error) {
-				Log(LogWarning, "ExternalCommandProcessor") << error.what();
+				Log(LogWarning, "ExternalCommandProcessor", downtime) << error.what();
 			}
 		}
 	}
@@ -1206,7 +1206,7 @@ void ExternalCommandProcessor::ScheduleHostSvcDowntime(double, const std::vector
 		triggeredBy = Downtime::GetDowntimeFromLegacyID(triggeredByLegacy);
 	}
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", host)
 		<< "Creating downtime for host " << host->GetName();
 
 	(void) Downtime::AddDowntime(host, arguments[6], arguments[7],
@@ -1214,7 +1214,7 @@ void ExternalCommandProcessor::ScheduleHostSvcDowntime(double, const std::vector
 		Convert::ToBool(is_fixed), triggeredBy, Convert::ToDouble(arguments[5]));
 
 	for (const Service::Ptr& service : host->GetServices()) {
-		Log(LogNotice, "ExternalCommandProcessor")
+		Log(LogNotice, "ExternalCommandProcessor", service)
 			<< "Creating downtime for service " << service->GetName();
 		(void) Downtime::AddDowntime(service, arguments[6], arguments[7],
 			Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
@@ -1238,7 +1238,7 @@ void ExternalCommandProcessor::ScheduleHostgroupHostDowntime(double, const std::
 	}
 
 	for (const Host::Ptr& host : hg->GetMembers()) {
-		Log(LogNotice, "ExternalCommandProcessor")
+		Log(LogNotice, "ExternalCommandProcessor", host)
 			<<  "Creating downtime for host " << host->GetName();
 
 		(void) Downtime::AddDowntime(host, arguments[6], arguments[7],
@@ -1275,7 +1275,7 @@ void ExternalCommandProcessor::ScheduleHostgroupSvcDowntime(double, const std::v
 	}
 
 	for (const Service::Ptr& service : services) {
-		Log(LogNotice, "ExternalCommandProcessor")
+		Log(LogNotice, "ExternalCommandProcessor", service)
 			<< "Creating downtime for service " << service->GetName();
 		(void) Downtime::AddDowntime(service, arguments[6], arguments[7],
 			Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
@@ -1310,7 +1310,7 @@ void ExternalCommandProcessor::ScheduleServicegroupHostDowntime(double, const st
 	}
 
 	for (const Host::Ptr& host : hosts) {
-		Log(LogNotice, "ExternalCommandProcessor")
+		Log(LogNotice, "ExternalCommandProcessor", host)
 			<< "Creating downtime for host " << host->GetName();
 		(void) Downtime::AddDowntime(host, arguments[6], arguments[7],
 			Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
@@ -1334,7 +1334,7 @@ void ExternalCommandProcessor::ScheduleServicegroupSvcDowntime(double, const std
 	}
 
 	for (const Service::Ptr& service : sg->GetMembers()) {
-		Log(LogNotice, "ExternalCommandProcessor")
+		Log(LogNotice, "ExternalCommandProcessor", service)
 			<< "Creating downtime for service " << service->GetName();
 		(void) Downtime::AddDowntime(service, arguments[6], arguments[7],
 			Convert::ToDouble(arguments[1]), Convert::ToDouble(arguments[2]),
@@ -1352,7 +1352,7 @@ void ExternalCommandProcessor::AddHostComment(double, const std::vector<String>&
 	if (arguments[2].IsEmpty() || arguments[3].IsEmpty())
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Author and comment must not be empty"));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", host)
 		<< "Creating comment for host " << host->GetName();
 	(void) Comment::AddComment(host, CommentUser, arguments[2], arguments[3], false, 0);
 }
@@ -1360,7 +1360,7 @@ void ExternalCommandProcessor::AddHostComment(double, const std::vector<String>&
 void ExternalCommandProcessor::DelHostComment(double, const std::vector<String>& arguments)
 {
 	int id = Convert::ToLong(arguments[0]);
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", nullptr)
 		<< "Removing comment ID " << arguments[0];
 	String rid = Comment::GetCommentIDFromLegacyID(id);
 	Comment::RemoveComment(rid);
@@ -1376,7 +1376,7 @@ void ExternalCommandProcessor::AddSvcComment(double, const std::vector<String>& 
 	if (arguments[3].IsEmpty() || arguments[4].IsEmpty())
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Author and comment must not be empty"));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", service)
 		<< "Creating comment for service " << service->GetName();
 	(void) Comment::AddComment(service, CommentUser, arguments[3], arguments[4], false, 0);
 }
@@ -1384,7 +1384,7 @@ void ExternalCommandProcessor::AddSvcComment(double, const std::vector<String>& 
 void ExternalCommandProcessor::DelSvcComment(double, const std::vector<String>& arguments)
 {
 	int id = Convert::ToLong(arguments[0]);
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", nullptr)
 		<< "Removing comment ID " << arguments[0];
 
 	String rid = Comment::GetCommentIDFromLegacyID(id);
@@ -1398,7 +1398,7 @@ void ExternalCommandProcessor::DelAllHostComments(double, const std::vector<Stri
 	if (!host)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot delete all host comments for non-existent host '" + arguments[0] + "'"));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", host)
 		<< "Removing all comments for host " << host->GetName();
 	host->RemoveAllComments();
 }
@@ -1410,7 +1410,7 @@ void ExternalCommandProcessor::DelAllSvcComments(double, const std::vector<Strin
 	if (!service)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot delete all service comments for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", service)
 		<< "Removing all comments for service " << service->GetName();
 	service->RemoveAllComments();
 }
@@ -1424,7 +1424,7 @@ void ExternalCommandProcessor::SendCustomHostNotification(double, const std::vec
 
 	int options = Convert::ToLong(arguments[1]);
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", host)
 		<< "Sending custom notification for host " << host->GetName();
 	if (options & 2) {
 		host->SetForceNextNotification(true);
@@ -1443,7 +1443,7 @@ void ExternalCommandProcessor::SendCustomSvcNotification(double, const std::vect
 
 	int options = Convert::ToLong(arguments[2]);
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", service)
 		<< "Sending custom notification for service " << service->GetName();
 
 	if (options & 2) {
@@ -1461,7 +1461,7 @@ void ExternalCommandProcessor::DelayHostNotification(double, const std::vector<S
 	if (!host)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot delay host notification for non-existent host '" + arguments[0] + "'"));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", host)
 		<< "Delaying notifications for host '" << host->GetName() << "'";
 
 	for (const Notification::Ptr& notification : host->GetNotifications()) {
@@ -1476,7 +1476,7 @@ void ExternalCommandProcessor::DelaySvcNotification(double, const std::vector<St
 	if (!service)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot delay service notification for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", service)
 		<< "Delaying notifications for service " << service->GetName();
 
 	for (const Notification::Ptr& notification : service->GetNotifications()) {
@@ -1491,7 +1491,7 @@ void ExternalCommandProcessor::EnableHostNotifications(double, const std::vector
 	if (!host)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot enable host notifications for non-existent host '" + arguments[0] + "'"));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", host)
 		<< "Enabling notifications for host '" << arguments[0] << "'";
 
 	host->ModifyAttribute("enable_notifications", true);
@@ -1504,7 +1504,7 @@ void ExternalCommandProcessor::DisableHostNotifications(double, const std::vecto
 	if (!host)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot disable host notifications for non-existent host '" + arguments[0] + "'"));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", host)
 		<< "Disabling notifications for host '" << arguments[0] << "'";
 
 	host->ModifyAttribute("enable_notifications", false);
@@ -1517,7 +1517,7 @@ void ExternalCommandProcessor::EnableSvcNotifications(double, const std::vector<
 	if (!service)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot enable service notifications for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", service)
 		<< "Enabling notifications for service '" << arguments[1] << "'";
 
 	service->ModifyAttribute("enable_notifications", true);
@@ -1530,7 +1530,7 @@ void ExternalCommandProcessor::DisableSvcNotifications(double, const std::vector
 	if (!service)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot disable service notifications for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", service)
 		<< "Disabling notifications for service '" << arguments[1] << "'";
 
 	service->ModifyAttribute("enable_notifications", false);
@@ -1543,11 +1543,11 @@ void ExternalCommandProcessor::EnableHostSvcNotifications(double, const std::vec
 	if (!host)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot enable notifications for all services for non-existent host '" + arguments[0] + "'"));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", host)
 		<< "Enabling notifications for all services on host '" << arguments[0] << "'";
 
 	for (const Service::Ptr& service : host->GetServices()) {
-		Log(LogNotice, "ExternalCommandProcessor")
+		Log(LogNotice, "ExternalCommandProcessor", service)
 			<< "Enabling notifications for service '" << service->GetName() << "'";
 
 		service->ModifyAttribute("enable_notifications", true);
@@ -1561,11 +1561,11 @@ void ExternalCommandProcessor::DisableHostSvcNotifications(double, const std::ve
 	if (!host)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot disable notifications for all services  for non-existent host '" + arguments[0] + "'"));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", host)
 		<< "Disabling notifications for all services on host '" << arguments[0] << "'";
 
 	for (const Service::Ptr& service : host->GetServices()) {
-		Log(LogNotice, "ExternalCommandProcessor")
+		Log(LogNotice, "ExternalCommandProcessor", service)
 			<< "Disabling notifications for service '" << service->GetName() << "'";
 
 		service->ModifyAttribute("enable_notifications", false);
@@ -1580,7 +1580,7 @@ void ExternalCommandProcessor::DisableHostgroupHostChecks(double, const std::vec
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot disable hostgroup host checks for non-existent hostgroup '" + arguments[0] + "'"));
 
 	for (const Host::Ptr& host : hg->GetMembers()) {
-		Log(LogNotice, "ExternalCommandProcessor")
+		Log(LogNotice, "ExternalCommandProcessor", host)
 			<< "Disabling active checks for host '" << host->GetName() << "'";
 
 		host->ModifyAttribute("enable_active_checks", false);
@@ -1595,7 +1595,7 @@ void ExternalCommandProcessor::DisableHostgroupPassiveHostChecks(double, const s
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot disable hostgroup passive host checks for non-existent hostgroup '" + arguments[0] + "'"));
 
 	for (const Host::Ptr& host : hg->GetMembers()) {
-		Log(LogNotice, "ExternalCommandProcessor")
+		Log(LogNotice, "ExternalCommandProcessor", host)
 			<< "Disabling passive checks for host '" << host->GetName() << "'";
 
 		host->ModifyAttribute("enable_passive_checks", false);
@@ -1612,7 +1612,7 @@ void ExternalCommandProcessor::DisableServicegroupHostChecks(double, const std::
 	for (const Service::Ptr& service : sg->GetMembers()) {
 		Host::Ptr host = service->GetHost();
 
-		Log(LogNotice, "ExternalCommandProcessor")
+		Log(LogNotice, "ExternalCommandProcessor", host)
 			<< "Disabling active checks for host '" << host->GetName() << "'";
 
 		host->ModifyAttribute("enable_active_checks", false);
@@ -1629,7 +1629,7 @@ void ExternalCommandProcessor::DisableServicegroupPassiveHostChecks(double, cons
 	for (const Service::Ptr& service : sg->GetMembers()) {
 		Host::Ptr host = service->GetHost();
 
-		Log(LogNotice, "ExternalCommandProcessor")
+		Log(LogNotice, "ExternalCommandProcessor", host)
 			<< "Disabling passive checks for host '" << host->GetName() << "'";
 
 		host->ModifyAttribute("enable_passive_checks", false);
@@ -1644,7 +1644,7 @@ void ExternalCommandProcessor::EnableHostgroupHostChecks(double, const std::vect
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot enable hostgroup host checks for non-existent hostgroup '" + arguments[0] + "'"));
 
 	for (const Host::Ptr& host : hg->GetMembers()) {
-		Log(LogNotice, "ExternalCommandProcessor")
+		Log(LogNotice, "ExternalCommandProcessor", host)
 			<< "Enabling active checks for host '" << host->GetName() << "'";
 
 		host->ModifyAttribute("enable_active_checks", true);
@@ -1659,7 +1659,7 @@ void ExternalCommandProcessor::EnableHostgroupPassiveHostChecks(double, const st
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot enable hostgroup passive host checks for non-existent hostgroup '" + arguments[0] + "'"));
 
 	for (const Host::Ptr& host : hg->GetMembers()) {
-		Log(LogNotice, "ExternalCommandProcessor")
+		Log(LogNotice, "ExternalCommandProcessor", host)
 			<< "Enabling passive checks for host '" << host->GetName() << "'";
 
 		host->ModifyAttribute("enable_passive_checks", true);
@@ -1676,7 +1676,7 @@ void ExternalCommandProcessor::EnableServicegroupHostChecks(double, const std::v
 	for (const Service::Ptr& service : sg->GetMembers()) {
 		Host::Ptr host = service->GetHost();
 
-		Log(LogNotice, "ExternalCommandProcessor")
+		Log(LogNotice, "ExternalCommandProcessor", host)
 			<< "Enabling active checks for host '" << host->GetName() << "'";
 
 		host->ModifyAttribute("enable_active_checks", true);
@@ -1693,7 +1693,7 @@ void ExternalCommandProcessor::EnableServicegroupPassiveHostChecks(double, const
 	for (const Service::Ptr& service : sg->GetMembers()) {
 		Host::Ptr host = service->GetHost();
 
-		Log(LogNotice, "ExternalCommandProcessor")
+		Log(LogNotice, "ExternalCommandProcessor", host)
 			<< "Enabling passive checks for host '" << host->GetName() << "'";
 
 		host->ModifyAttribute("enable_passive_checks", true);
@@ -1707,7 +1707,7 @@ void ExternalCommandProcessor::EnableHostFlapping(double, const std::vector<Stri
 	if (!host)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot enable host flapping for non-existent host '" + arguments[0] + "'"));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", host)
 		<< "Enabling flapping detection for host '" << arguments[0] << "'";
 
 	host->ModifyAttribute("enable_flapping", true);
@@ -1720,7 +1720,7 @@ void ExternalCommandProcessor::DisableHostFlapping(double, const std::vector<Str
 	if (!host)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot disable host flapping for non-existent host '" + arguments[0] + "'"));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", host)
 		<< "Disabling flapping detection for host '" << arguments[0] << "'";
 
 	host->ModifyAttribute("enable_flapping", false);
@@ -1733,7 +1733,7 @@ void ExternalCommandProcessor::EnableSvcFlapping(double, const std::vector<Strin
 	if (!service)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot enable service flapping for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", service)
 		<< "Enabling flapping detection for service '" << arguments[1] << "'";
 
 	service->ModifyAttribute("enable_flapping", true);
@@ -1746,7 +1746,7 @@ void ExternalCommandProcessor::DisableSvcFlapping(double, const std::vector<Stri
 	if (!service)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot disable service flapping for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", service)
 		<< "Disabling flapping detection for service '" << arguments[1] << "'";
 
 	service->ModifyAttribute("enable_flapping", false);
@@ -1754,84 +1754,84 @@ void ExternalCommandProcessor::DisableSvcFlapping(double, const std::vector<Stri
 
 void ExternalCommandProcessor::EnableNotifications(double, const std::vector<String>&)
 {
-	Log(LogNotice, "ExternalCommandProcessor", "Globally enabling notifications.");
+	Log(LogNotice, "ExternalCommandProcessor", nullptr, "Globally enabling notifications.");
 
 	IcingaApplication::GetInstance()->ModifyAttribute("enable_notifications", true);
 }
 
 void ExternalCommandProcessor::DisableNotifications(double, const std::vector<String>&)
 {
-	Log(LogNotice, "ExternalCommandProcessor", "Globally disabling notifications.");
+	Log(LogNotice, "ExternalCommandProcessor", nullptr, "Globally disabling notifications.");
 
 	IcingaApplication::GetInstance()->ModifyAttribute("enable_notifications", false);
 }
 
 void ExternalCommandProcessor::EnableFlapDetection(double, const std::vector<String>&)
 {
-	Log(LogNotice, "ExternalCommandProcessor", "Globally enabling flap detection.");
+	Log(LogNotice, "ExternalCommandProcessor", nullptr, "Globally enabling flap detection.");
 
 	IcingaApplication::GetInstance()->ModifyAttribute("enable_flapping", true);
 }
 
 void ExternalCommandProcessor::DisableFlapDetection(double, const std::vector<String>&)
 {
-	Log(LogNotice, "ExternalCommandProcessor", "Globally disabling flap detection.");
+	Log(LogNotice, "ExternalCommandProcessor", nullptr, "Globally disabling flap detection.");
 
 	IcingaApplication::GetInstance()->ModifyAttribute("enable_flapping", false);
 }
 
 void ExternalCommandProcessor::EnableEventHandlers(double, const std::vector<String>&)
 {
-	Log(LogNotice, "ExternalCommandProcessor", "Globally enabling event handlers.");
+	Log(LogNotice, "ExternalCommandProcessor", nullptr, "Globally enabling event handlers.");
 
 	IcingaApplication::GetInstance()->ModifyAttribute("enable_event_handlers", true);
 }
 
 void ExternalCommandProcessor::DisableEventHandlers(double, const std::vector<String>&)
 {
-	Log(LogNotice, "ExternalCommandProcessor", "Globally disabling event handlers.");
+	Log(LogNotice, "ExternalCommandProcessor", nullptr, "Globally disabling event handlers.");
 
 	IcingaApplication::GetInstance()->ModifyAttribute("enable_event_handlers", false);
 }
 
 void ExternalCommandProcessor::EnablePerformanceData(double, const std::vector<String>&)
 {
-	Log(LogNotice, "ExternalCommandProcessor", "Globally enabling performance data processing.");
+	Log(LogNotice, "ExternalCommandProcessor", nullptr, "Globally enabling performance data processing.");
 
 	IcingaApplication::GetInstance()->ModifyAttribute("enable_perfdata", true);
 }
 
 void ExternalCommandProcessor::DisablePerformanceData(double, const std::vector<String>&)
 {
-	Log(LogNotice, "ExternalCommandProcessor", "Globally disabling performance data processing.");
+	Log(LogNotice, "ExternalCommandProcessor", nullptr, "Globally disabling performance data processing.");
 
 	IcingaApplication::GetInstance()->ModifyAttribute("enable_perfdata", false);
 }
 
 void ExternalCommandProcessor::StartExecutingSvcChecks(double, const std::vector<String>&)
 {
-	Log(LogNotice, "ExternalCommandProcessor", "Globally enabling service checks.");
+	Log(LogNotice, "ExternalCommandProcessor", nullptr, "Globally enabling service checks.");
 
 	IcingaApplication::GetInstance()->ModifyAttribute("enable_service_checks", true);
 }
 
 void ExternalCommandProcessor::StopExecutingSvcChecks(double, const std::vector<String>&)
 {
-	Log(LogNotice, "ExternalCommandProcessor", "Globally disabling service checks.");
+	Log(LogNotice, "ExternalCommandProcessor", nullptr, "Globally disabling service checks.");
 
 	IcingaApplication::GetInstance()->ModifyAttribute("enable_service_checks", false);
 }
 
 void ExternalCommandProcessor::StartExecutingHostChecks(double, const std::vector<String>&)
 {
-	Log(LogNotice, "ExternalCommandProcessor", "Globally enabling host checks.");
+	Log(LogNotice, "ExternalCommandProcessor", nullptr, "Globally enabling host checks.");
 
 	IcingaApplication::GetInstance()->ModifyAttribute("enable_host_checks", true);
 }
 
 void ExternalCommandProcessor::StopExecutingHostChecks(double, const std::vector<String>&)
 {
-	Log(LogNotice, "ExternalCommandProcessor", "Globally disabling host checks.");
+	Log(LogNotice, "ExternalCommandProcessor", nullptr, "Globally disabling host checks.");
 
 	IcingaApplication::GetInstance()->ModifyAttribute("enable_host_checks", false);
 }
@@ -1845,7 +1845,7 @@ void ExternalCommandProcessor::ChangeNormalSvcCheckInterval(double, const std::v
 
 	double interval = Convert::ToDouble(arguments[2]);
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", service)
 		<< "Updating check interval for service '" << arguments[1] << "'";
 
 	service->ModifyAttribute("check_interval", interval * 60);
@@ -1858,7 +1858,7 @@ void ExternalCommandProcessor::ChangeNormalHostCheckInterval(double, const std::
 	if (!host)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot update check interval for non-existent host '" + arguments[0] + "'"));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", host)
 		<< "Updating check interval for host '" << arguments[0] << "'";
 
 	double interval = Convert::ToDouble(arguments[1]);
@@ -1875,7 +1875,7 @@ void ExternalCommandProcessor::ChangeRetrySvcCheckInterval(double, const std::ve
 
 	double interval = Convert::ToDouble(arguments[2]);
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", service)
 		<< "Updating retry interval for service '" << arguments[1] << "'";
 
 	service->ModifyAttribute("retry_interval", interval * 60);
@@ -1888,7 +1888,7 @@ void ExternalCommandProcessor::ChangeRetryHostCheckInterval(double, const std::v
 	if (!host)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot update retry interval for non-existent host '" + arguments[0] + "'"));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", host)
 		<< "Updating retry interval for host '" << arguments[0] << "'";
 
 	double interval = Convert::ToDouble(arguments[1]);
@@ -1903,7 +1903,7 @@ void ExternalCommandProcessor::EnableHostEventHandler(double, const std::vector<
 	if (!host)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot enable event handler for non-existent host '" + arguments[0] + "'"));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", host)
 		<< "Enabling event handler for host '" << arguments[0] << "'";
 
 	host->ModifyAttribute("enable_event_handler", true);
@@ -1916,7 +1916,7 @@ void ExternalCommandProcessor::DisableHostEventHandler(double, const std::vector
 	if (!host)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot disable event handler for non-existent host '" + arguments[0] + "'"));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", host)
 		<< "Disabling event handler for host '" << arguments[0] << "'";
 
 	host->ModifyAttribute("enable_event_handler", false);
@@ -1929,7 +1929,7 @@ void ExternalCommandProcessor::EnableSvcEventHandler(double, const std::vector<S
 	if (!service)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot enable event handler for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", service)
 		<< "Enabling event handler for service '" << arguments[1] << "'";
 
 	service->ModifyAttribute("enable_event_handler", true);
@@ -1942,7 +1942,7 @@ void ExternalCommandProcessor::DisableSvcEventHandler(double, const std::vector<
 	if (!service)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot disable event handler for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", service)
 		<< "Disabling event handler for service '" << arguments[1] + "'";
 
 	service->ModifyAttribute("enable_event_handler", false);
@@ -1956,7 +1956,7 @@ void ExternalCommandProcessor::ChangeHostEventHandler(double, const std::vector<
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot change event handler for non-existent host '" + arguments[0] + "'"));
 
 	if (arguments[1].IsEmpty()) {
-		Log(LogNotice, "ExternalCommandProcessor")
+		Log(LogNotice, "ExternalCommandProcessor", host)
 			<< "Unsetting event handler for host '" << arguments[0] << "'";
 
 		host->ModifyAttribute("event_command", "");
@@ -1966,7 +1966,7 @@ void ExternalCommandProcessor::ChangeHostEventHandler(double, const std::vector<
 		if (!command)
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Event command '" + arguments[1] + "' does not exist."));
 
-		Log(LogNotice, "ExternalCommandProcessor")
+		Log(LogNotice, "ExternalCommandProcessor", host)
 			<< "Changing event handler for host '" << arguments[0] << "' to '" << arguments[1] << "'";
 
 		host->ModifyAttribute("event_command", command->GetName());
@@ -1981,7 +1981,7 @@ void ExternalCommandProcessor::ChangeSvcEventHandler(double, const std::vector<S
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot change event handler for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
 
 	if (arguments[2].IsEmpty()) {
-		Log(LogNotice, "ExternalCommandProcessor")
+		Log(LogNotice, "ExternalCommandProcessor", service)
 			<< "Unsetting event handler for service '" << arguments[1] << "'";
 
 		service->ModifyAttribute("event_command", "");
@@ -1991,7 +1991,7 @@ void ExternalCommandProcessor::ChangeSvcEventHandler(double, const std::vector<S
 		if (!command)
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Event command '" + arguments[2] + "' does not exist."));
 
-		Log(LogNotice, "ExternalCommandProcessor")
+		Log(LogNotice, "ExternalCommandProcessor", service)
 			<< "Changing event handler for service '" << arguments[1] << "' to '" << arguments[2] << "'";
 
 		service->ModifyAttribute("event_command", command->GetName());
@@ -2010,7 +2010,7 @@ void ExternalCommandProcessor::ChangeHostCheckCommand(double, const std::vector<
 	if (!command)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Check command '" + arguments[1] + "' does not exist."));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", host)
 		<< "Changing check command for host '" << arguments[0] << "' to '" << arguments[1] << "'";
 
 	host->ModifyAttribute("check_command", command->GetName());
@@ -2028,7 +2028,7 @@ void ExternalCommandProcessor::ChangeSvcCheckCommand(double, const std::vector<S
 	if (!command)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Check command '" + arguments[2] + "' does not exist."));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", service)
 		<< "Changing check command for service '" << arguments[1] << "' to '" << arguments[2] << "'";
 
 	service->ModifyAttribute("check_command", command->GetName());
@@ -2043,7 +2043,7 @@ void ExternalCommandProcessor::ChangeMaxHostCheckAttempts(double, const std::vec
 
 	int attempts = Convert::ToLong(arguments[1]);
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", host)
 		<< "Changing max check attempts for host '" << arguments[0] << "' to '" << arguments[1] << "'";
 
 	host->ModifyAttribute("max_check_attempts", attempts);
@@ -2058,7 +2058,7 @@ void ExternalCommandProcessor::ChangeMaxSvcCheckAttempts(double, const std::vect
 
 	int attempts = Convert::ToLong(arguments[2]);
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", service)
 		<< "Changing max check attempts for service '" << arguments[1] << "' to '" << arguments[2] << "'";
 
 	service->ModifyAttribute("max_check_attempts", attempts);
@@ -2076,7 +2076,7 @@ void ExternalCommandProcessor::ChangeHostCheckTimeperiod(double, const std::vect
 	if (!tp)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Time period '" + arguments[1] + "' does not exist."));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", host)
 		<< "Changing check period for host '" << arguments[0] << "' to '" << arguments[1] << "'";
 
 	host->ModifyAttribute("check_period", tp->GetName());
@@ -2094,7 +2094,7 @@ void ExternalCommandProcessor::ChangeSvcCheckTimeperiod(double, const std::vecto
 	if (!tp)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Time period '" + arguments[2] + "' does not exist."));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", service)
 		<< "Changing check period for service '" << arguments[1] << "' to '" << arguments[2] << "'";
 
 	service->ModifyAttribute("check_period", tp->GetName());
@@ -2107,7 +2107,7 @@ void ExternalCommandProcessor::ChangeCustomHostVar(double, const std::vector<Str
 	if (!host)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot change custom var for non-existent host '" + arguments[0] + "'"));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", host)
 		<< "Changing custom var '" << arguments[1] << "' for host '" << arguments[0] << "' to value '" << arguments[2] << "'";
 
 	host->ModifyAttribute("vars." + arguments[1], arguments[2]);
@@ -2120,7 +2120,7 @@ void ExternalCommandProcessor::ChangeCustomSvcVar(double, const std::vector<Stri
 	if (!service)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot change custom var for non-existent service '" + arguments[1] + "' on host '" + arguments[0] + "'"));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", service)
 		<< "Changing custom var '" << arguments[2] << "' for service '" << arguments[1] << "' on host '"
 		<< arguments[0] << "' to value '" << arguments[3] << "'";
 
@@ -2134,7 +2134,7 @@ void ExternalCommandProcessor::ChangeCustomUserVar(double, const std::vector<Str
 	if (!user)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot change custom var for non-existent user '" + arguments[0] + "'"));
 
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", user)
 		<< "Changing custom var '" << arguments[1] << "' for user '" << arguments[0] << "' to value '" << arguments[2] << "'";
 
 	user->ModifyAttribute("vars." + arguments[1], arguments[2]);
@@ -2172,7 +2172,7 @@ void ExternalCommandProcessor::ChangeCustomNotificationcommandVar(double, const 
 
 void ExternalCommandProcessor::ChangeCustomCommandVarInternal(const Command::Ptr& command, const String& name, const Value& value)
 {
-	Log(LogNotice, "ExternalCommandProcessor")
+	Log(LogNotice, "ExternalCommandProcessor", command)
 		<< "Changing custom var '" << name << "' for command '" << command->GetName() << "' to value '" << value << "'";
 
 	command->ModifyAttribute("vars." + name, value);
@@ -2186,7 +2186,7 @@ void ExternalCommandProcessor::EnableHostgroupHostNotifications(double, const st
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot enable host notifications for non-existent hostgroup '" + arguments[0] + "'"));
 
 	for (const Host::Ptr& host : hg->GetMembers()) {
-		Log(LogNotice, "ExternalCommandProcessor")
+		Log(LogNotice, "ExternalCommandProcessor", host)
 			<< "Enabling notifications for host '" << host->GetName() << "'";
 
 		host->ModifyAttribute("enable_notifications", true);
@@ -2202,7 +2202,7 @@ void ExternalCommandProcessor::EnableHostgroupSvcNotifications(double, const std
 
 	for (const Host::Ptr& host : hg->GetMembers()) {
 		for (const Service::Ptr& service : host->GetServices()) {
-			Log(LogNotice, "ExternalCommandProcessor")
+			Log(LogNotice, "ExternalCommandProcessor", service)
 				<< "Enabling notifications for service '" << service->GetName() << "'";
 
 			service->ModifyAttribute("enable_notifications", true);
@@ -2218,7 +2218,7 @@ void ExternalCommandProcessor::DisableHostgroupHostNotifications(double, const s
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot disable host notifications for non-existent hostgroup '" + arguments[0] + "'"));
 
 	for (const Host::Ptr& host : hg->GetMembers()) {
-		Log(LogNotice, "ExternalCommandProcessor")
+		Log(LogNotice, "ExternalCommandProcessor", host)
 			<< "Disabling notifications for host '" << host->GetName() << "'";
 
 		host->ModifyAttribute("enable_notifications", false);
@@ -2234,7 +2234,7 @@ void ExternalCommandProcessor::DisableHostgroupSvcNotifications(double, const st
 
 	for (const Host::Ptr& host : hg->GetMembers()) {
 		for (const Service::Ptr& service : host->GetServices()) {
-			Log(LogNotice, "ExternalCommandProcessor")
+			Log(LogNotice, "ExternalCommandProcessor", service)
 				<< "Disabling notifications for service '" << service->GetName() << "'";
 
 			service->ModifyAttribute("enable_notifications", false);
@@ -2252,7 +2252,7 @@ void ExternalCommandProcessor::EnableServicegroupHostNotifications(double, const
 	for (const Service::Ptr& service : sg->GetMembers()) {
 		Host::Ptr host = service->GetHost();
 
-		Log(LogNotice, "ExternalCommandProcessor")
+		Log(LogNotice, "ExternalCommandProcessor", host)
 			<< "Enabling notifications for host '" << host->GetName() << "'";
 
 		host->ModifyAttribute("enable_notifications", true);
@@ -2267,7 +2267,7 @@ void ExternalCommandProcessor::EnableServicegroupSvcNotifications(double, const 
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot enable service notifications for non-existent servicegroup '" + arguments[0] + "'"));
 
 	for (const Service::Ptr& service : sg->GetMembers()) {
-		Log(LogNotice, "ExternalCommandProcessor")
+		Log(LogNotice, "ExternalCommandProcessor", service)
 			<< "Enabling notifications for service '" << service->GetName() << "'";
 
 		service->ModifyAttribute("enable_notifications", true);
@@ -2284,7 +2284,7 @@ void ExternalCommandProcessor::DisableServicegroupHostNotifications(double, cons
 	for (const Service::Ptr& service : sg->GetMembers()) {
 		Host::Ptr host = service->GetHost();
 
-		Log(LogNotice, "ExternalCommandProcessor")
+		Log(LogNotice, "ExternalCommandProcessor", host)
 			<< "Disabling notifications for host '" << host->GetName() << "'";
 
 		host->ModifyAttribute("enable_notifications", false);
@@ -2299,7 +2299,7 @@ void ExternalCommandProcessor::DisableServicegroupSvcNotifications(double, const
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Cannot disable service notifications for non-existent servicegroup '" + arguments[0] + "'"));
 
 	for (const Service::Ptr& service : sg->GetMembers()) {
-		Log(LogNotice, "ExternalCommandProcessor")
+		Log(LogNotice, "ExternalCommandProcessor", service)
 			<< "Disabling notifications for service '" << service->GetName() << "'";
 
 		service->ModifyAttribute("enable_notifications", false);

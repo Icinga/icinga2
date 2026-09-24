@@ -59,7 +59,7 @@ void IdoPgsqlConnection::OnAllConfigLoaded()
 {
 	ObjectImpl<IdoPgsqlConnection>::OnAllConfigLoaded();
 
-	Log(LogWarning, "IdoPgsqlConnection")
+	Log(LogWarning, "IdoPgsqlConnection", this)
 		<< "This feature is DEPRECATED and will be removed in v2.18.";
 }
 
@@ -92,7 +92,7 @@ void IdoPgsqlConnection::StatsFunc(const Dictionary::Ptr& status, const Array::P
 
 void IdoPgsqlConnection::Resume()
 {
-	Log(LogInformation, "IdoPgsqlConnection")
+	Log(LogInformation, "IdoPgsqlConnection", this)
 		<< "'" << GetName() << "' resumed.";
 
 	SetConnected(false);
@@ -125,15 +125,15 @@ void IdoPgsqlConnection::Pause()
 	m_ReconnectTimer->Stop(true);
 	m_TxTimer->Stop(true);
 
-	Log(LogInformation, "IdoPgsqlConnection")
+	Log(LogInformation, "IdoPgsqlConnection", this)
 		<< "'" << GetName() << "' paused.";
 }
 
 void IdoPgsqlConnection::ExceptionHandler(std::exception_ptr exp)
 {
-	Log(LogWarning, "IdoPgsqlConnection", "Exception during database operation: Verify that your database is operational!");
+	Log(LogWarning, "IdoPgsqlConnection", this, "Exception during database operation: Verify that your database is operational!");
 
-	Log(LogDebug, "IdoPgsqlConnection")
+	Log(LogDebug, "IdoPgsqlConnection", this)
 		<< "Exception during database operation: " << DiagnosticInformation(std::move(exp));
 
 	if (GetConnected()) {
@@ -160,7 +160,7 @@ void IdoPgsqlConnection::Disconnect()
 	m_Pgsql->finish(m_Connection);
 	SetConnected(false);
 
-	Log(LogInformation, "IdoPgsqlConnection")
+	Log(LogInformation, "IdoPgsqlConnection", this)
 		<< "Disconnected from '" << GetName() << "' database '" << GetDatabase() << "'.";
 }
 
@@ -261,7 +261,7 @@ void IdoPgsqlConnection::Reconnect()
 		m_Pgsql->finish(m_Connection);
 		SetConnected(false);
 
-		Log(LogCritical, "IdoPgsqlConnection")
+		Log(LogCritical, "IdoPgsqlConnection", this)
 			<< "Connection to database '" << database << "' with user '" << user << "' on '" << host << ":" << port
 			<< "' failed: \"" << message << "\"";
 
@@ -282,7 +282,7 @@ void IdoPgsqlConnection::Reconnect()
 		m_Pgsql->finish(m_Connection);
 		SetConnected(false);
 
-		Log(LogCritical, "IdoPgsqlConnection", "Schema does not provide any valid version! Verify your schema installation.");
+		Log(LogCritical, "IdoPgsqlConnection", this, "Schema does not provide any valid version! Verify your schema installation.");
 
 		BOOST_THROW_EXCEPTION(std::runtime_error("Invalid schema."));
 	}
@@ -295,7 +295,7 @@ void IdoPgsqlConnection::Reconnect()
 		m_Pgsql->finish(m_Connection);
 		SetConnected(false);
 
-		Log(LogCritical, "IdoPgsqlConnection")
+		Log(LogCritical, "IdoPgsqlConnection", this)
 			<< "Schema version '" << version << "' does not match the required version '"
 			<< GetCompatSchemaVersion() << "' (or newer)! Please check the upgrade documentation at "
 			<< "https://icinga.com/docs/icinga2/latest/doc/16-upgrading-icinga-2/#upgrading-postgresql-db";
@@ -332,7 +332,7 @@ void IdoPgsqlConnection::Reconnect()
 		if (row)
 			endpoint_name = row->Get("endpoint_name");
 		else
-			Log(LogNotice, "IdoPgsqlConnection", "Empty program status table");
+			Log(LogNotice, "IdoPgsqlConnection", this, "Empty program status table");
 
 		/* if we did not write into the database earlier, another instance is active */
 		if (endpoint_name != my_endpoint->GetName()) {
@@ -349,7 +349,7 @@ void IdoPgsqlConnection::Reconnect()
 			double failoverTimeout = GetFailoverTimeout();
 
 			if (status_update_age < GetFailoverTimeout()) {
-				Log(LogInformation, "IdoPgsqlConnection")
+				Log(LogInformation, "IdoPgsqlConnection", this)
 					<< "Last update by endpoint '" << endpoint_name << "' was "
 					<< status_update_age << "s ago (< failover timeout of " << failoverTimeout << "s). Retrying.";
 
@@ -362,7 +362,7 @@ void IdoPgsqlConnection::Reconnect()
 
 			/* activate the IDO only, if we're authoritative in this zone */
 			if (IsPaused()) {
-				Log(LogNotice, "IdoPgsqlConnection")
+				Log(LogNotice, "IdoPgsqlConnection", this)
 					<< "Local endpoint '" << my_endpoint->GetName() << "' is not authoritative, bailing out.";
 
 				m_Pgsql->finish(m_Connection);
@@ -373,15 +373,15 @@ void IdoPgsqlConnection::Reconnect()
 
 			SetLastFailover(now);
 
-			Log(LogInformation, "IdoPgsqlConnection")
+			Log(LogInformation, "IdoPgsqlConnection", this)
 				<< "Last update by endpoint '" << endpoint_name << "' was "
 				<< status_update_age << "s ago. Taking over '" << GetName() << "' in HA zone '" << Zone::GetLocalZone()->GetName() << "'.";
 		}
 
-		Log(LogNotice, "IdoPgsqlConnection", "Enabling IDO connection.");
+		Log(LogNotice, "IdoPgsqlConnection", this, "Enabling IDO connection.");
 	}
 
-	Log(LogInformation, "IdoPgsqlConnection")
+	Log(LogInformation, "IdoPgsqlConnection", this)
 		<< "PGSQL IDO instance id: " << static_cast<long>(m_InstanceID) << " (schema version: '" + version + "')"
 		<< (!sslMode.IsEmpty() ? ", sslmode='" + sslMode + "'" : "");
 
@@ -434,7 +434,7 @@ void IdoPgsqlConnection::Reconnect()
 		if (dbobj->GetObject())
 			continue;
 
-		Log(LogNotice, "IdoPgsqlConnection")
+		Log(LogNotice, "IdoPgsqlConnection", this)
 			<< "Deactivate deleted object name1: '" << dbobj->GetName1()
 			<< "' name2: '" << dbobj->GetName2() + "'.";
 		DeactivateObject(dbobj);
@@ -454,7 +454,7 @@ void IdoPgsqlConnection::FinishConnect(double startTime)
 	if (!GetConnected())
 		return;
 
-	Log(LogInformation, "IdoPgsqlConnection")
+	Log(LogInformation, "IdoPgsqlConnection", this)
 		<< "Finished reconnecting to '" << GetName() << "' database '" << GetDatabase() << "' in "
 		<< std::setw(2) << Utility::GetTime() - startTime << " second(s).";
 
@@ -484,7 +484,7 @@ IdoPgsqlResult IdoPgsqlConnection::Query(const String& query)
 
 	Defer decreaseQueries ([this]() { DecreasePendingQueries(1); });
 
-	Log(LogDebug, "IdoPgsqlConnection")
+	Log(LogDebug, "IdoPgsqlConnection", this)
 		<< "Query: " << query;
 
 	IncreaseQueryCount();
@@ -493,7 +493,7 @@ IdoPgsqlResult IdoPgsqlConnection::Query(const String& query)
 
 	if (!result) {
 		String message = m_Pgsql->errorMessage(m_Connection);
-		Log(LogCritical, "IdoPgsqlConnection")
+		Log(LogCritical, "IdoPgsqlConnection", this)
 			<< "Error \"" << message << "\" when executing query \"" << query << "\"";
 
 		BOOST_THROW_EXCEPTION(
@@ -515,7 +515,7 @@ IdoPgsqlResult IdoPgsqlConnection::Query(const String& query)
 		String message = m_Pgsql->resultErrorMessage(result);
 		m_Pgsql->clear(result);
 
-		Log(LogCritical, "IdoPgsqlConnection")
+		Log(LogCritical, "IdoPgsqlConnection", this)
 			<< "Error \"" << message << "\" when executing query \"" << query << "\"";
 
 		BOOST_THROW_EXCEPTION(
@@ -539,7 +539,7 @@ DbReference IdoPgsqlConnection::GetSequenceValue(const String& table, const Stri
 
 	ASSERT(row);
 
-	Log(LogDebug, "IdoPgsqlConnection")
+	Log(LogDebug, "IdoPgsqlConnection", this)
 		<< "Sequence Value: " << row->Get("id");
 
 	return {Convert::ToLong(row->Get("id"))};

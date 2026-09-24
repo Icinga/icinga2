@@ -61,7 +61,7 @@ int CASignCommand::Run(const boost::program_options::variables_map&, const std::
 	String requestFile = ApiListener::GetCertificateRequestsDir() + "/" + ap[0] + ".json";
 
 	if (!Utility::PathExists(requestFile)) {
-		Log(LogCritical, "cli")
+		Log(LogCritical, "cli", nullptr)
 			<< "No request exists for fingerprint '" << ap[0] << "'.";
 		return 1;
 	}
@@ -76,7 +76,7 @@ int CASignCommand::Run(const boost::program_options::variables_map&, const std::
 	std::shared_ptr<X509> certRequest = StringToCertificate(certRequestText);
 
 	if (!certRequest) {
-		Log(LogCritical, "cli", "Certificate request is invalid. Could not parse X.509 certificate for the 'cert_request' attribute.");
+		Log(LogCritical, "cli", nullptr, "Certificate request is invalid. Could not parse X.509 certificate for the 'cert_request' attribute.");
 		return 1;
 	}
 
@@ -93,7 +93,7 @@ int CASignCommand::Run(const boost::program_options::variables_map&, const std::
 	BIO_free(out);
 
 	if (!certResponse) {
-		Log(LogCritical, "cli")
+		Log(LogCritical, "cli", nullptr)
 			<< "Could not sign certificate for '" << subject << "'.";
 		return 1;
 	}
@@ -102,7 +102,7 @@ int CASignCommand::Run(const boost::program_options::variables_map&, const std::
 
 	Utility::SaveJsonFile(requestFile, 0600, request);
 
-	Log(LogInformation, "cli")
+	Log(LogInformation, "cli", nullptr)
 		<< "Signed certificate for '" << subject << "'.";
 
 	return 0;

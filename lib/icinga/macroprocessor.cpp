@@ -280,7 +280,7 @@ Value MacroProcessor::InternalResolveMacros(const String& str, const ResolverLis
 
 		if (!found) {
 			if (!missingMacro)
-				Log(LogWarning, "MacroProcessor")
+				Log(LogWarning, "MacroProcessor", nullptr)
 					<< "Macro '" << name << "' is not defined.";
 			else
 				*missingMacro = name;
@@ -518,7 +518,7 @@ Value MacroProcessor::ResolveArguments(const Value& command, const Dictionary::P
 							value = Convert::ToLong(set_if_resolved);
 						} catch (const std::exception& ex) {
 							/* tried to convert a string */
-							Log(LogWarning, "PluginUtility")
+							Log(LogWarning, "PluginUtility", nullptr)
 								<< "Error evaluating set_if value '" << set_if_resolved
 								<< "' used in argument '" << arg.Key << "': " << ex.what();
 							continue;
@@ -558,7 +558,7 @@ Value MacroProcessor::ResolveArguments(const Value& command, const Dictionary::P
 		for (const CommandArgument& arg : args) {
 
 			if (arg.AValue.IsObjectType<Dictionary>()) {
-				Log(LogWarning, "PluginUtility")
+				Log(LogWarning, "PluginUtility", nullptr)
 					<< "Tried to use dictionary in argument '" << arg.Key << "'.";
 				continue;
 			} else if (arg.AValue.IsObjectType<Array>()) {

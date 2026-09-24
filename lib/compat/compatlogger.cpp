@@ -41,7 +41,7 @@ void CompatLogger::OnAllConfigLoaded()
 {
 	ObjectImpl<CompatLogger>::OnAllConfigLoaded();
 
-	Log(LogWarning, "CompatLogger")
+	Log(LogWarning, "CompatLogger", this)
 		<< "This feature is DEPRECATED and will be removed in v2.18.";
 }
 
@@ -52,7 +52,7 @@ void CompatLogger::Start(bool runtimeCreated)
 {
 	ObjectImpl<CompatLogger>::Start(runtimeCreated);
 
-	Log(LogInformation, "CompatLogger")
+	Log(LogInformation, "CompatLogger", this)
 		<< "'" << GetName() << "' started.";
 
 	Checkable::OnNewCheckResult.connect([this](const Checkable::Ptr& checkable, const CheckResult::Ptr& cr, const MessageOrigin::Ptr&) {
@@ -90,7 +90,7 @@ void CompatLogger::Stop(bool runtimeRemoved)
 {
 	m_RotationTimer->Stop(true);
 
-	Log(LogInformation, "CompatLogger")
+	Log(LogInformation, "CompatLogger", this)
 		<< "'" << GetName() << "' stopped.";
 
 	ObjectImpl<CompatLogger>::Stop(runtimeRemoved);
@@ -481,7 +481,7 @@ void CompatLogger::ReopenFile(bool rotate)
 		if (rotate) {
 			String archiveFile = GetLogDir() + "/archives/icinga-" + Utility::FormatDateTime("%m-%d-%Y-%H", Utility::GetTime()) + ".log";
 
-			Log(LogNotice, "CompatLogger")
+			Log(LogNotice, "CompatLogger", this)
 				<< "Rotating compat log file '" << tempFile << "' -> '" << archiveFile << "'";
 
 			(void) rename(tempFile.CStr(), archiveFile.CStr());
@@ -491,7 +491,7 @@ void CompatLogger::ReopenFile(bool rotate)
 	m_OutputFile.open(tempFile.CStr(), std::ofstream::app);
 
 	if (!m_OutputFile) {
-		Log(LogWarning, "CompatLogger")
+		Log(LogWarning, "CompatLogger", this)
 			<< "Could not open compat log file '" << tempFile << "' for writing. Log output will be lost.";
 
 		return;
@@ -586,7 +586,7 @@ void CompatLogger::ScheduleNextRotation()
 
 	time_t ts = mktime(&tmthen);
 
-	Log(LogNotice, "CompatLogger")
+	Log(LogNotice, "CompatLogger", this)
 		<< "Rescheduling rotation timer for compat log '"
 		<< GetName() << "' to '" << Utility::FormatDateTime("%Y/%m/%d %H:%M:%S %z", ts) << "'";
 

@@ -124,7 +124,7 @@ bool ConsoleHandler::ExecuteScriptHelper(const HttpApiRequest& request, HttpApiR
 {
 	namespace http = boost::beast::http;
 
-	Log(LogNotice, "Console")
+	Log(LogNotice, "Console", nullptr)
 		<< "Executing expression: " << command;
 
 	EnsureFrameCleanupTimer();
@@ -205,7 +205,7 @@ bool ConsoleHandler::AutocompleteScriptHelper(const HttpApiRequest& request, Htt
 {
 	namespace http = boost::beast::http;
 
-	Log(LogInformation, "Console")
+	Log(LogInformation, "Console", nullptr)
 		<< "Auto-completing expression: " << command;
 
 	EnsureFrameCleanupTimer();

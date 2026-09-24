@@ -99,7 +99,7 @@ void ConfigObjectUtility::RepairPackage(const String& package)
 	}
 
 	if (!foundActiveStage.IsEmpty()) {
-		Log(LogInformation, "ConfigObjectUtility")
+		Log(LogInformation, "ConfigObjectUtility", nullptr)
 			<< "Repairing config package '" << package << "' with stage '" << foundActiveStage << "'.";
 
 		ConfigPackageUtility::ActivateStage(package, foundActiveStage);
@@ -116,7 +116,7 @@ void ConfigObjectUtility::CreateStorage()
 	String package = "_api";
 
 	if (!ConfigPackageUtility::PackageExists(package)) {
-		Log(LogNotice, "ConfigObjectUtility")
+		Log(LogNotice, "ConfigObjectUtility", nullptr)
 			<< "Package " << package << " doesn't exist yet, creating it.";
 
 		ConfigPackageUtility::CreatePackage(package);
@@ -232,7 +232,7 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 		 */
 		if (!ConfigItem::CommitItems(ascope.GetContext(), upq, newItems, true)) {
 			if (errors) {
-				Log(LogNotice, "ConfigObjectUtility")
+				Log(LogNotice, "ConfigObjectUtility", nullptr)
 					<< "Failed to commit config item '" << fullName << "'. Aborting and removing config path '" << path << "'.";
 
 				for (const std::exception_ptr& ex : upq.GetExceptions()) {
@@ -253,7 +253,7 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 		 */
 		if (!ConfigItem::ActivateItems(newItems, true, false, false, cookie)) {
 			if (errors) {
-				Log(LogNotice, "ConfigObjectUtility")
+				Log(LogNotice, "ConfigObjectUtility", nullptr)
 					<< "Failed to activate config object '" << fullName << "'. Aborting and removing config path '" << path << "'.";
 
 				for (const std::exception_ptr& ex : upq.GetExceptions()) {
@@ -282,10 +282,10 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 			// Object is successfully created and activated, so don't remove its config.
 			removeConfigPath.Cancel();
 
-			Log(LogInformation, "ConfigObjectUtility")
+			Log(LogInformation, "ConfigObjectUtility", obj)
 				<< "Created and activated object '" << fullName << "' of type '" << type->GetName() << "'.";
 		} else {
-			Log(LogNotice, "ConfigObjectUtility")
+			Log(LogNotice, "ConfigObjectUtility", nullptr)
 				<< "Object '" << fullName << "' was not created but ignored due to errors.";
 		}
 	} catch (const std::exception& ex) {
@@ -356,7 +356,7 @@ bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bo
 		Utility::Remove(GetExistingObjectConfigPath(object));
 	}
 
-	Log(LogInformation, "ConfigObjectUtility")
+	Log(LogInformation, "ConfigObjectUtility", object)
 		<< "Deleted object '" << name << "' of type '" << type->GetName() << "'.";
 
 	return true;

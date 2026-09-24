@@ -66,6 +66,7 @@ public:
 
 protected:
 	void OnAllConfigLoaded() override;
+	void GetParentsAffectingLogging(std::vector<ConfigObject::Ptr>& output) const override;
 
 private:
 	mutable std::mutex m_ClientsLock;

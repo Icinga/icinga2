@@ -62,7 +62,7 @@ int CARemoveCommand::Run(const boost::program_options::variables_map&, const std
 	String requestFile = ApiListener::GetCertificateRequestsDir() + "/" + fingerPrint + ".json";
 
 	if (!Utility::PathExists(requestFile)) {
-		Log(LogCritical, "cli")
+		Log(LogCritical, "cli", nullptr)
 			<< "No request exists for fingerprint '" << fingerPrint << "'.";
 		return 1;
 	}
@@ -71,14 +71,14 @@ int CARemoveCommand::Run(const boost::program_options::variables_map&, const std
 	std::shared_ptr<X509> certRequest = StringToCertificate(request->Get("cert_request"));
 
 	if (!certRequest) {
-		Log(LogCritical, "cli", "Certificate request is invalid. Could not parse X.509 certificate for the 'cert_request' attribute.");
+		Log(LogCritical, "cli", nullptr, "Certificate request is invalid. Could not parse X.509 certificate for the 'cert_request' attribute.");
 		return 1;
 	}
 
 	String cn = GetCertificateCN(certRequest);
 
 	if (request->Contains("cert_response")) {
-		Log(LogCritical, "cli")
+		Log(LogCritical, "cli", nullptr)
 			<< "Certificate request for CN '" << cn << "' already signed, removal is not possible.";
 		return 1;
 	}
@@ -87,7 +87,7 @@ int CARemoveCommand::Run(const boost::program_options::variables_map&, const std
 
 	Utility::Remove(requestFile);
 
-	Log(LogInformation, "cli")
+	Log(LogInformation, "cli", nullptr)
 		<< "Certificate request for CN " << cn << " removed.";
 
 	return 0;

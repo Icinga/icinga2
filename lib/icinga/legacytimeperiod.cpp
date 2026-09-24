@@ -387,7 +387,7 @@ bool LegacyTimePeriod::IsInDayDefinition(const String& daydef, const tm *referen
 
 	ParseTimeRange(daydef, &begin, &end, &stride, reference);
 
-	Log(LogDebug, "LegacyTimePeriod")
+	Log(LogDebug, "LegacyTimePeriod", nullptr)
 		<< "ParseTimeRange: '" << daydef << "' => " << Utility::TmToTimestamp(&begin)
 		<< " -> " << Utility::TmToTimestamp(&end) << ", stride: " << stride;
 
@@ -606,7 +606,7 @@ Array::Ptr LegacyTimePeriod::ScriptFunc(const TimePeriod::Ptr& tp, double begin,
 		for (tm reference = tm_begin; Utility::TmToTimestamp(&reference) <= end; advance_to_next_day(&reference)) {
 
 #ifdef I2_DEBUG
-			Log(LogDebug, "LegacyTimePeriod")
+			Log(LogDebug, "LegacyTimePeriod", tp)
 				<< "Checking reference time " << Utility::TmToTimestamp(&reference);
 #endif /* I2_DEBUG */
 
@@ -614,14 +614,14 @@ Array::Ptr LegacyTimePeriod::ScriptFunc(const TimePeriod::Ptr& tp, double begin,
 			for (const Dictionary::Pair& kv : ranges) {
 				if (!IsInDayDefinition(kv.first, &reference)) {
 #ifdef I2_DEBUG
-					Log(LogDebug, "LegacyTimePeriod")
+					Log(LogDebug, "LegacyTimePeriod", tp)
 						<< "Not in day definition '" << kv.first << "'.";
 #endif /* I2_DEBUG */
 					continue;
 				}
 
 #ifdef I2_DEBUG
-				Log(LogDebug, "LegacyTimePeriod")
+				Log(LogDebug, "LegacyTimePeriod", tp)
 					<< "In day definition '" << kv.first << "'.";
 #endif /* I2_DEBUG */
 
@@ -630,7 +630,7 @@ Array::Ptr LegacyTimePeriod::ScriptFunc(const TimePeriod::Ptr& tp, double begin,
 		}
 	}
 
-	Log(LogDebug, "LegacyTimePeriod")
+	Log(LogDebug, "LegacyTimePeriod", tp)
 		<< "Legacy timeperiod update returned " << segments->GetLength() << " segments.";
 
 	return segments;

@@ -99,7 +99,7 @@ void ConfigCompiler::CollectIncludes(std::vector<std::unique_ptr<Expression> >& 
 	try {
 		expressions.emplace_back(CompileFile(file, zone, package));
 	} catch (const std::exception& ex) {
-		Log(LogWarning, "ConfigCompiler")
+		Log(LogWarning, "ConfigCompiler", nullptr)
 			<< "Cannot compile file '"
 			<< file << "': " << DiagnosticInformation(ex);
 	}
@@ -270,7 +270,7 @@ std::unique_ptr<Expression> ConfigCompiler::CompileFile(const String& path, cons
 			<< boost::errinfo_errno(errno)
 			<< boost::errinfo_file_name(path));
 
-	Log(LogNotice, "ConfigCompiler")
+	Log(LogNotice, "ConfigCompiler", nullptr)
 		<< "Compiling config file: " << path;
 
 	return CompileStream(path, &stream, zone, package);
@@ -297,7 +297,7 @@ std::unique_ptr<Expression> ConfigCompiler::CompileText(const String& path, cons
  */
 void ConfigCompiler::AddIncludeSearchDir(const String& dir)
 {
-	Log(LogInformation, "ConfigCompiler")
+	Log(LogInformation, "ConfigCompiler", nullptr)
 		<< "Adding include search dir: " << dir;
 
 	m_IncludeSearchDirs.push_back(dir);
@@ -337,7 +337,7 @@ bool ConfigCompiler::HasZoneConfigAuthority(const String& zoneName)
 			paths.push_back(zf.Path);
 		}
 
-		Log(LogNotice, "ConfigCompiler")
+		Log(LogNotice, "ConfigCompiler", nullptr)
 			<< "Registered authoritative config directories for zone '" << zoneName << "': " << Utility::NaturalJoin(paths);
 	}
 

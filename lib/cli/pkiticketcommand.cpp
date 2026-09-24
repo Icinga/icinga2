@@ -38,7 +38,7 @@ void PKITicketCommand::InitParameters(boost::program_options::options_descriptio
 int PKITicketCommand::Run(const boost::program_options::variables_map& vm, [[maybe_unused]] const std::vector<std::string>& ap) const
 {
 	if (!vm.count("cn")) {
-		Log(LogCritical, "cli", "Common name (--cn) must be specified.");
+		Log(LogCritical, "cli", nullptr, "Common name (--cn) must be specified.");
 		return 1;
 	}
 
@@ -48,7 +48,7 @@ int PKITicketCommand::Run(const boost::program_options::variables_map& vm, [[may
 		salt = vm["salt"].as<std::string>();
 
 	if (salt.IsEmpty()) {
-		Log(LogCritical, "cli", "Ticket salt (--salt) must be specified.");
+		Log(LogCritical, "cli", nullptr, "Ticket salt (--salt) must be specified.");
 		return 1;
 	}
 

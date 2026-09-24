@@ -116,7 +116,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 	}
 
 	if (!sourceEndpoint || (origin->FromZone && !Zone::GetLocalZone()->IsChildOf(origin->FromZone))) {
-		Log(LogNotice, "ClusterEvents")
+		Log(LogNotice, "ClusterEvents", sourceEndpoint)
 			<< "Discarding 'execute command' message from '" << origin->FromClient->GetIdentity() << "': Invalid endpoint origin (client not allowed).";
 		return;
 	}
@@ -124,7 +124,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 
 	if (!listener) {
-		Log(LogCritical, "ApiListener") << "No instance available.";
+		Log(LogCritical, "ApiListener", nullptr) << "No instance available.";
 		return;
 	}
 
@@ -144,7 +144,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 		double deadline = params->Get("deadline");
 
 		if (Utility::GetTime() > deadline) {
-			Log(LogNotice, "ApiListener")
+			Log(LogNotice, "ApiListener", sourceEndpoint)
 				<< "Discarding 'ExecuteCheckFromQueue' event for checkable '" << checkableName
 				<< "' from '" << origin->FromClient->GetIdentity() << "': Deadline has expired.";
 			return;
@@ -158,7 +158,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 
 			if (pr.ExitStatus > 3) {
 				Process::Arguments parguments = Process::PrepareCommand(commandLine);
-				Log(LogWarning, "ApiListener")
+				Log(LogWarning, "ApiListener", sourceEndpoint)
 					<< "Command for object '" << checkableName << "' (PID: " << pr.PID
 					<< ", arguments: " << Process::PrettyPrintArguments(parguments) << ") terminated with exit code "
 					<< pr.ExitStatus << ", output: " << pr.Output;
@@ -170,7 +170,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 	}
 
 	if (!listener->GetAcceptCommands() && !origin->IsLocal()) {
-		Log(LogWarning, "ApiListener")
+		Log(LogWarning, "ApiListener", sourceEndpoint)
 			<< "Ignoring command. '" << listener->GetName() << "' does not accept commands.";
 
 		String output = "Endpoint '" + Endpoint::GetLocalEndpoint()->GetName() + "' does not accept commands.";
@@ -246,7 +246,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 	} else if (command_type == "event_command") {
 		if (!EventCommand::GetByName(command)) {
 			String output = "Event command '" + command + "' does not exist.";
-			Log(LogWarning, "ClusterEvents") << output;
+			Log(LogWarning, "ClusterEvents", sourceEndpoint) << output;
 
 			if (params->Contains("source")) {
 				double now = Utility::GetTime();
@@ -258,7 +258,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 	} else if (command_type == "notification_command") {
 		if (!NotificationCommand::GetByName(command)) {
 			String output = "Notification command '" + command + "' does not exist.";
-			Log(LogWarning, "ClusterEvents") << output;
+			Log(LogWarning, "ClusterEvents", sourceEndpoint) << output;
 
 			if (params->Contains("source")) {
 				double now = Utility::GetTime();
@@ -301,7 +301,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 				listener->SyncSendMessage(sourceEndpoint, message);
 			}
 
-			Log(LogCritical, "checker", output);
+			Log(LogCritical, "checker", sourceEndpoint, output);
 		}
 	} else if (command_type == "event_command") {
 		try {
@@ -360,7 +360,7 @@ int ClusterEvents::GetCheckRequestQueueSize()
 
 void ClusterEvents::LogRemoteCheckQueueInformation() {
 	if (m_ChecksDroppedDuringInterval > 0) {
-		Log(LogCritical, "ClusterEvents")
+		Log(LogCritical, "ClusterEvents", nullptr)
 			<< "Remote check queue ran out of slots. "
 			<< m_ChecksDroppedDuringInterval << " checks dropped.";
 		m_ChecksDroppedDuringInterval = 0;
@@ -369,7 +369,7 @@ void ClusterEvents::LogRemoteCheckQueueInformation() {
 	if (m_ChecksExecutedDuringInterval == 0)
 		return;
 
-	Log(LogInformation, "RemoteCheckQueue")
+	Log(LogInformation, "RemoteCheckQueue", nullptr)
 		<< "items: " << m_CheckRequestQueue.size()
 		<< ", rate: " << m_ChecksExecutedDuringInterval / 10 << "/s "
 		<< "(" << m_ChecksExecutedDuringInterval * 6 << "/min "

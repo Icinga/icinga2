@@ -48,7 +48,7 @@ LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String&
 	for (const String& line : lines) {
 		msg += line + "\n";
 	}
-	Log(LogDebug, "LivestatusQuery", msg);
+	Log(LogDebug, "LivestatusQuery", nullptr, msg);
 
 	m_CompatLogPath = compat_log_path;
 
@@ -189,11 +189,11 @@ LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String&
 
 			if (header == "Or" || header == "StatsOr") {
 				filter = new OrFilter();
-				Log(LogDebug, "LivestatusQuery")
+				Log(LogDebug, "LivestatusQuery", nullptr)
 					<< "Add OR filter for " << params << " column(s). " << deq.size() << " filters available.";
 			} else {
 				filter = new AndFilter();
-				Log(LogDebug, "LivestatusQuery")
+				Log(LogDebug, "LivestatusQuery", nullptr)
 					<< "Add AND filter for " << params << " column(s). " << deq.size() << " filters available.";
 			}
 
@@ -206,7 +206,7 @@ LivestatusQuery::LivestatusQuery(const std::vector<String>& lines, const String&
 
 			while (num > 0 && num--) {
 				filter->AddSubFilter(deq.back());
-				Log(LogDebug, "LivestatusQuery")
+				Log(LogDebug, "LivestatusQuery", nullptr)
 					<< "Add " << num << " filter.";
 				deq.pop_back();
 				if (&deq == &stats)
@@ -335,7 +335,7 @@ Filter::Ptr LivestatusQuery::ParseFilter(const String& params, unsigned long& fr
 		}
 	}
 
-	Log(LogDebug, "LivestatusQuery")
+	Log(LogDebug, "LivestatusQuery", nullptr)
 		<< "Parsed filter with attr: '" << attr << "' op: '" << op << "' val: '" << val << "'.";
 
 	return filter;
@@ -438,7 +438,7 @@ String LivestatusQuery::QuoteStringPython(const String& str) {
 
 void LivestatusQuery::ExecuteGetHelper(const Stream::Ptr& stream)
 {
-	Log(LogNotice, "LivestatusQuery")
+	Log(LogNotice, "LivestatusQuery", nullptr)
 		<< "Table: " << m_Table;
 
 	Table::Ptr table = Table::GetByName(m_Table, m_CompatLogPath, m_LogTimeFrom, m_LogTimeUntil);
@@ -579,7 +579,7 @@ void LivestatusQuery::ExecuteCommandHelper(const WaitGroup::Ptr& producer, const
 		l_ExternalCommands++;
 	}
 
-	Log(LogNotice, "LivestatusQuery")
+	Log(LogNotice, "LivestatusQuery", nullptr)
 		<< "Executing command: " << m_Command;
 	ExternalCommandProcessor::Execute(producer, m_Command);
 	SendResponse(stream, LivestatusErrorOK, "");
@@ -587,7 +587,7 @@ void LivestatusQuery::ExecuteCommandHelper(const WaitGroup::Ptr& producer, const
 
 void LivestatusQuery::ExecuteErrorHelper(const Stream::Ptr& stream)
 {
-	Log(LogDebug, "LivestatusQuery")
+	Log(LogDebug, "LivestatusQuery", nullptr)
 		<< "ERROR: Code: '" << m_ErrorCode << "' Message: '" << m_ErrorMessage << "'.";
 	SendResponse(stream, m_ErrorCode, m_ErrorMessage);
 }
@@ -601,7 +601,7 @@ void LivestatusQuery::SendResponse(const Stream::Ptr& stream, int code, const St
 		try {
 			stream->Write(data.CStr(), data.GetLength());
 		} catch (const std::exception&) {
-			Log(LogCritical, "LivestatusQuery", "Cannot write query response to socket.");
+			Log(LogCritical, "LivestatusQuery", nullptr, "Cannot write query response to socket.");
 		}
 	}
 }
@@ -618,14 +618,14 @@ void LivestatusQuery::PrintFixed16(const Stream::Ptr& stream, int code, const St
 	try {
 		stream->Write(header.CStr(), header.GetLength());
 	} catch (const std::exception&) {
-		Log(LogCritical, "LivestatusQuery", "Cannot write to TCP socket.");
+		Log(LogCritical, "LivestatusQuery", nullptr, "Cannot write to TCP socket.");
 	}
 }
 
 bool LivestatusQuery::Execute(const WaitGroup::Ptr& producer, const Stream::Ptr& stream)
 {
 	try {
-		Log(LogNotice, "LivestatusQuery")
+		Log(LogNotice, "LivestatusQuery", nullptr)
 			<< "Executing livestatus query: " << m_Verb;
 
 		if (m_Verb == "GET")

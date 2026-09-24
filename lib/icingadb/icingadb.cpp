@@ -70,7 +70,7 @@ void IcingaDB::Start(bool runtimeCreated)
 	VERIFY(!m_EnvironmentId.IsEmpty());
 	PersistEnvironmentId();
 
-	Log(LogInformation, "IcingaDB")
+	Log(LogInformation, "IcingaDB", this)
 		<< "'" << GetName() << "' started.";
 
 	m_ConfigDumpInProgress = false;
@@ -107,7 +107,7 @@ void IcingaDB::Start(bool runtimeCreated)
 			});
 
 			auto pending = --*pendingConns;
-			Log(LogDebug, "IcingaDB") << pending << " pending child connections remaining";
+			Log(LogDebug, "IcingaDB", this) << pending << " pending child connections remaining";
 			if (pending == 0) {
 				m_WorkQueue.Enqueue([this]() { OnConnectedHandler(); });
 			}
@@ -138,9 +138,9 @@ void IcingaDB::Start(bool runtimeCreated)
 
 void IcingaDB::ExceptionHandler(std::exception_ptr exp)
 {
-	Log(LogCritical, "IcingaDB", "Exception during redis query. Verify that Redis is operational.");
+	Log(LogCritical, "IcingaDB", this, "Exception during redis query. Verify that Redis is operational.");
 
-	Log(LogDebug, "IcingaDB")
+	Log(LogDebug, "IcingaDB", this)
 		<< "Exception during redis operation: " << DiagnosticInformation(exp);
 }
 
@@ -160,7 +160,7 @@ void IcingaDB::OnConnectedHandler()
 			UpdateAllConfigObjects();
 			break;
 		} catch (const std::exception& ex) {
-			Log(LogCritical, "IcingaDB") << "Exception during ConfigDump: " << ex.what();
+			Log(LogCritical, "IcingaDB", this) << "Exception during ConfigDump: " << ex.what();
 		}
 		Utility::Sleep(10);
 	}
@@ -202,13 +202,13 @@ void IcingaDB::PublishStats()
 
 void IcingaDB::Stop(bool runtimeRemoved)
 {
-	Log(LogInformation, "IcingaDB")
+	Log(LogInformation, "IcingaDB", this)
 		<< "Flushing history data buffer to Redis.";
 
 	m_PendingItemsCV.notify_all(); // Wake up the pending items worker to let it exit cleanly.
 
 	if (m_HistoryThread.wait_for(std::chrono::minutes(1)) == std::future_status::timeout) {
-		Log(LogCritical, "IcingaDB")
+		Log(LogCritical, "IcingaDB", this)
 			<< "Flushing takes more than one minute (while we're about to shut down). Giving up and discarding "
 			<< m_HistoryBulker.Size() << " queued history queries.";
 	}
@@ -216,7 +216,7 @@ void IcingaDB::Stop(bool runtimeRemoved)
 	m_StatsTimer->Stop(true);
 	m_PendingItemsThread.join();
 
-	Log(LogInformation, "IcingaDB")
+	Log(LogInformation, "IcingaDB", this)
 		<< "'" << GetName() << "' stopped.";
 
 	ObjectImpl<IcingaDB>::Stop(runtimeRemoved);

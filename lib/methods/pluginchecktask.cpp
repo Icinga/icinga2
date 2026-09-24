@@ -73,7 +73,7 @@ void PluginCheckTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, co
 
 	if (pr.ExitStatus > 3) {
 		Process::Arguments parguments = Process::PrepareCommand(commandLine);
-		Log(LogWarning, "PluginCheckTask")
+		Log(LogWarning, "PluginCheckTask", checkable)
 			<< "Check command for object '" << checkable->GetName() << "' (PID: " << pr.PID
 			<< ", arguments: " << Process::PrettyPrintArguments(parguments) << ") terminated with exit code "
 			<< pr.ExitStatus << ", output: " << pr.Output;

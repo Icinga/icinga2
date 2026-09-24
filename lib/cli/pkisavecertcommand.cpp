@@ -56,25 +56,25 @@ std::vector<String> PKISaveCertCommand::GetArgumentSuggestions(const String& arg
 int PKISaveCertCommand::Run(const boost::program_options::variables_map& vm, [[maybe_unused]] const std::vector<std::string>& ap) const
 {
 	if (!vm.count("host")) {
-		Log(LogCritical, "cli", "Icinga 2 host (--host) must be specified.");
+		Log(LogCritical, "cli", nullptr, "Icinga 2 host (--host) must be specified.");
 		return 1;
 	}
 
 	if (!vm.count("trustedcert")) {
-		Log(LogCritical, "cli", "Trusted certificate output file path (--trustedcert) must be specified.");
+		Log(LogCritical, "cli", nullptr, "Trusted certificate output file path (--trustedcert) must be specified.");
 		return 1;
 	}
 
 	String host = vm["host"].as<std::string>();
 	String port = vm["port"].as<std::string>();
 
-	Log(LogInformation, "cli")
+	Log(LogInformation, "cli", nullptr)
 		<< "Retrieving TLS certificate for '" << host << ":" << port << "'.";
 
 	std::shared_ptr<X509> cert = PkiUtility::FetchCert(host, port);
 
 	if (!cert) {
-		Log(LogCritical, "cli", "Failed to fetch certificate from host.");
+		Log(LogCritical, "cli", nullptr, "Failed to fetch certificate from host.");
 		return 1;
 	}
 

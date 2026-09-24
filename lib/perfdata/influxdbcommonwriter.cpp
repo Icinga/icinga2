@@ -51,7 +51,7 @@ void InfluxdbCommonWriter::OnConfigLoaded()
 	m_WorkQueue.SetName(GetReflectionType()->GetName() + ", " + GetName());
 
 	if (!GetEnableHa()) {
-		Log(LogDebug, GetReflectionType()->GetName())
+		Log(LogDebug, GetReflectionType()->GetName(), this)
 			<< "HA functionality disabled. Won't pause connection: " << GetName();
 
 		SetHAMode(HARunEverywhere);
@@ -68,7 +68,7 @@ void InfluxdbCommonWriter::Start(bool runtimeCreated)
 		try {
 			m_SslContext = MakeAsioSslContext(GetSslCert(), GetSslKey(), GetSslCaCert());
 		} catch (const std::exception& ex) {
-			Log(LogCritical, GetReflectionType()->GetName())
+			Log(LogCritical, GetReflectionType()->GetName(), this)
 				<< "Unable to create SSL context: " << ex.what();
 			throw;
 		}
@@ -79,7 +79,7 @@ void InfluxdbCommonWriter::Resume()
 {
 	ObjectImpl<InfluxdbCommonWriter>::Resume();
 
-	Log(LogInformation, GetReflectionType()->GetName())
+	Log(LogInformation, GetReflectionType()->GetName(), this)
 		<< "'" << GetName() << "' resumed.";
 
 	/* Register exception handler for WQ tasks. */
@@ -107,7 +107,7 @@ void InfluxdbCommonWriter::Pause()
 	m_HandleCheckResults.disconnect();
 
 	/* Force a flush. */
-	Log(LogDebug, GetReflectionType()->GetName())
+	Log(LogDebug, GetReflectionType()->GetName(), this)
 		<< "Processing pending tasks and flushing data buffers.";
 
 	m_FlushTimer->Stop(true);
@@ -124,7 +124,7 @@ void InfluxdbCommonWriter::Pause()
 	/* Wait for the flush to complete, implicitly waits for all WQ tasks enqueued prior to pausing. */
 	m_WorkQueue.Join();
 
-	Log(LogInformation, GetReflectionType()->GetName())
+	Log(LogInformation, GetReflectionType()->GetName(), this)
 		<< "'" << GetName() << "' paused.";
 
 	ObjectImpl<InfluxdbCommonWriter>::Pause();
@@ -137,9 +137,9 @@ void InfluxdbCommonWriter::AssertOnWorkQueue()
 
 void InfluxdbCommonWriter::ExceptionHandler(std::exception_ptr exp)
 {
-	Log(LogCritical, GetReflectionType()->GetName(), "Exception during InfluxDB operation: Verify that your backend is operational!");
+	Log(LogCritical, GetReflectionType()->GetName(), this, "Exception during InfluxDB operation: Verify that your backend is operational!");
 
-	Log(LogDebug, GetReflectionType()->GetName())
+	Log(LogDebug, GetReflectionType()->GetName(), this)
 		<< "Exception during InfluxDB operation: " << DiagnosticInformation(std::move(exp));
 }
 
@@ -222,7 +222,7 @@ void InfluxdbCommonWriter::CheckResultHandler(const Checkable::Ptr& checkable, c
 					try {
 						pdv = PerfdataValue::Parse(val);
 					} catch (const std::exception&) {
-						Log(LogWarning, GetReflectionType()->GetName())
+						Log(LogWarning, GetReflectionType()->GetName(), checkable)
 							<< "Ignoring invalid perfdata for checkable '"
 							<< checkable->GetName() << "' and command '"
 							<< checkable->GetCheckCommand()->GetName() << "' with value: " << val;
@@ -337,7 +337,7 @@ void InfluxdbCommonWriter::SendMetric(const Checkable::Ptr& checkable, const Dic
 
 	msgbuf << " " <<  static_cast<unsigned long>(ts);
 
-	Log(LogDebug, GetReflectionType()->GetName())
+	Log(LogDebug, GetReflectionType()->GetName(), checkable)
 		<< "Checkable '" << checkable->GetName() << "' adds to metric list:'" << msgbuf.str() << "'.";
 
 	// Buffer the data point
@@ -346,7 +346,7 @@ void InfluxdbCommonWriter::SendMetric(const Checkable::Ptr& checkable, const Dic
 
 	// Flush if we've buffered too much to prevent excessive memory use
 	if (static_cast<int>(m_DataBuffer.size()) >= GetFlushThreshold()) {
-		Log(LogDebug, GetReflectionType()->GetName())
+		Log(LogDebug, GetReflectionType()->GetName(), this)
 			<< "Data buffer overflow writing " << m_DataBuffer.size() << " data points";
 
 		try {
@@ -383,7 +383,7 @@ void InfluxdbCommonWriter::FlushWQ()
 	if (m_DataBuffer.empty())
 		return;
 
-	Log(LogDebug, GetReflectionType()->GetName())
+	Log(LogDebug, GetReflectionType()->GetName(), this)
 		<< "Flushing data buffer to InfluxDB.";
 
 	String body = boost::algorithm::join(m_DataBuffer, "\n");
@@ -396,12 +396,12 @@ void InfluxdbCommonWriter::FlushWQ()
 	try {
 		response = m_Connection->Send(request);
 	} catch (const PerfdataWriterConnection::Stopped& ex) {
-		Log(LogDebug, GetReflectionType()->GetName()) << ex.what();
+		Log(LogDebug, GetReflectionType()->GetName(), this) << ex.what();
 		return;
 	}
 
 	if (response.result() != http::status::no_content) {
-		Log(LogCritical, GetReflectionType()->GetName())
+		Log(LogCritical, GetReflectionType()->GetName(), this)
 			<< "Unexpected response code: " << response.result() << ", InfluxDB error message:\n" << response.body();
 	}
 }

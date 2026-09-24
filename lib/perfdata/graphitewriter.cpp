@@ -36,7 +36,7 @@ void GraphiteWriter::OnConfigLoaded()
 	m_WorkQueue.SetName("GraphiteWriter, " + GetName());
 
 	if (!GetEnableHa()) {
-		Log(LogDebug, "GraphiteWriter")
+		Log(LogDebug, "GraphiteWriter", this)
 			<< "HA functionality disabled. Won't pause connection: " << GetName();
 
 		SetHAMode(HARunEverywhere);
@@ -80,7 +80,7 @@ void GraphiteWriter::Resume()
 {
 	ObjectImpl<GraphiteWriter>::Resume();
 
-	Log(LogInformation, "GraphiteWriter")
+	Log(LogInformation, "GraphiteWriter", this)
 		<< "'" << GetName() << "' resumed.";
 
 	/* Register exception handler for WQ tasks. */
@@ -114,7 +114,7 @@ void GraphiteWriter::Pause()
 
 	m_WorkQueue.Join();
 
-	Log(LogInformation, "GraphiteWriter")
+	Log(LogInformation, "GraphiteWriter", this)
 		<< "'" << GetName() << "' paused.";
 
 	ObjectImpl<GraphiteWriter>::Pause();
@@ -137,9 +137,9 @@ void GraphiteWriter::AssertOnWorkQueue()
  */
 void GraphiteWriter::ExceptionHandler(std::exception_ptr exp)
 {
-	Log(LogCritical, "GraphiteWriter", "Exception during Graphite operation: Verify that your backend is operational!");
+	Log(LogCritical, "GraphiteWriter", this, "Exception during Graphite operation: Verify that your backend is operational!");
 
-	Log(LogDebug, "GraphiteWriter")
+	Log(LogDebug, "GraphiteWriter", this)
 		<< "Exception during Graphite operation: " << DiagnosticInformation(std::move(exp));
 }
 
@@ -235,7 +235,7 @@ void GraphiteWriter::SendPerfdata(const Checkable::Ptr& checkable, const String&
 			try {
 				pdv = PerfdataValue::Parse(val);
 			} catch (const std::exception&) {
-				Log(LogWarning, "GraphiteWriter")
+				Log(LogWarning, "GraphiteWriter", checkable)
 					<< "Ignoring invalid perfdata for checkable '"
 					<< checkable->GetName() << "' and command '"
 					<< checkCommand->GetName() << "' with value: " << val;
@@ -279,7 +279,7 @@ void GraphiteWriter::SendMetric(const Checkable::Ptr& checkable, const String& p
 	std::ostringstream msgbuf;
 	msgbuf << prefix << "." << name << " " << Convert::ToString(value) << " " << static_cast<long>(ts);
 
-	Log(LogDebug, "GraphiteWriter")
+	Log(LogDebug, "GraphiteWriter", checkable)
 		<< "Checkable '" << checkable->GetName() << "' adds to metric list: '" << msgbuf.str() << "'.";
 
 	// do not send \n to debug log
@@ -288,7 +288,7 @@ void GraphiteWriter::SendMetric(const Checkable::Ptr& checkable, const String& p
 	try {
 		m_Connection->Send(asio::buffer(msgbuf.str()));
 	} catch (const PerfdataWriterConnection::Stopped& ex) {
-		Log(LogDebug, "GraphiteWriter") << ex.what();
+		Log(LogDebug, "GraphiteWriter", checkable) << ex.what();
 		return;
 	}
 }

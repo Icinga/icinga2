@@ -82,7 +82,7 @@ Namespace::Ptr ScriptGlobal::GetGlobals()
 
 void ScriptGlobal::WriteToFile(const String& filename)
 {
-	Log(LogInformation, "ScriptGlobal")
+	Log(LogInformation, "ScriptGlobal", nullptr)
 		<< "Dumping variables to file '" << filename << "'";
 
 	AtomicFile fp (filename, 0600);

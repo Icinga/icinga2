@@ -338,9 +338,9 @@ void ScriptUtils::Log(const std::vector<Value>& arguments)
 	}
 
 	if (message.IsString() || (!message.IsObjectType<Array>() && !message.IsObjectType<Dictionary>()))
-		::Log(severity, facility, message);
+		::Log(severity, facility, nullptr, message);
 	else
-		::Log(severity, facility, JsonEncode(message));
+		::Log(severity, facility, nullptr, JsonEncode(message));
 }
 
 Array::Ptr ScriptUtils::Range(const std::vector<Value>& arguments)

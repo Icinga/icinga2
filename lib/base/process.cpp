@@ -690,7 +690,7 @@ void Process::IOThreadProc(int tid)
 			if (pfds[0].revents & (POLLIN | POLLHUP | POLLERR)) {
 				char buffer[512];
 				if (read(l_EventFDs[tid][0], buffer, sizeof(buffer)) < 0)
-					Log(LogCritical, "base", "Read from event FD failed.");
+					Log(LogCritical, "base", nullptr, "Read from event FD failed.");
 			}
 #endif /* _WIN32 */
 
@@ -947,7 +947,7 @@ void Process::Run(const std::function<void(const ProcessResult&)>& callback)
 	m_FD = outReadPipe;
 	m_PID = pi.dwProcessId;
 
-	Log(LogNotice, "Process")
+	Log(LogNotice, "Process", nullptr)
 		<< "Running command " << PrettyPrintArguments(m_Arguments) << ": PID " << m_PID;
 
 #else /* _WIN32 */
@@ -984,10 +984,10 @@ void Process::Run(const std::function<void(const ProcessResult&)>& callback)
 
 	if (m_PID == -1) {
 		m_OutputStream << "Fork failed with error code " << errno << " (" << Utility::FormatErrorNumber(errno) << ")";
-		Log(LogCritical, "Process", m_OutputStream.str());
+		Log(LogCritical, "Process", nullptr, m_OutputStream.str());
 	}
 
-	Log(LogNotice, "Process")
+	Log(LogNotice, "Process", nullptr)
 		<< "Running command " << PrettyPrintArguments(m_Arguments) << ": PID " << m_PID;
 
 	(void)close(outfds[1]);
@@ -1013,7 +1013,7 @@ void Process::Run(const std::function<void(const ProcessResult&)>& callback)
 	SetEvent(l_Events[tid]);
 #else /* _WIN32 */
 	if (write(l_EventFDs[tid][1], "T", 1) < 0 && errno != EINTR && errno != EAGAIN)
-		Log(LogCritical, "base", "Write to event FD failed.");
+		Log(LogCritical, "base", nullptr, "Write to event FD failed.");
 #endif /* _WIN32 */
 }
 
@@ -1039,7 +1039,7 @@ bool Process::DoEvents()
 			auto deadline (m_Result.ExecutionStart + timeout);
 
 			if (deadline < now && !m_SentSigterm) {
-				Log(LogWarning, "Process")
+				Log(LogWarning, "Process", nullptr)
 					<< "Terminating process " << m_PID << " (" << PrettyPrintArguments(m_Arguments)
 					<< ") after timeout of " << timeout << " seconds";
 
@@ -1047,7 +1047,7 @@ bool Process::DoEvents()
 
 				int error = ProcessKill(m_Process, SIGTERM);
 				if (error) {
-					Log(LogWarning, "Process")
+					Log(LogWarning, "Process", nullptr)
 						<< "Couldn't terminate the process " << m_PID << " (" << PrettyPrintArguments(m_Arguments)
 						<< "): [errno " << error << "] " << strerror(error);
 				}
@@ -1061,7 +1061,7 @@ bool Process::DoEvents()
 		auto deadline (m_Result.ExecutionStart + timeout);
 
 		if (deadline < now) {
-			Log(LogWarning, "Process")
+			Log(LogWarning, "Process", nullptr)
 				<< "Killing process group " << m_PID << " (" << PrettyPrintArguments(m_Arguments)
 				<< ") after timeout of " << timeout << " seconds";
 
@@ -1071,7 +1071,7 @@ bool Process::DoEvents()
 #else /* _WIN32 */
 			int error = ProcessKill(-m_Process, SIGKILL);
 			if (error) {
-				Log(LogWarning, "Process")
+				Log(LogWarning, "Process", nullptr)
 					<< "Couldn't kill the process group " << m_PID << " (" << PrettyPrintArguments(m_Arguments)
 					<< "): [errno " << error << "] " << strerror(error);
 				if (error != ESRCH) {
@@ -1119,7 +1119,7 @@ bool Process::DoEvents()
 	DWORD exitcode;
 	GetExitCodeProcess(m_Process, &exitcode);
 
-	Log(LogNotice, "Process")
+	Log(LogNotice, "Process", nullptr)
 		<< "PID " << m_PID << " (" << PrettyPrintArguments(m_Arguments) << ") terminated with exit code " << exitcode;
 #else /* _WIN32 */
 	int status = 0;
@@ -1129,12 +1129,12 @@ bool Process::DoEvents()
 	} else if (ProcessWaitPID(m_Process, &status) != m_Process) {
 		exitcode = 128;
 
-		Log(LogWarning, "Process")
+		Log(LogWarning, "Process", nullptr)
 			<< "PID " << m_PID << " (" << PrettyPrintArguments(m_Arguments) << ") died mysteriously: waitpid failed";
 	} else if (WIFEXITED(status)) {
 		exitcode = WEXITSTATUS(status);
 
-		Log msg(LogNotice, "Process");
+		Log msg (LogNotice, "Process", nullptr);
 		msg << "PID " << m_PID << " (" << PrettyPrintArguments(m_Arguments)
 			<< ") terminated with exit code " << exitcode;
 
@@ -1154,7 +1154,7 @@ bool Process::DoEvents()
 			signame += ")";
 		}
 
-		Log(LogWarning, "Process")
+		Log(LogWarning, "Process", nullptr)
 			<< "PID " << m_PID << " was terminated by signal " << signame;
 
 		std::ostringstream outputbuf;

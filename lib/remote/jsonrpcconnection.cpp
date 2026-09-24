@@ -78,7 +78,7 @@ void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 				m_Stream, yc, m_Endpoint ? m_Endpoint->GetMessageReceiveSizeLimit() : 1024L * 1024
 			);
 		} catch (const std::exception& ex) {
-			Log(m_ShuttingDown ? LogDebug : LogNotice, "JsonRpcConnection")
+			Log(m_ShuttingDown ? LogDebug : LogNotice, "JsonRpcConnection", m_Endpoint)
 				<< "Error while reading JSON-RPC message for identity '" << m_Identity
 				<< "': " << DiagnosticInformation(ex);
 
@@ -105,7 +105,7 @@ void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 				message = JsonRpc::DecodeMessage(jsonString);
 			} catch (const std::exception& ex) {
 				if (m_Authenticated) {
-					Log (LogWarning, "JsonRpcConnection")
+					Log(LogWarning, "JsonRpcConnection", m_Endpoint)
 						<< "Ignoring JSON-RPC message for identity '" << m_Identity
 						<< "' that could not be parsed: " << DiagnosticInformation(ex);
 
@@ -132,7 +132,7 @@ void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 				m_Endpoint->AddMessageProcessed(total);
 			}
 
-			Log msg(total >= ch::seconds(5) ? LogWarning : LogDebug, "JsonRpcConnection");
+			Log msg (total >= ch::seconds(5) ? LogWarning : LogDebug, "JsonRpcConnection", m_Endpoint);
 			msg << "Processed JSON-RPC '" << rpcMethod << "' message for identity '" << m_Identity
 				<< "' (took total " << toMilliseconds(total) << "ms";
 
@@ -143,7 +143,7 @@ void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 		} catch (const std::exception& ex) {
 			auto total = ch::steady_clock::now() - start;
 
-			Log msg(m_ShuttingDown ? LogDebug : LogWarning, "JsonRpcConnection");
+			Log msg (m_ShuttingDown ? LogDebug : LogWarning, "JsonRpcConnection", m_Endpoint);
 			msg << "Error while processing JSON-RPC '" << rpcMethod << "' message for identity '"
 				<< m_Identity << "' (took total " << toMilliseconds(total) << "ms";
 
@@ -187,7 +187,7 @@ void JsonRpcConnection::WriteOutgoingMessages(boost::asio::yield_context yc)
 
 				m_Stream->async_flush(yc);
 			} catch (const std::exception& ex) {
-				Log(m_ShuttingDown ? LogDebug : LogWarning, "JsonRpcConnection")
+				Log(m_ShuttingDown ? LogDebug : LogWarning, "JsonRpcConnection", m_Endpoint)
 					<< "Error while sending JSON-RPC message for identity '"
 					<< m_Identity << "'\n" << DiagnosticInformation(ex);
 
@@ -275,7 +275,7 @@ void JsonRpcConnection::Disconnect()
 	if (!m_ShuttingDown.exchange(true)) {
 		JsonRpcConnection::Ptr keepAlive (this);
 
-		Log(LogNotice, "JsonRpcConnection")
+		Log(LogNotice, "JsonRpcConnection", m_Endpoint)
 			<< "Disconnecting API client for identity '" << m_Identity << "'";
 
 		IoEngine::SpawnCoroutine(m_IoStrand, [this, keepAlive](asio::yield_context yc) {
@@ -309,7 +309,7 @@ void JsonRpcConnection::Disconnect()
 				ApiListener::GetInstance()->RemoveAnonymousClient(this);
 			}
 
-			Log(LogInformation, "JsonRpcConnection")
+			Log(LogInformation, "JsonRpcConnection", m_Endpoint)
 				<< "API client disconnected for identity '" << m_Identity << "'";
 		});
 	}
@@ -361,7 +361,7 @@ void JsonRpcConnection::MessageHandler(const Dictionary::Ptr& message)
 		if (!message->Get("id", &vid))
 			return;
 
-		Log(LogWarning, "JsonRpcConnection",
+		Log(LogWarning, "JsonRpcConnection", m_Endpoint,
 			"We received a JSON-RPC response message. This should never happen because we're only ever sending notifications.");
 
 		return;
@@ -369,7 +369,7 @@ void JsonRpcConnection::MessageHandler(const Dictionary::Ptr& message)
 
 	String method = vmethod;
 
-	Log(LogNotice, "JsonRpcConnection")
+	Log(LogNotice, "JsonRpcConnection", m_Endpoint)
 		<< "Received '" << method << "' message from identity '" << m_Identity << "'.";
 
 	Dictionary::Ptr resultMessage = new Dictionary();
@@ -378,7 +378,7 @@ void JsonRpcConnection::MessageHandler(const Dictionary::Ptr& message)
 		ApiFunction::Ptr afunc = ApiFunction::GetByName(method);
 
 		if (!afunc) {
-			Log(LogNotice, "JsonRpcConnection")
+			Log(LogNotice, "JsonRpcConnection", m_Endpoint)
 				<< "Call to non-existent function '" << method << "' from endpoint '" << m_Identity << "'.";
 		} else {
 			if (m_Endpoint) {
@@ -395,7 +395,7 @@ void JsonRpcConnection::MessageHandler(const Dictionary::Ptr& message)
 		/* TODO: Add a user readable error message for the remote caller */
 		String diagInfo = DiagnosticInformation(ex);
 		resultMessage->Set("error", diagInfo);
-		Log(LogWarning, "JsonRpcConnection")
+		Log(LogWarning, "JsonRpcConnection", m_Endpoint)
 			<< "Error while processing message for identity '" << m_Identity << "'\n" << diagInfo;
 	}
 
@@ -442,7 +442,7 @@ void JsonRpcConnection::CheckLiveness(boost::asio::yield_context yc)
 
 		auto remote (m_Stream->lowest_layer().remote_endpoint());
 
-		Log(LogInformation, "JsonRpcConnection")
+		Log(LogInformation, "JsonRpcConnection", m_Endpoint)
 			<< "Closing anonymous connection [" << remote.address() << "]:" << remote.port() << " after 10 seconds.";
 
 		Disconnect();
@@ -456,7 +456,7 @@ void JsonRpcConnection::CheckLiveness(boost::asio::yield_context yc)
 			}
 
 			if (m_Seen < Utility::GetTime() - 60 && (!m_Endpoint || !m_Endpoint->GetSyncing())) {
-				Log(LogInformation, "JsonRpcConnection")
+				Log(LogInformation, "JsonRpcConnection", m_Endpoint)
 					<<  "No messages for identity '" << m_Identity << "' have been received in the last 60 seconds.";
 
 				Disconnect();

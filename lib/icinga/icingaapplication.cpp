@@ -38,11 +38,11 @@ void IcingaApplication::StaticInitialize()
 	String node_name = Utility::GetFQDN();
 
 	if (node_name.IsEmpty()) {
-		Log(LogNotice, "IcingaApplication", "No FQDN available. Trying Hostname.");
+		Log(LogNotice, "IcingaApplication", nullptr, "No FQDN available. Trying Hostname.");
 		node_name = Utility::GetHostName();
 
 		if (node_name.IsEmpty()) {
-			Log(LogWarning, "IcingaApplication", "No FQDN nor Hostname available. Setting Nodename to 'localhost'.");
+			Log(LogWarning, "IcingaApplication", nullptr, "No FQDN nor Hostname available. Setting Nodename to 'localhost'.");
 			node_name = "localhost";
 		}
 	}
@@ -102,7 +102,7 @@ void IcingaApplication::StatsFunc(const Dictionary::Ptr& status, [[maybe_unused]
  */
 int IcingaApplication::Main()
 {
-	Log(LogDebug, "IcingaApplication", "In IcingaApplication::Main()");
+	Log(LogDebug, "IcingaApplication", this, "In IcingaApplication::Main()");
 
 	/* periodically dump the program state */
 	l_RetentionTimer = Timer::Create();
@@ -112,7 +112,7 @@ int IcingaApplication::Main()
 
 	RunEventLoop();
 
-	Log(LogInformation, "IcingaApplication", "Icinga has shut down.");
+	Log(LogInformation, "IcingaApplication", this, "Icinga has shut down.");
 
 	return EXIT_SUCCESS;
 }
@@ -173,7 +173,7 @@ void IcingaApplication::DumpModifiedAttributes()
 	try {
 		Utility::Glob(path + ".tmp.*", &Utility::Remove, GlobFile);
 	} catch (const std::exception& ex) {
-		Log(LogWarning, "IcingaApplication") << DiagnosticInformation(ex);
+		Log(LogWarning, "IcingaApplication", this) << DiagnosticInformation(ex);
 	}
 
 	AtomicFile fp (path, 0644);

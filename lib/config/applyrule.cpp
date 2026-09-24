@@ -183,7 +183,7 @@ void ApplyRule::CheckMatches(bool silent)
 void ApplyRule::CheckMatches(const ApplyRule::Ptr& rule, Type* sourceType, bool silent)
 {
 	if (!rule->HasMatches() && !silent) {
-		Log(LogWarning, "ApplyRule")
+		Log(LogWarning, "ApplyRule", nullptr)
 			<< "Apply rule '" << rule->GetName() << "' (" << rule->GetDebugInfo() << ") for type '"
 			<< sourceType->GetName() << "' does not match anywhere!";
 	}
