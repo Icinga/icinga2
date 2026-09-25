@@ -74,6 +74,42 @@ String IcingaDB::FormatCommandLine(const Value& commandLine)
 	return result;
 }
 
+/**
+ * Adds metadata to the serialized state attributes of a checkable object.
+ *
+ * @param checkable The checkable to get the metadata from.
+ * @param stateData The actual serialized state attributes to add the metadata to.
+ * @param bits The dirty bits that indicate which state change triggered the metadata addition.
+ */
+void IcingaDB::AddStateMetadata(const Checkable::Ptr& checkable, const Dictionary::Ptr& stateData, uint32_t bits)
+{
+	namespace queue = icingadb::task_queue;
+
+	// The "is_state_change" metadata attribute must always be present, and not added conditionally
+	// as Icinga DB (Go) relies on it.
+	Dictionary::Ptr metadata{new Dictionary{{"is_state_change", static_cast<bool>(bits & queue::StateChange)}}};
+	if (auto cr = checkable->GetLastCheckResult(); cr) {
+		metadata->Set("execution_end", TimestampToMilliseconds(cr->GetExecutionEnd()));
+	}
+	if (auto triggeredD = checkable->GetLastTriggeredDowntime(); !triggeredD.IsEmpty()) {
+		metadata->Set("last_triggered_downtime_name", std::move(triggeredD));
+	}
+	if (auto removedD = checkable->GetLastRemovedDowntime(); !removedD.IsEmpty()) {
+		metadata->Set("last_removed_downtime_name", std::move(removedD));
+	}
+	if (bits & queue::DowntimeStart) {
+		metadata->Set("downtime_transition_type", "downtime_start");
+	} else if (bits & queue::DowntimeEnd) {
+		metadata->Set("downtime_transition_type", "downtime_end");
+	}
+	if (bits & queue::AckSet) {
+		metadata->Set("ack_transition_type", "ack_set");
+	} else if (bits & queue::AckClear) {
+		metadata->Set("ack_transition_type", "ack_clear");
+	}
+	stateData->Set("metadata", std::move(metadata));
+}
+
 String IcingaDB::GetObjectIdentifier(const ConfigObject::Ptr& object)
 {
 	String identifier = object->GetIcingadbIdentifier();

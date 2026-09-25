@@ -162,8 +162,10 @@ void Downtime::Stop(bool runtimeRemoved)
 	if (parent)
 		parent->UnregisterChild(this);
 
-	if (runtimeRemoved)
+	if (runtimeRemoved) {
+		GetCheckable()->SetLastRemovedDowntime(GetName());
 		OnDowntimeRemoved(this);
+	}
 
 	ObjectImpl<Downtime>::Stop(runtimeRemoved);
 }
@@ -516,6 +518,7 @@ void Downtime::TriggerDowntime(double triggerTime)
 		}
 	}
 
+	GetCheckable()->SetLastTriggeredDowntime(GetName());
 	OnDowntimeTriggered(this);
 }
 

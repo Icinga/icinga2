@@ -202,6 +202,7 @@ void Checkable::AcknowledgeProblem(const String& author, const String& comment, 
 	Log(LogInformation, "Checkable")
 		<< "Acknowledgement set for checkable '" << GetName() << "'.";
 
+	SetLastAcknowledgementSetTime(changeTime, false, origin);
 	OnAcknowledgementSet(this, author, comment, type, notify, persistent, changeTime, expiry, origin);
 
 	SetAcknowledgementLastChange(changeTime);

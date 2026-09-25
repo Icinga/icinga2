@@ -159,7 +159,7 @@ void IcingaDB::ProcessQueueItem(const icingadb::task_queue::PendingConfigItem& i
 	}
 
 	if (auto checkable = dynamic_pointer_cast<Checkable>(item.Object); checkable) {
-		if (item.DirtyBits & queue::FullState) {
+		if (item.DirtyBits & (queue::StateChange | queue::FullState)) {
 			UpdateState(checkable, item.DirtyBits);
 		}
 		if (item.DirtyBits & queue::NextUpdate) {
@@ -256,9 +256,17 @@ void IcingaDB::EnqueueConfigObject(const ConfigObject::Ptr& object, uint32_t bit
 			m_PendingItems.modify(it, [bits](queue::PendingQueueItem& item) {
 				auto& configItem = std::get<queue::PendingConfigItem>(item.Item);
 				if (bits & queue::ConfigDelete) {
-					configItem.DirtyBits &= ~(queue::ConfigUpdate | queue::FullState);
+					configItem.DirtyBits &= ~(queue::ConfigUpdate | queue::StateChange | queue::FullState);
 				} else if (bits & queue::ConfigUpdate) {
 					configItem.DirtyBits &= ~queue::ConfigDelete;
+				} else if (bits & queue::DowntimeStart) {
+					configItem.DirtyBits &= ~queue::DowntimeEnd;
+				} else if (bits & queue::DowntimeEnd) {
+					configItem.DirtyBits &= ~queue::DowntimeStart;
+				} else if (bits & queue::AckSet) {
+					configItem.DirtyBits &= ~queue::AckClear;
+				} else if (bits & queue::AckClear) {
+					configItem.DirtyBits &= ~queue::AckSet;
 				}
 				configItem.DirtyBits |= bits & queue::DirtyBitsAll;
 			});
