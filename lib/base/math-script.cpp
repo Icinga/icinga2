@@ -9,6 +9,8 @@
 #include "base/namespace.hpp"
 #include <boost/math/special_functions/round.hpp>
 #include <cmath>
+#include <random>
+#include <mutex>
 
 using namespace icinga;
 
@@ -99,7 +101,13 @@ static double MathPow(double x, double y)
 
 static double MathRandom()
 {
-	return (double)std::rand() / RAND_MAX;
+	static std::mutex genMutex;
+	static std::mt19937 gen{std::random_device{}()};
+
+	std::uniform_real_distribution<double> dist{0, 1};
+
+	std::lock_guard lock{genMutex};
+	return dist(gen);
 }
 
 static double MathRound(double x)
