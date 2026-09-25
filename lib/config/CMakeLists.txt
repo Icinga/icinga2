@@ -4,22 +4,42 @@
 find_package(BISON 2.3.0 REQUIRED)
 find_package(FLEX 2.5.31 REQUIRED)
 
-bison_target(config_parser config_parser.yy ${CMAKE_CURRENT_BINARY_DIR}/config_parser.cc)
-set_property(SOURCE ${CMAKE_CURRENT_BINARY_DIR}/config_parser.cc PROPERTY EXCLUDE_UNITY_BUILD TRUE)
+set(CONFIG_PARSER_CC ${CMAKE_CURRENT_BINARY_DIR}/config_parser.cc)
+set(CONFIG_PARSER_HH ${CMAKE_CURRENT_BINARY_DIR}/config_parser.hh)
+set(CONFIG_LEXER_CC ${CMAKE_CURRENT_BINARY_DIR}/config_lexer.cc)
 
-flex_target(config_lexer config_lexer.ll ${CMAKE_CURRENT_BINARY_DIR}/config_lexer.cc)
-set_property(SOURCE ${CMAKE_CURRENT_BINARY_DIR}/config_lexer.cc PROPERTY EXCLUDE_UNITY_BUILD TRUE)
+add_custom_command(
+  OUTPUT ${CONFIG_PARSER_CC} ${CONFIG_PARSER_HH}
+  COMMAND ${BISON_EXECUTABLE} --defines=${CONFIG_PARSER_HH} -o ${CONFIG_PARSER_CC}
+          ${CMAKE_CURRENT_SOURCE_DIR}/config_parser.yy
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS config_parser.yy
+  COMMENT "[BISON][config_parser] Building parser with bison ${BISON_VERSION}"
+  VERBATIM
+  ${ICINGA2_CODEGEN}
+)
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  set_property(SOURCE ${CMAKE_CURRENT_BINARY_DIR}/config_parser.cc PROPERTY COMPILE_FLAGS "-Wno-deprecated-register -Wno-parentheses-equality -Wno-unused-function")
-  set_property(SOURCE ${CMAKE_CURRENT_BINARY_DIR}/config_lexer.cc PROPERTY COMPILE_FLAGS "-Wno-deprecated-register -Wno-null-conversion")
-endif()
+add_custom_command(
+  OUTPUT ${CONFIG_LEXER_CC}
+  COMMAND ${FLEX_EXECUTABLE} -o${CONFIG_LEXER_CC}
+          ${CMAKE_CURRENT_SOURCE_DIR}/config_lexer.ll
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS config_lexer.ll ${CONFIG_PARSER_HH}
+  COMMENT "[FLEX][config_lexer] Building scanner with flex ${FLEX_VERSION}"
+  VERBATIM
+  ${ICINGA2_CODEGEN}
+)
 
-add_flex_bison_dependency(config_lexer config_parser)
+set_source_files_properties(${CONFIG_PARSER_CC} ${CONFIG_LEXER_CC}
+  PROPERTIES
+    SKIP_UNITY_BUILD_INCLUSION TRUE
+)
 
-include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+add_custom_target(config_parser
+  DEPENDS ${CONFIG_PARSER_CC} ${CONFIG_PARSER_HH} ${CONFIG_LEXER_CC}
+)
 
-set(config_SOURCES
+add_library(config OBJECT
   i2-config.hpp
   activationcontext.cpp activationcontext.hpp
   applyrule.cpp applyrule-targeted.cpp applyrule.hpp
@@ -31,16 +51,14 @@ set(config_SOURCES
   expression.cpp expression.hpp
   objectrule.cpp objectrule.hpp
   vmops.hpp
-  ${FLEX_config_lexer_OUTPUTS} ${BISON_config_parser_OUTPUTS}
+  ${CONFIG_PARSER_CC} ${CONFIG_LEXER_CC}
 )
 
-if(ICINGA2_UNITY_BUILD)
-  mkunity_target(config config config_SOURCES)
-endif()
+target_link_libraries(config PUBLIC
+  common
+)
 
-add_library(config OBJECT ${config_SOURCES})
-
-add_dependencies(config base)
+add_dependencies(config base_generated)
 
 set_target_properties (
   config PROPERTIES
