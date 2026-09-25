@@ -344,7 +344,7 @@ void ConfigPackageUtility::CollectPaths(const String& path, std::vector<std::pai
 		BOOST_THROW_EXCEPTION(posix_error()
 			<< boost::errinfo_api_function("lstat")
 			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(path));
+			<< boost::errinfo_file_name(~path));
 
 	paths.emplace_back(path, S_ISDIR(statbuf.st_mode));
 #else /* _WIN32 */
@@ -354,7 +354,7 @@ void ConfigPackageUtility::CollectPaths(const String& path, std::vector<std::pai
 		BOOST_THROW_EXCEPTION(posix_error()
 			<< boost::errinfo_api_function("_stat")
 			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(path));
+			<< boost::errinfo_file_name(~path));
 
 	paths.emplace_back(path, ((statbuf.st_mode & S_IFMT) == S_IFDIR));
 #endif /* _WIN32 */
@@ -386,7 +386,7 @@ bool ConfigPackageUtility::ValidateFreshName(const String& name)
 	if (ContainsDotDot(name))
 		return false;
 
-	return std::all_of(name.Begin(), name.End(), [](char c) {
+	return std::all_of(name.begin(), name.end(), [](char c) {
 		return std::isalnum(c, std::locale::classic()) || c == '_' || c == '-';
 	});
 }
