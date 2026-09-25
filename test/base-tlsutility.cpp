@@ -189,7 +189,7 @@ BOOST_FIXTURE_TEST_CASE(create_verify_ca, CertificateFixture,
 		"CA should expire within " << std::quoted(FormatAsn1Time(validUntil.get()))
 		<< ", notAfter: " << std::quoted(FormatAsn1Time(X509_get_notAfter(cacert.get()))));
 
-	// Set the CA certificate to expire in 100 days, i.e. less than the LEAF_VALID_FOR threshold of 397 days.
+	// Set the CA certificate to expire in 100 days, i.e. less than the LEAF_VALID_FOR threshold of 199 days.
 	cacert = NewCertFromExisting(cacert, 0, 100*24*60*60, true);
 	BOOST_CHECK(!IsCaUptodate(cacert.get())); // Is CA outdated now?
 
