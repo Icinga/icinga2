@@ -99,7 +99,10 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value, bool 
 	std::vector<String> tokens = attr.Split(".");
 
 	// This is reachable from ModifyObjectHandler. This check prevents API clients from creating deeply nested data
-	// structures that could overflow the stack later on.
+	// structures that could overflow the stack later on. It is done in addition to the check in
+	// CustomVarObject::ValidateDepthLimit() which is indirectly called by the validation function below. The latter
+	// does not stop offending data structures from being created (whereas this one does), but only ensures a consistent
+	// limit overall with different ways how custom variables can be created.
 	if (tokens.size() > VarDepthLimit) {
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Attribute '" + attr + "' exceeds maximum nesting level of " +
 			std::to_string(VarDepthLimit) + "."));
