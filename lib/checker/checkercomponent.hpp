@@ -76,6 +76,12 @@ private:
 	bool m_Stopped{false};
 	std::thread m_Thread;
 
+	double m_SchedulingBacklogUpdated{0};
+	std::atomic<double> m_SchedulingBacklogCurrent{};
+	std::atomic<double> m_SchedulingBacklogEwma1Min{};
+	std::atomic<double> m_SchedulingBacklogEwma5Min{};
+	std::atomic<double> m_SchedulingBacklogEwma15Min{};
+
 	CheckableSet m_IdleCheckables;
 	CheckableSet m_PendingCheckables;
 
