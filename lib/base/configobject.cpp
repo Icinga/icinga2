@@ -92,6 +92,7 @@ public:
 void ConfigObject::ModifyAttribute(const String& attr, const Value& value, bool updateVersion)
 {
 	Dictionary::Ptr original_attributes = GetOriginalAttributes();
+	std::vector<std::pair<String, Value>> orig_attr_updates;
 	bool updated_original_attributes = false;
 
 	Type::Ptr type = GetReflectionType();
@@ -161,15 +162,11 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value, bool 
 		oldValue = dict->Get(key).Clone();
 
 		if (field.Attributes & FAConfig) {
-			updated_original_attributes = true;
-
 			if (oldValue.IsObjectType<Dictionary>()) {
 				Dictionary::Ptr oldDict = oldValue;
 				ObjectLock olock(oldDict);
 				for (const auto& kv : oldDict) {
-					String key = prefix + "." + kv.first;
-					if (!original_attributes->Contains(key))
-						original_attributes->Set(key, kv.second);
+					orig_attr_updates.emplace_back(prefix + "." + kv.first, kv.second);
 				}
 
 				/* store the new value as null */
@@ -177,13 +174,12 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value, bool 
 					Dictionary::Ptr valueDict = value;
 					ObjectLock olock(valueDict);
 					for (const auto& kv : valueDict) {
-						String key = attr + "." + kv.first;
-						if (!original_attributes->Contains(key))
-							original_attributes->Set(key, Empty);
+						orig_attr_updates.emplace_back(attr + "." + kv.first, Empty);
 					}
 				}
-			} else if (!original_attributes->Contains(attr))
-				original_attributes->Set(attr, oldValue);
+			} else {
+				orig_attr_updates.emplace_back(attr, oldValue);
+			}
 		}
 
 		dict->Set(key, value);
@@ -191,15 +187,19 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value, bool 
 		newValue = value;
 
 		if (field.Attributes & FAConfig) {
-			if (!original_attributes->Contains(attr)) {
-				updated_original_attributes = true;
-				original_attributes->Set(attr, oldValue);
-			}
+			orig_attr_updates.emplace_back(attr, oldValue);
 		}
 	}
 
 	ModAttrValidationUtils utils;
 	ValidateField(fid, Lazy<Value>{newValue}, utils);
+
+	for (auto &[key, val] : orig_attr_updates) {
+		if (!original_attributes->Contains(key)) {
+			updated_original_attributes = true;
+			original_attributes->Set(key, std::move(val));
+		}
+	}
 
 	SetField(fid, newValue);
 
