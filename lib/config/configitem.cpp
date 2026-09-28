@@ -60,6 +60,7 @@ ConfigItem::ConfigItem(Type::Ptr type, String name,
 	m_DebugInfo(std::move(debuginfo)), m_Scope(std::move(scope)), m_Zone(std::move(zone)),
 	m_Package(std::move(package))
 {
+	ASSERT(m_Type);
 }
 
 /**
@@ -172,7 +173,7 @@ ConfigObject::Ptr ConfigItem::Commit(bool discard)
 #endif /* I2_DEBUG */
 
 	/* Make sure the type is valid. */
-	if (!type || !ConfigObject::TypeInstance->IsAssignableFrom(type))
+	if (!ConfigObject::TypeInstance->IsAssignableFrom(type))
 		BOOST_THROW_EXCEPTION(ScriptError("Type '" + type->GetName() + "' does not exist.", m_DebugInfo));
 
 	if (IsAbstract())
