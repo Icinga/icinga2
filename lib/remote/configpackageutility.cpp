@@ -164,7 +164,7 @@ void ConfigPackageUtility::ActivateStage(const String& packageName, const String
 }
 
 void ConfigPackageUtility::TryActivateStageCallback(const ProcessResult& pr, const String& packageName, const String& stageName,
-	bool activate, bool reload, const Shared<Defer>::Ptr& resetPackageUpdates)
+	bool activate, bool reload, const Shared<Defer<void(*)()>>::Ptr& resetPackageUpdates)
 {
 	String logFile = GetPackageDir() + "/" + packageName + "/" + stageName + "/startup.log";
 	std::ofstream fpLog(logFile.CStr(), std::ofstream::out | std::ostream::binary | std::ostream::trunc);
@@ -205,7 +205,7 @@ void ConfigPackageUtility::TryActivateStageCallback(const ProcessResult& pr, con
 }
 
 void ConfigPackageUtility::AsyncTryActivateStage(const String& packageName, const String& stageName, bool activate, bool reload,
-	const Shared<Defer>::Ptr& resetPackageUpdates)
+	const Shared<Defer<void(*)()>>::Ptr& resetPackageUpdates)
 {
 	VERIFY(Application::GetArgC() >= 1);
 
