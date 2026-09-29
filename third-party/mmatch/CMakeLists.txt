@@ -6,6 +6,13 @@ set(mmatch_SOURCES
 
 add_library(mmatch OBJECT ${mmatch_SOURCES})
 
+if(NOT MSVC)
+  target_compile_options(mmatch
+    PRIVATE
+    -Wno-implicit-fallthrough
+  )
+endif()
+
 set_target_properties(
   mmatch PROPERTIES
   FOLDER Lib
