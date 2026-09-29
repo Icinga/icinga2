@@ -23,10 +23,17 @@ jobs:
       - name: Turn on Problem Matcher
         run: echo "::add-matcher::.github/problem-matchers/gcc.json"
 
+      # Build Icinga 2 with LibreSSL, OpenBSD's default.
       - name: Build Icinga
         run: |
-          brew install boost mysql protobuf
-  
+          brew install boost libressl mysql protobuf
+
+          # MySQL and libpq pull in OpenSSL 3 which Homebrew links into its
+          # global include directory, i.e. the same one as Boost's. Unlink it
+          # so that we don't compile against the OpenSSL 3 headers while
+          # linking against the keg-only LibreSSL.
+          brew unlink openssl@3
+
           cmake -B build \
             -GNinja \
             -DCMAKE_BUILD_TYPE=RelWithDebInfo \
@@ -35,7 +42,9 @@ jobs:
             -DICINGA2_USER=$(id -un) \
             -DICINGA2_GROUP=$(id -gn) \
             -DMYSQL_INCLUDE_DIR="$(brew --prefix mysql)/include/mysql" \
-            -DPostgreSQL_ROOT="$(brew --prefix libpq)"
+            -DPostgreSQL_ROOT="$(brew --prefix libpq)" \
+            -DOPENSSL_ROOT_DIR="$(brew --prefix libressl)" \
+            -DICINGA2_UNITY_BUILD=OFF
 
           cmake --build build --verbose
           ctest --output-on-failure --test-dir build

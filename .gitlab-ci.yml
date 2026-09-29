@@ -1,7 +1,6 @@
 linux-build:
   stage: build
   script:
-    - case "$IMAGE_NAME" in alpine:*) apk add bash ;; esac
     - DISTRO="$IMAGE_NAME" ICINGA2_SOURCE_DIR="$CI_PROJECT_DIR" tools/linux/ci-build.sh
   image:
     name: "$IMAGE_NAME"
@@ -22,7 +21,6 @@ linux-build:
         OS_ARCH: amd64
         DOCKER_PLATFORM: linux/amd64
       - IMAGE_NAME:
-          - alpine:latest
           - amazonlinux:2023
           - fedora:43
           - fedora:44

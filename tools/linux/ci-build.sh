@@ -46,15 +46,6 @@ case "$DISTRO" in
 esac
 
 case "$DISTRO" in
-  alpine:*)
-    # Packages inspired by the Alpine package, just
-    # - LibreSSL instead of OpenSSL 3 and
-    # - no MariaDB or libpq as they depend on OpenSSL.
-    # https://gitlab.alpinelinux.org/alpine/aports/-/blob/master/community/icinga2/APKBUILD
-    apk add bison boost-dev ccache cmake flex g++ libedit-dev libressl-dev ninja-build tzdata protobuf-dev
-    ln -vs /usr/lib/ninja-build/bin/ninja /usr/local/bin/ninja
-    ;;
-
   amazonlinux:20*)
     dnf install --nobest -y amazon-rpm-config spal-release bison cmake flex gcc-c++ ninja-build \
       {boost,libedit,mariadb-connector-c,ncurses,openssl,postgresql,systemd,protobuf-lite}-devel
@@ -122,15 +113,6 @@ EOF
 esac
 
 case "$DISTRO" in
-  alpine:*)
-    CMAKE_OPTS+=(
-      -DUSE_SYSTEMD=OFF
-      -DICINGA2_WITH_MYSQL=OFF
-      -DICINGA2_WITH_PGSQL=OFF
-      -DCMAKE_{C,CXX}_FLAGS="${WARN_FLAGS}"
-      -DICINGA2_UNITY_BUILD=OFF
-    )
-    ;;
   debian:*|ubuntu:*)
     CMAKE_OPTS+=(-DICINGA2_LTO_BUILD=ON)
     source <(dpkg-buildflags --export=sh)
