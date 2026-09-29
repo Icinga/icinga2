@@ -196,6 +196,14 @@ if [[ -v CI_RUNNER_ID ]]; then
   fi
 fi
 
+case "$DISTRO" in
+  alpine:*)
+    # Build Alpine sequentially as parallel jobs caused "Out of memory" errors, e.g. in the testbase
+    # --generate_ctest_config step. As ninja honors the last -j, this takes precedence over the above.
+    NINJA_OPTS+=(-j 1)
+    ;;
+esac
+
 ninja "${NINJA_OPTS[@]}"
 
 # Print ccache stats
