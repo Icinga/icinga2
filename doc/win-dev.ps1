@@ -19,7 +19,7 @@ $MsvcVersion = '14.3'
 
 $BoostVersion = @(1, 90, 0)
 
-$OpensslVersion = '3_5_7'
+$OpensslVersion = '3_5_8'
 
 switch ($Env:BITS) {
 	32 { }
