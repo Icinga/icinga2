@@ -7,6 +7,7 @@
 #include "base/scriptframe.hpp"
 #include "base/initialize.hpp"
 #include "base/namespace.hpp"
+#include "base/utility.hpp"
 #include <boost/math/special_functions/round.hpp>
 #include <cmath>
 
@@ -99,7 +100,8 @@ static double MathPow(double x, double y)
 
 static double MathRandom()
 {
-	return (double)std::rand() / RAND_MAX;
+	std::uniform_real_distribution<double> dist;
+	return dist(Utility::GetRandomGenerator());
 }
 
 static double MathRound(double x)

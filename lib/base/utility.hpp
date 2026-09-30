@@ -12,6 +12,7 @@
 #include <boost/thread/tss.hpp>
 #include <openssl/sha.h>
 #include <functional>
+#include <random>
 #include <typeinfo>
 #include <vector>
 
@@ -108,6 +109,7 @@ public:
 	static String ParseVersion(const String& v);
 	static int CompareVersion(const String& v1, const String& v2);
 
+	static std::mt19937& GetRandomGenerator();
 	static int Random();
 
 	static String GetHostName();
@@ -197,7 +199,6 @@ private:
 #endif /* I2_DEBUG */
 
 	static boost::thread_specific_ptr<String> m_ThreadName;
-	static boost::thread_specific_ptr<unsigned int> m_RandSeed;
 };
 
 }

@@ -128,7 +128,8 @@ void Checkable::Start(bool runtimeCreated)
 
 	if (GetNextCheck() < now + 60) {
 		double delta = std::min(GetCheckInterval(), 60.0);
-		delta *= (double)std::rand() / RAND_MAX;
+		std::uniform_real_distribution<double> dist;
+		delta *= dist(Utility::GetRandomGenerator());
 		SetNextCheck(now + delta);
 	}
 
