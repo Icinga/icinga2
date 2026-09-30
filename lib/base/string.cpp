@@ -26,12 +26,16 @@ String::String(std::string data)
 	: m_Data(std::move(data))
 { }
 
-String::String(String::SizeType n, char c)
-	: m_Data(n, c)
+String::String(const char *data, std::size_t size)
+	: m_Data(data, size)
 { }
 
-String::String(const String& other)
-	: m_Data(other)
+String::String(std::string_view sv)
+	: m_Data(sv)
+{ }
+
+String::String(String::SizeType n, char c)
+	: m_Data(n, c)
 { }
 
 String::String(String&& other) noexcept
@@ -123,9 +127,39 @@ bool String::operator<(const String& rhs) const
 	return m_Data < rhs.m_Data;
 }
 
-String::operator const std::string&() const
+std::string String::operator~() const&
 {
 	return m_Data;
+}
+
+std::string& String::operator*() &
+{
+	return m_Data;
+}
+
+std::string&& String::operator*() &&
+{
+	return std::move(m_Data);
+}
+
+const std::string& String::operator*() const&
+{
+	return m_Data;
+}
+
+String::operator std::string() const&
+{
+	return m_Data;
+}
+
+String::operator std::string() &&
+{
+	return std::move(m_Data);
+}
+
+String::operator std::string_view() const
+{
+	return std::string_view(m_Data);
 }
 
 /**
@@ -155,24 +189,29 @@ String::SizeType String::GetLength() const
 	return m_Data.size();
 }
 
-std::string& String::GetData()
+std::string& String::GetData() &
 {
 	return m_Data;
 }
 
-const std::string& String::GetData() const
+std::string&& String::GetData() &&
+{
+	return std::move(m_Data);
+}
+
+const std::string& String::GetData() const &
 {
 	return m_Data;
 }
 
 String::SizeType String::Find(const String& str, String::SizeType pos) const
 {
-	return m_Data.find(str, pos);
+	return m_Data.find(str.GetData(), pos);
 }
 
 String::SizeType String::RFind(const String& str, String::SizeType pos) const
 {
-	return m_Data.rfind(str, pos);
+	return m_Data.rfind(str.GetData(), pos);
 }
 
 String::SizeType String::FindFirstOf(const char *s, String::SizeType pos) const
@@ -219,7 +258,7 @@ std::vector<String> String::Split(const char *separators) const
 
 void String::Replace(String::SizeType first, String::SizeType second, const String& str)
 {
-	m_Data.replace(first, second, str);
+	m_Data.replace(first, second, str.GetData());
 }
 
 String String::Trim() const
@@ -257,10 +296,10 @@ void String::Append(int count, char ch)
 
 bool String::Contains(const String& str) const
 {
-	return (m_Data.find(str) != std::string::npos);
+	return (m_Data.find(str.GetData()) != std::string::npos);
 }
 
-void String::swap(String& str)
+void String::swap(String& str) noexcept
 {
 	m_Data.swap(str.m_Data);
 }
@@ -268,46 +307,6 @@ void String::swap(String& str)
 String::Iterator String::erase(String::Iterator first, String::Iterator last)
 {
 	return m_Data.erase(first, last);
-}
-
-String::Iterator String::Begin()
-{
-	return m_Data.begin();
-}
-
-String::ConstIterator String::Begin() const
-{
-	return m_Data.begin();
-}
-
-String::Iterator String::End()
-{
-	return m_Data.end();
-}
-
-String::ConstIterator String::End() const
-{
-	return m_Data.end();
-}
-
-String::ReverseIterator String::RBegin()
-{
-	return m_Data.rbegin();
-}
-
-String::ConstReverseIterator String::RBegin() const
-{
-	return m_Data.rbegin();
-}
-
-String::ReverseIterator String::REnd()
-{
-	return m_Data.rend();
-}
-
-String::ConstReverseIterator String::REnd() const
-{
-	return m_Data.rend();
 }
 
 std::ostream& icinga::operator<<(std::ostream& stream, const String& str)
@@ -424,43 +423,9 @@ bool icinga::operator!=(const char *lhs, const String& rhs)
 	return lhs != rhs.GetData();
 }
 
-String::Iterator icinga::begin(String& x)
+String icinga::operator""_S(const char* ptr, size_t size)
 {
-	return x.Begin();
-}
-
-String::ConstIterator icinga::begin(const String& x)
-{
-	return x.Begin();
-}
-
-String::Iterator icinga::end(String& x)
-{
-	return x.End();
-}
-
-String::ConstIterator icinga::end(const String& x)
-{
-	return x.End();
-}
-String::Iterator icinga::range_begin(String& x)
-{
-	return x.Begin();
-}
-
-String::ConstIterator icinga::range_begin(const String& x)
-{
-	return x.Begin();
-}
-
-String::Iterator icinga::range_end(String& x)
-{
-	return x.End();
-}
-
-String::ConstIterator icinga::range_end(const String& x)
-{
-	return x.End();
+	return String{ptr, size};
 }
 
 std::size_t std::hash<String>::operator()(const String& s) const noexcept
