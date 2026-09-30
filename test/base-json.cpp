@@ -315,10 +315,11 @@ static void TestJsonStackSize()
 
 BOOST_AUTO_TEST_CASE(stack_size_coroutine)
 {
-	auto future = SpawnSynchronizedCoroutine([](boost::asio::yield_context) {
+	auto& io = IoEngine::Get().GetIoContext();
+	auto future = IoEngine::SpawnSyncCoroutine(io, [](boost::asio::yield_context) {
 		TestJsonStackSize();
 	});
-	future.get();
+	future->Get();
 }
 
 #ifdef HAVE_PTHREAD_CREATE
