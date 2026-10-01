@@ -1253,6 +1253,7 @@ Send a `POST` request to the URL endpoint `/v1/actions/acknowledge-problem`.
   author               | String    | **Required.** Name of the author, may be empty.
   comment              | String    | **Required.** Comment text, may be empty.
   expiry               | Timestamp | **Optional.** Whether the acknowledgement will be removed at the timestamp.
+  set\_time  | Timestamp | **Optional.** The timestamp to be used as an acknowledgement set time. If omitted, the current time is used.
   sticky               | Boolean   | **Optional.** Whether the acknowledgement will be set until the service or host fully recovers. Defaults to `false`.
   notify               | Boolean   | **Optional.** Whether a notification of the `Acknowledgement` type will be sent. Defaults to `false`.
   persistent           | Boolean   | **Optional.** When the comment is of type `Acknowledgement` and this is set to `true`, the comment will remain after the acknowledgement recovers or expires. Defaults to `false`.
