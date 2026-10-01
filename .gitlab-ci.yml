@@ -22,7 +22,7 @@ linux-build:
         OS_ARCH: amd64
         DOCKER_PLATFORM: linux/amd64
       - IMAGE_NAME:
-          - alpine:latest
+          - alpine:edge
           - amazonlinux:2023
           - fedora:43
           - fedora:44
