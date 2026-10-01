@@ -7,6 +7,7 @@
 #include "remote/apilistener.hpp"
 #include "remote/apifunction.hpp"
 #include "remote/jsonrpc.hpp"
+#include "base/accesslogger.hpp"
 #include "base/application.hpp"
 #include "base/base64.hpp"
 #include "base/convert.hpp"
@@ -206,6 +207,8 @@ bool EnsureValidHeaders(
 
 		response.set(http::field::connection, "close");
 
+		LogAccess(request.Stream(), request, request.User() ? request.User()->GetName() : "", response);
+
 		response.Flush(yc);
 
 		return false;
@@ -226,6 +229,9 @@ void HandleExpect100(
 	if (request[http::field::expect] == "100-continue") {
 		HttpApiResponse response{stream};
 		response.result(http::status::continue_);
+
+		LogAccess(request.Stream(), request, request.User() ? request.User()->GetName() : "", response);
+
 		response.Flush(yc);
 	}
 }
@@ -263,6 +269,8 @@ bool HandleAccessControl(
 					response.body() << "Preflight OK";
 					response.set(http::field::connection, "close");
 
+					LogAccess(request.Stream(), request, request.User() ? request.User()->GetName() : "", response);
+
 					response.Flush(yc);
 
 					return false;
@@ -288,6 +296,8 @@ bool EnsureAcceptHeader(
 		response.set(http::field::content_type, "text/html");
 		response.body() << "<h1>Accept header is missing or not set to 'application/json'.</h1>";
 		response.set(http::field::connection, "close");
+
+		LogAccess(request.Stream(), request, request.User() ? request.User()->GetName() : "", response);
 
 		response.Flush(yc);
 
@@ -321,6 +331,8 @@ bool EnsureAuthenticatedUser(
 		// Set additional header fields after the response has been initialized in SendJsonError().
 		response.set(http::field::www_authenticate, "Basic realm=\"Icinga 2\"");
 		response.set(http::field::connection, "close");
+
+		LogAccess(request.Stream(), request, "", response);
 
 		response.Flush(yc);
 
@@ -405,6 +417,8 @@ bool EnsureValidBody(
 
 		response.set(http::field::connection, "close");
 
+		LogAccess(request.Stream(), request, request.User() ? request.User()->GetName() : "", response);
+
 		response.Flush(yc);
 
 		return false;
@@ -440,6 +454,10 @@ void ProcessRequest(
 		}
 
 		HttpUtility::SendJsonError(response, request.Params(), 500, "Unhandled exception", std::current_exception());
+	}
+
+	if (!response.HasSerializationStarted()) {
+		LogAccess(request.Stream(), request, request.User() ? request.User()->GetName() : "", response);
 	}
 
 	response.Flush(yc);
