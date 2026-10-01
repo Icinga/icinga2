@@ -62,6 +62,12 @@ case "$DISTRO" in
     ;;
 
   *suse*)
+    # SUSE's download servers occasionally reset connections mid-download (curl error 35),
+    # which makes zypper abort the whole installation. Let libzypp retry failed downloads.
+    # Only its newer network backend honors download.max_silent_tries, so enable that as well.
+    export ZYPP_CONF=/tmp/zypp.conf ZYPP_MEDIANETWORK=1
+    printf '[main]\ndownload.max_silent_tries = 5\n' > "$ZYPP_CONF"
+
     zypper in -y --allow-downgrade bison ccache cmake flex gcc-c++ ninja rpm-config-SUSE \
       {lib{edit,mariadb,openssl},ncurses,postgresql,systemd,protobuf}-devel \
       libboost_{context,coroutine,filesystem,iostreams,program_options,regex,system,test,thread}-devel
