@@ -121,9 +121,9 @@ String ConfigPackageUtility::CreateStage(const String& packageName, const Dictio
 void ConfigPackageUtility::WritePackageConfig(const String& packageName)
 {
 	String stageName = GetActiveStage(packageName);
-	AtomicFile::Write(GetPackageDir() + "/" + packageName + "/include.conf", 0644, "include \"*/include.conf\"\n");
+	AtomicFile::Write(GetPackageDir() + "/" + packageName + "/include.conf", 0640, "include \"*/include.conf\"\n");
 
-	AtomicFile fpActive(GetPackageDir() + "/" + packageName + "/active.conf", 0644);
+	AtomicFile fpActive(GetPackageDir() + "/" + packageName + "/active.conf", 0640);
 	fpActive << "if (!globals.contains(\"ActiveStages\")) {\n"
 		<< "  globals.ActiveStages = {}\n"
 		<< "}\n"
@@ -147,7 +147,7 @@ void ConfigPackageUtility::WritePackageConfig(const String& packageName)
 
 void ConfigPackageUtility::WriteStageConfig(const String& packageName, const String& stageName)
 {
-	AtomicFile fp(GetPackageDir() + "/" + packageName + "/" + stageName + "/include.conf", 0644);
+	AtomicFile fp(GetPackageDir() + "/" + packageName + "/" + stageName + "/include.conf", 0640);
 	fp << "include \"../active.conf\"\n"
 		<< "if (ActiveStages[\"" << packageName << "\"] == \"" << stageName << "\") {\n"
 		<< "  include_recursive \"conf.d\"\n"
@@ -280,7 +280,7 @@ String ConfigPackageUtility::GetActiveStageFromFile(const String& packageName)
 void ConfigPackageUtility::SetActiveStageToFile(const String& packageName, const String& stageName)
 {
 	std::unique_lock<std::mutex> lock(GetStaticActiveStageMutex());
-	AtomicFile::Write(GetPackageDir() + "/" + packageName + "/active-stage", 0644, stageName);
+	AtomicFile::Write(GetPackageDir() + "/" + packageName + "/active-stage", 0640, stageName);
 }
 
 String ConfigPackageUtility::GetActiveStage(const String& packageName)
