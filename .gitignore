@@ -22,3 +22,6 @@ cmake-build-debug
 tools/selinux/icinga2.pp
 tools/selinux/icinga2_selinux.8
 tools/selinux/tmp
+
+## CMake user presets
+CMakeUserPresets.json
