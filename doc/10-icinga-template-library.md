@@ -2400,6 +2400,7 @@ snmp_interface_weathermap   | **Optional.** Output data for ["weathermap" lines]
 snmp_perf                   | **Optional.** Enable perfdata values. Defaults to true.
 snmp_timeout                | **Optional.** The command timeout in seconds. Defaults to 5 seconds.
 snmp_interface_admin        | **Optional.** Use administrative status instead of operational. Defaults to false.
+snmp_interface_olength      | **Optional.** Max-size of the SNMP message, useful in case of Too Long responses.
 
 ### snmp-process <a id="plugin-check-command-snmp-process"></a>
 
