@@ -850,23 +850,21 @@ The most common benefits:
 
 #### Unity Builds <a id="development-develop-builds-unity-builds"></a>
 
-You should be aware that by default unity builds are enabled. You can turn them
-off by setting the `ICINGA2_UNITY_BUILD` CMake option to `OFF`.
+Unity builds basically include all source files of each library target in one big translation unit.
+The compiler then doesn't need repeatedly parse and compile the same include files that many
+source files use, but instead only has to do that once per unity file, which can speed up compile
+times.
 
-Typically, we already use caching mechanisms to reduce recompile time with ccache.
-For release builds, there's always a new build needed as the difference is huge compared
-to a previous (major) release.
+You can enable unity builds by passing `-DCMAKE_UNITY_BUILD:BOOL=TRUE` on the CMake
+command-line or by using any of our default presets (list them with `cmake --list-presets`) to
+configure your build directory.
 
-Unity builds basically concatenate all source files into one big library source code file.
-The compiler then doesn't need to load many small files, each with all of their includes,
-but compiles and links only a few huge ones.
+However, be aware that unity builds require more memory, which is why you should disable them
+for development builds in small sized VMs (Linux, Windows) and also Docker containers.
 
-However, unity builds require more memory which is why you should disable them for development
-builds in small sized VMs (Linux, Windows) and also Docker containers.
-
-There's a couple of header files which are included everywhere. If you touch/edit them,
-the cache is invalidated and you need to recompile a lot more files then. `base/utility.hpp`
-and `remote/zone.hpp` are good candidates for this.
+Another downside is that when any files belonging to a unity file are touched (header **and**
+source files) the entire unity file will need to be recompiled, leading to an inefficient development
+workflow when making changes to central files.
 
 ### Unit Tests <a id="development-develop-tests"></a>
 
