@@ -24,7 +24,7 @@ public:
 	DECLARE_OBJECT(HostGroup);
 	DECLARE_OBJECTNAME(HostGroup);
 
-	std::set<Host::Ptr> GetMembers() const;
+	std::unordered_set<Host::Ptr> GetMembers() const;
 	void AddMember(const Host::Ptr& host);
 	void RemoveMember(const Host::Ptr& host);
 
@@ -34,7 +34,7 @@ public:
 
 private:
 	mutable std::mutex m_HostGroupMutex;
-	std::set<Host::Ptr> m_Members;
+	std::unordered_set<Host::Ptr> m_Members;
 
 	static bool EvaluateObjectRule(const Host::Ptr& host, const intrusive_ptr<ConfigItem>& item);
 };

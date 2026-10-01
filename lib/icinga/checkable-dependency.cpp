@@ -73,7 +73,7 @@ void Checkable::AddDependency(const Dependency::Ptr& dependency)
 		return;
 	}
 
-	std::set<Dependency::Ptr> dependencies;
+	std::unordered_set<Dependency::Ptr> dependencies;
 	bool removeGroup(false);
 
 	DependencyGroup::Ptr existingGroup;
@@ -219,9 +219,9 @@ bool Checkable::AffectsChildren() const
 	return false;
 }
 
-std::set<Checkable::Ptr> Checkable::GetParents() const
+std::unordered_set<Checkable::Ptr> Checkable::GetParents() const
 {
-	std::set<Checkable::Ptr> parents;
+	std::unordered_set<Checkable::Ptr> parents;
 	for (auto& dependencyGroup : GetDependencyGroups()) {
 		dependencyGroup->LoadParents(parents);
 	}
@@ -229,9 +229,9 @@ std::set<Checkable::Ptr> Checkable::GetParents() const
 	return parents;
 }
 
-std::set<Checkable::Ptr> Checkable::GetChildren() const
+std::unordered_set<Checkable::Ptr> Checkable::GetChildren() const
 {
-	std::set<Checkable::Ptr> parents;
+	std::unordered_set<Checkable::Ptr> parents;
 
 	for (const Dependency::Ptr& dep : GetReverseDependencies()) {
 		Checkable::Ptr service = dep->GetChild();
@@ -259,9 +259,9 @@ size_t Checkable::GetAllChildrenCount() const
 	return GetAllChildren().size();
 }
 
-std::set<Checkable::Ptr> Checkable::GetAllChildren() const
+std::unordered_set<Checkable::Ptr> Checkable::GetAllChildren() const
 {
-	std::set<Checkable::Ptr> children;
+	std::unordered_set<Checkable::Ptr> children;
 
 	GetAllChildrenInternal(children, 0);
 
@@ -277,7 +277,7 @@ std::set<Checkable::Ptr> Checkable::GetAllChildren() const
  * @param seenChildren - A container to store all the traversed children into.
  * @param level - The current level of recursion.
  */
-void Checkable::GetAllChildrenInternal(std::set<Checkable::Ptr>& seenChildren, int level) const
+void Checkable::GetAllChildrenInternal(std::unordered_set<Checkable::Ptr>& seenChildren, int level) const
 {
 	if (level > Dependency::MaxDependencyRecursionLevel) {
 		Log(LogWarning, "Checkable")

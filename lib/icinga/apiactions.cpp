@@ -369,7 +369,7 @@ Dictionary::Ptr ApiActions::RemoveComment(
 	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
 
 	if (checkable) {
-		std::set<Comment::Ptr> comments = checkable->GetComments();
+		auto comments (checkable->GetComments());
 
 		for (const Comment::Ptr& comment : comments) {
 			Comment::RemoveComment(comment->GetName(), true, author);
@@ -502,7 +502,7 @@ Dictionary::Ptr ApiActions::ScheduleDowntime(
 
 		ArrayData childDowntimes;
 
-		std::set<Checkable::Ptr> allChildren = checkable->GetAllChildren();
+		auto allChildren (checkable->GetAllChildren());
 		for (const Checkable::Ptr& child : allChildren) {
 			Host::Ptr childHost;
 			Service::Ptr childService;
@@ -581,7 +581,7 @@ Dictionary::Ptr ApiActions::RemoveDowntime(
 	size_t childCount = 0;
 
 	if (checkable) {
-		std::set<Downtime::Ptr> downtimes = checkable->GetDowntimes();
+		auto downtimes (checkable->GetDowntimes());
 
 		for (const Downtime::Ptr& downtime : downtimes) {
 			childCount += downtime->GetChildren().size();

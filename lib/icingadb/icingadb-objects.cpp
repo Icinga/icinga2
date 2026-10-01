@@ -125,7 +125,7 @@ void IcingaDB::ConfigStaticInitialize()
 		AcknowledgementClearedHandler(checkable, removedBy, changeTime);
 	});
 
-	Checkable::OnReachabilityChanged.connect([](const Checkable::Ptr& parent, const CheckResult::Ptr&, std::set<Checkable::Ptr>, const MessageOrigin::Ptr&) {
+	Checkable::OnReachabilityChanged.connect([](const Checkable::Ptr& parent, const CheckResult::Ptr&, std::unordered_set<Checkable::Ptr>, const MessageOrigin::Ptr&) {
 		// Icinga DB Web needs to know about the reachability of all children, not just the direct ones.
 		// These might get updated with their next check result anyway, but we can't rely on that, since
 		// they might not be actively checked or have a very high check interval.
@@ -149,7 +149,7 @@ void IcingaDB::ConfigStaticInitialize()
 	Downtime::OnDowntimeRemoved.connect(&IcingaDB::DowntimeRemovedHandler);
 
 	Checkable::OnNotificationSentToAllUsers.connect([](
-		const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::set<User::Ptr>& users,
+		const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::unordered_set<User::Ptr>& users,
 		const NotificationType& type, const CheckResult::Ptr& cr, const String& author, const String& text,
 		const MessageOrigin::Ptr&
 	) {
@@ -931,7 +931,7 @@ void IcingaDB::InsertObjectDependencies(const ConfigObject::Ptr& object,
 	if (type == Notification::TypeInstance) {
 		Notification::Ptr notification = static_pointer_cast<Notification>(object);
 
-		std::set<User::Ptr> users = notification->GetUsers();
+		auto users (notification->GetUsers());
 		Array::Ptr userIds = new Array();
 
 		auto usergroups(notification->GetUserGroups());
@@ -1977,7 +1977,7 @@ void IcingaDB::SendStateChange(const ConfigObject::Ptr& object, const CheckResul
 }
 
 void IcingaDB::SendSentNotification(
-	const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::set<User::Ptr>& users,
+	const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::unordered_set<User::Ptr>& users,
 	NotificationType type, const CheckResult::Ptr& cr, const String& author, const String& text, double sendTime
 )
 {
@@ -2941,7 +2941,7 @@ void IcingaDB::StateChangeHandler(const ConfigObject::Ptr& object, const CheckRe
 	}
 }
 
-void IcingaDB::ReachabilityChangeHandler(const std::set<Checkable::Ptr>& children)
+void IcingaDB::ReachabilityChangeHandler(const std::unordered_set<Checkable::Ptr>& children)
 {
 	for (const IcingaDB::Ptr& rw : ConfigType::GetObjectsByType<IcingaDB>()) {
 		for (auto& checkable : children) {
@@ -2990,7 +2990,7 @@ void IcingaDB::DowntimeRemovedHandler(const Downtime::Ptr& downtime)
 }
 
 void IcingaDB::NotificationSentToAllUsersHandler(
-	const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::set<User::Ptr>& users,
+	const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::unordered_set<User::Ptr>& users,
 	NotificationType type, const CheckResult::Ptr& cr, const String& author, const String& text
 )
 {
@@ -3048,7 +3048,7 @@ void IcingaDB::DependencyGroupChildRegisteredHandler(const Checkable::Ptr& child
 		rw->EnqueueDependencyChildRegistered(dependencyGroup, child);
 		rw->EnqueueDependencyGroupStateUpdate(dependencyGroup);
 
-		std::set<Checkable::Ptr> parents;
+		std::unordered_set<Checkable::Ptr> parents;
 		dependencyGroup->LoadParents(parents);
 		for (const auto& parent : parents) {
 			// The total_children and affects_children columns might now have different outcome, so update the parent
