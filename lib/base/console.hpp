@@ -43,11 +43,7 @@ enum ConsoleType
 	Console_Autodetect = -1,
 
 	Console_Dumb,
-#ifndef _WIN32
 	Console_VT100,
-#else /* _WIN32 */
-	Console_Windows,
-#endif /* _WIN32 */
 };
 
 class ConsoleColorTag
@@ -77,11 +73,7 @@ public:
 	static void SetType(std::ostream& fp, ConsoleType type);
 	static ConsoleType GetType(std::ostream& fp);
 
-#ifndef _WIN32
 	static void PrintVT100ColorCode(std::ostream& fp, int color);
-#else /* _WIN32 */
-	static void SetWindowsConsoleColor(std::ostream& fp, int color);
-#endif /* _WIN32 */
 
 private:
 	Console();
