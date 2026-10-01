@@ -1,0 +1,34 @@
+Debug
+Release
+build
+*.a
+
+# ignore clangd cache directory
+.cache
+.vs/
+.vscode/
+.vsconfig
+*.sln
+*.ncb
+*.suo
+*.user
+*sdf
+*.vc*
+*~
+doc
+core
+*ipch
+.settings/
+
+# do not track Visual Studio CMake settings
+CMakeSettings.json
+CMakeCache.txt
+CMakeFiles
+*.dir
+Testing
+Win32
+
+SQLiteCpp_example1
+SQLiteCpp_tests
+
+!FindSQLiteCpp.cmake
