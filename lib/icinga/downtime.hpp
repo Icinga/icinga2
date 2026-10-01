@@ -84,6 +84,7 @@ protected:
 
 	void ValidateStartTime(const Lazy<Timestamp>& lvalue, const ValidationUtils& utils) override;
 	void ValidateEndTime(const Lazy<Timestamp>& lvalue, const ValidationUtils& utils) override;
+	void ValidateDuration(const Lazy<Timestamp>& lvalue, const ValidationUtils& utils) override;
 
 private:
 	ObjectImpl<Checkable>::Ptr m_Checkable;
