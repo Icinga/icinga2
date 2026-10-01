@@ -4,5 +4,5 @@
 # a bash by default, the "alpine:bash" container will be built using this
 # Dockerfile in the GitHub Action.
 
-FROM alpine:3
+FROM alpine:edge
 RUN ["apk", "--no-cache", "add", "bash"]
