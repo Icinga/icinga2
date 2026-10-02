@@ -5,11 +5,13 @@ include(DiscoverBoostTests)
 
 add_library(testdeps INTERFACE)
 
-if(NOT Boost_UNIT_TEST_FRAMEWORK_LIBRARY)
+option(ICINGA2_BOOST_TEST_DISABLE_ALT_STACK "Compile Boost.Test with BOOST_TEST_DISABLE_ALT_STACK (requires ICINGA2_BOOST_TEST_USE_INCLUDED; has no effect on a prebuilt Boost.Test library)" OFF)
+
+if(NOT ICINGA2_BOOST_TEST_USE_INCLUDED AND NOT Boost_UNIT_TEST_FRAMEWORK_LIBRARY)
   find_package(Boost QUIET COMPONENTS unit_test_framework)
 endif()
 
-if(Boost_UNIT_TEST_FRAMEWORK_LIBRARY)
+if(NOT ICINGA2_BOOST_TEST_DISABLE_ALT_STACK AND Boost_UNIT_TEST_FRAMEWORK_LIBRARY)
   target_link_libraries(testdeps
     INTERFACE
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
@@ -19,6 +21,10 @@ if(Boost_UNIT_TEST_FRAMEWORK_LIBRARY)
   endif()
 else()
   set(BOOST_TEST_USE_INCLUDED ON)
+
+  if(ICINGA2_BOOST_TEST_DISABLE_ALT_STACK)
+    target_compile_definitions(testdeps INTERFACE BOOST_TEST_DISABLE_ALT_STACK)
+  endif()
 endif()
 
 target_link_libraries(testdeps
