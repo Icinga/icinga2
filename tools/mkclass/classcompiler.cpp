@@ -908,7 +908,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 					/* Ew */
 					if (field.Type.TypeName == "Zone" && m_Library == "base")
-						m_Impl << "dynamic_cast<ConfigObject*>(this), ConfigObject::GetObject(\"Zone\", ";
+						m_Impl << "dynamic_cast<ConfigObject*>(this), ConfigObject::GetZone(";
 					else
 						m_Impl << "this, ConfigObject::GetObject<" << field.Type.TypeName << ">(";
 
@@ -922,7 +922,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 					/* Ew */
 					if (field.Type.TypeName == "Zone" && m_Library == "base")
-						m_Impl << "dynamic_cast<ConfigObject*>(this), ConfigObject::GetObject(\"Zone\", ";
+						m_Impl << "dynamic_cast<ConfigObject*>(this), ConfigObject::GetZone(";
 					else
 						m_Impl << "this, ConfigObject::GetObject<" << field.Type.TypeName << ">(";
 
@@ -935,7 +935,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 					/* Ew */
 					if (field.Type.TypeName == "Zone" && m_Library == "base")
-						m_Impl << "dynamic_cast<ConfigObject*>(this), ConfigObject::GetObject(\"Zone\", ";
+						m_Impl << "dynamic_cast<ConfigObject*>(this), ConfigObject::GetZone(";
 					else
 						m_Impl << "this, ConfigObject::GetObject<" << field.Type.TypeName << ">(";
 
@@ -945,7 +945,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 
 					/* Ew */
 					if (field.Type.TypeName == "Zone" && m_Library == "base")
-						m_Impl << "dynamic_cast<ConfigObject*>(this), ConfigObject::GetObject(\"Zone\", ";
+						m_Impl << "dynamic_cast<ConfigObject*>(this), ConfigObject::GetZone(";
 					else
 						m_Impl << "this, ConfigObject::GetObject<" << field.Type.TypeName << ">(";
 

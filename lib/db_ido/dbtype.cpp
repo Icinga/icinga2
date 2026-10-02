@@ -3,6 +3,8 @@
 
 #include "db_ido/dbtype.hpp"
 #include "db_ido/dbconnection.hpp"
+#include "base/configtype.hpp"
+#include "base/type.hpp"
 #include "base/objectlock.hpp"
 #include "base/debug.hpp"
 #include <boost/thread/once.hpp>
@@ -86,22 +88,34 @@ DbObject::Ptr DbType::GetOrCreateObjectByName(const String& name1, const String&
 	if (!name2.IsEmpty())
 		objName += "!" + name2;
 
-	String objType = m_Name;
+	ConfigType *type = nullptr;
 
 	if (m_TypeID == DbObjectTypeCommand) {
 		if (objName.SubStr(0, 6) == "check_") {
-			objType = "CheckCommand";
+			static ConfigType *checkCommandType = dynamic_cast<ConfigType *>(Type::GetByName("CheckCommand").get());
+			type = checkCommandType;
 			objName = objName.SubStr(6);
 		} else if (objName.SubStr(0, 13) == "notification_") {
-			objType = "NotificationCommand";
+			static ConfigType *notificationCommandType = dynamic_cast<ConfigType *>(Type::GetByName("NotificationCommand").get());
+			type = notificationCommandType;
 			objName = objName.SubStr(13);
 		} else if (objName.SubStr(0, 6) == "event_") {
-			objType = "EventCommand";
+			static ConfigType *eventCommandType = dynamic_cast<ConfigType *>(Type::GetByName("EventCommand").get());
+			type = eventCommandType;
 			objName = objName.SubStr(6);
+		} else {
+			if (!m_ConfigType)
+				m_ConfigType = dynamic_cast<ConfigType *>(Type::GetByName(m_Name).get());
+			type = m_ConfigType;
 		}
+	} else {
+		if (!m_ConfigType)
+			m_ConfigType = dynamic_cast<ConfigType *>(Type::GetByName(m_Name).get());
+		type = m_ConfigType;
 	}
 
-	dbobj->SetObject(ConfigObject::GetObject(objType, objName));
+	if (type)
+		dbobj->SetObject(type->GetObject(objName));
 
 	return dbobj;
 }
