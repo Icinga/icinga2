@@ -42,6 +42,10 @@ void IdoMysqlConnection::OnConfigLoaded()
 
 	auto create_mysql_shim = shimLibrary.GetSymbolAddress<create_mysql_shim_ptr>("create_mysql_shim");
 
+	if (!create_mysql_shim)
+
+		BOOST_THROW_EXCEPTION(std::runtime_error("Could not find symbol 'create_mysql_shim' in mysql_shim lbrary"));
+
 	m_Mysql.reset(create_mysql_shim());
 
 	std::swap(m_Library, shimLibrary);
