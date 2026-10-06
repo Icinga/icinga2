@@ -1262,12 +1262,12 @@ void ClassCompiler::CodeGenValidator(const std::string& name, const std::string&
 						idxbuf << srule.Pattern;
 						idxbuf >> index;
 
-						if (index == -1) {
+						if (index < 0) {
 							std::cerr << "Invalid index for 'required' keyword: " << srule.Pattern;
 							std::exit(1);
 						}
 
-						m_Impl << (type_check ? "\t" : "") << "\t\t" << "if (arr.GetLength() < " << (index + 1) << ")" << std::endl
+						m_Impl << (type_check ? "\t" : "") << "\t\t" << "if (arr.GetLength() <= " << index << ")" << std::endl
 							<< (type_check ? "\t" : "") << "\t\t\t" << "BOOST_THROW_EXCEPTION(ValidationError(dynamic_cast<ConfigObject *>(this), location, \"Required index '" << index << "' is not set.\"));" << std::endl;
 					}
 				}
