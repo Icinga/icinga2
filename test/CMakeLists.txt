@@ -101,6 +101,7 @@ set(base_test_SOURCES
   base-fifo.cpp
   base-io-engine.cpp
   base-json.cpp
+  base-logger.cpp
   base-match.cpp
   base-netstring.cpp
   base-object.cpp
