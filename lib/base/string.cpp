@@ -79,6 +79,12 @@ String& String::operator=(const std::string& rhs)
 	return *this;
 }
 
+String& String::operator=(std::string&& rhs) noexcept
+{
+	m_Data = std::move(rhs);
+	return *this;
+}
+
 String& String::operator=(const char *rhs)
 {
 	m_Data = rhs;
