@@ -39,10 +39,12 @@ option(ICINGA2_WITH_PERFDATA "Build the perfdata module" ${ICINGA2_MASTER})
 option(ICINGA2_WITH_ICINGADB "Build the IcingaDB module" ${ICINGA2_MASTER})
 option(ICINGA2_WITH_OPENTELEMETRY "Build the OpenTelemetry integration module" ${ICINGA2_MASTER})
 
-option (USE_SYSTEMD
- "Configure icinga as native systemd service instead of a SysV initscript" OFF)
-
-set(HAVE_SYSTEMD ${USE_SYSTEMD})
+if(NOT DEFINED USE_SYSTEMD)
+  find_package(Systemd)
+  set(USE_SYSTEMD ${Systemd_FOUND})
+endif()
+set(USE_SYSTEMD ${USE_SYSTEMD} CACHE BOOL
+  "Configure icinga as native systemd service instead of a SysV initscript")
 
 include(GNUInstallDirs)
 include(InstallConfig)
@@ -234,8 +236,9 @@ include_directories(
   ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR}/lib
 )
 
-if(HAVE_SYSTEMD)
-  list(APPEND base_DEPS systemd)
+if(USE_SYSTEMD)
+  find_package(Systemd REQUIRED)
+  list(APPEND base_DEPS Systemd::Systemd)
 endif()
 
 if(EDITLINE_FOUND)
