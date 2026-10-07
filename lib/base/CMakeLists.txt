@@ -63,6 +63,7 @@ set(base_SOURCES
   reference.cpp reference.hpp reference-script.cpp
   registry.hpp
   ringbuffer.cpp ringbuffer.hpp
+  sanitizer.hpp
   scriptframe.cpp scriptframe.hpp
   scriptglobal.cpp scriptglobal.hpp
   scriptpermission.cpp scriptpermission.hpp
