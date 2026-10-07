@@ -105,6 +105,7 @@ set(base_test_SOURCES
   base-netstring.cpp
   base-object.cpp
   base-object-packer.cpp
+  base-sanitizer.cpp
   base-serialize.cpp
   base-shellescape.cpp
   base-stacktrace.cpp
