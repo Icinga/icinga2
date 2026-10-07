@@ -6,6 +6,7 @@
 #include "base/atomic.hpp"
 #include "base/i2-base.hpp"
 #include "base/logger-ti.hpp"
+#include "base/sanitizer.hpp"
 #include <optional>
 #include <set>
 #include <sstream>
@@ -123,21 +124,90 @@ public:
 	Log& operator<<(T&& val)
 	{
 		if (m_Buffer) {
-			*m_Buffer << std::forward<T>(val);
+			if (m_QuoteNext) {
+				Sanitizer::WriteToStreamWithQuotes(*m_Buffer, std::forward<T>(val));
+				m_QuoteNext = false;
+			} else if (m_InQuotes) {
+				Sanitizer::WriteToStreamWithoutQuotes(*m_Buffer, std::forward<T>(val));
+			} else {
+				Sanitizer::WriteLogMessage(*m_Buffer, std::forward<T>(val));
+			}
 		}
 
+		return *this;
+	}
+
+	class QuoteNextType
+	{
+	};
+
+	Log& operator<<(QuoteNextType)
+	{
+		if (m_Buffer) {
+			ASSERT(!m_InQuotes);
+			ASSERT(!m_QuoteNext);
+			m_QuoteNext = true;
+		}
+		return *this;
+	}
+
+	class QuoteStartType
+	{
+	};
+
+	Log& operator<<(QuoteStartType)
+	{
+		if (m_Buffer) {
+			ASSERT(!m_InQuotes);
+			ASSERT(!m_QuoteNext);
+			*m_Buffer << '\'';
+			m_InQuotes = true;
+		}
+		return *this;
+	}
+
+	class QuoteEndType
+	{
+	};
+
+	Log& operator<<(QuoteEndType)
+	{
+		if (m_Buffer) {
+			ASSERT(m_InQuotes);
+			*m_Buffer << '\'';
+			m_InQuotes = false;
+		}
 		return *this;
 	}
 
 private:
 	LogSeverity m_Severity;
 	String m_Facility;
+	bool m_QuoteNext{false};
+	bool m_InQuotes{false};
 	/**
 	 * Stream for incrementally generating the log message. If the message will be discarded as it's level currently
 	 * isn't logged, it will be empty as the stream doesn't need to be initialized in this case.
 	 */
 	std::optional<std::ostringstream> m_Buffer;
 };
+
+/**
+ * Writing QuoteNext to the ostream-like interface of Log causes the next value written to it to be enclosed in single
+ * quotes with special characters being escaped.
+ */
+constexpr Log::QuoteNextType QuoteNext;
+
+/**
+ * Writing QuoteStart to the ostream-like interface of Log causes all the following values written to it until QuoteEnd
+ * is written to be enclosed in single quotes with special characters being escaped.
+ */
+constexpr Log::QuoteStartType QuoteStart;
+
+/**
+ * Writing QuoteEnd to the ostream-like interface of Log finishes the quoting started by QuoteStart.
+ */
+constexpr Log::QuoteEndType QuoteEnd;
 
 extern template Log& Log::operator<<(const Value&);
 extern template Log& Log::operator<<(const String&);
