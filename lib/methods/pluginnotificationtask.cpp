@@ -119,6 +119,6 @@ void PluginNotificationTask::ProcessFinishedHandler(const Checkable::Ptr& checka
 		Log(LogWarning, "PluginNotificationTask")
 			<< "Notification command for object '" << checkable->GetName() << "' (PID: " << pr.PID
 			<< ", arguments: " << Process::PrettyPrintArguments(parguments) << ") terminated with exit code "
-			<< pr.ExitStatus << ", output: " << pr.Output;
+			<< pr.ExitStatus << ", output: " << QuoteNext << pr.Output;
 	}
 }
