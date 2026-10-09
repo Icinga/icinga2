@@ -9,7 +9,7 @@
 #include "base/namespace.hpp"
 #include "base/scriptpermission.hpp"
 #include <boost/thread/tss.hpp>
-#include <stack>
+#include <vector>
 
 namespace icinga
 {
@@ -55,7 +55,7 @@ private:
 	 */
 	Namespace::Ptr Globals;
 
-	static boost::thread_specific_ptr<std::stack<ScriptFrame *> > m_ScriptFrames;
+	static boost::thread_specific_ptr<std::vector<ScriptFrame*>> m_ScriptFrames;
 
 	static void PushFrame(ScriptFrame *frame);
 	static ScriptFrame *PopFrame();
