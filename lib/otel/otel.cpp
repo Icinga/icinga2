@@ -383,8 +383,8 @@ void OTel::ExportImpl(boost::asio::yield_context& yc) const
 			return;
 		}
 		Log(LogWarning, "OTelExporter")
-			<< "Unexpected Content-Type from OpenTelemetry backend '" << ct << "' (" << responseMsg.reason() << "):\n"
-			<< responseMsg.body();
+			<< "Unexpected Content-Type from OpenTelemetry backend '" << ct << "' (" << responseMsg.reason()
+			<< "): " << QuoteNext << responseMsg.body();
 	} else if (responseMsg.result_int() >= 200 && responseMsg.result_int() <= 299) {
 		// We've got a valid Protobuf response, so we've to deserialize the body to check for partial success.
 		// See https://opentelemetry.io/docs/specs/otlp/#partial-success-1.
@@ -397,9 +397,14 @@ void OTel::ExportImpl(boost::asio::yield_context& yc) const
 			const auto& ps = response->partial_success();
 			const auto& msg = ps.error_message();
 			if (ps.rejected_data_points() > 0 || !msg.empty()) {
-				Log(LogWarning, "OTelExporter")
-					<< "OpenTelemetry backend reported partial success: " << (msg.empty() ? "<none>" : msg)
-					<< " (" << ps.rejected_data_points() << " metric data points rejected).";
+				Log log(LogWarning, "OTelExporter");
+				log << "OpenTelemetry backend reported partial success: ";
+				if (msg.empty()) {
+					log << "<none>";
+				} else {
+					log << QuoteNext << msg;
+				}
+				log << " (" << ps.rejected_data_points() << " metric data points rejected).";
 			}
 		}
 	} else if (IsRetryableExportError(responseMsg.result())) {
@@ -416,7 +421,7 @@ void OTel::ExportImpl(boost::asio::yield_context& yc) const
 	} else {
 		Log(LogWarning, "OTelExporter")
 			<< "OpenTelemetry backend responded with non-success and non-retryable status code "
-			<< responseMsg.result_int() << " (" << responseMsg.reason() << ").\n" << responseMsg.body();
+			<< responseMsg.result_int() << " (" << responseMsg.reason() << "): " << QuoteNext << responseMsg.body();
 	}
 }
 

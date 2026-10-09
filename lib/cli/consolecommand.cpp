@@ -636,8 +636,8 @@ Dictionary::Ptr ConsoleCommand::SendRequest()
 
 	/* Handle HTTP errors first. */
 	if (response.result() != http::status::ok) {
-		String message = "HTTP request failed; Code: " + Convert::ToString(response.result())
-			+ "; Body: " + response.body();
+		String message = "HTTP request failed; Code: " + Convert::ToString(response.result()) +
+			"; Body: " + Sanitizer::QuotedString(response.body());
 		BOOST_THROW_EXCEPTION(ScriptError(message));
 	}
 
@@ -650,7 +650,7 @@ Dictionary::Ptr ConsoleCommand::SendRequest()
 	try {
 		jsonResponse = JsonDecode(body);
 	} catch (...) {
-		String message = "Cannot parse JSON response body: " + response.body();
+		String message = "Cannot parse JSON response body: " + Sanitizer::QuotedString(response.body());
 		BOOST_THROW_EXCEPTION(ScriptError(message));
 	}
 
