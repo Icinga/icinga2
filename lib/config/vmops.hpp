@@ -116,11 +116,11 @@ public:
 		return new Function(name, wrapper, argNames);
 	}
 
-	static inline Value NewApply(ScriptFrame& frame, const String& type, const String& target, const String& name, const Expression::Ptr& filter,
+	static inline Value NewApply(ScriptFrame& frame, const String& type, const String& target, const String& name, const Expression::Ptr& filter, const String& zone,
 		const String& package, const String& fkvar, const String& fvvar, const Expression::Ptr& fterm, const std::map<String, std::unique_ptr<Expression> >& closedVars,
 		bool ignoreOnError, const Expression::Ptr& expression, const DebugInfo& debugInfo = DebugInfo())
 	{
-		ApplyRule::AddRule(type, target, name, expression, filter, package, fkvar,
+		ApplyRule::AddRule(type, target, name, expression, filter, zone, package, fkvar,
 			fvvar, fterm, ignoreOnError, debugInfo, EvaluateClosedVars(frame, closedVars));
 
 		return Empty;
