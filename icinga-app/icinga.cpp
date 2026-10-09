@@ -436,7 +436,7 @@ static int Main()
 	Configuration::SetReadOnly(true);
 
 	if (!Configuration::ConcurrencyWasModified) {
-		Configuration::Concurrency = std::thread::hardware_concurrency();
+		Configuration::Concurrency = Configuration::GetDefaultConcurrency();
 	}
 
 	if (!autocomplete && command && command->NeedsRLimitAdjustment()) {
