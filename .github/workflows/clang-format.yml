@@ -1,0 +1,98 @@
+name: clang-format
+
+on:
+  pull_request: {}
+
+jobs:
+  clang-format:
+    name: clang-format
+    runs-on: ubuntu-26.04
+
+    steps:
+      - name: Checkout HEAD
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Check formatting of added and changed lines
+        run: |
+          # Clang-format only keeps a single empty line so that should be enough
+          # Otherwise git-clang-format would split up the diffs into multiple hunks per change.
+          git config diff.context 0
+          git config diff.interHunkContext 1
+
+          # git-clang-format-22 defaults to invoking the unversioned
+          # `clang-format` binary internally, so pin it explicitly instead of
+          # relying on PATH/alternatives to resolve to the right version.
+          if git-clang-format-22 --binary=clang-format-22 --quiet --diff --extensions c,h,cpp,hpp \
+            "$(git merge-base HEAD^1 HEAD^2)" HEAD^2 -- ':(exclude)third-party/*' > clang-format.diff
+          then
+            exit 0
+          fi
+
+          # Turn each diff hunk into a GitHub annotation on the offending
+          # lines, with the hunk's desired (reformatted) content as the
+          # annotation message, i.e. its added/context lines with the
+          # leading '+'/' ' stripped.
+          awk '
+            function esc(s) {
+              gsub(/%/, "%25", s)
+              gsub(/\r/, "%0D", s)
+              gsub(/\n/, "%0A", s)
+              return s
+            }
+            function esc_prop(s) {
+              s = esc(s)
+              gsub(/:/, "%3A", s)
+              gsub(/,/, "%2C", s)
+              return s
+            }
+            function flush() {
+              if (hunk == "") return
+              end = start + (count > 0 ? count : 1) - 1
+              printf "::error file=%s,line=%d,endLine=%d,title=clang-format::%s\n", \
+                esc_prop(path), start, end, esc(hunk)
+              hunk = ""
+            }
+            /^diff --git / { next }
+            /^index / { next }
+            /^\+\+\+ / {
+              flush()
+              path = $0
+              sub(/^\+\+\+ /, "", path)
+              sub(/\t.*$/, "", path)
+              sub(/^b\//, "", path)
+              next
+            }
+            /^--- / { next }
+            /^@@ / {
+              flush()
+              split($0, parts, " ")
+              oldspec = parts[2]
+              sub(/^-/, "", oldspec)
+              split(oldspec, oc, ",")
+              start = oc[1] + 0
+              count = (oc[2] == "" ? 1 : oc[2] + 0)
+              next
+            }
+            /^[+ ]/ {
+              line = substr($0, 2)
+              hunk = (hunk == "" ? line : hunk "\n" line)
+            }
+            END { flush() }
+          ' clang-format.diff
+
+          cat <<'EOF' >&2
+          The lines added or changed by this pull request don't follow the Icinga 2
+          style guide and the conventions set in our .clang-format.
+          We're still evaluating the details and updating the documentation to reflect
+          a final style guide matching the .clang-format file in the future.
+
+          For now, please apply the following command to fix the formatting:
+
+            git clang-format --extensions c,h,cpp,hpp "$(git merge-base HEAD master)" -- ':(exclude)third-party/*'
+
+          Don't hesitate to ask us for help or give feedback if necessary.
+          EOF
+          cat clang-format.diff >&2
+          exit 1
