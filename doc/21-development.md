@@ -918,6 +918,13 @@ Depending on the file type, this must be a comment.
 
 #### Code Formatting <a id="development-develop-code-formatting"></a>
 
+!!! note
+
+We've added a `.clang-format` file to our project, which doesn't fully match the following description in every detail.
+If in doubt, use the command
+`git clang-format --extensions c,h,cpp,hpp "$(git merge-base HEAD master)" -- ':(exclude)third-party/*'`
+to reformat your changed lines before you commit. Since this is not entirely final yet we'll revise this section when we're done fine-tuning.
+
 **Tabs instead of spaces.** Inside Visual Studio, choose to keep tabs instead of
 spaces. Tabs should use 4 spaces indent by default, depending on your likings.
 
