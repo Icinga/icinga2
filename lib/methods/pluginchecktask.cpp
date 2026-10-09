@@ -75,7 +75,7 @@ void PluginCheckTask::ProcessFinishedHandler(const Checkable::Ptr& checkable, co
 		Log(LogWarning, "PluginCheckTask")
 			<< "Check command for object '" << checkable->GetName() << "' (PID: " << pr.PID
 			<< ", arguments: " << Process::PrettyPrintArguments(parguments) << ") terminated with exit code "
-			<< pr.ExitStatus << ", output: " << pr.Output;
+			<< pr.ExitStatus << ", output: " << QuoteNext << pr.Output;
 
 		std::stringstream crOutput;
 

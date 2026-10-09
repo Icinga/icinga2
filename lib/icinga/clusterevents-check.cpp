@@ -160,7 +160,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 				Log(LogWarning, "ApiListener")
 					<< "Command for object '" << checkableName << "' (PID: " << pr.PID
 					<< ", arguments: " << Process::PrettyPrintArguments(parguments) << ") terminated with exit code "
-					<< pr.ExitStatus << ", output: " << pr.Output;
+					<< pr.ExitStatus << ", output: " << QuoteNext << pr.Output;
 			}
 
 			SendEventExecutedCommand(params, pr.ExitStatus, pr.Output, pr.ExecutionStart, pr.ExecutionEnd, listener,

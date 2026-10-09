@@ -484,7 +484,7 @@ void RedisConnection::Handshake(StreamPtr& strm, boost::asio::yield_context& yc)
 				boost::smatch what;
 
 				if (boost::regex_search(authErr, what, m_ErrAuth)) {
-					Log(LogWarning, "IcingaDB") << authErr;
+					Log(LogWarning, "IcingaDB") << "Redis error: " << QuoteNext << authErr;
 				} else {
 					// Likely WRONGPASS
 					BOOST_THROW_EXCEPTION(std::runtime_error(authErr));
