@@ -254,6 +254,26 @@ Dictionary::Ptr ApiActions::AcknowledgeProblem(
 
 	ObjectLock oLock (checkable);
 
+	double setTime = 0;
+	if (params->Contains("set_time")) {
+		setTime = HttpUtility::GetLastParameter(params, "set_time");
+
+		auto lastAckChange = std::max(checkable->GetAcknowledgementLastChange(), checkable->GetLastStateChange());
+		if (setTime <= lastAckChange) {
+			return CreateResult(
+				400,
+				"Acknowledgement 'set_time' must be greater than the last acknowledgement or state change for object " + checkable->GetName()
+			);
+		}
+
+		if (setTime > Utility::GetTime()) {
+			return CreateResult(
+				400,
+				"Acknowledgement 'set_time' cannot be in the future for object " + checkable->GetName()
+			);
+		}
+	}
+
 	Host::Ptr host;
 	Service::Ptr service;
 	tie(host, service) = GetHostService(checkable);
@@ -278,8 +298,15 @@ Dictionary::Ptr ApiActions::AcknowledgeProblem(
 
 	Comment::AddComment(checkable, CommentAcknowledgement, HttpUtility::GetLastParameter(params, "author"),
 		HttpUtility::GetLastParameter(params, "comment"), persistent, timestamp, sticky == AcknowledgementSticky);
-	checkable->AcknowledgeProblem(HttpUtility::GetLastParameter(params, "author"),
-		HttpUtility::GetLastParameter(params, "comment"), sticky, notify, persistent, Utility::GetTime(), timestamp);
+	checkable->AcknowledgeProblem(
+		HttpUtility::GetLastParameter(params, "author"),
+		HttpUtility::GetLastParameter(params, "comment"),
+		sticky,
+		notify,
+		persistent,
+		setTime ? setTime : Utility::GetTime(),
+		timestamp
+	);
 
 	return ApiActions::CreateResult(200, "Successfully acknowledged problem for object '" + checkable->GetName() + "'.");
 }
