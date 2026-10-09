@@ -3,7 +3,7 @@
 
 mkembedconfig_target(methods-itl.conf methods-itl.cpp)
 
-set(methods_SOURCES
+add_library(methods OBJECT
   i2-methods.hpp methods-itl.cpp
   clusterchecktask.cpp clusterchecktask.hpp
   clusterzonechecktask.cpp clusterzonechecktask.hpp
@@ -21,13 +21,9 @@ set(methods_SOURCES
   sleepchecktask.cpp sleepchecktask.hpp
 )
 
-if(ICINGA2_UNITY_BUILD)
-  mkunity_target(methods methods methods_SOURCES)
-endif()
+target_link_libraries(methods PUBLIC common)
 
-add_library(methods OBJECT ${methods_SOURCES})
-
-add_dependencies(methods base config icinga)
+add_dependencies(methods base_generated icinga_generated)
 
 set_target_properties (
   methods PROPERTIES

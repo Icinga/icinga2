@@ -82,7 +82,7 @@ case "$DISTRO" in
 
     zypper in -y --allow-downgrade bison ccache cmake flex gcc-c++ ninja rpm-config-SUSE \
       {lib{edit,mariadb,openssl},ncurses,postgresql,systemd,protobuf}-devel \
-      libboost_{context,coroutine,filesystem,iostreams,program_options,regex,system,test,thread}-devel
+      libboost_{atomic,context,coroutine,filesystem,iostreams,program_options,regex,system,test,thread}-devel
     ;;
 
   *rockylinux:*)
@@ -134,14 +134,14 @@ case "$DISTRO" in
       -DICINGA2_WITH_MYSQL=OFF
       -DICINGA2_WITH_PGSQL=OFF
       -DCMAKE_{C,CXX}_FLAGS="${WARN_FLAGS}"
-      -DICINGA2_UNITY_BUILD=OFF
+      -DCMAKE_UNITY_BUILD=FALSE
     )
     ;;
   debian:*|ubuntu:*)
-    CMAKE_OPTS+=(-DICINGA2_LTO_BUILD=ON)
+    export DEB_CFLAGS_MAINT_APPEND="${WARN_FLAGS} -flto=auto"
+    export DEB_CXXFLAGS_MAINT_APPEND="${WARN_FLAGS} -flto=auto"
+    export DEB_LDFLAGS_MAINT_APPEND="-flto=auto"
     source <(dpkg-buildflags --export=sh)
-    export CFLAGS="${CFLAGS} ${WARN_FLAGS}"
-    export CXXFLAGS="${CXXFLAGS} ${WARN_FLAGS}"
 
     # The default Protobuf compiler is too old for OTel, so we need to turn it off on Debian 11 and Ubuntu 22.04.
     case "$DISTRO" in
@@ -181,8 +181,7 @@ CMAKE_OPTS+=(
 )
 
 "${SCL_ENABLE_GCC[@]}" cmake \
-  -GNinja \
-  -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+  --preset release-gcc-ninja \
   -DUSE_SYSTEMD=ON \
   -DICINGA2_USER=$(id -un) \
   -DICINGA2_GROUP=$(id -gn) \
