@@ -136,6 +136,11 @@ case "$DISTRO" in
       -DCMAKE_{C,CXX}_FLAGS="${WARN_FLAGS}"
       -DICINGA2_UNITY_BUILD=OFF
     )
+
+    # Boost.Test sets up an alternate signal stack of SIGSTKSZ bytes. musl defines that as a small constant
+    # which the kernel rejects with ENOMEM on CPUs with large signal frames (e.g. AVX-512/AMX), so that all
+    # test binaries fail with "system_error produced by: exp: Out of memory", even --generate_ctest_config.
+    export BOOST_TEST_USE_ALT_STACK=no
     ;;
   debian:*|ubuntu:*)
     CMAKE_OPTS+=(-DICINGA2_LTO_BUILD=ON)
