@@ -204,7 +204,7 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 	// AtomicFile doesn't create not yet existing directories, so we have to do it by ourselves.
 	Utility::MkDirP(Utility::DirName(path), 0700);
 
-	AtomicFile::Write(path, 0644, config);
+	AtomicFile::Write(path, 0640, config);
 
 	// Remove the just created config file in all the error cases and if the object creation
 	// succeeds the deferred callback will be cancelled.

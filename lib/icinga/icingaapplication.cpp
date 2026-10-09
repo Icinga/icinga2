@@ -176,7 +176,7 @@ void IcingaApplication::DumpModifiedAttributes()
 		Log(LogWarning, "IcingaApplication") << DiagnosticInformation(ex);
 	}
 
-	AtomicFile fp (path, 0644);
+	AtomicFile fp (path, 0640);
 
 	ConfigObject::Ptr previousObject;
 	ConfigObject::DumpModifiedAttributes([&fp, &previousObject](const ConfigObject::Ptr& object, const String& attr, const Value& value) {
