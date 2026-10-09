@@ -16,7 +16,7 @@ REGISTER_STATSFUNCTION(SyslogLogger, &SyslogLogger::StatsFunc);
 
 INITIALIZE_ONCE(&SyslogHelper::StaticInitialize);
 
-std::map<String, int> SyslogHelper::m_FacilityMap;
+std::unordered_map<String, int> SyslogHelper::m_FacilityMap;
 
 void SyslogHelper::StaticInitialize()
 {

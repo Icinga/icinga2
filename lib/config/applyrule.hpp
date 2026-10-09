@@ -10,6 +10,7 @@
 #include "base/shared-object.hpp"
 #include "base/type.hpp"
 #include <unordered_map>
+#include <unordered_set>
 #include <atomic>
 
 namespace icinga
@@ -25,8 +26,8 @@ public:
 
 	struct PerHost
 	{
-		std::set<ApplyRule::Ptr> ForHost;
-		std::unordered_map<String /* service */, std::set<ApplyRule::Ptr>> ForServices;
+		std::unordered_set<ApplyRule::Ptr> ForHost;
+		std::unordered_map<String /* service */, std::unordered_set<ApplyRule::Ptr>> ForServices;
 	};
 
 	struct PerSourceType
@@ -81,8 +82,8 @@ public:
 		const Expression::Ptr& filter, const String& package, const String& fkvar, const String& fvvar, const Expression::Ptr& fterm,
 		bool ignoreOnError, const DebugInfo& di, const Dictionary::Ptr& scope);
 	static const std::vector<ApplyRule::Ptr>& GetRules(const Type::Ptr& sourceType, const Type::Ptr& targetType);
-	[[gnu::no_dangling]] static const std::set<ApplyRule::Ptr>& GetTargetedHostRules(const Type::Ptr& sourceType, const String& host);
-	[[gnu::no_dangling]] static const std::set<ApplyRule::Ptr>& GetTargetedServiceRules(const Type::Ptr& sourceType, const String& host, const String& service);
+	[[gnu::no_dangling]] static const std::unordered_set<ApplyRule::Ptr>& GetTargetedHostRules(const Type::Ptr& sourceType, const String& host);
+	[[gnu::no_dangling]] static const std::unordered_set<ApplyRule::Ptr>& GetTargetedServiceRules(const Type::Ptr& sourceType, const String& host, const String& service);
 	static bool GetTargetHosts(Expression* assignFilter, std::vector<const String *>& hosts, const Dictionary::Ptr& constants = nullptr);
 	static bool GetTargetServices(Expression* assignFilter, std::vector<std::pair<const String *, const String *>>& services, const Dictionary::Ptr& constants = nullptr);
 

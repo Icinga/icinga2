@@ -34,7 +34,7 @@ static constexpr std::array l_DeprecatedCheckCommands{
 	"users-windows",
 };
 
-const std::map<String, int> Checkable::m_FlappingStateFilterMap ({
+const std::unordered_map<String, int> Checkable::m_FlappingStateFilterMap ({
 	{"OK", FlappingStateFilterOk},
 	{"Warning", FlappingStateFilterWarning},
 	{"Critical", FlappingStateFilterCritical},

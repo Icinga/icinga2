@@ -5,7 +5,7 @@
 #include "base/exception.hpp"
 #include <boost/regex.hpp>
 #include <boost/algorithm/string/replace.hpp>
-#include <set>
+#include <unordered_set>
 #include <iterator>
 
 using namespace icinga;
@@ -72,8 +72,7 @@ void ConfigWriter::EmitScope(std::ostream& fp, int indentLevel, const Dictionary
 	}
 
 	if (val) {
-		ObjectLock olock(val);
-		for (const Dictionary::Pair& kv : val) {
+		for (auto& kv : val->GetItems()) {
 			fp << "\n";
 			EmitIndent(fp, indentLevel);
 
@@ -138,7 +137,7 @@ void ConfigWriter::EmitIndent(std::ostream& fp, int indentLevel)
 
 void ConfigWriter::EmitIdentifier(std::ostream& fp, const String& identifier, bool inAssignment)
 {
-	static std::set<String> keywords;
+	static std::unordered_set<String> keywords;
 	static std::mutex mutex;
 
 	{
