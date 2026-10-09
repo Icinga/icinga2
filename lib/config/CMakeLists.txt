@@ -40,7 +40,7 @@ endif()
 
 add_library(config OBJECT ${config_SOURCES})
 
-add_dependencies(config base)
+add_dependencies(config base_generated)
 
 set_target_properties (
   config PROPERTIES
