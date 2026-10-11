@@ -6167,6 +6167,8 @@ ssl_cert_ignore_sct                     | **Optional.** Do not check for signed 
 ssl_cert_ignore_tls_renegotiation       | **Optional.** Do not check for renegotiation.
 ssl_cert_dane                           | **Optional.** Verify that valid DANE records exist ({211,301,302,311,312} or empty string).
 ssl_cert_long_output                    | **Optional.** Append the specified comma separated (no spaces) list of attributes to the plugin output on additional lines.
+ssl_cert_ipv4                           | **Optional.** Force IPv4. Defaults to false.
+ssl_cert_ipv6                           | **Optional.** Force IPv6. Defaults to false.
 
 
 #### jmx4perl <a id="plugin-contrib-command-jmx4perl"></a>
