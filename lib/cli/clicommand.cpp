@@ -25,6 +25,11 @@ std::vector<String> icinga::GetBashCompletionSuggestions(const String& type, con
 
 	FILE *fp = popen(cmd.CStr(), "r");
 
+	if (!fp) {
+		std::cerr << "Error: Failed to start the bash process for autocomplete suggestions." << std::endl;
+		return result;
+	}
+
 	char line[4096];
 	while (fgets(line, sizeof(line), fp)) {
 		String wline = line;
