@@ -9,7 +9,7 @@ assignees: ''
 
 # Release Workflow
 
-- [ ] Update `ICINGA2_VERSION`
+- [ ] Update `ICINGA2_VERSION` in main CMakeLists.txt
 - [ ] Update bundled Windows dependencies
 - [ ] Harden global TLS defaults (consult https://ssl-config.mozilla.org)
 - [ ] Update `CHANGELOG.md`
