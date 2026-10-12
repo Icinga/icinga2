@@ -74,11 +74,18 @@ int CARemoveCommand::Run(const boost::program_options::variables_map& vm, const 
 		return 1;
 	}
 
-	String cn = GetCertificateCN(certRequest);
+	String certInfo;
+
+	try {
+		certInfo = "CN " + Sanitizer::QuotedString(GetCertificateCN(certRequest));
+	} catch (const std::exception& ex) {
+		Log(LogWarning, "cli")
+			<< "Cannot get certificate common name from request " << QuoteNext << requestFile << ": " << ex.what();
+		certInfo = "fingerprint " + Sanitizer::QuotedString(fingerPrint);
+	}
 
 	if (request->Contains("cert_response")) {
-		Log(LogCritical, "cli")
-			<< "Certificate request for CN '" << cn << "' already signed, removal is not possible.";
+		Log(LogCritical, "cli") << "Certificate request for " << certInfo << " already signed, removal is not possible.";
 		return 1;
 	}
 
@@ -86,8 +93,7 @@ int CARemoveCommand::Run(const boost::program_options::variables_map& vm, const 
 
 	Utility::Remove(requestFile);
 
-	Log(LogInformation, "cli")
-		<< "Certificate request for CN " << cn << " removed.";
+	Log(LogInformation, "cli") << "Certificate request for " << certInfo << " removed.";
 
 	return 0;
 }

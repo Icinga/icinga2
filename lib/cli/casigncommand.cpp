@@ -79,7 +79,14 @@ int CASignCommand::Run(const boost::program_options::variables_map& vm, const st
 		return 1;
 	}
 
-	std::shared_ptr<X509> certResponse = CreateCertIcingaCA(certRequest);
+	std::shared_ptr<X509> certResponse;
+
+	try {
+		certResponse = CreateCertIcingaCA(certRequest);
+	} catch (const std::exception& ex) {
+		Log(LogCritical, "cli") << "Cannot sign certificate request " << QuoteNext << requestFile << ": " << ex.what();
+		return 1;
+	}
 
 	BIO *out = BIO_new(BIO_s_mem());
 	X509_NAME_print_ex(out, X509_get_subject_name(certRequest.get()), 0, XN_FLAG_ONELINE & ~ASN1_STRFLGS_ESC_MSB);

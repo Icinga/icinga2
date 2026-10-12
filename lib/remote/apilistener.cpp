@@ -336,7 +336,13 @@ void ApiListener::RenewOwnCert()
 	Log(LogInformation, "ApiListener")
 		<< "Our certificate will expire soon, but we own the CA. Renewing.";
 
-	cert = RenewCert(cert);
+	try {
+		cert = RenewCert(cert);
+	} catch (const std::exception& ex) {
+		Log(LogCritical, "ApiListener")
+			<< "Cannot renew local endpoint certificate " << QuoteNext << certPath << ": " << ex.what();
+		return;
+	}
 
 	if (!cert) {
 		return;
@@ -358,7 +364,12 @@ void ApiListener::RenewCA()
 	Log(LogInformation, "ApiListener")
 		<< "Our CA will expire soon, but we own it. Renewing.";
 
-	cert = RenewCert(cert, true);
+	try {
+		cert = RenewCert(cert, true);
+	} catch (const std::exception& ex) {
+		Log(LogCritical, "ApiListener") << "Cannot renew CA certificate " << QuoteNext << certPath << ": " << ex.what();
+		return;
+	}
 
 	if (!cert) {
 		return;
@@ -779,9 +790,9 @@ void ApiListener::NewClientHandlerInternal(
 
 		try {
 			identity = GetCertificateCN(cert);
-		} catch (const std::exception&) {
+		} catch (const std::exception& ex) {
 			Log(LogCritical, "ApiListener")
-				<< "Cannot get certificate common name from peer (" << conninfo << ") cert.";
+				<< "Cannot get certificate common name from peer (" << conninfo << ") cert: " << ex.what();
 			return;
 		}
 

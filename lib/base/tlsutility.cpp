@@ -417,7 +417,13 @@ static String GetX509NameCN(X509_NAME *name)
 			<< errinfo_openssl_error(ERR_peek_error()));
 	}
 
-	return buffer;
+	String cn{buffer};
+
+	if (std::any_of(cn.Begin(), cn.End(), Sanitizer::IsAsciiControl)) {
+		BOOST_THROW_EXCEPTION(std::invalid_argument{"Rejected certificate because of ASCII control characters in CN"});
+	}
+
+	return cn;
 }
 
 /**
