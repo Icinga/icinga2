@@ -90,7 +90,7 @@ jobs:
 
           For now, please apply the following command to fix the formatting:
 
-            git clang-format --extensions c,h,cpp,hpp "$(git merge-base HEAD master)" -- ':(exclude)third-party/*'
+            git clang-format --extensions c,h,cpp,hpp "$(git merge-base HEAD origin/master)" -- ':(exclude)third-party/*'
 
           Don't hesitate to ask us for help or give feedback if necessary.
           EOF
