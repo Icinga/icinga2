@@ -16,6 +16,9 @@ AlignAfterOpenBracket: BlockIndent
 # Mostly relevant for formatting preprocessor macros so that all backslashes align.
 AlignEscapedNewlines: LeftWithLastLine
 
+# Don't align operands and just indent them one level on a new line.
+AlignOperands: DontAlign
+
 # We try to avoid having all parameters of a function declaration on a single line
 # Together with 'BinPackParameters' and 'PenaltyReturnTypeOnItsOwnLine' this leads
 # to function signatures being either all on one line, or split by argument like a
