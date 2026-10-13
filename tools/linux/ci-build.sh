@@ -123,6 +123,7 @@ case "$DISTRO" in
       -DICINGA2_WITH_PGSQL=OFF
       -DCMAKE_{C,CXX}_FLAGS="${WARN_FLAGS}"
       -DICINGA2_UNITY_BUILD=OFF
+      -DCMAKE_CXX_STANDARD=20
     )
     ;;
   debian:*|ubuntu:*)
