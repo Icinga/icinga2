@@ -12,8 +12,6 @@
 
 using namespace icinga;
 
-template class std::vector<String>;
-
 REGISTER_BUILTIN_TYPE(String, String::GetPrototype());
 
 const String::SizeType String::NPos = std::string::npos;
