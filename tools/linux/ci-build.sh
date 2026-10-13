@@ -187,6 +187,7 @@ CMAKE_OPTS+=(
   -DICINGA2_USER=$(id -un) \
   -DICINGA2_GROUP=$(id -gn) \
   "${CMAKE_OPTS[@]}" \
+  -DCMAKE_CXX_STANDARD=20 \
   "$ICINGA2_SOURCE_DIR"
 
 NINJA_OPTS=(-v)
