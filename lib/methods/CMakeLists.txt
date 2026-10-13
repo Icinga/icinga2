@@ -27,7 +27,7 @@ endif()
 
 add_library(methods OBJECT ${methods_SOURCES})
 
-add_dependencies(methods base config icinga)
+add_dependencies(methods base_generated icinga_generated)
 
 set_target_properties (
   methods PROPERTIES
