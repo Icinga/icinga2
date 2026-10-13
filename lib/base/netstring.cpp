@@ -180,7 +180,7 @@ String NetString::ReadStringFromStream(const Shared<AsioTlsStream>::Ptr& stream,
 	if (len) {
 		payload.Append(len, 0);
 
-		asio::mutable_buffer payloadBuf (&*payload.Begin(), payload.GetLength());
+		asio::mutable_buffer payloadBuf (&*payload.begin(), payload.GetLength());
 		asio::read(*stream, payloadBuf);
 	}
 
@@ -259,7 +259,7 @@ String NetString::ReadStringFromStream(const Shared<AsioTlsStream>::Ptr& stream,
 	if (len) {
 		payload.Append(len, 0);
 
-		asio::mutable_buffer payloadBuf (&*payload.Begin(), payload.GetLength());
+		asio::mutable_buffer payloadBuf (&*payload.begin(), payload.GetLength());
 		asio::async_read(*stream, payloadBuf, yc);
 	}
 

@@ -27,14 +27,14 @@ Url::Url(const String& base_url)
 		url = url.SubStr(pHelper + 1);
 	}
 
-	if (*url.Begin() != '/')
+	if (*url.begin() != '/')
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid URL: '/' expected after scheme."));
 
 	if (url.GetLength() == 1) {
 		return;
 	}
 
-	if (*(url.Begin() + 1) == '/') {
+	if (*(url.begin() + 1) == '/') {
 		pHelper = url.Find("/", 2);
 
 		if (pHelper == String::NPos)
@@ -46,7 +46,7 @@ Url::Url(const String& base_url)
 		url = url.SubStr(pHelper);
 	}
 
-	if (*url.Begin() == '/') {
+	if (*url.begin() == '/') {
 		pHelper = url.FindFirstOf("#?");
 		if (!ParsePath(url.SubStr(1, pHelper - 1)))
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid URL Path"));
@@ -56,7 +56,7 @@ Url::Url(const String& base_url)
 	} else
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid URL: Missing path."));
 
-	if (*url.Begin() == '?') {
+	if (*url.begin() == '?') {
 		pHelper = url.Find("#");
 		if (!ParseQuery(url.SubStr(1, pHelper - 1)))
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid URL Query"));
@@ -65,7 +65,7 @@ Url::Url(const String& base_url)
 			url = url.SubStr(pHelper);
 	}
 
-	if (*url.Begin() == '#') {
+	if (*url.begin() == '#') {
 		if (!ParseFragment(url.SubStr(1)))
 			BOOST_THROW_EXCEPTION(std::invalid_argument("Invalid URL Fragment"));
 	}
@@ -285,9 +285,8 @@ bool Url::ParsePort(const String& port)
 
 bool Url::ParsePath(const String& path)
 {
-	const std::string& pathStr = path;
 	boost::char_separator<char> sep("/");
-	boost::tokenizer<boost::char_separator<char> > tokens(pathStr, sep);
+	boost::tokenizer<boost::char_separator<char> > tokens(path, sep);
 
 	for (String token : tokens) {
 		if (token.IsEmpty())
@@ -304,10 +303,8 @@ bool Url::ParsePath(const String& path)
 
 bool Url::ParseQuery(const String& query)
 {
-	/* Tokenizer does not like String AT ALL */
-	const std::string& queryStr = query;
 	boost::char_separator<char> sep("&");
-	boost::tokenizer<boost::char_separator<char> > tokens(queryStr, sep);
+	boost::tokenizer<boost::char_separator<char> > tokens(query, sep);
 
 	for (String token : tokens) {
 		size_t pHelper = token.Find("=");

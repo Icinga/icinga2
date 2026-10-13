@@ -43,8 +43,10 @@ public:
 	String() = default;
 	String(const char *data);
 	String(std::string data);
+	String(const char *data, std::size_t size);
+	explicit String(std::string_view sv);
 	String(String::SizeType n, char c);
-	String(const String& other);
+	String(const String& other) = default;
 	String(String&& other) noexcept;
 
 #ifndef _MSC_VER
@@ -74,7 +76,13 @@ public:
 
 	bool operator<(const String& rhs) const;
 
-	operator const std::string&() const;
+	std::string operator~() const&;
+	std::string& operator*() &;
+	std::string&& operator*() &&;
+	const std::string& operator*() const&;
+	explicit operator std::string() const&;
+	operator std::string() &&;
+	operator std::string_view() const;
 	operator boost::beast::string_view() const;
 
 	const char *CStr() const;
@@ -83,8 +91,9 @@ public:
 
 	SizeType GetLength() const;
 
-	std::string& GetData();
-	const std::string& GetData() const;
+	std::string& GetData() &;
+	std::string&& GetData() &&;
+	const std::string& GetData() const &;
 
 	SizeType Find(const String& str, SizeType pos = 0) const;
 	SizeType RFind(const String& str, SizeType pos = NPos) const;
@@ -113,7 +122,7 @@ public:
 
 	bool Contains(const String& str) const;
 
-	void swap(String& str);
+	void swap(String& str) noexcept;
 
 	Iterator erase(Iterator first, Iterator last);
 
@@ -123,14 +132,14 @@ public:
 		m_Data.insert(p, first, last);
 	}
 
-	Iterator Begin();
-	ConstIterator Begin() const;
-	Iterator End();
-	ConstIterator End() const;
-	ReverseIterator RBegin();
-	ConstReverseIterator RBegin() const;
-	ReverseIterator REnd();
-	ConstReverseIterator REnd() const;
+	Iterator begin() { return m_Data.begin(); }
+	ConstIterator begin() const { return m_Data.begin(); }
+	Iterator end() { return m_Data.end(); }
+	ConstIterator end() const { return m_Data.end(); }
+	ReverseIterator rbegin() { return m_Data.rbegin(); }
+	ConstReverseIterator rbegin() const { return m_Data.rbegin(); }
+	ReverseIterator rend() { return m_Data.rend(); }
+	ConstReverseIterator rend() const { return m_Data.rend(); }
 
 	static const SizeType NPos;
 
@@ -168,17 +177,9 @@ bool operator>=(const char *lhs, const String& rhs);
 
 bool operator!=(const String& lhs, const String& rhs);
 bool operator!=(const String& lhs, const char *rhs);
-bool operator!=(const char *lhs, const String& rhs);
+bool operator!=(const char* lhs, const String& rhs);
 
-String::Iterator begin(String& x);
-String::ConstIterator begin(const String& x);
-String::Iterator end(String& x);
-String::ConstIterator end(const String& x);
-String::Iterator range_begin(String& x);
-String::ConstIterator range_begin(const String& x);
-String::Iterator range_end(String& x);
-String::ConstIterator range_end(const String& x);
-
+String operator ""_S(const char* ptr, std::size_t size);
 }
 
 template<>

@@ -402,7 +402,7 @@ void IfwApiCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 	req->set(field::content_type, "application/json");
 	req->set(field::host, expectedSan + ":" + psPort);
 	req->set(field::user_agent, userAgent);
-	req->body() = body;
+	req->body() = ~body;
 	req->content_length(req->body().size());
 
 	static const auto curlTlsMinVersion ((String("--") + DEFAULT_TLS_PROTOCOLMIN).ToLower());
