@@ -409,12 +409,14 @@ If significantly less threads than CPU cores significantly reduce the time
 with the best time and persist it in your init daemon. In case of systemd copy
 the `ExecStart=` line from output of `systemctl cat icinga2.service` first.
 Next, run `systemctl edit icinga2.service`. This will open an editor. Add
-`[Service]` (if not already present) and the copied `ExecStart=` line. Append
+`[Service]` (if not already present), one line with the empty `ExecStart=` statement
+(literally `ExecStart=`) to reset that value and the copied `ExecStart=` line. Append
 `-DConfiguration.Concurrency=` and the chosen number so that the result looks
 like this:
 
 ```
 [Service]
+ExecStart=
 ExecStart=/usr/sbin/icinga2 daemon --close-stdio -e ${ICINGA2_ERROR_LOG} -DConfiguration.Concurrency=42
 ```
 
