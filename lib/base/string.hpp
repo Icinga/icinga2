@@ -186,8 +186,6 @@ struct std::hash<icinga::String>
 	std::size_t operator()(const icinga::String& s) const noexcept;
 };
 
-extern template class std::vector<icinga::String>;
-
 namespace boost
 {
 
