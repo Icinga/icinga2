@@ -183,20 +183,22 @@ add_compile_definitions(OPENSSL_SUPPRESS_DEPRECATED)
 # Boost.Coroutine2 (the successor of Boost.Coroutine)
 # (1) doesn't even exist in old Boost versions and
 # (2) isn't supported by ASIO, yet.
-add_definitions(-DBOOST_COROUTINES_NO_DEPRECATION_WARNING)
+add_compile_definitions(BOOST_COROUTINES_NO_DEPRECATION_WARNING)
 
-add_definitions(-DBOOST_FILESYSTEM_NO_DEPRECATED)
+add_compile_definitions(BOOST_FILESYSTEM_NO_DEPRECATED)
 
 # Required for Boost v1.74+
-add_definitions(-DBOOST_ASIO_USE_TS_EXECUTOR_AS_DEFAULT)
+add_compile_definitions(BOOST_ASIO_USE_TS_EXECUTOR_AS_DEFAULT)
 
 link_directories(${Boost_LIBRARY_DIRS})
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
+find_package(Threads REQUIRED)
+
 find_package(OpenSSL REQUIRED)
 include_directories(SYSTEM ${OPENSSL_INCLUDE_DIR})
 
-set(base_DEPS ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES})
+set(base_DEPS ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES} Threads::Threads)
 set(base_OBJS $<TARGET_OBJECTS:mmatch> $<TARGET_OBJECTS:socketpair> $<TARGET_OBJECTS:base>)
 
 # JSON
@@ -261,18 +263,6 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Qunused-arguments -fcolor-diagnostics -fno-limit-debug-info")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Qunused-arguments -fcolor-diagnostics -fno-limit-debug-info")
-
-  # Clang on Fedora requires -pthread, Apple Clang does not
-  # AppleClang is available since CMake 3.0.0
-  if (NOT CMAKE_CXX_COMPILER_ID MATCHES "AppleClang")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
-  endif()
-endif()
-
-if(CMAKE_C_COMPILER_ID STREQUAL "SunPro")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mt")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mt -library=stlport4")
 endif()
 
 if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
@@ -281,30 +271,10 @@ if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
   if("${CMAKE_CXX_COMPILER_VERSION}" VERSION_GREATER_EQUAL "11.0.0")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wrange-loop-construct")
   endif()
-
-  if(CMAKE_SYSTEM_NAME MATCHES AIX)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -lpthread")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -lpthread")
-  elseif(CMAKE_SYSTEM_NAME MATCHES "kOpenBSD.*|OpenBSD.*")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -pthread")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -pthread")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lpthread")
-    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -lpthread")
-    set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} -lpthread")
-  else()
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -pthread")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -pthread")
-  endif()
 endif()
 
 include(CheckCXXCompilerFlag)
-
-function(check_cxx_linker_flag flag var)
-  set(CMAKE_REQUIRED_FLAGS ${flag})
-  set(result 0)
-  check_cxx_compiler_flag(${flag} result)
-  set(${var} ${result} PARENT_SCOPE)
-endfunction()
+include(CheckCXXLinkerFlag)
 
 check_cxx_linker_flag("-Wl,--gc-sections" LD_GC_SECTIONS)
 
@@ -367,7 +337,11 @@ if(ICINGA2_LTO_BUILD)
 endif()
 
 if(MSVC)
-  add_definitions(-D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE -D_SCL_SECURE_NO_WARNINGS)
+  add_compile_definitions(
+    _CRT_SECURE_NO_DEPRECATE
+    _CRT_NONSTDC_NO_DEPRECATE
+    _SCL_SECURE_NO_WARNINGS
+  )
 endif()
 
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/Bin/${CMAKE_BUILD_TYPE} CACHE PATH "Library output path")
@@ -406,7 +380,7 @@ endif()
 
 if(NOT WIN32)
   # boost::stacktrace uses _Unwind_Backtrace which is only exposed if _GNU_SOURCE is defined on most systems
-  add_definitions(-D_GNU_SOURCE)
+  add_compile_definitions(_GNU_SOURCE)
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
