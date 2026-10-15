@@ -82,16 +82,22 @@ case "$DISTRO" in
 
     case "$DISTRO" in
       *:15.*)
-        rpm --import https://packages.icinga.com/icinga.key
-        cat > /etc/yum.repos.d/icinga-build-deps.repo <<'EOF'
-[icinga-build-deps]
-name=Icinga Build Dependencies
-baseurl=https://packages.icinga.com/build-dependencies/sles/$releasever/release
-enabled=1
-gpgcheck=1
-gpgkey=https://packages.icinga.com/icinga.key
-EOF
-        zypper in -y --allow-downgrade gcc14-c++ icinga-boost-devel
+        zypper in -y --allow-downgrade gcc14-c++
+
+        # TODO: https://git.icinga.com/packages/special/icinga-boost/-/merge_requests/1
+        zypper in -y --allow-downgrade bzip2 gcc-c++ tar wget
+        wget https://archives.boost.io/release/1.74.0/source/boost_1_74_0.tar.bz2
+        tar -xjf boost_1_74_0.tar.bz2
+
+        (
+          cd boost_1_74_0
+          ./bootstrap.sh --with-libraries=context,coroutine,date_time,filesystem,iostreams,program_options,regex,system,test,thread
+          ./b2 define=BOOST_COROUTINES_NO_DEPRECATION_WARNING
+        )
+
+        zypper rm -y bzip2 gcc-c++ tar wget
+        CMAKE_OPTS+=(-DBOOST_{INCLUDEDIR=/boost_1_74_0,LIBRARYDIR=/boost_1_74_0/stage/lib})
+        export LD_LIBRARY_PATH=/boost_1_74_0/stage/lib
         ;;
       *)
         zypper in -y --allow-downgrade gcc-c++ \
