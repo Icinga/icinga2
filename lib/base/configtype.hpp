@@ -40,7 +40,7 @@ public:
 	template<typename T>
 	static std::vector<intrusive_ptr<T> > GetObjectsByType()
 	{
-		std::vector<intrusive_ptr<ConfigObject> > objects = GetObjectsHelper(T::TypeInstance.get());
+		auto objects = GetObjectsHelper(T::TypeInstance.get());
 		std::vector<intrusive_ptr<T> > result;
 		result.reserve(objects.size());
 for (const auto& object : objects) {
