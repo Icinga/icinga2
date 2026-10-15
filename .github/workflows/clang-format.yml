@@ -82,6 +82,7 @@ jobs:
             END { flush() }
           ' clang-format.diff
 
+          cat clang-format.diff >&2
           cat <<'EOF' >&2
           The lines added or changed by this pull request don't follow the Icinga 2
           style guide and the conventions set in our .clang-format.
@@ -94,5 +95,4 @@ jobs:
 
           Don't hesitate to ask us for help or give feedback if necessary.
           EOF
-          cat clang-format.diff >&2
           exit 1
