@@ -1,15 +1,11 @@
 name: macOS
 
 on:
-  push:
-    branches:
-      - master
-      - 'support/*'
+  push: {}
   pull_request: {}
 
 concurrency:
   group: macos-${{ github.event_name == 'push' && github.sha || github.ref }}
-  cancel-in-progress: true
 
 jobs:
   macos:
