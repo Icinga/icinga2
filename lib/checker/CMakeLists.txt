@@ -1,18 +1,14 @@
 # SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-set(checker_SOURCES
+add_library(checker OBJECT
   checkercomponent.cpp checkercomponent.hpp checkercomponent.ti
 )
 
-if(ICINGA2_UNITY_BUILD)
-  mkunity_target(checker checker checker_SOURCES)
-endif()
-
-add_library(checker OBJECT ${checker_SOURCES})
-
 target_mkclass(checker checker_generated)
 add_dependencies(checker base_generated icinga_generated remote_generated)
+
+target_link_libraries(checker PUBLIC common)
 
 set_target_properties (
   checker PROPERTIES

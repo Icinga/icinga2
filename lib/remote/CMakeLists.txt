@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-set(remote_SOURCES
+add_library(remote OBJECT
   i2-remote.hpp
   actionshandler.cpp actionshandler.hpp
   apiaction.cpp apiaction.hpp
@@ -43,14 +43,13 @@ set(remote_SOURCES
   zone.cpp zone.hpp zone.ti
 )
 
-if(ICINGA2_UNITY_BUILD)
-  mkunity_target(remote remote remote_SOURCES)
-endif()
-
-add_library(remote OBJECT ${remote_SOURCES})
-
 target_mkclass(remote remote_generated)
 add_dependencies(remote base_generated)
+
+target_link_libraries(remote PUBLIC
+  common
+  Boost::coroutine
+)
 
 set_target_properties (
   remote PROPERTIES
