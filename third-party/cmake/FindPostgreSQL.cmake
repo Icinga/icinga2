@@ -177,6 +177,14 @@ if(PostgreSQL_FOUND)
   set(PostgreSQL_LIBRARY_DIRS ${PostgreSQL_LIBRARY_DIR} )
   set(PostgreSQL_LIBRARIES ${PostgreSQL_LIBRARY_TO_FIND})
 
+  add_library(PostgreSQL UNKNOWN IMPORTED)
+  set_target_properties(PostgreSQL PROPERTIES
+    IMPORTED_LOCATION "${PostgreSQL_LIBRARY}"
+    INTERFACE_INCLUDE_DIRECTORIES "${PostgreSQL_INCLUDE_DIRS}"
+    INTERFACE_LINK_LIBRARIES "${PostgreSQL_LIBRARIES}"
+    INTERFACE_LINK_DIRECTORIES "${PostgreSQL_LIBRARY_DIRS}"
+  )
+
   #message("Final PostgreSQL include dir: ${PostgreSQL_INCLUDE_DIRS}")
   #message("Final PostgreSQL library dir: ${PostgreSQL_LIBRARY_DIRS}")
   #message("Final PostgreSQL libraries:   ${PostgreSQL_LIBRARIES}")
