@@ -1,15 +1,11 @@
 name: Windows
 
 on:
-  push:
-    branches:
-      - master
-      - 'support/*'
+  push: {}
   pull_request: {}
 
 concurrency:
   group: windows-${{ github.event_name == 'push' && github.sha || github.ref }}
-  cancel-in-progress: true
 
 jobs:
   windows:
