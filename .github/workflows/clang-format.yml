@@ -94,5 +94,4 @@ jobs:
 
           Don't hesitate to ask us for help or give feedback if necessary.
           EOF
-          cat clang-format.diff >&2
           exit 1
