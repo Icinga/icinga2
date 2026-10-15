@@ -1,15 +1,11 @@
 name: Linux
 
 on:
-  push:
-    branches:
-      - master
-      - 'support/*'
+  push: {}
   pull_request: {}
 
 concurrency:
   group: linux-${{ github.event_name == 'push' && github.sha || github.ref }}
-  cancel-in-progress: true
 
 jobs:
   linux:
