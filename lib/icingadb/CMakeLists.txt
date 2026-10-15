@@ -19,6 +19,10 @@ include_directories(SYSTEM ${icinga2_SOURCE_DIR}/third-party)
 target_mkclass(icingadb icingadb_generated)
 add_dependencies(icingadb base_generated icinga_generated remote_generated)
 
+target_link_libraries(icingadb PUBLIC
+  nlohmann_json
+)
+
 set_target_properties (
   icingadb PROPERTIES
   FOLDER Components

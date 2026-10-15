@@ -137,6 +137,11 @@ add_library(base OBJECT ${base_SOURCES})
 
 target_mkclass(base base_generated)
 
+target_link_libraries(base PUBLIC
+  nlohmann_json
+  utf8cpp
+)
+
 if(Execinfo_FOUND)
   target_link_libraries(base PUBLIC Execinfo::Execinfo)
 endif()
