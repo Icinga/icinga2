@@ -92,6 +92,21 @@ jobs:
 
             git clang-format --extensions c,h,cpp,hpp "$(git merge-base HEAD origin/master)" -- ':(exclude)third-party/*'
 
+          In case of multiple commits, please do the following instead:
+
+            git fetch
+            git rebase -i origin/master
+
+          A text editor will appear.
+          Replace every "pick" with "e", save and exit!
+          Then, git-rebase(1) will open a shell for each commit.
+          Resolve conflicts if any, then run:
+
+            git commit --amend # git clang-format wants a clean worktree
+            git clang-format --extensions c,h,cpp,hpp "$(git merge-base HEAD origin/master)" -- ':(exclude)third-party/*'
+            git add -p
+            git rebase --continue
+
           Don't hesitate to ask us for help or give feedback if necessary.
           EOF
           exit 1
