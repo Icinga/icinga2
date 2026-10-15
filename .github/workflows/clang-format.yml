@@ -1,7 +1,9 @@
 name: clang-format
 
 on:
-  pull_request: {}
+  pull_request:
+    branches:
+      - master
 
 jobs:
   clang-format:
