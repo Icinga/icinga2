@@ -138,7 +138,7 @@ PointerAlignment: Left
 ReferenceAlignment: Left
 SpaceAfterTemplateKeyword: false
 TabWidth: 4
-UseTab: Always
+UseTab: ForContinuationAndIndentation
 
 # This only works for matching tokens, as in parsing tokens. Matching any syntactic
 # characters is not supported. Currently we use this mostly to circumvent reformatting
