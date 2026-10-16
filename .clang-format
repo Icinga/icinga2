@@ -13,6 +13,11 @@ AccessModifierOffset: -4
 # but instead always just add a level of indentation.
 AlignAfterOpenBracket: BlockIndent
 
+# Gives nice alignment when assigning multiple variables in a row.
+# This also applies to enum value assignments and inline member initialization.
+AlignConsecutiveAssignments:
+  Enabled: true
+
 # Mostly relevant for formatting preprocessor macros so that all backslashes align.
 AlignEscapedNewlines: LeftWithLastLine
 
@@ -69,6 +74,9 @@ BreakTemplateDeclarations: Yes
 
 # Convention
 ColumnLimit: 120
+
+# Enforcing a trailing comma on the last enum element makes diffs look nicer.
+EnumTrailingComma: Insert
 
 # Includes are sorted according to the style guide, with the additional requirement
 # from Boost.Test that the header including the test framework must go first.
@@ -130,7 +138,7 @@ PointerAlignment: Left
 ReferenceAlignment: Left
 SpaceAfterTemplateKeyword: false
 TabWidth: 4
-UseTab: Always
+UseTab: ForContinuationAndIndentation
 
 # This only works for matching tokens, as in parsing tokens. Matching any syntactic
 # characters is not supported. Currently we use this mostly to circumvent reformatting
