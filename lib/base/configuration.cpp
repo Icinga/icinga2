@@ -4,6 +4,22 @@
 #include "base/configuration.hpp"
 #include "base/configuration-ti.cpp"
 #include "base/exception.hpp"
+#include <boost/algorithm/string.hpp>
+#include <boost/iostreams/device/file_descriptor.hpp>
+#include <boost/iostreams/stream.hpp>
+#include <boost/lexical_cast.hpp>
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+#include <iostream>
+#include <set>
+#include <string>
+#include <vector>
+
+#ifdef __linux__
+#	include <fcntl.h>
+#	include <sys/errno.h>
+#endif /* __linux__ */
 
 using namespace icinga;
 
@@ -28,6 +44,90 @@ bool Configuration::AttachDebugger{false};
 String Configuration::CacheDir;
 int Configuration::Concurrency{1};
 bool Configuration::ConcurrencyWasModified{false};
+
+#ifdef __linux__
+static std::string ReadSysLine(const char *file)
+{
+	namespace io = boost::iostreams;
+
+	std::string content;
+	io::stream<io::file_descriptor> stream;
+	int f = open(file, O_RDONLY);
+
+	if (f < 0) {
+		if (errno == ENOENT) {
+			return "";
+		}
+
+		BOOST_THROW_EXCEPTION(posix_error()
+			<< boost::errinfo_api_function("open")
+			<< boost::errinfo_errno(errno)
+			<< boost::errinfo_file_name(file));
+	}
+
+	stream.exceptions(decltype(stream)::failbit | decltype(stream)::badbit);
+	stream.open(io::file_descriptor(f, boost::iostreams::close_handle));
+	stream.set_auto_close(true);
+
+	std::getline(stream, content);
+	return content;
+}
+#endif /* __linux__ */
+
+int Configuration::GetDefaultConcurrency()
+{
+	using namespace boost::algorithm;
+
+	auto concurrency (std::thread::hardware_concurrency());
+
+#ifdef __linux__
+	{
+		for (auto* cpuset : {"/sys/fs/cgroup/cpuset.cpus.effective", "/sys/fs/cgroup/cpuset/cpuset.cpus"}) {
+			auto rawCpus (ReadSysLine(cpuset));
+
+			if (rawCpus.length()) {
+				std::vector<std::string> ranges;
+				boost::split(ranges, rawCpus, is_any_of(","));
+
+				std::set<uintmax_t> cpus;
+
+				for (auto& range : ranges) {
+					std::vector<std::string> rangeEnds;
+					boost::split(rangeEnds, range, is_any_of("-"));
+
+					if (rangeEnds.size() > 1u) {
+						auto to (boost::lexical_cast<uintmax_t>(rangeEnds.at(1)));
+
+						for (auto i (boost::lexical_cast<uintmax_t>(rangeEnds.at(0))); i <= to; ++i) {
+							cpus.emplace(i);
+						}
+					} else {
+						cpus.emplace(boost::lexical_cast<uintmax_t>(rangeEnds.at(0)));
+					}
+				}
+
+				concurrency = cpus.size();
+				break;
+			}
+		}
+	}
+
+	{
+		auto cfsQuotaUs (ReadSysLine("/sys/fs/cgroup/cpu/cpu.cfs_quota_us"));
+
+		if (cfsQuotaUs.length()) {
+			auto quota (boost::lexical_cast<intmax_t>(cfsQuotaUs));
+
+			if (quota > 0) {
+				concurrency = std::min(std::max((decltype(concurrency))std::round(quota / 100000.0), 1u), concurrency);
+			}
+		}
+	}
+#endif /* __linux__ */
+
+	return concurrency;
+}
+
 String Configuration::ConfigDir;
 String Configuration::DataDir;
 String Configuration::EventEngine;
