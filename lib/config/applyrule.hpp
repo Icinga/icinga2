@@ -56,6 +56,7 @@ public:
 	String GetName() const;
 	Expression::Ptr GetExpression() const;
 	Expression::Ptr GetFilter() const;
+	String GetZone() const;
 	String GetPackage() const;
 
 	inline const String& GetFKVar() const noexcept
@@ -77,9 +78,21 @@ public:
 
 	bool EvaluateFilter(ScriptFrame& frame) const;
 
-	static void AddRule(const String& sourceType, const String& targetType, const String& name, const Expression::Ptr& expression,
-		const Expression::Ptr& filter, const String& package, const String& fkvar, const String& fvvar, const Expression::Ptr& fterm,
-		bool ignoreOnError, const DebugInfo& di, const Dictionary::Ptr& scope);
+	static void AddRule(
+		const String& sourceType,
+		const String& targetType,
+		const String& name,
+		const Expression::Ptr& expression,
+		const Expression::Ptr& filter,
+		const String& zone,
+		const String& package,
+		const String& fkvar,
+		const String& fvvar,
+		const Expression::Ptr& fterm,
+		bool ignoreOnError,
+		const DebugInfo& di,
+		const Dictionary::Ptr& scope
+	);
 	static const std::vector<ApplyRule::Ptr>& GetRules(const Type::Ptr& sourceType, const Type::Ptr& targetType);
 	[[gnu::no_dangling]] static const std::set<ApplyRule::Ptr>& GetTargetedHostRules(const Type::Ptr& sourceType, const String& host);
 	[[gnu::no_dangling]] static const std::set<ApplyRule::Ptr>& GetTargetedServiceRules(const Type::Ptr& sourceType, const String& host, const String& service);
@@ -98,6 +111,7 @@ private:
 	String m_Name;
 	Expression::Ptr m_Expression;
 	Expression::Ptr m_Filter;
+	String m_Zone;
 	String m_Package;
 	String m_FKVar;
 	String m_FVVar;
@@ -117,9 +131,19 @@ private:
 	static const String * GetConstString(Expression* exp, const Dictionary::Ptr& constants);
 	static const Value * GetConst(Expression* exp, const Dictionary::Ptr& constants);
 
-	ApplyRule(String name, Expression::Ptr expression,
-		Expression::Ptr filter, String package, String fkvar, String fvvar, Expression::Ptr fterm,
-		bool ignoreOnError, DebugInfo di, Dictionary::Ptr scope);
+	ApplyRule(
+		String name,
+		Expression::Ptr expression,
+		Expression::Ptr filter,
+		String zone,
+		String package,
+		String fkvar,
+		String fvvar,
+		Expression::Ptr fterm,
+		bool ignoreOnError,
+		DebugInfo di,
+		Dictionary::Ptr scope
+	);
 };
 
 }
