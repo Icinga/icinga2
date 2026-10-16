@@ -70,6 +70,9 @@ BreakTemplateDeclarations: Yes
 # Convention
 ColumnLimit: 120
 
+# Enforcing a trailing comma on the last enum element makes diffs look nicer.
+EnumTrailingComma: Insert
+
 # Includes are sorted according to the style guide, with the additional requirement
 # from Boost.Test that the header including the test framework must go first.
 IncludeCategories:
