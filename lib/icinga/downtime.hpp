@@ -48,6 +48,7 @@ public:
 	bool IsInEffect() const;
 	bool IsTriggered() const;
 	bool IsExpired() const;
+	bool CanBeTriggered();
 	bool HasValidConfigOwner() const;
 
 	static void StaticInitialize();
@@ -92,8 +93,6 @@ private:
 	mutable std::mutex m_ChildrenMutex;
 
 	Timer::Ptr m_CleanupTimer;
-
-	bool CanBeTriggered();
 
 	void SetupCleanupTimer();
 
