@@ -7,6 +7,11 @@
 #include "base/base64.hpp"
 #include "base/tlsutility.hpp"
 #include "base/utility.hpp"
+#include <mutex>
+
+#ifndef _WIN32
+#	include <unistd.h>
+#endif /* _WIN32 */
 
 using namespace icinga;
 
@@ -46,10 +51,23 @@ ApiUser::Ptr ApiUser::GetByAuthHeader(const String& auth_header)
 	 * 2) given password is empty
 	 * 2) configured password does not match.
 	 */
-	if (!user || password.IsEmpty())
+	if (!user) {
 		return nullptr;
-	else if (user && !Utility::ComparePasswords(password, user->GetPassword()))
-		return nullptr;
+	}
 
-	return user;
+#ifndef _WIN32
+	auto hash (user->GetHashedPassword());
+
+	if (!hash.IsEmpty()) {
+		static std::mutex mtx;
+		std::unique_lock lock (mtx);
+
+		auto hashed (crypt(password.CStr(), hash.CStr()));
+		return hashed == hash ? user : nullptr;
+	}
+#endif /* _WIN32 */
+
+	auto plain (user->GetPassword());
+
+	return !plain.IsEmpty() && Utility::ComparePasswords(password, plain) ? user : nullptr;
 }
