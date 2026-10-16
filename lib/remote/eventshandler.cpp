@@ -79,7 +79,7 @@ bool EventsHandler::HandleRequest(
 		}
 	}
 
-	std::set<EventType> eventTypes;
+	std::unordered_set<EventType> eventTypes;
 
 	{
 		ObjectLock olock(types);

@@ -8,6 +8,7 @@
 #include "icinga/host-ti.hpp"
 #include "icinga/macroresolver.hpp"
 #include "icinga/checkresult.hpp"
+#include <unordered_map>
 
 namespace icinga
 {
@@ -27,7 +28,7 @@ public:
 
 	intrusive_ptr<Service> GetServiceByShortName(const Value& name);
 
-	std::vector<intrusive_ptr<Service> > GetServices() const;
+	std::vector<intrusive_ptr<Service>> GetServices(bool sorted = false) const;
 	void AddService(const intrusive_ptr<Service>& service);
 	void RemoveService(const intrusive_ptr<Service>& service);
 
@@ -57,7 +58,7 @@ protected:
 
 private:
 	mutable std::mutex m_ServicesMutex;
-	std::map<String, intrusive_ptr<Service> > m_Services;
+	std::unordered_map<String, intrusive_ptr<Service>> m_Services;
 
 	static void RefreshServicesCache();
 };

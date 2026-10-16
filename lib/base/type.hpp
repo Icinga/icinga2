@@ -82,7 +82,7 @@ public:
 
 	static void Register(const Type::Ptr& type);
 	static Type::Ptr GetByName(const String& name);
-	static std::vector<Type::Ptr> GetAllTypes();
+	static std::vector<Type::Ptr> GetAllTypes(bool sorted = false);
 
 	/**
 	 * Returns a list of config types sorted by their "load_after" dependencies.

@@ -16,6 +16,7 @@
 #include "base/exception.hpp"
 #include <sstream>
 #include <stack>
+#include <unordered_map>
 
 #define YYLTYPE icinga::CompilerDebugInfo
 #define YYERROR_VERBOSE
@@ -81,7 +82,7 @@ static void MakeRBinaryOp(Expression** result, Expression *left, Expression *rig
 	std::vector<std::pair<std::unique_ptr<Expression>, std::unique_ptr<Expression> > > *ebranchlist;
 	std::pair<std::unique_ptr<Expression>, std::unique_ptr<Expression> > *ebranch;
 	std::pair<String, std::unique_ptr<Expression> > *cvitem;
-	std::map<String, std::unique_ptr<Expression> > *cvlist;
+	std::unordered_map<String, std::unique_ptr<Expression>> *cvlist;
 	icinga::ScopeSpecifier scope;
 }
 
@@ -1071,7 +1072,7 @@ ignore_specifier: /* empty */
 
 use_specifier: /* empty */
 	{
-		$$ = new std::map<String, std::unique_ptr<Expression> >();
+		$$ = new std::unordered_map<String, std::unique_ptr<Expression>>();
 	}
 	| T_USE '(' use_specifier_items ')'
 	{
@@ -1081,7 +1082,7 @@ use_specifier: /* empty */
 
 use_specifier_items: use_specifier_item
 	{
-		$$ = new std::map<String, std::unique_ptr<Expression> >();
+		$$ = new std::unordered_map<String, std::unique_ptr<Expression>>();
 		$$->emplace(std::move(*$1));
 		delete $1;
 	}

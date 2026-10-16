@@ -137,8 +137,19 @@ struct PendingDependencyEdgeItem
 struct RelationsDeletionItem
 {
 	std::string ID;
+
+	struct KeyHash
+	{
+		std::size_t operator()(const std::pair<RedisConnection::QueryArg, RedisConnection::QueryArg>& key) const noexcept
+		{
+			std::size_t seed = std::hash<RedisConnection::QueryArg>{}(key.first);
+			boost::hash_combine(seed, std::hash<RedisConnection::QueryArg>{}(key.second));
+			return seed;
+		}
+	};
+
 	// Set of Redis keys from which to delete a relation, along with their checksums (if any).
-	using RelationsKeySet = std::set<std::pair<RedisConnection::QueryArg, RedisConnection::QueryArg>>;
+	using RelationsKeySet = std::unordered_set<std::pair<RedisConnection::QueryArg, RedisConnection::QueryArg>, KeyHash>;
 	RelationsKeySet Relations;
 
 	RelationsDeletionItem(const String& id, const RelationsKeySet& relations);
@@ -288,7 +299,7 @@ private:
 		bool IsNew(const String& id);
 
 	private:
-		std::set<String> m_Ids;
+		std::unordered_set<String> m_Ids;
 		std::mutex m_Mutex;
 	};
 
@@ -316,7 +327,7 @@ private:
 	void DeleteState(const String& id, RedisConnection::QueryArg redisObjKey, RedisConnection::QueryArg redisChecksumKey = "") const;
 
 	void SendSentNotification(
-		const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::set<User::Ptr>& users,
+		const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::unordered_set<User::Ptr>& users,
 		NotificationType type, const CheckResult::Ptr& cr, const String& author, const String& text, double sendTime
 	);
 
@@ -371,19 +382,19 @@ private:
 	static String GetDependencyEdgeStateId(const DependencyGroup::Ptr& dependencyGroup, const Dependency::Ptr& dep);
 
 	static String HashValue(const Value& value);
-	static String HashValue(const Value& value, const std::set<String>& propertiesBlacklist, bool propertiesWhitelist = false);
+	static String HashValue(const Value& value, const std::unordered_set<String>& propertiesBlacklist, bool propertiesWhitelist = false);
 
 	static String GetLowerCaseTypeNameDB(const ConfigObject::Ptr& obj);
 	static bool PrepareObject(const ConfigObject::Ptr& object, Dictionary::Ptr& attributes);
 
-	static void ReachabilityChangeHandler(const std::set<Checkable::Ptr>& children);
+	static void ReachabilityChangeHandler(const std::unordered_set<Checkable::Ptr>& children);
 	static void StateChangeHandler(const ConfigObject::Ptr& object, const CheckResult::Ptr& cr, StateType type);
 	static void VersionChangedHandler(const ConfigObject::Ptr& object);
 	static void DowntimeStartedHandler(const Downtime::Ptr& downtime);
 	static void DowntimeRemovedHandler(const Downtime::Ptr& downtime);
 
 	static void NotificationSentToAllUsersHandler(
-		const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::set<User::Ptr>& users,
+		const Notification::Ptr& notification, const Checkable::Ptr& checkable, const std::unordered_set<User::Ptr>& users,
 		NotificationType type, const CheckResult::Ptr& cr, const String& author, const String& text
 	);
 
