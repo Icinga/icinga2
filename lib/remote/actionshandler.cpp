@@ -77,10 +77,7 @@ bool ActionsHandler::HandleRequest(
 	Log(LogNotice, "ApiActionHandler")
 		<< "Running action " << actionName;
 
-	bool verbose = false;
-
-	if (params)
-		verbose = HttpUtility::GetLastParameter(params, "verbose");
+	bool verbose = HttpUtility::GetLastParameter(params, "verbose");
 
 	std::shared_lock wgLock{*waitGroup, std::try_to_lock};
 	if (!wgLock) {

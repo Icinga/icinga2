@@ -91,10 +91,7 @@ bool CreateObjectHandler::HandleRequest(
 
 	String config;
 
-	bool verbose = false;
-
-	if (params)
-		verbose = HttpUtility::GetLastParameter(params, "verbose");
+	bool verbose = HttpUtility::GetLastParameter(params, "verbose");
 
 	ConfigObjectsSharedLock lock (std::try_to_lock);
 
