@@ -290,12 +290,13 @@ Dictionary::Ptr ApiActions::RemoveAcknowledgement(
 	const Dictionary::Ptr& params
 )
 {
-	Checkable::Ptr checkable = static_pointer_cast<Checkable>(object);
+	if (!object)
+		return ApiActions::CreateResult(404, "Object does not exist.");
 
+	Checkable::Ptr checkable = dynamic_pointer_cast<Checkable>(object);
 	if (!checkable)
-		return ApiActions::CreateResult(404,
-			"Cannot remove acknowledgement for non-existent checkable object "
-			+ object->GetName() + ".");
+		return ApiActions::CreateResult(400,
+			"Object '" + object->GetName() + "' is not checkable.");
 
 	ConfigObjectsSharedLock lock (std::try_to_lock);
 
