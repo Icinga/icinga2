@@ -1,6 +1,37 @@
 # SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+add_library(common OBJECT)
+
+target_include_directories(common PUBLIC
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_BINARY_DIR}
+  ${CMAKE_BINARY_DIR}
+)
+
+target_link_libraries(common PUBLIC
+  ${CMAKE_DL_LIBS}
+  Threads::Threads
+  mmatch
+  socketpair
+  nlohmann_json
+  utf8cpp
+  Boost::context
+  Boost::coroutine
+  Boost::filesystem
+  Boost::regex
+  Boost::thread
+  Boost::iostreams
+  OpenSSL::SSL
+)
+
+if(WIN32)
+  target_compile_definitions(common PUBLIC
+    NOMINMAX
+    WIN32_LEAN_AND_MEAN
+  )
+endif()
+
 add_subdirectory(base)
 add_subdirectory(cli)
 add_subdirectory(config)

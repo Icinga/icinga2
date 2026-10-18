@@ -26,10 +26,8 @@ jobs:
       - name: Build Icinga
         run: |
           brew install boost mysql protobuf
-  
-          cmake -B build \
-            -GNinja \
-            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+
+          cmake --preset release-clang-ninja \
             -DCMAKE_INSTALL_PREFIX="$(pwd)/install" \
             -DICINGA2_PLUGINDIR="$(pwd)/install/plugins" \
             -DICINGA2_USER=$(id -un) \
