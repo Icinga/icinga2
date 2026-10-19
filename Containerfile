@@ -110,9 +110,10 @@ RUN mkdir /icinga2-install
 RUN --mount=type=bind,source=.,target=/icinga2,readonly \
     --mount=type=cache,id=ccache-${TARGETPLATFORM},target=/root/.ccache \
     --mount=type=cache,id=icinga2-build-${TARGETPLATFORM},target=/icinga2-build \
-    PATH="/usr/lib/ccache:$PATH" \
     cmake -S /icinga2 -B /icinga2-build \
         -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} \
+        -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+        -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
         # Podman supports forwarding notifications from containers to systemd, so build Icinga 2 with systemd support.
         -DUSE_SYSTEMD=ON \
         -DBUILD_TESTING=${ICINGA2_BUILD_TESTING} \
