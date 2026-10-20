@@ -17,7 +17,9 @@ add_library(mysql_shim SHARED ${mysql_shim_SOURCES})
 include(GenerateExportHeader)
 generate_export_header(mysql_shim)
 
-target_link_libraries(mysql_shim ${MYSQL_LIB})
+target_link_libraries(mysql_shim PUBLIC
+  MySQL
+)
 
 set_target_properties (
   mysql_shim PROPERTIES

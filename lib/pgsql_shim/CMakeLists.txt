@@ -18,7 +18,9 @@ add_library(pgsql_shim SHARED ${pgsql_shim_SOURCES})
 include(GenerateExportHeader)
 generate_export_header(pgsql_shim)
 
-target_link_libraries(pgsql_shim ${PostgreSQL_LIBRARIES})
+target_link_libraries(pgsql_shim PUBLIC
+  PostgreSQL
+)
 
 set_target_properties (
   pgsql_shim PROPERTIES

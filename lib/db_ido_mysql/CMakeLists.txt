@@ -16,6 +16,10 @@ include_directories(SYSTEM ${MYSQL_INCLUDE_DIR})
 target_mkclass(db_ido_mysql db_ido_mysql_generated)
 add_dependencies(db_ido_mysql base_generated icinga_generated remote_generated db_ido_generated)
 
+target_link_libraries(db_ido_mysql PUBLIC
+  MySQL
+)
+
 set_target_properties (
   db_ido_mysql PROPERTIES
   FOLDER Components
