@@ -73,35 +73,35 @@ function Install-Exe {
 }
 
 
-try {
-	Get-Command choco
-} catch {
-	Invoke-Expression (New-Object Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')
-	ThrowOnNativeFailure
-
-	$RegEnv = 'Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment'
-	$ChocoPath = ";$(Join-Path $Env:AllUsersProfile chocolatey\bin)"
-
-	Set-ItemProperty -Path $RegEnv -Name Path -Value ((Get-ItemProperty -Path $RegEnv -Name Path).Path + $ChocoPath)
-	$Env:Path += $ChocoPath
-}
-
 # GitHub Actions uses an image that comes with most dependencies preinstalled. Don't install them twice.
 if (-not $Env:GITHUB_ACTIONS) {
-    choco install -y `
-        "visualstudio${VsVersion}community" `
-        "visualstudio${VsVersion}-workload-vctools" `
-        "visualstudio${VsVersion}-workload-manageddesktop" `
-        "visualstudio${VsVersion}-workload-nativedesktop" `
-        "visualstudio${VsVersion}-workload-universal" `
-        "visualstudio${VsVersion}buildtools" `
-        git `
-        cmake `
-        winflexbison3 `
-        netfx-4.6-devpack `
-        windows-sdk-8.1 `
-        wixtoolset
-    ThrowOnNativeFailure
+	try {
+		Get-Command choco
+	} catch {
+		Invoke-Expression (New-Object Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')
+		ThrowOnNativeFailure
+
+		$RegEnv = 'Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment'
+		$ChocoPath = ";$(Join-Path $Env:AllUsersProfile chocolatey\bin)"
+
+		Set-ItemProperty -Path $RegEnv -Name Path -Value ((Get-ItemProperty -Path $RegEnv -Name Path).Path + $ChocoPath)
+		$Env:Path += $ChocoPath
+	}
+
+	choco install -y `
+		"visualstudio${VsVersion}community" `
+		"visualstudio${VsVersion}-workload-vctools" `
+		"visualstudio${VsVersion}-workload-manageddesktop" `
+		"visualstudio${VsVersion}-workload-nativedesktop" `
+		"visualstudio${VsVersion}-workload-universal" `
+		"visualstudio${VsVersion}buildtools" `
+		git `
+		cmake `
+		winflexbison3 `
+		netfx-4.6-devpack `
+		windows-sdk-8.1 `
+		wixtoolset
+	ThrowOnNativeFailure
 }
 
 # Disable the progress bar for downloads from the Web, which will speed up the entire download process
