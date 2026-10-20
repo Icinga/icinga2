@@ -362,7 +362,17 @@ set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -DI2_DEBUG")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DI2_DEBUG")
 
 check_function_exists(vfork HAVE_VFORK)
+
 check_function_exists(backtrace_symbols HAVE_BACKTRACE_SYMBOLS)
+if(NOT HAVE_BACKTRACE_SYMBOLS)
+  find_package(Execinfo)
+  if(Execinfo_FOUND)
+    set(HAVE_BACKTRACE_SYMBOLS TRUE)
+    # TODO: Temporary until we're getting rid of these lists
+    list(APPEND base_DEPS Execinfo::Execinfo)
+  endif()
+endif()
+
 check_function_exists(pipe2 HAVE_PIPE2)
 check_function_exists(nice HAVE_NICE)
 check_function_exists(malloc_info HAVE_MALLOC_INFO)
@@ -370,13 +380,7 @@ check_function_exists(pthread_create HAVE_PTHREAD_CREATE)
 check_function_exists(pthread_set_name_np HAVE_PTHREAD_SET_NAME_NP)
 check_function_exists(pthread_setname_np HAVE_PTHREAD_SETNAME_NP)
 check_library_exists(dl dladdr "dlfcn.h" HAVE_DLADDR)
-check_library_exists(execinfo backtrace_symbols "" HAVE_LIBEXECINFO)
 check_include_file_cxx(cxxabi.h HAVE_CXXABI_H)
-
-if(HAVE_LIBEXECINFO)
-  set(HAVE_BACKTRACE_SYMBOLS TRUE)
-  list(APPEND base_DEPS execinfo)
-endif()
 
 if(NOT WIN32)
   # boost::stacktrace uses _Unwind_Backtrace which is only exposed if _GNU_SOURCE is defined on most systems

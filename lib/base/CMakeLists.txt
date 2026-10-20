@@ -137,6 +137,10 @@ add_library(base OBJECT ${base_SOURCES})
 
 target_mkclass(base base_generated)
 
+if(Execinfo_FOUND)
+  target_link_libraries(base PUBLIC Execinfo::Execinfo)
+endif()
+
 include_directories(SYSTEM ${icinga2_SOURCE_DIR}/third-party/mmatch)
 link_directories(${icinga2_BINARY_DIR}/third-party/mmatch)
 
