@@ -21,6 +21,8 @@ $BoostVersion = @(1, 92, 0)
 
 $OpensslVersion = '3_5_9'
 
+$WinFlexBisonVersion = '2.5.24'
+
 switch ($Env:BITS) {
 	32 { }
 	64 { }
@@ -29,6 +31,27 @@ switch ($Env:BITS) {
 	}
 }
 
+
+function Download-File {
+	param (
+		[string]$Url,
+		[string]$OutFile
+	)
+
+	for ($trial = 1;; ++$trial) {
+		try {
+			Invoke-WebRequest -Uri $Url -OutFile $OutFile -UseBasicParsing
+		} catch {
+			if ($trial -ge 2) {
+				throw
+			}
+
+			continue
+		}
+
+		break
+	}
+}
 
 function Install-Exe {
 	param (
@@ -41,19 +64,7 @@ function Install-Exe {
 
 	New-Item -ItemType Directory -Path $TempDir
 
-	for ($trial = 1;; ++$trial) {
-		try {
-			Invoke-WebRequest -Uri $Url -OutFile $ExeFile -UseBasicParsing
-		} catch {
-			if ($trial -ge 2) {
-				throw
-			}
-
-			continue
-		}
-
-		break
-	}
+	Download-File -Url $Url -OutFile $ExeFile
 
 	Start-Process -Wait -FilePath $ExeFile -ArgumentList @('/VERYSILENT', '/INSTALL', '/PASSIVE', '/NORESTART', "/DIR=${Dir}")
 	ThrowOnNativeFailure
@@ -91,13 +102,19 @@ if (-not $Env:GITHUB_ACTIONS) {
         windows-sdk-8.1 `
         wixtoolset
     ThrowOnNativeFailure
-} else {
-    choco install -y winflexbison3
-    ThrowOnNativeFailure
 }
 
 # Disable the progress bar for downloads from the Web, which will speed up the entire download process
 $Global:ProgressPreference = 'SilentlyContinue';
+
+if ($Env:GITHUB_ACTIONS) {
+	$ZipFile = Join-Path ([System.IO.Path]::GetTempPath()) "$([System.Guid]::NewGuid().Guid).zip"
+
+	Download-File -Url "https://packages.icinga.com/windows/dependencies/win_flex_bison-${WinFlexBisonVersion}.zip" -OutFile $ZipFile
+	Expand-Archive -Path $ZipFile -DestinationPath (Join-Path $Env:AllUsersProfile chocolatey\bin)
+
+	Remove-Item -Path $ZipFile
+}
 
 Install-Exe -Url "https://packages.icinga.com/windows/dependencies/boost_$($BoostVersion -join '_')-msvc-${MsvcVersion}-${Env:BITS}.exe" -Dir "C:\local\boost_$($BoostVersion -join '_')-Win${Env:BITS}"
 
