@@ -84,14 +84,17 @@ IncludeCategories:
   - Regex: ^(<|")BoostTestTargetConfig.h
     Priority: 1
     CaseSensitive: false
-  - Regex: ^"(base|config|icinga|perfdata|remote|test)/
+  - Regex: ^"base/i2-base.hpp"
     Priority: 2
     CaseSensitive: false
-  - Regex: ^<boost/
+  - Regex: ^"(base|config|icinga|perfdata|remote|test)/
     Priority: 3
     CaseSensitive: false
-  - Regex: ^<
+  - Regex: ^<boost/
     Priority: 4
+    CaseSensitive: false
+  - Regex: ^<
+    Priority: 5
     CaseSensitive: false
 
 # Convention
