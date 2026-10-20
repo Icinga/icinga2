@@ -136,6 +136,7 @@ case "$DISTRO" in
       -DCMAKE_{C,CXX}_FLAGS="${WARN_FLAGS}"
       -DICINGA2_UNITY_BUILD=OFF
       -DCMAKE_CXX_STANDARD=20
+      -DICINGA2_BOOST_TEST_DISABLE_ALT_STACK=ON
     )
     ;;
   debian:*|ubuntu:*)
