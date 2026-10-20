@@ -24,6 +24,7 @@ endif()
 target_link_libraries(testdeps
   INTERFACE
   ${base_DEPS}
+  cli
 )
 
 configure_file(BoostTestConfig.h.in BoostTestTargetConfig.h @ONLY)
