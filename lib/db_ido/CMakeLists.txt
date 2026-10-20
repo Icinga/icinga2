@@ -34,6 +34,10 @@ add_library(db_ido OBJECT ${db_ido_SOURCES})
 target_mkclass(db_ido db_ido_generated)
 add_dependencies(db_ido base_generated icinga_generated remote_generated)
 
+target_link_libraries(db_ido PUBLIC
+  nlohmann_json
+)
+
 set_target_properties (
   db_ido PROPERTIES
   FOLDER Lib
