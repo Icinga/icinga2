@@ -1322,7 +1322,7 @@ void IcingaDB::InsertCheckableDependencies(
 /**
  * Update the state information of a checkable in Redis.
  *
- * What is updated exactly depends on the mode parameter:
+ * What is updated exactly depends on the DirtyBits flags set in the PendingConfigItem:
  *  - VolatileState: Update the volatile state information stored in icinga:host:state or icinga:service:state as well
  *    as the corresponding checksum stored in icinga:checksum:host:state or icinga:checksum:service:state.
  *  - RuntimeState: Write a runtime update to the icinga:runtime:state stream. It is up to the caller to ensure that
@@ -1332,17 +1332,25 @@ void IcingaDB::InsertCheckableDependencies(
  *    sending a corresponding runtime update so that this state update gets written through to the persistent database
  *    by a running icingadb process.
  *
- * @param checkable State of this checkable is updated in Redis
- * @param mode Mode of operation (DirtyBits:VolatileState, DirtyBits::RuntimeState, or DirtyBits::FullState)
+ * @param item The PendingConfigItem containing the checkable and the dirty bits indicating which state information
+ *             to update.
  */
-void IcingaDB::UpdateState(const Checkable::Ptr& checkable, uint32_t mode)
+void IcingaDB::UpdateState(const icingadb::task_queue::PendingConfigItem& item) const
 {
+	namespace queue = icingadb::task_queue;
+
+	auto checkable{dynamic_pointer_cast<Checkable>(item.Object)};
+
 	Dictionary::Ptr stateAttrs = SerializeState(checkable);
 
 	String checksum = HashValue(stateAttrs);
+	if (item.DirtyBits & queue::RuntimeState) {
+		// Add additional meta data to the runtime updates without making them part of the checksum.
+		stateAttrs->Set("metadata", GetStateMetadata(checkable, item));
+	}
 
 	auto [redisStateKey, redisChecksumKey] = GetCheckableStateKeys(checkable->GetReflectionType());
-	if (mode & icingadb::task_queue::VolatileState) {
+	if (item.DirtyBits & queue::VolatileState) {
 		String objectKey = GetObjectIdentifier(checkable);
 		m_RconWorker->FireAndForgetQueries({
 			{"HSET", redisStateKey, objectKey, JsonEncode(stateAttrs)},
@@ -1350,7 +1358,7 @@ void IcingaDB::UpdateState(const Checkable::Ptr& checkable, uint32_t mode)
 		});
 	}
 
-	if (mode & icingadb::task_queue::RuntimeState) {
+	if (item.DirtyBits & queue::RuntimeState) {
 		ObjectLock olock(stateAttrs);
 
 		RedisConnection::Query streamadd({
@@ -1893,7 +1901,7 @@ void IcingaDB::SendStateChange(const ConfigObject::Ptr& object, const CheckResul
 
 	tie(host, service) = GetHostService(checkable);
 
-	EnqueueConfigObject(checkable, icingadb::task_queue::RuntimeState);
+	EnqueueConfigObject(checkable, icingadb::task_queue::RuntimeState | icingadb::task_queue::StateChange);
 
 	int hard_state{};
 	if (!cr) {
@@ -2084,7 +2092,9 @@ void IcingaDB::SendStartedDowntime(const Downtime::Ptr& downtime)
 	tie(host, service) = GetHostService(checkable);
 
 	/* Update checkable state as in_downtime may have changed. */
-	EnqueueConfigObject(checkable, icingadb::task_queue::FullState);
+	EnqueueConfigObject(
+		checkable, icingadb::task_queue::DowntimeStart | icingadb::task_queue::FullState, downtime->GetName()
+	);
 
 	RedisConnection::Query xAdd ({
 		"XADD", "icinga:history:stream:downtime", "*",
@@ -2173,7 +2183,9 @@ void IcingaDB::SendRemovedDowntime(const Downtime::Ptr& downtime)
 		return;
 
 	/* Update checkable state as in_downtime may have changed. */
-	EnqueueConfigObject(checkable, icingadb::task_queue::FullState);
+	EnqueueConfigObject(
+		checkable, icingadb::task_queue::DowntimeEnd | icingadb::task_queue::FullState, downtime->GetName()
+	);
 
 	RedisConnection::Query xAdd ({
 		"XADD", "icinga:history:stream:downtime", "*",
@@ -2468,7 +2480,7 @@ void IcingaDB::SendAcknowledgementSet(const Checkable::Ptr& checkable, const Str
 	tie(host, service) = GetHostService(checkable);
 
 	/* Update checkable state as is_acknowledged may have changed. */
-	EnqueueConfigObject(checkable, icingadb::task_queue::FullState);
+	EnqueueConfigObject(checkable, icingadb::task_queue::AckSet | icingadb::task_queue::FullState, "", changeTime);
 
 	RedisConnection::Query xAdd ({
 		"XADD", "icinga:history:stream:acknowledgement", "*",
@@ -2526,7 +2538,7 @@ void IcingaDB::SendAcknowledgementCleared(const Checkable::Ptr& checkable, const
 	tie(host, service) = GetHostService(checkable);
 
 	/* Update checkable state as is_acknowledged may have changed. */
-	EnqueueConfigObject(checkable, icingadb::task_queue::FullState);
+	EnqueueConfigObject(checkable, icingadb::task_queue::AckClear | icingadb::task_queue::FullState, "", ackLastChange);
 
 	RedisConnection::Query xAdd ({
 		"XADD", "icinga:history:stream:acknowledgement", "*",
@@ -2906,6 +2918,8 @@ Dictionary::Ptr IcingaDB::SerializeState(const Checkable::Ptr& checkable)
 		if (AckComment != nullptr) {
 			attrs->Set("acknowledgement_comment_id", GetObjectIdentifier(AckComment));
 		}
+
+		attrs->Set("acknowledgement_set_time", TimestampToMilliseconds(checkable->GetAcknowledgementLastChange()));
 	}
 
 	{
