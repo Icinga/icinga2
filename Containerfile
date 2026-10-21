@@ -135,7 +135,7 @@ RUN --mount=type=bind,source=.,target=/icinga2,readonly \
 
 RUN rm -rf /icinga2-install/etc/icinga2/features-enabled/mainlog.conf \
         /icinga2-install/usr/share/doc/icinga2/markdown && \
-    strip -g /icinga2-install/usr/lib/*/icinga2/sbin/icinga2 && \
+    strip -g /icinga2-install/usr/sbin/icinga2 && \
     strip -g /icinga2-install/usr/lib/nagios/plugins/check_nscp_api
 
 # Prepare the final image with the necessary configuration files and runtime dependencies.

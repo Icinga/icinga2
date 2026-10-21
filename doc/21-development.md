@@ -71,10 +71,10 @@ SLES/openSUSE      | `zypper install gdb`
 
 #### GDB Run <a id="development-debug-gdb-run"></a>
 
-Run the icinga2 binary `/usr/lib{,64}/icinga2/sbin/icinga2` with gdb, `/usr/bin/icinga2` is a shell wrapper.
+Run the icinga2 binary `/usr/sbin/icinga2` with gdb.
 
 ```
-gdb --args /usr/lib/icinga2/sbin/icinga2 daemon
+gdb --args /usr/sbin/icinga2 daemon
 
 (gdb) set follow-fork-mode child
 ```
@@ -85,7 +85,7 @@ process and can safely be ignored.
 
 > **Note**
 >
-> Since v2.11 we would attach to the umbrella process spawned with `/usr/lib/icinga2/sbin/icinga2`,
+> Since v2.11 we would attach to the umbrella process spawned with `/usr/sbin/icinga2`,
 > therefore rather attach to a running process.
 >
 ```bash
@@ -425,7 +425,7 @@ rm /var/lib/cores/core.sleep.*
 Analyzing Icinga 2:
 
 ```
-gdb /usr/lib64/icinga2/sbin/icinga2 core.icinga2.<PID>
+gdb /usr/sbin/icinga2 core.icinga2.<PID>
 (gdb) bt
 ```
 
@@ -1498,7 +1498,7 @@ chown -R icinga:icinga /usr/local/icinga2/{etc,var}/
 /usr/local/icinga2/sbin/icinga2 api setup
 vim /usr/local/icinga2/etc/icinga2/conf.d/api-users.conf
 
-/usr/local/icinga2/lib64/icinga2/sbin/icinga2 daemon
+/usr/local/icinga2/sbin/icinga2 daemon
 ```
 
 #### Debian 10 <a id="development-linux-dev-env-debian"></a>
@@ -1551,7 +1551,7 @@ chown -R icinga:icinga /usr/local/icinga2/{etc,var}/
 /usr/local/icinga2/sbin/icinga2 api setup
 vim /usr/local/icinga2/etc/icinga2/conf.d/api-users.conf
 
-/usr/local/icinga2/lib/icinga2/sbin/icinga2 daemon
+/usr/local/icinga2/sbin/icinga2 daemon
 ```
 
 
@@ -1615,7 +1615,7 @@ chown -R icinga:icinga /usr/local/icinga2/{etc,var}/
 /usr/local/icinga2/sbin/icinga2 api setup
 vim /usr/local/icinga2/etc/icinga2/conf.d/api-users.conf
 
-/usr/local/icinga2/lib/icinga2/sbin/icinga2 daemon
+/usr/local/icinga2/sbin/icinga2 daemon
 ```
 
 ### macOS Dev Environment <a id="development-macos-dev-env"></a>
