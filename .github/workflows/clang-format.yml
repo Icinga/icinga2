@@ -32,10 +32,7 @@ jobs:
             exit 0
           fi
 
-          # Turn each diff hunk into a GitHub annotation on the offending
-          # lines, with the hunk's desired (reformatted) content as the
-          # annotation message, i.e. its added/context lines with the
-          # leading '+'/' ' stripped.
+          # Turn each diff hunk into a GitHub annotation on the offending lines.
           awk '
             function esc(s) {
               gsub(/%/, "%25", s)
@@ -77,9 +74,8 @@ jobs:
               count = (oc[2] == "" ? 1 : oc[2] + 0)
               next
             }
-            /^[+ ]/ {
-              line = substr($0, 2)
-              hunk = (hunk == "" ? line : hunk "\n" line)
+            /^[-+ ]/ {
+              hunk = (hunk == "" ? $0 : hunk "\n" $0)
             }
             END { flush() }
           ' clang-format.diff
