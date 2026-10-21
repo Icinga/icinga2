@@ -115,6 +115,10 @@ add_boost_test(base
     base_array/foreach
     base_array/clone
     base_array/json
+    base_array/sort_script
+    base_array/sort_size_limit
+    base_array/sort_script_unsafe_comparator
+    base_array/sort_script_unsafe_comparator_1024
     base_base64/base64
     base_convert/tolong
     base_convert/todouble
