@@ -38,6 +38,7 @@ namespace icinga
 namespace icingadb::task_queue
 {
 
+
 /**
  * Dirty bits for config/state changes.
  *
