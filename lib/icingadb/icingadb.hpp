@@ -57,7 +57,7 @@ enum DirtyBits : uint32_t
 
 	// The following dirty bits are used to mark why a particular runtime state update is required for a given
 	// checkable. Callers must combine these bits with the FullState or RuntimeState bit when enqueuing a checkable
-	// for a runtime state update.
+	// for a runtime state update. 
 	StateChange   = 1 << 5,
 	DowntimeStart = 1 << 6,
 	DowntimeEnd   = 1 << 7,
