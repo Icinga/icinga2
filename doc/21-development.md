@@ -1444,7 +1444,7 @@ yum -y install gdb vim git bash-completion htop
 yum -y install rpmdevtools ccache \
  cmake make gcc-c++ flex bison \
  openssl-devel boost-devel systemd-devel \
- mysql-devel postgresql-devel libedit-devel \
+ mysql-devel postgresql-devel readline-devel \
  libstdc++-devel
 
 groupadd icinga
@@ -1513,7 +1513,7 @@ docker run -ti debian:buster bash
 apt-get update
 apt-get -y install apt-transport-https wget gnupg
 
-apt-get -y install gdb vim git cmake make ccache build-essential libssl-dev bison flex default-libmysqlclient-dev libpq-dev libedit-dev monitoring-plugins
+apt-get -y install gdb vim git cmake make ccache build-essential libssl-dev bison flex default-libmysqlclient-dev libpq-dev libreadline-dev monitoring-plugins
 apt-get -y install libboost-all-dev
 ```
 
@@ -1577,7 +1577,7 @@ apt-get update
 ```
 
 ```bash
-apt-get -y install gdb vim git cmake make ccache build-essential libssl-dev bison flex default-libmysqlclient-dev libpq-dev libedit-dev monitoring-plugins
+apt-get -y install gdb vim git cmake make ccache build-essential libssl-dev bison flex default-libmysqlclient-dev libpq-dev libreadline-dev monitoring-plugins
 
 apt-get install -y libboost1.67-icinga-all-dev
 
@@ -2273,10 +2273,11 @@ Icinga application using a dist tarball (including notes for distributions):
     * RHEL/Fedora: postgresql-devel
     * Debian/Ubuntu: libpq-dev
     * postgresql-dev on Alpine
-* libedit (CLI console)
-    * RHEL/Fedora: libedit-devel (RHEL requires rhel-7-server-optional-rpms)
-    * Debian/Ubuntu/Alpine: libedit-dev
-* Termcap (only required if libedit doesn't already link against termcap/ncurses)
+* GNU Readline (CLI console)
+    * RHEL/Fedora/SUSE: readline-devel
+    * Debian/Ubuntu: libreadline-dev
+    * Alpine: readline-dev
+* Termcap (only required if readline doesn't already link against termcap/ncurses)
     * RHEL/Fedora: libtermcap-devel
     * Debian/Ubuntu: (not necessary)
 
@@ -2480,7 +2481,7 @@ cd $HOME/rpmbuild
 Install the build dependencies:
 
 ```bash
-yum -y install libedit-devel ncurses-devel gcc-c++ libstdc++-devel openssl-devel \
+yum -y install readline-devel ncurses-devel gcc-c++ libstdc++-devel openssl-devel \
 cmake flex bison boost-devel systemd mysql-devel postgresql-devel httpd \
 selinux-policy-devel checkpolicy selinux-policy selinux-policy-doc
 ```

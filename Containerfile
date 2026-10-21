@@ -33,9 +33,9 @@ RUN apt-get update && \
         libboost-system1.83-dev \
         libboost-thread1.83-dev \
         libboost-test1.83-dev \
-        libedit-dev \
         libmariadb-dev \
         libpq-dev \
+        libreadline-dev \
         libssl-dev \
         libsystemd-dev \
         libprotobuf-dev \
@@ -163,12 +163,12 @@ RUN apt-get update && \
         libboost-system1.83.0 \
         libboost-thread1.83.0 \
         libcap2-bin \
-        libedit2 \
         libldap-common \
         libmariadb3 \
         libmoosex-role-timer-perl \
         libpq5 \
         libprotobuf-lite32t64 \
+        libreadline8t64 \
         libssl3 \
         libsystemd0 \
         mailutils \

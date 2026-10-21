@@ -51,13 +51,13 @@ case "$DISTRO" in
     # - LibreSSL instead of OpenSSL 3 and
     # - no MariaDB or libpq as they depend on OpenSSL.
     # https://gitlab.alpinelinux.org/alpine/aports/-/blob/master/community/icinga2/APKBUILD
-    apk add bison boost-dev ccache cmake flex g++ libedit-dev libressl-dev ninja-build tzdata protobuf-dev
+    apk add bison boost-dev ccache cmake flex g++ libressl-dev ninja-build readline-dev tzdata protobuf-dev
     ln -vs /usr/lib/ninja-build/bin/ninja /usr/local/bin/ninja
     ;;
 
   amazonlinux:20*)
     dnf install --nobest -y amazon-rpm-config spal-release bison cmake flex gcc-c++ ninja-build \
-      {boost,libedit,mariadb-connector-c,ncurses,openssl,postgresql,systemd,protobuf-lite}-devel
+      {boost,mariadb-connector-c,ncurses,openssl,postgresql,readline,systemd,protobuf-lite}-devel
     dnf install --nobest -y ccache
     ;;
 
@@ -65,12 +65,12 @@ case "$DISTRO" in
     apt-get update
     DEBIAN_FRONTEND=noninteractive apt-get install --no-install-{recommends,suggests} -y \
       bison ccache cmake dpkg-dev flex g++ ninja-build tzdata protobuf-compiler \
-      lib{boost-all,edit,mariadb,ncurses,pq,ssl,systemd,protobuf}-dev
+      lib{boost-all,mariadb,ncurses,pq,readline,ssl,systemd,protobuf}-dev
     ;;
 
   fedora:*)
     dnf install --nobest -y bison ccache cmake flex gcc-c++ ninja-build redhat-rpm-config \
-      {boost,libedit,mariadb,ncurses,openssl,postgresql,systemd,protobuf-lite}-devel
+      {boost,mariadb,ncurses,openssl,postgresql,readline,systemd,protobuf-lite}-devel
     ;;
 
   *suse*)
@@ -81,7 +81,7 @@ case "$DISTRO" in
     printf '[main]\ndownload.max_silent_tries = 5\n' > "$ZYPP_CONF"
 
     zypper in -y --allow-downgrade bison ccache cmake flex gcc-c++ ninja rpm-config-SUSE \
-      {lib{edit,mariadb,openssl},ncurses,postgresql,systemd,protobuf}-devel \
+      {lib{mariadb,openssl},ncurses,postgresql,readline,systemd,protobuf}-devel \
       libboost_{context,coroutine,filesystem,iostreams,program_options,regex,system,test,thread}-devel
     ;;
 
@@ -102,7 +102,7 @@ case "$DISTRO" in
     esac
 
     dnf install --nobest -y bison ccache cmake gcc-c++ flex ninja-build redhat-rpm-config \
-      {boost,bzip2,libedit,mariadb,ncurses,openssl,postgresql,systemd,xz,libzstd}-devel
+      {boost,bzip2,mariadb,ncurses,openssl,postgresql,readline,systemd,xz,libzstd}-devel
 
     # Rocky Linux 8 and 9 don't have a recent enough Protobuf compiler for OTel, so we need to add
     # our repository to install the pre-built Protobuf devel package.

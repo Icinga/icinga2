@@ -50,9 +50,9 @@ private:
 
 	static Dictionary::Ptr SendRequest();
 
-#ifdef HAVE_EDITLINE
+#ifdef HAVE_READLINE
 	static char *ConsoleCompleteHelper(const char *word, int state);
-#endif /* HAVE_EDITLINE */
+#endif /* HAVE_READLINE */
 
 	static void BreakpointHandler(ScriptFrame& frame, ScriptError *ex, const DebugInfo& di);
 
