@@ -102,6 +102,8 @@ struct PendingConfigItem
 	}
 };
 
+struct test {};
+
 /**
  * A pending dependency group state item.
  *
