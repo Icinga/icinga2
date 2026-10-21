@@ -91,6 +91,14 @@ case "$DISTRO" in
     case "$DISTRO" in
       *:8)
         dnf config-manager --enable powertools
+        # RHEL 8 ships OpenSSL 1.1, but GNU Readline (GPLv3+) shouldn't share the binary with it.
+        # Use OpenSSL 3 (Apache 2.0) from EPEL instead, which installs alongside the system one.
+        dnf install --nobest -y openssl3-devel
+        CMAKE_OPTS+=(
+          -DOPENSSL_INCLUDE_DIR=/usr/include/openssl3
+          -DOPENSSL_SSL_LIBRARY="$(rpm -E '%{_libdir}')/openssl3/libssl.so"
+          -DOPENSSL_CRYPTO_LIBRARY="$(rpm -E '%{_libdir}')/openssl3/libcrypto.so"
+        )
         # Our Protobuf package on RHEL 8 is built with GCC 13, and since the ABI is not compatible with GCC 8,
         # we need to enable the SCL repository and install the GCC 13 packages to be able to link against it.
         SCL_ENABLE_GCC=(scl enable gcc-toolset-13 --)
@@ -98,11 +106,12 @@ case "$DISTRO" in
         ;;
       *)
         dnf config-manager --enable crb
+        dnf install --nobest -y openssl-devel
         ;;
     esac
 
     dnf install --nobest -y bison ccache cmake gcc-c++ flex ninja-build redhat-rpm-config \
-      {boost,bzip2,mariadb,ncurses,openssl,postgresql,readline,systemd,xz,libzstd}-devel
+      {boost,bzip2,mariadb,ncurses,postgresql,readline,systemd,xz,libzstd}-devel
 
     # Rocky Linux 8 and 9 don't have a recent enough Protobuf compiler for OTel, so we need to add
     # our repository to install the pre-built Protobuf devel package.
