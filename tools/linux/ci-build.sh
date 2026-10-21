@@ -80,7 +80,17 @@ case "$DISTRO" in
     export ZYPP_CONF=/tmp/zypp.conf ZYPP_MEDIANETWORK=1
     printf '[main]\ndownload.max_silent_tries = 5\n' > "$ZYPP_CONF"
 
-    zypper in -y --allow-downgrade bison ccache cmake flex gcc-c++ ninja rpm-config-SUSE \
+    case "$DISTRO" in
+      *:15.*)
+        zypper in -y --allow-downgrade gcc14-c++
+        CMAKE_OPTS+=(-DCMAKE_CXX_COMPILER=g++-14 -DCMAKE_C_COMPILER=gcc-14)
+        ;;
+      *)
+        zypper in -y --allow-downgrade gcc-c++
+        ;;
+    esac
+
+    zypper in -y --allow-downgrade bison ccache cmake flex ninja rpm-config-SUSE \
       {lib{edit,mariadb,openssl},ncurses,postgresql,systemd,protobuf}-devel \
       libboost_{context,coroutine,filesystem,iostreams,program_options,regex,system,test,thread}-devel
     ;;
