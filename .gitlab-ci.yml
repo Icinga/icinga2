@@ -33,6 +33,7 @@ linux-build:
           - registry.suse.com/suse/sle15:15.6
           - registry.suse.com/suse/sle15:15.7
           - registry.suse.com/bci/bci-base:16.0
+          - registry.suse.com/bci/bci-base:16.1
         OS_ARCH: x86_64
         DOCKER_PLATFORM: linux/amd64
 
