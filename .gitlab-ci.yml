@@ -19,6 +19,7 @@ linux-build:
           - ubuntu:22.04
           - ubuntu:24.04
           - ubuntu:26.04
+          - ubuntu:26.10
         OS_ARCH: amd64
         DOCKER_PLATFORM: linux/amd64
       - IMAGE_NAME:
