@@ -563,8 +563,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 	}
 
 	/* constructor */
-	m_Header << "public:" << std::endl
-			<< "\t" << "ObjectImpl<" << klass.Name << ">();" << std::endl;
+	m_Header << "public:" << std::endl << "\tObjectImpl();" << std::endl;
 
 	m_Impl << "ObjectImpl<" << klass.Name << ">::ObjectImpl()" << std::endl
 		<< "{" << std::endl;
@@ -577,8 +576,7 @@ void ClassCompiler::HandleClass(const Klass& klass, const ClassDebugInfo&)
 	m_Impl << "}" << std::endl << std::endl;
 
 	/* destructor */
-	m_Header << "public:" << std::endl
-			<< "\t" << "~ObjectImpl<" << klass.Name << ">() override;" << std::endl;
+	m_Header << "public:" << std::endl << "\t~ObjectImpl() override;" << std::endl;
 
 	m_Impl << "ObjectImpl<" << klass.Name << ">::~ObjectImpl()" << std::endl
 		<< "{ }" << std::endl << std::endl;
