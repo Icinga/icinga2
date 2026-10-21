@@ -96,6 +96,7 @@ EOF
         # the installed binary find its libraries at runtime (checked by "icinga2 daemon -C" below).
         icinga_boost="$(rpm -E '%{_libdir}')/icinga-boost"
         CMAKE_OPTS+=(-DBoost_ROOT="${icinga_boost}/cmake" -DCMAKE_INSTALL_RPATH="$icinga_boost")
+        CMAKE_OPTS+=(-DCMAKE_CXX_COMPILER=g++-14 -DCMAKE_C_COMPILER=gcc-14)
         ;;
       *)
         zypper in -y --allow-downgrade gcc-c++ \
