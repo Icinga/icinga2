@@ -12,6 +12,7 @@
 #include "base/utility.hpp"
 #include "base/debug.hpp"
 #include "base/json.hpp"
+#include <algorithm>
 
 using namespace icinga;
 
@@ -83,7 +84,7 @@ void Host::Stop(bool runtimeRemoved)
 	// TODO: unregister slave services/notifications?
 }
 
-std::vector<Service::Ptr> Host::GetServices() const
+std::vector<Service::Ptr> Host::GetServices(bool sorted) const
 {
 	std::unique_lock<std::mutex> lock(m_ServicesMutex);
 
@@ -91,6 +92,12 @@ std::vector<Service::Ptr> Host::GetServices() const
 	services.reserve(m_Services.size());
 	for (auto& kv : m_Services) {
 		services.push_back(kv.second);
+	}
+
+	if (sorted) {
+		std::sort(services.begin(), services.end(), [](const Service::Ptr& a, const Service::Ptr& b) {
+			return a->GetShortName() < b->GetShortName();
+		});
 	}
 
 	return services;

@@ -43,7 +43,7 @@ DependencyGroup::Ptr DependencyGroup::Register(const DependencyGroup::Ptr& depen
  * @return - Returns the dependency objects of the child Checkable that were member of the provided dependency group
  *           and a boolean indicating whether the dependency group has been erased from the global registry.
  */
-std::pair<std::set<Dependency::Ptr>, bool> DependencyGroup::Unregister(const DependencyGroup::Ptr& dependencyGroup, const Checkable::Ptr& child)
+std::pair<std::unordered_set<Dependency::Ptr>, bool> DependencyGroup::Unregister(const DependencyGroup::Ptr& dependencyGroup, const Checkable::Ptr& child)
 {
 	std::lock_guard lock(m_RegistryMutex);
 	if (auto it(m_Registry.find(dependencyGroup)); it != m_Registry.end()) {
@@ -74,7 +74,7 @@ size_t DependencyGroup::GetRegistrySize()
 	return m_Registry.size();
 }
 
-DependencyGroup::DependencyGroup(String name, const std::set<Dependency::Ptr>& dependencies)
+DependencyGroup::DependencyGroup(String name, const std::unordered_set<Dependency::Ptr>& dependencies)
 	: m_RedundancyGroupName(std::move(name))
 {
 	for (const auto& dependency : dependencies) {
@@ -137,7 +137,7 @@ std::vector<Dependency::Ptr> DependencyGroup::GetDependenciesForChild(const Chec
  *
  * @param parents The set to load the parent Checkables into.
  */
-void DependencyGroup::LoadParents(std::set<Checkable::Ptr>& parents) const
+void DependencyGroup::LoadParents(std::unordered_set<Checkable::Ptr>& parents) const
 {
 	for (auto& [compositeKey, children] : m_Members) {
 		parents.insert(std::get<0>(compositeKey));

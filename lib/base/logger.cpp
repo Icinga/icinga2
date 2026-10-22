@@ -32,7 +32,7 @@ template Log& Log::operator<<(const char*&);
 
 REGISTER_TYPE(Logger);
 
-std::set<Logger::Ptr> Logger::m_Loggers;
+std::unordered_set<Logger::Ptr> Logger::m_Loggers;
 std::mutex Logger::m_Mutex;
 bool Logger::m_ConsoleLogEnabled = true;
 std::atomic<bool> Logger::m_EarlyLoggingEnabled (true);
@@ -76,7 +76,7 @@ void Logger::Stop(bool runtimeRemoved)
 	ObjectImpl<Logger>::Stop(runtimeRemoved);
 }
 
-std::set<Logger::Ptr> Logger::GetLoggers()
+std::unordered_set<Logger::Ptr> Logger::GetLoggers()
 {
 	std::unique_lock<std::mutex> lock(m_Mutex);
 	return m_Loggers;

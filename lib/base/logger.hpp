@@ -8,7 +8,7 @@
 #include "base/i2-base.hpp"
 #include "base/logger-ti.hpp"
 #include <optional>
-#include <set>
+#include <unordered_set>
 #include <sstream>
 
 namespace icinga
@@ -68,7 +68,7 @@ public:
 
 	virtual void Flush() = 0;
 
-	static std::set<Logger::Ptr> GetLoggers();
+	static std::unordered_set<Logger::Ptr> GetLoggers();
 
 	static void DisableConsoleLog();
 	static void EnableConsoleLog();
@@ -99,7 +99,7 @@ private:
 	static void UpdateMinLogSeverity();
 
 	static std::mutex m_Mutex;
-	static std::set<Logger::Ptr> m_Loggers;
+	static std::unordered_set<Logger::Ptr> m_Loggers;
 	static bool m_ConsoleLogEnabled;
 	static std::atomic<bool> m_EarlyLoggingEnabled;
 	static bool m_TimestampEnabled;

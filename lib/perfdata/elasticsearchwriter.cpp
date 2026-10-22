@@ -114,7 +114,7 @@ void ElasticsearchWriter::Resume()
 		StateChangeHandler(checkable, cr);
 	});
 	m_HandleNotifications = Checkable::OnNotificationSentToAllUsers.connect([this](const Notification::Ptr&,
-		const Checkable::Ptr& checkable, const std::set<User::Ptr>& users, const NotificationType& type,
+		const Checkable::Ptr& checkable, const std::unordered_set<User::Ptr>& users, const NotificationType& type,
 		const CheckResult::Ptr& cr, const String& author, const String& text, const MessageOrigin::Ptr&) {
 		NotificationSentToAllUsersHandler(checkable, users, type, cr, author, text);
 	});
@@ -336,7 +336,7 @@ void ElasticsearchWriter::StateChangeHandler(const Checkable::Ptr& checkable, co
 	});
 }
 
-void ElasticsearchWriter::NotificationSentToAllUsersHandler(const Checkable::Ptr& checkable, const std::set<User::Ptr>& users,
+void ElasticsearchWriter::NotificationSentToAllUsersHandler(const Checkable::Ptr& checkable, const std::unordered_set<User::Ptr>& users,
 	NotificationType type, const CheckResult::Ptr& cr, const String& author, const String& text)
 {
 	if (IsPaused())
