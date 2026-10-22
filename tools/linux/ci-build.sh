@@ -46,10 +46,11 @@ case "$DISTRO" in
       {libedit,mariadb,ncurses,openssl,postgresql,systemd}-devel
 
     yum install -y bzip2 tar wget
-    wget https://archives.boost.io/release/1.69.0/source/boost_1_69_0.tar.bz2
-    tar -xjf boost_1_69_0.tar.bz2
 
     (
+      cd /
+      wget https://archives.boost.io/release/1.69.0/source/boost_1_69_0.tar.bz2
+      tar -xjf boost_1_69_0.tar.bz2
       cd boost_1_69_0
       ./bootstrap.sh --with-libraries=context,coroutine,date_time,filesystem,iostreams,program_options,regex,system,test,thread
       ./b2 define=BOOST_COROUTINES_NO_DEPRECATION_WARNING
