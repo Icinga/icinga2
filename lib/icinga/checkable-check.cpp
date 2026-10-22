@@ -237,7 +237,7 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 		}
 
 		/* SOFT state change, increase attempt counter. */
-		if (old_stateType == StateTypeSoft && !IsStateOK(old_state)) {
+		if (old_stateType == StateTypeSoft && old_cr && !IsStateOK(old_state)) {
 			SetStateType(StateTypeSoft);
 			attempt = old_attempt + 1;
 		}
@@ -263,11 +263,15 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 
 	bool stateChange;
 
-	/* Exception on state change calculation for hosts. */
-	if (checkableType == CheckableService)
-		stateChange = (old_state != new_state);
-	else
-		stateChange = (Host::CalculateState(old_state) != Host::CalculateState(new_state));
+	if (old_cr) {
+		/* Exception on state change calculation for hosts. */
+		if (checkableType == CheckableService)
+			stateChange = (old_state != new_state);
+		else
+			stateChange = (Host::CalculateState(old_state) != Host::CalculateState(new_state));
+	} else {
+		stateChange = true;
+	}
 
 	/* Store the current last state change for the next iteration. */
 	SetPreviousStateChange(GetLastStateChange());
@@ -287,9 +291,9 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 	if (GetAcknowledgement() == AcknowledgementNone)
 		remove_acknowledgement_comments = true;
 
-	bool hardChange = (GetStateType() == StateTypeHard && old_stateType == StateTypeSoft);
+	bool hardChange = (GetStateType() == StateTypeHard && old_stateType == StateTypeSoft && old_cr);
 
-	if (stateChange && old_stateType == StateTypeHard && GetStateType() == StateTypeHard)
+	if (stateChange && (old_stateType == StateTypeHard || !old_cr) && GetStateType() == StateTypeHard)
 		hardChange = true;
 
 	bool is_volatile = GetVolatile();
@@ -412,13 +416,13 @@ Checkable::ProcessingResult Checkable::ProcessCheckResult(const CheckResult::Ptr
 	if (hardChange || (is_volatile && !(IsStateOK(old_state) && IsStateOK(new_state)))) {
 		OnStateChange(this, cr, StateTypeHard, origin);
 		Log(LogNotice, "Checkable")
-			<< "State Change: Checkable '" << GetName() << "' hard state change from " << old_state_str << " to " << new_state_str << " detected." << (is_volatile ? " Checkable is volatile." : "");
+			<< "State Change: Checkable '" << GetName() << "' hard state change from " << old_state_str << (old_cr ? "" : " (pending)") << " to " << new_state_str << " detected." << (is_volatile ? " Checkable is volatile." : "");
 	}
 	/* Whether a state change happened or the state type is SOFT (must be logged too). */
 	else if (stateChange || GetStateType() == StateTypeSoft) {
 		OnStateChange(this, cr, StateTypeSoft, origin);
 		Log(LogNotice, "Checkable")
-			<< "State Change: Checkable '" << GetName() << "' soft state change from " << old_state_str << " to " << new_state_str << " detected.";
+			<< "State Change: Checkable '" << GetName() << "' soft state change from " << old_state_str << (old_cr ? "" : " (pending)") << " to " << new_state_str << " detected.";
 	}
 
 	if (GetStateType() == StateTypeSoft || hardChange || recovery ||
