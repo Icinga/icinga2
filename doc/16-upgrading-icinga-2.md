@@ -8,6 +8,30 @@ Specific version upgrades are described below. Please note that version
 updates are incremental. An upgrade from v2.6 to v2.8 requires to
 follow the instructions for v2.7 too.
 
+## Upgrading to v2.16.6 or v2.15.7 <a id="upgrading-to-2-16-6"></a>
+
+### Security fixes in the default email notification scripts
+
+One security issue affects the `mail-host-notification.sh` and `mail-service-notification.sh` scripts shipped with
+Icinga 2 in `/etc/icinga2/scripts`. If any of these was modified locally, the fix might not be applied automatically.
+After upgrading, make sure to check if there are any files with an extension like `.dpkg-dist` or `.rpmnew` next to it.
+If so, you need to incorporate the changes from these files into your configuration manually.
+
+### New `diagnostic-information` permission
+
+A new permission called `diagnostic-information` was added which is now required in order to receive the
+`diagnostic_information` field in API responses when setting the `verbose` parameter. It is recommended to grant this
+permission only to trusted users, keeping it more restricted similar to debug output in other software.
+
+### Versioning of Windows builds
+
+We are extending the version numbers of our Windows build with a build revision, similar to how these already exist for
+all of our Linux packages. Therefore, these and all following builds will be versioned as `2.16.6-1` (or `2.16.6.1` in
+places where `-` is not allowed). The reason for this change is to decouple rebuilds on Windows due to newer dependency
+versions, in particular OpenSSL, from the regular Icinga 2 release cycle, allowing us to release such updates more
+quickly. You might need to slightly adapt custom tooling to this change in case it expects exactly three components in
+a version number.
+
 ## Upgrading to v2.16.2, v2.15.4, or v2.14.9 <a id="upgrading-to-2-16-2"></a>
 
 ### New `filter-expression` permission
