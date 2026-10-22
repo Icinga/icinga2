@@ -26,7 +26,6 @@ linux-build:
           - amazonlinux:2023
           - fedora:43
           - fedora:44
-          - fedora:45
           - rockylinux:8
           - rockylinux:9
           - rockylinux/rockylinux:10
