@@ -23,6 +23,10 @@ linux-build:
         DOCKER_PLATFORM: linux/amd64
       - IMAGE_NAME:
           - alpine:edge
+          # We don't support v2 anymore!
+          # We just use that RHEL 7 clone to test the original.
+          # RHEL 7 still gets some Icinga security updates.
+          - amazonlinux:2
           - amazonlinux:2023
           - fedora:43
           - fedora:44
