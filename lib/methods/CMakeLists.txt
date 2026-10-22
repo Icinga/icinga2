@@ -29,6 +29,10 @@ add_library(methods OBJECT ${methods_SOURCES})
 
 add_dependencies(methods base_generated icinga_generated)
 
+target_link_libraries(methods PUBLIC
+  nlohmann_json
+)
+
 set_target_properties (
   methods PROPERTIES
   FOLDER Lib
