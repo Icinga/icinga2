@@ -54,7 +54,9 @@ set(ICINGA2_GROUP "icinga" CACHE STRING "Icinga 2 group")
 set(ICINGA2_COMMAND_GROUP "icingacmd" CACHE STRING "Icinga 2 command group")
 set(ICINGA2_PLUGINDIR "/usr/lib/nagios/plugins" CACHE STRING "Path for the check plugins")
 set(ICINGA2_GIT_VERSION_INFO ON CACHE BOOL "Whether to use git describe")
-set(ICINGA2_UNITY_BUILD ON CACHE BOOL "Whether to perform a unity build")
+# Icinga unity builds currently cause problems in GitLab CI and will be replaced with
+# CMake's own unity builds in the near future.
+set(ICINGA2_UNITY_BUILD OFF)
 set(ICINGA2_LTO_BUILD OFF CACHE BOOL "Whether to use LTO")
 
 set(ICINGA2_CONFIGDIR "${CMAKE_INSTALL_SYSCONFDIR}/icinga2" CACHE FILEPATH "Main config directory, e.g. /etc/icinga2")
