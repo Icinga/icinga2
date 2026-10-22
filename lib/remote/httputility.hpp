@@ -25,7 +25,7 @@ public:
 
 	static void SendJsonBody(boost::beast::http::response<boost::beast::http::string_body>& response, const Dictionary::Ptr& params, const Value& val);
 	static void SendJsonError(boost::beast::http::response<boost::beast::http::string_body>& response, const Dictionary::Ptr& params, const int code,
-		const String& verbose = String(), const String& diagnosticInformation = String());
+		const String& info = String(), const std::exception_ptr& ex = nullptr);
 };
 
 }

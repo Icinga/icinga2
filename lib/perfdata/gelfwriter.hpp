@@ -56,7 +56,7 @@ private:
 
 	void AssertOnWorkQueue();
 
-	void ExceptionHandler(boost::exception_ptr exp);
+	void ExceptionHandler(std::exception_ptr exp);
 };
 
 }

@@ -87,8 +87,7 @@ bool ConfigFilesHandler::HandleRequest(
 		response.body() = content;
 		response.content_length(response.body().size());
 	} catch (const std::exception& ex) {
-		HttpUtility::SendJsonError(response, params, 500, "Could not read file.",
-			DiagnosticInformation(ex));
+		HttpUtility::SendJsonError(response, params, 500, "Could not read file.", std::current_exception());
 	}
 
 	return true;

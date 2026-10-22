@@ -446,7 +446,7 @@ bool ProcessRequest(
 
 		http::response<http::string_body> response;
 
-		HttpUtility::SendJsonError(response, nullptr, 500, "Unhandled exception" , DiagnosticInformation(ex));
+		HttpUtility::SendJsonError(response, nullptr, 500, "Unhandled exception", std::current_exception());
 
 		http::async_write(stream, response, yc);
 		stream.async_flush(yc);
