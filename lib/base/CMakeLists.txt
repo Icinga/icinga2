@@ -3,6 +3,7 @@
 
 set(base_SOURCES
   i2-base.hpp
+  accesslogger.cpp accesslogger.hpp accesslogger.ti
   application.cpp application.hpp application.ti
   application-version.cpp application-environment.cpp
   array.cpp array.hpp array-script.cpp
