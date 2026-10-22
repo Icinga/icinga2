@@ -472,7 +472,8 @@ void Notification::BeginExecuteNotification(NotificationType type, const CheckRe
 			}
 		}
 
-		if (type == NotificationProblem && !reminder && !checkable->GetVolatile()) {
+		if (type == NotificationProblem && !reminder && !checkable->GetVolatile() &&
+			GetSuppressDuplicateProblemNotifications()) {
 			auto [host, service] = GetHostService(checkable);
 			uint_fast8_t state = service ? static_cast<uint_fast8_t>(service->GetState())
 				: static_cast<uint_fast8_t>(host->GetState());
