@@ -7,6 +7,51 @@ documentation before upgrading to a new release.
 
 Released closed milestones can be found on [GitHub](https://github.com/Icinga/icinga2/milestones?state=closed).
 
+## 2.16.6 (2026-10-27)
+
+This release contains a number of different security fixes, alongside small features and bug fixes.
+
+If the default email notification scripts are used, an attacker that is able to set the email address of the recipient
+could use this to inject arbitrary command line flags to the `mail` binary. The impact depends on what flags are
+provided by the underlying implementation. In case of GNU mailutils, it was demonstrated that this can be used to
+execute arbitrary commands.
+
+Multiple issues have been fixed that can allow an attacker with valid API credentials to crash the Icinga 2 process,
+learn information about config objects they aren't supposed to access (if they have access to related objects), or
+retrieve sensitive information from the `diagnostic_information` response value. In order to address the latter issue,
+that information is now only provided to users with the newly added `diagnostic-information` permission. In some places
+where this previously was the only source of reliable error reporting for API actions, the regular error reporting has
+been improved.
+
+Lastly, various instances of unsanitized logging were fixed, that previously allowed unauthenticated attackers to
+falsify information contained in Icinga 2 log files.
+
+### Security
+
+* Prevent a command line argument injection in the default `mail-host-notification.sh` and
+  `mail-service-notification.sh` notification scripts, that could cause commands passed in the recipient email address
+  to be executed ([GHSA-chm5-8fg3-g6fw](https://github.com/Icinga/icinga2/security/advisories/GHSA-chm5-8fg3-g6fw))
+* Prevent a crash of the Icinga 2 daemon caused by bad comparators being passed to `Array#sort()`
+  ([GHSA-33vf-h78f-99p3](https://github.com/Icinga/icinga2/security/advisories/GHSA-33vf-h78f-99p3))
+* Prevent log injection in various instances
+  ([GHSA-hhxh-8qx6-pxc3](https://github.com/Icinga/icinga2/security/advisories/GHSA-hhxh-8qx6-pxc3))
+* API: Require an explicit permission to receive `diagnostic_information` as it can reveal sensitive information
+  ([GHSA-vwj4-g6h6-65gj](https://github.com/Icinga/icinga2/security/advisories/GHSA-vwj4-g6h6-65gj))
+* API: Prevent unauthorized reads of joined objects via filter expressions
+  ([GHSA-2hhr-ccxm-x85p](https://github.com/Icinga/icinga2/security/advisories/GHSA-2hhr-ccxm-x85p))
+* Bump OpenSSL shipped for Windows to v3.5.9 (#11063)
+
+### Features
+
+* Icinga DB: Add more information to runtime update streams needed for upcoming version of Icinga Notifications (#11121)
+* API: Allow setting the exact acknowledge time in the acknowledge-problem action (#11121)
+* Allow building with `-DCMAKE_CXX_STANDARD=20` (#11096)
+
+### Bug fixes
+
+* Icinga DB: Don't report volatile checks as being in a soft state (#11100)
+* Tests: Relax tolerances in timer tests, making them more reliable (#11046)
+
 ## 2.16.5 (2026-08-18)
 
 This release contains a bugfix for a regression in the `IcingaDB` feature that was introduced in v2.16.0 and some
