@@ -2,10 +2,12 @@
 
 #include "base/array.hpp"
 #include "base/function.hpp"
-#include "base/functionwrapper.hpp"
 #include "base/scriptframe.hpp"
 #include "base/objectlock.hpp"
 #include "base/exception.hpp"
+#include <boost/config.hpp>
+#include <limits>
+#include <type_traits>
 
 using namespace icinga;
 
@@ -65,17 +67,119 @@ static void ArrayClear()
 	self->Clear();
 }
 
+/**
+ * Sorts input using heapsort, safe against a misbehaving comparator.
+ *
+ * A script-provided comparator is arbitrary script code and isn't guaranteed to implement
+ * a strict weak ordering (e.g. a comparator that always returns true, or one that's
+ * non-deterministic like `random() % 2`). Every std::-family algorithm (sort,
+ * stable_sort, partial_sort, nth_element) relies on that guarantee for memory safety and
+ * reads/writes out of bounds if it's violated.
+ *
+ * This is the textbook heapsort from https://en.wikipedia.org/w/index.php?title=Heapsort&oldid=1367370775
+ * (functions and variables named to match that article's heapify/siftDown/heapSort pseudocode exactly),
+ * which never makes that assumption to avoid out-of-bounds access.
+ *
+ * @param input The array to sort.
+ * @param less Comparator, returns true if a < b.
+ * @returns The sorted array.
+ */
+template<class Compare>
+static Array::Ptr SafeSort(const Array::Ptr& input, Compare less)
+{
+	using Index = decltype(input->End() - input->Begin());
+	static_assert(std::is_signed_v<Index>);
+
+	constexpr Array::SizeType max = std::numeric_limits<Index>::max();
+
+	// Dividing by 4, so that the sort algorithm may still multiply every index with 2
+	constexpr auto limit = max / 4;
+
+	// Keep sorting duration below 1 second
+	constexpr decltype(limit) sandboxLimit = 1L << 17;
+	static_assert(sandboxLimit <= limit);
+
+	if (input->GetLength() > (ScriptFrame::GetCurrentFrame()->Sandboxed ? sandboxLimit : limit)) {
+		BOOST_THROW_EXCEPTION(ScriptError("Array is too large."));
+	}
+
+	auto output = input->ShallowClone();
+	ObjectLock aLock (output);
+	auto begin = output->Begin();
+	auto end = output->End();
+
+	auto iParent = [](Index i) -> Index {
+		if (BOOST_UNLIKELY(i <= 0)) {
+			return -1; // no parent
+		}
+
+		return (i - 1) / 2;
+	};
+
+	auto iLeftChild = [](Index i) -> Index {
+		return 2 * i + 1;
+	};
+
+	auto iRightChild = [](Index i) -> Index {
+		return 2 * i + 2;
+	};
+
+	auto siftDown = [&](Index start, Index last) {
+		Index root = start;
+
+		// While the root has at least one child
+		while (iLeftChild(root) <= last) {
+			Index child = iLeftChild(root);
+			Index swap = root; // Child to swap with
+
+			if (less(begin[swap], begin[child])) {
+				swap = child;
+			}
+
+			child = iRightChild(root);
+
+			// If there is a right child and that child is greater
+			if (child <= last && less(begin[swap], begin[child])) {
+				swap = child;
+			}
+
+			if (swap == root) {
+				// The root holds the largest element, children are already valid
+				return;
+			}
+
+			std::iter_swap(begin + root, begin + swap);
+
+			// Repeat to continue sifting down the child now
+			root = swap;
+		}
+	};
+
+	Index count = end - begin;
+
+	// heapify(a, count): build the max-heap, from the last parent up to the root
+	for (Index start = iParent(count - 1); start >= 0; --start) {
+		siftDown(start, count - 1);
+	}
+
+	// heapSort(a, count): repeatedly move the root (the max) to the end of the
+	// shrinking unsorted prefix a[0:last], then restore the heap property there
+	for (Index last = count - 1; last > 0; --last) {
+		std::iter_swap(begin, begin + last);
+		siftDown(0, last - 1);
+	}
+
+	return output;
+}
+
 static Array::Ptr ArraySort(const std::vector<Value>& args)
 {
 	ScriptFrame *vframe = ScriptFrame::GetCurrentFrame();
 	Array::Ptr self = static_cast<Array::Ptr>(vframe->Self);
 	REQUIRE_NOT_NULL(self);
 
-	Array::Ptr arr = self->ShallowClone();
-
 	if (args.empty()) {
-		ObjectLock olock(arr);
-		std::sort(arr->Begin(), arr->End());
+		return SafeSort(self, std::less<Value>{});
 	} else {
 		Function::Ptr function = args[0];
 		REQUIRE_NOT_NULL(function);
@@ -83,14 +187,10 @@ static Array::Ptr ArraySort(const std::vector<Value>& args)
 		if (vframe->Sandboxed && !function->IsSideEffectFree())
 			BOOST_THROW_EXCEPTION(ScriptError("Sort function must be side-effect free."));
 
-		ObjectLock olock(arr);
-		std::sort(arr->Begin(), arr->End(), [&args](const Value& a, const Value& b) -> bool {
-			Function::Ptr cmp = args[0];
-			return cmp->Invoke({ a, b });
+		return SafeSort(self, [function](const Value& a, const Value& b) -> bool {
+			return function->Invoke({ a, b });
 		});
 	}
-
-	return arr;
 }
 
 static Array::Ptr ArrayShallowClone()
