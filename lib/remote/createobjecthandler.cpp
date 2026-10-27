@@ -78,7 +78,7 @@ bool CreateObjectHandler::HandleRequest(
 	Dictionary::Ptr result1 = new Dictionary();
 	String status;
 	Array::Ptr errors = new Array();
-	Array::Ptr diagnosticInformation = new Array();
+	Array::Ptr diagnosticInformation;
 
 	bool ignoreOnError = false;
 
@@ -95,6 +95,12 @@ bool CreateObjectHandler::HandleRequest(
 
 	if (params)
 		verbose = HttpUtility::GetLastParameter(params, "verbose");
+
+	// Generating diagnostic information (including a stack trace) is expensive,
+	// so only do it for users allowed to see it.
+	if (verbose && FilterUtility::HasPermission(user, ApiUser::DiagnosticInformationPerm)) {
+		diagnosticInformation = new Array();
+	}
 
 	ConfigObjectsSharedLock lock (std::try_to_lock);
 
@@ -115,11 +121,12 @@ bool CreateObjectHandler::HandleRequest(
 	try {
 		config = ConfigObjectUtility::CreateObjectConfig(type, name, ignoreOnError, templates, attrs);
 	} catch (const std::exception& ex) {
-		errors->Add(DiagnosticInformation(ex, false));
-		diagnosticInformation->Add(DiagnosticInformation(ex));
+		errors->Add(ex.what());
 
-		if (verbose)
+		if (diagnosticInformation) {
+			diagnosticInformation->Add(DiagnosticInformation(ex));
 			result1->Set("diagnostic_information", diagnosticInformation);
+		}
 
 		result1->Set("errors", errors);
 		result1->Set("code", 500);
@@ -139,7 +146,7 @@ bool CreateObjectHandler::HandleRequest(
 		result1->Set("code", 500);
 		result1->Set("status", "Object could not be created.");
 
-		if (verbose)
+		if (diagnosticInformation)
 			result1->Set("diagnostic_information", diagnosticInformation);
 
 		response.result(http::status::internal_server_error);

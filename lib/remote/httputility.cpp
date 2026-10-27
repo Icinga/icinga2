@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "remote/httputility.hpp"
+#include "remote/filterutility.hpp"
 #include "remote/url.hpp"
 #include "base/json.hpp"
 #include "base/logger.hpp"
@@ -89,14 +90,21 @@ void HttpUtility::SendJsonBody(HttpApiResponse& response, const Dictionary::Ptr&
  * Note that this fully resets the response object so any additional headers will need to be set
  * after initializing the response with this function.
  *
+ * Attaching the `diagnostic_information` attribute is gated behind a `diagnostic-information`
+ * permission the requesting `ApiUser` needs to have. This is in order to protect against the
+ * leakage of address which can be used to bypass ASLR, or allow a compromised user to generate
+ * load by generating lots of stacktraces on purpose.
+ *
  * @param response A reference to the HTTP response to initialize
  * @param params The parameters sent with the request
  * @param code The error code to initialize the response with
  * @param info The error message to include in the JSON body
- * @param diagnosticInformation Additional debug information included when `verbose` is in params
+ * @param ex The exception to derive additional debug information from when `verbose` is in params
+ * @param user The requesting user; must hold the `diagnostic-information` permission for `verbose`
+ *        diagnostic information to be included.
  */
-void HttpUtility::SendJsonError(HttpApiResponse& response,
-	const Dictionary::Ptr& params, int code, const String& info, const std::exception_ptr& ex)
+void HttpUtility::SendJsonError(HttpApiResponse& response, const Dictionary::Ptr& params,
+	int code, const String& info, const std::exception_ptr& ex, const ApiUser::Ptr& user)
 {
 	if (response.HasSerializationStarted()) {
 		std::ostringstream err;
@@ -114,7 +122,8 @@ void HttpUtility::SendJsonError(HttpApiResponse& response,
 		result->Set("status", info);
 	}
 
-	if (params && HttpUtility::GetLastParameter(params, "verbose") && ex) {
+	if (params && GetLastParameter(params, "verbose") && ex
+		&& user && FilterUtility::HasPermission(user, ApiUser::DiagnosticInformationPerm)) {
 		result->Set("diagnostic_information", DiagnosticInformation(ex));
 	}
 
