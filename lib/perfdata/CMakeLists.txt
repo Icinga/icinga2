@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-set(perfdata_SOURCES
+add_library(perfdata OBJECT
   elasticsearchwriter.cpp elasticsearchwriter.hpp elasticsearchwriter.ti
   gelfwriter.cpp gelfwriter.hpp gelfwriter.ti
   graphitewriter.cpp graphitewriter.hpp graphitewriter.ti
@@ -13,35 +13,26 @@ set(perfdata_SOURCES
   perfdatawriterconnection.cpp perfdatawriterconnection.hpp
 )
 
+add_library(perfdata_interface INTERFACE)
+
 if(ICINGA2_WITH_OPENTELEMETRY)
-  list(APPEND perfdata_SOURCES
+  target_sources(perfdata PRIVATE
     otlpmetricswriter.cpp otlpmetricswriter.hpp otlpmetricswriter.ti
   )
+  target_link_libraries(perfdata_interface INTERFACE otel_interface)
 endif()
 
-if(ICINGA2_UNITY_BUILD)
-  mkunity_target(perfdata perfdata perfdata_SOURCES)
-endif()
+target_mkclass(perfdata
+  INTERFACE_TARGET perfdata_interface
+)
 
-add_library(perfdata OBJECT ${perfdata_SOURCES})
+target_link_libraries(perfdata_interface INTERFACE
+  base_interface
+  icinga_interface
+  remote_interface
+)
 
-target_mkclass(perfdata perfdata_generated)
-add_dependencies(perfdata base_generated icinga_generated remote_generated)
-
-if(ICINGA2_WITH_OPENTELEMETRY)
-  add_dependencies(perfdata otel)
-  # All the Protobuf generated files within the otel target use relative include paths that won't be
-  # resolved unless we also add the include directories of the otel target. Meaning, we include some
-  # of the header files (not the generated ones) from otel within the otlpwriter and these headers
-  # again include the generated headers and the generated headers in return include other generated
-  # headers using relative paths like this:
-  #   #include "opentelemetry/proto/metrics/v1/metrics.pb.h"
-  #
-  # This path can only be resolved if the parent directory of "opentelemetry" is added to the compiler's
-  # include search paths, which is done by the CMakefile of the otel target and we only need to propagate
-  # its include directories to the perfdata target.
-  target_include_directories(perfdata PUBLIC $<TARGET_PROPERTY:otel,INCLUDE_DIRECTORIES>)
-endif()
+target_link_libraries(perfdata PUBLIC perfdata_interface)
 
 set_target_properties (
   perfdata PROPERTIES
