@@ -237,6 +237,7 @@ include_directories(
 if(USE_SYSTEMD)
   find_package(Systemd REQUIRED)
   list(APPEND base_DEPS Systemd::Systemd)
+  add_compile_definitions(HAVE_SYSTEMD)
 endif()
 
 if(TERMCAP_FOUND)
