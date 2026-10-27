@@ -25,6 +25,7 @@ export CCACHE_MAXSIZE=400M
 export CTEST_OUTPUT_ON_FAILURE=1
 export CCACHE_DIR
 
+CMAKE_PRESET=debug-gcc-ninja-unity
 CMAKE_OPTS=()
 SCL_ENABLE_GCC=()
 # -Wstringop-overflow is notorious for false positives and has been a problem for years.
@@ -82,7 +83,7 @@ case "$DISTRO" in
 
     zypper in -y --allow-downgrade bison ccache cmake flex gcc-c++ ninja rpm-config-SUSE \
       {lib{edit,mariadb,openssl},ncurses,postgresql,systemd,protobuf}-devel \
-      libboost_{context,coroutine,filesystem,iostreams,program_options,regex,system,test,thread}-devel
+      libboost_{atomic,context,coroutine,filesystem,iostreams,program_options,regex,system,test,thread}-devel
     ;;
 
   *rockylinux:*)
@@ -129,20 +130,20 @@ esac
 
 case "$DISTRO" in
   alpine:*)
+    CMAKE_PRESET=release-gcc-ninja
     CMAKE_OPTS+=(
       -DUSE_SYSTEMD=OFF
       -DICINGA2_WITH_MYSQL=OFF
       -DICINGA2_WITH_PGSQL=OFF
       -DCMAKE_{C,CXX}_FLAGS="${WARN_FLAGS}"
-      -DICINGA2_UNITY_BUILD=OFF
       -DCMAKE_CXX_STANDARD=20
     )
     ;;
   debian:*|ubuntu:*)
-    CMAKE_OPTS+=(-DICINGA2_LTO_BUILD=ON)
+    export DEB_CFLAGS_MAINT_APPEND="${WARN_FLAGS} -flto=auto"
+    export DEB_CXXFLAGS_MAINT_APPEND="${WARN_FLAGS} -flto=auto"
+    export DEB_LDFLAGS_MAINT_APPEND="-flto=auto"
     source <(dpkg-buildflags --export=sh)
-    export CFLAGS="${CFLAGS} ${WARN_FLAGS}"
-    export CXXFLAGS="${CXXFLAGS} ${WARN_FLAGS}"
 
     # The default Protobuf compiler is too old for OTel, so we need to turn it off on Debian 11 and Ubuntu 22.04.
     case "$DISTRO" in
@@ -182,8 +183,7 @@ CMAKE_OPTS+=(
 )
 
 "${SCL_ENABLE_GCC[@]}" cmake \
-  -GNinja \
-  -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+  --preset ${CMAKE_PRESET} \
   -DUSE_SYSTEMD=ON \
   -DICINGA2_USER=$(id -un) \
   -DICINGA2_GROUP=$(id -gn) \

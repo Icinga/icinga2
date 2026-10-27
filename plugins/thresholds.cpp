@@ -51,9 +51,9 @@ threshold::threshold(const std::wstring& stri)
 
 		try {
 			boost::algorithm::trim(str1);
-			lower = boost::lexical_cast<DOUBLE>(str1);
+			lower = boost::lexical_cast<double>(str1);
 			boost::algorithm::trim(str2);
-			upper = boost::lexical_cast<DOUBLE>(str2);
+			upper = boost::lexical_cast<double>(str2);
 			legal = !low; perc = pc; set = true;
 		} catch (const boost::bad_lexical_cast&) {
 			throw std::invalid_argument("Unknown Threshold type");
@@ -65,7 +65,7 @@ threshold::threshold(const std::wstring& stri)
 		}
 		try {
 			boost::algorithm::trim(str);
-			lower = upper = boost::lexical_cast<DOUBLE>(str);
+			lower = upper = boost::lexical_cast<double>(str);
 			legal = !low; perc = pc; set = true;
 		} catch (const boost::bad_lexical_cast&) {
 			throw std::invalid_argument("Unknown Threshold type");
