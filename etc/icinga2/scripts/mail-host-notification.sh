@@ -103,6 +103,10 @@ for P in LONGDATETIME HOSTNAME HOSTDISPLAYNAME HOSTOUTPUT HOSTSTATE USEREMAIL NO
 	fi
 done
 
+case "$USEREMAIL" in
+	-*) Error "Invalid parameter 'USEREMAIL': must not start with '-'." ;;
+esac
+
 ## Build the message's subject
 SUBJECT="[$NOTIFICATIONTYPE] Host $HOSTDISPLAYNAME is $HOSTSTATE!"
 
@@ -166,14 +170,14 @@ if [ -n "$MAILFROM" ] ; then
   ## Debian/Ubuntu use mailutils which requires `-a` to append the header
   if [ -f /etc/debian_version ]; then
     /usr/bin/printf "%b" "$NOTIFICATION_MESSAGE" | tr -d '\015' \
-    | $MAILBIN -a "From: $MAILFROM" -s "$SUBJECT" $USEREMAIL
+    | $MAILBIN -a "From: $MAILFROM" -s "$SUBJECT" "$USEREMAIL"
   ## Other distributions (RHEL/SUSE/etc.) prefer mailx which sets a sender address with `-r`
   else
     /usr/bin/printf "%b" "$NOTIFICATION_MESSAGE" | tr -d '\015' \
-    | $MAILBIN -r "$MAILFROM" -s "$SUBJECT" $USEREMAIL
+    | $MAILBIN -r "$MAILFROM" -s "$SUBJECT" "$USEREMAIL"
   fi
 
 else
   /usr/bin/printf "%b" "$NOTIFICATION_MESSAGE" | tr -d '\015' \
-  | $MAILBIN -s "$SUBJECT" $USEREMAIL
+  | $MAILBIN -s "$SUBJECT" "$USEREMAIL"
 fi
