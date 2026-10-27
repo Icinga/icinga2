@@ -66,10 +66,12 @@ set(base_test_SOURCES
   base-fifo.cpp
   base-io-engine.cpp
   base-json.cpp
+  base-logger.cpp
   base-match.cpp
   base-netstring.cpp
   base-object.cpp
   base-object-packer.cpp
+  base-sanitizer.cpp
   base-serialize.cpp
   base-shellescape.cpp
   base-stacktrace.cpp
@@ -148,6 +150,10 @@ add_boost_test(base
     base_json/decode_depth_limit
     base_json/stack_size_coroutine
     base_json/stack_size_pthread
+    base_logger/log_quote_next
+    base_logger/log_quote_start_end
+    base_logger/log_quote_missing_end
+    base_logger/log_fallback_sanitization
     base_object_packer/pack_null
     base_object_packer/pack_false
     base_object_packer/pack_true
@@ -159,6 +165,10 @@ add_boost_test(base
     base_netstring/netstring
     base_object/construct
     base_object/getself
+    base_sanitizer/sanitizer_stream_without_quotes
+    base_sanitizer/sanitizer_stream_with_quotes
+    base_sanitizer/sanitizer_string_without_quotes
+    base_sanitizer/sanitizer_string_with_quotes
     base_serialize/scalar
     base_serialize/array
     base_serialize/dictionary

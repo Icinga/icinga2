@@ -18,8 +18,7 @@ Dictionary::Ptr HttpUtility::FetchRequestParameters(const Url::Ptr& url, const s
 	Dictionary::Ptr result;
 
 	if (!body.empty()) {
-		Log(LogDebug, "HttpUtility")
-			<< "Request body: '" << body << '\'';
+		Log(LogDebug, "HttpUtility") << "Request body: " << QuoteNext << body;
 
 		result = JsonDecode(body);
 	}

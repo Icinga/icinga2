@@ -132,8 +132,8 @@ void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 			}
 
 			Log msg(total >= ch::seconds(5) ? LogWarning : LogDebug, "JsonRpcConnection");
-			msg << "Processed JSON-RPC '" << rpcMethod << "' message for identity '" << m_Identity
-				<< "' (took total " << toMilliseconds(total) << "ms";
+			msg << "Processed JSON-RPC " << QuoteNext << rpcMethod << " message for identity " << QuoteNext
+				<< m_Identity << " (took total " << toMilliseconds(total) << "ms";
 
 			if (cpuBoundDuration >= ch::seconds(1)) {
 				msg << ", waited " << toMilliseconds(cpuBoundDuration) << "ms on semaphore";
@@ -143,8 +143,8 @@ void JsonRpcConnection::HandleIncomingMessages(boost::asio::yield_context yc)
 			auto total = ch::steady_clock::now() - start;
 
 			Log msg(m_ShuttingDown ? LogDebug : LogWarning, "JsonRpcConnection");
-			msg << "Error while processing JSON-RPC '" << rpcMethod << "' message for identity '"
-				<< m_Identity << "' (took total " << toMilliseconds(total) << "ms";
+			msg << "Error while processing JSON-RPC " << QuoteNext << rpcMethod << " message for identity " << QuoteNext
+				<< m_Identity << " (took total " << toMilliseconds(total) << "ms";
 
 			if (cpuBoundDuration >= ch::seconds(1)) {
 				msg << ", waited " << toMilliseconds(cpuBoundDuration) << "ms on semaphore";
@@ -369,7 +369,7 @@ void JsonRpcConnection::MessageHandler(const Dictionary::Ptr& message)
 	String method = vmethod;
 
 	Log(LogNotice, "JsonRpcConnection")
-		<< "Received '" << method << "' message from identity '" << m_Identity << "'.";
+		<< "Received " << QuoteNext << method << " message from identity " << QuoteNext << m_Identity << ".";
 
 	Dictionary::Ptr resultMessage = new Dictionary();
 
@@ -378,7 +378,8 @@ void JsonRpcConnection::MessageHandler(const Dictionary::Ptr& message)
 
 		if (!afunc) {
 			Log(LogNotice, "JsonRpcConnection")
-				<< "Call to non-existent function '" << method << "' from endpoint '" << m_Identity << "'.";
+				<< "Call to non-existent function " << QuoteNext << method << " from endpoint " << QuoteNext
+				<< m_Identity << ".";
 		} else {
 			if (m_Endpoint) {
 				m_Endpoint->AddMessageReceived(afunc);

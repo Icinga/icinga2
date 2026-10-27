@@ -523,10 +523,11 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 
 			Log logMsg (LogInformation, "HttpServerConnection");
 
-			logMsg << "Request " << request.method_string() << ' ' << request.target()
-				<< " (from " << m_PeerAddress
+			logMsg
+				<< "Request " << request.method_string() << ' ' << request.target() << " (from " << m_PeerAddress
 				<< ", user: " << (authenticatedUser ? authenticatedUser->GetName() : "<unauthenticated>")
-				<< ", agent: " << request[http::field::user_agent]; //operator[] - Returns the value for a field, or "" if it does not exist.
+				<< ", agent: " << QuoteNext << request[http::field::user_agent]; // operator[] - Returns the value for a
+																				 // field, or "" if it does not exist.
 
 			ch::steady_clock::duration cpuBoundWorkTime(0);
 			Defer addRespCode ([&response, start, &logMsg, &cpuBoundWorkTime]() {

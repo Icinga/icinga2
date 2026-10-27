@@ -269,6 +269,11 @@ Log::~Log()
 		return;
 	}
 
+	// Terminate a potentially still open quoted string.
+	if (m_InQuotes) {
+		*this << QuoteEnd;
+	}
+
 	LogEntry entry;
 	entry.Timestamp = Utility::GetTime();
 	entry.Severity = m_Severity;
@@ -276,7 +281,7 @@ Log::~Log()
 
 	{
 		auto msg (m_Buffer->str());
-		msg.erase(msg.find_last_not_of("\n") + 1u);
+		msg.erase(msg.find_last_not_of("\n\t ") + 1u);
 
 		entry.Message = std::move(msg);
 	}
