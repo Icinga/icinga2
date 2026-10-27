@@ -4,9 +4,56 @@
 #include "base/array.hpp"
 #include "base/objectlock.hpp"
 #include "base/json.hpp"
+#include "base/function.hpp"
+#include "base/scriptframe.hpp"
+#include "base/exception.hpp"
+#include "config/configcompiler.hpp"
 #include <BoostTestTargetConfig.h>
 
 using namespace icinga;
+
+static void TestSortUnsafeComparator(size_t elements)
+{
+	ScriptFrame frame (true);
+
+	auto Eval = [&frame](const String& text) {
+		return ConfigCompiler::CompileText("<test>", text)->Evaluate(frame).GetValue();
+	};
+
+	Array::Ptr original = new Array();
+
+	for (size_t i = elements; i > 0;) {
+		original->Add(--i);
+	}
+
+	frame.Locals->Set("original", original);
+
+	/* Always claiming "less" violates irreflexivity and isn't a strict weak ordering at all. */
+	{
+		Array::Ptr arr = Eval("original.sort(function(a, b) { return true })");
+		BOOST_CHECK(arr->GetLength() == elements);
+
+		/* No element was dropped or duplicated, regardless of how badly it's ordered. */
+		arr->Sort();
+
+		for (size_t i = 0; i < elements; ++i) {
+			BOOST_CHECK(arr->Get(i) == double(i));
+		}
+	}
+
+	/* A non-deterministic comparator can return different answers for the same pair on
+	 * different invocations, which is just as unsafe for std::sort as an inconsistent one. */
+	{
+		Array::Ptr arr = Eval("original.sort(function(a, b) { return Math.random() < 0.5 })");
+		BOOST_CHECK(arr->GetLength() == elements);
+
+		arr->Sort();
+
+		for (size_t i = 0; i < elements; ++i) {
+			BOOST_CHECK(arr->Get(i) == double(i));
+		}
+	}
+}
 
 BOOST_AUTO_TEST_SUITE(base_array)
 
@@ -107,6 +154,177 @@ BOOST_AUTO_TEST_CASE(unique)
 	BOOST_CHECK(result->Get(0) == "group1");
 	BOOST_CHECK(result->Get(1) == "group2");
 }
+
+BOOST_AUTO_TEST_CASE(sort_script)
+{
+	ScriptFrame frame (true);
+
+	auto Eval = [&frame](const String& text) {
+		return ConfigCompiler::CompileText("<test>", text)->Evaluate(frame).GetValue();
+	};
+
+	/* The default comparator and an explicit comparator that replicates it must behave
+	 * identically, so run these checks against both instead of duplicating them. */
+	for (const char* fnStr : {"/* default comparator */", "function(a, b) { return a < b }"}) {
+		BOOST_TEST_CONTEXT("With function param: " << fnStr) {
+			/* Empty and single-element arrays. */
+			{
+				Array::Ptr arr = Eval(String("[].sort(") + fnStr + ")");
+				std::vector<Value> expected;
+				ObjectLock olock (arr);
+				BOOST_CHECK_EQUAL_COLLECTIONS(begin(arr), end(arr), expected.begin(), expected.end());
+			}
+
+			{
+				Array::Ptr arr = Eval(String("[42].sort(") + fnStr + ")");
+				std::vector<Value> expected {42};
+				ObjectLock olock (arr);
+				BOOST_CHECK_EQUAL_COLLECTIONS(begin(arr), end(arr), expected.begin(), expected.end());
+			}
+
+			/* Ascending sort. */
+			{
+				Array::Ptr arr = Eval(String("[2, 1].sort(") + fnStr + ")");
+				std::vector<Value> expected{1, 2};
+				ObjectLock olock (arr);
+				BOOST_CHECK_EQUAL_COLLECTIONS(begin(arr), end(arr), expected.begin(), expected.end());
+			}
+
+			{
+				Array::Ptr arr = Eval(String("[3, 1, 2].sort(") + fnStr + ")");
+				std::vector<Value> expected {1, 2, 3};
+				ObjectLock olock (arr);
+				BOOST_CHECK_EQUAL_COLLECTIONS(begin(arr), end(arr), expected.begin(), expected.end());
+			}
+
+			/* Duplicate elements. */
+			{
+				Array::Ptr arr = Eval(String("[2, 1, 2, 1].sort(") + fnStr + ")");
+				std::vector<Value> expected {1, 1, 2, 2};
+				ObjectLock olock (arr);
+				BOOST_CHECK_EQUAL_COLLECTIONS(begin(arr), end(arr), expected.begin(), expected.end());
+			}
+
+			/* sort() clones: the original array is left untouched. */
+			{
+				frame.Locals->Set("original", new Array{3, 1, 2});
+				Array::Ptr sorted = Eval(String("original.sort(") + fnStr + ")");
+				Array::Ptr original = frame.Locals->Get("original");
+
+				std::vector<Value> expectedSorted {1, 2, 3};
+				std::vector<Value> expectedOriginal {3, 1, 2};
+
+				ObjectLock slock (sorted);
+				BOOST_CHECK_EQUAL_COLLECTIONS(begin(sorted), end(sorted), expectedSorted.begin(), expectedSorted.end());
+
+				ObjectLock olock (original);
+				BOOST_CHECK_EQUAL_COLLECTIONS(begin(original), end(original), expectedOriginal.begin(), expectedOriginal.end());
+			}
+
+			/* A frozen source array can still be sorted since sort() clones before sorting. */
+			{
+				frame.Locals->Set("frozen", new Array{3, 1, 2});
+				Eval("frozen.freeze()");
+				Array::Ptr arr = Eval(String("frozen.sort(") + fnStr + ")");
+				std::vector<Value> expected{1, 2, 3};
+				ObjectLock olock (arr);
+				BOOST_CHECK_EQUAL_COLLECTIONS(begin(arr), end(arr), expected.begin(), expected.end());
+			}
+
+			/* Mixing incomparable types throws regardless of the comparator used. */
+			BOOST_CHECK_THROW(Eval(String("[1, \"a\"].sort(") + fnStr + ")"), ScriptError);
+		}
+	}
+
+	/* Custom comparator, descending: not expressible via the default comparator. */
+	{
+		Array::Ptr arr = Eval("[3, 1, 2].sort(function(a, b) { return a > b })");
+		std::vector<Value> expected{3, 2, 1};
+		ObjectLock olock (arr);
+		BOOST_CHECK_EQUAL_COLLECTIONS(begin(arr), end(arr), expected.begin(), expected.end());
+	}
+
+	/* A null/non-function comparator throws. */
+	BOOST_CHECK_THROW(Eval("[3, 1, 2].sort(null)"), ScriptError);
+
+	/* An exception raised by the comparator propagates. */
+	BOOST_CHECK_THROW(Eval("[3, 1, 2].sort(function(a, b) { throw \"boom\" })"), ScriptError);
+
+	/* Sandboxed frame: a comparator that is not side-effect-free is rejected. */
+	{
+		frame.Sandboxed = true;
+		BOOST_CHECK_THROW(Eval("[3, 1, 2].sort(function(a, b) { return a < b })"), ScriptError);
+	}
+
+	/* Sandboxed frame: a side-effect-free comparator is allowed. */
+	{
+		frame.Sandboxed = true;
+		frame.Locals->Set("cmp", new Function("less", std::less<Value>{}, { "a", "b" }, true));
+		Array::Ptr arr = Eval("[3, 1, 2].sort(cmp)");
+
+		std::vector<Value> expected {1, 2, 3};
+		ObjectLock olock (arr);
+		BOOST_CHECK_EQUAL_COLLECTIONS(begin(arr), end(arr), expected.begin(), expected.end());
+	}
+}
+
+BOOST_AUTO_TEST_CASE(sort_size_limit)
+{
+	/* Keep in sync with the sandboxLimit used by ArraySort() in lib/base/array-script.cpp. */
+	constexpr size_t sandboxLimit = 1L << 17;
+
+	ScriptFrame frame (true);
+
+	auto MakeArray = [](size_t length) {
+		Array::Ptr array = new Array();
+
+		array->Reserve(length);
+
+		for (size_t i = 0; i < length; i++) {
+			array->Add(i);
+		}
+
+		return array;
+	};
+
+	/* Sandboxed frame: an array at the size limit may still be sorted. */
+	{
+		frame.Sandboxed = true;
+		frame.Locals->Set("arr", MakeArray(sandboxLimit));
+		BOOST_CHECK_NO_THROW(ConfigCompiler::CompileText("<test>", "arr.sort()")->Evaluate(frame));
+	}
+
+	/* Sandboxed frame: an array exceeding the size limit is rejected. */
+	{
+		frame.Sandboxed = true;
+		frame.Locals->Set("arr", MakeArray(sandboxLimit + 1));
+		BOOST_CHECK_THROW(ConfigCompiler::CompileText("<test>", "arr.sort()")->Evaluate(frame), ScriptError);
+	}
+
+	/* Unsandboxed frame: the sandbox limit doesn't apply. */
+	{
+		frame.Sandboxed = false;
+		frame.Locals->Set("arr", MakeArray(sandboxLimit + 1));
+		BOOST_CHECK_NO_THROW(ConfigCompiler::CompileText("<test>", "arr.sort()")->Evaluate(frame));
+	}
+}
+
+/* A script-provided comparator is arbitrary script code and isn't guaranteed to implement a
+ * strict weak ordering, so Array#sort uses SafeSort (a bounds-checked heapsort) instead of
+ * std::sort whenever a comparator is given. Unlike std::sort, SafeSort must never crash or
+ * lose/duplicate elements even if the comparator is broken -- it may only sort incorrectly.
+ * These tests exercise exactly the two examples called out in SafeSort's own doc comment.
+ */
+BOOST_AUTO_TEST_CASE(sort_script_unsafe_comparator)
+{
+	TestSortUnsafeComparator(10);
+}
+
+BOOST_AUTO_TEST_CASE(sort_script_unsafe_comparator_1024)
+{
+	TestSortUnsafeComparator(1024);
+}
+
 BOOST_AUTO_TEST_CASE(foreach)
 {
 	Array::Ptr array = new Array();
