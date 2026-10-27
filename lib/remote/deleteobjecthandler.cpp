@@ -62,7 +62,7 @@ bool DeleteObjectHandler::HandleRequest(
 		HttpUtility::SendJsonError(response, params, 403, ex.what());
 		return true;
 	} catch (const std::exception&) {
-		HttpUtility::SendJsonError(response, params, 404, "No objects found.", std::current_exception());
+		HttpUtility::SendJsonError(response, params, 404, "No objects found.", std::current_exception(), user);
 		return true;
 	}
 
@@ -107,7 +107,13 @@ bool DeleteObjectHandler::HandleRequest(
 		int code;
 		String status;
 		Array::Ptr errors = new Array();
-		Array::Ptr diagnosticInformation = new Array();
+		Array::Ptr diagnosticInformation;
+
+		// Generating diagnostic information (including a stack trace) is expensive,
+		// so only do it for users allowed to see it.
+		if (verbose && FilterUtility::HasPermission(user, ApiUser::DiagnosticInformationPerm)) {
+			diagnosticInformation = new Array();
+		}
 
 		// Lock the object name of the given type to prevent from being modified/deleted concurrently.
 		ObjectNameLock objectNameLock(type, obj->GetName());
@@ -129,7 +135,7 @@ bool DeleteObjectHandler::HandleRequest(
 			{ "errors", errors }
 		});
 
-		if (verbose)
+		if (diagnosticInformation)
 			result->Set("diagnostic_information", diagnosticInformation);
 
 		results.push_back(result);

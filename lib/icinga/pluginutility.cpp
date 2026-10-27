@@ -27,9 +27,7 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 		command = MacroProcessor::ResolveArguments(raw_command, raw_arguments,
 			macroResolvers, cr, resolvedMacros, useResolvedMacros);
 	} catch (const std::exception& ex) {
-		String message = DiagnosticInformation(ex);
-
-		Log(LogWarning, "PluginUtility", message);
+		Log(LogWarning, "PluginUtility", DiagnosticInformation(ex));
 
 		if (callback) {
 			ProcessResult pr;
@@ -37,7 +35,7 @@ void PluginUtility::ExecuteCommand(const Command::Ptr& commandObj, const Checkab
 			pr.ExecutionStart = Utility::GetTime();
 			pr.ExecutionEnd = pr.ExecutionStart;
 			pr.ExitStatus = 3; /* Unknown */
-			pr.Output = message;
+			pr.Output = ex.what();
 			callback(Empty, pr);
 		}
 

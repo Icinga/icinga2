@@ -254,8 +254,8 @@ void CheckerComponent::ExecuteCheckHelper(const Checkable::Ptr& checkable)
 		CheckResult::Ptr cr = new CheckResult();
 		cr->SetState(ServiceUnknown);
 
-		String output = "Exception occurred while checking '" + checkable->GetName() + "': " + DiagnosticInformation(ex);
-		cr->SetOutput(output);
+		String output = "Exception occurred while checking '" + checkable->GetName() + "': ";
+		cr->SetOutput(output + ex.what());
 
 		double now = Utility::GetTime();
 		cr->SetScheduleStart(now);
@@ -265,7 +265,7 @@ void CheckerComponent::ExecuteCheckHelper(const Checkable::Ptr& checkable)
 
 		checkable->ProcessCheckResult(cr, m_WaitGroup);
 
-		Log(LogCritical, "checker", output);
+		Log(LogCritical, "CheckerComponent", output + DiagnosticInformation(ex));
 	}
 
 	Checkable::DecreasePendingChecks();

@@ -1,6 +1,7 @@
 /* Icinga 2 | (c) 2012 Icinga GmbH | GPLv2+ */
 
 #include "remote/httputility.hpp"
+#include "remote/filterutility.hpp"
 #include "remote/url.hpp"
 #include "base/exception.hpp"
 #include "base/json.hpp"
@@ -63,7 +64,7 @@ void HttpUtility::SendJsonBody(boost::beast::http::response<boost::beast::http::
 }
 
 void HttpUtility::SendJsonError(boost::beast::http::response<boost::beast::http::string_body>& response,
-	const Dictionary::Ptr& params, int code, const String& info, const std::exception_ptr& ex)
+	const Dictionary::Ptr& params, int code, const String& info, const std::exception_ptr& ex, const ApiUser::Ptr& user)
 {
 	Dictionary::Ptr result = new Dictionary({ { "error", code } });
 
@@ -71,7 +72,8 @@ void HttpUtility::SendJsonError(boost::beast::http::response<boost::beast::http:
 		result->Set("status", info);
 	}
 
-	if (params && HttpUtility::GetLastParameter(params, "verbose") && ex) {
+	if (params && GetLastParameter(params, "verbose") && ex
+		&& user && FilterUtility::HasPermission(user, ApiUser::DiagnosticInformationPerm)) {
 		result->Set("diagnostic_information", DiagnosticInformation(ex));
 	}
 

@@ -196,7 +196,7 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 	try {
 		path = ComputeNewObjectConfigPath(type, fullName);
 	} catch (const std::exception& ex) {
-		errors->Add("Config package broken: " + DiagnosticInformation(ex, false));
+		errors->Add(String{"Config package broken: "} + ex.what());
 		return false;
 	}
 
@@ -235,7 +235,11 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 					<< "Failed to commit config item '" << fullName << "'. Aborting and removing config path '" << path << "'.";
 
 				for (const std::exception_ptr& ex : upq.GetExceptions()) {
-					errors->Add(DiagnosticInformation(ex, false));
+					try {
+						std::rethrow_exception(ex);
+					} catch (const std::exception& ex) {
+						errors->Add(ex.what());
+					}
 
 					if (diagnosticInformation)
 						diagnosticInformation->Add(DiagnosticInformation(ex));
@@ -256,7 +260,11 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 					<< "Failed to activate config object '" << fullName << "'. Aborting and removing config path '" << path << "'.";
 
 				for (const std::exception_ptr& ex : upq.GetExceptions()) {
-					errors->Add(DiagnosticInformation(ex, false));
+					try {
+						std::rethrow_exception(ex);
+					} catch (const std::exception& ex) {
+						errors->Add(ex.what());
+					}
 
 					if (diagnosticInformation)
 						diagnosticInformation->Add(DiagnosticInformation(ex));
@@ -289,7 +297,7 @@ bool ConfigObjectUtility::CreateObject(const Type::Ptr& type, const String& full
 		}
 	} catch (const std::exception& ex) {
 		if (errors)
-			errors->Add(DiagnosticInformation(ex, false));
+			errors->Add(ex.what());
 
 		if (diagnosticInformation)
 			diagnosticInformation->Add(DiagnosticInformation(ex));
@@ -343,7 +351,7 @@ bool ConfigObjectUtility::DeleteObjectHelper(const ConfigObject::Ptr& object, bo
 
 	} catch (const std::exception& ex) {
 		if (errors)
-			errors->Add(DiagnosticInformation(ex, false));
+			errors->Add(ex.what());
 
 		if (diagnosticInformation)
 			diagnosticInformation->Add(DiagnosticInformation(ex));

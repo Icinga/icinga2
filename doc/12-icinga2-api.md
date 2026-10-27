@@ -304,6 +304,14 @@ Available permissions that are not bound to specific URL endpoints:
   Permissions                   | Description
   ------------------------------|------------
   filter-expression             | Allows the user to provide their own [advanced filter expressions](12-icinga2-api.md#icinga2-api-advanced-filters).
+  diagnostic-information        | Allows diagnostic information such as stack traces to be included in API responses.
+
+!!! note
+
+    Information from stack traces may allow bypassing security hardening measures like Address Space
+    Layout Randomization (ASLR), so treat them as sensitive information. Also, since generating stack
+    traces takes time it allows them to produce load by purposefully sending requests that are guaranteed
+    to fail.
 
 !!! warning
 
@@ -352,7 +360,7 @@ for API actions shown [here](12-icinga2-api.md#icinga2-api-actions-unix-timestam
 Name            | Description
 ----------------|--------------------
 pretty          | Pretty-print the JSON response.
-verbose         | Add verbose debug information inside the `diagnostic_information` key into the response if available. This helps with troubleshooting failing requests.
+verbose         | Add verbose debug information inside the `diagnostic_information` key into the response if available. This helps with troubleshooting failing requests. Requires the `diagnostic-information` permission, since generating this information (including a stack trace) is expensive; the parameter is silently ignored otherwise.
 
 Example as URL parameter:
 
