@@ -33,6 +33,10 @@ add_library(otel OBJECT ${otel_SOURCES})
 
 add_dependencies(otel base_generated remote_generated)
 
+target_link_libraries(otel PUBLIC
+  nlohmann_json
+)
+
 target_include_directories(otel
   SYSTEM PUBLIC
     $<TARGET_PROPERTY:protobuf::libprotobuf-lite,INTERFACE_INCLUDE_DIRECTORIES>
