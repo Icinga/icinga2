@@ -7,6 +7,12 @@ if (-not (Test-Path env:ICINGA2_BUILDPATH)) {
 if (-not (Test-Path env:CMAKE_BUILD_TYPE)) {
   $env:CMAKE_BUILD_TYPE = 'RelWithDebInfo'
 }
+if (-not (Test-Path env:CMAKE_UNITY_BUILD)) {
+  $env:CMAKE_UNITY_BUILD = 'TRUE'
+}
+if (-not (Test-Path env:CMAKE_UNITY_BUILD_BATCH_SIZE)) {
+  $env:CMAKE_UNITY_BUILD_BATCH_SIZE = '20'
+}
 if (-not (Test-Path "$env:ICINGA2_BUILDPATH")) {
   mkdir "$env:ICINGA2_BUILDPATH" | out-null
 }
@@ -61,6 +67,8 @@ if (Test-Path CMakeCache.txt) {
 
 & cmake.exe "$sourcePath" `
   -DCMAKE_BUILD_TYPE="$env:CMAKE_BUILD_TYPE" `
+  -DCMAKE_UNITY_BUILD="$env:CMAKE_UNITY_BUILD" `
+  -DCMAKE_UNITY_BUILD_BATCH_SIZE="$env:CMAKE_UNITY_BUILD_BATCH_SIZE" `
   -G "$env:CMAKE_GENERATOR" -A "$env:CMAKE_GENERATOR_PLATFORM" -DCPACK_GENERATOR=WIX `
   -DOPENSSL_ROOT_DIR="$env:OPENSSL_ROOT_DIR" `
   -DBOOST_LIBRARYDIR="$env:BOOST_LIBRARYDIR" `
