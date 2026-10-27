@@ -194,16 +194,9 @@ add_compile_definitions(BOOST_FILESYSTEM_NO_DEPRECATED)
 # Required for Boost v1.74+
 add_compile_definitions(BOOST_ASIO_USE_TS_EXECUTOR_AS_DEFAULT)
 
-link_directories(${Boost_LIBRARY_DIRS})
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-
 find_package(Threads REQUIRED)
 
 find_package(OpenSSL REQUIRED)
-include_directories(SYSTEM ${OPENSSL_INCLUDE_DIR})
-
-set(base_DEPS ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES} Threads::Threads)
-set(base_OBJS $<TARGET_OBJECTS:mmatch> $<TARGET_OBJECTS:socketpair> $<TARGET_OBJECTS:base>)
 
 # JSON
 find_package(JSON)
@@ -213,43 +206,8 @@ include_directories(SYSTEM ${JSON_INCLUDE})
 find_package(UTF8CPP)
 include_directories(SYSTEM ${UTF8CPP_INCLUDE})
 
-find_package(Termcap)
-set(HAVE_TERMCAP "${TERMCAP_FOUND}")
-
-if(ICINGA2_WITH_OPENTELEMETRY)
-  # Newer Protobuf versions provide a CMake config package that we should prefer, since it implicitly
-  # links against all its dependencies (like absl, etc.) that would otherwise need to be linked manually.
-  # Thus, first try to find Protobuf in config mode and only fall back to module mode if that fails.
-  find_package(Protobuf CONFIG)
-  if(NOT Protobuf_FOUND)
-    # FindProtobuf.cmake in CMake versions < 3.31.0 is just broken and mixes up the Protobuf output directories
-    # and it doesn't even support to pass any PLUGIN_OPTIONS like "lite" to the protobuf_generate() function in
-    # order to generate code for the lite runtime without having to modify the proto files directly.
-    if(CMAKE_VERSION VERSION_LESS 3.31.0)
-      list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/third-party/cmake/protobuf")
-    endif()
-    find_package(Protobuf REQUIRED)
-  endif()
-  list(APPEND base_DEPS protobuf::libprotobuf-lite)
-endif()
-
-include_directories(
-  ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/lib
-  ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR}/lib
-)
-
 if(USE_SYSTEMD)
   find_package(Systemd REQUIRED)
-  list(APPEND base_DEPS Systemd::Systemd)
-endif()
-
-if(TERMCAP_FOUND)
-  list(APPEND base_DEPS ${TERMCAP_LIBRARIES})
-  include_directories(SYSTEM ${TERMCAP_INCLUDE_DIR})
-endif()
-
-if(WIN32)
-  list(APPEND base_DEPS ws2_32 dbghelp shlwapi msi)
 endif()
 
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH};${CMAKE_INSTALL_FULL_LIBDIR}/icinga2")
@@ -354,8 +312,7 @@ if(NOT HAVE_COUNTER_MACRO)
 message(FATAL_ERROR "Your C/C++ compiler does not support the __COUNTER__ macro.")
 endif()
 
-set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -DI2_DEBUG")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DI2_DEBUG")
+add_compile_definitions($<$<CONFIG:Debug>:I2_DEBUG>)
 
 check_function_exists(vfork HAVE_VFORK)
 

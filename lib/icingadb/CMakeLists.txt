@@ -3,21 +3,24 @@
 
 mkembedconfig_target(icingadb-itl.conf icingadb-itl.cpp)
 
-set(icingadb_SOURCES
+add_library(icingadb OBJECT
   icingadb.cpp icingadb-objects.cpp icingadb-stats.cpp icingadb-utility.cpp icingadb-worker.cpp redisconnection.cpp icingadb.ti
   icingadbchecktask.cpp icingadb-itl.cpp
 )
 
-if(ICINGA2_UNITY_BUILD)
-    mkunity_target(icingadb icingadb icingadb_SOURCES)
-endif()
+add_library(icingadb_interface INTERFACE)
 
-add_library(icingadb OBJECT ${icingadb_SOURCES})
+target_mkclass(icingadb
+  INTERFACE_TARGET icingadb_interface
+)
 
-include_directories(SYSTEM ${icinga2_SOURCE_DIR}/third-party)
+target_link_libraries(icingadb_interface INTERFACE
+  base_interface
+  icinga_interface
+  remote_interface
+)
 
-target_mkclass(icingadb icingadb_generated)
-add_dependencies(icingadb base_generated icinga_generated remote_generated)
+target_link_libraries(icingadb PUBLIC icingadb_interface)
 
 set_target_properties (
   icingadb PROPERTIES

@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2012 Icinga GmbH <https://icinga.com>
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-set(base_SOURCES
+add_library(base OBJECT
   i2-base.hpp
   application.cpp application.hpp application.ti
   application-version.cpp application-environment.cpp
@@ -88,8 +88,26 @@ set(base_SOURCES
   workqueue.cpp workqueue.hpp
 )
 
+add_library(base_interface INTERFACE)
+
+set_source_files_properties(application-version.cpp PROPERTIES
+  SKIP_UNITY_BUILD_INCLUSION TRUE
+)
+
 if(WIN32)
-  list(APPEND base_SOURCES windowseventloglogger.cpp windowseventloglogger.hpp windowseventloglogger.ti)
+  target_sources(base PRIVATE
+    windowseventloglogger.cpp
+    windowseventloglogger.hpp
+    windowseventloglogger.ti
+    windowseventloglogger-provider.h
+  )
+
+  target_link_libraries(base_interface INTERFACE
+    ws2_32
+    dbghelp
+    shlwapi
+    msi
+  )
 
   # Generate a DLL containing message definitions for the Windows Event Viewer.
   # See also: https://docs.microsoft.com/en-us/windows/win32/eventlog/reporting-an-event
@@ -99,10 +117,6 @@ if(WIN32)
     DEPENDS windowseventloglogger-provider.mc
   )
 
-  list(APPEND base_SOURCES windowseventloglogger-provider.h)
-
-  add_compile_definitions(WIN32_LEAN_AND_MEAN NOMINMAX)
-
   add_custom_command(
     OUTPUT windowseventloglogger-provider.res
     COMMAND rc ARGS windowseventloglogger-provider.rc
@@ -111,43 +125,46 @@ if(WIN32)
 
   add_library(eventprovider MODULE windowseventloglogger-provider.res windowseventloglogger-provider.rc)
   set_target_properties(eventprovider PROPERTIES LINKER_LANGUAGE CXX)
-  target_link_libraries(eventprovider PRIVATE -noentry)
+  target_link_options(eventprovider PRIVATE
+    -noentry
+  )
 
   install(TARGETS eventprovider LIBRARY DESTINATION ${CMAKE_INSTALL_SBINDIR})
 endif()
 
-set_property(
-  SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/application-version.cpp ${CMAKE_CURRENT_SOURCE_DIR}/journaldlogger.cpp
-  PROPERTY EXCLUDE_UNITY_BUILD TRUE
-)
-
-if(ICINGA2_UNITY_BUILD)
-  mkunity_target(base base base_SOURCES)
-endif()
-
 if(USE_SYSTEMD)
-  include_directories(SYSTEM ${Systemd_INCLUDE_DIRS})
-  add_compile_definitions(HAVE_SYSTEMD)
-  set_property(
-    SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/journaldlogger.cpp
-    APPEND PROPERTY COMPILE_DEFINITIONS
+  target_link_libraries(base_interface INTERFACE Systemd::Systemd)
+
+  set_source_files_properties(journaldlogger.cpp PROPERTIES
+    COMPILE_DEFINITIONS
     SD_JOURNAL_SUPPRESS_LOCATION
   )
 endif()
 
-add_library(base OBJECT ${base_SOURCES})
+target_mkclass(base
+  INTERFACE_TARGET base_interface
+)
 
-target_mkclass(base base_generated)
+target_link_libraries(base_interface INTERFACE
+  ${CMAKE_DL_LIBS}
+  Threads::Threads
+  lib_includes
+  mmatch
+  socketpair
+  Boost::context
+  Boost::coroutine
+  Boost::filesystem
+  Boost::iostreams
+  Boost::regex
+  Boost::thread
+  OpenSSL::SSL
+)
 
 if(Execinfo_FOUND)
-  target_link_libraries(base PUBLIC Execinfo::Execinfo)
+  target_link_libraries(base_interface PUBLIC Execinfo::Execinfo)
 endif()
 
-include_directories(SYSTEM ${icinga2_SOURCE_DIR}/third-party/mmatch)
-link_directories(${icinga2_BINARY_DIR}/third-party/mmatch)
-
-include_directories(SYSTEM ${icinga2_SOURCE_DIR}/third-party/socketpair)
-link_directories(${icinga2_BINARY_DIR}/third-party/socketpair)
+target_link_libraries(base PUBLIC base_interface)
 
 set_target_properties (
   base PROPERTIES
