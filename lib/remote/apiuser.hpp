@@ -23,6 +23,7 @@ public:
 	static ApiUser::Ptr GetByAuthHeader(const String& auth_header);
 
 	static inline const String FilterExpressionPerm = "filter-expression";
+	static inline const String DiagnosticInformationPerm = "diagnostic-information";
 };
 
 }

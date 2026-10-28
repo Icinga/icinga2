@@ -393,10 +393,9 @@ void JsonRpcConnection::MessageHandler(const Dictionary::Ptr& message)
 		}
 	} catch (const std::exception& ex) {
 		/* TODO: Add a user readable error message for the remote caller */
-		String diagInfo = DiagnosticInformation(ex);
-		resultMessage->Set("error", diagInfo);
+		resultMessage->Set("error", ex.what());
 		Log(LogWarning, "JsonRpcConnection")
-			<< "Error while processing message for identity '" << m_Identity << "'\n" << diagInfo;
+			<< "Error while processing message for identity '" << m_Identity << "'\n" << DiagnosticInformation(ex);
 	}
 
 	if (message->Contains("id")) {
