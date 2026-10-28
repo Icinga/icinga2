@@ -5,7 +5,7 @@ if(NOT WIN32)
   configure_file(icinga2/constants.conf.cmake ${CMAKE_CURRENT_BINARY_DIR}/icinga2/constants.conf @ONLY)
 endif()
 
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+if(${CMAKE_SYSTEM_NAME} MATCHES "^(Linux|GNU)$")
   configure_file(logrotate.d/icinga2.cmake ${CMAKE_CURRENT_BINARY_DIR}/logrotate.d/icinga2 @ONLY)
 endif()
 
@@ -50,7 +50,7 @@ install_if_not_exists(icinga2/scripts/mail-host-notification.sh ${ICINGA2_CONFIG
 install_if_not_exists(icinga2/scripts/mail-service-notification.sh ${ICINGA2_CONFIGDIR}/scripts)
 install_if_not_exists(icinga2/zones.d/README ${ICINGA2_CONFIGDIR}/zones.d)
 
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+if(${CMAKE_SYSTEM_NAME} MATCHES "^(Linux|GNU)$")
   install_if_not_exists(${CMAKE_CURRENT_BINARY_DIR}/logrotate.d/icinga2 ${LOGROTATE_DIR})
 endif()
 
@@ -63,7 +63,7 @@ else()
   install_if_not_exists(icinga2/features-enabled/windowseventlog.conf ${ICINGA2_CONFIGDIR}/features-enabled)
 endif()
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "(Linux|Solaris|SunOS)")
+if(${CMAKE_SYSTEM_NAME} MATCHES "(Linux|GNU|Solaris|SunOS)")
   add_subdirectory(initsystem)
 endif()
 
