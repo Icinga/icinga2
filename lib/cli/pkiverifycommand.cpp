@@ -79,7 +79,16 @@ int PKIVerifyCommand::Run(const boost::program_options::variables_map& vm, [[may
 
 		std::cout << PkiUtility::GetCertificateInformation(cert) << "\n";
 
-		String certCN = GetCertificateCN(cert);
+		String certCN;
+
+		try {
+			certCN = GetCertificateCN(cert);
+		} catch (const std::exception& ex) {
+			Log(LogCritical, "cli")
+				<< "Cannot get certificate common name from " << QuoteNext << certFile << ": " << ex.what();
+
+			return ServiceCritical;
+		}
 
 		if (cn == certCN) {
 			Log(LogInformation, "cli")
@@ -126,7 +135,16 @@ int PKIVerifyCommand::Run(const boost::program_options::variables_map& vm, [[may
 
 		std::cout << PkiUtility::GetCertificateInformation(cacert) << "\n";
 
-		String certCN = GetCertificateCN(cert);
+		String certCN;
+
+		try {
+			certCN = GetCertificateCN(cert);
+		} catch (const std::exception& ex) {
+			Log(LogCritical, "cli")
+				<< "Cannot get certificate common name from " << QuoteNext << certFile << ": " << ex.what();
+
+			return ServiceCritical;
+		}
 
 		bool signedByCA;
 

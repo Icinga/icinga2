@@ -453,7 +453,11 @@ void CompatLogger::WriteLine(const String& line)
 	if (!m_OutputFile.good())
 		return;
 
-	m_OutputFile << "[" << (long)Utility::GetTime() << "] " << line << "\n";
+	m_OutputFile << "[" << (long)Utility::GetTime() << "] ";
+	// WriteContextFrame() provides the escaping rules needed here: keep everything in a single line and escape most
+	// ASCII control characters.
+	Sanitizer::WriteContextFrame(m_OutputFile, line);
+	m_OutputFile << "\n";
 }
 
 void CompatLogger::Flush()

@@ -77,13 +77,23 @@ int CARestoreCommand::Run(const boost::program_options::variables_map&, const st
 		return 1;
 	}
 
+	String cn;
+
+	try {
+		cn = GetCertificateCN(certRequest);
+	} catch (const std::exception& ex) {
+		Log(LogCritical, "cli")
+			<< "Cannot get certificate common name from request " << QuoteNext << removedRequestFile << ": " << ex.what();
+		return 1;
+	}
+
 	Utility::SaveJsonFile(ApiListener::GetCertificateRequestsDir() + "/" + fingerPrint + ".json", 0600, request);
 
 	Utility::Remove(removedRequestFile);
 
 	Log(LogInformation, "cli")
-		<< "Restored certificate request for CN '" << GetCertificateCN(certRequest) << "', sign it with:\n"
-	       	<< "\"icinga2 ca sign " << fingerPrint << "\"";
+		<< "Restored certificate request for CN " << QuoteNext << cn << ", sign it with:\n"
+		<< "\"icinga2 ca sign " << fingerPrint << "\"";
 
 	return 0;
 }

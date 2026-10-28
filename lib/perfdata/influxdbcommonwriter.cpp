@@ -402,7 +402,8 @@ void InfluxdbCommonWriter::FlushWQ()
 
 	if (response.result() != http::status::no_content) {
 		Log(LogCritical, GetReflectionType()->GetName())
-			<< "Unexpected response code: " << response.result() << ", InfluxDB error message:\n" << response.body();
+			<< "Unexpected response code: " << response.result() << ", InfluxDB error message:" << QuoteNext
+			<< response.body();
 	}
 }
 

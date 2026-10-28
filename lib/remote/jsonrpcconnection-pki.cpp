@@ -54,7 +54,20 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 	ApiListener::Ptr listener = ApiListener::GetInstance();
 	std::shared_ptr<X509> cacert = GetX509Certificate(listener->GetDefaultCaPath());
 
-	String cn = GetCertificateCN(cert);
+	String cn;
+
+	try {
+		cn = GetCertificateCN(cert);
+	} catch (const std::exception& ex) {
+		Log(LogWarning, "JsonRpcConnection")
+			<< "Ignoring certificate request from endpoint " << QuoteNext << origin->FromClient->GetIdentity() << ": "
+			<< ex.what();
+
+		result->Set("status_code", 1);
+		result->Set("error", "Invalid certificate or CSR received.");
+
+		return result;
+	}
 
 	bool signedByCA = false;
 
@@ -236,7 +249,16 @@ Value RequestCertificateHandler(const MessageOrigin::Ptr& origin, const Dictiona
 		}
 	}
 
-	newcert = listener->RenewCert(cert);
+	try {
+		newcert = listener->RenewCert(cert);
+	} catch (const std::exception& ex) {
+		Log(LogWarning, "JsonRpcConnection")
+			<< "Failed to renew certificate for CN " << QuoteNext << cn << ": " << ex.what();
+
+		result->Set("status_code", 1);
+		result->Set("error", "Failed to renew certificate for CN " + Sanitizer::QuotedString(cn) + ", check server logs.");
+		return result;
+	}
 
 	if (!newcert) {
 		goto delayed_request;
@@ -358,7 +380,17 @@ Value UpdateCertificateHandler(const MessageOrigin::Ptr& origin, const Dictionar
 	std::shared_ptr<X509> oldCert = GetX509Certificate(listener->GetDefaultCertPath());
 	std::shared_ptr<X509> newCert = StringToCertificate(cert);
 
-	String cn = GetCertificateCN(newCert);
+	String cn;
+
+	try {
+		cn = GetCertificateCN(newCert);
+	} catch (const std::exception& ex) {
+		Log(LogWarning, "JsonRpcConnection")
+			<< "Ignoring certificate update from endpoint " << QuoteNext << origin->FromClient->GetIdentity() << ": "
+			<< ex.what();
+
+		return Empty;
+	}
 
 	Log(LogInformation, "JsonRpcConnection")
 		<< "Received certificate update message for CN '" << cn << "'";

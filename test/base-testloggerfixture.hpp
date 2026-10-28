@@ -11,11 +11,15 @@
 #include <boost/test/test_tools.hpp>
 #include <future>
 
-#define CHECK_LOG_MESSAGE(pattern, timeout) BOOST_CHECK(ExpectLogPattern(pattern, timeout))
-#define REQUIRE_LOG_MESSAGE(pattern, timeout) BOOST_REQUIRE(ExpectLogPattern(pattern, timeout))
+#define CHECK_LOG_PATTERN(pattern, timeout) BOOST_CHECK(ExpectLogPattern(pattern, timeout))
+#define REQUIRE_LOG_PATTERN(pattern, timeout) BOOST_REQUIRE(ExpectLogPattern(pattern, timeout))
+#define CHECK_LOG_MESSAGE(pattern, timeout) BOOST_CHECK(ExpectLogMessage(pattern, timeout))
+#define REQUIRE_LOG_MESSAGE(pattern, timeout) BOOST_REQUIRE(ExpectLogMessage(pattern, timeout))
 
-#define CHECK_NO_LOG_MESSAGE(pattern, timeout) BOOST_CHECK(!ExpectLogPattern(pattern, timeout))
-#define REQUIRE_NO_LOG_MESSAGE(pattern, timeout) BOOST_REQUIRE(!ExpectLogPattern(pattern, timeout))
+#define CHECK_NO_LOG_PATTERN(pattern, timeout) BOOST_CHECK(!ExpectLogPattern(pattern, timeout))
+#define REQUIRE_NO_LOG_PATTERN(pattern, timeout) BOOST_REQUIRE(!ExpectLogPattern(pattern, timeout))
+#define CHECK_NO_LOG_MESSAGE(pattern, timeout) BOOST_CHECK(!ExpectLogMessage(pattern, timeout))
+#define REQUIRE_NO_LOG_MESSAGE(pattern, timeout) BOOST_REQUIRE(!ExpectLogMessage(pattern, timeout))
 
 namespace icinga {
 
@@ -24,39 +28,32 @@ class TestLogger : public Logger
 public:
 	DECLARE_PTR_TYPEDEFS(TestLogger);
 
-	struct Expect
-	{
-		std::string pattern;
-		std::promise<bool> prom;
-	};
+	using MatchPredicate = std::function<bool(const LogEntry&)>;
 
-	auto ExpectLogPattern(const std::string& pattern,
-		const std::chrono::milliseconds& timeout = std::chrono::seconds(0))
+	bool ExpectLogPredicate(MatchPredicate pred, std::chrono::milliseconds timeout)
 	{
 		std::unique_lock lock(m_Mutex);
 		for (const auto& logEntry : m_LogEntries) {
-			if (boost::regex_match(logEntry.Message.GetData(), boost::regex(pattern))) {
-				return boost::test_tools::assertion_result{true};
+			if (pred(logEntry)) {
+				return true;
 			}
 		}
 
-		if (timeout == std::chrono::seconds(0)) {
-			return boost::test_tools::assertion_result{false};
+		if (timeout == 0s) {
+			return false;
 		}
 
-		auto expect = std::make_shared<Expect>(Expect{pattern, std::promise<bool>()});
+		auto expect = std::make_shared<Expect>(Expect{std::move(pred), std::promise<bool>()});
 		m_Expects.emplace_back(expect);
 		lock.unlock();
 
 		auto future = expect->prom.get_future();
 		auto status = future.wait_for(timeout);
-		boost::test_tools::assertion_result ret{status == std::future_status::ready && future.get()};
-		ret.message() << "Pattern \"" << pattern << "\" in log within " << timeout.count() << "ms";
 
 		lock.lock();
 		m_Expects.erase(boost::range::remove(m_Expects, expect), m_Expects.end());
 
-		return ret;
+		return status == std::future_status::ready && future.get();
 	}
 
 	void Clear()
@@ -66,14 +63,13 @@ public:
 		m_LogEntries.clear();
 	}
 
-private:
 	void ProcessLogEntry(const LogEntry& entry) override
 	{
 		std::unique_lock lock(m_Mutex);
 		m_LogEntries.push_back(entry);
 
 		auto it = boost::range::remove_if(m_Expects, [&entry](const std::shared_ptr<Expect>& expect) {
-			if (boost::regex_match(entry.Message.GetData(), boost::regex(expect->pattern))) {
+			if (expect->pred(entry)) {
 				expect->prom.set_value(true);
 				return true;
 			}
@@ -83,6 +79,12 @@ private:
 	}
 
 	void Flush() override {}
+
+private:
+	struct Expect {
+		MatchPredicate pred;
+		std::promise<bool> prom;
+	};
 
 	std::mutex m_Mutex;
 	std::vector<std::shared_ptr<Expect>> m_Expects;
@@ -127,10 +129,44 @@ struct TestLoggerFixture
 	 *
 	 * @return A @c boost::test_tools::assertion_result object that can be used in BOOST_REQUIRE
 	 */
-	auto ExpectLogPattern(const std::string& pattern,
-		const std::chrono::milliseconds& timeout = std::chrono::seconds(0))
+	[[nodiscard]] auto ExpectLogPattern(const std::string& pattern, std::chrono::milliseconds timeout = 0s) const
 	{
-		return testLogger->ExpectLogPattern(pattern, timeout);
+		bool found = testLogger->ExpectLogPredicate(
+			[re = boost::regex(pattern)](const LogEntry& entry) {
+				return boost::regex_match(entry.Message.GetData(), re);
+			},
+			timeout
+		);
+
+		boost::test_tools::assertion_result ret{found};
+		ret.message() << "Pattern \"" << pattern << "\" in log within " << timeout.count() << "ms";
+		return ret;
+	}
+
+	/**
+	 * Asserts the presence of a log entry that matches the given string exactly.
+	 *
+	 * First, the existing log entries are searched for the message. If the message isn't found,
+	 * until the timeout is reached, the function will wait if a new log message is added that
+	 * matches the desired message.
+	 *
+	 * A boost assertion result object is returned, that evaluates to bool, but contains an
+	 * error message that is printed by the testing framework when the assert failed.
+	 *
+	 * @param message The exact string the log message needs to match
+	 * @param timeout The maximum amount of time to wait for the log message to arrive
+	 *
+	 * @return A @c boost::test_tools::assertion_result object that can be used in BOOST_REQUIRE
+	 */
+	[[nodiscard]] auto ExpectLogMessage(std::string message, std::chrono::milliseconds timeout = 0s) const
+	{
+		bool found = testLogger->ExpectLogPredicate(
+			[pattern = std::move(message)](const LogEntry& entry) { return entry.Message.GetData() == pattern; }, timeout
+		);
+
+		boost::test_tools::assertion_result ret{found};
+		ret.message() << "Pattern \"" << message << "\" in log within " << timeout.count() << "ms";
+		return ret;
 	}
 
 	void ClearTestLogger() const { testLogger->Clear(); }
