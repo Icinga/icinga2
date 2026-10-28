@@ -23,15 +23,6 @@ A new permission called `diagnostic-information` was added which is now required
 `diagnostic_information` field in API responses when setting the `verbose` parameter. It is recommended to grant this
 permission only to trusted users, keeping it more restricted similar to debug output in other software.
 
-### Versioning of Windows builds
-
-We are extending the version numbers of our Windows build with a build revision, similar to how these already exist for
-all of our Linux packages. Therefore, these and all following builds will be versioned as `2.16.6-1` (or `2.16.6.1` in
-places where `-` is not allowed). The reason for this change is to decouple rebuilds on Windows due to newer dependency
-versions, in particular OpenSSL, from the regular Icinga 2 release cycle, allowing us to release such updates more
-quickly. You might need to slightly adapt custom tooling to this change in case it expects exactly three components in
-a version number.
-
 ## Upgrading to v2.16.2, v2.15.4, or v2.14.9 <a id="upgrading-to-2-16-2"></a>
 
 ### New `filter-expression` permission
