@@ -95,7 +95,7 @@ bool VariableQueryHandler::HandleRequest(
 		HttpUtility::SendJsonError(response, params, 403, ex.what());
 		return true;
 	} catch (const std::exception&) {
-		HttpUtility::SendJsonError(response, params, 404, "No variables found.", std::current_exception());
+		HttpUtility::SendJsonError(response, params, 404, "No variables found.", std::current_exception(), user);
 		return true;
 	}
 

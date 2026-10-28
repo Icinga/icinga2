@@ -564,35 +564,29 @@ void ElasticsearchWriter::SendRequest(const String& body)
 			return;
 		}
 
-		std::ostringstream msgbuf;
-		msgbuf << "Unexpected response code " << response.result_int() << " from URL '" << url->Format() << "'";
-
-		auto& contentType (response[http::field::content_type]);
-
-		if (contentType != "application/json" && contentType != "application/json; charset=utf-8") {
-			msgbuf << "; Unexpected Content-Type: '" << contentType << "'";
-		}
-
-		auto& body (response.body());
-
-#ifdef I2_DEBUG
-		msgbuf << "; Response body: '" << body << "'";
-#endif /* I2_DEBUG */
-
 		Dictionary::Ptr jsonResponse;
 
 		try {
-			jsonResponse = JsonDecode(body);
+			jsonResponse = JsonDecode(response.body());
 		} catch (...) {
-			Log(LogWarning, "ElasticsearchWriter")
-				<< "Unable to parse JSON response:\n" << body;
+			Log(LogWarning, "ElasticsearchWriter") << "Unable to parse JSON response: " << QuoteNext << response.body();
 			return;
 		}
 
 		String error = jsonResponse->Get("error");
 
-		Log(LogCritical, "ElasticsearchWriter")
-			<< "Error: '" << error << "'. " << msgbuf.str();
+		Log msg(LogCritical, "ElasticsearchWriter");
+		msg << "Error: " << QuoteNext << error << ". ";
+		msg << "Unexpected response code " << response.result_int() << " from URL " << QuoteNext << url->Format();
+
+		auto& contentType(response[http::field::content_type]);
+		if (contentType != "application/json" && contentType != "application/json; charset=utf-8") {
+			msg << "; Unexpected Content-Type: " << QuoteNext << contentType;
+		}
+
+#ifdef I2_DEBUG
+		msg << "; Response body: " << QuoteNext << response.body();
+#endif /* I2_DEBUG */
 	}
 }
 

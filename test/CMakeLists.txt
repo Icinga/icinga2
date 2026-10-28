@@ -101,10 +101,12 @@ set(base_test_SOURCES
   base-fifo.cpp
   base-io-engine.cpp
   base-json.cpp
+  base-logger.cpp
   base-match.cpp
   base-netstring.cpp
   base-object.cpp
   base-object-packer.cpp
+  base-sanitizer.cpp
   base-serialize.cpp
   base-shellescape.cpp
   base-stacktrace.cpp

@@ -431,7 +431,7 @@ void ProcessRequest(
 
 		HttpHandler::ProcessRequest(waitGroup, request, response, yc);
 		response.body().Finish();
-	} catch (const std::exception&) {
+	} catch (const std::exception& ex) {
 		/* Since we don't know the state the stream is in, we can't send an error response and
 		 * have to just cause a disconnect here.
 		 */
@@ -439,7 +439,14 @@ void ProcessRequest(
 			throw;
 		}
 
-		HttpUtility::SendJsonError(response, request.Params(), 500, "Unhandled exception", std::current_exception());
+		HttpUtility::SendJsonError(
+			response,
+			request.Params(),
+			500,
+			String{"Unhandled exception: "} + ex.what(),
+			std::current_exception(),
+			request.User()
+		);
 	}
 
 	response.Flush(yc);
@@ -505,10 +512,11 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 
 			Log logMsg (LogInformation, "HttpServerConnection");
 
-			logMsg << "Request " << request.method_string() << ' ' << request.target()
-				<< " (from " << m_PeerAddress
+			logMsg
+				<< "Request " << request.method_string() << ' ' << request.target() << " (from " << m_PeerAddress
 				<< ", user: " << (request.User() ? request.User()->GetName() : "<unauthenticated>")
-				<< ", agent: " << request[http::field::user_agent]; //operator[] - Returns the value for a field, or "" if it does not exist.
+				<< ", agent: " << QuoteNext << request[http::field::user_agent]; // operator[] - Returns the value for a
+																				 // field, or "" if it does not exist.
 
 			ch::steady_clock::duration cpuBoundWorkTime(0);
 			Defer addRespCode ([&response, start, &logMsg, &cpuBoundWorkTime]() {

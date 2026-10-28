@@ -14,3 +14,9 @@ bool ScriptPermissionChecker::CanAccessConfigObject(const ConfigObject::Ptr&)
 {
 	return true;
 }
+
+ScriptPermissionChecker::Ptr ScriptPermissionChecker::GetNoopChecker()
+{
+	static ScriptPermissionChecker::Ptr noopChecker = new ScriptPermissionChecker;
+	return noopChecker;
+}

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "base/context.hpp"
+#include "base/sanitizer.hpp"
 #include <boost/thread/tss.hpp>
 #include <iostream>
 #include <sstream>
@@ -48,7 +49,9 @@ void ContextTrace::Print(std::ostream& fp) const
 
 	int i = 0;
 	for (const String& frame : m_Frames) {
-		fp << "\t(" << i << ") " << frame << "\n";
+		fp << "\t(" << i << ") ";
+		Sanitizer::WriteContextFrame(fp, frame);
+		fp << "\n";
 		i++;
 	}
 }

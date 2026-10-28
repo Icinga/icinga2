@@ -404,7 +404,7 @@ void Downtime::RemoveDowntime(const String& id, bool includeChildren, DowntimeRe
 		case DowntimeRemovedByUser:
 			reason = "cancelled by user";
 			if (!removedBy.IsEmpty()) {
-				reason += " '" + removedBy + "'";
+				reason += " " + Sanitizer::QuotedString(removedBy);
 			}
 			break;
 		case DowntimeRemovedByConfigOwner:
