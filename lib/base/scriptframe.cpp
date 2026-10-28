@@ -54,14 +54,14 @@ INITIALIZE_ONCE_WITH_PRIORITY([]() {
  * @todo Remove this constructor and call the other with the global namespace in places where it's actually necessary.
  */
 ScriptFrame::ScriptFrame(bool allocLocals)
-	: Locals(allocLocals ? new Dictionary() : nullptr), PermChecker(new ScriptPermissionChecker),
+	: Locals(allocLocals ? new Dictionary() : nullptr), PermChecker(ScriptPermissionChecker::GetNoopChecker()),
 	  Self(ScriptGlobal::GetGlobals()), Sandboxed(false), Depth(0), Globals(nullptr)
 {
 	InitializeFrame();
 }
 
 ScriptFrame::ScriptFrame(bool allocLocals, Value self)
-	: Locals(allocLocals ? new Dictionary() : nullptr), PermChecker(new ScriptPermissionChecker), Self(std::move(self)),
+	: Locals(allocLocals ? new Dictionary() : nullptr), PermChecker(ScriptPermissionChecker::GetNoopChecker()), Self(std::move(self)),
 	  Sandboxed(false), Depth(0), Globals(nullptr)
 {
 	InitializeFrame();
