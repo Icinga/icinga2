@@ -446,7 +446,14 @@ bool ProcessRequest(
 
 		http::response<http::string_body> response;
 
-		HttpUtility::SendJsonError(response, nullptr, 500, "Unhandled exception", std::current_exception());
+		HttpUtility::SendJsonError(
+			response,
+			nullptr,
+			500,
+			String{"Unhandled exception: "} + ex.what(),
+			std::current_exception(),
+			authenticatedUser
+		);
 
 		http::async_write(stream, response, yc);
 		stream.async_flush(yc);
@@ -516,10 +523,11 @@ void HttpServerConnection::ProcessMessages(boost::asio::yield_context yc)
 
 			Log logMsg (LogInformation, "HttpServerConnection");
 
-			logMsg << "Request " << request.method_string() << ' ' << request.target()
-				<< " (from " << m_PeerAddress
+			logMsg
+				<< "Request " << request.method_string() << ' ' << request.target() << " (from " << m_PeerAddress
 				<< ", user: " << (authenticatedUser ? authenticatedUser->GetName() : "<unauthenticated>")
-				<< ", agent: " << request[http::field::user_agent]; //operator[] - Returns the value for a field, or "" if it does not exist.
+				<< ", agent: " << QuoteNext << request[http::field::user_agent]; // operator[] - Returns the value for a
+																				 // field, or "" if it does not exist.
 
 			ch::steady_clock::duration cpuBoundWorkTime(0);
 			Defer addRespCode ([&response, start, &logMsg, &cpuBoundWorkTime]() {

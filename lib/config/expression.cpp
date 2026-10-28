@@ -53,6 +53,17 @@ ExpressionResult Expression::Evaluate(ScriptFrame& frame, DebugHint *dhint) cons
 		});
 
 		ExpressionResult result = DoEvaluate(frame, dhint);
+
+		if (frame.Sandboxed) {
+			const auto& val = result.GetValue();
+			if (val.IsObject()) {
+				const auto& cobj = dynamic_pointer_cast<ConfigObject>(val.Get<Object::Ptr>());
+				if (cobj && !frame.PermChecker->CanAccessConfigObject(cobj)) {
+					return Empty;
+				}
+			}
+		}
+
 		return result;
 	} catch (ScriptError& ex) {
 		ScriptBreakpoint(frame, &ex, GetDebugInfo());

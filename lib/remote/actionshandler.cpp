@@ -61,7 +61,7 @@ bool ActionsHandler::HandleRequest(
 			HttpUtility::SendJsonError(response, params, 403, ex.what());
 			return true;
 		} catch (const std::exception&) {
-			HttpUtility::SendJsonError(response, params, 404, "No objects found.", std::current_exception());
+			HttpUtility::SendJsonError(response, params, 404, "No objects found.", std::current_exception(), user);
 			return true;
 		}
 
@@ -117,11 +117,11 @@ bool ActionsHandler::HandleRequest(
 		} catch (const std::exception& ex) {
 			Dictionary::Ptr fail = new Dictionary({
 				{ "code", 500 },
-				{ "status", "Action execution failed: '" + DiagnosticInformation(ex, false) + "'." }
+				{ "status", String{"Action execution failed: '"} + ex.what() + "'." }
 			});
 
 			/* Exception for actions. Normally we would handle this inside SendJsonError(). */
-			if (verbose)
+			if (verbose && FilterUtility::HasPermission(user, ApiUser::DiagnosticInformationPerm))
 				fail->Set("diagnostic_information", DiagnosticInformation(ex));
 
 			results.emplace_back(std::move(fail));

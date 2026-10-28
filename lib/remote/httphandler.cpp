@@ -95,7 +95,7 @@ void HttpHandler::ProcessRequest(
 	try {
 		params = HttpUtility::FetchRequestParameters(url, request.body());
 	} catch (const std::exception& ex) {
-		HttpUtility::SendJsonError(response, params, 400, "Invalid request body: " + DiagnosticInformation(ex, false));
+		HttpUtility::SendJsonError(response, params, 400, String{"Invalid request body: "} + ex.what());
 		return;
 	}
 

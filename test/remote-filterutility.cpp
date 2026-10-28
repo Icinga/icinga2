@@ -377,4 +377,123 @@ object Host "host1" {
 	BOOST_CHECK_EQUAL(objs.size(), 0);
 }
 
+BOOST_FIXTURE_TEST_CASE(object_join_permissions, IcingaApplicationFixture)
+{
+	auto createObjects = []() {
+		String config = R"CONFIG({
+object CheckCommand "dummy" {
+  command = "/bin/echo"
+}
+
+object ApiUser "allPermissionsUser" {
+  permissions = [ "*" ]
+}
+
+object ApiUser "permissionFilterUser" {
+  permissions = [
+    "filter-expression",
+    "objects/query/Service",
+    {
+      permission = "objects/query/Host"
+      filter = {{ host == get_object(Host, "host1") }}
+    }
+  ]
+}
+
+object ApiUser "restrictedServiceUser" {
+  permissions = [
+    "filter-expression",
+    {
+      permission = "objects/query/Service"
+      filter = {{ service == get_object(Service, "host1!svc1") }}
+    },
+    {
+      permission = "objects/query/Host"
+      filter = {{ host == get_object(Host, "host1") }}
+    }
+  ]
+}
+
+object Host "host1" {
+  address = "host1"
+  check_command = "dummy"
+}
+
+object Host "host2" {
+  address = "host2"
+  check_command = "dummy"
+}
+
+object Service "svc1" {
+  host_name = "host1"
+  check_command = "dummy"
+}
+
+object Service "svc2" {
+  host_name = "host2"
+  check_command = "dummy"
+}
+})CONFIG";
+		std::unique_ptr<Expression> expr = ConfigCompiler::CompileText("<test>", config);
+		expr->Evaluate(*ScriptFrame::GetCurrentFrame());
+	};
+
+	ConfigItem::RunWithActivationContext(new Function("CreateTestObjects", createObjects));
+
+	auto allPermissionsUser = ApiUser::GetByName("allPermissionsUser");
+	auto permissionFilterUser = ApiUser::GetByName("permissionFilterUser");
+	auto restrictedServiceUser = ApiUser::GetByName("restrictedServiceUser");
+
+	QueryDescription qd;
+	qd.Types.insert("Host");
+	qd.Types.insert("Service");
+	qd.Permission = "objects/query/Service";
+
+	Dictionary::Ptr queryParams = new Dictionary();
+	queryParams->Set("type", "Service");
+
+	std::vector<Value> objs;
+
+	/* Sanity check: permissionFilterUser is only restricted on the Host type, so without touching the host join it may
+	 * legitimately query both services, while restrictedServiceUser only sees the service it has access to.
+	 */
+	queryParams->Set("filter", "true");
+	BOOST_REQUIRE_NO_THROW(objs = FilterUtility::GetFilterTargets(qd, queryParams, allPermissionsUser));
+	BOOST_CHECK_EQUAL(objs.size(), 2);
+	BOOST_REQUIRE_NO_THROW(objs = FilterUtility::GetFilterTargets(qd, queryParams, permissionFilterUser));
+	BOOST_CHECK_EQUAL(objs.size(), 2);
+	BOOST_REQUIRE_NO_THROW(objs = FilterUtility::GetFilterTargets(qd, queryParams, restrictedServiceUser));
+	BOOST_CHECK_EQUAL(objs.size(), 1);
+
+	/* Reaching the joined host of a service is allowed as long as the user has permission for that host. Here,
+	 * restrictedServiceUser may access host1, so going through svc1 still has to work.
+	 */
+	queryParams->Set("filter", "host.name == {{{host1}}}");
+	BOOST_REQUIRE_NO_THROW(objs = FilterUtility::GetFilterTargets(qd, queryParams, allPermissionsUser));
+	BOOST_CHECK_EQUAL(objs.size(), 1);
+	BOOST_REQUIRE_NO_THROW(objs = FilterUtility::GetFilterTargets(qd, queryParams, permissionFilterUser));
+	BOOST_CHECK_EQUAL(objs.size(), 1);
+	BOOST_REQUIRE_NO_THROW(objs = FilterUtility::GetFilterTargets(qd, queryParams, restrictedServiceUser));
+	BOOST_CHECK_EQUAL(objs.size(), 1);
+
+	/* Now the actual test:
+	 * A filter must not be able to read an object for which the user has no permission through a join.
+	 * Here, permissionFilterUser may query svc2, but not its host. Reaching `host` for svc2 therefore yields an empty
+	 * value like if it didn't exist.
+	 */
+	queryParams->Set("filter", "host.name == {{{host2}}}");
+	BOOST_REQUIRE_NO_THROW(objs = FilterUtility::GetFilterTargets(qd, queryParams, allPermissionsUser));
+	BOOST_CHECK_EQUAL(objs.size(), 1);
+	BOOST_REQUIRE_NO_THROW(objs = FilterUtility::GetFilterTargets(qd, queryParams, permissionFilterUser));
+	BOOST_CHECK(objs.empty());
+
+	/* The same access can be made through `service` and it must fail in the same way.
+	 */
+	queryParams->Set("filter", "service.host.name == {{{host2}}}");
+	BOOST_REQUIRE_NO_THROW(objs = FilterUtility::GetFilterTargets(qd, queryParams, allPermissionsUser));
+	BOOST_CHECK_EQUAL(objs.size(), 1);
+	BOOST_REQUIRE_NO_THROW(objs = FilterUtility::GetFilterTargets(qd, queryParams, permissionFilterUser));
+	BOOST_CHECK(objs.empty());
+}
+
 BOOST_AUTO_TEST_SUITE_END()

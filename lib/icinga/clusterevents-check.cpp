@@ -160,7 +160,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 				Log(LogWarning, "ApiListener")
 					<< "Command for object '" << checkableName << "' (PID: " << pr.PID
 					<< ", arguments: " << Process::PrettyPrintArguments(parguments) << ") terminated with exit code "
-					<< pr.ExitStatus << ", output: " << pr.Output;
+					<< pr.ExitStatus << ", output: " << QuoteNext << pr.Output;
 			}
 
 			SendEventExecutedCommand(params, pr.ExitStatus, pr.Output, pr.ExecutionStart, pr.ExecutionEnd, listener,
@@ -281,7 +281,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 		try {
 			host->ExecuteRemoteCheck(ApiListener::GetInstance()->GetWaitGroup(), macros);
 		} catch (const std::exception& ex) {
-			String output = "Exception occurred while checking '" + host->GetName() + "': " + DiagnosticInformation(ex);
+			String output = "Exception occurred while checking '" + host->GetName() + "': ";
 			ServiceState state = ServiceUnknown;
 			double now = Utility::GetTime();
 
@@ -290,7 +290,7 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 			} else {
 				CheckResult::Ptr cr = new CheckResult();
 				cr->SetState(state);
-				cr->SetOutput(output);
+				cr->SetOutput(output + ex.what());
 				cr->SetScheduleStart(now);
 				cr->SetScheduleEnd(now);
 				cr->SetExecutionStart(now);
@@ -300,21 +300,22 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 				listener->SyncSendMessage(sourceEndpoint, message);
 			}
 
-			Log(LogCritical, "checker", output);
+			Log(LogCritical, "ClusterEvents", output + DiagnosticInformation(ex));
 		}
 	} else if (command_type == "event_command") {
 		try {
 			host->ExecuteEventHandler(macros, true);
 		} catch (const std::exception& ex) {
+			String output = "Exception occurred while executing event command '" + command + "' for '" +
+				host->GetName() + "': ";
 			if (params->Contains("source")) {
-				String output = "Exception occurred while executing event command '" + command + "' for '" +
-					host->GetName() + "': " + DiagnosticInformation(ex);
-
 				double now = Utility::GetTime();
-				SendEventExecutedCommand(params, ServiceUnknown, output, now, now, listener, origin, sourceEndpoint);
+				SendEventExecutedCommand(params, ServiceUnknown, output + ex.what(), now, now, listener, origin, sourceEndpoint);
 			} else {
 				throw;
 			}
+
+			Log(LogCritical, "ClusterEvents", output + DiagnosticInformation(ex));
 		}
 	} else if (command_type == "notification_command" && params->Contains("source")) {
 		/* Get user */
@@ -344,10 +345,11 @@ void ClusterEvents::ExecuteCheckFromQueue(const MessageOrigin::Ptr& origin, cons
 		} catch (const std::exception& ex) {
 			String output = "Exception occurred during notification '" + notification->GetName()
 				+ "' for checkable '" + notification->GetCheckable()->GetName()
-				+ "' and user '" + user->GetName() + "' using command '" + command + "': "
-				+ DiagnosticInformation(ex, false);
+				+ "' and user '" + user->GetName() + "' using command '" + command + "': ";
 			double now = Utility::GetTime();
-			SendEventExecutedCommand(params, ServiceUnknown, output, now, now, listener, origin, sourceEndpoint);
+			SendEventExecutedCommand(params, ServiceUnknown, output + ex.what(), now, now, listener, origin, sourceEndpoint);
+
+			Log(LogCritical, "ClusterEvents", output + DiagnosticInformation(ex));
 		}
 	}
 }

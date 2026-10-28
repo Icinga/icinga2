@@ -60,7 +60,7 @@ int PkiUtility::SignCsr(const String& csrfile, const String& certfile)
 	InitializeOpenSSL();
 
 	BIO *csrbio = BIO_new_file(csrfile.CStr(), "r");
-	X509_REQ *req = PEM_read_bio_X509_REQ(csrbio, nullptr, nullptr, nullptr);
+	std::shared_ptr<X509_REQ> req{PEM_read_bio_X509_REQ(csrbio, nullptr, nullptr, nullptr), X509_REQ_free};
 
 	if (!req) {
 		ERR_error_string_n(ERR_peek_error(), errbuf, sizeof errbuf);
@@ -71,10 +71,15 @@ int PkiUtility::SignCsr(const String& csrfile, const String& certfile)
 
 	BIO_free(csrbio);
 
-	std::shared_ptr<EVP_PKEY> pubkey = std::shared_ptr<EVP_PKEY>(X509_REQ_get_pubkey(req), EVP_PKEY_free);
-	std::shared_ptr<X509> cert = CreateCertIcingaCA(pubkey.get(), X509_REQ_get_subject_name(req));
+	std::shared_ptr<EVP_PKEY> pubkey{X509_REQ_get_pubkey(req.get()), EVP_PKEY_free};
+	std::shared_ptr<X509> cert;
 
-	X509_REQ_free(req);
+	try {
+		cert = CreateCertIcingaCA(pubkey.get(), X509_REQ_get_subject_name(req.get()));
+	} catch (const std::exception& ex) {
+		Log(LogCritical, "SSL") << "Cannot sign certificate request " << QuoteNext << csrfile << ": " << ex.what();
+		return 1;
+	}
 
 	WriteCert(cert, certfile);
 

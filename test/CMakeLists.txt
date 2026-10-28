@@ -66,10 +66,12 @@ set(base_test_SOURCES
   base-fifo.cpp
   base-io-engine.cpp
   base-json.cpp
+  base-logger.cpp
   base-match.cpp
   base-netstring.cpp
   base-object.cpp
   base-object-packer.cpp
+  base-sanitizer.cpp
   base-serialize.cpp
   base-shellescape.cpp
   base-stacktrace.cpp
@@ -115,6 +117,10 @@ add_boost_test(base
     base_array/foreach
     base_array/clone
     base_array/json
+    base_array/sort_script
+    base_array/sort_size_limit
+    base_array/sort_script_unsafe_comparator
+    base_array/sort_script_unsafe_comparator_1024
     base_base64/base64
     base_convert/tolong
     base_convert/todouble
@@ -144,6 +150,10 @@ add_boost_test(base
     base_json/decode_depth_limit
     base_json/stack_size_coroutine
     base_json/stack_size_pthread
+    base_logger/log_quote_next
+    base_logger/log_quote_start_end
+    base_logger/log_quote_missing_end
+    base_logger/log_fallback_sanitization
     base_object_packer/pack_null
     base_object_packer/pack_false
     base_object_packer/pack_true
@@ -155,6 +165,10 @@ add_boost_test(base
     base_netstring/netstring
     base_object/construct
     base_object/getself
+    base_sanitizer/sanitizer_stream_without_quotes
+    base_sanitizer/sanitizer_stream_with_quotes
+    base_sanitizer/sanitizer_string_without_quotes
+    base_sanitizer/sanitizer_string_with_quotes
     base_serialize/scalar
     base_serialize/array
     base_serialize/dictionary
@@ -282,6 +296,7 @@ add_boost_test(base
     remote_filterutility/safe_function_permissions
     remote_filterutility/variable_expression_permissions
     remote_filterutility/filter_expression_permission
+    remote_filterutility/object_join_permissions
     remote_url/id_and_path
     remote_url/parameters
     remote_url/get_and_set
