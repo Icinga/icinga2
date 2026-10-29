@@ -42,6 +42,10 @@ add_library(config OBJECT ${config_SOURCES})
 
 add_dependencies(config base_generated)
 
+target_link_libraries(config PUBLIC
+  nlohmann_json
+)
+
 set_target_properties (
   config PROPERTIES
   FOLDER Lib
