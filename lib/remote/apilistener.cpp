@@ -355,7 +355,7 @@ void ApiListener::RenewOwnCert()
 		return;
 	}
 
-	AtomicFile::Write(certPath, 0644, CertificateToString(cert));
+	AtomicFile::Write(certPath, 0640, CertificateToString(cert));
 	UpdateSSLContext();
 }
 
@@ -384,8 +384,8 @@ void ApiListener::RenewCA()
 
 	auto certStr (CertificateToString(cert));
 
-	AtomicFile::Write(GetDefaultCaPath(), 0644, certStr);
-	AtomicFile::Write(certPath, 0644, certStr);
+	AtomicFile::Write(GetDefaultCaPath(), 0640, certStr);
+	AtomicFile::Write(certPath, 0640, certStr);
 	UpdateSSLContext();
 }
 
@@ -2076,10 +2076,14 @@ void ApiListener::UpdateStatusFile(boost::asio::ip::tcp::endpoint localEndpoint)
 {
 	String path = Configuration::CacheDir + "/api-state.json";
 
-	Utility::SaveJsonFile(path, 0644, new Dictionary({
-		{"host", String(localEndpoint.address().to_string())},
-		{"port", localEndpoint.port()}
-	}));
+	Utility::SaveJsonFile(
+		path,
+		0640,
+		new Dictionary({
+			{"host", String(localEndpoint.address().to_string())},
+			{"port", localEndpoint.port()},
+		})
+	);
 }
 
 void ApiListener::RemoveStatusFile()
