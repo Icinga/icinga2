@@ -8,6 +8,7 @@
 #include <boost/beast/http.hpp>
 #include <fstream>
 #include <string>
+#include <variant>
 
 using namespace icinga;
 
@@ -103,6 +104,11 @@ void IncomingHttpMessage<isRequest, Body, StreamVariant>::Parse(boost::asio::yie
 
 HttpApiRequest::HttpApiRequest(Shared<AsioTlsStream>::Ptr stream) : IncomingHttpMessage(std::move(stream))
 {
+}
+
+const AsioTlsStream& HttpApiRequest::Stream() const
+{
+	return *std::get<Shared<AsioTlsStream>::Ptr>(m_Stream);
 }
 
 ApiUser::Ptr HttpApiRequest::User() const
@@ -201,6 +207,11 @@ void OutgoingHttpMessage<isRequest, Body, StreamVariant>::StartStreaming()
 HttpApiResponse::HttpApiResponse(Shared<AsioTlsStream>::Ptr stream, HttpServerConnection::Ptr server)
 	: OutgoingHttpMessage(std::move(stream)), m_Server(std::move(server))
 {
+}
+
+const AsioTlsStream& HttpApiResponse::Stream() const
+{
+	return *std::get<Shared<AsioTlsStream>::Ptr>(m_Stream);
 }
 
 void HttpApiResponse::StartStreaming(bool checkForDisconnect)
