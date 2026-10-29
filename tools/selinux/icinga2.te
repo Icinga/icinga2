@@ -201,10 +201,15 @@ allow icinga2_t icinga2_port_t:tcp_socket name_bind;
 allow icinga2_t self:tcp_socket create_stream_socket_perms;
 corenet_tcp_connect_icinga2_port(icinga2_t)
 
-mysql_stream_connect(icinga2_t)
-mysql_tcp_connect(icinga2_t)
-postgresql_stream_connect(icinga2_t)
-postgresql_tcp_connect(icinga2_t)
+optional_policy(`
+    mysql_stream_connect(icinga2_t)
+    mysql_tcp_connect(icinga2_t)
+')
+
+optional_policy(`
+    postgresql_stream_connect(icinga2_t)
+    postgresql_tcp_connect(icinga2_t)
+')
 
 # graphite is using port 2003 which is lmtp_port_t
 corenet_tcp_connect_lmtp_port(icinga2_t)
