@@ -85,13 +85,18 @@ Custom variables passed as [command parameters](03-monitoring-basics.md#command-
 Name                   | Description
 -----------------------|---------------
 icinga\_min\_version   | **Optional.** Required minimum Icinga 2 version, e.g. `2.8.0`. If not satisfied, the state changes to `Critical`. Release packages only.
+icinga\_perfdata       | **Optional.** Only yield the given performance data. E.g. `[ "*_latency", "*_execution_time" ]`
 
 ### cluster <a id="itl-icinga-cluster"></a>
 
 Check command for the built-in `cluster` check. This check returns performance
 data for the current Icinga instance and connected endpoints.
 
-The `cluster` check command does not support any vars.
+Custom variables passed as [command parameters](03-monitoring-basics.md#command-passing-parameters):
+
+Name                   | Description
+-----------------------|---------------
+cluster\_perfdata      | **Optional.** Only yield the given performance data. E.g. `[ "*_checks*", "num_*" ]`
 
 ### cluster-zone <a id="itl-icinga-cluster-zone"></a>
 
