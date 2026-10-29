@@ -35,9 +35,11 @@
 #include <fstream>
 
 
-#ifdef HAVE_EDITLINE
-#include "cli/editline.hpp"
-#endif /* HAVE_EDITLINE */
+#ifdef HAVE_READLINE
+#include <cstdio>
+#include <readline/readline.h>
+#include <readline/history.h>
+#endif /* HAVE_READLINE */
 
 using namespace icinga;
 namespace po = boost::program_options;
@@ -144,10 +146,10 @@ void ConsoleCommand::BreakpointHandler(ScriptFrame& frame, ScriptError *ex, cons
 		<< "To leave the debugger and continue the program use \"$continue\".\n"
 		<< "For further commands see \"$help\".\n";
 
-#ifdef HAVE_EDITLINE
+#ifdef HAVE_READLINE
 	rl_completion_entry_function = ConsoleCommand::ConsoleCompleteHelper;
 	rl_completion_append_character = '\0';
-#endif /* HAVE_EDITLINE */
+#endif /* HAVE_READLINE */
 
 	ConsoleCommand::RunScriptConsole(frame);
 }
@@ -193,7 +195,7 @@ void ConsoleCommand::InitParameters(boost::program_options::options_description&
 	;
 }
 
-#ifdef HAVE_EDITLINE
+#ifdef HAVE_READLINE
 char *ConsoleCommand::ConsoleCompleteHelper(const char *word, int state)
 {
 	static std::vector<String> matches;
@@ -223,7 +225,7 @@ char *ConsoleCommand::ConsoleCompleteHelper(const char *word, int state)
 
 	return strdup(matches[state].CStr());
 }
-#endif /* HAVE_EDITLINE */
+#endif /* HAVE_READLINE */
 
 /**
  * The entry point for the "console" CLI command.
@@ -232,10 +234,10 @@ char *ConsoleCommand::ConsoleCompleteHelper(const char *word, int state)
  */
 int ConsoleCommand::Run(const po::variables_map& vm, [[maybe_unused]] const std::vector<std::string>& ap) const
 {
-#ifdef HAVE_EDITLINE
+#ifdef HAVE_READLINE
 	rl_completion_entry_function = ConsoleCommand::ConsoleCompleteHelper;
 	rl_completion_append_character = '\0';
-#endif /* HAVE_EDITLINE */
+#endif /* HAVE_READLINE */
 
 	String addr, session;
 	ScriptFrame scriptFrame(true);
@@ -330,7 +332,7 @@ int ConsoleCommand::RunScriptConsole(ScriptFrame& scriptFrame, const String& con
 	std::map<String, String> lines;
 	int next_line = 1;
 
-#ifdef HAVE_EDITLINE
+#ifdef HAVE_READLINE
 	String homeEnv = Utility::GetFromEnvironment("HOME");
 
 	String historyPath;
@@ -347,7 +349,7 @@ int ConsoleCommand::RunScriptConsole(ScriptFrame& scriptFrame, const String& con
 
 		historyfp.close();
 	}
-#endif /* HAVE_EDITLINE */
+#endif /* HAVE_READLINE */
 
 	l_ScriptFrame = &scriptFrame;
 	l_Session = session;
@@ -369,12 +371,12 @@ incomplete:
 		std::string line;
 
 		if (commandOnce.IsEmpty()) {
-#ifdef HAVE_EDITLINE
+#ifdef HAVE_READLINE
 			std::ostringstream promptbuf;
 			std::ostream& os = promptbuf;
-#else /* HAVE_EDITLINE */
+#else /* HAVE_READLINE */
 			std::ostream& os = std::cout;
-#endif /* HAVE_EDITLINE */
+#endif /* HAVE_READLINE */
 
 			os << fileName;
 
@@ -383,7 +385,7 @@ incomplete:
 			else
 				os << " .. ";
 
-#ifdef HAVE_EDITLINE
+#ifdef HAVE_READLINE
 			String prompt = promptbuf.str();
 
 			char *cline;
@@ -405,9 +407,9 @@ incomplete:
 			line = cline;
 
 			free(cline);
-#else /* HAVE_EDITLINE */
+#else /* HAVE_READLINE */
 			std::getline(std::cin, line);
-#endif /* HAVE_EDITLINE */
+#endif /* HAVE_READLINE */
 		} else
 			line = commandOnce;
 
@@ -462,10 +464,10 @@ incomplete:
 					Log(LogCritical, "ConsoleCommand")
 						<< "HTTP query failed: " << ex.what();
 
-#ifdef HAVE_EDITLINE
+#ifdef HAVE_READLINE
 					/* Ensures that the terminal state is reset */
 					rl_deprep_terminal();
-#endif /* HAVE_EDITLINE */
+#endif /* HAVE_READLINE */
 
 					return EXIT_FAILURE;
 				}
