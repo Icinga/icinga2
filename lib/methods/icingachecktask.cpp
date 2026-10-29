@@ -124,6 +124,7 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 
 	double lastMessageSent = 0;
 	double lastMessageReceived = 0;
+	uint_fast64_t pendingOutgoingMessages = 0;
 	double messagesSentPerSecond = 0;
 	double messagesReceivedPerSecond = 0;
 	double bytesSentPerSecond = 0;
@@ -137,6 +138,7 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 		if (endpoint->GetLastMessageReceived() > lastMessageReceived)
 			lastMessageReceived = endpoint->GetLastMessageReceived();
 
+		pendingOutgoingMessages += endpoint->GetPendingOutgoingMessages();
 		messagesSentPerSecond += endpoint->GetMessagesSentPerSecond();
 		messagesReceivedPerSecond += endpoint->GetMessagesReceivedPerSecond();
 		bytesSentPerSecond += endpoint->GetBytesSentPerSecond();
@@ -145,6 +147,7 @@ void IcingaCheckTask::ScriptFunc(const Checkable::Ptr& checkable, const CheckRes
 
 	perfdata->Add(new PerfdataValue("last_messages_sent", lastMessageSent));
 	perfdata->Add(new PerfdataValue("last_messages_received", lastMessageReceived));
+	perfdata->Add(new PerfdataValue("sum_pending_outgoing_messages", pendingOutgoingMessages));
 	perfdata->Add(new PerfdataValue("sum_messages_sent_per_second", messagesSentPerSecond));
 	perfdata->Add(new PerfdataValue("sum_messages_received_per_second", messagesReceivedPerSecond));
 	perfdata->Add(new PerfdataValue("sum_bytes_sent_per_second", bytesSentPerSecond));
