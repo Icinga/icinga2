@@ -485,6 +485,7 @@ Configuration Attributes:
   zone		            | Object name           | **Optional.** The zone this object is a member of. Please read the [distributed monitoring](06-distributed-monitoring.md#distributed-monitoring) chapter for details.
   types                     | Array                 | **Optional.** A list of type filters when this notification should be triggered. By default everything is matched.
   states                    | Array                 | **Optional.** A list of state filters when this notification should be triggered. By default everything is matched. Note that the states filter is ignored for notifications of type Acknowledgement!
+  suppress\_duplicate\_problem\_notifications | Boolean | **Optional.** Whether to suppress duplicate Problem notifications when the state has not changed since the last notification sent to the user. Defaults to `true`. Set to `false` to send a Problem notification for every hard state transition into a selected state, even if the same state was already notified to the user.
 
 Available notification state filters for Service:
 
