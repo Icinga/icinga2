@@ -7,7 +7,7 @@
 #include "config/i2-config.hpp"
 #include "config/expression.hpp"
 #include "base/debuginfo.hpp"
-#include <set>
+#include <unordered_set>
 
 namespace icinga
 {
@@ -18,7 +18,7 @@ namespace icinga
 class ObjectRule
 {
 public:
-	typedef std::set<String> TypeSet;
+	typedef std::unordered_set<String> TypeSet;
 
 	static void RegisterType(const String& sourceType);
 	static bool IsValidSourceType(const String& sourceType);

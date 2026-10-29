@@ -1299,7 +1299,7 @@ bool ApiListener::RelayMessageOne(const Zone::Ptr& targetZone, const MessageOrig
 
 	std::vector<Endpoint::Ptr> skippedEndpoints;
 
-	std::set<Zone::Ptr> allTargetZones;
+	std::unordered_set<Zone::Ptr> allTargetZones;
 	if (targetZone->GetGlobal()) {
 		/* if the zone is global, the message has to be relayed to our local zone and direct children */
 		allTargetZones.insert(localZone);
@@ -1833,7 +1833,7 @@ void ApiListener::RemoveAnonymousClient(const JsonRpcConnection::Ptr& aclient)
 	m_AnonymousClients.erase(aclient);
 }
 
-std::set<JsonRpcConnection::Ptr> ApiListener::GetAnonymousClients() const
+std::unordered_set<JsonRpcConnection::Ptr> ApiListener::GetAnonymousClients() const
 {
 	std::unique_lock<std::mutex> lock(m_AnonymousClientsLock);
 	return m_AnonymousClients;
@@ -1865,7 +1865,7 @@ void ApiListener::RemoveHttpClient(const HttpServerConnection::Ptr& aclient)
 	m_HttpClients.erase(aclient);
 }
 
-std::set<HttpServerConnection::Ptr> ApiListener::GetHttpClients() const
+std::unordered_set<HttpServerConnection::Ptr> ApiListener::GetHttpClients() const
 {
 	std::unique_lock<std::mutex> lock(m_HttpClientsLock);
 	return m_HttpClients;

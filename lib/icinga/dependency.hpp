@@ -12,6 +12,7 @@
 #include <map>
 #include <tuple>
 #include <unordered_map>
+#include <unordered_set>
 
 namespace icinga
 {
@@ -141,10 +142,10 @@ public:
 	using MemberValueType = std::unordered_multimap<const Checkable*, Dependency*>;
 	using MembersMap = std::map<CompositeKeyType, MemberValueType>;
 
-	DependencyGroup(String name, const std::set<Dependency::Ptr>& dependencies);
+	DependencyGroup(String name, const std::unordered_set<Dependency::Ptr>& dependencies);
 
 	static DependencyGroup::Ptr Register(const DependencyGroup::Ptr& dependencyGroup);
-	static std::pair<std::set<Dependency::Ptr>, bool> Unregister(const DependencyGroup::Ptr& dependencyGroup, const Checkable::Ptr& child);
+	static std::pair<std::unordered_set<Dependency::Ptr>, bool> Unregister(const DependencyGroup::Ptr& dependencyGroup, const Checkable::Ptr& child);
 	static size_t GetRegistrySize();
 
 	static CompositeKeyType MakeCompositeKeyFor(const Dependency::Ptr& dependency);
@@ -163,7 +164,7 @@ public:
 	void AddDependency(const Dependency::Ptr& dependency);
 	void RemoveDependency(const Dependency::Ptr& dependency);
 	std::vector<Dependency::Ptr> GetDependenciesForChild(const Checkable* child) const;
-	void LoadParents(std::set<Checkable::Ptr>& parents) const;
+	void LoadParents(std::unordered_set<Checkable::Ptr>& parents) const;
 	Checkable::Ptr GetAnyChild() const;
 	size_t GetDependenciesCount() const;
 

@@ -439,7 +439,7 @@ void Downtime::UnregisterChild(const Downtime::Ptr& downtime)
 	m_Children.erase(downtime);
 }
 
-std::set<Downtime::Ptr> Downtime::GetChildren() const
+std::unordered_set<Downtime::Ptr> Downtime::GetChildren() const
 {
 	std::unique_lock<std::mutex> lock(m_ChildrenMutex);
 	return m_Children;
