@@ -5,33 +5,15 @@ include(DiscoverBoostTests)
 
 add_library(testdeps INTERFACE)
 
-if(NOT Boost_UNIT_TEST_FRAMEWORK_LIBRARY)
-  find_package(Boost QUIET COMPONENTS unit_test_framework)
-endif()
-
-if(Boost_UNIT_TEST_FRAMEWORK_LIBRARY)
-  target_link_libraries(testdeps
-    INTERFACE
-    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
-  )
-  if(NOT Boost_USE_STATIC_LIBS)
-    set(BOOST_TEST_DYN_LINK ON)
-  endif()
-else()
-  set(BOOST_TEST_USE_INCLUDED ON)
-endif()
-
 target_link_libraries(testdeps
   INTERFACE
   ${base_DEPS}
   cli
 )
 
-configure_file(BoostTestConfig.h.in BoostTestTargetConfig.h @ONLY)
-
 target_include_directories(testdeps
   INTERFACE
-  "${CMAKE_CURRENT_BINARY_DIR}"
+  "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
 target_sources(testdeps INTERFACE
