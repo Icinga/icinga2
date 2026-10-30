@@ -1,5 +1,7 @@
 linux-build:
   stage: build
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
   script:
     - case "$IMAGE_NAME" in alpine:*) apk add bash ;; esac
     - DISTRO="$IMAGE_NAME" ICINGA2_SOURCE_DIR="$CI_PROJECT_DIR" tools/linux/ci-build.sh
