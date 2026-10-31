@@ -15,6 +15,7 @@
 #include "base/exception.hpp"
 #include "base/application.hpp"
 #include "base/statsfunction.hpp"
+#include "base/perfdatavalue.hpp"
 
 using namespace icinga;
 
@@ -38,12 +39,25 @@ void PerfdataWriter::OnConfigLoaded()
 	}
 }
 
-void PerfdataWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr&)
+void PerfdataWriter::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
 	DictionaryData nodes;
 
 	for (const PerfdataWriter::Ptr& perfdatawriter : ConfigType::GetObjectsByType<PerfdataWriter>()) {
-		nodes.emplace_back(perfdatawriter->GetName(), 1); //add more stats
+		size_t workQueueItems = perfdatawriter->m_WorkQueue.GetLength();
+		double workQueueItemRate = perfdatawriter->m_WorkQueue.GetTaskCount(60) / 60.0;
+
+		nodes.emplace_back(
+			perfdatawriter->GetName(),
+			new Dictionary({{"work_queue_items", workQueueItems}, {"work_queue_item_rate", workQueueItemRate}})
+		);
+
+		perfdata->Add(
+			new PerfdataValue("perfdatawriter_" + perfdatawriter->GetName() + "_work_queue_items", workQueueItems)
+		);
+		perfdata->Add(
+			new PerfdataValue("perfdatawriter_" + perfdatawriter->GetName() + "_work_queue_item_rate", workQueueItemRate)
+		);
 	}
 
 	status->Set("perfdatawriter", new Dictionary(std::move(nodes)));
