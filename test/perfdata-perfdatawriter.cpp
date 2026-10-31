@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <BoostTestTargetConfig.h>
+#include "base/perfdatavalue.hpp"
 #include "config/configcompiler.hpp"
 #include "config/configitem.hpp"
 #include "icinga/host.hpp"
@@ -160,6 +161,31 @@ BOOST_AUTO_TEST_CASE(flush_on_pause)
 	PauseWriter();
 
 	RequireNumberedLines(ReadRotatedHostPerfdata(), 500);
+}
+
+BOOST_AUTO_TEST_CASE(stats)
+{
+	ResumeWriter();
+
+	Dictionary::Ptr status = new Dictionary;
+	Array::Ptr perfdata    = new Array;
+	PerfdataWriter::StatsFunc(status, perfdata);
+	PauseWriter();
+
+	Dictionary::Ptr writers = status->Get("perfdatawriter");
+	BOOST_REQUIRE(writers);
+	Dictionary::Ptr writer = writers->Get(m_Writer->GetName());
+	BOOST_REQUIRE(writer);
+	BOOST_CHECK(writer->Contains("work_queue_items"));
+	BOOST_CHECK(writer->Contains("work_queue_item_rate"));
+
+	BOOST_REQUIRE_EQUAL(perfdata->GetLength(), 2);
+	BOOST_CHECK_EQUAL(
+		static_cast<PerfdataValue::Ptr>(perfdata->Get(0))->GetLabel(), "perfdatawriter_PerfdataWriter_work_queue_items"
+	);
+	BOOST_CHECK_EQUAL(
+		static_cast<PerfdataValue::Ptr>(perfdata->Get(1))->GetLabel(), "perfdatawriter_PerfdataWriter_work_queue_item_rate"
+	);
 }
 
 #ifndef _WIN32
