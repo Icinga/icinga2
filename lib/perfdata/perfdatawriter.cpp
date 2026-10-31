@@ -26,6 +26,8 @@ void PerfdataWriter::OnConfigLoaded()
 {
 	ObjectImpl<PerfdataWriter>::OnConfigLoaded();
 
+	m_WorkQueue.SetName("PerfdataWriter, " + GetName());
+
 	if (!GetEnableHa()) {
 		Log(LogDebug, "PerfdataWriter")
 			<< "HA functionality disabled. Won't pause connection: " << GetName();
@@ -54,6 +56,12 @@ void PerfdataWriter::Resume()
 	Log(LogInformation, "PerfdataWriter")
 		<< "'" << GetName() << "' resumed.";
 
+	/* Register exception handler for WQ tasks. */
+	m_WorkQueue.SetExceptionCallback([this](std::exception_ptr exp) { ExceptionHandler(std::move(exp)); });
+
+	/* All file operations happen on the WQ thread. Open the files before the first check result is queued. */
+	m_WorkQueue.Enqueue([this]() { RotateAllFiles(); });
+
 	m_HandleCheckResults = Checkable::OnNewCheckResult.connect([this](const Checkable::Ptr& checkable,
 		const CheckResult::Ptr& cr, const MessageOrigin::Ptr&) {
 		CheckResultHandler(checkable, cr);
@@ -63,9 +71,6 @@ void PerfdataWriter::Resume()
 	m_RotationTimer->OnTimerExpired.connect([this](const Timer * const&) { RotationTimerHandler(); });
 	m_RotationTimer->SetInterval(GetRotationInterval());
 	m_RotationTimer->Start();
-
-	RotateFile(m_ServiceOutputFile, GetServiceTempPath(), GetServicePerfdataPath());
-	RotateFile(m_HostOutputFile, GetHostTempPath(), GetHostPerfdataPath());
 }
 
 void PerfdataWriter::Pause()
@@ -78,8 +83,12 @@ void PerfdataWriter::Pause()
 	//m_ServiceOutputFile << "\n# Pause the feature" << "\n\n";
 #endif /* I2_DEBUG */
 
-	/* Force a rotation closing the file stream. */
-	RotateAllFiles();
+	/*
+	 * Force a rotation closing the file stream. It's queued behind all pending writes,
+	 * so Join() returns only after every queued check result has been written.
+	 */
+	m_WorkQueue.Enqueue([this]() { RotateAllFiles(); });
+	m_WorkQueue.Join();
 
 	Log(LogInformation, "PerfdataWriter")
 		<< "'" << GetName() << "' paused.";
@@ -118,29 +127,21 @@ void PerfdataWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 		resolvers.emplace_back("service", service);
 	resolvers.emplace_back("host", host);
 
-	if (service) {
-		String line = MacroProcessor::ResolveMacros(GetServiceFormatTemplate(), resolvers, cr, nullptr, &PerfdataWriter::EscapeMacroMetric);
+	/* Resolve the macros now, as they depend on the current state of the checkable. */
+	String line = MacroProcessor::ResolveMacros(
+		service ? GetServiceFormatTemplate() : GetHostFormatTemplate(), resolvers, cr, nullptr, &PerfdataWriter::EscapeMacroMetric
+	);
+	std::ofstream& output = service ? m_ServiceOutputFile : m_HostOutputFile;
 
-		{
-			std::unique_lock<std::mutex> lock(m_StreamMutex);
+	m_WorkQueue.Enqueue([this, &output, line = std::move(line)]() {
+		AssertOnWorkQueue();
 
-			if (!m_ServiceOutputFile.good())
-				return;
-
-			m_ServiceOutputFile << line << "\n";
+		if (!output.good()) {
+			return;
 		}
-	} else {
-		String line = MacroProcessor::ResolveMacros(GetHostFormatTemplate(), resolvers, cr, nullptr, &PerfdataWriter::EscapeMacroMetric);
 
-		{
-			std::unique_lock<std::mutex> lock(m_StreamMutex);
-
-			if (!m_HostOutputFile.good())
-				return;
-
-			m_HostOutputFile << line << "\n";
-		}
-	}
+		output << line << "\n";
+	});
 }
 
 void PerfdataWriter::RotateFile(std::ofstream& output, const String& temp_path, const String& perfdata_path)
@@ -148,7 +149,7 @@ void PerfdataWriter::RotateFile(std::ofstream& output, const String& temp_path, 
 	Log(LogDebug, "PerfdataWriter")
 		<< "Rotating perfdata files.";
 
-	std::unique_lock<std::mutex> lock(m_StreamMutex);
+	AssertOnWorkQueue();
 
 	if (output.good()) {
 		output.close();
@@ -176,13 +177,36 @@ void PerfdataWriter::RotationTimerHandler()
 	if (IsPaused())
 		return;
 
-	RotateAllFiles();
+	m_WorkQueue.Enqueue([this]() { RotateAllFiles(); });
 }
 
 void PerfdataWriter::RotateAllFiles()
 {
 	RotateFile(m_ServiceOutputFile, GetServiceTempPath(), GetServicePerfdataPath());
 	RotateFile(m_HostOutputFile, GetHostTempPath(), GetHostPerfdataPath());
+}
+
+/**
+ * Check if method is called inside the WQ thread.
+ */
+void PerfdataWriter::AssertOnWorkQueue()
+{
+	ASSERT(m_WorkQueue.IsWorkerThread());
+}
+
+/**
+ * Exception handler for the WQ.
+ *
+ * @param exp Exception pointer
+ */
+void PerfdataWriter::ExceptionHandler(std::exception_ptr exp)
+{
+	Log(LogCritical,
+		"PerfdataWriter",
+		"Exception during perfdata file operation: Verify that the perfdata directories are writable!");
+
+	Log(LogDebug, "PerfdataWriter")
+		<< "Exception during perfdata file operation: " << DiagnosticInformation(std::move(exp));
 }
 
 void PerfdataWriter::ValidateHostFormatTemplate(const Lazy<String>& lvalue, const ValidationUtils& utils)

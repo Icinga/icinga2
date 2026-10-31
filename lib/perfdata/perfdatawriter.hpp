@@ -4,10 +4,11 @@
 #ifndef PERFDATAWRITER_H
 #define PERFDATAWRITER_H
 
-#include "perfdata/perfdatawriter-ti.hpp"
-#include "icinga/service.hpp"
 #include "base/configobject.hpp"
 #include "base/timer.hpp"
+#include "base/workqueue.hpp"
+#include "icinga/service.hpp"
+#include "perfdata/perfdatawriter-ti.hpp"
 #include <fstream>
 
 namespace icinga
@@ -39,7 +40,7 @@ private:
 	Timer::Ptr m_RotationTimer;
 	std::ofstream m_ServiceOutputFile;
 	std::ofstream m_HostOutputFile;
-	std::mutex m_StreamMutex;
+	WorkQueue m_WorkQueue{10000000, 1};
 
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 	static Value EscapeMacroMetric(const Value& value);
@@ -47,6 +48,9 @@ private:
 	void RotationTimerHandler();
 	void RotateAllFiles();
 	void RotateFile(std::ofstream& output, const String& temp_path, const String& perfdata_path);
+
+	void AssertOnWorkQueue();
+	void ExceptionHandler(std::exception_ptr exp);
 };
 
 }
