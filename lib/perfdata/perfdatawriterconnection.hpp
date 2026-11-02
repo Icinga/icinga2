@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "base/defer.hpp"
 #include "base/io-engine.hpp"
 #include "base/tlsstream.hpp"
 #include <boost/asio/buffer.hpp>
@@ -69,6 +70,14 @@ public:
 		std::promise<RetType> promise;
 
 		IoEngine::SpawnCoroutine(m_Strand, [&](boost::asio::yield_context yc) {
+			if (m_Stopped) {
+				promise.set_exception(std::make_exception_ptr(Stopped{}));
+				return;
+			}
+
+			m_SendActive = true;
+			Defer resetSendActive{[this] { m_SendActive = false; }};
+
 			while (true) {
 				try {
 					EnsureConnected(yc);
@@ -91,16 +100,16 @@ public:
 					Log(LogCritical, m_LogFacility)
 						<< "Error while " << (m_Connected ? "sending" : "connecting") << " to '" << m_Host << ":"
 						<< m_Port << "' for '" << m_ParentName << "': " << ex.what();
+				}
 
-					m_Stream = MakeStream();
-					m_Connected = false;
+				m_Stream    = MakeStream();
+				m_Connected = false;
 
-					try {
-						BackoffWait(yc);
-					} catch (const std::exception&) {
-						promise.set_exception(std::make_exception_ptr(Stopped{}));
-						return;
-					}
+				BackoffWait(yc);
+
+				if (m_Stopped) {
+					promise.set_exception(std::make_exception_ptr(Stopped{}));
+					return;
 				}
 			}
 		});
@@ -108,6 +117,13 @@ public:
 		return promise.get_future().get();
 	}
 
+	/**
+	 * Cancels any ongoing processes and disconnects the stream.
+	 *
+	 * This may mean that the socket gets a hard `close()` if there are still any ongoing
+	 * sends. Users of this class should avoid this by using `CancelAfterTimeout()` instead
+	 * of calling this directly, which gives outstanding operations a chance to complete.
+	 */
 	void Disconnect();
 
 	/**
@@ -139,6 +155,8 @@ private:
 
 	std::atomic_bool m_Stopped{false};
 	std::atomic_bool m_Connected{false};
+
+	bool m_SendActive{};
 
 	bool m_VerifyPeerCertificate;
 	Shared<boost::asio::ssl::context>::Ptr m_SslContext;
