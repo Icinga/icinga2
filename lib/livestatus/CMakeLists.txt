@@ -50,6 +50,10 @@ add_library(livestatus OBJECT ${livestatus_SOURCES})
 target_mkclass(livestatus livestatus_generated)
 add_dependencies(livestatus base_generated icinga_generated remote_generated)
 
+target_link_libraries(livestatus PUBLIC
+  nlohmann_json
+)
+
 set_target_properties (
   livestatus PROPERTIES
   FOLDER Components
