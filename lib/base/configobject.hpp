@@ -73,6 +73,7 @@ public:
 	}
 
 	static ConfigObject::Ptr GetObject(const String& type, const String& name);
+	static ConfigObject::Ptr GetZone(const String& name);
 
 	static void DumpObjects(const String& filename, int attributeTypes = FAState);
 	static void RestoreObjects(const String& filename, int attributeTypes = FAState);

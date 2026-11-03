@@ -13,6 +13,7 @@ namespace icinga
 {
 
 class DbObject;
+class ConfigType;
 
 /**
  * A database object type.
@@ -50,6 +51,8 @@ private:
 	long m_TypeID;
 	String m_IDColumn;
 	ObjectFactory m_ObjectFactory;
+
+	mutable ConfigType* m_ConfigType = nullptr;
 
 	static std::mutex& GetStaticMutex();
 	static TypeMap& GetTypes();
