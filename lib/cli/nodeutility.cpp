@@ -78,25 +78,42 @@ int NodeUtility::GenerateNodeIcingaConfig(const String& endpointName, const Stri
 		config->Add(myParentEndpoint);
 	}
 
-	/* add the parent zone to the config */
-	config->Add(new Dictionary({
-		{ "__name", parentZoneName },
-		{ "__type", "Zone" },
-		{ "endpoints", myParentZoneMembers }
-	}));
+	if (zoneName == parentZoneName) {
+		/* store the local generated node configuration */
+		config->Add(new Dictionary({
+			{ "__name", endpointName },
+			{ "__type", "Endpoint" }
+		}));
 
-	/* store the local generated node configuration */
-	config->Add(new Dictionary({
-		{ "__name", endpointName },
-		{ "__type", "Endpoint" }
-	}));
+		myParentZoneMembers->Add(endpointName);
 
-	config->Add(new Dictionary({
-		{ "__name", zoneName },
-		{ "__type", "Zone" },
-		{ "parent", parentZoneName },
-		{ "endpoints", new Array({ endpointName }) }
-	}));
+		/* add the single zone to the config */
+		config->Add(new Dictionary({
+			{ "__name", zoneName },
+			{ "__type", "Zone" },
+			{ "endpoints", myParentZoneMembers }
+		}));
+	} else {
+		/* add the parent zone to the config */
+		config->Add(new Dictionary({
+			{ "__name", parentZoneName },
+			{ "__type", "Zone" },
+			{ "endpoints", myParentZoneMembers }
+		}));
+
+		/* store the local generated node configuration */
+		config->Add(new Dictionary({
+			{ "__name", endpointName },
+			{ "__type", "Endpoint" }
+		}));
+
+		config->Add(new Dictionary({
+			{ "__name", zoneName },
+			{ "__type", "Zone" },
+			{ "parent", parentZoneName },
+			{ "endpoints", new Array({ endpointName }) }
+		}));
+	}
 
 	for (const String& globalzone : globalZones) {
 		config->Add(new Dictionary({
