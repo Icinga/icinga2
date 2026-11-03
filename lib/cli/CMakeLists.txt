@@ -44,6 +44,10 @@ add_library(cli OBJECT ${cli_SOURCES})
 
 add_dependencies(cli base_generated icinga_generated remote_generated)
 
+target_link_libraries(cli PUBLIC
+  nlohmann_json
+)
+
 find_package(Editline)
 if(Editline_FOUND)
   target_link_libraries(cli PUBLIC
