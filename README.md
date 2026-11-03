@@ -8,10 +8,11 @@
 
 1. [About][About]
 2. [Installation][Installation]
-3. [Documentation][Documentation]
-4. [Support][Support]
-5. [License][License]
-6. [Contributing][Contributing]
+3. [One-Click Deploy][One-Click Deploy]
+4. [Documentation][Documentation]
+5. [Support][Support]
+6. [License][License]
+7. [Contributing][Contributing]
 
 ## About
 
@@ -42,6 +43,10 @@ config management tools or plain text within the [Icinga DSL](https://icinga.com
 Once Icinga Server and Web are running in your distributed environment,
 make sure to check out the many [Icinga modules](https://icinga.com/docs/)
 for even better monitoring.
+
+## One-Click Deploy
+
+[![Deploy on RepoCloud](https://d16t0pc4846x52.cloudfront.net/deploylobe.svg)](https://repocloud.io/details/Icinga%202/)
 
 ## Documentation
 
@@ -102,6 +107,7 @@ For reporting security issues please visit [this page](https://icinga.com/contac
 [About]: #about
 [License]: #license
 [Installation]: #installation
+[One-Click Deploy]: #one-click-deploy
 [Documentation]: #documentation
 [Support]: #support
 [Contributing]: #contributing
