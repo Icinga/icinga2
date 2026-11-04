@@ -37,17 +37,17 @@ namespace utf8
     class exception : public ::std::exception {
     };
 
-    // Exceptions that may be thrown from the library functions.
-    class invalid_code_point : public exception {
-        uint32_t cp;
-    public:
-        invalid_code_point(uint32_t codepoint) : cp(codepoint) {}
-        virtual const char* what() const UTF_CPP_NOEXCEPT UTF_CPP_OVERRIDE { return "Invalid code point"; }
-        uint32_t code_point() const {return cp;}
-    };
+// Exceptions that may be thrown from the library functions.
+class invalid_code_point : public exception {
+	uint32_t cp;
+public:
+	invalid_code_point(uint32_t codepoint) : cp(codepoint) {}
+	virtual const char* what() const UTF_CPP_NOEXCEPT UTF_CPP_OVERRIDE { return "Invalid code point"; }
+	uint32_t code_point() const {return cp;}
+};
 
-    class invalid_utf8 : public exception {
-        uint8_t u8;
+class invalid_utf8 : public exception {
+	uint8_t u8;
     public:
         invalid_utf8 (uint8_t u) : u8(u) {}
         invalid_utf8 (char c) : u8(static_cast<uint8_t>(c)) {}

@@ -48,26 +48,26 @@ namespace icingadb::task_queue
  */
 enum DirtyBits : uint32_t
 {
-	ConfigUpdate  = 1 << 0, // Trigger a Redis config update for the object.
-	ConfigDelete  = 1 << 1, // Send a deletion command for the object to Redis.
-	VolatileState = 1 << 2, // Send a volatile state update to Redis (affects only checkables).
-	RuntimeState  = 1 << 3, // Send a runtime state update to Redis (affects only checkables).
-	NextUpdate    = 1 << 4, // Update the `icinga:nextupdate:{host,service}` Redis keys (affects only checkables).
+ConfigUpdate  = 1 << 0, // Trigger a Redis config update for the object.
+ConfigDelete  = 1 << 1, // Send a deletion command for the object to Redis.
+VolatileState = 1 << 2, // Send a volatile state update to Redis (affects only checkables).
+RuntimeState  = 1 << 3, // Send a runtime state update to Redis (affects only checkables).
+NextUpdate    = 1 << 4, // Update the `icinga:nextupdate:{host,service}` Redis keys (affects only checkables).
 
-	// The following dirty bits are used to mark why a particular runtime state update is required for a given
-	// checkable. Callers must combine these bits with the FullState or RuntimeState bit when enqueuing a checkable
-	// for a runtime state update.
-	StateChange   = 1 << 5,
-	DowntimeStart = 1 << 6,
-	DowntimeEnd   = 1 << 7,
-	AckSet        = 1 << 8,
-	AckClear      = 1 << 9,
+// The following dirty bits are used to mark why a particular runtime state update is required for a given
+// checkable. Callers must combine these bits with the FullState or RuntimeState bit when enqueuing a checkable
+// for a runtime state update.
+StateChange   = 1 << 5,
+DowntimeStart = 1 << 6,
+DowntimeEnd   = 1 << 7,
+AckSet        = 1 << 8,
+AckClear      = 1 << 9,
 
-	FullState = VolatileState | RuntimeState, // A combination of all (non-dependency) state-related dirty bits.
+FullState = VolatileState | RuntimeState, // A combination of all (non-dependency) state-related dirty bits.
 
-	// All valid dirty bits combined used for masking input values.
-	DirtyBitsAll = ConfigUpdate | ConfigDelete | FullState | NextUpdate | StateChange | DowntimeStart | DowntimeEnd |
-		AckSet | AckClear,
+// All valid dirty bits combined used for masking input values.
+DirtyBitsAll = ConfigUpdate | ConfigDelete | FullState | NextUpdate | StateChange | DowntimeStart | DowntimeEnd |
+	AckSet | AckClear,
 };
 
 
@@ -88,12 +88,12 @@ struct PendingConfigItem
 	String LastTriggeredOrRemovedDowntimeName;
 	double AckSetTime;
 
-	PendingConfigItem(
-		const ConfigObject::Ptr& obj,
-		uint32_t bits,
-		String lastTriggeredOrRemovedDowntimeName = "",
-		double ackSetTime                         = 0.0
-	);
+PendingConfigItem(
+	const ConfigObject::Ptr& obj,
+	uint32_t bits,
+	String lastTriggeredOrRemovedDowntimeName = "",
+	double ackSetTime                         = 0.0
+);
 
 	[[nodiscard]] ConfigObject* GetQueueLookupKey() const
 	{
@@ -502,12 +502,12 @@ private:
 	void ProcessQueueItem(const icingadb::task_queue::PendingDependencyEdgeItem& item);
 	void ProcessQueueItem(const icingadb::task_queue::RelationsDeletionItem& item);
 
-	void EnqueueConfigObject(
-		const ConfigObject::Ptr& object,
-		uint32_t bits,
-		const String& lastTriggeredOrRemovedDowntimeName = "",
-		double ackSetTime                                = 0.0
-	);
+void EnqueueConfigObject(
+	const ConfigObject::Ptr& object,
+	uint32_t bits,
+	const String& lastTriggeredOrRemovedDowntimeName = "",
+	double ackSetTime                                = 0.0
+);
 	void EnqueueDependencyGroupStateUpdate(const DependencyGroup::Ptr& depGroup);
 	void EnqueueDependencyChildRegistered(const DependencyGroup::Ptr& depGroup, const Checkable::Ptr& child);
 	void EnqueueDependencyChildRemoved(const DependencyGroup::Ptr& depGroup, const std::vector<Dependency::Ptr>& dependencies, bool removeGroup);
