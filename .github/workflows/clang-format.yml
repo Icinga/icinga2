@@ -16,6 +16,16 @@ jobs:
         with:
           fetch-depth: 0
 
+      # This step can be removed when we have access to a runner that has clang-format-23 by default
+      - name: Install clang-format 23
+        run: |
+          sudo install -d -m 0755 /etc/apt/keyrings
+          curl -fsSL https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/keyrings/apt.llvm.org.asc > /dev/null
+          echo 'deb [signed-by=/etc/apt/keyrings/apt.llvm.org.asc] http://apt.llvm.org/resolute/ llvm-toolchain-resolute-23 main' \
+            | sudo tee /etc/apt/sources.list.d/apt.llvm.org.list > /dev/null
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends clang-format-23
+
       - name: Check formatting of added and changed lines
         run: |
           # Clang-format only keeps a single empty line so that should be enough
@@ -23,10 +33,10 @@ jobs:
           git config diff.context 0
           git config diff.interHunkContext 1
 
-          # git-clang-format-22 defaults to invoking the unversioned
+          # git-clang-format-23 defaults to invoking the unversioned
           # `clang-format` binary internally, so pin it explicitly instead of
           # relying on PATH/alternatives to resolve to the right version.
-          if git-clang-format-22 --binary=clang-format-22 --quiet --diff --extensions c,h,cpp,hpp \
+          if git-clang-format-23 --binary=clang-format-23 --quiet --diff --extensions c,h,cpp,hpp \
             "$(git merge-base HEAD^1 HEAD^2)" HEAD^2 > clang-format.diff
           then
             exit 0
