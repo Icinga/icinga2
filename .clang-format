@@ -16,7 +16,8 @@ AlignAfterOpenBracket: BlockIndent
 # Gives nice alignment when assigning multiple variables in a row.
 # This also applies to enum value assignments and inline member initialization.
 AlignConsecutiveAssignments:
-  Enabled: true
+  Enabled: false
+  EnumAssignments: true
 
 # Mostly relevant for formatting preprocessor macros so that all backslashes align.
 AlignEscapedNewlines: LeftWithLastLine
