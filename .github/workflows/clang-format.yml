@@ -27,7 +27,7 @@ jobs:
           # `clang-format` binary internally, so pin it explicitly instead of
           # relying on PATH/alternatives to resolve to the right version.
           if git-clang-format-22 --binary=clang-format-22 --quiet --diff --extensions c,h,cpp,hpp \
-            "$(git merge-base HEAD^1 HEAD^2)" HEAD^2 -- ':(exclude)third-party/*' > clang-format.diff
+            "$(git merge-base HEAD^1 HEAD^2)" HEAD^2 > clang-format.diff
           then
             exit 0
           fi
@@ -88,7 +88,7 @@ jobs:
 
           For now, please apply the following command to fix the formatting:
 
-            git clang-format --extensions c,h,cpp,hpp "$(git merge-base HEAD origin/master)" -- ':(exclude)third-party/*'
+            git clang-format --extensions c,h,cpp,hpp "$(git merge-base HEAD origin/master)"
 
           In case of multiple commits, please do the following instead:
 
@@ -101,7 +101,7 @@ jobs:
           Resolve conflicts if any, then run:
 
             git commit --amend # git clang-format wants a clean worktree
-            git clang-format --extensions c,h,cpp,hpp "$(git merge-base HEAD origin/master)" -- ':(exclude)third-party/*'
+            git clang-format --extensions c,h,cpp,hpp "$(git merge-base HEAD origin/master)"
             git add -p
             git rebase --continue
 
