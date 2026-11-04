@@ -91,9 +91,6 @@ public:
 
 void ConfigObject::ModifyAttribute(const String& attr, const Value& value, bool updateVersion)
 {
-	Dictionary::Ptr original_attributes = GetOriginalAttributes();
-	bool updated_original_attributes = false;
-
 	Type::Ptr type = GetReflectionType();
 
 	std::vector<String> tokens = attr.Split(".");
@@ -113,15 +110,9 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value, bool 
 	if (field.Attributes & FANoUserModify)
 		BOOST_THROW_EXCEPTION(std::invalid_argument("Attribute cannot be modified."));
 
-	if (field.Attributes & FAConfig) {
-		if (!original_attributes) {
-			original_attributes = new Dictionary();
-			SetOriginalAttributes(original_attributes, true);
-		}
-	}
-
 	Value oldValue = GetField(fid);
 	Value newValue;
+	std::vector<std::pair<String, Value>> originalAttributesUpdates;
 
 	if (tokens.size() > 1) {
 		newValue = oldValue.Clone();
@@ -161,15 +152,11 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value, bool 
 		oldValue = dict->Get(key).Clone();
 
 		if (field.Attributes & FAConfig) {
-			updated_original_attributes = true;
-
 			if (oldValue.IsObjectType<Dictionary>()) {
 				Dictionary::Ptr oldDict = oldValue;
 				ObjectLock olock(oldDict);
 				for (const auto& kv : oldDict) {
-					String key = prefix + "." + kv.first;
-					if (!original_attributes->Contains(key))
-						original_attributes->Set(key, kv.second);
+					originalAttributesUpdates.emplace_back(prefix + "." + kv.first, std::move(kv.second));
 				}
 
 				/* store the new value as null */
@@ -177,13 +164,12 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value, bool 
 					Dictionary::Ptr valueDict = value;
 					ObjectLock olock(valueDict);
 					for (const auto& kv : valueDict) {
-						String key = attr + "." + kv.first;
-						if (!original_attributes->Contains(key))
-							original_attributes->Set(key, Empty);
+						originalAttributesUpdates.emplace_back(attr + "." + kv.first, Empty);
 					}
 				}
-			} else if (!original_attributes->Contains(attr))
-				original_attributes->Set(attr, oldValue);
+			} else {
+				originalAttributesUpdates.emplace_back(attr, std::move(oldValue));
+			}
 		}
 
 		dict->Set(key, value);
@@ -191,23 +177,40 @@ void ConfigObject::ModifyAttribute(const String& attr, const Value& value, bool 
 		newValue = value;
 
 		if (field.Attributes & FAConfig) {
-			if (!original_attributes->Contains(attr)) {
-				updated_original_attributes = true;
-				original_attributes->Set(attr, oldValue);
-			}
+			originalAttributesUpdates.emplace_back(attr, std::move(oldValue));
 		}
 	}
 
 	ModAttrValidationUtils utils;
 	ValidateField(fid, Lazy<Value>{newValue}, utils);
 
+	Dictionary::Ptr originalAttributes = GetOriginalAttributes();
+
+	if (field.Attributes & FAConfig) {
+		if (!originalAttributes) {
+			originalAttributes = new Dictionary();
+			SetOriginalAttributes(originalAttributes, true);
+		}
+	}
+
+	bool updatedOriginalAttributes = false;
+
+	for (auto& [key, val] : originalAttributesUpdates) {
+		if (!originalAttributes->Contains(key)) {
+			updatedOriginalAttributes = true;
+			originalAttributes->Set(key, std::move(val));
+		}
+	}
+
 	SetField(fid, newValue);
 
-	if (updateVersion && (field.Attributes & FAConfig))
+	if (updateVersion && (field.Attributes & FAConfig)) {
 		SetVersion(Utility::GetTime());
+	}
 
-	if (updated_original_attributes)
+	if (updatedOriginalAttributes) {
 		NotifyOriginalAttributes();
+	}
 }
 
 void ConfigObject::RestoreAttribute(const String& attr, bool updateVersion)
