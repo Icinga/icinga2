@@ -1579,6 +1579,13 @@ send notifications to all group members.
 > Only users who have been notified of a problem before  (`Warning`, `Critical`, `Unknown`
 states for services, `Down` for hosts) will receive `Recovery` notifications.
 
+By default, Icinga 2 suppresses duplicate Problem notifications for a user when the
+checkable is still in the same state as the last notified one. This prevents flooding
+users with repeated notifications for the same ongoing problem (e.g. after intermediate
+state changes were filtered out). The `suppress_duplicate_problem_notifications` attribute
+on the `Notification` object can be set to `false` to disable this behavior and send a
+Problem notification for every hard state transition into a selected state.
+
 Icinga 2 v2.10 allows you to configure a `User` object with `Acknowledgement` and/or `Recovery`
 without a `Problem` notification. These notifications will be sent without
 any problem notifications beforehand, and can be used for e.g. ticket systems.

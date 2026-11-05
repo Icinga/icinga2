@@ -20,7 +20,7 @@ struct DuplicateDueToFilterHelper
 	Notification::Ptr n = new Notification();
 	unsigned int called = 0;
 
-	DuplicateDueToFilterHelper(int typeFilter, int stateFilter)
+	DuplicateDueToFilterHelper(int typeFilter, int stateFilter, bool suppressDuplicate = true)
 	{
 		h->SetName("example.com", true);
 		h->Register();
@@ -43,6 +43,7 @@ struct DuplicateDueToFilterHelper
 		n->SetUsersRaw(new Array({"jdoe"}), true);
 		n->SetTypeFilter(typeFilter);
 		n->SetStateFilter(stateFilter);
+		n->SetFieldByName("suppress_duplicate_problem_notifications", suppressDuplicate, DebugInfo());
 		n->OnAllConfigLoaded(); // link Service
 	}
 
@@ -210,6 +211,37 @@ BOOST_AUTO_TEST_CASE(recovery_filter_duplicate)
 
 	helper.SendStateNotification(ServiceCritical, true);
 	helper.SendStateNotification(ServiceOK, false);
+	helper.SendStateNotification(ServiceCritical, true);
+}
+
+BOOST_AUTO_TEST_CASE(filter_problem_no_duplicate_suppress_false)
+{
+	// With suppress_duplicate_problem_notifications=false, duplicate problems are NOT suppressed.
+	DuplicateDueToFilterHelper helper(~0, ~StateFilterWarning, false);
+
+	helper.SendStateNotification(ServiceCritical, true);
+	helper.SendStateNotification(ServiceWarning, false);
+	helper.SendStateNotification(ServiceCritical, true);
+}
+
+BOOST_AUTO_TEST_CASE(no_filter_problem_no_duplicate_suppress_false)
+{
+	// With suppress_duplicate_problem_notifications=false, duplicate problems are NOT suppressed.
+	DuplicateDueToFilterHelper helper(~0, ~0, false);
+
+	helper.SendStateNotification(ServiceCritical, true);
+	helper.SendStateNotification(ServiceWarning, true);
+	helper.SendStateNotification(ServiceCritical, true);
+}
+
+BOOST_AUTO_TEST_CASE(volatile_filter_problem_duplicate_suppress_false)
+{
+	// Volatile checkables already bypass duplicate suppression; the attribute=false should not change this.
+	DuplicateDueToFilterHelper helper(~0, ~StateFilterWarning, false);
+
+	helper.s->SetVolatile(true, true);
+	helper.SendStateNotification(ServiceCritical, true);
+	helper.SendStateNotification(ServiceWarning, false);
 	helper.SendStateNotification(ServiceCritical, true);
 }
 
