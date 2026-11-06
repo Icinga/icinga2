@@ -1,5 +1,7 @@
 linux-build:
   stage: build
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
   script:
     - case "$IMAGE_NAME" in alpine:*) apk add bash ;; esac
     - DISTRO="$IMAGE_NAME" ICINGA2_SOURCE_DIR="$CI_PROJECT_DIR" tools/linux/ci-build.sh
@@ -55,3 +57,17 @@ linux-build:
           - rockylinux:8
         OS_ARCH: aarch64
         DOCKER_PLATFORM: linux/arm64
+
+clang-format:
+  stage: test
+  needs: []
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  before_script:
+    - apk add git python3 clang22-extra-tools
+  script:
+    - git clang-format --diff --extensions c,h,cpp,hpp "$CI_MERGE_REQUEST_DIFF_BASE_SHA" HEAD
+  image:
+    name: alpine:latest
+  tags:
+    - noarch
