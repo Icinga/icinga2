@@ -123,7 +123,7 @@ int NodeWizardCommand::Run(const boost::program_options::variables_map& vm,
 		<< ConsoleColorTag(Console_Normal);
 
 	std::cout << ConsoleColorTag(Console_Bold | Console_ForegroundRed)
-		<< "Now restart your Icinga 2 daemon to finish the installation!\n"
+		<< "Now reload your Icinga 2 daemon to finish the installation!\n"
 		<< ConsoleColorTag(Console_Normal);
 
 	return 0;
@@ -574,7 +574,7 @@ wizard_global_zone_loop_start:
 			<< "Please copy the public CA certificate from your master/satellite\n"
 			<< "into '" << nodeCA << "' before starting Icinga 2.\n";
 	} else {
-		Log(LogInformation, "cli", "Make sure to restart Icinga 2.");
+		Log(LogInformation, "cli", "Make sure to reload Icinga 2.");
 	}
 
 	/* Disable conf.d inclusion */
