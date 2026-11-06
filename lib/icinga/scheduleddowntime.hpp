@@ -41,6 +41,7 @@ public:
 protected:
 	void OnAllConfigLoaded() override;
 	void Start(bool runtimeCreated) override;
+	void ValidateDuration(const Lazy<Timestamp>& lvalue, const ValidationUtils& utils) override;
 
 private:
 	static void TimerProc();
