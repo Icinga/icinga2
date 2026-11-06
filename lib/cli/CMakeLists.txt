@@ -12,6 +12,7 @@ set(cli_SOURCES
   clicommand.cpp clicommand.hpp
   consolecommand.cpp consolecommand.hpp
   daemoncommand.cpp daemoncommand.hpp
+  daemoncontrol.cpp daemoncontrol.hpp
   daemonutility.cpp daemonutility.hpp
   editline.hpp
   featuredisablecommand.cpp featuredisablecommand.hpp
