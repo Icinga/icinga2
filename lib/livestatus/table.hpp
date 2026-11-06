@@ -8,6 +8,7 @@
 #include "base/object.hpp"
 #include "base/dictionary.hpp"
 #include "base/array.hpp"
+#include <map>
 #include <vector>
 
 namespace icinga

@@ -7,6 +7,7 @@
 #ifndef _WIN32
 #include "base/i2-base.hpp"
 #include "base/sysloglogger-ti.hpp"
+#include <unordered_map>
 
 namespace icinga
 {
@@ -25,7 +26,7 @@ public:
     static int FacilityToNumber(const String& facility);
 
 private:
-    static std::map<String, int> m_FacilityMap;
+    static std::unordered_map<String, int> m_FacilityMap;
 };
 
 /**

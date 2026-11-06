@@ -47,7 +47,7 @@ private:
 
 	void StateChangeHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
 	void CheckResultHandler(const Checkable::Ptr& checkable, const CheckResult::Ptr& cr);
-	void NotificationSentToAllUsersHandler(const Checkable::Ptr& checkable, const std::set<User::Ptr>& users,
+	void NotificationSentToAllUsersHandler(const Checkable::Ptr& checkable, const std::unordered_set<User::Ptr>& users,
 		NotificationType type, const CheckResult::Ptr& cr, const String& author, const String& text);
 
 	void Enqueue(const Checkable::Ptr& checkable, const String& type,
