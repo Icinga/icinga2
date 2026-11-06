@@ -46,37 +46,6 @@ RUN apt-get update && \
 # Set the default working directory for subsequent commands of the next stages.
 WORKDIR /icinga2-build
 
-FROM build-base AS build-plugins
-
-# Install all the plugins that are not included in the monitoring-plugins package.
-ADD https://github.com/lausser/check_mssql_health.git#747af4c3c261790341da164b58d84db9c7fa5480 /check_mssql_health
-ADD https://github.com/lausser/check_nwc_health.git#a5295475c9bbd6df9fe7432347f7c5aba16b49df /check_nwc_health
-ADD https://github.com/bucardo/check_postgres.git#58de936fdfe4073413340cbd9061aa69099f1680 /check_postgres
-ADD https://github.com/matteocorti/check_ssl_cert.git#341b5813108fb2367ada81e866da989ea4fb29e7 /check_ssl_cert
-
-WORKDIR /check_mssql_health
-RUN mkdir bin && \
-    autoconf && \
-    autoreconf && \
-    ./configure "--build=$(uname -m)-unknown-linux-gnu" --libexecdir=/usr/lib/nagios/plugins && \
-    make && \
-    make install DESTDIR="$(pwd)/bin"
-
-WORKDIR /check_nwc_health
-RUN mkdir bin && \
-    autoreconf && \
-    ./configure "--build=$(uname -m)-unknown-linux-gnu" --libexecdir=/usr/lib/nagios/plugins && \
-    make && \
-    make install DESTDIR="$(pwd)/bin"
-
-WORKDIR /check_postgres
-RUN mkdir bin && \
-    perl Makefile.PL INSTALLSITESCRIPT=/usr/lib/nagios/plugins && \
-    make && \
-    make install DESTDIR="$(pwd)/bin" && \
-    # This is necessary because of this build error: cannot copy to non-directory: /var/lib/docker/.../merged/usr/local/man
-    rm -rf bin/usr/local/man
-
 FROM build-base AS build-icinga2
 
 # To access the automated build arguments in the Dockerfile originated from the Docker BuildKit [^1],
@@ -144,6 +113,9 @@ FROM debian:trixie-slim AS icinga2
 # The real UID of the Icinga user to be used in the final image.
 ARG ICINGA_USER_ID=5665
 
+# TODO: Change "from" to final container name
+COPY --from=icinga2-plugins-container / /
+
 # Install the necessary runtime dependencies for the Icinga 2 binary and the monitoring-plugins.
 RUN apt-get update && \
     apt-get upgrade -y && \
@@ -176,7 +148,9 @@ RUN apt-get update && \
         msmtp \
         msmtp-mta \
         openssh-client \
-        openssl && \
+        openssl \
+        $(cat /icinga2-plugins-debian-requirements) && \
+    rm /icinga2-plugins-debian-requirements && \
     # Official Debian images automatically run `apt-get clean` after every install, so we don't need to do it here.
     rm -rf /var/lib/apt/lists/*
 
@@ -190,11 +164,6 @@ RUN adduser \
     --disabled-login \
     --no-create-home \
     --uid ${ICINGA_USER_ID} icinga
-
-COPY --from=build-plugins /check_mssql_health/bin/ /
-COPY --from=build-plugins /check_nwc_health/bin/ /
-COPY --from=build-plugins /check_postgres/bin/ /
-COPY --from=build-plugins /check_ssl_cert/check_ssl_cert /usr/lib/nagios/plugins/check_ssl_cert
 
 COPY --from=build-icinga2 /icinga2-install/ /
 
