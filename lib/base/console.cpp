@@ -9,6 +9,12 @@ using namespace icinga;
 
 static ConsoleType l_ConsoleType = Console_Dumb;
 
+#ifdef _WIN32
+#ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
+#define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
+#endif /* ENABLE_VIRTUAL_TERMINAL_PROCESSING */
+#endif /* _WIN32 */
+
 static void InitializeConsole()
 {
 	l_ConsoleType = Console_Dumb;
@@ -17,7 +23,25 @@ static void InitializeConsole()
 	if (isatty(1))
 		l_ConsoleType = Console_VT100;
 #else /* _WIN32 */
-	l_ConsoleType = Console_Windows;
+	// Unlike isatty(1) on *nix, this isn't a passive check: VT100 processing is off by
+	// default per-handle and has to be actively turned on for each of stdout/stderr.
+	// l_ConsoleType is a single flag shared by both streams, so only use Console_VT100
+	// if enabling it succeeds for both - otherwise whichever one failed would still
+	// end up with raw escape codes written to it.
+	bool vt100 = true;
+
+	for (DWORD stdHandleId : {STD_OUTPUT_HANDLE, STD_ERROR_HANDLE}) {
+		HANDLE handle = GetStdHandle(stdHandleId);
+		DWORD mode;
+
+		if (!GetConsoleMode(handle, &mode) || !SetConsoleMode(handle, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING)) {
+			vt100 = false;
+		}
+	}
+
+	if (vt100) {
+		l_ConsoleType = Console_VT100;
+	}
 #endif /* _WIN32 */
 }
 
@@ -29,15 +53,8 @@ ConsoleColorTag::ConsoleColorTag(int color, ConsoleType consoleType)
 
 std::ostream& icinga::operator<<(std::ostream& fp, const ConsoleColorTag& cct)
 {
-#ifndef _WIN32
 	if (cct.m_ConsoleType == Console_VT100 || Console::GetType(fp) == Console_VT100)
 		Console::PrintVT100ColorCode(fp, cct.m_Color);
-#else /* _WIN32 */
-	if (Console::GetType(fp) == Console_Windows) {
-		fp.flush();
-		Console::SetWindowsConsoleColor(fp, cct.m_Color);
-	}
-#endif /* _WIN32 */
 
 	return fp;
 }
@@ -56,7 +73,6 @@ ConsoleType Console::GetType(std::ostream& fp)
 		return Console_Dumb;
 }
 
-#ifndef _WIN32
 void Console::PrintVT100ColorCode(std::ostream& fp, int color)
 {
 	if (color == Console_Normal) {
@@ -121,84 +137,3 @@ void Console::PrintVT100ColorCode(std::ostream& fp, int color)
 	if (color & Console_Bold)
 		fp << "\33[1m";
 }
-#else /* _WIN32 */
-void Console::SetWindowsConsoleColor(std::ostream& fp, int color)
-{
-	CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
-	HANDLE hConsole;
-
-	if (&fp == &std::cout)
-		hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-	else if (&fp == &std::cerr)
-		hConsole = GetStdHandle(STD_ERROR_HANDLE);
-	else
-		return;
-
-	if (!GetConsoleScreenBufferInfo(hConsole, &consoleInfo))
-		return;
-
-	WORD attrs = 0;
-
-	if (color == Console_Normal)
-		attrs = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
-
-	switch (color & 0xff) {
-		case Console_ForegroundBlack:
-			attrs |= 0;
-			break;
-		case Console_ForegroundRed:
-			attrs |= FOREGROUND_RED;
-			break;
-		case Console_ForegroundGreen:
-			attrs |= FOREGROUND_GREEN;
-			break;
-		case Console_ForegroundYellow:
-			attrs |= FOREGROUND_RED | FOREGROUND_GREEN;
-			break;
-		case Console_ForegroundBlue:
-			attrs |= FOREGROUND_BLUE;
-			break;
-		case Console_ForegroundMagenta:
-			attrs |= FOREGROUND_RED | FOREGROUND_BLUE;
-			break;
-		case Console_ForegroundCyan:
-			attrs |= FOREGROUND_GREEN | FOREGROUND_BLUE;
-			break;
-		case Console_ForegroundWhite:
-			attrs |= FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
-			break;
-	}
-
-	switch (color & 0xff00) {
-		case Console_BackgroundBlack:
-			attrs |= 0;
-			break;
-		case Console_BackgroundRed:
-			attrs |= BACKGROUND_RED;
-			break;
-		case Console_BackgroundGreen:
-			attrs |= BACKGROUND_GREEN;
-			break;
-		case Console_BackgroundYellow:
-			attrs |= BACKGROUND_RED | BACKGROUND_GREEN;
-			break;
-		case Console_BackgroundBlue:
-			attrs |= BACKGROUND_BLUE;
-			break;
-		case Console_BackgroundMagenta:
-			attrs |= BACKGROUND_RED | BACKGROUND_BLUE;
-			break;
-		case Console_BackgroundCyan:
-			attrs |= BACKGROUND_GREEN | BACKGROUND_BLUE;
-			break;
-		case Console_BackgroundWhite:
-			attrs |= BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE;
-			break;
-	}
-
-	if (color & Console_Bold)
-		attrs |= FOREGROUND_INTENSITY;
-
-	SetConsoleTextAttribute(hConsole, attrs);
-}
-#endif /* _WIN32 */
