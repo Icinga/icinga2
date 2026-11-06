@@ -102,13 +102,13 @@ if [ ! -e "$ca" ]; then
                 trustedCertFile=$(mktemp /tmp/trusted.cert.XXXXXXXX)
                 printf "%s" "$value" > "$trustedCertFile"
                 nodeSetup+=("--$key" "$trustedCertFile")
-                chmod 0644 "$trustedCertFile"
+                chmod 0640 "$trustedCertFile"
                 ;;
             "cacert")
                 icinga2_log "information" "Writing CA certificate to $ca."
                 runNodeSetup=true
                 printf "%s" "$value" > "$ca"
-                chmod 0644 "$ca"
+                chmod 0640 "$ca"
                 ;;
             "log_level")
                 # Ignore. To be used when launching Icinga 2 below.
@@ -137,7 +137,7 @@ msmtprc_path="/var/lib/icinga2/.msmtprc"
 if [ ! -e "$msmtprc_path" ] && [ -n "${MSMTPRC}" ]; then
     icinga2_log "information" "Configuring msmtp with the provided MSMTPRC environment variable."
     printf "%s" "$MSMTPRC" > "$msmtprc_path"
-    chmod 0644 "$msmtprc_path"
+    chmod 0640 "$msmtprc_path"
 fi
 
 icinga2_log "information" "Finished Icinga 2 Docker entrypoint script."
