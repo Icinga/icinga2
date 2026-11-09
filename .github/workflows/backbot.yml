@@ -55,4 +55,8 @@ jobs:
             Backport of #${pull_number} to `${target_branch}`, triggered by a label.
 
             ---
+
+            ${pull_description}
+
+            ---
             This is an automated backport PR. Please review it carefully before merging.
