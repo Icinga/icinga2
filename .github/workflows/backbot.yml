@@ -41,7 +41,6 @@ jobs:
         uses: actions/checkout@v7
         with:
           token: ${{ steps.backbot-token.outputs.token }} # To make authenticated git operations.
-          sha: ${{ github.event.pull_request.head.sha }} # Checkout the latest commit of the merged PR.
 
       - name: Run Backbot
         uses: korthout/backport-action@0ebd44f9c79a4a0a171200dcdcceec3ed9ca732f # v4.7.1
@@ -50,8 +49,13 @@ jobs:
           copy_labels_pattern: '^(?!cla\/signed$).*' # copy all labels other than the cla/signed label
           label_pattern: 'backport-to-(support\/\d+\.\d+)' # regex to match labels like backport-to-support/2.14
           merge_commits: skip # skip merge commits found in the original PR history
+          comment_style: summary # Post a summary comment on the original PR with links to the backport PRs.
           pull_description: |-
             Backport of #${pull_number} to `${target_branch}`, triggered by a label.
+
+            ---
+
+            ${pull_description}
 
             ---
             This is an automated backport PR. Please review it carefully before merging.
