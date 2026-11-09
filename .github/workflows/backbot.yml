@@ -41,7 +41,6 @@ jobs:
         uses: actions/checkout@v7
         with:
           token: ${{ steps.backbot-token.outputs.token }} # To make authenticated git operations.
-          sha: ${{ github.event.pull_request.head.sha }} # Checkout the latest commit of the merged PR.
 
       - name: Run Backbot
         uses: korthout/backport-action@ad30f01dbe543be4a24431001c38f3617af8c745 # v4.4.0
