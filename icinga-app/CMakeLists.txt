@@ -78,6 +78,10 @@ target_link_libraries(icinga-app
   cli
 )
 
+if(JEMALLOC_LIBRARIES)
+  target_link_libraries(icinga-app ${JEMALLOC_LIBRARIES})
+endif()
+
 set_target_properties (
   icinga-app PROPERTIES
   FOLDER Bin
