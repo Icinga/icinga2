@@ -64,10 +64,10 @@ clang-format:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
   before_script:
-    - apk add git python3 clang22-extra-tools
+    - apk add git python3 clang23-extra-tools
   script:
     - git clang-format --diff --extensions c,h,cpp,hpp "$CI_MERGE_REQUEST_DIFF_BASE_SHA" HEAD
   image:
-    name: alpine:latest
+    name: alpine:edge
   tags:
     - noarch
