@@ -2,17 +2,18 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "remote/eventshandler.hpp"
-#include "remote/httputility.hpp"
-#include "remote/filterutility.hpp"
-#include "config/configcompiler.hpp"
-#include "config/expression.hpp"
+#include "base/accesslogger.hpp"
 #include "base/defer.hpp"
 #include "base/io-engine.hpp"
-#include "base/objectlock.hpp"
 #include "base/json.hpp"
+#include "base/objectlock.hpp"
+#include "config/configcompiler.hpp"
+#include "config/expression.hpp"
+#include "remote/filterutility.hpp"
+#include "remote/httputility.hpp"
+#include <boost/algorithm/string/replace.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/write.hpp>
-#include <boost/algorithm/string/replace.hpp>
 #include <map>
 #include <set>
 
@@ -107,6 +108,9 @@ bool EventsHandler::HandleRequest(
 
 	response.result(http::status::ok);
 	response.set(http::field::content_type, "application/json");
+
+	LogAccess(request.Stream(), request, user ? user->GetName() : "", response);
+
 	response.StartStreaming(true);
 	// Send response headers before waiting for the first event.
 	response.Flush(yc);
