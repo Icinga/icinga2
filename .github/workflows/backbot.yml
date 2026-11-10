@@ -13,7 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       github.repository_owner == 'Icinga' &&
-      github.event.pull_request.merged == true && (
+      github.event.pull_request.merged == true &&
+      contains(toJSON(github.event.pull_request.labels.*.name), '"backport-to-support/') && (
         github.event.action != 'labeled' ||
         startsWith(github.event.label.name, 'backport-to-support/')
       )
