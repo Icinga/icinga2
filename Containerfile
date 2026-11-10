@@ -33,9 +33,9 @@ RUN apt-get update && \
         libboost-system1.83-dev \
         libboost-thread1.83-dev \
         libboost-test1.83-dev \
-        libedit-dev \
         libmariadb-dev \
         libpq-dev \
+        libreadline-dev \
         libssl-dev \
         libsystemd-dev \
         libprotobuf-dev \
@@ -135,7 +135,7 @@ RUN --mount=type=bind,source=.,target=/icinga2,readonly \
 
 RUN rm -rf /icinga2-install/etc/icinga2/features-enabled/mainlog.conf \
         /icinga2-install/usr/share/doc/icinga2/markdown && \
-    strip -g /icinga2-install/usr/lib/*/icinga2/sbin/icinga2 && \
+    strip -g /icinga2-install/usr/sbin/icinga2 && \
     strip -g /icinga2-install/usr/lib/nagios/plugins/check_nscp_api
 
 # Prepare the final image with the necessary configuration files and runtime dependencies.
@@ -163,12 +163,12 @@ RUN apt-get update && \
         libboost-system1.83.0 \
         libboost-thread1.83.0 \
         libcap2-bin \
-        libedit2 \
         libldap-common \
         libmariadb3 \
         libmoosex-role-timer-perl \
         libpq5 \
         libprotobuf-lite32t64 \
+        libreadline8t64 \
         libssl3 \
         libsystemd0 \
         mailutils \

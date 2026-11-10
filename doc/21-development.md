@@ -71,10 +71,10 @@ SLES/openSUSE      | `zypper install gdb`
 
 #### GDB Run <a id="development-debug-gdb-run"></a>
 
-Run the icinga2 binary `/usr/lib{,64}/icinga2/sbin/icinga2` with gdb, `/usr/bin/icinga2` is a shell wrapper.
+Run the icinga2 binary `/usr/sbin/icinga2` with gdb.
 
 ```
-gdb --args /usr/lib/icinga2/sbin/icinga2 daemon
+gdb --args /usr/sbin/icinga2 daemon
 
 (gdb) set follow-fork-mode child
 ```
@@ -85,7 +85,7 @@ process and can safely be ignored.
 
 > **Note**
 >
-> Since v2.11 we would attach to the umbrella process spawned with `/usr/lib/icinga2/sbin/icinga2`,
+> Since v2.11 we would attach to the umbrella process spawned with `/usr/sbin/icinga2`,
 > therefore rather attach to a running process.
 >
 ```bash
@@ -425,7 +425,7 @@ rm /var/lib/cores/core.sleep.*
 Analyzing Icinga 2:
 
 ```
-gdb /usr/lib64/icinga2/sbin/icinga2 core.icinga2.<PID>
+gdb /usr/sbin/icinga2 core.icinga2.<PID>
 (gdb) bt
 ```
 
@@ -1444,7 +1444,7 @@ yum -y install gdb vim git bash-completion htop
 yum -y install rpmdevtools ccache \
  cmake make gcc-c++ flex bison \
  openssl-devel boost-devel systemd-devel \
- mysql-devel postgresql-devel libedit-devel \
+ mysql-devel postgresql-devel readline-devel \
  libstdc++-devel
 
 groupadd icinga
@@ -1498,7 +1498,7 @@ chown -R icinga:icinga /usr/local/icinga2/{etc,var}/
 /usr/local/icinga2/sbin/icinga2 api setup
 vim /usr/local/icinga2/etc/icinga2/conf.d/api-users.conf
 
-/usr/local/icinga2/lib64/icinga2/sbin/icinga2 daemon
+/usr/local/icinga2/sbin/icinga2 daemon
 ```
 
 #### Debian 10 <a id="development-linux-dev-env-debian"></a>
@@ -1513,7 +1513,7 @@ docker run -ti debian:buster bash
 apt-get update
 apt-get -y install apt-transport-https wget gnupg
 
-apt-get -y install gdb vim git cmake make ccache build-essential libssl-dev bison flex default-libmysqlclient-dev libpq-dev libedit-dev monitoring-plugins
+apt-get -y install gdb vim git cmake make ccache build-essential libssl-dev bison flex default-libmysqlclient-dev libpq-dev libreadline-dev monitoring-plugins
 apt-get -y install libboost-all-dev
 ```
 
@@ -1551,7 +1551,7 @@ chown -R icinga:icinga /usr/local/icinga2/{etc,var}/
 /usr/local/icinga2/sbin/icinga2 api setup
 vim /usr/local/icinga2/etc/icinga2/conf.d/api-users.conf
 
-/usr/local/icinga2/lib/icinga2/sbin/icinga2 daemon
+/usr/local/icinga2/sbin/icinga2 daemon
 ```
 
 
@@ -1577,7 +1577,7 @@ apt-get update
 ```
 
 ```bash
-apt-get -y install gdb vim git cmake make ccache build-essential libssl-dev bison flex default-libmysqlclient-dev libpq-dev libedit-dev monitoring-plugins
+apt-get -y install gdb vim git cmake make ccache build-essential libssl-dev bison flex default-libmysqlclient-dev libpq-dev libreadline-dev monitoring-plugins
 
 apt-get install -y libboost1.67-icinga-all-dev
 
@@ -1615,7 +1615,7 @@ chown -R icinga:icinga /usr/local/icinga2/{etc,var}/
 /usr/local/icinga2/sbin/icinga2 api setup
 vim /usr/local/icinga2/etc/icinga2/conf.d/api-users.conf
 
-/usr/local/icinga2/lib/icinga2/sbin/icinga2 daemon
+/usr/local/icinga2/sbin/icinga2 daemon
 ```
 
 ### macOS Dev Environment <a id="development-macos-dev-env"></a>
@@ -2273,10 +2273,11 @@ Icinga application using a dist tarball (including notes for distributions):
     * RHEL/Fedora: postgresql-devel
     * Debian/Ubuntu: libpq-dev
     * postgresql-dev on Alpine
-* libedit (CLI console)
-    * RHEL/Fedora: libedit-devel (RHEL requires rhel-7-server-optional-rpms)
-    * Debian/Ubuntu/Alpine: libedit-dev
-* Termcap (only required if libedit doesn't already link against termcap/ncurses)
+* GNU Readline (CLI console)
+    * RHEL/Fedora/SUSE: readline-devel
+    * Debian/Ubuntu: libreadline-dev
+    * Alpine: readline-dev
+* Termcap (only required if readline doesn't already link against termcap/ncurses)
     * RHEL/Fedora: libtermcap-devel
     * Debian/Ubuntu: (not necessary)
 
@@ -2480,7 +2481,7 @@ cd $HOME/rpmbuild
 Install the build dependencies:
 
 ```bash
-yum -y install libedit-devel ncurses-devel gcc-c++ libstdc++-devel openssl-devel \
+yum -y install readline-devel ncurses-devel gcc-c++ libstdc++-devel openssl-devel \
 cmake flex bison boost-devel systemd mysql-devel postgresql-devel httpd \
 selinux-policy-devel checkpolicy selinux-policy selinux-policy-doc
 ```
