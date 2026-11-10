@@ -10,10 +10,17 @@
 #include "base/dictionary.hpp"
 #include "base/function.hpp"
 #include "base/exception.hpp"
+#include "base/logger.hpp"
 #include "base/scriptframe.hpp"
 #include "base/shared-object.hpp"
 #include "base/convert.hpp"
+#include <cmath>
+#include <cstdint>
+#include <iterator>
 #include <map>
+#include <memory>
+#include <utility>
+#include <vector>
 
 namespace icinga
 {
@@ -563,23 +570,116 @@ protected:
 	ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class LogicalAndExpression final : public BinaryExpression
+class AssociativeExpression : public BinaryExpression
+{
+public:
+	using BinaryExpression::BinaryExpression;
+
+protected:
+	template<class Branch>
+	void RebalanceLeaves()
+	{
+		uintmax_t count = 0, depth = 0, depthBuf = 0;
+		StatLeaves<Branch>(count, depth, depthBuf);
+
+		if (depth > logl(count) / m_Log2 * 2) {
+			{
+				Log msg (LogDebug, "config");
+
+				msg << "Detected associative expression tree with " << count << " leaves, but "
+					<< depth << " > log2(" << count << ") * 2 nesting levels. Rebalancing to log2(" << count << ") nesting levels.\n";
+
+				ShowCodeLocation(msg, m_DebugInfo);
+			}
+
+			std::vector<std::unique_ptr<Expression>> leaves;
+			leaves.reserve(count);
+			HarvestLeaves<Branch>(leaves);
+
+			auto split (leaves.begin() + leaves.size() / 2u);
+			m_Operand1 = AssembleLeaves<Branch>(leaves.begin(), split);
+			m_Operand2 = AssembleLeaves<Branch>(split, leaves.end());
+		}
+	}
+
+private:
+	static const long double m_Log2;
+
+	template<class Branch>
+	void StatLeaves(uintmax_t& count, uintmax_t& depth, uintmax_t& depthBuf)
+	{
+		++depthBuf;
+
+		if (depth < depthBuf) {
+			depth = depthBuf;
+		}
+
+		for (auto op : {m_Operand1.get(), m_Operand2.get()}) {
+			auto branch (dynamic_cast<Branch*>(op));
+
+			if (branch == nullptr) {
+				count += 1u;
+			} else {
+				branch->template StatLeaves<Branch>(count, depth, depthBuf);
+			}
+		}
+
+		--depthBuf;
+	}
+
+	template<class Branch>
+	void HarvestLeaves(std::vector<std::unique_ptr<Expression>>& leaves)
+	{
+		for (auto op : {&m_Operand1, &m_Operand2}) {
+			auto branch (dynamic_cast<Branch*>(op->get()));
+
+			if (branch == nullptr) {
+				leaves.emplace_back(std::move(*op));
+			} else {
+				branch->template HarvestLeaves<Branch>(leaves);
+			}
+		}
+	}
+
+	template<class Branch, class Iter>
+	std::unique_ptr<Expression> AssembleLeaves(Iter begin, Iter end)
+	{
+		auto distance (std::distance(begin, end));
+
+		if (distance < 2u) {
+			return std::move(*begin);
+		} else {
+			auto split (begin + distance / 2u);
+
+			return std::unique_ptr<Branch>(new Branch(
+				AssembleLeaves<Branch, Iter>(std::move(begin), split),
+				AssembleLeaves<Branch, Iter>(split, std::move(end))
+			));
+		}
+	}
+};
+
+class LogicalAndExpression final : public AssociativeExpression
 {
 public:
 	LogicalAndExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
-		: BinaryExpression(std::move(operand1), std::move(operand2), debugInfo)
-	{ }
+		: AssociativeExpression(std::move(operand1), std::move(operand2), debugInfo)
+	{
+		RebalanceLeaves<LogicalAndExpression>();
+	}
 
 protected:
 	ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
 };
 
-class LogicalOrExpression final : public BinaryExpression
+class LogicalOrExpression final : public AssociativeExpression
 {
 public:
 	LogicalOrExpression(std::unique_ptr<Expression> operand1, std::unique_ptr<Expression> operand2, const DebugInfo& debugInfo = DebugInfo())
-		: BinaryExpression(std::move(operand1), std::move(operand2), debugInfo)
-	{ }
+		: AssociativeExpression(std::move(operand1), std::move(operand2), debugInfo)
+	{
+		RebalanceLeaves<LogicalOrExpression>();
+	}
 
 protected:
 	ExpressionResult DoEvaluate(ScriptFrame& frame, DebugHint *dhint) const override;
