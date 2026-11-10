@@ -391,12 +391,10 @@ static int Main()
 	}
 #endif /* _WIN32 */
 
-#ifndef _WIN32
 	if (vm.count("color")) {
 		Console::SetType(std::cout, Console_VT100);
 		Console::SetType(std::cerr, Console_VT100);
 	}
-#endif /* _WIN32 */
 
 	if (vm.count("define")) {
 		for (String define : vm["define"].as<std::vector<std::string>>()) {
