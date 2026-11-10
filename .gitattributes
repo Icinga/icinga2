@@ -1,2 +1,5 @@
 debian/ export-ignore
 .gitattributes export-ignore
+
+# Include version information on `git archive'
+/.git-archive-version export-subst
