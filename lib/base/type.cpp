@@ -8,6 +8,7 @@
 #include "base/scriptglobal.hpp"
 #include "base/namespace.hpp"
 #include "base/objectlock.hpp"
+#include <algorithm>
 #include <functional>
 
 using namespace icinga;
@@ -94,7 +95,7 @@ Type::Ptr Type::GetByName(const String& name)
 	return ptype;
 }
 
-std::vector<Type::Ptr> Type::GetAllTypes()
+std::vector<Type::Ptr> Type::GetAllTypes(bool sorted)
 {
 	std::vector<Type::Ptr> types;
 
@@ -109,6 +110,12 @@ std::vector<Type::Ptr> Type::GetAllTypes()
 			if (value.IsObjectType<Type>())
 				types.push_back(value);
 		}
+	}
+
+	if (sorted) {
+		std::sort(types.begin(), types.end(), [](const Type::Ptr& a, const Type::Ptr& b) {
+			return a->GetName() < b->GetName();
+		});
 	}
 
 	return types;
