@@ -22,7 +22,9 @@ public:
 class Notification : CustomVarObject < NotificationNameComposer
 {
 	load_after Host;
+	load_after HostGroup;
 	load_after Service;
+	load_after ServiceGroup;
 	load_after User;
 	load_after UserGroup;
 
