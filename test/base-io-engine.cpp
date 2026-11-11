@@ -157,4 +157,46 @@ BOOST_AUTO_TEST_CASE(timeout_due_scope)
 	BOOST_CHECK_EQUAL(called, 0);
 }
 
+// Test case for issue https://github.com/boostorg/context/issues/323
+// Affected boost versions are 1.88 - 1.91.
+// This can be removed once these versions are no longer supported.
+// Note that the fix for this doesn't strictly live in io-engine, but in a header that is
+// force-included globally via CMake.
+BOOST_AUTO_TEST_CASE(resume_on_other_thread_keeps_exception_state)
+{
+	boost::asio::io_context io;
+
+	// A coroutine that suspends immediately and sets a bool when it has resumed and finished.
+	bool coroutineFinished{};
+	IoEngine::SpawnCoroutine(io, [&](boost::asio::yield_context yc) {
+		boost::asio::post(io, yc);
+		coroutineFinished = true;
+	});
+
+	// Run the coroutine to the first suspension point inside this thread.
+	BOOST_REQUIRE_EQUAL(io.run_one(), 1u);
+
+	try {
+		// This essentially just sets the exception state to a valid exception.
+		throw std::runtime_error("test");
+	} catch (const std::exception&) {
+		// Verify that the exception state is valid.
+		BOOST_REQUIRE(std::current_exception());
+
+		// Now if the coroutine stack holds a cached result of __cxa_get_globals(), resuming
+		// the coroutine in this thread will cause it to be overwritten.
+		std::thread other([&io] { io.run_one(); });
+		other.join();
+		BOOST_REQUIRE(coroutineFinished);
+
+		// Check if the exception state has been overwritten in the thread above.
+		// Note that technically there is nothing stopping the compiler from inlining/caching the
+		// result of this check, **except** when the bug occurs, because then the thread above
+		// has access to the exception state returned by __cxa_get_globals() and thus the compiler
+		// has to assume the thread could have changed it. This is the fact that makes this test
+		// case reliable.
+		BOOST_REQUIRE(std::current_exception());
+	}
+}
+
 BOOST_AUTO_TEST_SUITE_END()
