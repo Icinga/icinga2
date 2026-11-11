@@ -257,7 +257,7 @@ bool Utility::CidrMatch(const String& pattern, const String& ip)
  */
 String Utility::DirName(const String& path)
 {
-	return boost::filesystem::path(path.Begin(), path.End()).parent_path().string();
+	return boost::filesystem::path{*path}.parent_path().string();
 }
 
 /**
@@ -268,7 +268,7 @@ String Utility::DirName(const String& path)
  */
 String Utility::BaseName(const String& path)
 {
-	return boost::filesystem::path(path.Begin(), path.End()).filename().string();
+	return boost::filesystem::path{*path}.filename().string();
 }
 
 /**
@@ -403,7 +403,7 @@ static bool GlobHelper(const String& pathSpec, int type, std::vector<String>& fi
 		BOOST_THROW_EXCEPTION(win32_error()
 			<< boost::errinfo_api_function("FindFirstFile")
 			<< errinfo_win32_error(errorCode)
-			<< boost::errinfo_file_name(pathSpec));
+			<< boost::errinfo_file_name(~pathSpec));
 	}
 
 	do {
@@ -500,7 +500,7 @@ bool Utility::Glob(const String& pathSpec, const std::function<void (const Strin
 		BOOST_THROW_EXCEPTION(posix_error()
 			<< boost::errinfo_api_function("glob")
 			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(pathSpec));
+			<< boost::errinfo_file_name(~pathSpec));
 	}
 
 	if (gr.gl_pathc == 0) {
@@ -572,7 +572,7 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const std
 		BOOST_THROW_EXCEPTION(win32_error()
 			<< boost::errinfo_api_function("FindFirstFile")
 			<< errinfo_win32_error(errorCode)
-			<< boost::errinfo_file_name(pathSpec));
+			<< boost::errinfo_file_name(~pathSpec));
 	}
 
 	do {
@@ -608,7 +608,7 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const std
 		BOOST_THROW_EXCEPTION(posix_error()
 			<< boost::errinfo_api_function("opendir")
 			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(path));
+			<< boost::errinfo_file_name(~path));
 
 	while (dirp) {
 		dirent *pent;
@@ -621,7 +621,7 @@ bool Utility::GlobRecursive(const String& path, const String& pattern, const std
 			BOOST_THROW_EXCEPTION(posix_error()
 				<< boost::errinfo_api_function("readdir")
 				<< boost::errinfo_errno(errno)
-				<< boost::errinfo_file_name(path));
+				<< boost::errinfo_file_name(~path));
 		}
 
 		if (!pent)
@@ -685,7 +685,7 @@ void Utility::MkDir(const String& path, int mode)
 		BOOST_THROW_EXCEPTION(posix_error()
 			<< boost::errinfo_api_function("mkdir")
 			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(path));
+			<< boost::errinfo_file_name(~path));
 	}
 }
 
@@ -711,14 +711,14 @@ void Utility::Remove(const String& path)
 {
 	namespace fs = boost::filesystem;
 
-	(void)fs::remove(fs::path(path.Begin(), path.End()));
+	(void)fs::remove(fs::path{*path});
 }
 
 void Utility::RemoveDirRecursive(const String& path)
 {
 	namespace fs = boost::filesystem;
 
-	(void)fs::remove_all(fs::path(path.Begin(), path.End()));
+	(void)fs::remove_all(fs::path{*path});
 }
 
 /*
@@ -730,9 +730,9 @@ void Utility::CopyFile(const String& source, const String& target)
 	namespace fs = boost::filesystem;
 
 #if BOOST_VERSION >= 107400
-	fs::copy_file(fs::path(source.Begin(), source.End()), fs::path(target.Begin(), target.End()), fs::copy_options::overwrite_existing);
+	fs::copy_file(fs::path{*source}, fs::path{*target}, fs::copy_options::overwrite_existing);
 #else /* BOOST_VERSION */
-	fs::copy_file(fs::path(source.Begin(), source.End()), fs::path(target.Begin(), target.End()), fs::copy_option::overwrite_if_exists);
+	fs::copy_file(fs::path{*source}, fs::path{*source}, fs::copy_option::overwrite_if_exists);
 #endif /* BOOST_VERSION */
 }
 
@@ -744,7 +744,7 @@ void Utility::RenameFile(const String& source, const String& target)
 {
 	namespace fs = boost::filesystem;
 
-	fs::path sourcePath(source.Begin(), source.End()), targetPath(target.Begin(), target.End());
+	fs::path sourcePath{*source}, targetPath{*target};
 
 #ifndef _WIN32
 	fs::rename(sourcePath, targetPath);
@@ -1263,15 +1263,15 @@ String Utility::EscapeCreateProcessArg(const String& arg)
 
 	String result = "\"";
 
-	for (String::ConstIterator it = arg.Begin(); ; it++) {
+	for (String::ConstIterator it = arg.begin(); ; it++) {
 		int numBackslashes = 0;
 
-		while (it != arg.End() && *it == '\\') {
+		while (it != arg.end() && *it == '\\') {
 			it++;
 			numBackslashes++;
 		}
 
-		if (it == arg.End()) {
+		if (it == arg.end()) {
 			result.Append(numBackslashes * 2, '\\');
 			break;
 		} else if (*it == '"') {
@@ -1503,7 +1503,7 @@ bool Utility::PathExists(const String& path)
 
 	boost::system::error_code ec;
 
-	return fs::exists(fs::path(path.Begin(), path.End()), ec) && !ec;
+	return fs::exists(fs::path{*path}, ec) && !ec;
 }
 
 time_t Utility::GetFileCreationTime(const String& path)
@@ -1795,7 +1795,7 @@ String Utility::ValidateUTF8(const String& input)
 	output.reserve(input.GetLength());
 
 	try {
-		utf8::replace_invalid(input.Begin(), input.End(), std::back_inserter(output));
+		utf8::replace_invalid(input.begin(), input.end(), std::back_inserter(output));
 	} catch (const utf8::not_enough_room&) {
 		output.insert(output.end(), (const char*)l_Utf8Replacement, (const char*)l_Utf8Replacement + 3);
 	}

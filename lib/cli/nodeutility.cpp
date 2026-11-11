@@ -262,7 +262,7 @@ bool NodeUtility::GetConfigurationIncludeState(const String& value, bool recursi
 		* First hit breaks out of the loop.
 		*/
 
-		if (line.compare(0, affectedInclude.GetLength(), affectedInclude) == 0) {
+		if (line.compare(0, affectedInclude.GetLength(), *affectedInclude) == 0) {
 			isIncluded = true;
 
 			/*
@@ -305,16 +305,16 @@ bool NodeUtility::UpdateConfiguration(const String& value, bool include, bool re
 
 	bool found = false;
 
-	std::string line;
+	String line;
 
-	while (std::getline(ifp, line)) {
+	while (std::getline(ifp, line.GetData())) {
 		if (include) {
-			if (line.find("//" + affectedInclude) != std::string::npos || line.find("// " + affectedInclude) != std::string::npos) {
+			if (line.Contains("//" + affectedInclude) || line.Contains("// " + affectedInclude)) {
 				found = true;
 				ofp << "// Added by the node setup CLI command on "
 					<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime())
 					<< "\n" + affectedInclude + "\n";
-			} else if (line.find(affectedInclude) != std::string::npos) {
+			} else if (line.Contains(affectedInclude)) {
 				found = true;
 
 				Log(LogInformation, "cli")
@@ -325,7 +325,7 @@ bool NodeUtility::UpdateConfiguration(const String& value, bool include, bool re
 				ofp << line << "\n";
 			}
 		} else {
-			if (line.find(affectedInclude) != std::string::npos) {
+			if (line.Contains(affectedInclude)) {
 				found = true;
 				ofp << "// Disabled by the node setup CLI command on "
 					<< Utility::FormatDateTime("%Y-%m-%d %H:%M:%S %z", Utility::GetTime())

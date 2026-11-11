@@ -39,7 +39,7 @@ AtomicFile::AtomicFile(String path, int mode) : m_Path(std::move(path))
 		BOOST_THROW_EXCEPTION(posix_error()
 			<< boost::errinfo_api_function("mkstemp")
 			<< boost::errinfo_errno(error)
-			<< boost::errinfo_file_name(m_TempFilename));
+			<< boost::errinfo_file_name(~m_TempFilename));
 	}
 
 	try {
@@ -57,7 +57,7 @@ AtomicFile::AtomicFile(String path, int mode) : m_Path(std::move(path))
 			BOOST_THROW_EXCEPTION(posix_error()
 				<< boost::errinfo_api_function("chmod")
 				<< boost::errinfo_errno(error)
-				<< boost::errinfo_file_name(m_TempFilename));
+				<< boost::errinfo_file_name(~m_TempFilename));
 		}
 	} catch (...) {
 		if (is_open()) {
@@ -102,7 +102,7 @@ void AtomicFile::Commit()
 		BOOST_THROW_EXCEPTION(win32_error()
 			<< boost::errinfo_api_function("FlushFileBuffers")
 			<< errinfo_win32_error(err)
-			<< boost::errinfo_file_name(m_TempFilename));
+			<< boost::errinfo_file_name(~m_TempFilename));
 	}
 #else /* _WIN32 */
 	if (fsync(h)) {
@@ -111,7 +111,7 @@ void AtomicFile::Commit()
 		BOOST_THROW_EXCEPTION(posix_error()
 			<< boost::errinfo_api_function("fsync")
 			<< boost::errinfo_errno(err)
-			<< boost::errinfo_file_name(m_TempFilename));
+			<< boost::errinfo_file_name(~m_TempFilename));
 	}
 #endif /* _WIN32 */
 

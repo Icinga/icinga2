@@ -400,7 +400,7 @@ Value icinga::JsonDecode(const String& data, size_t depthLimit)
 
 	JsonSax stateMachine{depthLimit};
 
-	nlohmann::json::sax_parse(sanitized.Begin(), sanitized.End(), &stateMachine);
+	nlohmann::json::sax_parse(*sanitized, &stateMachine);
 
 	return stateMachine.GetResult();
 }
