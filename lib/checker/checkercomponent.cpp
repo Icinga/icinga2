@@ -15,13 +15,32 @@
 #include "base/exception.hpp"
 #include "base/convert.hpp"
 #include "base/statsfunction.hpp"
+#include <algorithm>
 #include <chrono>
+#include <cmath>
 
 using namespace icinga;
 
 REGISTER_TYPE(CheckerComponent);
 
 REGISTER_STATSFUNCTION(CheckerComponent, &CheckerComponent::StatsFunc);
+
+/**
+ * Advances an exponential weighted moving average by dt seconds towards current, with time constant window.
+ *
+ * @param var The atomic backlog variable to update
+ * @param current The current snapshot of the backlog to update the variable with
+ * @param dt The time that has passed since the last snapshot
+ * @param window (Roughly) the time window of the average
+ */
+static void UpdateBacklogEwma(std::atomic<double>& var, double current, double dt, double window)
+{
+	// Getting the old value with relaxed is fine since it is only ever updated in this thread.
+	auto previous = var.load(std::memory_order_relaxed);
+	double alpha = 1.0 - std::exp(-dt / window);
+	// Store the new value with release semantics because they might be read back by `StatsFunc`.
+	var.store(previous + (alpha * (current - previous)), std::memory_order_release);
+}
 
 void CheckerComponent::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr& perfdata)
 {
@@ -31,14 +50,30 @@ void CheckerComponent::StatsFunc(const Dictionary::Ptr& status, const Array::Ptr
 		unsigned long idle = checker->GetIdleCheckables();
 		unsigned long pending = checker->GetPendingCheckables();
 
-		nodes.emplace_back(checker->GetName(), new Dictionary({
-			{ "idle", idle },
-			{ "pending", pending }
-		}));
+		auto schedulingBacklogCurrent = checker->m_SchedulingBacklogCurrent.load(std::memory_order_acquire);
+		auto schedulingBacklog1min = checker->m_SchedulingBacklogEwma1Min.load(std::memory_order_acquire);
+		auto schedulingBacklog5min = checker->m_SchedulingBacklogEwma5Min.load(std::memory_order_acquire);
+		auto schedulingBacklog15min = checker->m_SchedulingBacklogEwma15Min.load(std::memory_order_acquire);
+
+		nodes.emplace_back(
+			checker->GetName(),
+			new Dictionary({
+				{"idle", idle},
+				{"pending", pending},
+				{"scheduling_backlog_current", schedulingBacklogCurrent},
+				{"scheduling_backlog_1min", schedulingBacklog1min},
+				{"scheduling_backlog_5min", schedulingBacklog5min},
+				{"scheduling_backlog_15min", schedulingBacklog15min},
+			})
+		);
 
 		String perfdata_prefix = "checkercomponent_" + checker->GetName() + "_";
 		perfdata->Add(new PerfdataValue(perfdata_prefix + "idle", Convert::ToDouble(idle)));
 		perfdata->Add(new PerfdataValue(perfdata_prefix + "pending", Convert::ToDouble(pending)));
+		perfdata->Add(new PerfdataValue(perfdata_prefix + "scheduling_backlog_current", schedulingBacklogCurrent));
+		perfdata->Add(new PerfdataValue(perfdata_prefix + "scheduling_backlog_1min", schedulingBacklog1min));
+		perfdata->Add(new PerfdataValue(perfdata_prefix + "scheduling_backlog_5min", schedulingBacklog5min));
+		perfdata->Add(new PerfdataValue(perfdata_prefix + "scheduling_backlog_15min", schedulingBacklog15min));
 	}
 
 	status->Set("checkercomponent", new Dictionary(std::move(nodes)));
@@ -109,10 +144,36 @@ void CheckerComponent::CheckThreadProc()
 		if (m_Stopped)
 			break;
 
+		auto now = Utility::GetTime();
+
+		/* Sampling the full backlog is O(backlog size). This means it would get more expensive to calculate this metric
+		 * the more backlog there is. Therefor we only do it every 0.25s seconds to mitigate the load this would cause
+		 * otherwise. The EMWA algorithm should cope well with these gaps, even though it imposes a minimum resoltion where
+		 * smaller scheduling hickups would escape the metric, but those wouldn't be of interest for the user anyway.
+		 */
+		if (now - m_SchedulingBacklogUpdated >= 0.25) {
+			double schedulingBacklog{};
+			for (const auto& checkable : idx) {
+				if (checkable.NextCheck < now) {
+					schedulingBacklog += now - checkable.NextCheck;
+				} else {
+					break;
+				}
+			}
+
+			double dt = m_SchedulingBacklogUpdated ? now - m_SchedulingBacklogUpdated : 0.0;
+			m_SchedulingBacklogUpdated = now;
+
+			m_SchedulingBacklogCurrent.store(schedulingBacklog, std::memory_order_release);
+			UpdateBacklogEwma(m_SchedulingBacklogEwma1Min, schedulingBacklog, dt, 60.0);
+			UpdateBacklogEwma(m_SchedulingBacklogEwma5Min, schedulingBacklog, dt, 5.0 * 60.0);
+			UpdateBacklogEwma(m_SchedulingBacklogEwma15Min, schedulingBacklog, dt, 15.0 * 60.0);
+		}
+
 		auto it = idx.begin();
 		CheckableScheduleInfo csi = *it;
 
-		double wait = csi.NextCheck - Utility::GetTime();
+		double wait = csi.NextCheck - now;
 
 //#ifdef I2_DEBUG
 //		Log(LogDebug, "CheckerComponent")
