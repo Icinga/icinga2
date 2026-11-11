@@ -7,7 +7,12 @@ add_executable(check_nscp_api
   $<TARGET_OBJECTS:config>
   $<TARGET_OBJECTS:remote>
 )
-target_link_libraries(check_nscp_api ${base_DEPS})
+
+target_link_libraries(check_nscp_api PRIVATE
+  ${base_DEPS}
+  nlohmann_json
+)
+
 set_target_properties (
   check_nscp_api PROPERTIES
   DEFINE_SYMBOL I2_PLUGINS_BUILD
