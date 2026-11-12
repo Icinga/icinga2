@@ -88,6 +88,7 @@ void GraphiteWriter::Resume()
 
 	m_Connection = new PerfdataWriterConnection{this, GetHost(), GetPort()};
 	m_LockedConnection.store(m_Connection);
+	m_LastDataTs = Utility::GetTime();
 
 	/* Register event handlers. */
 	m_HandleCheckResults = Checkable::OnNewCheckResult.connect([this](const Checkable::Ptr& checkable,
@@ -193,9 +194,20 @@ void GraphiteWriter::CheckResultHandler(const Checkable::Ptr& checkable, const C
 		};
 	}
 
-	m_WorkQueue.Enqueue([this, checkable, cr, prefix = std::move(prefix), metadata = std::move(metadata)]() {
+	auto ts = Utility::GetTime();
+	if (m_LastDataTs < ts - GetLogDuration() - 30) {
+		m_Connection->Disconnect();
+	}
+
+	m_WorkQueue.Enqueue([this, checkable, ts, cr, prefix = std::move(prefix), metadata = std::move(metadata)]() {
+		m_LastDataTs = ts;
 		if (m_Connection->IsStopped()) {
-			return;
+			if (!IsPaused() && ts >= Utility::GetTime() - GetLogDuration()) {
+				m_Connection = new PerfdataWriterConnection{this, GetHost(), GetPort()};
+				m_LockedConnection.store(m_Connection);
+			} else {
+				return;
+			}
 		}
 
 		CONTEXT("Processing check result for '" << checkable->GetName() << "'");

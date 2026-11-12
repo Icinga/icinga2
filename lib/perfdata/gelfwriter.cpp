@@ -93,6 +93,7 @@ void GelfWriter::Resume()
 
 	m_Connection = new PerfdataWriterConnection{this, GetHost(), GetPort(), m_SslContext, !GetInsecureNoverify()};
 	m_LockedConnection.store(m_Connection);
+	m_LastDataTs = Utility::GetTime();
 
 	/* Register event handlers. */
 	m_HandleCheckResults = Checkable::OnNewCheckResult.connect([this](const Checkable::Ptr& checkable,
@@ -178,9 +179,22 @@ void GelfWriter::CheckResultHandler(const Checkable::Ptr& checkable, const Check
 	CheckCommand::Ptr checkCommand = checkable->GetCheckCommand();
 	fields->Set("_check_command", checkCommand->GetName());
 
-	m_WorkQueue.Enqueue([this, checkable, cr, fields = std::move(fields)]() {
+	auto ts = Utility::GetTime();
+	if (m_LastDataTs < ts - GetLogDuration() - 30) {
+		m_Connection->Disconnect();
+	}
+
+	m_WorkQueue.Enqueue([this, checkable, ts, cr, fields = std::move(fields)]() {
+		m_LastDataTs = ts;
 		if (m_Connection->IsStopped()) {
-			return;
+			if (!IsPaused() && ts >= Utility::GetTime() - GetLogDuration()) {
+				m_Connection = new PerfdataWriterConnection{
+					this, GetHost(), GetPort(), m_SslContext, !GetInsecureNoverify()
+				};
+				m_LockedConnection.store(m_Connection);
+			} else {
+				return;
+			}
 		}
 
 		CONTEXT("GELF Processing check result for '" << checkable->GetName() << "'");
@@ -288,9 +302,21 @@ void GelfWriter::NotificationToUserHandler(const Checkable::Ptr& checkable, Noti
 	fields->Set("_comment", authorComment);
 	fields->Set("_check_command", checkable->GetCheckCommand()->GetName());
 
+	if (m_LastDataTs < ts - GetLogDuration() - 30) {
+		m_Connection->Disconnect();
+	}
+
 	m_WorkQueue.Enqueue([this, checkable, ts, fields = std::move(fields)]() {
+		m_LastDataTs = ts;
 		if (m_Connection->IsStopped()) {
-			return;
+			if (!IsPaused() && ts >= Utility::GetTime() - GetLogDuration()) {
+				m_Connection = new PerfdataWriterConnection{
+					this, GetHost(), GetPort(), m_SslContext, !GetInsecureNoverify()
+				};
+				m_LockedConnection.store(m_Connection);
+			} else {
+				return;
+			}
 		}
 
 		CONTEXT("GELF Processing notification to all users '" << checkable->GetName() << "'");
@@ -334,9 +360,22 @@ void GelfWriter::StateChangeHandler(const Checkable::Ptr& checkable, const Check
 	fields->Set("full_message", cr->GetOutput());
 	fields->Set("_check_source", cr->GetCheckSource());
 
+	auto ts = Utility::GetTime();
+	if (m_LastDataTs < ts - GetLogDuration() - 30) {
+		m_Connection->Disconnect();
+	}
+
 	m_WorkQueue.Enqueue([this, checkable, fields = std::move(fields), ts = cr->GetExecutionEnd()]() {
+		m_LastDataTs = ts;
 		if (m_Connection->IsStopped()) {
-			return;
+			if (!IsPaused() && ts >= Utility::GetTime() - GetLogDuration()) {
+				m_Connection = new PerfdataWriterConnection{
+					this, GetHost(), GetPort(), m_SslContext, !GetInsecureNoverify()
+				};
+				m_LockedConnection.store(m_Connection);
+			} else {
+				return;
+			}
 		}
 
 		CONTEXT("GELF Processing state change '" << checkable->GetName() << "'");
