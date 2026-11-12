@@ -3,7 +3,7 @@ name: Linux
 on:
   push:
     branches:
-      - master
+      - coroutine-exception-corruption-repro
       - 'support/*'
   pull_request: {}
 
