@@ -193,6 +193,22 @@ add_compile_definitions(BOOST_ASIO_USE_TS_EXECUTOR_AS_DEFAULT)
 link_directories(${Boost_LIBRARY_DIRS})
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
+# Work around https://github.com/boostorg/context/issues/323 (Boost 1.88 - 1.91 with libstdc++)
+# See the header for more information.
+# This is force-included here to ensure that every TU gets it and we don't end up with inclusions
+# of boost/asio/spawn.hpp without it.
+# Currently this affects Fedora 44, 45 and Ubuntu 26.04 and 26.10. Remove this once all affected
+# distros have been removed from support.
+if(NOT MSVC AND Boost_VERSION VERSION_GREATER_EQUAL 1.88 AND Boost_VERSION VERSION_LESS 1.92)
+  # The generator expression only includes the header for C++ TUs. The `SHELL` bit might be non
+  # obvious, but it's needed to deduplicate options in case more `-include` flags are added in
+  # the future. See here:
+  # https://cmake.org/cmake/help/latest/command/add_compile_options.html#option-de-duplication
+  add_compile_options(
+    "$<$<COMPILE_LANGUAGE:CXX>:SHELL:-include ${CMAKE_CURRENT_SOURCE_DIR}/lib/base/boost-context-fix.hpp>"
+  )
+endif()
+
 find_package(Threads REQUIRED)
 
 find_package(OpenSSL REQUIRED)
