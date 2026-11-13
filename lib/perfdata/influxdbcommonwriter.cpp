@@ -116,7 +116,7 @@ void InfluxdbCommonWriter::Pause()
 	m_WorkQueue.Enqueue([&]() {
 		FlushWQ();
 		queueDonePromise.set_value();
-	}, PriorityLow);
+	});
 
 	auto timeout = std::chrono::duration<double>{GetDisconnectTimeout()};
 	m_Connection->CancelAfterTimeout(queueDonePromise.get_future(), timeout);
@@ -254,7 +254,7 @@ void InfluxdbCommonWriter::CheckResultHandler(const Checkable::Ptr& checkable, c
 		if (metadataFields) {
 			SendMetric(checkable, tmpl, Empty, metadataFields, ts);
 		}
-	}, PriorityLow);
+	});
 }
 
 String InfluxdbCommonWriter::EscapeKeyOrTagValue(const String& str)
