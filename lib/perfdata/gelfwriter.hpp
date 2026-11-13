@@ -35,6 +35,7 @@ protected:
 private:
 	PerfdataWriterConnection::Ptr m_Connection;
 	Locked<PerfdataWriterConnection::Ptr> m_LockedConnection;
+	std::atomic<double> m_LastDataTs;
 	WorkQueue m_WorkQueue{10000000, 1};
 	Shared<boost::asio::ssl::context>::Ptr m_SslContext;
 

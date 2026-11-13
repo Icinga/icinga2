@@ -93,6 +93,7 @@ void InfluxdbCommonWriter::Resume()
 	m_FlushTimer->Reschedule(0);
 
 	m_Connection = new PerfdataWriterConnection{this, GetHost(), GetPort(), m_SslContext, !GetSslInsecureNoverify()};
+	m_LastDataTs = Utility::GetTime();
 
 	/* Register for new metrics. */
 	m_HandleCheckResults = Checkable::OnNewCheckResult.connect([this](const Checkable::Ptr& checkable,
@@ -116,7 +117,7 @@ void InfluxdbCommonWriter::Pause()
 	m_WorkQueue.Enqueue([&]() {
 		FlushWQ();
 		queueDonePromise.set_value();
-	}, PriorityLow);
+	});
 
 	auto timeout = std::chrono::duration<double>{GetDisconnectTimeout()};
 	m_Connection->CancelAfterTimeout(queueDonePromise.get_future(), timeout);
@@ -203,9 +204,21 @@ void InfluxdbCommonWriter::CheckResultHandler(const Checkable::Ptr& checkable, c
 		fields->Set("execution_time", cr->CalculateExecutionTime());
 	}
 
-	m_WorkQueue.Enqueue([this, checkable, cr, tmpl = std::move(tmpl), metadataFields = std::move(fields)]() {
+	auto ts = Utility::GetTime();
+	if (m_LastDataTs < ts - GetLogDuration() - 30) {
+		m_Connection->Disconnect();
+	}
+
+	m_WorkQueue.Enqueue([this, checkable, ts, cr, tmpl = std::move(tmpl), metadataFields = std::move(fields)]() {
+		m_LastDataTs = ts;
 		if (m_Connection->IsStopped()) {
-			return;
+			if (!IsPaused() && ts >= Utility::GetTime() - GetLogDuration()) {
+				m_Connection = new PerfdataWriterConnection{
+					this, GetHost(), GetPort(), m_SslContext, !GetSslInsecureNoverify()
+				};
+			} else {
+				return;
+			}
 		}
 
 		CONTEXT("Processing check result for '" << checkable->GetName() << "'");
@@ -254,7 +267,7 @@ void InfluxdbCommonWriter::CheckResultHandler(const Checkable::Ptr& checkable, c
 		if (metadataFields) {
 			SendMetric(checkable, tmpl, Empty, metadataFields, ts);
 		}
-	}, PriorityLow);
+	});
 }
 
 String InfluxdbCommonWriter::EscapeKeyOrTagValue(const String& str)

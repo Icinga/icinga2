@@ -67,6 +67,9 @@ abstract class InfluxdbCommonWriter : ConfigObject
 	[config] int flush_threshold {
 		default {{{ return 1024; }}}
 	};
+	[config] double log_duration {
+		default {{{ return 7200; }}}
+	};
 	[config] bool enable_ha {
 		default {{{ return false; }}}
 	};

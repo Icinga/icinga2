@@ -28,6 +28,9 @@ class GelfWriter : ConfigObject
 	[config] double disconnect_timeout {
 		default {{{ return 10; }}}
 	};
+	[config] double log_duration {
+		default {{{ return 7200; }}}
+	};
 	[config] bool enable_ha {
 		default {{{ return false; }}}
 	};
