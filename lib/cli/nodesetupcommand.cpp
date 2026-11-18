@@ -247,7 +247,7 @@ int NodeSetupCommand::SetupMaster(const boost::program_options::variables_map& v
 	}
 
 	/* tell the user to reload icinga2 */
-	Log(LogInformation, "cli", "Make sure to restart Icinga 2.");
+	Log(LogInformation, "cli", "Make sure to reload Icinga 2.");
 
 	return 0;
 }
@@ -550,7 +550,7 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm)
 			<< "Please copy the public CA certificate from your master/satellite\n"
 			<< "into '" << ca << "' before starting Icinga 2.\n";
 	} else {
-		Log(LogInformation, "cli", "Make sure to restart Icinga 2.");
+		Log(LogInformation, "cli", "Make sure to reload Icinga 2.");
 	}
 
 	if (vm.count("disable-confd")) {
@@ -559,7 +559,7 @@ int NodeSetupCommand::SetupNode(const boost::program_options::variables_map& vm)
 	}
 
 	/* tell the user to reload icinga2 */
-	Log(LogInformation, "cli", "Make sure to restart Icinga 2.");
+	Log(LogInformation, "cli", "Make sure to reload Icinga 2.");
 
 	return 0;
 }
