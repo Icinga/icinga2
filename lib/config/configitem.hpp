@@ -64,6 +64,12 @@ public:
 
 	static void RemoveIgnoredItems(const String& allowedConfigPath);
 
+	static inline
+	bool RunsInCommitContext()
+	{
+		return m_CommitInProgress;
+	}
+
 private:
 	Type::Ptr m_Type; /**< The object type. */
 	String m_Name; /**< The name. */
@@ -82,6 +88,7 @@ private:
 	ConfigObject::Ptr m_Object;
 
 	static std::mutex m_Mutex;
+	static thread_local bool m_CommitInProgress;
 
 	typedef std::map<String, ConfigItem::Ptr> ItemMap;
 	typedef std::map<Type::Ptr, ItemMap> TypeMap;

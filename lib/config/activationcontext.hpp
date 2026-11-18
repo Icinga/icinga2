@@ -19,6 +19,12 @@ public:
 
 	static ActivationContext::Ptr GetCurrentContext();
 
+	static inline
+	void AssertOnContext()
+	{
+		GetCurrentContext();
+	}
+
 private:
 	static void PushContext(const ActivationContext::Ptr& context);
 	static void PopContext();
