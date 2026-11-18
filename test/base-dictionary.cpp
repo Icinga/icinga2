@@ -194,8 +194,29 @@ BOOST_AUTO_TEST_CASE(keys_ordered)
 		dictionary->Set(std::to_string(Utility::Random()), Utility::Random());
 	}
 
-	std::vector<String> keys = dictionary->GetKeys();
+	auto keys (dictionary->GetKeys(true));
 	BOOST_CHECK(std::is_sorted(keys.begin(), keys.end()));
+}
+
+BOOST_AUTO_TEST_CASE(items_ordered)
+{
+	Dictionary::Ptr dictionary = new Dictionary();
+
+	for (int i = 0; i < 100; i++) {
+		dictionary->Set(std::to_string(Utility::Random()), Utility::Random());
+	}
+
+	auto items (dictionary->GetItems());
+
+	BOOST_CHECK(items.size() == dictionary->GetLength());
+
+	for (DictionaryData::size_type i = 1; i < items.size(); i++) {
+		BOOST_CHECK(items[i - 1].first < items[i].first);
+	}
+
+	for (auto& kv : items) {
+		BOOST_CHECK(dictionary->Get(kv.first) == kv.second);
+	}
 }
 
 BOOST_AUTO_TEST_SUITE_END()

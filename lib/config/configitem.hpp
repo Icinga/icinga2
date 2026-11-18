@@ -9,6 +9,7 @@
 #include "config/activationcontext.hpp"
 #include "base/configobject.hpp"
 #include "base/workqueue.hpp"
+#include <unordered_map>
 
 namespace icinga
 {
@@ -59,7 +60,7 @@ public:
 
 	static bool RunWithActivationContext(const Function::Ptr& function);
 
-	static std::vector<ConfigItem::Ptr> GetItems(const Type::Ptr& type);
+	static std::vector<ConfigItem::Ptr> GetItems(const Type::Ptr& type, bool sorted = false);
 	static std::vector<ConfigItem::Ptr> GetDefaultTemplates(const Type::Ptr& type);
 
 	static void RemoveIgnoredItems(const String& allowedConfigPath);
@@ -83,10 +84,11 @@ private:
 
 	static std::mutex m_Mutex;
 
-	typedef std::map<String, ConfigItem::Ptr> ItemMap;
-	typedef std::map<Type::Ptr, ItemMap> TypeMap;
+	typedef std::unordered_map<String, ConfigItem::Ptr> ItemMap;
+	typedef std::unordered_map<Type::Ptr, ItemMap> TypeMap;
 	static TypeMap m_Items; /**< All registered configuration items. */
 	static TypeMap m_DefaultTemplates;
+	static std::unordered_map<Type::Ptr, std::vector<ConfigItem::Ptr>> m_SortedDefaultTemplatesCache;
 
 	typedef std::vector<ConfigItem::Ptr> ItemList;
 	static ItemList m_UnnamedItems;

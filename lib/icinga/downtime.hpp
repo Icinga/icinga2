@@ -64,7 +64,7 @@ public:
 
 	void RegisterChild(const Downtime::Ptr& downtime);
 	void UnregisterChild(const Downtime::Ptr& downtime);
-	std::set<Downtime::Ptr> GetChildren() const;
+	std::unordered_set<Downtime::Ptr> GetChildren() const;
 
 	void TriggerDowntime(double triggerTime);
 	void SetRemovalInfo(const String& removedBy, double removeTime, const MessageOrigin::Ptr& origin = nullptr);
@@ -88,7 +88,7 @@ protected:
 private:
 	ObjectImpl<Checkable>::Ptr m_Checkable;
 
-	std::set<Downtime::Ptr> m_Children;
+	std::unordered_set<Downtime::Ptr> m_Children;
 	mutable std::mutex m_ChildrenMutex;
 
 	Timer::Ptr m_CleanupTimer;

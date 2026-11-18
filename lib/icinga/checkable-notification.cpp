@@ -16,7 +16,7 @@
 
 using namespace icinga;
 
-boost::signals2::signal<void (const Notification::Ptr&, const Checkable::Ptr&, const std::set<User::Ptr>&,
+boost::signals2::signal<void (const Notification::Ptr&, const Checkable::Ptr&, const std::unordered_set<User::Ptr>&,
 	const NotificationType&, const CheckResult::Ptr&, const String&, const String&,
 	const MessageOrigin::Ptr&)> Checkable::OnNotificationSentToAllUsers;
 boost::signals2::signal<void (const Notification::Ptr&, const Checkable::Ptr&, const User::Ptr&,
@@ -49,7 +49,7 @@ void Checkable::SendNotifications(NotificationType type, const CheckResult::Ptr&
 		}
 	}
 
-	std::set<Notification::Ptr> notifications = GetNotifications();
+	auto notifications (GetNotifications());
 
 	String notificationTypeName = Notification::NotificationTypeToString(type);
 
@@ -112,7 +112,7 @@ void Checkable::SendNotifications(NotificationType type, const CheckResult::Ptr&
 	}
 }
 
-std::set<Notification::Ptr> Checkable::GetNotifications() const
+std::unordered_set<Notification::Ptr> Checkable::GetNotifications() const
 {
 	std::unique_lock<std::mutex> lock(m_NotificationMutex);
 	return m_Notifications;

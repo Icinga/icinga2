@@ -11,7 +11,7 @@
 #include "base/value.hpp"
 #include "base/debuginfo.hpp"
 #include <atomic>
-#include <map>
+#include <unordered_map>
 #include <vector>
 #include <memory>
 #include <shared_mutex>
@@ -63,9 +63,9 @@ class Namespace final : public Object
 public:
 	DECLARE_OBJECT(Namespace);
 
-	typedef std::map<String, NamespaceValue>::iterator Iterator;
+	typedef std::unordered_map<String, NamespaceValue>::iterator Iterator;
 
-	typedef std::map<String, NamespaceValue>::value_type Pair;
+	typedef std::unordered_map<String, NamespaceValue>::value_type Pair;
 
 	explicit Namespace(bool constValues = false);
 
@@ -93,7 +93,7 @@ public:
 private:
 	std::shared_lock<std::shared_timed_mutex> ReadLockUnlessFrozen() const;
 
-	std::map<String, NamespaceValue> m_Data;
+	std::unordered_map<String, NamespaceValue> m_Data;
 	mutable std::shared_timed_mutex m_DataMutex;
 	bool m_ConstValues;
 	std::atomic<bool> m_Frozen;
@@ -103,7 +103,5 @@ Namespace::Iterator begin(const Namespace::Ptr& x);
 Namespace::Iterator end(const Namespace::Ptr& x);
 
 }
-
-extern template class std::map<icinga::String, std::shared_ptr<icinga::NamespaceValue> >;
 
 #endif /* NAMESPACE_H */

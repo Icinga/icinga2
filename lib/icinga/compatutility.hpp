@@ -35,8 +35,8 @@ public:
 	static int GetCheckableNotificationTypeFilter(const Checkable::Ptr& checkable);
 	static int GetCheckableNotificationStateFilter(const Checkable::Ptr& checkable);
 
-	static std::set<User::Ptr> GetCheckableNotificationUsers(const Checkable::Ptr& checkable);
-	static std::set<UserGroup::Ptr> GetCheckableNotificationUserGroups(const Checkable::Ptr& checkable);
+	static std::unordered_set<User::Ptr> GetCheckableNotificationUsers(const Checkable::Ptr& checkable);
+	static std::unordered_set<UserGroup::Ptr> GetCheckableNotificationUserGroups(const Checkable::Ptr& checkable);
 
 	/* check result */
 	static String GetCheckResultOutput(const CheckResult::Ptr& cr);

@@ -10,7 +10,7 @@
 #include "base/dependencygraph.hpp"
 #include "base/configtype.hpp"
 #include <boost/algorithm/string/case_conv.hpp>
-#include <set>
+#include <unordered_set>
 #include <unordered_map>
 #include <memory>
 
@@ -186,8 +186,8 @@ bool ObjectQueryHandler::HandleRequest(
 		return true;
 	}
 
-	std::set<int> joinAttrs;
-	std::set<String> userJoinAttrs;
+	std::unordered_set<int> joinAttrs;
+	std::unordered_set<String> userJoinAttrs;
 
 	if (ujoins) {
 		ObjectLock olock(ujoins);

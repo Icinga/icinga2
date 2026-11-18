@@ -110,6 +110,11 @@ struct RedisConnInfo final : SharedObject
 				return static_cast<std::string_view>(*this) < static_cast<std::string_view>(rhs);
 			}
 
+			bool operator==(const QueryArg& rhs) const noexcept // For std::unordered_map keys
+			{
+				return static_cast<std::string_view>(*this) == static_cast<std::string_view>(rhs);
+			}
+
 			operator std::string_view() const noexcept
 			{
 				return std::visit([](auto& data) { return ViewOf(data); }, m_Data);
@@ -727,5 +732,14 @@ void RedisConnection::WriteRESP(AsyncWriteStream& stream, const Query& query, bo
 }
 
 }
+
+template<>
+struct std::hash<icinga::RedisConnection::QueryArg>
+{
+	std::size_t operator()(const icinga::RedisConnection::QueryArg& arg) const noexcept
+	{
+		return std::hash<std::string_view>{}(static_cast<std::string_view>(arg));
+	}
+};
 
 #endif //REDISCONNECTION_H

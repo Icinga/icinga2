@@ -15,6 +15,7 @@
 #include "remote/messageorigin.hpp"
 #include "base/array.hpp"
 #include <cstdint>
+#include <unordered_map>
 
 namespace icinga
 {
@@ -82,8 +83,8 @@ public:
 	intrusive_ptr<Checkable> GetCheckable() const;
 	intrusive_ptr<NotificationCommand> GetCommand() const;
 	TimePeriod::Ptr GetPeriod() const;
-	std::set<User::Ptr> GetUsers() const;
-	std::set<intrusive_ptr<UserGroup>> GetUserGroups() const;
+	std::unordered_set<User::Ptr> GetUsers() const;
+	std::unordered_set<intrusive_ptr<UserGroup>> GetUserGroups() const;
 
 	void UpdateNotificationNumber();
 	void ResetNotificationNumber();
@@ -97,7 +98,7 @@ public:
 	static String NotificationTypeToString(NotificationType type);
 	// Compat, used for notifications, etc.
 	static String NotificationTypeToStringCompat(NotificationType type);
-	static String NotificationFilterToString(int filter, const std::map<String, int>& filterMap);
+	static String NotificationFilterToString(int filter, const std::unordered_map<String, int>& filterMap);
 
 	static String NotificationServiceStateToString(ServiceState state);
 	static String NotificationHostStateToString(HostState state);
@@ -115,8 +116,8 @@ public:
 	static void EvaluateApplyRules(const intrusive_ptr<Host>& host);
 	static void EvaluateApplyRules(const intrusive_ptr<Service>& service);
 
-	static const std::map<String, int>& GetStateFilterMap();
-	static const std::map<String, int>& GetTypeFilterMap();
+	static const std::unordered_map<String, int>& GetStateFilterMap();
+	static const std::unordered_map<String, int>& GetTypeFilterMap();
 
 	void OnAllConfigLoaded() override;
 	void Start(bool runtimeCreated) override;
@@ -148,8 +149,8 @@ private:
 	static bool EvaluateApplyRuleInstance(const intrusive_ptr<Checkable>& checkable, const String& name, ScriptFrame& frame, const ApplyRule& rule, bool skipFilter);
 	static bool EvaluateApplyRule(const intrusive_ptr<Checkable>& checkable, const ApplyRule& rule, bool skipFilter = false);
 
-	static std::map<String, int> m_StateFilterMap;
-	static std::map<String, int> m_TypeFilterMap;
+	static std::unordered_map<String, int> m_StateFilterMap;
+	static std::unordered_map<String, int> m_TypeFilterMap;
 };
 
 int ServiceStateToFilter(ServiceState state);

@@ -14,6 +14,7 @@
 #include "base/shared-object.hpp"
 #include "base/convert.hpp"
 #include <map>
+#include <unordered_map>
 
 namespace icinga
 {
@@ -806,7 +807,7 @@ class FunctionExpression final : public DebuggableExpression
 {
 public:
 	FunctionExpression(String name, std::vector<String> args,
-		std::map<String, std::unique_ptr<Expression> >&& closedVars, std::unique_ptr<Expression> expression, const DebugInfo& debugInfo = DebugInfo())
+		std::unordered_map<String, std::unique_ptr<Expression>>&& closedVars, std::unique_ptr<Expression> expression, const DebugInfo& debugInfo = DebugInfo())
 		: DebuggableExpression(debugInfo), m_Name(std::move(name)), m_Args(std::move(args)), m_ClosedVars(std::move(closedVars)), m_Expression(expression.release())
 	{ }
 
@@ -816,7 +817,7 @@ protected:
 private:
 	String m_Name;
 	std::vector<String> m_Args;
-	std::map<String, std::unique_ptr<Expression> > m_ClosedVars;
+	std::unordered_map<String, std::unique_ptr<Expression>> m_ClosedVars;
 	Expression::Ptr m_Expression;
 };
 
@@ -825,7 +826,7 @@ class ApplyExpression final : public DebuggableExpression
 public:
 	ApplyExpression(String type, String target, std::unique_ptr<Expression> name,
 		std::unique_ptr<Expression> filter, String package, String fkvar, String fvvar,
-		std::unique_ptr<Expression> fterm, std::map<String, std::unique_ptr<Expression> >&& closedVars, bool ignoreOnError,
+		std::unique_ptr<Expression> fterm, std::unordered_map<String, std::unique_ptr<Expression>>&& closedVars, bool ignoreOnError,
 		std::unique_ptr<Expression> expression, const DebugInfo& debugInfo = DebugInfo())
 		: DebuggableExpression(debugInfo), m_Type(std::move(type)), m_Target(std::move(target)),
 			m_Name(std::move(name)), m_Filter(filter.release()), m_Package(std::move(package)), m_FKVar(std::move(fkvar)), m_FVVar(std::move(fvvar)),
@@ -846,7 +847,7 @@ private:
 	String m_FVVar;
 	Expression::Ptr m_FTerm;
 	bool m_IgnoreOnError;
-	std::map<String, std::unique_ptr<Expression> > m_ClosedVars;
+	std::unordered_map<String, std::unique_ptr<Expression>> m_ClosedVars;
 	Expression::Ptr m_Expression;
 };
 
@@ -868,7 +869,7 @@ class ObjectExpression final : public DebuggableExpression
 {
 public:
 	ObjectExpression(bool abstract, std::unique_ptr<Expression> type, std::unique_ptr<Expression> name, std::unique_ptr<Expression> filter,
-		String zone, String package, std::map<String, std::unique_ptr<Expression> >&& closedVars,
+		String zone, String package, std::unordered_map<String, std::unique_ptr<Expression>>&& closedVars,
 		bool defaultTmpl, bool ignoreOnError, std::unique_ptr<Expression> expression, const DebugInfo& debugInfo = DebugInfo())
 		: DebuggableExpression(debugInfo), m_Abstract(abstract), m_Type(std::move(type)),
 		m_Name(std::move(name)), m_Filter(filter.release()), m_Zone(std::move(zone)), m_Package(std::move(package)), m_DefaultTmpl(defaultTmpl),
@@ -887,7 +888,7 @@ private:
 	String m_Package;
 	bool m_DefaultTmpl;
 	bool m_IgnoreOnError;
-	std::map<String, std::unique_ptr<Expression> > m_ClosedVars;
+	std::unordered_map<String, std::unique_ptr<Expression>> m_ClosedVars;
 	Expression::Ptr m_Expression;
 };
 
