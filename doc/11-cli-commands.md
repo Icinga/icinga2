@@ -296,7 +296,7 @@ Icinga home page: <https://icinga.com/>
 ```
 
 
-On operating systems without the `libedit` library installed, there is no
+On operating systems without the GNU `readline` library installed, there is no
 support for line-editing or a command history. However you can
 use the `rlwrap` program if you require those features:
 
