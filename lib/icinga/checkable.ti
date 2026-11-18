@@ -48,6 +48,9 @@ abstract class Checkable : CustomVarObject
 	[config] double retry_interval {
 		default {{{ return 60; }}}
 	};
+	[config] double scheduler_shuffle_cap {
+		default {{{ return 0.0; }}}
+	};
 	[config, navigation] name(EventCommand) event_command (EventCommandRaw) {
 		navigate {{{
 			return EventCommand::GetByName(GetEventCommandRaw());
