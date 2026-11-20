@@ -1,0 +1,126 @@
+name: BSD
+
+on:
+  push:
+    branches:
+      - master
+      - 'support/*'
+  pull_request: {}
+
+concurrency:
+  group: bsd-${{ github.event_name == 'push' && github.sha || github.ref }}
+  cancel-in-progress: true
+
+# Both actions boot a QEMU VM on the (Linux) runner, rsync the checkout into it at the
+# same path as on the host and run `prepare` and `run` there via sh(1).
+#
+# The build directory is deliberately placed outside of the workspace, otherwise
+# copyback (on by default with rsync) would copy the whole build tree back to the host.
+#
+# `uses:` can't be templated, so FreeBSD and OpenBSD are separate jobs instead of one matrix.
+
+jobs:
+  freebsd:
+    name: FreeBSD ${{ matrix.release }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # A prefix selects the newest matching point release.
+        release:
+          - '14'
+          - '15'
+
+    steps:
+      - name: Checkout HEAD
+        uses: actions/checkout@v7
+
+      - name: Turn on Problem Matcher
+        run: echo "::add-matcher::.github/problem-matchers/gcc.json"
+
+      - name: Build Icinga
+        uses: vmactions/freebsd-vm@v1
+        with:
+          release: ${{ matrix.release }}
+          # Snapshot the VM after `prepare`, so subsequent runs skip the pkg install.
+          cache-after-prepare: true
+          prepare: |
+            pkg install -y bison boost-libs cmake ninja protobuf \
+              mysql84-client postgresql17-client
+          run: |
+            set -ex
+
+            # Base clang, libedit and OpenSSL are used from the base system.
+            cmake -S . -B /tmp/build \
+              -GNinja \
+              -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+              -DCMAKE_C_FLAGS_RELWITHDEBINFO="-O2 -DNDEBUG -g0" \
+              -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="-O2 -DNDEBUG -g0" \
+              -DCMAKE_C_FLAGS="-Wall -Wextra" \
+              -DCMAKE_CXX_FLAGS="-Wall -Wextra" \
+              -DCMAKE_INSTALL_PREFIX=/tmp/install \
+              -DICINGA2_PLUGINDIR=/tmp/install/plugins \
+              -DICINGA2_USER="$(id -un)" \
+              -DICINGA2_GROUP="$(id -gn)"
+
+            cmake --build /tmp/build --verbose
+            ctest --output-on-failure --test-dir /tmp/build
+            cmake --install /tmp/build
+            /tmp/install/sbin/icinga2 daemon -C
+
+  openbsd:
+    name: OpenBSD ${{ matrix.release }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # OpenBSD only supports the two most recent releases.
+        release:
+          - '7.9'
+          - '8.0'
+
+    steps:
+      - name: Checkout HEAD
+        uses: actions/checkout@v7
+
+      - name: Turn on Problem Matcher
+        run: echo "::add-matcher::.github/problem-matchers/gcc.json"
+
+      - name: Build Icinga
+        uses: vmactions/openbsd-vm@v1
+        with:
+          release: ${{ matrix.release }}
+          cache-after-prepare: true
+          # Boost.Context and Boost.Coroutine are in the separate boost-md
+          # ("machine-dependent") package.
+          prepare: |
+            pkg_add -I bison boost boost-md cmake-core ninja protobuf \
+              mariadb-client postgresql-client
+          run: |
+            set -ex
+
+            # The default login class datasize limit is too small for compiling
+            # some of our Boost-heavy translation units.
+            ulimit -d unlimited
+
+            # Base clang, libedit and LibreSSL are used from the base system.
+            # /usr/bin/yacc is not Bison, so point CMake at the package.
+            cmake -S . -B /tmp/build \
+              -GNinja \
+              -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+              -DCMAKE_C_FLAGS_RELWITHDEBINFO="-O2 -DNDEBUG -g0" \
+              -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="-O2 -DNDEBUG -g0" \
+              -DCMAKE_C_FLAGS="-Wall -Wextra" \
+              -DCMAKE_CXX_FLAGS="-Wall -Wextra" \
+              -DBISON_EXECUTABLE=/usr/local/bin/bison \
+              -DCMAKE_INSTALL_PREFIX=/tmp/install \
+              -DICINGA2_PLUGINDIR=/tmp/install/plugins \
+              -DICINGA2_USER="$(id -un)" \
+              -DICINGA2_GROUP="$(id -gn)"
+
+            cmake --build /tmp/build --verbose
+            ctest --output-on-failure --test-dir /tmp/build
+            cmake --install /tmp/build
+            /tmp/install/sbin/icinga2 daemon -C
