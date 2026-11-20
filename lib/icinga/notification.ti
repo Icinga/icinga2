@@ -41,6 +41,9 @@ class Notification : CustomVarObject < NotificationNameComposer
 	};
 	[config, signal_with_old_value] array(name(User)) users (UsersRaw);
 	[config, signal_with_old_value] array(name(UserGroup)) user_groups (UserGroupsRaw);
+	[config] bool suppress_duplicate_problem_notifications {
+		default {{{ return true; }}}
+	};
 	[config] Dictionary::Ptr times;
 	[config, no_storage] array(Value) types {
 		get;
