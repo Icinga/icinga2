@@ -28,7 +28,7 @@
     -->
     <FeatureRef Id="ProductFeature" IgnoreParent="yes">
       <Component Id="EventProviderRegistryEntry" Guid="*" Directory="INSTALL_ROOT">
-        <RegistryKey Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\EventLog\Application\Icinga 2" Action="createAndRemoveOnUninstall">
+        <RegistryKey Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\EventLog\Icinga 2\Icinga 2 General" Action="createAndRemoveOnUninstall">
           <RegistryValue Name="EventMessageFile" Type="string" Value="[#CM_FP_sbin.eventprovider.dll]" />
         </RegistryKey>
       </Component>
