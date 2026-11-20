@@ -25,6 +25,7 @@ target_link_libraries(testdeps
   INTERFACE
   ${base_DEPS}
   cli
+  nlohmann_json
 )
 
 configure_file(BoostTestConfig.h.in BoostTestTargetConfig.h @ONLY)
