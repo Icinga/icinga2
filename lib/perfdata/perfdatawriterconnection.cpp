@@ -67,30 +67,20 @@ void PerfdataWriterConnection::Disconnect()
 		return;
 	}
 
-	std::promise<void> promise;
-
-	IoEngine::SpawnCoroutine(m_Strand, [&](boost::asio::yield_context yc) {
-		try {
-			if (m_SendActive) {
-				Visit(m_Stream, [](const auto& stream) {
-					if (stream->lowest_layer().is_open()) {
-						boost::system::error_code ec;
-						stream->lowest_layer().close(ec);
-					}
-				});
-				m_ReconnectTimer.cancel();
-				m_Connected = false;
-			} else {
-				Disconnect(std::move(yc));
-			}
-
-			promise.set_value();
-		} catch (const std::exception& ex) {
-			promise.set_exception(std::current_exception());
+	IoEngine::SpawnSyncCoroutine(m_Strand, [&](boost::asio::yield_context yc) {
+		if (m_SendActive) {
+			Visit(m_Stream, [](const auto& stream) {
+				if (stream->lowest_layer().is_open()) {
+					boost::system::error_code ec;
+					stream->lowest_layer().close(ec);
+				}
+			});
+			m_ReconnectTimer.cancel();
+			m_Connected = false;
+		} else {
+			Disconnect(std::move(yc));
 		}
-	});
-
-	promise.get_future().get();
+	})->Get();
 }
 
 AsioTlsOrTcpStream PerfdataWriterConnection::MakeStream() const

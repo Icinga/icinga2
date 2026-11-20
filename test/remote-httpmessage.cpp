@@ -3,12 +3,12 @@
 
 #include <BoostTestTargetConfig.h>
 #include "base/base64.hpp"
+#include "base/io-engine.hpp"
 #include "base/json.hpp"
 #include "remote/httpmessage.hpp"
 #include "remote/httputility.hpp"
 #include "test/base-tlsstream-fixture.hpp"
 #include "test/test-ctest.hpp"
-#include "test/utils.hpp"
 #include <fstream>
 #include <utility>
 
@@ -31,7 +31,8 @@ BOOST_AUTO_TEST_CASE(request_parse)
 	requestOut.body() = "test";
 	requestOut.prepare_payload();
 
-	auto future = SpawnSynchronizedCoroutine([this, &requestOut](boost::asio::yield_context yc) {
+	auto& io = IoEngine::Get().GetIoContext();
+	auto future = IoEngine::SpawnSyncCoroutine(io, [this, &requestOut](boost::asio::yield_context yc) {
 		boost::beast::flat_buffer buf;
 		HttpApiRequest request(server);
 		BOOST_REQUIRE_NO_THROW(request.ParseHeader(buf, yc));
@@ -50,7 +51,9 @@ BOOST_AUTO_TEST_CASE(request_parse)
 	client->flush();
 
 	Shutdown(client);
-	future.get();
+
+	BOOST_REQUIRE(future->WaitFor(10s));
+	BOOST_REQUIRE_NO_THROW(future->Get());
 }
 
 BOOST_AUTO_TEST_CASE(request_params)
@@ -119,42 +122,45 @@ BOOST_AUTO_TEST_CASE(response_clear)
 
 BOOST_AUTO_TEST_CASE(response_flush_nothrow)
 {
-	auto future = SpawnSynchronizedCoroutine([this](const boost::asio::yield_context& yc) {
+	auto& io = IoEngine::Get().GetIoContext();
+	auto future = IoEngine::SpawnSyncCoroutine(io, [this](const boost::asio::yield_context& yc) {
 		HttpApiResponse response(server);
 		response.result(http::status::ok);
 
 		server->lowest_layer().close();
 
 		boost::beast::error_code ec;
-		BOOST_REQUIRE_NO_THROW(response.Flush(yc[ec]));
-		BOOST_REQUIRE_EQUAL(ec, boost::system::errc::bad_file_descriptor);
+		response.Flush(yc[ec]);
+		return ec;
 	});
 
-	auto status = future.wait_for(std::chrono::seconds(1));
-	BOOST_REQUIRE(status == std::future_status::ready);
+	BOOST_REQUIRE(future->WaitFor(10s));
+	BOOST_REQUIRE_EQUAL(future->Get(), boost::system::errc::bad_file_descriptor);
 }
 
 BOOST_AUTO_TEST_CASE(response_flush_throw)
 {
-	auto future = SpawnSynchronizedCoroutine([this](const boost::asio::yield_context& yc) {
+	auto& io = IoEngine::Get().GetIoContext();
+	auto future = IoEngine::SpawnSyncCoroutine(io, [this](const boost::asio::yield_context& yc) {
 		HttpApiResponse response(server);
 		response.result(http::status::ok);
 
 		server->lowest_layer().close();
 
-		BOOST_REQUIRE_EXCEPTION(response.Flush(yc), std::exception, [](const std::exception& ex) {
-			auto se = dynamic_cast<const boost::system::system_error*>(&ex);
-			return se && se->code() == boost::system::errc::bad_file_descriptor;
-		});
+		response.Flush(yc);
 	});
 
-	auto status = future.wait_for(std::chrono::seconds(1));
-	BOOST_REQUIRE(status == std::future_status::ready);
+	BOOST_REQUIRE(future->WaitFor(10s));
+	BOOST_REQUIRE_EXCEPTION(future->Get(), std::exception, [](const std::exception& ex) {
+		auto se = dynamic_cast<const boost::system::system_error*>(&ex);
+		return se && se->code() == boost::system::errc::bad_file_descriptor;
+	});
 }
 
 BOOST_AUTO_TEST_CASE(response_write_empty)
 {
-	auto future = SpawnSynchronizedCoroutine([this](boost::asio::yield_context yc) {
+	auto& io = IoEngine::Get().GetIoContext();
+	auto future = IoEngine::SpawnSyncCoroutine(io, [this](boost::asio::yield_context yc) {
 		HttpApiResponse response(server);
 		response.result(http::status::ok);
 
@@ -170,7 +176,8 @@ BOOST_AUTO_TEST_CASE(response_write_empty)
 
 	Shutdown(client);
 
-	future.get();
+	BOOST_REQUIRE(future->WaitFor(10s));
+	BOOST_REQUIRE_NO_THROW(future->Get());
 
 	BOOST_REQUIRE(!ec);
 	BOOST_REQUIRE_EQUAL(parser.get().result(), http::status::ok);
@@ -180,7 +187,8 @@ BOOST_AUTO_TEST_CASE(response_write_empty)
 
 BOOST_AUTO_TEST_CASE(response_write_fixed)
 {
-	auto future = SpawnSynchronizedCoroutine([this](boost::asio::yield_context yc) {
+	auto& io = IoEngine::Get().GetIoContext();
+	auto future = IoEngine::SpawnSyncCoroutine(io, [this](boost::asio::yield_context yc) {
 		HttpApiResponse response(server);
 		response.result(http::status::ok);
 		response.body() << "test";
@@ -197,7 +205,8 @@ BOOST_AUTO_TEST_CASE(response_write_fixed)
 
 	Shutdown(client);
 
-	future.get();
+	BOOST_REQUIRE(future->WaitFor(10s));
+	BOOST_REQUIRE_NO_THROW(future->Get());
 
 	BOOST_REQUIRE(!ec);
 	BOOST_REQUIRE_EQUAL(parser.get().result(), http::status::ok);
@@ -207,8 +216,8 @@ BOOST_AUTO_TEST_CASE(response_write_fixed)
 
 BOOST_AUTO_TEST_CASE(response_write_chunked)
 {
-	// NOLINTNEXTLINE(readability-function-cognitive-complexity)
-	auto future = SpawnSynchronizedCoroutine([this](boost::asio::yield_context yc) {
+	auto& io = IoEngine::Get().GetIoContext();
+	auto future = IoEngine::SpawnSyncCoroutine(io, [this](boost::asio::yield_context yc) {
 		HttpApiResponse response(server);
 		response.result(http::status::ok);
 
@@ -236,7 +245,8 @@ BOOST_AUTO_TEST_CASE(response_write_chunked)
 
 	Shutdown(client);
 
-	future.get();
+	BOOST_REQUIRE(future->WaitFor(10s));
+	BOOST_REQUIRE_NO_THROW(future->Get());
 
 	BOOST_REQUIRE(!ec);
 	BOOST_REQUIRE_EQUAL(parser.get().result(), http::status::ok);
@@ -246,7 +256,8 @@ BOOST_AUTO_TEST_CASE(response_write_chunked)
 
 BOOST_AUTO_TEST_CASE(response_sendjsonbody)
 {
-	auto future = SpawnSynchronizedCoroutine([this](boost::asio::yield_context yc) {
+	auto& io = IoEngine::Get().GetIoContext();
+	auto future = IoEngine::SpawnSyncCoroutine(io, [this](boost::asio::yield_context yc) {
 		HttpApiResponse response(server);
 		response.result(http::status::ok);
 
@@ -264,7 +275,8 @@ BOOST_AUTO_TEST_CASE(response_sendjsonbody)
 
 	Shutdown(client);
 
-	future.get();
+	BOOST_REQUIRE(future->WaitFor(10s));
+	BOOST_REQUIRE_NO_THROW(future->Get());
 
 	BOOST_REQUIRE(!ec);
 	BOOST_REQUIRE_EQUAL(parser.get().result(), http::status::ok);
@@ -275,7 +287,8 @@ BOOST_AUTO_TEST_CASE(response_sendjsonbody)
 
 BOOST_AUTO_TEST_CASE(response_sendjsonerror)
 {
-	auto future = SpawnSynchronizedCoroutine([this](boost::asio::yield_context yc) {
+	auto& io = IoEngine::Get().GetIoContext();
+	auto future = IoEngine::SpawnSyncCoroutine(io, [this](boost::asio::yield_context yc) {
 		HttpApiResponse response(server);
 
 		// This has to be overwritten in SendJsonError.
@@ -295,7 +308,8 @@ BOOST_AUTO_TEST_CASE(response_sendjsonerror)
 
 	Shutdown(client);
 
-	future.get();
+	BOOST_REQUIRE(future->WaitFor(10s));
+	BOOST_REQUIRE_NO_THROW(future->Get());
 
 	BOOST_REQUIRE(!ec);
 	BOOST_REQUIRE_EQUAL(parser.get().result(), http::status::not_found);
@@ -307,7 +321,8 @@ BOOST_AUTO_TEST_CASE(response_sendjsonerror)
 
 BOOST_AUTO_TEST_CASE(response_sendfile)
 {
-	auto future = SpawnSynchronizedCoroutine([this](boost::asio::yield_context yc) {
+	auto& io = IoEngine::Get().GetIoContext();
+	auto future = IoEngine::SpawnSyncCoroutine(io, [this](boost::asio::yield_context yc) {
 		HttpApiResponse response(server);
 
 		response.result(http::status::ok);
@@ -324,7 +339,8 @@ BOOST_AUTO_TEST_CASE(response_sendfile)
 
 	Shutdown(client);
 
-	future.get();
+	BOOST_REQUIRE(future->WaitFor(10s));
+	BOOST_REQUIRE_NO_THROW(future->Get());
 
 	BOOST_REQUIRE(!ec);
 	BOOST_REQUIRE_EQUAL(parser.get().result(), http::status::ok);
@@ -339,17 +355,16 @@ BOOST_AUTO_TEST_CASE(response_sendfile)
 
 BOOST_AUTO_TEST_CASE(response_sendfile_invalid_path)
 {
-	auto future = SpawnSynchronizedCoroutine([this](boost::asio::yield_context yc) {
+	auto& io = IoEngine::Get().GetIoContext();
+	auto future = IoEngine::SpawnSyncCoroutine(io, [this](boost::asio::yield_context yc) {
 		HttpApiResponse response(server);
 
 		response.result(http::status::ok);
-		BOOST_REQUIRE_THROW(response.SendFile("", yc), std::ios_base::failure);
+		response.SendFile("", yc);
 	});
 
-	auto status = future.wait_for(10s);
-	if (status != std::future_status::ready) {
-		BOOST_FAIL("Exception not thrown.");
-	}
+	BOOST_REQUIRE(future->WaitFor(10s));
+	BOOST_REQUIRE_THROW(future->Get(), std::ios_base::failure);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

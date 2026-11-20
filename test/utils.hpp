@@ -37,5 +37,3 @@ void ReceiveCheckResults(
 	icinga::ServiceState state,
 	const std::function<void(const icinga::CheckResult::Ptr&)>& fn = {}
 );
-
-std::future<void> SpawnSynchronizedCoroutine(std::function<void(boost::asio::yield_context)> fn);
