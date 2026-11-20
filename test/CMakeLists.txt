@@ -159,6 +159,7 @@ if(ICINGA2_WITH_PERFDATA)
     perfdata-graphitewriter.cpp
     perfdata-influxdbwriter.cpp
     perfdata-opentsdbwriter.cpp
+    perfdata-perfdatawriter.cpp
     perfdata-perfdatawriterconnection.cpp
     $<TARGET_OBJECTS:perfdata>
   )
