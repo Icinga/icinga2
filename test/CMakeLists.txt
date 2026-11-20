@@ -121,6 +121,7 @@ set(base_test_SOURCES
   config-apply.cpp
   config-ops.cpp
   icinga-checkresult.cpp
+  icinga-customvarobject.cpp
   icinga-dependencies.cpp
   icinga-legacytimeperiod.cpp
   icinga-macros.cpp
@@ -128,10 +129,11 @@ set(base_test_SOURCES
   icinga-perfdata.cpp
   methods-pluginnotificationtask.cpp
   remote-certificate-fixture.cpp
-  remote-filterutility.cpp
+  remote-configobjectutility.cpp
   remote-configpackageutility.cpp
-  remote-httpserverconnection.cpp
+  remote-filterutility.cpp
   remote-httpmessage.cpp
+  remote-httpserverconnection.cpp
   remote-httputility.cpp
   remote-url.cpp
   ${base_OBJS}
