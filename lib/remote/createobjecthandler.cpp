@@ -91,10 +91,7 @@ bool CreateObjectHandler::HandleRequest(
 
 	String config;
 
-	bool verbose = false;
-
-	if (params)
-		verbose = HttpUtility::GetLastParameter(params, "verbose");
+	bool verbose = HttpUtility::GetLastParameter(params, "verbose");
 
 	// Generating diagnostic information (including a stack trace) is expensive,
 	// so only do it for users allowed to see it.
