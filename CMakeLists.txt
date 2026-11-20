@@ -201,10 +201,6 @@ include_directories(SYSTEM ${OPENSSL_INCLUDE_DIR})
 set(base_DEPS ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES} Threads::Threads)
 set(base_OBJS $<TARGET_OBJECTS:mmatch> $<TARGET_OBJECTS:socketpair> $<TARGET_OBJECTS:base>)
 
-# JSON
-find_package(JSON)
-include_directories(SYSTEM ${JSON_INCLUDE})
-
 # UTF8CPP
 find_package(UTF8CPP)
 include_directories(SYSTEM ${UTF8CPP_INCLUDE})

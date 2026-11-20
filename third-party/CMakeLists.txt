@@ -4,3 +4,6 @@
 add_subdirectory(mmatch)
 
 add_subdirectory(socketpair)
+
+set(JSON_SystemInclude TRUE)
+add_subdirectory(nlohmann_json)

@@ -8,7 +8,7 @@
 #include "base/array.hpp"
 #include "base/generator.hpp"
 #include <boost/asio/spawn.hpp>
-#include <json.hpp>
+#include <nlohmann/json.hpp>
 
 namespace icinga
 {

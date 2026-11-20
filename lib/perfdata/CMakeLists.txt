@@ -28,6 +28,10 @@ add_library(perfdata OBJECT ${perfdata_SOURCES})
 target_mkclass(perfdata perfdata_generated)
 add_dependencies(perfdata base_generated icinga_generated remote_generated)
 
+target_link_libraries(perfdata PUBLIC
+  nlohmann_json
+)
+
 if(ICINGA2_WITH_OPENTELEMETRY)
   add_dependencies(perfdata otel)
   # All the Protobuf generated files within the otel target use relative include paths that won't be

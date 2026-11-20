@@ -52,6 +52,10 @@ add_library(remote OBJECT ${remote_SOURCES})
 target_mkclass(remote remote_generated)
 add_dependencies(remote base_generated)
 
+target_link_libraries(remote PUBLIC
+  nlohmann_json
+)
+
 set_target_properties (
   remote PROPERTIES
   FOLDER Lib

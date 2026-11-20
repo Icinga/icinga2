@@ -51,6 +51,10 @@ add_library(icinga OBJECT ${icinga_SOURCES})
 target_mkclass(icinga icinga_generated)
 add_dependencies(icinga base_generated remote_generated)
 
+target_link_libraries(icinga PUBLIC
+  nlohmann_json
+)
+
 set_target_properties (
   icinga PROPERTIES
   FOLDER Lib
