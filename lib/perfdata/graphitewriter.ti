@@ -24,8 +24,14 @@ class GraphiteWriter : ConfigObject
 	[config] String service_name_template {
 		default {{{ return "icinga2.$host.name$.services.$service.name$.$service.check_command$"; }}}
 	};
-        [config] bool enable_send_thresholds;
-        [config] bool enable_send_metadata;
+	[config] bool enable_send_thresholds;
+	[config] bool enable_send_metadata;
+	[config] int flush_interval {
+		default {{{ return 15; }}}
+	};
+	[config] std::size_t flush_threshold {
+		default {{{ return 2 * 1024 * 1024; }}}
+	};
 
 	[config] double disconnect_timeout {
 		default {{{ return 10; }}}
