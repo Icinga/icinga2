@@ -60,6 +60,7 @@ public:
 	String& operator=(String&& rhs) noexcept;
 	String& operator=(Value&& rhs);
 	String& operator=(const std::string& rhs);
+	String& operator=(std::string&& rhs) noexcept;
 	String& operator=(const char *rhs);
 
 	const char& operator[](SizeType pos) const;
