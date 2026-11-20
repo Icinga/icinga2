@@ -16,8 +16,8 @@ struct CertificateFixture : ConfigurationDataDirFixture
 	{
 		namespace fs = boost::filesystem;
 
-		m_CaDir = ApiListener::GetCaDir();
-		m_CertsDir = ApiListener::GetCertsDir();
+		m_CaDir = *ApiListener::GetCaDir();
+		m_CertsDir = *ApiListener::GetCertsDir();
 		m_CaCrtFile = m_CertsDir / "ca.crt";
 
 		Utility::MkDirP((m_PersistentCertsDir / "ca").string(), 0700);

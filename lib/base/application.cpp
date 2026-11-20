@@ -532,7 +532,7 @@ String Application::GetExePath(const String& argv0)
 		BOOST_THROW_EXCEPTION(posix_error()
 			<< boost::errinfo_api_function("realpath")
 			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(executablePath));
+			<< boost::errinfo_file_name(~executablePath));
 	}
 
 	return buffer;
@@ -637,7 +637,7 @@ void Application::AttachDebugger(const String& filename, bool interactive)
 				BOOST_THROW_EXCEPTION(posix_error()
 					<< boost::errinfo_api_function("open")
 					<< boost::errinfo_errno(errno)
-					<< boost::errinfo_file_name(filename));
+					<< boost::errinfo_file_name(~filename));
 			}
 
 			if (fd != 1) {

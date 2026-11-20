@@ -268,7 +268,7 @@ std::unique_ptr<Expression> ConfigCompiler::CompileFile(const String& path, cons
 		BOOST_THROW_EXCEPTION(posix_error()
 			<< boost::errinfo_api_function("std::ifstream::open")
 			<< boost::errinfo_errno(errno)
-			<< boost::errinfo_file_name(path));
+			<< boost::errinfo_file_name(~path));
 
 	Log(LogNotice, "ConfigCompiler")
 		<< "Compiling config file: " << path;
@@ -286,7 +286,7 @@ std::unique_ptr<Expression> ConfigCompiler::CompileFile(const String& path, cons
 std::unique_ptr<Expression> ConfigCompiler::CompileText(const String& path, const String& text,
 	const String& zone, const String& package)
 {
-	std::stringstream stream(text);
+	std::stringstream stream(*text);
 	return CompileStream(path, &stream, zone, package);
 }
 
