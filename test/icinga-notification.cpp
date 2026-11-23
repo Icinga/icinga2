@@ -98,6 +98,7 @@ BOOST_AUTO_TEST_CASE(state_filter)
 	Notification::Ptr notification = new Notification();
 
 	notification->SetStateFilter(FilterArrayToInt(states, notification->GetStateFilterMap(), ~0));
+	notification->SetActive(true);
 	notification->Activate();
 	notification->SetAuthority(true);
 
@@ -138,6 +139,7 @@ BOOST_AUTO_TEST_CASE(type_filter)
 	Notification::Ptr notification = new Notification();
 
 	notification->SetTypeFilter(FilterArrayToInt(types, notification->GetTypeFilterMap(), ~0));
+	notification->SetActive(true);
 	notification->Activate();
 	notification->SetAuthority(true);
 
