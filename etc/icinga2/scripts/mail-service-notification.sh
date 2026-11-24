@@ -115,9 +115,6 @@ case "$USEREMAIL" in
         -*) Error "Invalid parameter 'USEREMAIL': must not start with '-'." ;;
 esac
 
-## Build the message's subject
-SUBJECT="[$NOTIFICATIONTYPE] $SERVICEDISPLAYNAME on $HOSTDISPLAYNAME is $SERVICESTATE!"
-
 ## Build the notification message
 NOTIFICATION_MESSAGE=`cat << EOF
 ***** Service Monitoring on $ICINGA2HOST *****
@@ -170,6 +167,9 @@ if [ -n "$ICINGAWEB2URL" ] ; then
 
 $ICINGAWEB2URL/icingadb/service?name=$(urlencode "$SERVICENAME")&host.name=$(urlencode "$HOSTNAME")"
 fi
+
+## Build the message's subject
+SUBJECT="[$NOTIFICATIONTYPE] $SERVICEDISPLAYNAME on $HOSTDISPLAYNAME is $SERVICESTATE!"
 
 ## Check whether verbose mode was enabled and log to syslog.
 if [ "$VERBOSE" = "true" ] ; then
