@@ -80,9 +80,32 @@ case "$DISTRO" in
     export ZYPP_CONF=/tmp/zypp.conf ZYPP_MEDIANETWORK=1
     printf '[main]\ndownload.max_silent_tries = 5\n' > "$ZYPP_CONF"
 
-    zypper in -y --allow-downgrade bison ccache cmake flex gcc-c++ ninja rpm-config-SUSE \
-      {lib{edit,mariadb,openssl},ncurses,postgresql,systemd,protobuf}-devel \
-      libboost_{context,coroutine,filesystem,iostreams,program_options,regex,system,test,thread}-devel
+    case "$DISTRO" in
+      *:15.*)
+        rpm --import https://packages.icinga.com/icinga.key
+        cat > /etc/zypp/repos.d/icinga-build-deps.repo <<'EOF'
+[icinga-build-deps]
+name=Icinga Build Dependencies
+baseurl=https://packages.icinga.com/build-dependencies/sles/$releasever/release
+enabled=1
+gpgcheck=1
+gpgkey=https://packages.icinga.com/icinga.key
+EOF
+        zypper in -y --allow-downgrade gcc14-c++ icinga-boost-devel
+        CMAKE_OPTS+=(-DCMAKE_CXX_COMPILER=g++-14 -DCMAKE_C_COMPILER=gcc-14)
+        # Our Boost lives in its own prefix. Tell CMake where to find it and make
+        # the installed binary find its libraries at runtime (checked by "icinga2 daemon -C" below).
+        icinga_boost="$(rpm -E '%{_libdir}')/icinga-boost"
+        CMAKE_OPTS+=(-DBoost_ROOT="${icinga_boost}/cmake" -DCMAKE_INSTALL_RPATH="$icinga_boost")
+        ;;
+      *)
+        zypper in -y --allow-downgrade gcc-c++ \
+          libboost_{context,coroutine,filesystem,iostreams,program_options,regex,system,test,thread}-devel
+        ;;
+    esac
+
+    zypper in -y --allow-downgrade bison ccache cmake flex ninja rpm-config-SUSE \
+      {lib{edit,mariadb,openssl},ncurses,postgresql,systemd,protobuf}-devel
     ;;
 
   *rockylinux:*)
@@ -94,15 +117,16 @@ case "$DISTRO" in
         # Our Protobuf package on RHEL 8 is built with GCC 13, and since the ABI is not compatible with GCC 8,
         # we need to enable the SCL repository and install the GCC 13 packages to be able to link against it.
         SCL_ENABLE_GCC=(scl enable gcc-toolset-13 --)
-        dnf install --nobest -y gcc-toolset-13-gcc-c++ gcc-toolset-13-annobin-plugin-gcc
+        dnf install --nobest -y boost1.78-devel gcc-toolset-13-gcc-c++ gcc-toolset-13-annobin-plugin-gcc
         ;;
       *)
         dnf config-manager --enable crb
+        dnf install --nobest -y boost-devel
         ;;
     esac
 
     dnf install --nobest -y bison ccache cmake gcc-c++ flex ninja-build redhat-rpm-config \
-      {boost,bzip2,libedit,mariadb,ncurses,openssl,postgresql,systemd,xz,libzstd}-devel
+      {bzip2,libedit,mariadb,ncurses,openssl,postgresql,systemd,xz,libzstd}-devel
 
     # Rocky Linux 8 and 9 don't have a recent enough Protobuf compiler for OTel, so we need to add
     # our repository to install the pre-built Protobuf devel package.
