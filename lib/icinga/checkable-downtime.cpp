@@ -39,7 +39,7 @@ int Checkable::GetDowntimeDepth() const
 	return downtime_depth;
 }
 
-std::set<Downtime::Ptr> Checkable::GetDowntimes() const
+std::unordered_set<Downtime::Ptr> Checkable::GetDowntimes() const
 {
 	std::unique_lock<std::mutex> lock(m_DowntimeMutex);
 	return m_Downtimes;

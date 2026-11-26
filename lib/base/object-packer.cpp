@@ -155,12 +155,12 @@ static inline void PackArray(const Array::Ptr& arr, std::string& builder)
  */
 static inline void PackDictionary(const Dictionary::Ptr& dict, std::string& builder)
 {
-	ObjectLock olock(dict);
+	auto items (dict->GetItems());
 
 	builder += '\6';
-	PackUInt64BE(dict->GetLength(), builder);
+	PackUInt64BE(items.size(), builder);
 
-	for (const Dictionary::Pair& kv : dict) {
+	for (auto& kv : items) {
 		PackString(kv.first, builder);
 		PackAny(kv.second, builder);
 	}
