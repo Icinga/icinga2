@@ -24,7 +24,7 @@ public:
 	static String GetConstantsConfPath();
 	static String GetZonesConfPath();
 
-	static bool CreateBackupFile(const String& target, bool isPrivate = false);
+	static bool CreateBackupFile(const String& target);
 
 	static bool WriteNodeConfigObjects(const String& filename, const Array::Ptr& objects);
 
