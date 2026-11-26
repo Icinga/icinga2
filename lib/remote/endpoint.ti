@@ -40,6 +40,10 @@ class Endpoint : ConfigObject
 	Timestamp last_message_sent;
 	Timestamp last_message_received;
 
+	[no_user_modify, no_storage] uint_fast64_t pending_outgoing_messages {
+		get;
+	};
+
 	[no_user_modify, no_storage] double messages_sent_per_second {
 		get;
 	};
