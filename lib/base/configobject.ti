@@ -77,8 +77,7 @@ abstract class ConfigObject : ConfigObjectBase < ConfigType
 	[get_protected, no_user_modify] bool paused {
 		default {{{ return true; }}}
 	};
-	[get_protected, no_user_view, no_user_modify] bool start_called;
-	[get_protected, no_user_view, no_user_modify] bool stop_called;
+	[get_protected, no_user_view, no_user_modify] bool started;
 	[get_protected, no_user_view, no_user_modify] bool pause_called;
 	[get_protected, no_user_view, no_user_modify] bool resume_called;
 	[enum] HAMode ha_mode (HAMode);

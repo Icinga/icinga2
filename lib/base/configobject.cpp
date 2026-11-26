@@ -358,7 +358,7 @@ void ConfigObject::Start(bool runtimeCreated)
 
 	ObjectLock olock(this);
 
-	SetStartCalled(true);
+	SetStarted(true);
 }
 
 void ConfigObject::PreActivate()
@@ -376,9 +376,13 @@ void ConfigObject::Activate(bool runtimeCreated, const Value& cookie)
 	{
 		ObjectLock olock(this);
 
+		if (!IsActive() || GetStarted()) {
+			return;
+		}
+
 		Start(runtimeCreated);
 
-		ASSERT(GetStartCalled());
+		ASSERT(GetStarted());
 
 		if (GetHAMode() == HARunEverywhere)
 			SetAuthority(true);
@@ -393,7 +397,7 @@ void ConfigObject::Stop(bool runtimeRemoved)
 
 	ObjectLock olock(this);
 
-	SetStopCalled(true);
+	SetStarted(false);
 }
 
 void ConfigObject::Deactivate(bool runtimeRemoved, const Value& cookie)
@@ -408,12 +412,12 @@ void ConfigObject::Deactivate(bool runtimeRemoved, const Value& cookie)
 
 		SetActive(false, true);
 
-		SetAuthority(false);
-
-		Stop(runtimeRemoved);
+		if (GetStarted()) {
+			SetAuthority(false);
+			Stop(runtimeRemoved);
+			ASSERT(!GetStarted());
+		}
 	}
-
-	ASSERT(GetStopCalled());
 
 	NotifyActive(cookie);
 }
@@ -457,6 +461,10 @@ void ConfigObject::SetAuthority(bool authority)
 	ObjectLock olock(this);
 
 	if (authority && GetPaused()) {
+		if (!IsActive() || !GetStarted()) {
+			return;
+		}
+
 		SetResumeCalled(false);
 		Resume();
 		ASSERT(GetResumeCalled());
