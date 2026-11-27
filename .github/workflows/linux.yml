@@ -14,7 +14,7 @@ concurrency:
 jobs:
   linux:
     name: ${{ matrix.distro }}${{ matrix.platform != 'linux/amd64' && format(' ({0})', matrix.platform) || '' }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner || 'ubuntu-latest' }}
 
     strategy:
       fail-fast: false
@@ -60,6 +60,11 @@ jobs:
         include:
           - distro: debian:12
             platform: linux/386
+            # Docker 29.4.2 on ubuntu-26.04 (ubuntu-latest) blocks socketcall(2) in its
+            # default seccomp profile, which breaks networking in i386 glibc containers.
+            # Drop this once the runner image ships Docker >= 29.4.3.
+            # https://github.com/actions/runner-images/issues/14790
+            runner: ubuntu-24.04
 
     steps:
       - name: Checkout HEAD
