@@ -316,6 +316,10 @@ void ConfigObject::RestoreAttribute(const String& attr, bool updateVersion)
 
 
 	} else {
+		// Nothing to restore: the attribute was never modified at runtime.
+		if (!original_attributes->Contains(attr))
+			return;
+
 		newValue = oldValue;
 	}
 
