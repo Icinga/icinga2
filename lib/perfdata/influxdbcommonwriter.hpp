@@ -47,6 +47,7 @@ private:
 	boost::signals2::connection m_HandleCheckResults;
 	Timer::Ptr m_FlushTimer;
 	std::atomic_bool m_FlushTimerInQueue{false};
+	std::atomic<double> m_LastDataTs;
 	WorkQueue m_WorkQueue{10000000, 1};
 	std::vector<String> m_DataBuffer;
 	std::atomic_size_t m_DataBufferSize{0};
